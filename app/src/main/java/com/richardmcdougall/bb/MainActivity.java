@@ -1,3 +1,5 @@
+// jc: testing git commit with update
+
 package com.richardmcdougall.bb;
 
 import android.app.PendingIntent;
