@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);     
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
@@ -314,11 +314,14 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             l("Keycode:" + keyCode);
         }
 
-        if (keyCode == 96) {
-            switchHeadlight.setChecked(true);
+        if (keyCode == 4) {
+            //switchHeadlight.setChecked(true);
+            sendCommand("5,-1;");
         }
-        if (keyCode == 99) {
-            switchHeadlight.setChecked(false);
+        if (keyCode == 66) {
+         //   switchHeadlight.setChecked(false);
+            sendCommand("5,-2;");
+
         }
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
                 == InputDevice.SOURCE_GAMEPAD) {
