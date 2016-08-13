@@ -37,6 +37,28 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import android.os.Environment;
+import 	java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.util.Calendar;
+import android.os.ParcelUuid;
+import java.util.*;
+import java.nio.charset.Charset;
+import android.bluetooth.le.*;
+import android.bluetooth.*;
+import android.text.TextUtils;
+import java.nio.*;
+import android.content.*;
+import java.io.*;
+import java.net.*;
+import android.os.AsyncTask;
+import android.os.PowerManager;
+import android.app.ProgressDialog;
 
 public class MainActivity extends AppCompatActivity implements InputDeviceListener {
 
@@ -50,12 +72,18 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private SerialInputOutputManager mSerialIoManager;
     private BBListenerAdapter mListener = null;
-    private Handler mHandler = new Handler();
+    private Handler mBLEHandler = new Handler();
     private Context mContext;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.MainActivity";
     private InputManagerCompat remoteControl;
     private android.widget.Switch switchHeadlight;
+    private MediaPlayer mediaPlayer = new MediaPlayer();
+    private float vol = 0.02f;
+    private BluetoothLeScanner mBluetoothLeScanner;
+    private Handler mHandler = new Handler();
+    private boolean downloaded = false;
+    private int timeOffset = 0;
 
     int work = 0;
 
@@ -73,9 +101,40 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     int ProgressStatus;
 
 
+
+
+
+    protected void TimeTest() {
+        //Declare the timer
+        Timer t = new Timer();
+        //Set the schedule function and rate
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String tm = Long.toString(Calendar.getInstance().getTimeInMillis());
+                        log.setText(tm);
+                        //l(tm);
+                    }
+
+                });
+            }
+
+        }, 0, 16);
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);     
+        //BLETest();
+
+
+
+        super.onCreate(savedInstanceState);
+        mContext = getApplicationContext();
+        DownloadMusic();
         setContentView(R.layout.activity_main);
 
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
@@ -86,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         log = (EditText) findViewById(R.id.editTextLog);
         voltage.setText("0.0v");
         log.setText("Hello");
+        log.setFocusable(false);
 
         pb = (ProgressBar) findViewById(R.id.progressBar);
         pb.setMax(100);
@@ -119,6 +179,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
             }
         });
+        //TimeTest();
+        if (downloaded)
+            RadioMode();
 
     }
 
@@ -309,6 +372,275 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         l("onInputDeviceRemoved");
     }
 
+    public String GetRadioStreamFile() {
+        //String radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
+        String radioFile = mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
+        return radioFile;
+    }
+
+    private class DownloadTask extends AsyncTask<String, Integer, String> {
+
+        private Context context;
+        private PowerManager.WakeLock mWakeLock;
+
+        public DownloadTask(Context context) {
+            this.context = context;
+        }
+
+
+
+        @Override
+        protected String doInBackground(String... sUrl) {
+            InputStream input = null;
+            OutputStream output = null;
+            HttpURLConnection connection = null;
+            long total = 0;
+            try {
+                URL url = new URL(sUrl[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect();
+                String msg = connection.getResponseMessage().toString();
+
+                // expect HTTP 200 OK, so we don't mistakenly save error report
+                // instead of the file
+                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    return "Server returned HTTP " + connection.getResponseCode()
+                            + " " + connection.getResponseMessage();
+                }
+
+                // this will be useful to display download percentage
+                // might be -1: server did not report the length
+                int fileLength = connection.getContentLength();
+
+                // download the file
+                input = connection.getInputStream();
+
+                String radioFile = GetRadioStreamFile();
+                output = new FileOutputStream(radioFile);
+
+                byte data[] = new byte[4096];
+                int count;
+                int pc = 0;
+                while ((count = input.read(data)) != -1) {
+                    // allow canceling with back button
+                    if (isCancelled()) {
+                        input.close();
+                        return null;
+                    }
+                    total += count;
+                    // publishing the progress....
+                    if (fileLength > 0) // only if total length is known
+                        publishProgress((int) (total * 100 / fileLength));
+                    pc++;
+
+                    output.write(data, 0, count);
+
+                    if ((pc%500)==0)
+                        Log.v(TAG, "Music file is " + total);
+                }
+                downloaded = true;
+            } catch (Exception e) {
+                return e.toString();
+            } finally {
+                try {
+                    if (output != null)
+                        output.close();
+                    if (input != null)
+                        input.close();
+                    Log.v(TAG, "Download finished");
+                } catch (IOException ignored) {
+                }
+
+                if (connection != null)
+                    connection.disconnect();
+            }
+            return null;
+        }
+    }
+
+    public void DownloadMusic() {
+        try {
+
+            File radioStream = new File(GetRadioStreamFile());
+
+            if (!radioStream.exists() || radioStream.length()!=230565240) {
+                long len = radioStream.length();
+
+                //DownloadMusicAsync.execute();
+
+                // declare the dialog as a member field of your activity
+                ProgressDialog mProgressDialog;
+
+                // instantiate it within the onCreate method
+                mProgressDialog = new ProgressDialog(mContext);
+                mProgressDialog.setMessage("A message");
+                mProgressDialog.setIndeterminate(true);
+                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                mProgressDialog.setCancelable(true);
+
+                // execute this when the downloader must be fired
+                final DownloadTask downloadTask = new DownloadTask(mContext);
+                downloadTask.execute("http://jonathanclark.com/bbMusic/radio_stream.mp3");
+
+                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        downloadTask.cancel(true);
+                    }
+                });
+
+            }
+            else {
+                downloaded = true;
+                Log.v(TAG, "Music file is " + radioStream.length());
+            }
+        }
+        catch (Throwable err) {
+            String msg = err.getMessage();
+            System.out.println(msg);
+        }
+
+    }
+
+    public void SeekAndPlay() {
+        Calendar c = Calendar.getInstance();
+        long ms = c.getTimeInMillis() + timeOffset;
+        int lenInMS = mediaPlayer.getDuration();
+
+        long seekOff = ms % lenInMS;
+        mediaPlayer.seekTo((int)seekOff);
+
+        mediaPlayer.start();
+    }
+
+    public void RadioMode() {
+        try {
+            FileInputStream fds = new FileInputStream(GetRadioStreamFile());
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(fds.getFD());
+            fds.close();
+
+            mediaPlayer.setVolume(vol, vol);
+            mediaPlayer.prepare();
+            SeekAndPlay();
+        }
+        catch (Throwable err) {
+            String msg = err.getMessage();
+            System.out.println(msg);
+        }
+    }
+
+    public void BLETest() {
+        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+
+        AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
+                .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
+                .setConnectable( false )
+                .build();
+
+        ParcelUuid pUuid = new ParcelUuid( UUID.randomUUID() );
+                //UUID.fromString( "CDB7950D-73F1-4D4D-8E47-C090502DBD63" ) );
+
+        byte[] mfData = new byte[12];
+        mfData[0] = 'B';     // marker to make sure we aren't looking at other random BLE adverts
+        mfData[1] = 'U';
+        mfData[2] = 'R';
+        mfData[3] = 'N';
+
+        byte[] timeInBytes = ByteBuffer.allocate(8).putLong(Calendar.getInstance().getTimeInMillis()).array();
+        for (int i=0; i<8; i++)
+            mfData[i+4] = timeInBytes[i];
+
+        AdvertiseData data = new AdvertiseData.Builder()
+                .setIncludeDeviceName( true )
+                .addManufacturerData(0, mfData)
+                //.addServiceUuid( pUuid )
+                //.addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
+                .build();
+
+        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
+            @Override
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                super.onStartSuccess(settingsInEffect);
+            }
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
+                super.onStartFailure(errorCode);
+            }
+        };
+
+        advertiser.startAdvertising( settings, data, advertisingCallback );
+
+        mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
+
+        List<ScanFilter> filters = null;
+        ScanSettings settings2 = new ScanSettings.Builder()
+                .setScanMode( ScanSettings.SCAN_MODE_LOW_LATENCY )
+                .build();
+
+        //mBluetoothLeScanner.startScan(filters, settings2, mScanCallback);
+        mBluetoothLeScanner.startScan( mScanCallback);
+
+    }
+
+    private ScanCallback mScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            if( result == null
+                    || result.getDevice() == null
+                    || TextUtils.isEmpty(result.getDevice().getName()) )
+                return;
+
+            byte[] mfData = result.getScanRecord().getManufacturerSpecificData(0);
+            if (mfData!=null && mfData[0] == 'B' && mfData[1]=='U' && mfData[2]=='R' && mfData[3]=='N') {
+
+                long value = ByteBuffer.wrap(mfData,4, 8).getLong();
+                long curTime = Calendar.getInstance().getTimeInMillis();
+                long timeOff = curTime-value;
+                l(Long.toString(timeOff));
+            }
+            else
+                l(result.toString());
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            Log.e( "BLE", "Discovery onScanFailed: " + errorCode );
+            super.onScanFailed(errorCode);
+        }
+    };
+
+    void MusicOffset(int ms) {
+        timeOffset += ms;
+        SeekAndPlay();
+        l("TimeOffset = " + timeOffset);
+/*
+        try {
+            int curPos = mediaPlayer.getCurrentPosition();
+
+            mediaPlayer.seekTo(curPos + ms);
+            Thread.sleep(100, 0);
+            int newPos = mediaPlayer.getCurrentPosition();
+
+            if (newPos - curPos + 100 != ms) {
+                int err = newPos - curPos + 100 - ms;
+                l("Seek error = " + err);
+                mediaPlayer.seekTo(newPos - err);
+            }
+        } catch (Throwable err) {
+        } */
+
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         boolean handled = false;
@@ -316,12 +648,30 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             l("Keycode:" + keyCode);
         }
 
-        if (keyCode == 96) {
-            switchHeadlight.setChecked(true);
+        switch (keyCode) {
+            case 100 : RadioMode(); break;
+            case 20: MusicOffset(-1); break;
+            case 19: MusicOffset(1); break;
+            case 24:   // native volume up button
+            case 21 :
+                vol += 0.01;
+                if (vol>1) vol = 1;
+                mediaPlayer.setVolume(vol, vol);
+                l("Volume " + vol*100.0f + "%");
+                return false;
+            case 25 :  // native volume down button
+            case 22 :
+                vol -= 0.01;
+                if (vol<0) vol = 0;
+                mediaPlayer.setVolume(vol, vol);
+                l("Volume " + vol*100.0f + "%");
+                return false;
+            case 96 : switchHeadlight.setChecked(true); break;
+            case 99 : switchHeadlight.setChecked(false); break;
+
         }
-        if (keyCode == 99) {
-            switchHeadlight.setChecked(false);
-        }
+
+
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
                 == InputDevice.SOURCE_GAMEPAD) {
 
@@ -329,6 +679,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 return true;
             }
         }
+
+
+        mHandler.removeCallbacksAndMessages(null);
+
 //        return super.onKeyDown(keyCode, event);
         return true;
 
