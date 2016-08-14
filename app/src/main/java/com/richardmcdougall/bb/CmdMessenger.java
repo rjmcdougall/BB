@@ -70,8 +70,14 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     public CmdMessenger(UsbSerialPort Sport, final char fld_separator,
                         final char cmd_separator, final char esc_character) {
         print_newlines = false;
-        commandBuffer.reset();
+        commandBuffer = new ByteArrayOutputStream();
+//        commandBuffer.reset();
         pauseProcessing = false;
+
+        field_separator = (byte)fld_separator;
+        command_separator = (byte)cmd_separator;
+        escape_character = (byte)esc_character;
+
 
         Serial = Sport;
 
@@ -262,7 +268,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         if (startCommand) {
             printByte(command_separator);
             if (print_newlines)
-                printByte((byte) 0x10); // should append BOTH \r\n
+                printStr("\r\n".getBytes()); // should append BOTH \r\n
             if (reqAc) {
                 ackReply = blockedTillReply(timeout, ackCmdId);
             }
@@ -560,7 +566,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
         @Override
         public void run() {
-            if (mStr != null) default_callback.CmdAction(">>>USB " + mStr);
+            if (mStr != null) default_callback.CmdAction(">>>USB " + mStr + "\n");
             return;
         }
 
@@ -570,6 +576,10 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     @Override
     public void onNewData(byte[] data) {
         if (data.length > 0) {
+
+            System.out.println("Received " + data.length + "bytes: " + new String (data/'
+
+            \                                                                                                                                       '));
 
             synchronized (mPipedInputStream) {
                 for (int i = 0; i < data.length; i++) {
@@ -685,10 +695,10 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         // if command attached, we will call it
         if (lastCommandId >= 0 && lastCommandId <= callbackList.size() && ArgOk) {
             callback = callbackList.get(lastCommandId);
-            callback.CmdAction("default callback");
+            callback.CmdAction("callback cmd: " + lastCommandId);
         } else {// If command not attached, call default callback (if attached)
             if (default_callback != null)
-                default_callback.CmdAction("default callback");
+                default_callback.CmdAction("default callback\n");
         }
 
     }

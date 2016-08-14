@@ -112,7 +112,9 @@
         android:maxLines="4"
         android:minLines="4"
         android:layout_gravity="top"
-        android:layout_weight="1.03" />
+        android:layout_weight="1.03"
+        android:nestedScrollingEnabled="true"
+        android:scrollIndicators="right" />
 
 
 </LinearLayout>

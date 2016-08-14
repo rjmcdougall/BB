@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         status = (TextView) findViewById(R.id.textViewStatus);
         log = (EditText) findViewById(R.id.editTextLog);
         voltage.setText("0.0v");
-        log.setText("Hello");
+        log.append("Hello");
 
         pb = (ProgressBar) findViewById(R.id.progressBar);
         pb.setMax(100);
@@ -99,15 +99,15 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 if (isChecked == true) {
                     //sendCommand("2,1;");
                     if (mListener != null) {
-                        l("sendCommand: 2,1");
-                        mListener.sendCmdStart(2);
+                        l("sendCommand: 3,1");
+                        mListener.sendCmdStart(3);
                         mListener.sendCmdArg(1);
                         mListener.sendCmdEnd();
                     }
                 } else {
                     if (mListener != null) {
-                        l("sendCommand: 2,1");
-                        mListener.sendCmdStart(2);
+                        l("sendCommand: 3,0");
+                        mListener.sendCmdStart(3);
                         mListener.sendCmdArg(0);
                         mListener.sendCmdEnd();
                     }
@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     public void l(String s) {
         Log.v(TAG, s);
-        log.setText(s);
+        log.append(s + "\r\n");
     }
 
     //public void sendCommand(String s) {

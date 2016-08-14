@@ -26,7 +26,9 @@
 #define DUE 1
 #endif
 
+
 #define NSIDELIGHTS 79
+// smallboard has 57
 //#define NSIDELIGHTS 57
 
 // PINS
@@ -65,7 +67,8 @@ uint8_t ledn[8];
 #define MOT_PIN A1
 #ifdef MEGA
 #define REMOTE_PIN A10
-#define LRELAY_PIN 36
+//#define LRELAY_PIN 36
+#define LRELAY_PIN 13
 #define SRELAY_PIN 42
 #define SRELAY_PIN 42
 
@@ -247,6 +250,10 @@ void mydelay(uint32_t del) {
         board_mode = 9;
       clearScreen();
       sprintf(mode, "%d", board_mode);
+      // Tell android of new mode
+      cmdMessenger.sendCmdStart(BBsetmode);
+      cmdMessenger.sendCmdArg(mode);
+      cmdMessenger.sendCmdEnd();
       strip->print(mode, 35, 1, 1);
       strip->show();
       del = 300;
