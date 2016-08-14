@@ -49,8 +49,6 @@ import java.util.Calendar;
 import android.os.ParcelUuid;
 import java.util.*;
 import java.nio.charset.Charset;
-import android.bluetooth.le.*;
-import android.bluetooth.*;
 import android.text.TextUtils;
 import java.nio.*;
 import android.content.*;
@@ -58,7 +56,7 @@ import java.io.*;
 import java.net.*;
 import android.os.AsyncTask;
 import android.os.PowerManager;
-import android.app.ProgressDialog;
+import android.app.*;
 
 public class MainActivity extends AppCompatActivity implements InputDeviceListener {
 
@@ -79,11 +77,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private InputManagerCompat remoteControl;
     private android.widget.Switch switchHeadlight;
     private MediaPlayer mediaPlayer = new MediaPlayer();
-    private float vol = 0.02f;
-    private BluetoothLeScanner mBluetoothLeScanner;
+    private float vol = 0.10f;
     private Handler mHandler = new Handler();
     private boolean downloaded = false;
-    private int timeOffset = 0;
+    public int BLETimeOffset = 0;
+    private int userTimeOffset = 0;
+    private BLEClientServer mClientServer;
 
     int work = 0;
 
@@ -100,8 +99,35 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private Handler pHandler = new Handler();
     int ProgressStatus;
 
+    public long GetCurrentClock() {
+        //return System.nanoTime()/1000000;
+        return Calendar.getInstance().getTimeInMillis();
+    }
 
+    public long CurrentClockAdjusted() {
+        return GetCurrentClock() + BLETimeOffset;
+        //return Calendar.getInstance().getTimeInMillis()
+    }
 
+    public void AverageClockWithOther(long curClockDrift, long avgClockDrift, long otherOffset) {
+        long curClock= GetCurrentClock();
+
+        Log.i(TAG, "Clock drift " + curClockDrift + " avgDrift = " + avgClockDrift);
+
+        long curTime = CurrentClockAdjusted();
+
+        long suggestedNewBLE = avgClockDrift/2;
+        long adjAmount = Math.abs(BLETimeOffset-suggestedNewBLE);
+
+        if (adjAmount>1)
+        {
+            long lastOff = BLETimeOffset;
+            BLETimeOffset = (int)(suggestedNewBLE);
+            SeekAndPlay();
+            Log.i(TAG, "time offset change of = " + (BLETimeOffset-lastOff));
+        }
+
+    }
 
 
     protected void TimeTest() {
@@ -126,14 +152,16 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     }
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //BLETest();
-
-
 
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
+
+        mClientServer = new BLEClientServer(mContext, this);
+        mClientServer.onCreate();
+
         DownloadMusic();
         setContentView(R.layout.activity_main);
 
@@ -179,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
             }
         });
+
         //TimeTest();
         if (downloaded)
             RadioMode();
@@ -188,6 +217,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onResume() {
         super.onResume();
+        mClientServer.onResume();
 
 //        loadPrefs();
 
@@ -199,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onPause() {
         super.onPause();
+        mClientServer.onPause();
         mHandler.removeCallbacksAndMessages(null);
 
 //        savePrefs();
@@ -503,14 +534,26 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
     public void SeekAndPlay() {
-        Calendar c = Calendar.getInstance();
-        long ms = c.getTimeInMillis() + timeOffset;
-        int lenInMS = mediaPlayer.getDuration();
+        try {
+            long ms = CurrentClockAdjusted() + userTimeOffset;
+            int lenInMS = mediaPlayer.getDuration();
 
-        long seekOff = ms % lenInMS;
-        mediaPlayer.seekTo((int)seekOff);
+            long seekOff = ms % lenInMS;
+            mediaPlayer.seekTo((int) seekOff);
+            mediaPlayer.start();
 
-        mediaPlayer.start();
+/*            Thread.sleep(10);
+            int newOff = mediaPlayer.getDuration();
+            long err = newOff-seekOff-100;
+
+            mediaPlayer.seekTo((int)(newOff - err));
+            l("SeekError " + err);  */
+
+
+        } catch (Throwable thr_err) {
+
+        }
+
     }
 
     public void RadioMode() {
@@ -530,115 +573,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
     }
 
-    public void BLETest() {
-        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
-
-        AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
-                .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
-                .setConnectable( false )
-                .build();
-
-        ParcelUuid pUuid = new ParcelUuid( UUID.randomUUID() );
-                //UUID.fromString( "CDB7950D-73F1-4D4D-8E47-C090502DBD63" ) );
-
-        byte[] mfData = new byte[12];
-        mfData[0] = 'B';     // marker to make sure we aren't looking at other random BLE adverts
-        mfData[1] = 'U';
-        mfData[2] = 'R';
-        mfData[3] = 'N';
-
-        byte[] timeInBytes = ByteBuffer.allocate(8).putLong(Calendar.getInstance().getTimeInMillis()).array();
-        for (int i=0; i<8; i++)
-            mfData[i+4] = timeInBytes[i];
-
-        AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName( true )
-                .addManufacturerData(0, mfData)
-                //.addServiceUuid( pUuid )
-                //.addServiceData( pUuid, "Data".getBytes( Charset.forName( "UTF-8" ) ) )
-                .build();
-
-        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
-            @Override
-            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                super.onStartSuccess(settingsInEffect);
-            }
-
-            @Override
-            public void onStartFailure(int errorCode) {
-                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
-                super.onStartFailure(errorCode);
-            }
-        };
-
-        advertiser.startAdvertising( settings, data, advertisingCallback );
-
-        mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
-
-        List<ScanFilter> filters = null;
-        ScanSettings settings2 = new ScanSettings.Builder()
-                .setScanMode( ScanSettings.SCAN_MODE_LOW_LATENCY )
-                .build();
-
-        //mBluetoothLeScanner.startScan(filters, settings2, mScanCallback);
-        mBluetoothLeScanner.startScan( mScanCallback);
-
-    }
-
-    private ScanCallback mScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            if( result == null
-                    || result.getDevice() == null
-                    || TextUtils.isEmpty(result.getDevice().getName()) )
-                return;
-
-            byte[] mfData = result.getScanRecord().getManufacturerSpecificData(0);
-            if (mfData!=null && mfData[0] == 'B' && mfData[1]=='U' && mfData[2]=='R' && mfData[3]=='N') {
-
-                long value = ByteBuffer.wrap(mfData,4, 8).getLong();
-                long curTime = Calendar.getInstance().getTimeInMillis();
-                long timeOff = curTime-value;
-                l(Long.toString(timeOff));
-            }
-            else
-                l(result.toString());
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            Log.e( "BLE", "Discovery onScanFailed: " + errorCode );
-            super.onScanFailed(errorCode);
-        }
-    };
 
     void MusicOffset(int ms) {
-        timeOffset += ms;
+        userTimeOffset += ms;
         SeekAndPlay();
-        l("TimeOffset = " + timeOffset);
-/*
-        try {
-            int curPos = mediaPlayer.getCurrentPosition();
-
-            mediaPlayer.seekTo(curPos + ms);
-            Thread.sleep(100, 0);
-            int newPos = mediaPlayer.getCurrentPosition();
-
-            if (newPos - curPos + 100 != ms) {
-                int err = newPos - curPos + 100 - ms;
-                l("Seek error = " + err);
-                mediaPlayer.seekTo(newPos - err);
-            }
-        } catch (Throwable err) {
-        } */
-
+        l("UserTimeOffset = " + userTimeOffset);
     }
 
     @Override
@@ -650,7 +589,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         switch (keyCode) {
             case 100 : RadioMode(); break;
+            case 97:
             case 20: MusicOffset(-1); break;
+
+            case 99:
             case 19: MusicOffset(1); break;
             case 24:   // native volume up button
             case 21 :
@@ -667,7 +609,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 l("Volume " + vol*100.0f + "%");
                 return false;
             case 96 : switchHeadlight.setChecked(true); break;
-            case 99 : switchHeadlight.setChecked(false); break;
+            //case 99 : switchHeadlight.setChecked(false); break;
 
         }
 
