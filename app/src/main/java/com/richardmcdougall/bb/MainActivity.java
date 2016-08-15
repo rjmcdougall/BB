@@ -32,6 +32,8 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
+import com.richardmcdougall.bb.CmdMessenger.CmdEvents;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -69,8 +71,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private static UsbSerialDriver mDriver = null;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private SerialInputOutputManager mSerialIoManager;
-    private BBListenerAdapter mListener = null;
     private Handler mBLEHandler = new Handler();
+    //private BBListenerAdapter mListener = null;
+    private CmdMessenger mListener = null;
+    private Handler mHandler = new Handler();
     private Context mContext;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.MainActivity";
@@ -78,7 +82,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private android.widget.Switch switchHeadlight;
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private float vol = 0.10f;
-    private Handler mHandler = new Handler();
     private boolean downloaded = false;
     public int BLETimeOffset = 0;
     private int userTimeOffset = 0;
@@ -183,9 +186,20 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked == true) {
-                    sendCommand("2,1;");
+                    //sendCommand("2,1;");
+                    if (mListener != null) {
+                        l("sendCommand: 3,1");
+                        mListener.sendCmdStart(3);
+                        mListener.sendCmdArg(1);
+                        mListener.sendCmdEnd();
+                    }
                 } else {
-                    sendCommand("2,0;");
+                    if (mListener != null) {
+                        l("sendCommand: 3,0");
+                        mListener.sendCmdStart(3);
+                        mListener.sendCmdArg(0);
+                        mListener.sendCmdEnd();
+                    }
                 }
                 // Start lengthy operation in a background thread
                 work = 0;
@@ -312,10 +326,24 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         status.setText("Connected");
         if (sPort != null) {
             l("Starting io manager ..");
-            mListener = new BBListenerAdapter(this);
+            //mListener = new BBListenerAdapter();
+            mListener = new CmdMessenger(sPort, ',',';','\\');
             mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
             mExecutor.submit(mSerialIoManager);
+
+            // attach default cmdMessenger callback
+            ArdunioCallbackDefault defaultCallback = new ArdunioCallbackDefault();
+            mListener.attach(defaultCallback);
+
+            // attach Test cmdMessenger callback
+            ArdunioCallbackDefault testCallback = new ArdunioCallbackDefault();
+            mListener.attach(1, testCallback);
+
         }
+    }
+
+    private void cmd_default(String arg) {
+
     }
 
     private void onDeviceStateChange() {
@@ -340,12 +368,19 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         } catch (IOException e) {
             l("sendCommand err:" + e.getMessage());
         }
+        log.append(s + "\r\n");
     }
 
-    public void receiveCommand(String s) {//refresh and add string 's'
-        l("receiveCommand :" + s);
+    //public void sendCommand(String s) {
+   //     l("sendCommand:" + s);
+    //    mListener.sendCmd()
 
-    }
+        //try {
+        //    if (sPort != null) sPort.write(s.getBytes(), 200);
+        //} catch (IOException e) {
+        //    l("sendCommand err:" + e.getMessage());
+       // }
+    //}
 
     private PermissionReceiver mPermissionReceiver = new PermissionReceiver();
     private class PermissionReceiver extends BroadcastReceiver {
@@ -593,28 +628,50 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
 
         switch (keyCode) {
-            case 100 : RadioMode(); break;
+            case 100:
+                RadioMode();
+                break;
             case 97:
-            case 20: MusicOffset(-1); break;
+            case 20:
+                MusicOffset(-1);
+                break;
 
             case 99:
-            case 19: MusicOffset(1); break;
+            case 19:
+                MusicOffset(1);
+                break;
             case 24:   // native volume up button
-            case 21 :
+            case 21:
                 vol += 0.01;
-                if (vol>1) vol = 1;
+                if (vol > 1) vol = 1;
                 mediaPlayer.setVolume(vol, vol);
-                l("Volume " + vol*100.0f + "%");
+                l("Volume " + vol * 100.0f + "%");
                 return false;
-            case 25 :  // native volume down button
-            case 22 :
+            case 25:  // native volume down button
+            case 22:
                 vol -= 0.01;
-                if (vol<0) vol = 0;
+                if (vol < 0) vol = 0;
                 mediaPlayer.setVolume(vol, vol);
-                l("Volume " + vol*100.0f + "%");
+                l("Volume " + vol * 100.0f + "%");
                 return false;
-            case 96 : switchHeadlight.setChecked(true); break;
+            case 96:
+                switchHeadlight.setChecked(true);
+                break;
             //case 99 : switchHeadlight.setChecked(false); break;
+        }
+
+        if (keyCode == 4) {
+            //sendCommand("5,-1;");
+            mListener.sendCmdStart(5);
+            mListener.sendCmdArg(-1);
+            mListener.sendCmdEnd();
+        }
+        if (keyCode == 66) {
+            //sendCommand("5,-2;");
+            l("sendCommand: 5,-2");
+            mListener.sendCmdStart(5);
+            mListener.sendCmdArg(-2);
+            mListener.sendCmdEnd();
 
         }
 
@@ -632,6 +689,22 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 //        return super.onKeyDown(keyCode, event);
         return true;
+
+    }
+
+    public class ArdunioCallbackDefault implements CmdEvents {
+
+        public void CmdAction(String str){
+            l("ardunio default callback:" + str);
+        }
+
+    }
+
+    public class ArdunioCallbackTest implements CmdEvents {
+
+        public void CmdAction(String str){
+            l("ardunio test callback:" + str);
+        }
 
     }
 
