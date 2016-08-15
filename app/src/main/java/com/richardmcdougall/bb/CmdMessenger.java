@@ -584,7 +584,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                     try {
                         mPipedOutputStream.write(data[i]);
                         mPipedOutputStream.flush();
-                        if (data[i] == 10) {//newline
+                        if (data[i] ==  10 || data[i] == command_separator) {//newline
                             readLineInNewThread();//read newline and forward to application
                         }
 
@@ -640,11 +640,13 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         @Override
         public void run() {
             String msg = readLine();//readLine should be in new thread according to pipeline documentation
-            if (msg != null)
+            System.out.print("processmessagerunnable\n");
+            if (msg != null && msg != "") {
                 streamBuffer = new ByteArrayInputStream(msg.getBytes());
-            while (streamBuffer.available() > 0) {
-                if (processLine() == kEndOfMessage) {
-                    handleMessage();
+                while (streamBuffer.available() > 0) {
+                    if (processLine() == kEndOfMessage) {
+                        handleMessage();
+                    }
                 }
             }
         }
@@ -701,8 +703,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     }
 
-
     void onDestroy() {
+
         mHandler.removeCallbacks(null);
     }
 

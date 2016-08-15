@@ -87,7 +87,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         status = (TextView) findViewById(R.id.textViewStatus);
         log = (EditText) findViewById(R.id.editTextLog);
         voltage.setText("0.0v");
-        log.append("Hello");
 
         pb = (ProgressBar) findViewById(R.id.progressBar);
         pb.setMax(100);

@@ -38,12 +38,15 @@
 //- ID Pins 22, 23, 24, 25
 //  connect inverted - ground the 1's
 //  - 0, rmc - 0,0,0,0 - none
-//  - 1, woodson - 0,0,0, 1 - 25
-//  - 2, ric - 0,0,1,0 - 24
-//  - 3, james - 0,0,1,1 - 24, 25
+//  - 1, rmc - 0,0,0,1 - 25
+//  - 2, woodson - 0,0,1,0 - 24
+//  - 3, ric - 0,0,1,1 - 24, 25
 //  - 4, steve - 0,1,0,0 - 23
-//  - 5, joon - 0,1,0,1 - 23, 25
-//  - 6, steve x - 0,1,1,0 - 23, 24
+//  - 5, steve - 0,1,0,1 - 23, 25
+//  - 6, joon x - 0,1,1,0 - 23, 24
+//  - 7, james x - 0,1,1,1 - 23, 24
+//  - 8, richard x - 1,0,0,0 - 22
+//  - 9, jonathan x - 1,0,0,1 - 22,25
   
 
 uint16_t boardId = 0;
@@ -188,7 +191,9 @@ char *boards[] = {
   "GOOFY", 
   "STEVE", 
   "JOON",
-  "ARTEMIS"};
+  "ARTEMIS",
+  "BISCUIT",
+  "SQUEEZE"};
   
 char *names[] = {
   "RICHARD",
@@ -198,7 +203,9 @@ char *names[] = {
   "STEVE", 
   "STEVE", 
   "JOON",
-  "JAMES"};
+  "JAMES"
+  "RICHARD",
+  "JONATHAN"};
 
 
 int32_t audio_level = 0;
@@ -241,8 +248,8 @@ void mydelay(uint32_t del) {
     delay(1);
     enc = read_encoder();
     if (enc) {
-      Serial.print("Counter value: ");
-      Serial.println(board_mode, DEC);
+//     Serial.print("Counter value: ");
+//    Serial.println(board_mode, DEC);
       board_mode += enc;
       if (board_mode < 0)
         board_mode = 0;
