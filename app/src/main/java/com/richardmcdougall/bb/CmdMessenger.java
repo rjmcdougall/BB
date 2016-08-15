@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,7 +26,7 @@ import java.util.HashMap;
  */
 public class CmdMessenger implements SerialInputOutputManager.Listener {
 
-    static final int MESSENGERBUFFERSIZE = 64;   // The length of the commandbuffer  (default: 64)
+    static final int MESSENGERBUFFERSIZE = 64;   // The length of the commandBufferTmpIn  (default: 64)
     static final int DEFAULT_TIMEOUT = 5000; // Time out on unanswered messages. (default: 5s)
     public final static String TAG = "CmdListener";
 
@@ -34,7 +35,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     char ArglastChar;                 // Bookkeeping of argument escape char
     boolean pauseProcessing;          // pauses processing of new commands, during sending
     boolean print_newlines;           // Indicates if \r\n should be added after send command
-    ByteArrayOutputStream commandBuffer; // Buffer that holds the data
+    ByteArrayOutputStream commandBufferTmp; // Buffer that holds the data
+    ByteArrayInputStream commandBuffer; // Buffer that holds the data
     ByteArrayInputStream streamBuffer; // Buffer that holds the data
     byte messageState;                // Current state of message processing
     boolean dumped;                   // Indicates if last argument has been externally read
@@ -54,7 +56,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     private Handler mHandler;
     PipedInputStream mPipedInputStream;
     PipedOutputStream mPipedOutputStream;
-    private Runnable mReadLineRunnable;
+    private Runnable mProcessMessageRunnable;
     private Runnable mLogLineRunnable;
     private BufferedReader mBufferedReader;
     InputStreamReader mInputStreamReader;
@@ -70,8 +72,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     public CmdMessenger(UsbSerialPort Sport, final char fld_separator,
                         final char cmd_separator, final char esc_character) {
         print_newlines = false;
-        commandBuffer = new ByteArrayOutputStream();
-//        commandBuffer.reset();
+        commandBufferTmp = new ByteArrayOutputStream();
+//        commandBufferTmp.reset();
         pauseProcessing = false;
 
         field_separator = (byte)fld_separator;
@@ -427,11 +429,11 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         int ch;
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        while (streamBuffer.available() > 0) {
-            ch = streamBuffer.read();
+        while (commandBuffer.available() > 0) {
+            ch = commandBuffer.read();
             boolean escaped = (ch == escape_character);
-            if (escaped && streamBuffer.available() > 0) {
-                ch = streamBuffer.read();
+            if (escaped && commandBuffer.available() > 0) {
+                ch = commandBuffer.read();
             }
             if (ch != delim) {
                 outputStream.write(ch);
@@ -584,16 +586,21 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                     try {
                         mPipedOutputStream.write(data[i]);
                         mPipedOutputStream.flush();
-                        if (data[i] ==  10 || data[i] == command_separator) {//newline
-                            readLineInNewThread();//read newline and forward to application
+                        // for some reason, readline blocks after ready if no carriage-return
+                        if (data[i] == command_separator) {
+                            mPipedOutputStream.write(10);
+                            mPipedOutputStream.flush();
+                        }
+                        if ((data[i] ==  10) || (data[i] == command_separator)) {//newline
+                            ProcessMessageInNewThread();//read newline and forward to application
                         }
 
-                        if (data[i] == 0) {
-                            //if we receive data 0, it is definitely binary data. so send the Arduino program 'r' commmand to switch to 'r'eadable
-                            Serial.write("binary".getBytes(), 200);
-                            //SerialInputOutputManager comms = this;
-                            break;
-                        }
+                        //if (data[i] == 0) {
+                        //    //if we receive data 0, it is definitely binary data. so send the Arduino program 'r' commmand to switch to 'r'eadable
+                        //   Serial.write("binary".getBytes(), 200);
+                        //    //SerialInputOutputManager comms = this;
+                        //    break;
+                        //}
 
                     } catch (Exception e) {
                         e("onNewData.write failed");
@@ -606,9 +613,38 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
     //----------------------------------
-    public void readLineInNewThread() {
-        mReadLineRunnable = new ProcessMessageRunnable();
-        mHandler.post(mReadLineRunnable);
+    public void ProcessMessageInNewThread() {
+        mProcessMessageRunnable = new ProcessMessageRunnable();
+        mHandler.post(mProcessMessageRunnable);
+        //Thread myThread = new Thread(new ProcessMessageRunnable());
+        //myThread.start();
+    }
+
+
+
+    // **** Command processing ****
+
+    /**
+     * Processes bytes and determines message state
+     * Reads the streamBuffer and fills a commandBufferTmp for each message
+     * Calls handleMessage()
+     */
+    class ProcessMessageRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            String msg = readLine();//readLine should be in new thread according to pipeline documentation
+            //System.out.print("processmessagerunnable\n");
+            if (msg != null && msg != "") {
+                streamBuffer = new ByteArrayInputStream(msg.getBytes());
+                while (streamBuffer.available() > 0) {
+                    if (processLine() == kEndOfMessage) {
+                        commandBuffer = new ByteArrayInputStream(commandBufferTmp.toByteArray());
+                        handleMessage();
+                    }
+                }
+            }
+        }
     }
 
     public String readLine() {
@@ -628,30 +664,6 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     }
 
-    // **** Command processing ****
-
-    /**
-     * Processes bytes and determines message state
-     * Reads the streamBuffer and fills a commandBuffer for each message
-     * Calls handleMessage()
-     */
-    class ProcessMessageRunnable implements Runnable {
-
-        @Override
-        public void run() {
-            String msg = readLine();//readLine should be in new thread according to pipeline documentation
-            System.out.print("processmessagerunnable\n");
-            if (msg != null && msg != "") {
-                streamBuffer = new ByteArrayInputStream(msg.getBytes());
-                while (streamBuffer.available() > 0) {
-                    if (processLine() == kEndOfMessage) {
-                        handleMessage();
-                    }
-                }
-            }
-        }
-    }
-
 
     int processLine() {
         int ch;
@@ -668,15 +680,15 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 ch = streamBuffer.read();
             }
             if ((ch == command_separator) && !escaped) {
-                if (commandBuffer.size() > 0) {
+                if (commandBufferTmp.size() > 0) {
                     messageState = kEndOfMessage;
                 }
-                commandBuffer.reset();
+                //commandBufferTmp.reset();
                 dumped = true;
             } else {
-                commandBuffer.write(ch);
-                if (commandBuffer.size() == MESSENGERBUFFERSIZE) {
-                    commandBuffer.reset();
+                commandBufferTmp.write(ch);
+                if (commandBufferTmp.size() == MESSENGERBUFFERSIZE) {
+                    commandBufferTmp.reset();
                     dumped = true;
                 }
             }
