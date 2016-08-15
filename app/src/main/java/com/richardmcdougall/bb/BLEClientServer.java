@@ -274,6 +274,9 @@ public class BLEClientServer  {
                                               BluetoothGattCharacteristic characteristic,
                                               int status) {
                 byte[] val = characteristic.getValue();
+                if (val == null)
+                    return ;
+
                 String s = "";
                 for (int i=0; i<val.length; i++) {
                     s += " " + (val[i]&0xff);
@@ -304,7 +307,10 @@ public class BLEClientServer  {
 
                 try {
                     if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                        RemoveDevice(gatt.getDevice().toString());
+                        RecentDeviceList d = FindDevice(gatt.getDevice().toString());
+                        if (d != null)
+                            d.SetState(connectionState.NOT_CONNECTED);
+                        //RemoveDevice(gatt.getDevice().toString());
                     } else if (newState == BluetoothGatt.STATE_CONNECTED) {
                         RecentDeviceList d = FindDevice(gatt.getDevice().toString());
                         if (d != null) {

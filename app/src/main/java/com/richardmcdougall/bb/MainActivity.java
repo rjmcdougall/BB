@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public void AverageClockWithOther(long curClockDrift, long avgClockDrift, long otherOffset) {
         long curClock= GetCurrentClock();
 
-        Log.i(TAG, "Clock drift " + curClockDrift + " avgDrift = " + avgClockDrift);
+        l("Clock drift " + curClockDrift + " avgDrift = " + avgClockDrift);
 
         long curTime = CurrentClockAdjusted();
 
@@ -323,9 +323,14 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         startIoManager();
     }
 
-    public void l(String s) {
+    public void l(final String s) {
         Log.v(TAG, s);
-        log.setText(s);
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              log.setText(s);
+                          }
+                      });
     }
 
     public void sendCommand(String s) {
