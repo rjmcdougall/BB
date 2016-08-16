@@ -172,7 +172,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             default:
                 if (dumped)
                     currentArg = getArg(field_separator);
-                if (streamBuffer.available() > 0) {
+                if (commandBuffer.available() > 0) {
                     dumped = true;
                     return true;
                 }
@@ -318,7 +318,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         if (next()) {
             dumped = true;
             ArgOk = true;
-            return Integer.parseInt(currentArg.toString());
+            return Integer.parseInt(new String(currentArg));
         }
         ArgOk = false;
         return 0;
@@ -352,7 +352,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             dumped = true;
             ArgOk = true;
             //return atof(current);
-            return Float.parseFloat(currentArg.toString());
+            return Float.parseFloat(new String(currentArg));
         }
         ArgOk = false;
         return 0;
@@ -365,7 +365,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         if (next()) {
             dumped = true;
             ArgOk = true;
-            return Double.parseDouble(currentArg.toString());
+            return Double.parseDouble(new String(currentArg));
         }
         ArgOk = false;
         return 0;
@@ -391,7 +391,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      */
     int compareStringArg(String string) {
         if (next()) {
-            if (string.compareTo(currentArg.toString()) == 0) {
+            if (string.compareTo(new String(currentArg)) == 0) {
                 dumped = true;
                 ArgOk = true;
                 return 1;
@@ -426,10 +426,10 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Note that this is basically strtok_r, but with support for an escape character
      */
     byte[] getArg(final int delim) {
-        int ch;
+        int ch = 0;
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        while (commandBuffer.available() > 0) {
+        while (commandBuffer.available() > 0 && ch != delim) {
             ch = commandBuffer.read();
             boolean escaped = (ch == escape_character);
             if (escaped && commandBuffer.available() > 0) {
@@ -688,7 +688,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             } else {
                 commandBufferTmp.write(ch);
                 if (commandBufferTmp.size() == MESSENGERBUFFERSIZE) {
-                    commandBufferTmp.reset();
+                    //commandBufferTmp.reset();
                     dumped = true;
                 }
             }
@@ -705,8 +705,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
         lastCommandId = readIntArg();
         // if command attached, we will call it
-        if (lastCommandId >= 0 && lastCommandId <= callbackList.size() && ArgOk) {
-            callback = callbackList.get(lastCommandId);
+        if (lastCommandId >= 0 && ((callback = callbackList.get(lastCommandId)) != null) && ArgOk) {
             callback.CmdAction("callback cmd: " + lastCommandId);
         } else {// If command not attached, call default callback (if attached)
             if (default_callback != null)
