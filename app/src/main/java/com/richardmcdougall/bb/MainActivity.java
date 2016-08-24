@@ -2,6 +2,7 @@
 
 package com.richardmcdougall.bb;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,7 +11,10 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
+import android.media.PlaybackParams;
 import android.os.Handler;
+import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -59,6 +63,8 @@ import java.net.*;
 import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.app.*;
+import android.net.*;
+import android.Manifest.*;
 
 public class MainActivity extends AppCompatActivity implements InputDeviceListener {
 
@@ -71,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private static UsbSerialDriver mDriver = null;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     private SerialInputOutputManager mSerialIoManager;
-    private Handler mBLEHandler = new Handler();
     //private BBListenerAdapter mListener = null;
     private CmdMessenger mListener = null;
     private Handler mHandler = new Handler();
@@ -83,9 +88,13 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private float vol = 0.10f;
     private boolean downloaded = false;
-    public int BLETimeOffset = 0;
+    public long serverTimeOffset = 0;
+    public long serverRTT = 0;
     private int userTimeOffset = 0;
-    private BLEClientServer mClientServer;
+    public MyWifiDirect mWifi = null;
+    public UDPClientServer udpClientServer = null;
+
+    long phoneModelAudioLatency = 0;
 
     int work = 0;
 
@@ -101,35 +110,28 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     private Handler pHandler = new Handler();
     int ProgressStatus;
+    long startElapsedTime, startClock;
+
+    public void InitClock() {
+        startElapsedTime = SystemClock.elapsedRealtime();
+        startClock = Calendar.getInstance().getTimeInMillis();
+    }
 
     public long GetCurrentClock() {
-        //return System.nanoTime()/1000000;
-        return Calendar.getInstance().getTimeInMillis();
+        //return (System.nanoTime()-startNanotime)/1000000 + startClock;
+        //return System.currentTimeMillis();
+        return SystemClock.elapsedRealtime() - startElapsedTime + startClock;
+        //return Calendar.getInstance().getTimeInMillis();
     }
 
     public long CurrentClockAdjusted() {
-        return GetCurrentClock() + BLETimeOffset;
+        return GetCurrentClock() + serverTimeOffset;
         //return Calendar.getInstance().getTimeInMillis()
     }
 
-    public void AverageClockWithOther(long curClockDrift, long avgClockDrift, long otherOffset) {
-        long curClock= GetCurrentClock();
-
-        l("Clock drift " + curClockDrift + " avgDrift = " + avgClockDrift);
-
-        long curTime = CurrentClockAdjusted();
-
-        long suggestedNewBLE = avgClockDrift/2;
-        long adjAmount = Math.abs(BLETimeOffset-suggestedNewBLE);
-
-        if (adjAmount>1)
-        {
-            long lastOff = BLETimeOffset;
-            BLETimeOffset = (int)(suggestedNewBLE);
-            SeekAndPlay();
-            Log.i(TAG, "time offset change of = " + (BLETimeOffset-lastOff));
-        }
-
+    public void SetServerClockOffset(long serverClockOffset, long rtt) {
+        serverTimeOffset = serverClockOffset;
+        serverRTT = rtt;
     }
 
 
@@ -155,17 +157,55 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     }
 
+    protected void MusicReset() {
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        SeekAndPlay();
+                    }
+                });
+            }
+
+        }, 0, 1000);
+
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+
+        String model = android.os.Build.MODEL;
+        if (model.equals("BLU DASH M2")) {
+            phoneModelAudioLatency = 10;
+        }
+        else
+            phoneModelAudioLatency = 80;
+
+        udpClientServer = new UDPClientServer(this);
+        udpClientServer.Run();
+
+        mWifi = new MyWifiDirect(this, udpClientServer);
+
+
+
+                InitClock();
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
 
-        mClientServer = new BLEClientServer(mContext, this);
-        mClientServer.onCreate();
+        //requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        //requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
-        DownloadMusic();
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        ActivityCompat.requestPermissions(this, new String[]{permission.BLUETOOTH_ADMIN}, 1);
+
+        DownloadMusic2();
         setContentView(R.layout.activity_main);
 
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
@@ -226,12 +266,17 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         if (downloaded)
             RadioMode();
 
+        MusicReset();
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mClientServer.onResume();
+        if (mClientServer!=null)
+            mClientServer.onResume();
+        if (mWifi!=null)
+            mWifi.onResume();
 
 //        loadPrefs();
 
@@ -243,7 +288,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onPause() {
         super.onPause();
-        mClientServer.onPause();
+        if (mClientServer!=null)
+            mClientServer.onPause();
+        if (mWifi!=null)
+            mWifi.onPause();
+
         mHandler.removeCallbacksAndMessages(null);
 
 //        savePrefs();
@@ -351,12 +400,27 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         startIoManager();
     }
 
-    public void l(final String s) {
+    public String bleStatus = "hello BLE";
+    public String logMsg = "";
+
+    public void l(String s) {
+        String tmp;
+
+        synchronized (bleStatus) {
+            if (s==null)
+                s=logMsg;
+            else
+                logMsg = s;
+            tmp = bleStatus + "\n" + s;
+        }
+
+        final String fullText = tmp;
+
         Log.v(TAG, s);
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
-                              log.setText(s);
+                              log.setText(fullText);
                           }
                       });
     }
@@ -445,8 +509,16 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     public String GetRadioStreamFile() {
         //String radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
-        String radioFile = mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
-        return radioFile;
+
+        String radioFile = null;
+
+        radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + "/radio_stream3.mp3";
+        File f = new File(radioFile);
+        if (f.exists()) {
+            return radioFile;
+        }
+
+        return mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
     }
 
     private class DownloadTask extends AsyncTask<String, Integer, String> {
@@ -529,67 +601,84 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
     }
 
-    public void DownloadMusic() {
+    public void DownloadMusic2() {
         try {
+            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            DownloadManager.Request r = new DownloadManager.Request(Uri.parse("http://jonathanclark.com/bbMusic/radio_stream.mp3"));
+            //DownloadManager.Request r = new DownloadManager.Request(Uri.parse("http://101apps.co.za/images/headers/101_logo_very_small.jpg"));
 
-            File radioStream = new File(GetRadioStreamFile());
+            String destPath = GetRadioStreamFile();
+            Uri dest = Uri.parse("file://" + destPath);
+            r.setDestinationUri( dest);
+            File f = new File(destPath);
+            if (f.exists()) {
 
-            if (!radioStream.exists() || radioStream.length()!=230565240) {
-                long len = radioStream.length();
-
-                //DownloadMusicAsync.execute();
-
-                // declare the dialog as a member field of your activity
-                ProgressDialog mProgressDialog;
-
-                // instantiate it within the onCreate method
-                mProgressDialog = new ProgressDialog(mContext);
-                mProgressDialog.setMessage("A message");
-                mProgressDialog.setIndeterminate(true);
-                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                mProgressDialog.setCancelable(true);
-
-                // execute this when the downloader must be fired
-                final DownloadTask downloadTask = new DownloadTask(mContext);
-                downloadTask.execute("http://jonathanclark.com/bbMusic/radio_stream.mp3");
-
-                mProgressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        downloadTask.cancel(true);
-                    }
-                });
-
+                long len = f.length();
+                if (len==230565240) {
+                    downloaded = true;
+                    return;
+                }
+                f.delete();
+                l("exists but not correct size");
             }
-            else {
-                downloaded = true;
-                Log.v(TAG, "Music file is " + radioStream.length());
-            }
+
+
+            r.setTitle("Music Downloading...");
+            r.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+            r.setDescription("Downloading big ass MP3");
+            r.setVisibleInDownloadsUi(true);
+            r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+
+            //DownloadManager.ACTION
+            long result = dm.enqueue(r);
+            l("Download result" + result);
+
+
+            //DownloadManager.
         }
         catch (Throwable err) {
             String msg = err.getMessage();
             System.out.println(msg);
         }
-
     }
+
+    long lastSeekOffset = 0;
+    long lastSeekTimestamp = 0;
 
     public void SeekAndPlay() {
         try {
-            long ms = CurrentClockAdjusted() + userTimeOffset;
-            int lenInMS = mediaPlayer.getDuration();
+            if (mediaPlayer != null) {
+                long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
-            long seekOff = ms % lenInMS;
-            mediaPlayer.seekTo((int) seekOff);
-            mediaPlayer.start();
+                int lenInMS = mediaPlayer.getDuration()/(5*1024);
+                lenInMS *= 5*1024;
 
-/*            Thread.sleep(10);
-            int newOff = mediaPlayer.getDuration();
-            long err = newOff-seekOff-100;
+                long seekOff = ms % lenInMS;
+                long curPos = mediaPlayer.getCurrentPosition();
 
-            mediaPlayer.seekTo((int)(newOff - err));
-            l("SeekError " + err);  */
+                long seekErr = 0;
+                if (lastSeekOffset !=0 && lastSeekTimestamp<ms) {
+                    long expectedPosition = lastSeekOffset + (ms-lastSeekTimestamp);
+                    seekErr = (curPos - expectedPosition);
+                }
 
+                String msg = "SeekErr " + seekErr + " SvOff "+ serverTimeOffset + " User "+userTimeOffset + "\nSeekOff " + seekOff + " RTT " + serverRTT;
+                if (udpClientServer.tSentPackets!=0)
+                    msg += "\nSent " + udpClientServer.tSentPackets;
+                l(msg);
 
+                if (curPos==0 || Math.abs(curPos-seekOff)>10) {
+                    mediaPlayer.seekTo((int) (seekOff - seekErr/4 +60));
+                    /* PlaybackParams p;
+                    if (p.getClass().getMethod("setSpeed",
+                    p.setSpeed(0.5);
+                    mediaPlayer.setPlaybackParams(p); */
+                    mediaPlayer.start();
+
+                    lastSeekOffset = seekOff;
+                    lastSeekTimestamp = ms;
+                }
+            }
         } catch (Throwable thr_err) {
 
         }
@@ -603,6 +692,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             mediaPlayer.setDataSource(fds.getFD());
             fds.close();
 
+            mediaPlayer.setLooping(true);
             mediaPlayer.setVolume(vol, vol);
             mediaPlayer.prepare();
             SeekAndPlay();
@@ -633,12 +723,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 break;
             case 97:
             case 20:
-                MusicOffset(-1);
+                MusicOffset(-10);
                 break;
 
             case 99:
             case 19:
-                MusicOffset(1);
+                MusicOffset(10);
                 break;
             case 24:   // native volume up button
             case 21:
