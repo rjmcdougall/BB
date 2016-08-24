@@ -385,8 +385,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             mListener.attach(defaultCallback);
 
             // attach Test cmdMessenger callback
-            ArdunioCallbackDefault testCallback = new ArdunioCallbackDefault();
-            mListener.attach(1, testCallback);
+            ArdunioCallbackTest testCallback = new ArdunioCallbackTest();
+            mListener.attach(5, testCallback);
 
         }
     }
