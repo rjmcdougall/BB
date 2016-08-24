@@ -375,14 +375,14 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Read next argument as string.
      * Note that the String is valid until the current command is replaced
      */
-    byte[] readStringArg() {
+    String readStringArg() {
         if (next()) {
             dumped = true;
             ArgOk = true;
-            return currentArg;
+            return (new String(currentArg));
         }
         ArgOk = false;
-        return "".getBytes();
+        return "";
     }
 
 

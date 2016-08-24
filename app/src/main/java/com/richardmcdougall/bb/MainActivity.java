@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public int BLETimeOffset = 0;
     private int userTimeOffset = 0;
     private BLEClientServer mClientServer;
+    private String boardId;
 
     int work = 0;
 
@@ -185,21 +186,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         switchHeadlight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked == true) {
-                    //sendCommand("2,1;");
-                    if (mListener != null) {
-                        l("sendCommand: 3,1");
-                        mListener.sendCmdStart(3);
-                        mListener.sendCmdArg(1);
-                        mListener.sendCmdEnd();
-                    }
-                } else {
-                    if (mListener != null) {
-                        l("sendCommand: 3,0");
-                        mListener.sendCmdStart(3);
-                        mListener.sendCmdArg(0);
-                        mListener.sendCmdEnd();
-                    }
+                //sendCommand("2,1;");
+                if (mListener != null) {
+                    boardSetHeadlight(isChecked == true);
                 }
                 // Start lengthy operation in a background thread
                 work = 0;
@@ -225,6 +214,17 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         //TimeTest();
         if (downloaded)
             RadioMode();
+
+    }
+
+    private void updateStatus() {
+        float volts;
+
+        volts = boardGetVoltage();
+
+        if (volts > 0) {
+            voltage.setText(String.format("%.2f", volts) + "v");
+        }
 
     }
 
@@ -339,6 +339,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             ArdunioCallbackTest testCallback = new ArdunioCallbackTest();
             mListener.attach(5, testCallback);
 
+            boardId = boardGetBoardId();
         }
     }
 
@@ -661,18 +662,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
 
         if (keyCode == 4) {
-            //sendCommand("5,-1;");
-            mListener.sendCmdStart(5);
-            mListener.sendCmdArg(-1);
-            mListener.sendCmdEnd();
+            boardSetMode(-1);
         }
         if (keyCode == 66) {
-            //sendCommand("5,-2;");
-            l("sendCommand: 5,-2");
-            mListener.sendCmdStart(5);
-            mListener.sendCmdArg(-2);
-            mListener.sendCmdEnd();
-
+            boardSetMode(-2);
         }
 
 
@@ -707,6 +700,78 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
 
     }
+
+    //    cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
+    public float boardGetVoltage() {
+        return (float)0;
+    }
+
+    //    cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
+    public String boardGetBoardId() {
+
+        String id;
+
+        mListener.sendCmd(11);
+        id = mListener.readStringArg();
+        return(id);
+    }
+
+    public int boardGetMode() {
+        return(0);
+    }
+
+    //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
+    public boolean boardSetMode(int mode) {
+        return true;
+    }
+
+    public boolean boardClearScreen() {
+        return true;
+
+    }
+
+    public boolean boardScroll(int direction) {
+
+        return true;
+    }
+
+    //    cmdMessenger.attach(BBFade, OnFade);                  // 7
+    public boolean boardFade(int amount) {
+
+        return true;
+    }
+
+    //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
+    public boolean boardUpdate() {
+        l("sendCommand: 8");
+        mListener.sendCmd(8);
+        return true;
+    }
+
+    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
+    public boolean boardShowBattery() {
+        l("sendCommand: 9");
+        mListener.sendCmd(9);
+        return true;
+    }
+
+    //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
+    public boolean boardSetHeadlight(boolean state) {
+        l("sendCommand: 3,1");
+        mListener.sendCmdStart(3);
+        mListener.sendCmdArg(state == true ? 1: 0);
+        mListener.sendCmdEnd();
+        return true;
+    }
+
+//   cmdMessenger.attach(BBCommandList, ShowCommands);     // 0
+//    cmdMessenger.attach(OnUnknownCommand);                // 1
+//    cmdMessenger.attach(BBsetled, Onsetled);              // 2
+//    cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 5
+//    cmdMessenger.attach(BBScroll, OnScroll);              // 6
+//    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
+//    cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
+
 
 }
 
