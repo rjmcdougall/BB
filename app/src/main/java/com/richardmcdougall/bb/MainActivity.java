@@ -819,28 +819,22 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         return(id);
     }
 
-    public int boardGetMode() {
-        return(0);
-    }
 
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean boardSetMode(int mode) {
+        l("sendCommand: 4," + mode);
+        mListener.sendCmdStart(4);
+        mListener.sendCmdArg(mode);
+        mListener.sendCmdEnd();
         return true;
     }
 
-    public boolean boardClearScreen() {
-        return true;
-
-    }
-
-    public boolean boardScroll(int direction) {
-
-        return true;
-    }
 
     //    cmdMessenger.attach(BBFade, OnFade);                  // 7
     public boolean boardFade(int amount) {
 
+        l("sendCommand: 7");
+        mListener.sendCmd(7);
         return true;
     }
 
@@ -867,14 +861,42 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         return true;
     }
 
-//   cmdMessenger.attach(BBCommandList, ShowCommands);     // 0
-//    cmdMessenger.attach(OnUnknownCommand);                // 1
-//    cmdMessenger.attach(BBsetled, Onsetled);              // 2
-//    cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 5
-//    cmdMessenger.attach(BBScroll, OnScroll);              // 6
-//    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
-//    cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
+    //    cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 5
+    public boolean boardClearScreen() {
+        l("sendCommand: 5");
+        mListener.sendCmd(5);
+        return true;
+    }
 
+    //    cmdMessenger.attach(BBScroll, OnScroll);              // 6
+    public boolean boardScroll(boolean down) {
+        l("sendCommand: 6,1");
+        mListener.sendCmdStart(6);
+        mListener.sendCmdArg(down == true ? 1: 0);
+        mListener.sendCmdEnd();
+        return true;
+    }
+
+    //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
+    public int boardGetMode() {
+
+        int mode;
+
+        mListener.sendCmd(12);
+        mode = mListener.readIntArg();
+        return(mode);
+    }
+
+    //    cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
+    public boolean boardFillScreen(int r, int g, int b) {
+        l("sendCommand: 3,1");
+        mListener.sendCmdStart(3);
+        mListener.sendCmdArg(r);
+        mListener.sendCmdArg(g);
+        mListener.sendCmdArg(b);
+        mListener.sendCmdEnd();
+        return true;
+    }
 
 }
 
