@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private int userTimeOffset = 0;
     public MyWifiDirect mWifi = null;
     public UDPClientServer udpClientServer = null;
-    public int boardId;
+    public String boardId;
 
     long phoneModelAudioLatency = 0;
 
@@ -286,8 +286,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onResume() {
         super.onResume();
-        if (mClientServer!=null)
-            mClientServer.onResume();
+//        if (mClientServer!=null)
+//            mClientServer.onResume();
         if (mWifi!=null)
             mWifi.onResume();
 
@@ -301,8 +301,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onPause() {
         super.onPause();
-        if (mClientServer!=null)
-            mClientServer.onPause();
+//        if (mClientServer!=null)
+//            mClientServer.onPause();
         if (mWifi!=null)
             mWifi.onPause();
 
