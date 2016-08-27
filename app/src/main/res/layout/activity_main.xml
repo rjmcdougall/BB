@@ -141,6 +141,30 @@
         android:layout_margin="20px"
         android:nestedScrollingEnabled="true" />
 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_height="wrap_content" android:orientation="horizontal"
+        android:layout_width="fill_parent">
+
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Next Track"
+        android:layout_weight="1"
+        android:onClick="onNextTrack" />
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="-----"
+        android:layout_weight="1"
+        android:onClick="onDriftDown" />
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="+++++"
+        android:layout_weight="1"
+        android:onClick="onDriftUp" />
+    </LinearLayout>
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="73dp"
@@ -148,13 +172,13 @@
         android:ems="10"
         android:id="@+id/editTextLog"
         android:maxLines="20"
-        android:textSize="8dp"
-        android:minLines="20"
+        android:textSize="10dp"
+        android:minLines="4"
         android:layout_gravity="top"
         android:layout_weight="1.03"
         android:editable="false"
         android:nestedScrollingEnabled="true"
         android:scrollIndicators="right" />
 
-
 </LinearLayout>
+
