@@ -94,6 +94,44 @@
 
     </LinearLayout>
 
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lights Mode"
+            android:id="@+id/textView" />
+
+
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Down"
+            android:id="@+id/modeDownbutton" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Up"
+            android:id="@+id/modeUpbutton" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/modeStatus" />
+
+    </LinearLayout>
+
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
@@ -108,9 +146,10 @@
         android:layout_height="73dp"
         android:inputType="textMultiLine"
         android:ems="10"
-            android:id="@+id/editTextLog"
+        android:id="@+id/editTextLog"
         android:maxLines="20"
-        android:minLines="4"
+        android:textSize="8dp"
+        android:minLines="20"
         android:layout_gravity="top"
         android:layout_weight="1.03"
         android:editable="false"

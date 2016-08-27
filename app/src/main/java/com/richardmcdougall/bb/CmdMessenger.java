@@ -164,18 +164,24 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      */
     boolean next() {
         // Currently, cmd messenger only supports 1 char for the field separator
-        switch (messageState) {
-            case kProccesingMessage:
-                return false;
-            case kEndOfMessage:
-                messageState = kProcessingArguments;
-            default:
-                if (dumped)
-                    currentArg = getArg(field_separator);
-                if (commandBuffer.available() > 0) {
-                    dumped = true;
-                    return true;
-                }
+        //switch (messageState) {
+        //    case kProccesingMessage:
+        //       return false;
+        //    case kEndOfMessage:
+        //        messageState = kProcessingArguments;
+        //    default:
+        //        if (dumped)
+        //            currentArg = getArg(field_separator);
+        //        if (commandBuffer.available() > 0) {
+        //            System.out.println("cmdMessenger:  next: Current arg: " + new String(currentArg));
+        //            dumped = true;
+        //            return true;
+        //        }
+        //}
+        if (commandBuffer != null && commandBuffer.available() > 0) {
+            currentArg = getArg(field_separator);
+            System.out.println("cmdMessenger:  next: Current arg: " + new String(currentArg));
+            return true;
         }
         return false;
     }
@@ -314,11 +320,15 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Read the next argument as int
      */
-    int readIntArg() {
+    public int readIntArg() {
         if (next()) {
             dumped = true;
             ArgOk = true;
-            return Integer.parseInt(new String(currentArg));
+            try {
+                return(Integer.parseInt(new String(currentArg)));
+            } catch (NumberFormatException e) {
+                return(0);
+            }
         }
         ArgOk = false;
         return 0;
@@ -327,14 +337,19 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Read the next argument as bool
      */
-    boolean readBoolArg() {
-        return (readIntArg() != 0) ? true : false;
+    public boolean readBoolArg() {
+
+        try {
+            return (readIntArg() != 0) ? true : false;
+        } catch (NumberFormatException e) {
+            return (false);
+        }
     }
 
     /**
      * Read the next argument as char
      */
-    byte[] readCharArg() {
+    public byte[] readCharArg() {
         if (next()) {
             dumped = true;
             ArgOk = true;
@@ -347,12 +362,16 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Read the next argument as float
      */
-    float readFloatArg() {
+    public float readFloatArg() {
         if (next()) {
             dumped = true;
             ArgOk = true;
             //return atof(current);
-            return Float.parseFloat(new String(currentArg));
+            try {
+                return Float.parseFloat(new String(currentArg));
+            } catch (NumberFormatException e) {
+                return (0);
+            }
         }
         ArgOk = false;
         return 0;
@@ -361,11 +380,15 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Read the next argument as double
      */
-    double readDoubleArg() {
+    public double readDoubleArg() {
         if (next()) {
             dumped = true;
             ArgOk = true;
-            return Double.parseDouble(new String(currentArg));
+            try {
+                return Double.parseDouble(new String(currentArg));
+            } catch (NumberFormatException e) {
+                return(0);
+            }
         }
         ArgOk = false;
         return 0;
@@ -375,7 +398,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Read next argument as string.
      * Note that the String is valid until the current command is replaced
      */
-    String readStringArg() {
+    public String readStringArg() {
         if (next()) {
             dumped = true;
             ArgOk = true;
@@ -457,6 +480,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
     void printStr(byte[] str) {
+        System.out.println("cmdMessenger: Send \"" + new String(str) + "\"");
         try {
             if (Serial != null) Serial.write(str, 200);
         } catch (IOException e) {
@@ -579,7 +603,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     public void onNewData(byte[] data) {
         if (data.length > 0) {
 
-            System.out.println("Received " + data.length + "bytes: " + new String (data));
+            System.out.println("cmdMessenger: Received " + data.length + "bytes: " + new String (data));
 
             synchronized (mPipedInputStream) {
                 for (int i = 0; i < data.length; i++) {
@@ -626,7 +650,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     /**
      * Processes bytes and determines message state
-     * Reads the streamBuffer and fills a commandBufferTmp for each message
+     * Reads the streamBuffer and calls processLine() to fill a commandBufferTmp for each message
+     * When end-of-message arrives, copy commandBufferTmp into commandBuffer for processing.
      * Calls handleMessage()
      */
     class ProcessMessageRunnable implements Runnable {
@@ -639,8 +664,11 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 streamBuffer = new ByteArrayInputStream(msg.getBytes());
                 while (streamBuffer.available() > 0) {
                     if (processLine() == kEndOfMessage) {
-                        commandBuffer = new ByteArrayInputStream(commandBufferTmp.toByteArray());
+                        byte[] tmp = commandBufferTmp.toByteArray();
+                        System.out.println("cmdMessenger: run() commandBuffer= " + new String (tmp));
+                        commandBuffer = new ByteArrayInputStream(tmp);
                         handleMessage();
+                        commandBufferTmp.reset();
                     }
                 }
             }
@@ -671,6 +699,9 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         /*
          * Process the bytes in the stream buffer,
          * and handles dispatches callbacks, if commands are received
+         *
+         *
+         *
          */
         messageState = kProccesingMessage;
         while (messageState != kEndOfMessage && streamBuffer.available() > 0) {
@@ -703,11 +734,13 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     void handleMessage() {
         CmdEvents callback;
 
+        System.out.println("cmdMessenger: Handling: ");
+
         lastCommandId = readIntArg();
         // if command attached, we will call it
         if (lastCommandId >= 0 && ((callback = callbackList.get(lastCommandId)) != null) && ArgOk) {
             callback.CmdAction("callback cmd: " + lastCommandId);
-        } else {// If command not attached, call default callback (if attached)
+        } else {// If command not attached, call  callback (if attached)
             if (default_callback != null)
                 default_callback.CmdAction("default callback\n");
         }

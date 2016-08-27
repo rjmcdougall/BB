@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.media.ToneGenerator;
 
 import com.richardmcdougall.bb.InputManagerCompat;
 import com.richardmcdougall.bb.InputManagerCompat.InputDeviceListener;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     TextView status;
     EditText log;
     ProgressBar pb;
+    TextView modeStatus;
 
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
@@ -195,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
 
-                InitClock();
+        InitClock();
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
 
@@ -213,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         remoteControl.registerInputDeviceListener(this, null);
 
         voltage = (TextView) findViewById(R.id.textViewVoltage);
+        modeStatus = (TextView) findViewById(R.id.modeStatus);
         status = (TextView) findViewById(R.id.textViewStatus);
         log = (EditText) findViewById(R.id.editTextLog);
         voltage.setText("0.0v");
@@ -230,14 +233,14 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     //sendCommand("2,1;");
                     if (mListener != null) {
                         l("sendCommand: 3,1");
-                        mListener.sendCmdStart(3);
+                        mListener.sendCmdStart(2);
                         mListener.sendCmdArg(1);
                         mListener.sendCmdEnd();
                     }
                 } else {
                     if (mListener != null) {
                         l("sendCommand: 3,0");
-                        mListener.sendCmdStart(3);
+                        mListener.sendCmdStart(2);
                         mListener.sendCmdArg(0);
                         mListener.sendCmdEnd();
                     }
@@ -400,6 +403,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             // attach Test cmdMessenger callback
             ArdunioCallbackTest testCallback = new ArdunioCallbackTest();
             mListener.attach(5, testCallback);
+
+            // attach Mode cmdMessenger callback
+            ArdunioCallbackMode modeCallback = new ArdunioCallbackMode();
+            mListener.attach(4, modeCallback);
+
 
             boardId = boardGetBoardId();
         }
@@ -729,7 +737,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
             l("Keycode:" + keyCode);
+            System.out.println("Keycode: " + keyCode);
         }
+
+        //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+        //toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200);
 
         switch (keyCode) {
             case 100:
@@ -740,11 +752,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 MusicOffset(-10);
                 break;
 
-            case 99:
+            //case 99:
             case 19:
                 MusicOffset(10);
                 break;
-            case 24:   // native volume up button
+            //case 24:   // native volume up button
             case 21:
                 vol += 0.01;
                 if (vol > 1) vol = 1;
@@ -758,17 +770,13 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 mediaPlayer.setVolume(vol, vol);
                 l("Volume " + vol * 100.0f + "%");
                 return false;
-            case 96:
-                switchHeadlight.setChecked(true);
+            case 99:
+                boardSetMode(99);
                 break;
-            //case 99 : switchHeadlight.setChecked(false); break;
-        }
+            case 98:
+                boardSetMode(98);
+                break;
 
-        if (keyCode == 4) {
-            boardSetMode(-1);
-        }
-        if (keyCode == 66) {
-            boardSetMode(-2);
         }
 
 
@@ -800,6 +808,18 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         public void CmdAction(String str){
             l("ardunio test callback:" + str);
+        }
+
+    }
+
+    public class ArdunioCallbackMode implements CmdEvents {
+
+        public void CmdAction(String str){
+            int mode;
+
+            mode = mListener.readIntArg();
+            l("ardunio mode callback:" + str + " " + mode);
+            modeStatus.setText(String.format("%d", mode));
         }
 
     }
