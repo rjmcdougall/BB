@@ -94,7 +94,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public MyWifiDirect mWifi = null;
     public UDPClientServer udpClientServer = null;
     public String boardId;
+    ArrayList<MusicStream> streamURLs = new ArrayList<MusicStream>();
 
+    int currentRadioStream = 0;
     long phoneModelAudioLatency = 0;
 
     int work = 0;
@@ -136,28 +138,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
 
-    protected void TimeTest() {
-        //Declare the timer
-        Timer t = new Timer();
-        //Set the schedule function and rate
-        t.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String tm = Long.toString(Calendar.getInstance().getTimeInMillis());
-                        log.setText(tm);
-                        //l(tm);
-                    }
-
-                });
-            }
-
-        }, 0, 16);
-
-    }
-
     protected void MusicReset() {
         Timer t = new Timer();
         t.scheduleAtFixedRate(new TimerTask() {
@@ -185,8 +165,13 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         if (model.equals("BLU DASH M2")) {
             phoneModelAudioLatency = 10;
         }
-        else
-            phoneModelAudioLatency = 80;
+        else {
+            phoneModelAudioLatency = 82;
+            userTimeOffset = -4;
+        }
+
+        InitClock();
+        MusicListInit();
 
         udpClientServer = new UDPClientServer(this);
         udpClientServer.Run();
@@ -194,13 +179,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         mWifi = new MyWifiDirect(this, udpClientServer);
 
 
-
-                InitClock();
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
-
-        //requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-        //requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
@@ -263,7 +243,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             }
         });
 
-        //TimeTest();
         if (downloaded)
             RadioMode();
 
@@ -286,8 +265,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onResume() {
         super.onResume();
-//        if (mClientServer!=null)
-//            mClientServer.onResume();
         if (mWifi!=null)
             mWifi.onResume();
 
@@ -301,8 +278,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onPause() {
         super.onPause();
-//        if (mClientServer!=null)
-//            mClientServer.onPause();
         if (mWifi!=null)
             mWifi.onPause();
 
@@ -434,7 +409,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
-                              log.setText(fullText);
+                              if (log!=null)
+                                log.setText(fullText);
                           }
                       });
     }
@@ -521,134 +497,80 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         l("onInputDeviceRemoved");
     }
 
-    public String GetRadioStreamFile() {
+    public String GetRadioStreamFile(int idx) {
         //String radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
 
+        /*
         String radioFile = null;
-
-        radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + "/radio_stream3.mp3";
+        radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + "/radio_stream" + idx + ".mp3";
         File f = new File(radioFile);
         if (f.exists()) {
             return radioFile;
-        }
+        } */
 
-        return mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream3.mp3";
+        return mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + idx +".mp3";
     }
 
-    private class DownloadTask extends AsyncTask<String, Integer, String> {
-
-        private Context context;
-        private PowerManager.WakeLock mWakeLock;
-
-        public DownloadTask(Context context) {
-            this.context = context;
+    class MusicStream {
+        public String downloadURL;
+        public long fileSize;
+        public long lengthInSeconds;   // android method for determining the song length seems to vary from OS to OS
+        public MusicStream(String url, long _size, long len) {
+            downloadURL = url;
+            fileSize = _size;
+            lengthInSeconds = len;
         }
+    };
 
+    void MusicListInit() {
 
-
-        @Override
-        protected String doInBackground(String... sUrl) {
-            InputStream input = null;
-            OutputStream output = null;
-            HttpURLConnection connection = null;
-            long total = 0;
-            try {
-                URL url = new URL(sUrl[0]);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect();
-                String msg = connection.getResponseMessage().toString();
-
-                // expect HTTP 200 OK, so we don't mistakenly save error report
-                // instead of the file
-                if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                    return "Server returned HTTP " + connection.getResponseCode()
-                            + " " + connection.getResponseMessage();
-                }
-
-                // this will be useful to display download percentage
-                // might be -1: server did not report the length
-                int fileLength = connection.getContentLength();
-
-                // download the file
-                input = connection.getInputStream();
-
-                String radioFile = GetRadioStreamFile();
-                output = new FileOutputStream(radioFile);
-
-                byte data[] = new byte[4096];
-                int count;
-                int pc = 0;
-                while ((count = input.read(data)) != -1) {
-                    // allow canceling with back button
-                    if (isCancelled()) {
-                        input.close();
-                        return null;
-                    }
-                    total += count;
-                    // publishing the progress....
-                    if (fileLength > 0) // only if total length is known
-                        publishProgress((int) (total * 100 / fileLength));
-                    pc++;
-
-                    output.write(data, 0, count);
-
-                    if ((pc%500)==0)
-                        Log.v(TAG, "Music file is " + total);
-                }
-                downloaded = true;
-            } catch (Exception e) {
-                return e.toString();
-            } finally {
-                try {
-                    if (output != null)
-                        output.close();
-                    if (input != null)
-                        input.close();
-                    Log.v(TAG, "Download finished");
-                } catch (IOException ignored) {
-                }
-
-                if (connection != null)
-                    connection.disconnect();
-            }
-            return null;
-        }
+        streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2*60*60+7*60+37));
+        streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2*60*60+3*60+44));
+        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
+        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
+        streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
+        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207 , 4*60+32));
     }
 
     public void DownloadMusic2() {
         try {
             DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            DownloadManager.Request r = new DownloadManager.Request(Uri.parse("http://jonathanclark.com/bbMusic/radio_stream.mp3"));
-            //DownloadManager.Request r = new DownloadManager.Request(Uri.parse("http://101apps.co.za/images/headers/101_logo_very_small.jpg"));
+            downloaded = true;
+            for (int i=0; i<streamURLs.size(); i++) {
+                String destPath = GetRadioStreamFile(i);
+                long expectedSize = streamURLs.get(i).fileSize;
 
-            String destPath = GetRadioStreamFile();
-            Uri dest = Uri.parse("file://" + destPath);
-            r.setDestinationUri( dest);
-            File f = new File(destPath);
-            if (f.exists()) {
+                boolean download = true;
+                File f = new File(destPath);
+                if (f.exists()) {
+                    long len = f.length();
 
-                long len = f.length();
-                if (len==230565240) {
-                    downloaded = true;
-                    return;
+                    if (len!=expectedSize) {
+                        boolean result = f.delete();
+                        boolean result2 = f.exists();
+                        l("exists but not correct size, delete = "+ result);
+                    }
+                    else {
+                        l("Already downloaded (" + len + "): "+streamURLs.get(i).downloadURL);
+                        download = false;
+                    }
                 }
-                f.delete();
-                l("exists but not correct size");
+
+                if (download) {
+                    DownloadManager.Request r = new DownloadManager.Request(Uri.parse(streamURLs.get(i).downloadURL));
+
+                    r.setTitle("Downloading: " + "Stream " + i + " ("+expectedSize+")");
+                    r.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+                    r.setDescription("BurnerBoard Radio Stream " + i);
+                    r.setVisibleInDownloadsUi(true);
+                    r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                    r.setDestinationUri(Uri.parse("file://" + destPath));
+
+                    downloaded = false;
+                    long result = dm.enqueue(r);
+                    l("Downloading : " + streamURLs.get(i).downloadURL);
+                }
             }
-
-
-            r.setTitle("Music Downloading...");
-            r.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-            r.setDescription("Downloading big ass MP3");
-            r.setVisibleInDownloadsUi(true);
-            r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-
-            //DownloadManager.ACTION
-            long result = dm.enqueue(r);
-            l("Download result" + result);
-
-
-            //DownloadManager.
         }
         catch (Throwable err) {
             String msg = err.getMessage();
@@ -659,56 +581,80 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     long lastSeekOffset = 0;
     long lastSeekTimestamp = 0;
 
+    long GetCurrentStreamLengthInSeconds() {
+        return streamURLs.get(currentRadioStream).lengthInSeconds;
+    }
+
+
+
     public void SeekAndPlay() {
         try {
-            if (mediaPlayer != null) {
-                long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
+            if (mediaPlayer != null && downloaded) {
+                synchronized (mediaPlayer) {
+                    long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
-                int lenInMS = mediaPlayer.getDuration()/(5*1024);
-                lenInMS *= 5*1024;
+                    long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
-                long seekOff = ms % lenInMS;
-                long curPos = mediaPlayer.getCurrentPosition();
+                    long seekOff = ms % lenInMS;
+                    long curPos = mediaPlayer.getCurrentPosition();
 
-                long seekErr = 0;
-                if (lastSeekOffset !=0 && lastSeekTimestamp<ms) {
-                    long expectedPosition = lastSeekOffset + (ms-lastSeekTimestamp);
-                    seekErr = (curPos - expectedPosition);
-                }
+                    long seekErr = 0;
+                    if (lastSeekOffset != 0 && lastSeekTimestamp < ms) {
+                        long expectedPosition = lastSeekOffset + (ms - lastSeekTimestamp);
+                        seekErr = (curPos - expectedPosition);
+                        while (Math.abs(seekErr)>100)
+                            seekErr /= 2;
+                    }
 
-                String msg = "SeekErr " + seekErr + " SvOff "+ serverTimeOffset + " User "+userTimeOffset + "\nSeekOff " + seekOff + " RTT " + serverRTT;
-                if (udpClientServer.tSentPackets!=0)
-                    msg += "\nSent " + udpClientServer.tSentPackets;
-                l(msg);
+                    String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset + " User " + userTimeOffset + "\nSeekOff " + seekOff + " RTT " + serverRTT + " Strm" + currentRadioStream;
+                    if (udpClientServer.tSentPackets != 0)
+                        msg += "\nSent " + udpClientServer.tSentPackets;
+                    l(msg);
 
-                if (curPos==0 || Math.abs(curPos-seekOff)>10) {
-                    mediaPlayer.seekTo((int) (seekOff - seekErr/4 +60));
-                    /* PlaybackParams p;
-                    if (p.getClass().getMethod("setSpeed",
-                    p.setSpeed(0.5);
-                    mediaPlayer.setPlaybackParams(p); */
-                    mediaPlayer.start();
+                    if (curPos == 0 || Math.abs(curPos - seekOff) > 8) {
+                        int newPos = (int) (seekOff - seekErr / 2+phoneModelAudioLatency);
+                        if (newPos<0)
+                            newPos =0;
+                        mediaPlayer.seekTo(newPos);
+                        /* PlaybackParams p;
+                        if (p.getClass().getMethod("setSpeed",
+                        p.setSpeed(0.5);
+                        mediaPlayer.setPlaybackParams(p); */
+                        mediaPlayer.start();
 
-                    lastSeekOffset = seekOff;
-                    lastSeekTimestamp = ms;
+                        lastSeekOffset = seekOff;
+                        lastSeekTimestamp = ms;
+                    }
                 }
             }
         } catch (Throwable thr_err) {
 
         }
-
     }
 
-    public void RadioMode() {
-        try {
-            FileInputStream fds = new FileInputStream(GetRadioStreamFile());
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(fds.getFD());
-            fds.close();
+    void NextStream() {
+        int nextRadioStream = currentRadioStream+1;
+        if (nextRadioStream==streamURLs.size())
+            nextRadioStream = 0;
+        SetRadioStream(nextRadioStream);
+    }
 
-            mediaPlayer.setLooping(true);
-            mediaPlayer.setVolume(vol, vol);
-            mediaPlayer.prepare();
+    void SetRadioStream(int index) {
+        try {
+            if (mediaPlayer!=null) {
+                synchronized (mediaPlayer) {
+                    lastSeekOffset = 0;
+                    currentRadioStream = index;
+                    FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
+                    mediaPlayer.reset();
+                    mediaPlayer.setDataSource(fds.getFD());
+                    fds.close();
+
+                    mediaPlayer.setLooping(true);
+                    mediaPlayer.setVolume(vol, vol);
+                    mediaPlayer.prepare();
+                }
+            }
             SeekAndPlay();
         }
         catch (Throwable err) {
@@ -717,12 +663,43 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
     }
 
+    public void RadioMode() {
+        SetRadioStream(currentRadioStream);
+    }
 
     void MusicOffset(int ms) {
         userTimeOffset += ms;
         SeekAndPlay();
         l("UserTimeOffset = " + userTimeOffset);
     }
+
+    public void onVolUp(View v) {
+        vol += 0.01;
+        if (vol > 1) vol = 1;
+        mediaPlayer.setVolume(vol, vol);
+        l("Volume " + vol * 100.0f + "%");
+    }
+
+    public void onVolDown(View v) {
+        vol -= 0.01;
+        if (vol < 0) vol = 0;
+        mediaPlayer.setVolume(vol, vol);
+        l("Volume " + vol * 100.0f + "%");
+    }
+
+    public void onNextTrack(View v) {
+        NextStream();
+    }
+
+    public void onDriftDown(View v) {
+        MusicOffset(-2);
+    }
+
+    public void onDriftUp(View v) {
+        MusicOffset(2);
+    }
+
+
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -733,7 +710,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         switch (keyCode) {
             case 100:
-                RadioMode();
+                NextStream();
                 break;
             case 97:
             case 20:
@@ -746,17 +723,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 break;
             case 24:   // native volume up button
             case 21:
-                vol += 0.01;
-                if (vol > 1) vol = 1;
-                mediaPlayer.setVolume(vol, vol);
-                l("Volume " + vol * 100.0f + "%");
+                onVolUp(null);
+
                 return false;
             case 25:  // native volume down button
             case 22:
-                vol -= 0.01;
-                if (vol < 0) vol = 0;
-                mediaPlayer.setVolume(vol, vol);
-                l("Volume " + vol * 100.0f + "%");
+                onVolDown(null);
                 return false;
             case 96:
                 switchHeadlight.setChecked(true);

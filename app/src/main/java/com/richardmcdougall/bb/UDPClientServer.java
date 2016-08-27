@@ -133,13 +133,14 @@ public class UDPClientServer {
                     long clientTimestamp = bytesToLong(dp.getData(), 4);
                     long curTimeStamp = mMain.GetCurrentClock();
 
-                    byte[] rp = new byte[20];
+                    byte[] rp = new byte[21];
                     rp[0] = 'B';
                     rp[1] = 'B';
                     rp[2] = 'S';
                     rp[3] = 'V';
                     longToBytes(clientTimestamp, rp, 4);
                     longToBytes(curTimeStamp, rp, 12);
+                    rp[20] = (byte)mMain.currentRadioStream;   // tell clients the current radio stream to play
 
                     DatagramPacket sendPacket = new DatagramPacket(rp, rp.length, dp.getAddress(), UDP_SERVER_PORT);
                     socket.send(sendPacket);
@@ -270,7 +271,7 @@ public class UDPClientServer {
                         try {
                             socket.receive(recvPacket);
 
-                            if (recvPacket.getLength()>=20) {
+                            if (recvPacket.getLength()>=21) {
                                 byte[] b = recvPacket.getData();
                                 if (b[0]=='B' && b[1]=='B' && b[2]=='S' && b[3]=='V') {
                                     long myTimeStamp = bytesToLong(b, 4);
@@ -278,6 +279,11 @@ public class UDPClientServer {
                                     long curTime = mMain.GetCurrentClock();
                                     long adjDrift;
                                     long roundTripTime = (curTime - myTimeStamp);
+                                    int serverStreamIndex = b[20];
+
+                                    if (serverStreamIndex!=mMain.currentRadioStream) {
+                                        mMain.SetRadioStream(serverStreamIndex);
+                                    }
 
                                     if (roundTripTime > 200) {      // probably we are a packet behind, try to read an extra packet
                                         socket.receive(recvPacket);
