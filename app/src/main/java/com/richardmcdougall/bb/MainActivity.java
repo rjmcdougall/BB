@@ -12,6 +12,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.media.PlaybackParams;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
@@ -67,6 +68,12 @@ import android.app.*;
 import android.net.*;
 import android.Manifest.*;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+
+
+
 public class MainActivity extends AppCompatActivity implements InputDeviceListener {
 
     TextView voltage;
@@ -88,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private InputManagerCompat remoteControl;
     private android.widget.Switch switchHeadlight;
     private MediaPlayer mediaPlayer = new MediaPlayer();
-    private float vol = 0.10f;
+    private float vol = 0.80f;
     private boolean downloaded = false;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
@@ -164,10 +171,15 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
         String model = android.os.Build.MODEL;
-        if (model.equals("BLU DASH M2")) {
+        if (model.equals("XT1064")) {
             phoneModelAudioLatency = 10;
         }
-        else {
+        else if (model.equals("BLU DASH M2")) {
+            phoneModelAudioLatency = 10;
+        }
+        else if (model.equals("BLU ADVANCE 5.0 HD")) {
+            phoneModelAudioLatency = 10;
+        }        else {
             phoneModelAudioLatency = 82;
             userTimeOffset = -4;
         }
@@ -189,6 +201,17 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[]{permission.BLUETOOTH_ADMIN}, 1);
+
+        WifiManager mWiFiManager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+
+        if (mWiFiManager.isWifiEnabled()) {
+            l("Wifi Enabled Already");
+            //mWiFiManager.setWifiEnabled(false);
+        } else {
+            l("Enabling Wifi...");
+            mWiFiManager.setWifiEnabled(true);
+            mWiFiManager.reassociate();
+        }
 
         DownloadMusic2();
         setContentView(R.layout.activity_main);
@@ -539,6 +562,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
         streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
         streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
+        streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
         //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207 , 4*60+32));
     }
 
@@ -558,7 +582,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     if (len!=expectedSize) {
                         boolean result = f.delete();
                         boolean result2 = f.exists();
-                        l("exists but not correct size, delete = "+ result);
+                        l("exists but not correct size (" + len + "!=" + expectedSize + "), delete = "+ result);
                     }
                     else {
                         l("Already downloaded (" + len + "): "+streamURLs.get(i).downloadURL);
@@ -735,7 +759,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             case 19:
                 MusicOffset(10);
                 break;
-            //case 24:   // native volume up button
+            case 24:   // native volume up button
             case 21:
                 onVolUp(null);
 
