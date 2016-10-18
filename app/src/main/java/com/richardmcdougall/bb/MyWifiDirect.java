@@ -1,4 +1,8 @@
 package com.richardmcdougall.bb;
+
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+import android.net.wifi.WifiManager;
 import android.content.*;
 import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
@@ -39,6 +43,8 @@ public class MyWifiDirect {
     long startStartTime = 0;
 
     public List peers = new ArrayList();
+
+    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
 
     public enum StateType {
 
@@ -174,7 +180,7 @@ public class MyWifiDirect {
     public int failedConnects=0;
     void ConnectToGroup(WifiP2pGroup group) {
         if (isServer(myDeviceName)) {
-            SetState(StateType.STATE_SERVING, "ConnectToGroup: I'm the sever");
+            SetState(StateType.STATE_SERVING, "ConnectToGroup: I'm the server");
             NextState();
         }
         else  {
@@ -262,6 +268,7 @@ public class MyWifiDirect {
 
                 break;
             case STATE_RESET: {
+//                toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_INCALL_LITE, 200);
                 Reset();
                 if  (myDeviceName != null) {
                     SetState(StateType.STATE_GET_GROUP_INFO, "MyName!=null");
@@ -283,6 +290,7 @@ public class MyWifiDirect {
                 RequestGroups();
             } break;
             case STATE_START_CONNECT : {
+                toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE, 200);
                 ConnectToGroup(mGroup);
             } break;
             case STATE_CREATE_GROUP : {
@@ -586,4 +594,6 @@ public class MyWifiDirect {
             mWiFiDirectBroadcastReceiver = null;
         }
     }
+
+
 }

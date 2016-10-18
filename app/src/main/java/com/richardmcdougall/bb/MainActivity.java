@@ -104,6 +104,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public UDPClientServer udpClientServer = null;
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<MusicStream>();
+    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+    int boardMode; // Mode of the Ardunio/LEDs
 
     int currentRadioStream = 0;
     long phoneModelAudioLatency = 0;
@@ -120,8 +122,35 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         return (work);
     }
 
+
+
     private Handler pHandler = new Handler();
     int ProgressStatus;
+
+
+    // function to append a string to a TextView as a new line
+    // and scroll to the bottom if needed
+    private void logMessage(String msg) {
+        if (log == null)
+            return;
+        // append the new string
+        log.append(msg + "\n");
+        // find the amount we need to scroll.  This works by
+        // asking the TextView's internal layout for the position
+        // of the final line and then subtracting the TextView's height
+        final android.text.Layout layout = log.getLayout();
+
+        if (layout != null) {
+            final int scrollAmount = layout.getLineTop(log.getLineCount()) - log.getHeight();
+            // if there is no need to scroll, scrollAmount will be <=0
+            if (scrollAmount > 0)
+                log.scrollTo(0, scrollAmount);
+            else
+                log.scrollTo(0, 0);
+        }
+    }
+
+
     long startElapsedTime, startClock;
 
     public void InitClock() {
@@ -171,6 +200,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
         String model = android.os.Build.MODEL;
+
+        l("Starting BB on phone " + model);
+
         if (model.equals("XT1064")) {
             phoneModelAudioLatency = 10;
         }
@@ -179,10 +211,16 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
         else if (model.equals("BLU ADVANCE 5.0 HD")) {
             phoneModelAudioLatency = 10;
-        }        else {
+        }
+        else if (model.equals("MSM8916 for arm64")) {
+            phoneModelAudioLatency = 1000;
+        }
+        else {
             phoneModelAudioLatency = 82;
             userTimeOffset = -4;
         }
+
+
 
         InitClock();
         MusicListInit();
@@ -223,6 +261,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         modeStatus = (TextView) findViewById(R.id.modeStatus);
         status = (TextView) findViewById(R.id.textViewStatus);
         log = (EditText) findViewById(R.id.editTextLog);
+        log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
+
         voltage.setText("0.0v");
         log.setText("Hello");
         log.setFocusable(false);
@@ -234,23 +274,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         switchHeadlight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked == true) {
-                    //sendCommand("2,1;");
-                    if (mListener != null) {
-                        l("sendCommand: 3,1");
-                        mListener.sendCmdStart(2);
-                        mListener.sendCmdArg(1);
-                        mListener.sendCmdEnd();
-                    }
-                } else {
-                    if (mListener != null) {
-                        l("sendCommand: 3,0");
-                        mListener.sendCmdStart(2);
-                        mListener.sendCmdArg(0);
-                        mListener.sendCmdEnd();
-                    }
-                }
-                // Start lengthy operation in a background thread
+                boardSetHeadlight(isChecked);
+
+                /*
+                 Start lengthy operation in a background thread
                 work = 0;
                 pb.setProgress(0);
                 new Thread(new Runnable() {
@@ -267,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                         }
                     }
                 }).start();
+                */
 
             }
         });
@@ -443,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                           @Override
                           public void run() {
                               if (log!=null)
-                                log.setText(fullText);
+                                  logMessage(fullText);
                           }
                       });
     }
@@ -743,11 +771,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             System.out.println("Keycode: " + keyCode);
         }
 
-        //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-        //toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200);
 
         switch (keyCode) {
             case 100:
+            case 87: // satachi right button
                 NextStream();
                 break;
             case 97:
@@ -774,6 +801,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             case 98:
                 boardSetMode(98);
                 break;
+            case 88: //satachi left button
+                boardSetMode(99);
+                break;
+
         }
 
 
@@ -812,13 +843,47 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public class ArdunioCallbackMode implements CmdEvents {
 
         public void CmdAction(String str){
-            int mode;
-
-            mode = mListener.readIntArg();
-            l("ardunio mode callback:" + str + " " + mode);
-            modeStatus.setText(String.format("%d", mode));
+            toneG.startTone(ToneGenerator.TONE_PROP_BEEP, 200);
+            boardMode = mListener.readIntArg();
+            l("ardunio mode callback:" + str + " " + boardMode);
+            modeStatus.setText(String.format("%d", boardMode));
+            if (boardMode == 11) {
+                Thread t = new Thread(new Runnable() {
+                    public void run()
+                    {
+                        modeDisco();
+                    }
+                });
+                t.start();
+            }
         }
 
+
+    }
+    private int discoState = 0;
+    private Random discoRandom = new Random();
+
+    void modeDisco() {
+        if (mListener != null) {
+            if (discoState == 0) {
+                mListener.sendCmdStart(13);
+                mListener.sendCmdArg(discoRandom.nextInt(255));
+                mListener.sendCmdArg(discoRandom.nextInt(255));
+                mListener.sendCmdArg(discoRandom.nextInt(255));
+                mListener.sendCmdEnd();
+                mListener.sendCmd(8);
+
+            } else {
+                mListener.sendCmd(7);
+            }
+        }
+        discoState++;
+        if (discoState > 10)
+            discoState = 0;
+        try {
+            Thread.sleep(10);
+        } catch (Throwable e) {
+        }
     }
 
     //    cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
@@ -831,19 +896,25 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         String id;
 
-        mListener.sendCmd(11);
-        id = mListener.readStringArg();
-        return(id);
+        if (mListener != null) {
+            mListener.sendCmd(11);
+            id = mListener.readStringArg();
+            return (id);
+        }
+        return "";
     }
 
 
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean boardSetMode(int mode) {
         l("sendCommand: 4," + mode);
-        mListener.sendCmdStart(4);
-        mListener.sendCmdArg(mode);
-        mListener.sendCmdEnd();
-        return true;
+        if (mListener != null) {
+            mListener.sendCmdStart(4);
+            mListener.sendCmdArg(mode);
+            mListener.sendCmdEnd();
+            return true;
+        }
+        return false;
     }
 
 
@@ -851,47 +922,65 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public boolean boardFade(int amount) {
 
         l("sendCommand: 7");
-        mListener.sendCmd(7);
-        return true;
+        if (mListener != null) {
+            mListener.sendCmd(7);
+            return true;
+        }
+        return false;
     }
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
     public boolean boardUpdate() {
         l("sendCommand: 8");
-        mListener.sendCmd(8);
-        return true;
+        if (mListener != null) {
+            mListener.sendCmd(8);
+            return true;
+        }
+        return false;
     }
 
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
     public boolean boardShowBattery() {
         l("sendCommand: 9");
-        mListener.sendCmd(9);
-        return true;
+        if (mListener != null) {
+            mListener.sendCmd(9);
+            return true;
+        }
+        return false;
     }
 
     //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
     public boolean boardSetHeadlight(boolean state) {
         l("sendCommand: 3,1");
-        mListener.sendCmdStart(3);
-        mListener.sendCmdArg(state == true ? 1: 0);
-        mListener.sendCmdEnd();
-        return true;
+        if (mListener != null) {
+            mListener.sendCmdStart(3);
+            mListener.sendCmdArg(state == true ? 1 : 0);
+            mListener.sendCmdEnd();
+            return true;
+        }
+        return false;
     }
 
     //    cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 5
     public boolean boardClearScreen() {
         l("sendCommand: 5");
-        mListener.sendCmd(5);
-        return true;
+        if (mListener != null) {
+            mListener.sendCmd(5);
+            return true;
+        }
+        return false;
     }
 
     //    cmdMessenger.attach(BBScroll, OnScroll);              // 6
     public boolean boardScroll(boolean down) {
         l("sendCommand: 6,1");
-        mListener.sendCmdStart(6);
-        mListener.sendCmdArg(down == true ? 1: 0);
-        mListener.sendCmdEnd();
-        return true;
+        if (mListener != null) {
+            mListener.sendCmdStart(6);
+            mListener.sendCmdArg(down == true ? 1 : 0);
+            mListener.sendCmdEnd();
+            return true;
+        }
+        return false;
     }
 
     //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
@@ -899,21 +988,29 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         int mode;
 
-        mListener.sendCmd(12);
-        mode = mListener.readIntArg();
-        return(mode);
+        if (mListener != null) {
+            mListener.sendCmd(12);
+            mode = mListener.readIntArg();
+            return (mode);
+        }
+        return 0;
     }
 
     //    cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
     public boolean boardFillScreen(int r, int g, int b) {
         l("sendCommand: 3,1");
-        mListener.sendCmdStart(3);
-        mListener.sendCmdArg(r);
-        mListener.sendCmdArg(g);
-        mListener.sendCmdArg(b);
-        mListener.sendCmdEnd();
-        return true;
+        if (mListener != null) {
+            mListener.sendCmdStart(3);
+            mListener.sendCmdArg(r);
+            mListener.sendCmdArg(g);
+            mListener.sendCmdArg(b);
+            mListener.sendCmdEnd();
+            return true;
+        }
+        return false;
     }
+
+
 
 }
 

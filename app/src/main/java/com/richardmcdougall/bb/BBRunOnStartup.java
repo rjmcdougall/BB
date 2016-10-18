@@ -7,15 +7,17 @@ import android.content.Intent;
 /**
  * Created by rmc on 10/15/16.
  */
+
+
 public class BBRunOnStartup extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-            Intent i = new Intent(context, MainActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(i);
-        }
+        Intent i = new Intent(context, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        System.out.print("Starting BB from ON_BOOT");
+        context.startActivity(i);
     }
 
 }
+

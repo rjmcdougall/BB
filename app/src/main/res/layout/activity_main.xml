@@ -171,7 +171,6 @@
         android:inputType="textMultiLine"
         android:ems="10"
         android:id="@+id/editTextLog"
-        android:maxLines="20"
         android:textSize="10dp"
         android:minLines="4"
         android:layout_gravity="top"

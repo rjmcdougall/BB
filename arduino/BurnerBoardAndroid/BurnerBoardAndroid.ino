@@ -95,6 +95,31 @@ uint8_t ledn[8];
 
 bool headLightOn = false;
 
+char *boards[] = {
+  "PROTO",
+  "PROTO",
+  "AKULA",  
+  "BOADIE", 
+  "GOOFY", 
+  "STEVE", 
+  "JOON",
+  "ARTEMIS",
+  "BISCUIT",
+  "SQUEEZE"};
+  
+char *names[] = {
+  "RICHARD",
+  "RICHARD",
+  "WOODSON",  
+  "RIC", 
+  "STEVE", 
+  "STEVE", 
+  "JOON",
+  "JAMES",
+  "RICHARD",
+  "JONATHAN"};
+
+
 
 // Attach a new CmdMessenger object to the default Serial port
 CmdMessenger cmdMessenger = CmdMessenger(Serial);
@@ -104,37 +129,66 @@ enum
 {
   BBCommandList,
   BBacknowledge,
-  BBerror,
-  BBsetheadlight,
   BBsetled,
-  BBsetmode
+  BBsetheadlight,
+  BBsetmode,
+  BBClearScreen,
+  BBScroll,
+  BBFade,
+  BBUpdate,
+  BBShowBattery,
+  BBGetVoltage,
+  BBGetBoardID,
+  BBGetMode,
+  BBFillScreen,
+  BBerror
 };
 
 // Callbacks define on which received commands we take action
 void BBattachCommandCallbacks()
 {
   // Attach callback methods
-  cmdMessenger.attach(BBCommandList, ShowCommands);
-  cmdMessenger.attach(OnUnknownCommand);
-  cmdMessenger.attach(BBsetled, Onsetled);
-  cmdMessenger.attach(BBsetheadlight, Onsetheadlight);
-  cmdMessenger.attach(BBsetmode, Onsetmode);
+  cmdMessenger.attach(BBCommandList, ShowCommands);     // 0
+  cmdMessenger.attach(OnUnknownCommand);                // 1
+  cmdMessenger.attach(BBsetled, Onsetled);              // 2
+  cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
+  cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
+  cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 5
+  cmdMessenger.attach(BBScroll, OnScroll);              // 6
+  cmdMessenger.attach(BBFade, OnFade);                  // 7
+  cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
+  cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
+  cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
+  cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
+  cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
+  cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
 }
 
 // Show available commands
 void ShowCommands() 
 {
+#ifdef SHOW_COMMANDS
   Serial.println("\nAvailable commands");
   Serial.println(" 0;                       - This command list");
   Serial.println(" 3,<headlight state>;     - Set headlight.");
   Serial.println(" 4,<led state>;           - Set led. 0 = off, 1 = on"); 
   Serial.println(" 5,<mode>;                - Set mode n"); 
+  Serial.println(" 6;                       - Clear Screen"); 
+  Serial.println(" 7,<direction>;           - Scroll up or down"); 
+  Serial.println(" 8,<amount>;              - Fade screen by n levels"); 
+  Serial.println(" 9;                       - Render and display screen"); 
+  Serial.println(" 10;                      - Show Battery for 2 seconds"); 
+  Serial.println(" 11;                      - Get battery voltage"); 
+  Serial.println(" 12;                      - Get Board ID"); 
+  Serial.println(" 13;                      - Get mode"); 
+  Serial.println(" 14,r,g,b;                - Fill Screen"); 
+#endif
 }
 
 // Called when a received command has no attached function
 void OnUnknownCommand()
 {
-  cmdMessenger.sendCmd(BBerror,"Command without attached callback\n");
+  cmdMessenger.sendCmd(BBerror,"no callback\n");
 }
 
 // Callback function that sets headlight on or off
@@ -165,63 +219,75 @@ void Onsetmode()
   int mode;
   // Read led state argument, interpret string as boolean
   mode = cmdMessenger.readInt32Arg();
-  if (mode == -1) 
+  if (mode == 99) 
     board_mode++;
-  else if (mode == -2) 
+  else if (mode == 98) 
     board_mode--;
   else 
     board_mode = mode;
   if (board_mode < 0)
         board_mode = 0;
-  if (board_mode > 9)
-        board_mode = 9;
+  if (board_mode > 11)
+        board_mode = 0;
   cmdMessenger.sendCmd(BBacknowledge,board_mode);
 }
 
+void OnClearScreen()
+{
+  clearScreen();
+}
+
+void OnScroll()
+{
+  shiftMatrixLines();
+}
+
+
+void OnFade() {
+  fadeBoard();
+}
+
+void OnUpdate() {
+  strip->show();
+}
+
+
+void OnShowBattery() {
+  drawBattery();
+}
+
+void OnGetVoltage() {
+  
+}
+
+void OnGetBoardID() {
+  //cmdMessenger.sendCmd(BBGetBoardID,boards[boardId]);
+  cmdMessenger.sendCmdStart(BBGetBoardID);
+  cmdMessenger.sendCmdArg(boards[boardId]);
+  cmdMessenger.sendCmdEnd();
+}
+
+void OnGetMode() {
+  
+}
+
+void OnFillScreen() {
+  char color[4];
+  int32_t *c = (int32_t *)&color[0];
+
+  color[2] =  cmdMessenger.readInt32Arg();
+  color[1] =  cmdMessenger.readInt32Arg();
+  color[0] =  cmdMessenger.readInt32Arg();
+
+  fillScreen(*c);
+  
+}
 
 uint8_t row;
 
 uint8_t wheel_color;
 
-char *boards[] = {
-  "PROTO",
-  "PROTO",
-  "AKULA",  
-  "BOADIE", 
-  "GOOFY", 
-  "STEVE", 
-  "JOON",
-  "ARTEMIS",
-  "BISCUIT",
-  "SQUEEZE"};
-  
-char *names[] = {
-  "RICHARD",
-  "RICHARD",
-  "WOODSON",  
-  "RIC", 
-  "STEVE", 
-  "STEVE", 
-  "JOON",
-  "JAMES"
-  "RICHARD",
-  "JONATHAN"};
 
-
-int32_t audio_level = 0;
-
-int32_t read_audio()
-{
-  int32_t audio;
-
-  audio = analogRead(AUDIO_PIN);
-
-  Serial.print("Audio ");
-  Serial.println(audio);
-
-  return(audio_level);
- 
-}
   
 /* Helper functions */
 /* returns change in encoder state (-1,0,1) */
@@ -338,7 +404,7 @@ void rainbowCycle2() {
     strip->show();   // write all the pixels out  
 }
 
-#define FADER 50
+#define FADER 10
 // Fade the board
 void fadeBoard() {
   int i;
@@ -445,6 +511,12 @@ void fillScreen(uint32_t color)
       strip->setPixelColor(x, y, color);         
     }
   }
+    // Hardcoded (NSIDELIGHTS * 2) side LEDS for now
+  for(y = 0; y < NSIDELIGHTS; y++)
+  {
+      strip->setPixelColor(700 + y, color);
+      strip->setPixelColor(700 + NSIDELIGHTS + y, color);
+  }
 }
 
 void lines(uint8_t wait) {
@@ -482,6 +554,15 @@ void drawY(uint8_t startx, uint8_t starty, uint8_t length, uint32_t color) {
     strip->setPixelColor(x, y, color);
   }
 }
+
+void drawRect(uint8_t startx, uint8_t starty, uint8_t length, uint32_t color) {
+  uint16_t x, y;
+
+  for (y = starty; y < starty + length; y++) {
+    strip->setPixelColor(x, y, color);
+  }
+}
+
 
 /* Helper macros */
 #define HEX__(n) 0x##n##LU
@@ -848,10 +929,8 @@ uint16_t readID() {
 //       This will help with the varying voltages as motor load changes, which
 //       will result in varing results depending on load with this current code
 //
-void drawBattery() {
-  uint32_t color;
-  uint16_t x;
-  uint8_t row;
+
+int getBattery() {
   int32_t level = 0;
   uint16_t i;
   uint16_t sample;
@@ -861,21 +940,16 @@ void drawBattery() {
   // Set zero to 30v
   // Set 100% to 38v
 
-  // Clear screen and measure voltage, since screen load varies it!
-  clearScreen();
-  strip->show();
-  mydelay(1000);
-
   // Convert to level 0-28
   for (i = 0; i < 100; i++) {
     level += sample = analogRead(BATTERY_PIN);
-    Serial.print("Battery sample ");
-    Serial.print(sample, DEC);
-    Serial.println(" ");
+    //Serial.print("Battery sample ");
+    //Serial.print(sample, DEC);
+    //Serial.println(" ");
   }
-  Serial.print("Battery Level ");
-  Serial.print(level, DEC);
-  Serial.println(" ");
+  //Serial.print("Battery Level ");
+  //Serial.print(level, DEC);
+  //Serial.println(" ");
 
   if (level > LEVEL_FULL) {
     level = LEVEL_FULL;
@@ -893,10 +967,26 @@ void drawBattery() {
 
   level = level / (LEVEL_FULL - LEVEL_EMPTY);
 
-  Serial.print("Adjusted Level ");
-  Serial.print(level, DEC);
-  Serial.println(" ");
+  //Serial.print("Adjusted Level ");
+  //Serial.print(level, DEC);
+  //Serial.println(" ");
+  return(level);
+  
+}
 
+
+void drawBattery() {
+  uint32_t color;
+  uint16_t x;
+  uint8_t row;
+  int level;
+
+  // Clear screen and measure voltage, since screen load varies it!
+  clearScreen();
+  strip->show();
+  mydelay(1000);
+  
+  level = getBattery();
 
   row = 20;
 
@@ -937,8 +1027,113 @@ void drawBattery() {
   strip->show();
 }
 
+void drawTheMan(uint32_t color) {
+  uint16_t x;
+  uint16_t row;
 
+  uint16_t the_man[] = {
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(10,00000001),
+    B16(11,00000011),
+    B16(11,00000011),
+    B16(01,10000110),
+    B16(01,10000110),
+    B16(01,10000110),
+    B16(01,10000110),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,01001000),
+    B16(00,01001000),
+    B16(00,01001000),
+    B16(00,01001000),
+    B16(00,01001000),
+    B16(00,01001000),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,11001100),
+    B16(00,10000100),
+    B16(01,10000110),
+    B16(01,10000110),
+    B16(01,10110110),
+    B16(11,00110011),
+    B16(11,01111011),
+    B16(10,01111001),
+    B16(00,00110000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000),
+    B16(00,00000000)};
 
+  clearScreen();
+  for (row = 0; row < sizeof(the_man) / sizeof(uint16_t); row++) {
+    for (x = 0; x < 10; x++) {
+      strip->setPixelColor(x,  row, the_man[row] & (1<<(x))? color: rgbTo24BitColor(0, 0, 0));
+    }
+  }
+  strip->show();
+}
+
+void cycleTheMan(){
+  uint32_t color;
+  uint8_t the_red;
+  uint8_t the_green;
+  uint8_t the_blue;
+  uint8_t the_cycle;
+  the_red = 100;
+  the_green = 100;
+  the_blue = 100;
+  wheel_color = 255;
+  for (the_cycle = 0; the_cycle < 100; the_cycle++) {
+        the_red = random(2,4)%2 == 0 ? rgbTo24BitColor(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
+        the_green = random(2,4)%2 == 0 ? rgbTo24BitColor(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
+        the_blue = random(2,4)%2 == 0 ? rgbTo24BitColor(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
+        drawTheMan(rgbTo24BitColor(the_red, the_green, the_blue));
+        mydelay(20);
+  }
+}
 
 void setup() {
 
@@ -980,6 +1175,7 @@ void setup() {
   pinMode(ENC_B, INPUT);
   digitalWrite(ENC_B, HIGH);
 
+
   /*
      for (uint16_t i = 0; i < 544; i++) {
      Serial.print("Strip pixel ");
@@ -998,9 +1194,13 @@ void setup() {
     strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)false);
   }
   */
+
+  //Serial.println("before new board");
+
   strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)true);
 
   strip->begin();
+  //Serial.println("after new board");
 
 
   // test zone
@@ -1141,12 +1341,28 @@ void loop_static() {
 
 }
 
-
 void loop_rainbow() {
   rainbowCycle2();
   mydelay(5);
 }
 
+void loop_blank() {
+  mydelay(5);
+}
+
+void loop_theman() {
+// The Man
+        for (row = 0; row < 10; row++) {
+          strip->setPixelColor(row, 69, 0);
+        }
+        strip->show();
+        for (row = 0; row < 70; row++) {
+          shiftMatrixLines();
+          strip->show();
+        }
+ 
+        cycleTheMan();
+}
 
 
 int16_t loopcnt = 0;
@@ -1209,7 +1425,15 @@ void loop() {
 
      case 9:
        loop_static();
-       board_mode = 9;     
+       break;
+
+     case 10:
+       loop_theman();
+       break;
+
+     case 11:
+       loop_blank();
+       break;
        
      default:
        mydelay(1);
@@ -1354,24 +1578,6 @@ void checkButton() {
       mydelay(10000);
       state = 3;    
     }
-
-
-
-// The Man
-    if (board_mode == 4) {
-        for (row = 0; row < 10; row++) {
-          strip->setPixelColor(row, 69, 0);
-        }
-        strip->show();
-        for (row = 0; row < 70; row++) {
-          shiftMatrixLines();
-          strip->show();
-        }
- 
-        cycleTheMan();
-        state = 3;    
-    }
- 
 
     if (board_mode == 5) {
       loopcnt = 0;

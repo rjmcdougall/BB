@@ -482,7 +482,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     void printStr(byte[] str) {
         System.out.println("cmdMessenger: Send \"" + new String(str) + "\"");
         try {
-            if (Serial != null) Serial.write(str, 200);
+            if (Serial != null) Serial.write(str, str.length);
         } catch (IOException e) {
             l("sendCommand err:" + e.getMessage());
         }
