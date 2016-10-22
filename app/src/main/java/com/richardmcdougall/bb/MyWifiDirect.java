@@ -164,8 +164,8 @@ public class MyWifiDirect {
                 public void onFailure(int reason) {
                     if (reason == WifiP2pManager.BUSY)
                         SetState(StateType.STATE_RESET, "onFailure->BUSY");
-                    else
-                        SetState(StateType.STATE_RESET, "createGroup->onFailure " + reason);   // try to create group again?
+                    else // try to create group again?
+                        SetState(StateType.STATE_RESET, "createGroup->onFailure " + reason);
                 }
             });
             NextState();
@@ -210,7 +210,8 @@ public class MyWifiDirect {
                         failedConnects=0;
                         boolean p2pOk = isP2PIpAddressAvailable();
                         if (!p2pOk) {
-                            SetState(StateType.STATE_GET_GROUP_INFO, "connect.onSuccess but no IP Address ");
+                            SetState(StateType.STATE_GET_GROUP_INFO,
+                                    "connect.onSuccess but no IP Address ");
                         } else {
                             mClientServer.UpdateServerAddress("192.168.49.1", me);
                         }
@@ -223,10 +224,12 @@ public class MyWifiDirect {
                         failedConnects++;
                         if (failedConnects>10) {
                             failedConnects = 0;
-                            SetState(StateType.STATE_RESET, "connect.onFailure more than 10 times " + reasonCode);
+                            SetState(StateType.STATE_RESET,
+                                    "connect.onFailure more than 10 times " + reasonCode);
                         }
                         else
-                            SetState(StateType.STATE_GET_GROUP_INFO, "connect.onFailure " + reasonCode);
+                            SetState(StateType.STATE_GET_GROUP_INFO,
+                                    "connect.onFailure " + reasonCode);
                         NextState();
                         //mActivity.l("Connect: failed with code " + reasonCode);
                     }

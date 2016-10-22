@@ -8,7 +8,6 @@ import android.content.Intent;
  * Created by rmc on 10/15/16.
  */
 
-
 public class BBRunOnStartup extends BroadcastReceiver {
 
     @Override
