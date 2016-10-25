@@ -293,7 +293,7 @@ public class MyWifiDirect {
                 RequestGroups();
             } break;
             case STATE_START_CONNECT : {
-                toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE, 200);
+//                toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_NETWORK_LITE, 200);
                 ConnectToGroup(mGroup);
             } break;
             case STATE_CREATE_GROUP : {

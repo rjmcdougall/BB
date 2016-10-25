@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     ArrayList<MusicStream> streamURLs = new ArrayList<MusicStream>();
     ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int boardMode; // Mode of the Ardunio/LEDs
-    private VisualizerView mVisualizer;
+    private VisualizerView mVisualizerView;
 
     int currentRadioStream = 0;
     long phoneModelAudioLatency = 0;
@@ -238,7 +238,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 new String[]{permission.MODIFY_AUDIO_SETTINGS}, 1);
         ActivityCompat.requestPermissions(this,
                 new String[]{permission.RECORD_AUDIO}, 1);
-        mVisualizer = new VisualizerView(mContext);
+
+
+
 
         //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
@@ -263,9 +265,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 boardDisplayThread();
             }
         });
-        t.start();
+        //t.start();
 
         setContentView(R.layout.activity_main);
+
+        mVisualizerView = (VisualizerView) findViewById(R.id.myvisualizerview);
 
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
         remoteControl.registerInputDeviceListener(this, null);
@@ -316,13 +320,16 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             RadioMode();
 
         MusicReset();
+
         try {
-            mVisualizer.link(mediaPlayer.getAudioSessionId());
+            mVisualizerView.link(mediaPlayer.getAudioSessionId());
+            mVisualizerView.addBarGraphRendererBottom();
         } catch (Exception e) {
-            l("Cannot start visualizer!");
+            l("Cannot start visualizer!" + e.getMessage());
         }
-        mVisualizer.addBarGraphRendererBottom();
+
     }
+
 
 
     private void updateStatus() {
@@ -474,6 +481,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public void l(String s) {
         String tmp;
 
+
         synchronized (bleStatus) {
             if (s==null)
                 s=logMsg;
@@ -484,7 +492,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         final String fullText = tmp;
 
+
         Log.v(TAG, s);
+
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
@@ -492,6 +502,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                                   logMessage(fullText);
                           }
                       });
+
     }
 
     public void sendCommand(String s) {
@@ -604,11 +615,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     void MusicListInit() {
 
         streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2*60*60+7*60+37));
-        //streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2*60*60+3*60+44));
-        //streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
-        //streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
-        //streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
-        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207 , 4*60+32));
+        streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2*60*60+3*60+44));
+        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
+        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
+        streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
+        streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207 , 4*60+32));
         //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
     }
 
@@ -707,7 +718,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 }
             }
         } catch (Throwable thr_err) {
-
+            l("SeekAndPlay Error" + thr_err.getMessage());
+            try {
+                Thread.sleep(300);
+            } catch (Throwable e) {
+            }
         }
     }
 

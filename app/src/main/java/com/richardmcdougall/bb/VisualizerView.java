@@ -50,7 +50,10 @@ public class VisualizerView extends View {
     public VisualizerView(Context context, AttributeSet attrs, int defStyle)
     {
         super(context, attrs);
-        init();
+        if (!isInEditMode()) {
+            System.out.println("Starting VisualizerView");
+            init();
+        }
     }
 
     public VisualizerView(Context context, AttributeSet attrs)
@@ -77,6 +80,7 @@ public class VisualizerView extends View {
         mRenderers = new HashSet<Renderer>();
     }
 
+
     /**
      * Links the visualizer to a player
      *
@@ -84,6 +88,7 @@ public class VisualizerView extends View {
      */
     public void link(int audioSessionId)
     {
+        System.out.println("Linking VisualizerView");
         if (mVisualizer != null && audioSessionId != mAudioSessionId) {
             mVisualizer.setEnabled(false);
             mVisualizer.release();
@@ -100,6 +105,7 @@ public class VisualizerView extends View {
                 mVisualizer = new Visualizer(audioSessionId);
             } catch (Exception e) {
                 Log.e(TAG, "Error enabling visualizer!", e);
+                System.out.println("Error enabling visualizer:" + e.getMessage());
                 return;
             }
             mVisualizer.setEnabled(false);
@@ -202,47 +208,45 @@ public class VisualizerView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // Create canvas once we're ready to draw
-        mRect.set(0, 0, getWidth(), getHeight());
+        if (!isInEditMode()) {
 
-        if (mCanvasBitmap == null)
-        {
-            mCanvasBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(),
-                    Config.ARGB_8888);
-        }
-        if (mCanvas == null)
-        {
-            mCanvas = new Canvas(mCanvasBitmap);
-        }
+            // Create canvas once we're ready to draw
+            mRect.set(0, 0, getWidth(), getHeight());
 
-        if (mBytes != null) {
-            // Render all audio renderers
-            AudioData audioData = new AudioData(mBytes);
-            for (Renderer r : mRenderers)
-            {
-                r.render(mCanvas, audioData, mRect);
+            if (mCanvasBitmap == null) {
+                mCanvasBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(),
+                        Config.ARGB_8888);
             }
-        }
-
-        if (mFFTBytes != null) {
-            // Render all FFT renderers
-            FFTData fftData = new FFTData(mFFTBytes);
-            for (Renderer r : mRenderers)
-            {
-                r.render(mCanvas, fftData, mRect);
+            if (mCanvas == null) {
+                mCanvas = new Canvas(mCanvasBitmap);
             }
+
+            if (mBytes != null) {
+                // Render all audio renderers
+                AudioData audioData = new AudioData(mBytes);
+                for (Renderer r : mRenderers) {
+                    r.render(mCanvas, audioData, mRect);
+                }
+            }
+
+            if (mFFTBytes != null) {
+                // Render all FFT renderers
+                FFTData fftData = new FFTData(mFFTBytes);
+                for (Renderer r : mRenderers) {
+                    r.render(mCanvas, fftData, mRect);
+                }
+            }
+
+            // Fade out old contents
+            mCanvas.drawPaint(mFadePaint);
+
+            if (mFlash) {
+                mFlash = false;
+                mCanvas.drawPaint(mFlashPaint);
+            }
+
+            canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
         }
-
-        // Fade out old contents
-        mCanvas.drawPaint(mFadePaint);
-
-        if (mFlash)
-        {
-            mFlash = false;
-            mCanvas.drawPaint(mFlashPaint);
-        }
-
-        canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
     }
 
     // Methods for adding renderers to visualizer
