@@ -62,6 +62,8 @@ public class MyWifiDirect {
         STATE_TALKING_TO_SERVER,
         STATE_SERVING     // state only for server
     };
+
+
     StateType state = StateType.STATE_WAITING_MY_NAME;
 
     boolean isConnectedState() {
@@ -71,6 +73,8 @@ public class MyWifiDirect {
     void SetState(StateType s, String why) {
         StateType oldState = state;
         state = s;
+        String stateStr;
+
         if (state != StateType.STATE_TALKING_TO_SERVER)
             replyCount=0;
 
@@ -78,9 +82,26 @@ public class MyWifiDirect {
 
         synchronized (mActivity.bleStatus) {
             String ip = UDPClientServer.getIPAddress(true);
-            mActivity.bleStatus = "IP="+ip+" "+myDeviceName+"\n"+oldState.toString() + " -> " + state.toString() + ":" + why;
-            System.out.println(mActivity.bleStatus);
+            mActivity.bleStatus = "IP=" + ip + " " + myDeviceName + "\n"+oldState.toString() +
+                    " -> " + state.toString() + ":" + why;
+            //System.out.println(mActivity.bleStatus);
         }
+
+        switch (state)  {
+
+            case STATE_TALKING_TO_SERVER:
+                mActivity.setStateMsgConn("Connected");
+                break;
+
+            case STATE_SERVING:
+                mActivity.setStateMsgConn("Server");
+                break;
+
+            default:
+                mActivity.setStateMsgConn("Connecting");
+        }
+
+        mActivity.setStateStats(peers.size(), replyCount);
 
     }
 
@@ -112,7 +133,7 @@ public class MyWifiDirect {
         public void onGroupInfoAvailable (WifiP2pGroup group) {
 
 
-            if (group==null) {
+            if (group == null) {
                 //if (amServer())
                     SetState(StateType.STATE_CREATE_GROUP, "onGroupInfoAvailable group=null");
                 //else
@@ -480,8 +501,10 @@ public class MyWifiDirect {
                     if (state!=StateType.STATE_GET_GROUP_INFO)
                         SetState(StateType.STATE_GET_GROUP_INFO, "WIFI_P2P_PEERS_CHANGED_ACTION");
                 }
-                else
+                else {
                     SetState(StateType.STATE_START_FIND_PEERS, "WIFI_P2P_PEERS_CHANGED_ACTION");
+                }
+                // Is this nextState() supposed to be in the else()?
                 NextState();
             } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
 
@@ -518,6 +541,7 @@ public class MyWifiDirect {
             }
         }
     }
+
     private void appendStatus(String s) {
 
     }

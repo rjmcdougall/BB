@@ -5,9 +5,17 @@
     <string name="bb_boardlights">Board Lights</string>
     <string name="bb_headlight">Head Light</string>
     <string name="bb_music">Music</string>
-    <string name="bb_status">Status: </string>
+    <string name="bb_status">LEDs Status: </string>
     <string name="bb_status_disconnected">Disconnected</string>
     <string name="bb_status_connected">Connected to </string>
+    <string name="bb_syncreplies">Music Server sync-replies</string>
+    <string name="bb_syncadjust">Music Player Correction</string>
+    <string name="bb_syncstatus">Music Player Status: </string>
+    <string name="bb_syncpeers">Music Player Peers: </string>
+    <string name="bb_synctrack">Music Player Track: </string>
+    <string name="bb_syncsrvoff">Music Server Time Offset: </string>
+    <string name="bb_syncusroff">Music Player User Offset: </string>
+    <string name="bb_syncrtt">Music Server Round-trip-time: </string>
 
     <string name="title_activity_settings">Settings</string>
 

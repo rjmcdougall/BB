@@ -16,14 +16,205 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/bb_status"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:textAppearance="?android:attr/textAppearanceSmallpro" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/bb_status_disconnected"
         android:id="@+id/textViewStatus"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceSmall" />
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncstatus"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/bb_status_disconnected"
+            android:id="@+id/textViewsyncstatus"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_synctrack"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsynctrack"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncusroff"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsyncusroff"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncadjust"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsyncadjust"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncpeers"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsyncpeers"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncsrvoff"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsyncsrvoff"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncrtt"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsyncrtt"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/bb_syncreplies"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_width="wrap_content" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:id="@+id/textViewsyncreplies"
+            android:textStyle="normal"
+            android:gravity="right"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:layout_alignParentRight="true"
+            android:paddingRight="10dp" />
+
+    </RelativeLayout>
+
+
+
 
 
     <RelativeLayout
@@ -34,19 +225,18 @@
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/bb_voltage"
-            android:textStyle="bold"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="normal"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_width="wrap_content" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0.0v"
             android:id="@+id/textViewVoltage"
-            android:textStyle="bold"
+            android:textStyle="normal"
             android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_alignParentRight="true"
-            android:layout_toRightOf="@+id/textViewVoltage"
             android:paddingRight="10dp" />
 
     </RelativeLayout>
@@ -66,34 +256,6 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Switch
-            android:id="@+id/switchDecklight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:showText="true"
-            android:text="@string/bb_boardlights" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Switch
-            android:id="@+id/switchMusic"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:showText="true"
-            android:text="@string/bb_music" />
-
-    </LinearLayout>
 
 
 
@@ -115,32 +277,26 @@
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Down"
+            android:text="-"
             android:id="@+id/modeDownbutton" />
-
-        <Button
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Up"
-            android:id="@+id/modeUpbutton" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
+            android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/modeStatus" />
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            android:id="@+id/modeUpbutton" />
+
+
 
     </LinearLayout>
 
-    <ProgressBar
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
-        android:layout_gravity="bottom"
-        android:layout_margin="20px"
-        android:nestedScrollingEnabled="true" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_height="wrap_content"
@@ -156,13 +312,13 @@
     <Button
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:text="-----"
+        android:text="--"
         android:layout_weight="1"
         android:onClick="onDriftDown" />
     <Button
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:text="+++++"
+        android:text="++"
         android:layout_weight="1"
         android:onClick="onDriftUp" />
     </LinearLayout>
@@ -189,7 +345,7 @@
     <com.richardmcdougall.bb.VisualizerView
         android:id="@+id/myvisualizerview"
         android:layout_width="match_parent"
-        android:layout_height="94dp" />
+        android:layout_height="40dp" />
 
     </LinearLayout>
 

@@ -22,7 +22,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.ImageView;
@@ -47,21 +46,31 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.ArrayList;
+
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+
 import android.os.Environment;
-import 	java.io.OutputStream;
+
+import java.io.OutputStream;
 import java.io.FileOutputStream;
 import java.util.Calendar;
+
 import android.os.ParcelUuid;
+
 import java.util.*;
 import java.nio.charset.Charset;
+
 import android.text.TextUtils;
+
 import java.nio.*;
+
 import android.content.*;
+
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.ThreadFactory;
@@ -77,13 +86,21 @@ import android.content.Context;
 import android.content.Intent;
 
 
-
 public class MainActivity extends AppCompatActivity implements InputDeviceListener {
 
     TextView voltage;
     TextView status;
     EditText log;
-    ProgressBar pb;
+    TextView syncStatus = null;
+    TextView syncPeers = null;
+    TextView syncReplies = null;
+    TextView syncAdjust;
+    TextView syncTrack;
+    TextView syncUsroff;
+    TextView syncSrvoff;
+    TextView syncRTT;
+
+
     TextView modeStatus;
 
     private static UsbSerialPort sPort = null;
@@ -111,6 +128,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int boardMode; // Mode of the Ardunio/LEDs
     private VisualizerView mVisualizerView;
+    private String stateMsgAudio = "";
+    private String stateMsgConn = "";
+    private String stateMsg = "";
+    private int statePeers = 0;
+    private long stateReplies = 0;
 
     int currentRadioStream = 0;
     long phoneModelAudioLatency = 0;
@@ -128,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
     private Handler pHandler = new Handler();
-    int ProgressStatus;
 
 
     // function to append a string to a TextView as a new line
@@ -153,6 +174,26 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
     }
 
+    public void setStateMsgConn(String str) {
+        synchronized (stateMsg) {
+            stateMsgConn = str;
+            stateMsg = stateMsgConn + "," + stateMsgAudio;
+
+        }
+    }
+
+
+    public void setStateMsgAudio(String str) {
+        synchronized (stateMsg) {
+            stateMsgAudio = str;
+            stateMsg = stateMsgConn + "," + stateMsgAudio;
+        }
+    }
+
+    public void setStateStats(int npeers, long replies) {
+        statePeers = npeers;
+        stateReplies = replies;
+    }
 
     long startElapsedTime, startClock;
 
@@ -195,8 +236,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     }
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -206,17 +245,13 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         if (model.equals("XT1064")) {
             phoneModelAudioLatency = 10;
-        }
-        else if (model.equals("BLU DASH M2")) {
+        } else if (model.equals("BLU DASH M2")) {
             phoneModelAudioLatency = 10;
-        }
-        else if (model.equals("BLU ADVANCE 5.0 HD")) {
+        } else if (model.equals("BLU ADVANCE 5.0 HD")) {
             phoneModelAudioLatency = 10;
-        }
-        else if (model.equals("MSM8916 for arm64")) {
-            phoneModelAudioLatency = 1000;
-        }
-        else {
+        } else if (model.equals("MSM8916 for arm64")) {
+            phoneModelAudioLatency = 20;
+        } else {
             phoneModelAudioLatency = 82;
             userTimeOffset = -4;
         }
@@ -240,13 +275,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 new String[]{permission.RECORD_AUDIO}, 1);
 
 
-
-
         //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         ActivityCompat.requestPermissions(this, new String[]{permission.BLUETOOTH_ADMIN}, 1);
 
-        WifiManager mWiFiManager = (WifiManager)mContext.getSystemService(Context.WIFI_SERVICE);
+        WifiManager mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         if (mWiFiManager.isWifiEnabled()) {
             l("Wifi Enabled Already");
@@ -269,14 +302,27 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         setContentView(R.layout.activity_main);
 
+        // Create the graphic equalizer
         mVisualizerView = (VisualizerView) findViewById(R.id.myvisualizerview);
 
+        // Connect the remote control
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
         remoteControl.registerInputDeviceListener(this, null);
 
+        // Create textview
         voltage = (TextView) findViewById(R.id.textViewVoltage);
         modeStatus = (TextView) findViewById(R.id.modeStatus);
         status = (TextView) findViewById(R.id.textViewStatus);
+        syncStatus = (TextView) findViewById(R.id.textViewsyncstatus);
+        syncPeers = (TextView) findViewById(R.id.textViewsyncpeers);
+        syncReplies = (TextView) findViewById(R.id.textViewsyncreplies);
+        syncAdjust = (TextView) findViewById(R.id.textViewsyncadjust);
+        syncTrack = (TextView) findViewById(R.id.textViewsynctrack);
+        syncUsroff = (TextView) findViewById(R.id.textViewsyncusroff);
+        syncSrvoff = (TextView) findViewById(R.id.textViewsyncsrvoff);
+        syncRTT = (TextView) findViewById(R.id.textViewsyncrtt);
+
+        // Create the logging window
         log = (EditText) findViewById(R.id.editTextLog);
         log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
 
@@ -284,35 +330,11 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         log.setText("Hello");
         log.setFocusable(false);
 
-        pb = (ProgressBar) findViewById(R.id.progressBar);
-        pb.setMax(100);
-
         switchHeadlight = (android.widget.Switch) findViewById(R.id.switchHeadlight);
         switchHeadlight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 boardSetHeadlight(isChecked);
-
-                /*
-                 Start lengthy operation in a background thread
-                work = 0;
-                pb.setProgress(0);
-                new Thread(new Runnable() {
-                    public void run() {
-                        ProgressStatus = 0;
-                        while (ProgressStatus < 100) {
-                            ProgressStatus = doWork();
-                            // Update the progress bar
-                            pHandler.post(new Runnable() {
-                                public void run() {
-                                    pb.setProgress(ProgressStatus);
-                                }
-                            });
-                        }
-                    }
-                }).start();
-                */
-
             }
         });
 
@@ -331,7 +353,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
 
-
     private void updateStatus() {
         float volts;
 
@@ -346,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onResume() {
         super.onResume();
-        if (mWifi!=null)
+        if (mWifi != null)
             mWifi.onResume();
 
 //        loadPrefs();
@@ -359,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onPause() {
         super.onPause();
-        if (mWifi!=null)
+        if (mWifi != null)
             mWifi.onPause();
 
         mHandler.removeCallbacksAndMessages(null);
@@ -380,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
 
-    private void initUsb(){
+    private void initUsb() {
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
@@ -395,15 +416,14 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         //are we allowed to access?
         UsbDevice device = mDriver.getDevice();
 
-        if (!manager.hasPermission(device)){
+        if (!manager.hasPermission(device)) {
             //ask for permission
             PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(GET_USB_PERMISSION), 0);
-            mContext.registerReceiver(mPermissionReceiver,new IntentFilter(GET_USB_PERMISSION));
+            mContext.registerReceiver(mPermissionReceiver, new IntentFilter(GET_USB_PERMISSION));
             manager.requestPermission(device, pi);
             l("USB ask for permission");
             return;
         }
-
 
 
         UsbDeviceConnection connection = manager.openDevice(mDriver.getDevice());
@@ -413,7 +433,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
 
         try {
-            sPort = (UsbSerialPort)mDriver.getPorts().get(0);//Most have just one port (port 0)
+            sPort = (UsbSerialPort) mDriver.getPorts().get(0);//Most have just one port (port 0)
             sPort.open(connection);
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
         } catch (IOException e) {
@@ -445,7 +465,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         if (sPort != null) {
             l("Starting io manager ..");
             //mListener = new BBListenerAdapter();
-            mListener = new CmdMessenger(sPort, ',',';','\\');
+            mListener = new CmdMessenger(sPort, ',', ';', '\\');
             mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
             mExecutor.submit(mSerialIoManager);
 
@@ -483,8 +503,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
         synchronized (bleStatus) {
-            if (s==null)
-                s=logMsg;
+            if (s == null)
+                s = logMsg;
             else
                 logMsg = s;
             tmp = bleStatus + "\n" + s;
@@ -496,12 +516,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         Log.v(TAG, s);
 
         runOnUiThread(new Runnable() {
-                          @Override
-                          public void run() {
-                              if (log!=null)
-                                  logMessage(fullText);
-                          }
-                      });
+            @Override
+            public void run() {
+                if (log != null)
+                    logMessage(fullText);
+            }
+        });
 
     }
 
@@ -516,17 +536,18 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
     //public void sendCommand(String s) {
-   //     l("sendCommand:" + s);
+    //     l("sendCommand:" + s);
     //    mListener.sendCmd()
 
-        //try {
-        //    if (sPort != null) sPort.write(s.getBytes(), 200);
-        //} catch (IOException e) {
-        //    l("sendCommand err:" + e.getMessage());
-       // }
+    //try {
+    //    if (sPort != null) sPort.write(s.getBytes(), 200);
+    //} catch (IOException e) {
+    //    l("sendCommand err:" + e.getMessage());
+    // }
     //}
 
     private PermissionReceiver mPermissionReceiver = new PermissionReceiver();
+
     private class PermissionReceiver extends BroadcastReceiver {
 
         @Override
@@ -536,9 +557,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                     l("USB we got permission");
-                    if (device != null){
+                    if (device != null) {
                         initUsb();
-                    }else{
+                    } else {
                         l("USB perm receive device==null");
                     }
 
@@ -598,28 +619,31 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             return radioFile;
         } */
 
-        return mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + idx +".mp3";
+        return mContext.getExternalFilesDir(Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + idx + ".mp3";
     }
 
     class MusicStream {
         public String downloadURL;
         public long fileSize;
         public long lengthInSeconds;   // android method for determining the song length seems to vary from OS to OS
+
         public MusicStream(String url, long _size, long len) {
             downloadURL = url;
             fileSize = _size;
             lengthInSeconds = len;
         }
-    };
+    }
+
+    ;
 
     void MusicListInit() {
 
-        streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2*60*60+7*60+37));
-        streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2*60*60+3*60+44));
-        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
-        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2*60*60+7*60+33));
+        streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2 * 60 * 60 + 7 * 60 + 37));
+        streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2 * 60 * 60 + 3 * 60 + 44));
+        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
+        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
         streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
-        streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207 , 4*60+32));
+        streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
         //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
     }
 
@@ -627,7 +651,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         try {
             DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
             downloaded = true;
-            for (int i=0; i<streamURLs.size(); i++) {
+            for (int i = 0; i < streamURLs.size(); i++) {
                 String destPath = GetRadioStreamFile(i);
                 long expectedSize = streamURLs.get(i).fileSize;
 
@@ -636,13 +660,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 if (f.exists()) {
                     long len = f.length();
 
-                    if (len!=expectedSize) {
+                    if (len != expectedSize) {
                         boolean result = f.delete();
                         boolean result2 = f.exists();
-                        l("exists but not correct size (" + len + "!=" + expectedSize + "), delete = "+ result);
-                    }
-                    else {
-                        l("Already downloaded (" + len + "): "+streamURLs.get(i).downloadURL);
+                        l("exists but not correct size (" + len + "!=" + expectedSize + "), delete = " + result);
+                    } else {
+                        l("Already downloaded (" + len + "): " + streamURLs.get(i).downloadURL);
                         download = false;
                     }
                 }
@@ -650,7 +673,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 if (download) {
                     DownloadManager.Request r = new DownloadManager.Request(Uri.parse(streamURLs.get(i).downloadURL));
 
-                    r.setTitle("Downloading: " + "Stream " + i + " ("+expectedSize+")");
+                    r.setTitle("Downloading: " + "Stream " + i + " (" + expectedSize + ")");
                     r.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
                     r.setDescription("BurnerBoard Radio Stream " + i);
                     r.setVisibleInDownloadsUi(true);
@@ -662,8 +685,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     l("Downloading : " + streamURLs.get(i).downloadURL);
                 }
             }
-        }
-        catch (Throwable err) {
+        } catch (Throwable err) {
             String msg = err.getMessage();
             System.out.println(msg);
         }
@@ -679,6 +701,20 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     public void SeekAndPlay() {
         try {
+
+            // Update UDP/Audio state
+            if (syncStatus != null) {
+                syncStatus.setText(stateMsg);
+            }
+
+            if (syncPeers != null) {
+                syncPeers.setText(String.format("%1$d", statePeers));
+            }
+
+            if (syncReplies != null) {
+                syncReplies.setText(String.format("%1$d", stateReplies));
+            }
+
             if (mediaPlayer != null && downloaded) {
                 synchronized (mediaPlayer) {
                     long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
@@ -692,19 +728,36 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     if (lastSeekOffset != 0 && lastSeekTimestamp < ms) {
                         long expectedPosition = lastSeekOffset + (ms - lastSeekTimestamp);
                         seekErr = (curPos - expectedPosition);
-                        while (Math.abs(seekErr)>100)
+                        while (Math.abs(seekErr) > 1000)
                             seekErr /= 2;
                     }
 
-                    String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset + " User " + userTimeOffset + "\nSeekOff " + seekOff + " RTT " + serverRTT + " Strm" + currentRadioStream;
+                    String msg =
+                            "SeekErr " + seekErr +
+                                    " SvOff " + serverTimeOffset +
+                                    " User " + userTimeOffset +
+                                    "\nSeekOff " + seekOff +
+                                    " RTT " + serverRTT +
+                                    " Strm" + currentRadioStream;
+
                     if (udpClientServer.tSentPackets != 0)
                         msg += "\nSent " + udpClientServer.tSentPackets;
-                    l(msg);
+                    //l(msg);
+
+                    syncAdjust.setText(String.format("%1$d", seekErr));
+                    syncTrack.setText(String.format("%1$d", currentRadioStream));
+                    syncUsroff.setText(String.format("%1$d", userTimeOffset));
+                    syncSrvoff.setText(String.format("%1$d", serverTimeOffset));
+                    syncRTT.setText(String.format("%1$d", serverRTT));
 
                     if (curPos == 0 || Math.abs(curPos - seekOff) > 8) {
-                        int newPos = (int) (seekOff - seekErr / 2+phoneModelAudioLatency);
-                        if (newPos<0)
-                            newPos =0;
+                        int newPos = (int) (seekOff - seekErr / 2 + phoneModelAudioLatency);
+                        if (newPos < 0)
+                            newPos = 0;
+                        //l(msg);
+                        setStateMsgAudio("Adjusting");
+
+                        //mediaPlayer.pause();
                         mediaPlayer.seekTo(newPos);
                         /* PlaybackParams p;
                         if (p.getClass().getMethod("setSpeed",
@@ -712,46 +765,48 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                         mediaPlayer.setPlaybackParams(p); */
                         mediaPlayer.start();
 
+
                         lastSeekOffset = seekOff;
                         lastSeekTimestamp = ms;
+                    } else {
+                        setStateMsgAudio("Synced");
                     }
                 }
             }
         } catch (Throwable thr_err) {
             l("SeekAndPlay Error" + thr_err.getMessage());
             try {
-                Thread.sleep(300);
+                Thread.sleep(3000);
             } catch (Throwable e) {
             }
         }
     }
 
     void NextStream() {
-        int nextRadioStream = currentRadioStream+1;
-        if (nextRadioStream==streamURLs.size())
+        int nextRadioStream = currentRadioStream + 1;
+        if (nextRadioStream == streamURLs.size())
             nextRadioStream = 0;
         SetRadioStream(nextRadioStream);
     }
 
     void SetRadioStream(int index) {
         try {
-            if (mediaPlayer!=null) {
-                synchronized (mediaPlayer) {
-                    lastSeekOffset = 0;
-                    currentRadioStream = index;
-                    FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(fds.getFD());
-                    fds.close();
+            if (mediaPlayer != null) {
+                //synchronized (mediaPlayer) {
+                lastSeekOffset = 0;
+                currentRadioStream = index;
+                FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
+                mediaPlayer.reset();
+                mediaPlayer.setDataSource(fds.getFD());
+                fds.close();
 
-                    mediaPlayer.setLooping(true);
-                    mediaPlayer.setVolume(vol, vol);
-                    mediaPlayer.prepare();
-                }
+                mediaPlayer.setLooping(true);
+                mediaPlayer.setVolume(vol, vol);
+                mediaPlayer.prepare();
+                //}
             }
             SeekAndPlay();
-        }
-        catch (Throwable err) {
+        } catch (Throwable err) {
             String msg = err.getMessage();
             System.out.println(msg);
         }
@@ -792,7 +847,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public void onDriftUp(View v) {
         MusicOffset(2);
     }
-
 
 
     @Override
@@ -858,7 +912,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     public class ArdunioCallbackDefault implements CmdEvents {
 
-        public void CmdAction(String str){
+        public void CmdAction(String str) {
             l("ardunio default callback:" + str);
         }
 
@@ -866,7 +920,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     public class ArdunioCallbackTest implements CmdEvents {
 
-        public void CmdAction(String str){
+        public void CmdAction(String str) {
             l("ardunio test callback:" + str);
         }
 
@@ -874,7 +928,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     public class ArdunioCallbackMode implements CmdEvents {
 
-        public void CmdAction(String str){
+        public void CmdAction(String str) {
             toneG.startTone(ToneGenerator.TONE_PROP_BEEP, 200);
             boardMode = mListener.readIntArg();
             l("ardunio mode callback:" + str + " " + boardMode);
@@ -884,8 +938,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
     }
-
-
 
 
     private int boardDisplayCnt = 0;
@@ -930,7 +982,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     //    cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
     public float boardGetVoltage() {
-        return (float)0;
+        return (float) 0;
     }
 
     //    cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
@@ -1051,7 +1103,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
         return false;
     }
-
 
 
 }
