@@ -11,6 +11,7 @@ package com.richardmcdougall.bb;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 
 import com.richardmcdougall.bb.AudioData;
 import com.richardmcdougall.bb.FFTData;
@@ -48,6 +49,7 @@ public class BarGraphRenderer extends Renderer
     @Override
     public void onRender(Canvas canvas, FFTData data, Rect rect)
     {
+        Log.d("Render", "RenderingFFT");
         for (int i = 0; i < data.bytes.length / mDivisions; i++) {
             mFFTPoints[i * 4] = i * 4 * mDivisions;
             mFFTPoints[i * 4 + 2] = i * 4 * mDivisions;

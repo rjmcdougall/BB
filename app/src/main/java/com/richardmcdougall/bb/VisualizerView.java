@@ -47,6 +47,8 @@ public class VisualizerView extends View {
     private Paint mFlashPaint = new Paint();
     private Paint mFadePaint = new Paint();
 
+    private MainActivity mActivity = null;
+
     public VisualizerView(Context context, AttributeSet attrs, int defStyle)
     {
         super(context, attrs);
@@ -176,6 +178,12 @@ public class VisualizerView extends View {
     public void updateVisualizer(byte[] bytes) {
         mBytes = bytes;
         invalidate();
+        //if (mActivity != null) {
+        //     synchronized (mActivity.mBoardFFT) {
+        //        mActivity.mBoardFFT = bytes.clone();
+        //    }
+        //}
+
     }
 
     /**
@@ -188,6 +196,10 @@ public class VisualizerView extends View {
     public void updateVisualizerFFT(byte[] bytes) {
         mFFTBytes = bytes;
         invalidate();
+    }
+
+    public void updateVisualizerFFTnoInvalididate(byte[] bytes) {
+        mFFTBytes = bytes;
     }
 
     boolean mFlash = false;
@@ -247,6 +259,13 @@ public class VisualizerView extends View {
 
             canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
         }
+    }
+
+    // Methods for adding renderers to visualizer
+    public void addBurnerBoardRenderer(MainActivity activity)
+    {
+        BurnerBoardRenderer burnerBoardRenderer = new BurnerBoardRenderer(16, activity);
+        addRenderer(burnerBoardRenderer);
     }
 
     // Methods for adding renderers to visualizer

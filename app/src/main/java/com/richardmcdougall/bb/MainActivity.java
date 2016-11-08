@@ -1,5 +1,3 @@
-// jc: testing git commit with update
-
 package com.richardmcdougall.bb;
 
 import android.Manifest;
@@ -12,6 +10,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.media.PlaybackParams;
+import android.media.audiofx.Visualizer;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -133,6 +132,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private String stateMsg = "";
     private int statePeers = 0;
     private long stateReplies = 0;
+    public byte[] mBoardFFT;
+    public String mSerialConn = "";
 
     int currentRadioStream = 0;
     long phoneModelAudioLatency = 0;
@@ -239,6 +240,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        l("MainActivity: onCreate()");
+
         String model = android.os.Build.MODEL;
 
         l("Starting BB on phone " + model);
@@ -271,14 +274,18 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         mContext = getApplicationContext();
         ActivityCompat.requestPermissions(this,
                 new String[]{permission.MODIFY_AUDIO_SETTINGS}, 1);
-        ActivityCompat.requestPermissions(this,
-                new String[]{permission.RECORD_AUDIO}, 1);
+        //ActivityCompat.requestPermissions(this,
+        //        new String[]{permission.RECORD_AUDIO}, 1);
 
 
-        //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-        ActivityCompat.requestPermissions(this, new String[]{permission.BLUETOOTH_ADMIN}, 1);
+        //ActivityCompat.requestPermissions(this,
+        // new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        //ActivityCompat.requestPermissions(this,
+        // new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+        //ActivityCompat.requestPermissions(this,
+        // new String[]{permission.BLUETOOTH_ADMIN}, 1);
 
+        /*
         WifiManager mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         if (mWiFiManager.isWifiEnabled()) {
@@ -289,6 +296,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             mWiFiManager.setWifiEnabled(true);
             mWiFiManager.reassociate();
         }
+        */
 
         DownloadMusic2();
 
@@ -298,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 boardDisplayThread();
             }
         });
-        //t.start();
+        t.start();
 
         setContentView(R.layout.activity_main);
 
@@ -338,18 +346,22 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             }
         });
 
+
         if (downloaded)
             RadioMode();
 
         MusicReset();
 
+
         try {
             mVisualizerView.link(mediaPlayer.getAudioSessionId());
             mVisualizerView.addBarGraphRendererBottom();
+            //mVisualizerView.addBurnerBoardRenderer(this);
         } catch (Exception e) {
             l("Cannot start visualizer!" + e.getMessage());
         }
 
+        boardVisualizerSetup(mediaPlayer.getAudioSessionId());
     }
 
 
@@ -366,6 +378,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     @Override
     protected void onResume() {
+        l("MainActivity: onResume()");
+
+
         super.onResume();
         if (mWifi != null)
             mWifi.onResume();
@@ -379,6 +394,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     @Override
     protected void onPause() {
+        l("MainActivity: onPause()");
+
         super.onPause();
         if (mWifi != null)
             mWifi.onPause();
@@ -451,38 +468,43 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
     private void stopIoManager() {
-        status.setText("Disconnected");
-        if (mSerialIoManager != null) {
-            l("Stopping io manager ..");
-            mSerialIoManager.stop();
-            mSerialIoManager = null;
-            mListener = null;
+        synchronized (mSerialConn) {
+            status.setText("Disconnected");
+            if (mSerialIoManager != null) {
+                l("Stopping io manager ..");
+                mSerialIoManager.stop();
+                mSerialIoManager = null;
+                mListener = null;
+            }
         }
     }
 
     private void startIoManager() {
         status.setText("Connected");
-        if (sPort != null) {
-            l("Starting io manager ..");
-            //mListener = new BBListenerAdapter();
-            mListener = new CmdMessenger(sPort, ',', ';', '\\');
-            mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
-            mExecutor.submit(mSerialIoManager);
 
-            // attach default cmdMessenger callback
-            ArdunioCallbackDefault defaultCallback = new ArdunioCallbackDefault();
-            mListener.attach(defaultCallback);
+        synchronized (mSerialConn) {
+            if (sPort != null) {
+                l("Starting io manager ..");
+                //mListener = new BBListenerAdapter();
+                mListener = new CmdMessenger(this, sPort, ',', ';', '\\');
+                mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+                mExecutor.submit(mSerialIoManager);
 
-            // attach Test cmdMessenger callback
-            ArdunioCallbackTest testCallback = new ArdunioCallbackTest();
-            mListener.attach(5, testCallback);
+                // attach default cmdMessenger callback
+                ArdunioCallbackDefault defaultCallback = new ArdunioCallbackDefault();
+                mListener.attach(defaultCallback);
 
-            // attach Mode cmdMessenger callback
-            ArdunioCallbackMode modeCallback = new ArdunioCallbackMode();
-            mListener.attach(4, modeCallback);
+                // attach Test cmdMessenger callback
+                ArdunioCallbackTest testCallback = new ArdunioCallbackTest();
+                mListener.attach(5, testCallback);
+
+                // attach Mode cmdMessenger callback
+                ArdunioCallbackMode modeCallback = new ArdunioCallbackMode();
+                mListener.attach(4, modeCallback);
 
 
-            boardId = boardGetBoardId();
+                boardId = boardGetBoardId();
+            }
         }
     }
 
@@ -491,6 +513,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
     private void onDeviceStateChange() {
+        l("MainActivity: onDeviceStateChange()");
+
         stopIoManager();
         startIoManager();
     }
@@ -645,7 +669,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
         streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
         //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
+        streamURLs.add(6, new MusicStream("https://dl.dropboxusercontent.com/s/vx11kxtkmhgycd9/click_120bpm_4-4time_610beats_stereo_WjI2zj.mp3?dl=0", 2436288, 5 * 60 + 4));
+        streamURLs.add(7, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 14616192, 30 * 60 + 30));
     }
+
 
     public void DownloadMusic2() {
         try {
@@ -663,7 +690,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     if (len != expectedSize) {
                         boolean result = f.delete();
                         boolean result2 = f.exists();
-                        l("exists but not correct size (" + len + "!=" + expectedSize + "), delete = " + result);
+                        l("exists but not correct size (" + len + "!=" + expectedSize + "), " +
+                                "delete = " + result);
                     } else {
                         l("Already downloaded (" + len + "): " + streamURLs.get(i).downloadURL);
                         download = false;
@@ -671,7 +699,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 }
 
                 if (download) {
-                    DownloadManager.Request r = new DownloadManager.Request(Uri.parse(streamURLs.get(i).downloadURL));
+                    DownloadManager.Request r =
+                            new DownloadManager.Request(Uri.parse(streamURLs.get(i).downloadURL));
 
                     r.setTitle("Downloading: " + "Stream " + i + " (" + expectedSize + ")");
                     r.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
@@ -848,6 +877,19 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         MusicOffset(2);
     }
 
+    public void onModeDown(View v) {
+        boardSetMode(98);
+        if ((boardMode = boardGetMode()) == -1)
+            boardMode--;
+        modeStatus.setText(String.format("%d", boardMode));
+    }
+
+    public void onModeUp(View v) {
+        boardSetMode(99);
+        if ((boardMode = boardGetMode()) == -1)
+            boardMode++;
+        modeStatus.setText(String.format("%d", boardMode));
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -913,7 +955,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public class ArdunioCallbackDefault implements CmdEvents {
 
         public void CmdAction(String str) {
-            l("ardunio default callback:" + str);
+
+            Log.d(TAG, "ardunio default callback:" + str);
         }
 
     }
@@ -921,6 +964,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public class ArdunioCallbackTest implements CmdEvents {
 
         public void CmdAction(String str) {
+
             l("ardunio test callback:" + str);
         }
 
@@ -941,21 +985,61 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
     private int boardDisplayCnt = 0;
+    private Visualizer mVisualizer;
+    private int mAudioSessionId;
+
+    void boardVisualizerSetup(int audioSessionId) {
+        int vSize;
+
+        Log.i(TAG, "session=" + audioSessionId);
+        mAudioSessionId = audioSessionId;
+        // Create the Visualizer object and attach it to our media player.
+        try {
+            mVisualizer = new Visualizer(audioSessionId);
+        } catch (Exception e) {
+            Log.e(TAG, "Error enabling visualizer!", e);
+            System.out.println("Error enabling visualizer:" + e.getMessage());
+            return;
+        }
+        vSize = Visualizer.getCaptureSizeRange()[1];
+        mVisualizer.setEnabled(false);
+        mBoardFFT = new byte[vSize];
+        mVisualizer.setCaptureSize(vSize);
+        mVisualizer.setEnabled(true);
+        System.out.println("Enabled visualizer with " + vSize + " bytes");
+
+    }
 
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
-        if (boardMode == 11) {
-            modeDisco();
-        }
-        try {
-            Thread.sleep(300);
-        } catch (Throwable e) {
+
+
+        while (true) {
+            switch (boardMode) {
+                case 11:
+                    modeDisco();
+                    break;
+                case 12:
+                    modeAudioBeat();
+                default:
+//                    modeDisco();
+//                    modeAudioBeat();
+//                    modeAudioBarV();
+                    modeAudioBarH();
+                    break;
+            }
+
+            try {
+                Thread.sleep(50);
+            } catch (Throwable e) {
+            }
+
+            boardDisplayCnt++;
+            if (boardDisplayCnt > 1000) {
+                //updateStatus();
+            }
         }
 
-        boardDisplayCnt++;
-        if (boardDisplayCnt > 100) {
-            updateStatus();
-        }
     }
 
     private int discoState = 0;
@@ -963,21 +1047,188 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     void modeDisco() {
         if (mListener != null) {
-            if (discoState == 0) {
-                mListener.sendCmdStart(13);
-                mListener.sendCmdArg(discoRandom.nextInt(255));
-                mListener.sendCmdArg(discoRandom.nextInt(255));
-                mListener.sendCmdArg(discoRandom.nextInt(255));
-                mListener.sendCmdEnd();
-                mListener.sendCmd(8);
-
-            } else {
-                mListener.sendCmd(7);
+            switch (discoState) {
+                case 99:
+                    mListener.sendCmdStart(13);
+                    mListener.sendCmdArg(discoRandom.nextInt(255));
+                    mListener.sendCmdArg(discoRandom.nextInt(255));
+                    mListener.sendCmdArg(discoRandom.nextInt(255));
+                    mListener.sendCmdEnd();
+                    mListener.sendCmd(8);
+                    break;
+                case 0:
+                    boardFillScreen(0, 0, 0);
+                    boardUpdate();
+                    break;
+                case 1:
+                    boardFillScreen(discoRandom.nextInt(255),
+                            discoRandom.nextInt(255),
+                            discoRandom.nextInt(255));
+                    boardUpdate();
+                    break;
+                default:
+                    mListener.sendCmd(7);
+                    break;
             }
         }
         discoState++;
-        if (discoState > 10)
+        if (discoState > 1)
             discoState = 0;
+    }
+
+    void modeAudioBeat() {
+
+        if (mBoardFFT == null)
+            return;
+
+        if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
+
+            /*
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mVisualizerView.updateVisualizerFFT(mBoardFFT.clone());
+                }
+            });
+            */
+
+            int r = 0, g = 0, b = 0;
+
+            //int mDivisions = mBoardFFT.length / 3 / 2;
+            int mDivisions = 1;
+            byte rfk;
+            byte ifk;
+            int dbValue = 0;
+
+            for (int i = 0; i < 512; i++) {
+                //synchronized (mBoardFFT) {
+                rfk = mBoardFFT[mDivisions * (i + 2)];
+                ifk = mBoardFFT[mDivisions * (i + 2) + 1];
+                //}
+                float magnitude = (rfk * rfk + ifk * ifk);
+                dbValue += java.lang.Math.max(0, (64 * Math.log10(magnitude)));
+                if (dbValue < 0)
+                    dbValue = 0;
+                r = 0;
+                g = 0;
+                b = 0;
+                /*
+                switch (i) {
+                    case 0:
+                        if (dbValue > 0)
+                            r = java.lang.Math.min(255, dbValue);
+                        break;
+                    case 1:
+                        if (dbValue > 0)
+                            g = java.lang.Math.min(255, dbValue);
+                        break;
+                    case 2:
+                        if (dbValue > 0)
+                            b = java.lang.Math.min(255, dbValue);
+                        break;
+                }
+                */
+                r = b = g = java.lang.Math.min(dbValue / 256, 255);
+
+                //if (true || r + g + b > 0) {
+                if (mListener != null)
+                    boardFillScreen(r, g, b);
+                //System.out.println("Visualizer RGB = (" + r + "," + g + "," + b + ")");
+                //} else {
+                //    if (mListener != null)
+                //        boardFade(1);
+                // }
+                //if (mListener != null)
+                //    boardUpdate();
+            }
+        }
+        return;
+
+    }
+
+    void modeAudioBarV() {
+
+        if (mBoardFFT == null)
+            return;
+
+        synchronized (mSerialConn) {
+            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
+
+
+                if (mListener != null)
+                    mListener.sendCmdStart(14);
+
+                byte rfk;
+                byte ifk;
+                int dbValue = 0;
+                for (int i = 0; i < 512; i++) {
+                    rfk = mBoardFFT[i];
+                    ifk = mBoardFFT[i + 1];
+                    float magnitude = (rfk * rfk + ifk * ifk);
+                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
+                    if (dbValue < 0)
+                        dbValue = 0;
+
+                    if ((i & 63) == 0) {
+                        int value = java.lang.Math.min(dbValue / 64, 255);
+                        dbValue = 0;
+                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
+
+                        if (mListener != null && (i > 63))
+                            mListener.sendCmdArg(value);
+                    }
+                }
+                if (mListener != null) {
+                    mListener.sendCmdArg((int) 0);
+                    mListener.sendCmdEnd();
+                }
+            }
+        }
+        return;
+
+    }
+
+
+    void modeAudioBarH() {
+
+        if (mBoardFFT == null)
+            return;
+
+        synchronized (mSerialConn) {
+            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
+
+
+                if (mListener != null)
+                    mListener.sendCmdStart(15);
+
+                byte rfk;
+                byte ifk;
+                int dbValue = 0;
+                for (int i = 0; i < 512; i++) {
+                    rfk = mBoardFFT[i];
+                    ifk = mBoardFFT[i + 1];
+                    float magnitude = (rfk * rfk + ifk * ifk);
+                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
+                    if (dbValue < 0)
+                        dbValue = 0;
+
+                    if ((i & 63) == 0) {
+                        int value = java.lang.Math.min(dbValue / 64, 255);
+                        dbValue = 0;
+                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
+
+                        if (mListener != null && (i > 63))
+                            mListener.sendCmdArg(value);
+                    }
+                }
+                if (mListener != null) {
+                    mListener.sendCmdArg((int) 0);
+                    mListener.sendCmdEnd();
+                }
+            }
+        }
+        return;
+
     }
 
     //    cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
@@ -992,6 +1243,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         if (mListener != null) {
             mListener.sendCmd(11);
+            mListener.sendCmdEnd();
             id = mListener.readStringArg();
             return (id);
         }
@@ -1015,9 +1267,10 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     //    cmdMessenger.attach(BBFade, OnFade);                  // 7
     public boolean boardFade(int amount) {
 
-        l("sendCommand: 7");
+        //l("sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
+            mListener.sendCmdEnd();
             return true;
         }
         return false;
@@ -1025,10 +1278,13 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
     public boolean boardUpdate() {
-        l("sendCommand: 8");
-        if (mListener != null) {
-            mListener.sendCmd(8);
-            return true;
+        //l("sendCommand: 8");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmd(8);
+                mListener.sendCmdEnd();
+                return true;
+            }
         }
         return false;
     }
@@ -1038,6 +1294,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         l("sendCommand: 9");
         if (mListener != null) {
             mListener.sendCmd(9);
+            mListener.sendCmdEnd();
             return true;
         }
         return false;
@@ -1060,6 +1317,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         l("sendCommand: 5");
         if (mListener != null) {
             mListener.sendCmd(5);
+            mListener.sendCmdEnd();
             return true;
         }
         return false;
@@ -1079,27 +1337,31 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
     public int boardGetMode() {
+        l("sendCommand: 12");
 
         int mode;
 
         if (mListener != null) {
             mListener.sendCmd(12);
+            mListener.sendCmdEnd();
             mode = mListener.readIntArg();
             return (mode);
         }
-        return 0;
+        return -1;
     }
 
     //    cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
     public boolean boardFillScreen(int r, int g, int b) {
-        l("sendCommand: 3,1");
-        if (mListener != null) {
-            mListener.sendCmdStart(3);
-            mListener.sendCmdArg(r);
-            mListener.sendCmdArg(g);
-            mListener.sendCmdArg(b);
-            mListener.sendCmdEnd();
-            return true;
+        //l("sendCommand: 13,1");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(13);
+                mListener.sendCmdArg(r);
+                mListener.sendCmdArg(g);
+                mListener.sendCmdArg(b);
+                mListener.sendCmdEnd();
+                return true;
+            }
         }
         return false;
     }

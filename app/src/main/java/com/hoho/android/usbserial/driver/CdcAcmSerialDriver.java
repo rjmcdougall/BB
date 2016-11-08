@@ -90,7 +90,8 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
 
         public CdcAcmSerialPort(UsbDevice device, int portNumber) {
             super(device, portNumber);
-            mEnableAsyncReads = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1);
+            //rmc mEnableAsyncReads = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1);
+            mEnableAsyncReads = false;
         }
 
         @Override
@@ -230,13 +231,16 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                     amtWritten = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, writeLength,
                             timeoutMillis);
                 }
-                if (amtWritten <= 0) {
-                    throw new IOException("Error writing " + writeLength
+                if (amtWritten < 0) {
+                // RMC if (amtWritten <= 0) {
+                    //throw new IOException("Error writing " + writeLength
+                    Log.d(TAG, "Error writing " + writeLength
                             + " bytes at offset " + offset + " length=" + src.length);
-                }
+                } else {
 
-                Log.d(TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
-                offset += amtWritten;
+                    Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);
+                    offset += amtWritten;
+                }
             }
             return offset;
         }

@@ -278,12 +278,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="-"
-            android:id="@+id/modeDownbutton" />
+            android:id="@+id/modeDownbutton"
+            android:onClick="onModeDown" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0"
+            android:text="00"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/modeStatus" />
         <Button
@@ -291,9 +292,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="+"
-            android:id="@+id/modeUpbutton" />
-
-
+            android:id="@+id/modeUpbutton"
+            android:onClick="onModeUp" />
 
     </LinearLayout>
 

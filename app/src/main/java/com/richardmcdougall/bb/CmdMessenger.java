@@ -60,6 +60,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     private Runnable mLogLineRunnable;
     private BufferedReader mBufferedReader;
     InputStreamReader mInputStreamReader;
+    MainActivity mActivity;
 
     HashMap<Integer, CmdEvents> callbackList = new HashMap<Integer, CmdEvents>();
 
@@ -69,16 +70,17 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         void CmdAction(String msg);
     }
 
-    public CmdMessenger(UsbSerialPort Sport, final char fld_separator,
+    public CmdMessenger(MainActivity Activity, UsbSerialPort Sport, final char fld_separator,
                         final char cmd_separator, final char esc_character) {
+        mActivity = Activity;
         print_newlines = false;
         commandBufferTmp = new ByteArrayOutputStream();
 //        commandBufferTmp.reset();
         pauseProcessing = false;
 
-        field_separator = (byte)fld_separator;
-        command_separator = (byte)cmd_separator;
-        escape_character = (byte)esc_character;
+        field_separator = (byte) fld_separator;
+        command_separator = (byte) cmd_separator;
+        escape_character = (byte) esc_character;
 
 
         Serial = Sport;
@@ -325,13 +327,13 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             dumped = true;
             ArgOk = true;
             try {
-                return(Integer.parseInt(new String(currentArg)));
+                return (Integer.parseInt(new String(currentArg)));
             } catch (NumberFormatException e) {
-                return(0);
+                return (0);
             }
         }
         ArgOk = false;
-        return 0;
+        return -1;
     }
 
     /**
@@ -387,7 +389,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             try {
                 return Double.parseDouble(new String(currentArg));
             } catch (NumberFormatException e) {
-                return(0);
+                return (0);
             }
         }
         ArgOk = false;
@@ -469,7 +471,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     void printInt(int i) {
         ;
         String s = String.format("%d", i);
-        printStr(s.getBytes());
+        printStr(s.getBytes().clone());
     }
 
     void printByte(byte b) {
@@ -480,7 +482,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
     void printStr(byte[] str) {
-        System.out.println("cmdMessenger: Send \"" + new String(str) + "\"");
+        //System.out.println("cmdMessenger: Send \"" + new String(str) + "\"");
         try {
             if (Serial != null) Serial.write(str, str.length);
         } catch (IOException e) {
@@ -566,18 +568,17 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     private void l(String str) {
         Log.d(TAG, ">>>>>" + str);
-        logInNewThread(">>>USB " + str);
-
+        //mActivity.l(TAG + str);
     }
 
     private void e(String str) {
         Log.e(TAG, ">>>>>" + str);
-        logInNewThread(">>>USB err " + str);
-
+        //mActivity.l(TAG + str);
     }
 
-    //----------------------------------
+/*
     public void logInNewThread(String s) {
+
         mLogLineRunnable = new logLineRunnable(s);
         mHandler.post(mLogLineRunnable);
     }
@@ -596,14 +597,14 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             return;
         }
 
-    }
+    }*/
 
     //listener interface
     @Override
     public void onNewData(byte[] data) {
         if (data.length > 0) {
 
-            System.out.println("cmdMessenger: Received " + data.length + "bytes: " + new String (data));
+            System.out.println("cmdMessenger: Received " + data.length + "bytes: " + new String(data));
 
             synchronized (mPipedInputStream) {
                 for (int i = 0; i < data.length; i++) {
@@ -615,7 +616,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                             mPipedOutputStream.write(10);
                             mPipedOutputStream.flush();
                         }
-                        if ((data[i] ==  10) || (data[i] == command_separator)) {//newline
+                        if ((data[i] == 10) || (data[i] == command_separator)) {//newline
                             ProcessMessageInNewThread();//read newline and forward to application
                         }
 
@@ -645,7 +646,6 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
 
-
     // **** Command processing ****
 
     /**
@@ -665,7 +665,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 while (streamBuffer.available() > 0) {
                     if (processLine() == kEndOfMessage) {
                         byte[] tmp = commandBufferTmp.toByteArray();
-                        System.out.println("cmdMessenger: run() commandBuffer= " + new String (tmp));
+                        System.out.println("cmdMessenger: run() commandBuffer= " + new String(tmp));
                         commandBuffer = new ByteArrayInputStream(tmp);
                         handleMessage();
                         commandBufferTmp.reset();
