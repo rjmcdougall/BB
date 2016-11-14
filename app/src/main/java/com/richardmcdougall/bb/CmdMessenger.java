@@ -145,6 +145,12 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Loops as long data is available to determine if acknowledge has come in
      */
     boolean checkForAck(int ackCommand) {
+
+        // Check if ackCommand came in
+        if (lastCommandId == ackCommand)
+            return true;
+        /*
+         * took this out because all commands are processed upon receive anyway
         while (streamBuffer.available() > 0) {
             //Processes a byte and determines if an acknowlegde has come in
             int messageState = processLine();
@@ -158,6 +164,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             }
             return false;
         }
+        */
         return false;
     }
 
@@ -740,10 +747,13 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         // if command attached, we will call it
         if (lastCommandId >= 0 && ((callback = callbackList.get(lastCommandId)) != null) && ArgOk) {
             callback.CmdAction("callback cmd: " + lastCommandId);
-        } else {// If command not attached, call  callback (if attached)
+        }
+
+        /*else {// If command not attached, call  callback (if attached)
             if (default_callback != null)
                 default_callback.CmdAction("default callback\n");
         }
+        */
 
     }
 

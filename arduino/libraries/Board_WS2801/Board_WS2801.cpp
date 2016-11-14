@@ -209,31 +209,6 @@ void Board_WS2801::updatePins(void) {
   // NOT restored as inputs!
 }
 
-#ifndef DUE
-// Change pin assignments post-constructor, using arbitrary pins:
-void Board_WS2801::updatePins(uint8_t dpin, uint8_t cpin) {
-
-  if(begun == true) { // If begin() was previously invoked...
-    // If previously using hardware SPI, turn that off:
-    if(hardwareSPI == true) SPI.end();
-    // Regardless, now enable output on 'soft' SPI pins:
-    pinMode(dpin, OUTPUT);
-    pinMode(cpin, OUTPUT);
-  } // Otherwise, pins are not set to outputs until begin() is called.
-
-  // Note: any prior clock/data pin directions are left as-is and are
-  // NOT restored as inputs!
-
-  hardwareSPI = false;
-  datapin     = dpin;
-  clkpin      = cpin;
-  clkport     = portOutputRegister(digitalPinToPort(cpin));
-  clkpinmask  = digitalPinToBitMask(cpin);
-  dataport    = portOutputRegister(digitalPinToPort(dpin));
-  datapinmask = digitalPinToBitMask(dpin);
-}
-#endif
-
 // Enable SPI hardware and set up protocol details:
 void Board_WS2801::startSPI(void) {
   SPI.begin();
@@ -241,9 +216,9 @@ void Board_WS2801::startSPI(void) {
   SPI.setDataMode(SPI_MODE0);
   //    SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
 #ifdef MEGA
-  SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
+  //SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
 #else
-  SPI.setClockDivider(168); // 1 MHz max, else flicker
+  SPI.setClockDivider(82); // 1 MHz max, else flicker
 #endif
 }
 
@@ -295,7 +270,7 @@ void Board_WS2801::show(void) {
       }
     }
   }
-
+  updates++;
   delay(1); // Data is latched by holding clock pin low for 1 millisecond
   screenHook();
 

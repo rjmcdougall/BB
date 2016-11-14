@@ -1,6 +1,6 @@
-#include "SPI.h"
+#include <SPI.h>
 #include <Adafruit_GFX.h>
-#include "Board_WS2801.h"
+#include <Board_WS2801.h>
 #include "Print.h"
 #include <CmdMessenger.h>
 
@@ -51,8 +51,9 @@
 
 uint16_t boardId = 0;
 const long intensity = 300;
-int8_t board_mode = 0;
+int8_t board_mode = 1;
 bool ledsOn = false;
+uint8_t wheel_color;
 
 
 // Set the first variable to the NUMBER of pixels in a row and
@@ -68,7 +69,7 @@ uint8_t ledn[8];
 
 #define BATTERY_PIN A0
 #define MOT_PIN A1
-#ifdef MEGA
+//#ifdef MEGA
 #define REMOTE_PIN A10
 //#define LRELAY_PIN 36
 #define LRELAY_PIN 13
@@ -87,11 +88,11 @@ uint8_t ledn[8];
 #define ID_2 23
 #define ID_3 22
 
-#else
-#define REMOTE_PIN A2
-#define LRELAY_PIN 3
-#define SRELAY_PIN 4
-#endif
+//#else
+//#define REMOTE_PIN A2
+//#define LRELAY_PIN 3
+//#define SRELAY_PIN 4
+//#endif
 
 bool headLightOn = false;
 
@@ -122,13 +123,14 @@ char *names[] = {
 
 
 // Attach a new CmdMessenger object to the default Serial port
-CmdMessenger cmdMessenger = CmdMessenger(Serial);
+CmdMessenger cmdMessenger = CmdMessenger(SerialUSB);
+CmdMessenger cmdMessengerCons = CmdMessenger(Serial);
 
 // This is the list of recognized BB commands. 
 enum
 {
-  BBCommandList,
   BBacknowledge,
+  BBCommandList,
   BBsetled,
   BBsetheadlight,
   BBsetmode,
@@ -141,6 +143,9 @@ enum
   BBGetBoardID,
   BBGetMode,
   BBFillScreen,
+  BBVuMeterV,
+  BBVuMeterH,
+  BBSetRow,
   BBerror
 };
 
@@ -149,7 +154,7 @@ void BBattachCommandCallbacks()
 {
   // Attach callback methods
   cmdMessenger.attach(BBCommandList, ShowCommands);     // 0
-  cmdMessenger.attach(OnUnknownCommand);                // 1
+  cmdMessenger.attach(BBCmdOne);                        // 1
   cmdMessenger.attach(BBsetled, Onsetled);              // 2
   cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
   cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
@@ -162,33 +167,62 @@ void BBattachCommandCallbacks()
   cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
   cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
   cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
+  cmdMessenger.attach(BBVuMeterV, OnVuMeterV);          // 14
+  cmdMessenger.attach(BBVuMeterH, OnVuMeterH);          // 15
+  cmdMessenger.attach(BBSetRow, OnSetRow);              // 16
 }
 
+// Callbacks define on which received commands we take action
+void BBattachConsCommandCallbacks()
+{
+  // Attach callback methods
+  cmdMessengerCons.attach(BBCommandList, ShowCommands);     // 0
+  cmdMessengerCons.attach(BBCmdOne);                        // 1
+  cmdMessengerCons.attach(BBsetled, Onsetled);              // 2
+  cmdMessengerCons.attach(BBsetheadlight, Onsetheadlight);  // 3
+  cmdMessengerCons.attach(BBsetmode, Onsetmode);            // 4
+  cmdMessengerCons.attach(BBClearScreen, OnClearScreen);    // 5
+  cmdMessengerCons.attach(BBScroll, OnScroll);              // 6
+  cmdMessengerCons.attach(BBFade, OnFade);                  // 7
+  cmdMessengerCons.attach(BBUpdate, OnUpdate);              // 8
+  cmdMessengerCons.attach(BBShowBattery, OnShowBattery);    // 9
+  cmdMessengerCons.attach(BBGetVoltage, OnGetVoltage);      // 10
+  cmdMessengerCons.attach(BBGetBoardID, OnGetBoardID);      // 11
+  cmdMessengerCons.attach(BBGetMode, OnGetMode);            // 12
+  cmdMessengerCons.attach(BBFillScreen, OnFillScreen);      // 13
+  cmdMessengerCons.attach(BBVuMeterV, OnVuMeterV);          // 14
+  cmdMessengerCons.attach(BBVuMeterH, OnVuMeterH);          // 15
+}
+
+#define SHOW_COMMANDS
 // Show available commands
 void ShowCommands() 
 {
 #ifdef SHOW_COMMANDS
   Serial.println("\nAvailable commands");
-  Serial.println(" 0;                       - This command list");
-  Serial.println(" 3,<headlight state>;     - Set headlight.");
-  Serial.println(" 4,<led state>;           - Set led. 0 = off, 1 = on"); 
-  Serial.println(" 5,<mode>;                - Set mode n"); 
-  Serial.println(" 6;                       - Clear Screen"); 
-  Serial.println(" 7,<direction>;           - Scroll up or down"); 
-  Serial.println(" 8,<amount>;              - Fade screen by n levels"); 
-  Serial.println(" 9;                       - Render and display screen"); 
-  Serial.println(" 10;                      - Show Battery for 2 seconds"); 
-  Serial.println(" 11;                      - Get battery voltage"); 
-  Serial.println(" 12;                      - Get Board ID"); 
-  Serial.println(" 13;                      - Get mode"); 
-  Serial.println(" 14,r,g,b;                - Fill Screen"); 
+  Serial.println(" 1;                       - This command list");
+  Serial.println(" 2,<headlight state>;     - Set headlight.");
+  Serial.println(" 3,<led state>;           - Set led. 0 = off, 1 = on"); 
+  Serial.println(" 4,<mode>;                - Set mode n"); 
+  Serial.println(" 5;                       - Clear Screen"); 
+  Serial.println(" 6,<direction>;           - Scroll up or down"); 
+  Serial.println(" 7,<amount>;              - Fade screen by n levels"); 
+  Serial.println(" 8;                       - Render and display screen"); 
+  Serial.println(" 9;                       - Show Battery for 2 seconds"); 
+  Serial.println(" 10;                      - Get battery voltage"); 
+  Serial.println(" 11;                      - Get Board ID"); 
+  Serial.println(" 12;                      - Get mode"); 
+  Serial.println(" 13,r,g,b;                - Fill Screen"); 
+  Serial.println(" 14,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
+  Serial.println(" 15,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
+  Serial.println(" 16,row,binary;           - Fill row of pixels"); 
 #endif
 }
 
 // Called when a received command has no attached function
-void OnUnknownCommand()
+void BBCmdOne()
 {
-  cmdMessenger.sendCmd(BBerror,"no callback\n");
+  cmdMessenger.sendCmd(BBerror,"BB Cmd One\n");
 }
 
 // Callback function that sets headlight on or off
@@ -217,8 +251,12 @@ void Onsetled()
 void Onsetmode()
 {
   int mode;
+  char strmode[10];
+
   // Read led state argument, interpret string as boolean
   mode = cmdMessenger.readInt32Arg();
+
+  
   if (mode == 99) 
     board_mode++;
   else if (mode == 98) 
@@ -227,10 +265,20 @@ void Onsetmode()
     board_mode = mode;
   if (board_mode < 0)
         board_mode = 0;
-  if (board_mode > 11)
+  if (board_mode > 20)
         board_mode = 0;
-  cmdMessenger.sendCmd(BBacknowledge,board_mode);
-}
+  cmdMessenger.sendCmd(BBacknowledge);
+  cmdMessenger.sendCmd(BBsetmode,board_mode);
+  Serial.print("setmode: ");
+  Serial.print(mode);
+  Serial.print(":");
+  Serial.println(board_mode);
+  sprintf(strmode, "%d", board_mode);
+  strip->print(strmode, 35, 1, 1);
+  strip->show();
+  mydelay(300);
+  clearScreen();
+  }
 
 void OnClearScreen()
 {
@@ -239,12 +287,18 @@ void OnClearScreen()
 
 void OnScroll()
 {
-  shiftMatrixLines();
+  scrollDown();
 }
 
 
 void OnFade() {
-  fadeBoard();
+  int amount;
+
+  amount =  cmdMessenger.readInt32Arg();
+  if (amount == 0)
+    amount = 10;
+
+  fadeBoard(amount);
 }
 
 void OnUpdate() {
@@ -262,13 +316,15 @@ void OnGetVoltage() {
 
 void OnGetBoardID() {
   //cmdMessenger.sendCmd(BBGetBoardID,boards[boardId]);
-  cmdMessenger.sendCmdStart(BBGetBoardID);
+  cmdMessenger.sendCmdStart(BBacknowledge);
   cmdMessenger.sendCmdArg(boards[boardId]);
   cmdMessenger.sendCmdEnd();
 }
 
 void OnGetMode() {
-  
+  cmdMessenger.sendCmdStart(BBacknowledge);
+  cmdMessenger.sendCmdArg(board_mode);
+  cmdMessenger.sendCmdEnd();
 }
 
 void OnFillScreen() {
@@ -283,12 +339,107 @@ void OnFillScreen() {
   
 }
 
-uint8_t row;
-
-uint8_t wheel_color;
-
-
+void OnSetRow() {
+  char *pixels = "";
+  uint32_t row;
+  int i;
   
+  row = cmdMessenger.readInt32Arg();
+  pixels =  cmdMessenger.readStringArg();
+  Serial.print("OnSetRow ");
+  Serial.print(row);
+  Serial.print(" = ");
+  Serial.print(sizeof(pixels));
+  Serial.print("<");
+  for (i = 0; i < 4; i++) {
+    Serial.print(pixels[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println(">");
+}
+
+int32_t vuColor(int amount) {
+  if (amount < 11)
+      return (rgbTo24BitColor(0,255,0));
+  else if (amount < 21)
+      return (rgbTo24BitColor(255,165,0));
+  else
+       return (rgbTo24BitColor(255,0,0));
+}
+
+void OnVuMeterV() {
+  int level;
+  int i;
+  int y;
+
+  fadeBoard(50);
+  level =  cmdMessenger.readInt32Arg();
+  level =  cmdMessenger.readInt32Arg();
+  level =  cmdMessenger.readInt32Arg();
+  for (i = 3; i < 15; i += 2) {
+    level =  cmdMessenger.readInt32Arg();
+    level *= 5;
+    if (level > 35)
+      level = 35;
+    for (y = 0; y < level; y++) {
+      if (i == 3) {
+          setSideLight(0, 39 + y, vuColor(y));
+          setSideLight(0, 38 - y, vuColor(y));
+          setSideLight(1, 39 + y, vuColor(y));
+          setSideLight(1, 38 - y, vuColor(y));
+          } else {
+          strip->setPixelColor(((i / 2) - 2) , 35 + y, vuColor(y));         
+          strip->setPixelColor(((i / 2) - 2) , 34 - y, vuColor(y));               
+          strip->setPixelColor(9 - ((i / 2) - 2), 35 + y, vuColor(y));         
+          strip->setPixelColor(9 - ((i / 2) - 2), 34 - y, vuColor(y)); 
+          }
+    }
+  }
+  strip->show();
+}
+
+void OnVuMeterH() {
+  int level;
+  int i;
+  int x;
+  int m;
+  int y;
+
+  unsigned long ts = micros();
+  
+  // Throw away first low? frequency bin
+  level =  cmdMessenger.readInt32Arg();
+  
+  fadeBoard(20);
+  for (i = 0; i < 6; i++) {
+    level =  cmdMessenger.readInt32Arg();
+    //level /= 2;
+    level --;
+    if (level > 6)
+      level = 6;
+    if (i == 2 && level > 3) {
+      wheel_color+= 1;
+      fillSideLights(wheel(wheel_color));
+    }
+    for (x = 1; x < level; x++) {
+      for (m = 0; m < 6; m++) {
+          y = min(69, 35 + (i * 6) + m);
+          strip->setPixelColor(5 + (x - 1), y, wheel(wheel_color));         // vuColor(x * 5)
+          strip->setPixelColor(4 - (x - 1), y, wheel(wheel_color));         
+          y = max(0, 34 - ((i * 6) + m));
+          strip->setPixelColor(5 + (x - 1), y, wheel(wheel_color));         // vuColor(x * 5)
+          strip->setPixelColor(4 - (x - 1), y, wheel(wheel_color)); 
+          wheel_color+= 15;
+      }
+    }
+  }
+  strip->show();
+  strip->updates++;
+  //Serial.print("OnVuMeterH: ");
+  //Serial.println(micros() - ts);
+}
+
+
 /* Helper functions */
 /* returns change in encoder state (-1,0,1) */
 int8_t read_encoder()
@@ -302,15 +453,20 @@ int8_t read_encoder()
   return ( enc_states[( old_AB & 0x0f )]);
 }
 
+long nDelays;
+long lastUpdates;
+unsigned long lastTick = 0;
 
-
+// My Delay includes a check for the input control dial
 void mydelay(uint32_t del) {
   int i;
   int8_t enc;
   char mode[10];
   boolean newmode = false;
+  unsigned long currentTime = millis();
   
   for (i = 0; i < del; i++) {
+    nDelays++;
     delay(1);
     enc = read_encoder();
     if (enc) {
@@ -319,22 +475,34 @@ void mydelay(uint32_t del) {
       board_mode += enc;
       if (board_mode < 0)
         board_mode = 0;
-      if (board_mode > 9)
-        board_mode = 9;
+      if (board_mode > 20)
+        board_mode = 20;
       clearScreen();
       sprintf(mode, "%d", board_mode);
       // Tell android of new mode
       cmdMessenger.sendCmdStart(BBsetmode);
-      cmdMessenger.sendCmdArg(mode);
+      cmdMessenger.sendCmdArg(board_mode);
       cmdMessenger.sendCmdEnd();
       strip->print(mode, 35, 1, 1);
       strip->show();
       del = 300;
       newmode = true;
+      // Process incoming serial data, and perform callbacks
+      cmdMessenger.feedinSerialData();
+      cmdMessengerCons.feedinSerialData();
     }
   }
   if (newmode == true)
     clearScreen();
+  if ((currentTime - lastTick) > 1000) {
+    lastTick = currentTime;
+    Serial.print("tick ndelays = ");
+    Serial.print(nDelays, DEC);
+    Serial.print(" updates = ");
+    Serial.println(strip->updates - lastUpdates, DEC);
+    lastUpdates = strip->updates;
+    nDelays = 0;
+  }
 }
 
 
@@ -356,6 +524,8 @@ uint32_t rgbTo24BitColor(byte r, byte g, byte b)
         c |= b;
         return c;
 }
+
+uint8_t row;
 
 //Input a value 0 to 255 to get a color value.
 //The colours are a transition r - g -b - back to r
@@ -383,7 +553,7 @@ void rainbowCycle(uint8_t wait) {
       // (thats the i / strip->numPixels() part)
       // Then add in j which makes the colors go around per pixel
       // the % 96 is to make the wheel cycle around
-      strip->setPixelColor(i, wheel( ((i * 256 / strip->numPixels()) + j) % 256) );
+      strip->setPixelColor(i, wheel(((i * 256 / strip->numPixels()) + j) % 256) );
     }  
     strip->show();   // write all the pixels out
     mydelay(wait);
@@ -406,7 +576,7 @@ void rainbowCycle2() {
 
 #define FADER 10
 // Fade the board
-void fadeBoard() {
+void fadeBoard(int amount) {
   int i;
   uint32_t color;
   uint8_t r, g, b;
@@ -418,17 +588,17 @@ void fadeBoard() {
       g = (color & 0x0000ff00) >> 8;
       b = (color & 0x000000ff);
       if (r)
-        r-=FADER;
+        r-= amount;
       if (b)
-        b-=FADER;
+        b-= amount;
       if (g)
-        g-=FADER;
+        g-= amount;
         
-      if (r < FADER)
+      if (r < amount)
         r = 0;
-      if (g < FADER)
+      if (g < amount)
         g = 0;        
-      if (b < FADER)
+      if (b < amount)
         b = 0;        
         /*
       Serial.print("color  ");
@@ -443,11 +613,32 @@ void fadeBoard() {
       */
       strip->setPixelColor(i, r, g, b);
     }  
-    strip->show();   // write all the pixels out  
+    //strip->show();   // write all the pixels out  
 }
 
+//Shift Matrixrow up
+void scrollUp()
+{
+  uint16_t x, y;
+
+  for(y = 68; y >= 0; y--)
+  {
+    for(byte x = 0; x < 10;x++)
+    {
+      strip->setPixelColor(x, y + 1, strip->getPixelColor(x, y));
+    }
+  }
+  // Hardcoded (NSIDELIGHTS * 2) side LEDS for now
+  for(y = (NSIDELIGHTS  - 1); y > 0; y--)
+  {
+      strip->setPixelColor(700 + y, strip->getPixelColor(700 + y + 1));
+      strip->setPixelColor(700 + NSIDELIGHTS + y, strip->getPixelColor(700 + NSIDELIGHTS + y + 1));
+  }
+}
+
+
 //Shift Matrixrow down
-void shiftMatrixLines()
+void scrollDown()
 {
   uint16_t x, y;
 
@@ -459,12 +650,14 @@ void shiftMatrixLines()
     }
   }
   // Hardcoded (NSIDELIGHTS * 2) side LEDS for now
-  for(y = 0; y < (NSIDELIGHTS  - 1); y++)
+    for(y = 0; y < (NSIDELIGHTS  - 1); y++)
   {
       strip->setPixelColor(700 + y, strip->getPixelColor(700 + y + 1));
       strip->setPixelColor(700 + NSIDELIGHTS + y, strip->getPixelColor(700 + NSIDELIGHTS + y + 1));
   }
+
 }
+
 
 // I see blondes, brunets, redheads...
 void shiftMatrixCircles()
@@ -497,6 +690,18 @@ void clearScreen()
       strip->setPixelColor(700 + NSIDELIGHTS + y, rgbTo24BitColor(0, 0, 0));
   }
 
+}
+
+// Fill Sidelights
+void fillSideLights(uint32_t color)
+{
+  uint16_t y;
+    // Hardcoded (NSIDELIGHTS * 2) side LEDS for now
+  for(y = 0; y < NSIDELIGHTS; y++)
+  {
+      strip->setPixelColor(700 + y, color);
+      strip->setPixelColor(700 + NSIDELIGHTS + y, color);
+  }
 }
 
 // Clear Screen
@@ -604,7 +809,7 @@ void drawUSflag() {
       x++;
       strip->setPixelColor(x, 69, rgbTo24BitColor(RGB_DIM, RGB_DIM, RGB_DIM));
     }
-    shiftMatrixLines();
+    scrollDown();
     strip->show();
   }
 
@@ -614,7 +819,7 @@ void drawUSflag() {
     x++;
     strip->setPixelColor(x, 69, rgbTo24BitColor(RGB_DIM, RGB_DIM, RGB_DIM));
   }
-  shiftMatrixLines();
+  scrollDown();
   strip->show();
   row++;
 
@@ -629,7 +834,7 @@ void drawUSflag() {
   for (; x < 10; x++) {
     strip->setPixelColor(x, 69, rgbTo24BitColor(0, 0, RGB_DIM));
   }
-  shiftMatrixLines();
+  scrollDown();
   strip->show();
 
   for (row = 0; row < 20; row++) {
@@ -645,7 +850,7 @@ void drawUSflag() {
       x++;
       strip->setPixelColor(x, 69, rgbTo24BitColor(0, 0, RGB_DIM));
     }    
-    shiftMatrixLines();
+    scrollDown();
     strip->show();  
     // Blue/white
     for (x = 4; x < 10; x++) {
@@ -653,7 +858,7 @@ void drawUSflag() {
       x++;
       strip->setPixelColor(x, 69, rgbTo24BitColor(RGB_DIM, RGB_DIM, RGB_DIM));
     }
-    shiftMatrixLines();
+    scrollDown();
     strip->show();
     row++;
 
@@ -669,7 +874,7 @@ void drawUSflag() {
   for (; x < 10; x++) {
     strip->setPixelColor(x, 69, rgbTo24BitColor(0, 0, RGB_DIM));
   }
-  shiftMatrixLines();
+  scrollDown();
 
 
   // 10 lines of blank
@@ -677,31 +882,39 @@ void drawUSflag() {
     strip->setPixelColor(x, 69, rgbTo24BitColor(0, 0, 0));
   }
   for (row = 0; row < 10; row++) {
-    shiftMatrixLines();
+    scrollDown();
     strip->show();
   }
 
 }
 
 
-
-
-void drawHeader() {
+void drawHeader(bool isTop) {
   uint32_t color;
   uint16_t x;
+  uint16_t y;
+  uint16_t sideLight;
+
+  if (isTop) {
+    y = 69;
+    sideLight = NSIDELIGHTS  - 1;
+  } else { 
+    y = 0;
+    sideLight = 0;
+  }
 
   for (x = 0; x < 10; x++) {
     //   color = random(2,4)%2 == 0 ? rgbTo24BitColor(0,0,0) : rgbTo24BitColor(0, 255, 0); //Chance of 1/3rd 
     color = random(2,4)%2 == 0 ? rgbTo24BitColor(0, 0, 0): wheel(wheel_color); //Chance of 1/3rd 
     //   color = random(2,4)%2 == 0 ? rgbTo24BitColor(0, 0, 0): rgbTo24BitColor(255, 255, 255); //Chance of 1/3rd 
     //   color =  rgbTo24BitColor(255, 255, 255); //Chance of 1/3rd 
-    strip->setPixelColor(x, 69, color);
+    strip->setPixelColor(x, y, color);
     // Ripple down the side lights with the same color as the edges
     if (x == 0) {
-        setSideLight(0, (NSIDELIGHTS  - 1), color);
+        setSideLight(0, sideLight, color);
     }
     if (x == 9) {
-        setSideLight(1, (NSIDELIGHTS  - 1), color);
+        setSideLight(1, sideLight, color);
     }
     wheel_color++;
   }
@@ -730,138 +943,11 @@ void drawHeaderLunarian() {
   strip->show();
 }
 
-void drawHeaderXmas() {
-  uint32_t color;
-  uint16_t x;
-
-  for (x = 0; x < 10; x++) {
-    //   color = random(2,4)%2 == 0 ? rgbTo24BitColor(0,0,0) : rgbTo24BitColor(0, 255, 0); //Chance of 1/3rd 
-    color = random(2,8)%2 == 0 ? rgbTo24BitColor(10, 10, 10): rgbTo24BitColor(128, 0, 0); //Chance of 1/3rd 
-    //   color = random(2,4)%2 == 0 ? rgbTo24BitColor(0, 0, 0): rgbTo24BitColor(255, 255, 255); //Chance of 1/3rd 
-    //   color =  rgbTo24BitColor(255, 255, 255); //Chance of 1/3rd 
-    strip->setPixelColor(x, 69, color);
-    // Ripple down the side lights with the same color as the edges
-    if (x == 0) {
-        setSideLight(0, (NSIDELIGHTS  - 1), color);
-    }
-    if (x == 9) {
-        setSideLight(1, (NSIDELIGHTS  - 1), color);
-    }
-    wheel_color++;
-  }
-  strip->show();
-}
-
-static int pd_x;
-static int pd_y;
-static int pd_side;
-
-void drawPixelDust() {
-  uint32_t color;
-  uint16_t x, y;
-
-  x = random(9);
-  y = random(69);
-  color = wheel(random(255));
-  strip->setPixelColor(pd_x, pd_y, rgbTo24BitColor(0, 0, 0));
-  strip->setPixelColor(pd_x+1, pd_y, rgbTo24BitColor(0, 0, 0));
-  strip->setPixelColor(pd_x, pd_y+1, rgbTo24BitColor(0, 0, 0));
-  strip->setPixelColor(pd_x+1, pd_y+1, rgbTo24BitColor(0, 0, 0));
-  strip->setPixelColor(x, y, color);
-  strip->setPixelColor(x+1, y, color);
-  strip->setPixelColor(x, y+1, color);
-  strip->setPixelColor(x+1, y+1, color);
-  pd_x = x;
-  pd_y = y;
-  x = random(158);
-  strip->setPixelColor(700 + pd_side, rgbTo24BitColor(0, 0, 0));
-  strip->setPixelColor(700 + x, color);
-  pd_side = x;
-  strip->show();
-}
-
-void drawPixelDust2() {
-  uint32_t color;
-  uint16_t x, y;
-
-  x = random(10);
-  y = random(70);
-  color = wheel(random(255));
-  strip->setPixelColor(x, y, color);
-  pd_x = x;
-  pd_y = y;
-  x = random(158);
-  strip->setPixelColor(700 + x, color);
-}
-
-void drawStatic() {
-  uint32_t color;
-  uint16_t x, y;
-
-  x = random(10);
-  y = random(70);
-  color = rgbTo24BitColor(200, 200, 200);
-  strip->setPixelColor(x, y, color);
-  pd_x = x;
-  pd_y = y;
-}
 
 
-/* 
- *      |
- *     -#-
- *      |
-*/
-static int flake_row = 0;
-static int flake_col = 0;
-  
-void drawSnowFlakes() {
-  int x;
-  uint32_t color;
 
 
-       // Blue Background
-       for (x = 0; x < 10; x++) {
-    strip->setPixelColor(x, 69, rgbTo24BitColor(0, 0, 20));
-       }
-       setSideLight(0, (NSIDELIGHTS  - 1), rgbTo24BitColor(0, 0, 20));
-       setSideLight(1, (NSIDELIGHTS  - 1), rgbTo24BitColor(0, 0, 20));
 
-       switch(flake_row) {
-    case 0:
-    flake_col = random() % 8 + 1;
-    strip->setPixelColor(flake_col, 69, rgbTo24BitColor(64, 64, 64));
-    break;
-    
-    case 1:
-    strip->setPixelColor(flake_col - 1, 69, rgbTo24BitColor(64, 64, 64));
-    strip->setPixelColor(flake_col, 69, rgbTo24BitColor(255, 255, 255));
-    strip->setPixelColor(flake_col + 1, 69, rgbTo24BitColor(64, 64, 64));   
-    break;
-    
-    case 2:
-    strip->setPixelColor(flake_col, 69, rgbTo24BitColor(64, 64, 64));
-    break;
-    
-    case 3:
-    break;
-
-                default:
-    break;
-  }
-  
-  flake_row++;
-  if (flake_row > 4) {
-    flake_row = 0;
-  }
-        color = random(2,8)%2 == 0 ? rgbTo24BitColor(0, 0, 50): rgbTo24BitColor(128, 128, 128); //Chance of 1/3rd 
-
-        // Ripple down the side lights with the same color as the edges
-        setSideLight(0, (NSIDELIGHTS  - 1), color);
-        setSideLight(1, (NSIDELIGHTS  - 1), color);
-        strip->show();
-
-}
 
 void drawCenter() {
   uint32_t color;
@@ -1126,7 +1212,7 @@ void cycleTheMan(){
   the_green = 100;
   the_blue = 100;
   wheel_color = 255;
-  for (the_cycle = 0; the_cycle < 100; the_cycle++) {
+  for (the_cycle = 0; (the_cycle < 100) && board_mode == 10; the_cycle++) {
         the_red = random(2,4)%2 == 0 ? rgbTo24BitColor(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
         the_green = random(2,4)%2 == 0 ? rgbTo24BitColor(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
         the_blue = random(2,4)%2 == 0 ? rgbTo24BitColor(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
@@ -1141,13 +1227,14 @@ void setup() {
 
   // Console for debugging
   Serial.begin(115200);
+  SerialUSB.begin(115200); // Initialize Serial Monitor USB
   Serial.println("Goodnight moon!");
 
   // Set battery level analogue reference
 #ifdef MEGA
   analogReference(INTERNAL1V1);
 #else
-  //  analogReference(INTERNAL);
+  //analogReference(INTERNAL);
 #endif
   pinMode(AUDIO_PIN, INPUT);
   pinMode(BATTERY_PIN, INPUT);
@@ -1175,50 +1262,13 @@ void setup() {
   pinMode(ENC_B, INPUT);
   digitalWrite(ENC_B, HIGH);
 
-
-  /*
-     for (uint16_t i = 0; i < 544; i++) {
-     Serial.print("Strip pixel ");
-     Serial.print(i, DEC);
-     Serial.print(" = virt pixel ");
-     Serial.print(strip->pixel_translate[i], DEC);
-     Serial.println(" ");
-     }
-   */
-
   boardId = readID();
-  /*
-  if (boardId == 0 || boardId == 1 || boardId == 2 || boardId == 3 || boardId == 4 || boardId == 7) {
-    strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)true);
-  } else {
-    strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)false);
-  }
-  */
 
-  //Serial.println("before new board");
+
 
   strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)true);
 
   strip->begin();
-  //Serial.println("after new board");
-
-
-  // test zone
-/*
-  clearScreen();
-  int x;
-  for (x = 0; x < 858; x++) {
-     strip->setPixelColor(x, rgbTo24BitColor(50,50,50));
-     strip->show();
-    mydelay(50);
-  }
-       strip->setPixelColor(700, rgbTo24BitColor(0,0,50));
-       strip->setPixelColor(779, rgbTo24BitColor(0,0,50));
-     strip->show();
-
-  mydelay(15000);
-  */
-  
   
   // Update LED contents, to start they are all 'off'
   clearScreen();
@@ -1232,16 +1282,6 @@ void setup() {
   strip->print(names[boardId], 15, 1, 1);
   strip->show();
   mydelay(1000);
-
-
-//  strip->fillCircle(35, 5, 3, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
-  //strip->circles(15, 5, 5);
-//  strip->show();
-//  mydelay(5000);
-  
-//  for (i = 0; i < 500; i++) {
-//    rainbowCycle();
-//  }
 
   drawBattery();
   mydelay(1000);
@@ -1257,22 +1297,16 @@ void setup() {
 
 void loop_matrix()
 {
-  drawHeader();
-  shiftMatrixLines();
+  drawHeader(true);
+  scrollDown();
   mydelay(50);
 }
 
-void loop_snowflakes()
-{
-  drawSnowFlakes();
-  shiftMatrixLines();
-  mydelay(50);
-}
 
 void loop_matrixfast()
 {
-  drawHeader();
-  shiftMatrixLines();
+  drawHeader(true);
+  scrollDown();
   mydelay(1);
 }
 
@@ -1280,16 +1314,10 @@ void loop_matrixfast()
 void loop_lunarian()
 {
   drawHeaderLunarian();
-  shiftMatrixLines(); 
+  scrollDown(); 
   mydelay(1);
 }
 
-void loop_xmas()
-{
-  drawHeaderXmas();
-  shiftMatrixLines(); 
-  mydelay(1);
-}
 
 void loop_battery()
 {
@@ -1298,53 +1326,6 @@ void loop_battery()
   clearScreen();
 }
 
-
-void loop_distrikt()
-{
-  //drawDistrikt();
-  mydelay(10);
-}
-
-void loop_stanford(uint8_t enc)
-{
-  int i;
-  
-      for (i = 0; i < 20  && board_mode == enc; i++) {
-        //drawStanford();
-        strip->show();
-        mydelay(300);
-        fillScreen(rgbTo24BitColor(14, 2, 2u));
-        strip->show();
-        mydelay(300);
-      }
-}
-  
-void loop_pixeldust() {
-  drawPixelDust();
-  mydelay(5);
-
-}
-
-void loop_pixeldust2() {
-  drawPixelDust2();
-  fadeBoard();
-  strip->show();
-  mydelay(1);
-
-}
-
-void loop_static() {
-  drawStatic();
-  fadeBoard();
-  strip->show();
-  mydelay(1);
-
-}
-
-void loop_rainbow() {
-  rainbowCycle2();
-  mydelay(5);
-}
 
 void loop_blank() {
   mydelay(5);
@@ -1357,7 +1338,7 @@ void loop_theman() {
         }
         strip->show();
         for (row = 0; row < 70; row++) {
-          shiftMatrixLines();
+          scrollDown();
           strip->show();
         }
  
@@ -1374,9 +1355,14 @@ int16_t state = 0;
 
 void loop() {
   int i;
+  unsigned long ts;
   
   // Process incoming serial data, and perform callbacks
+  //ts = micros();
   cmdMessenger.feedinSerialData();
+  //Serial.print("cmdMessenger.feedinSerialData:");
+  //Serial.println(micros() - ts);
+  cmdMessengerCons.feedinSerialData();
    
    /*
    Serial.print("Encoder sample ");
@@ -1386,53 +1372,16 @@ void loop() {
    
    switch (board_mode) {
      
-     case 0:
+     case 1:
        loop_matrix();
        break;
  
-      case 1:
+     case 2:
        loop_matrixfast();
        break;
        
-     case 2:
-       loop_lunarian();
-       break;
-       
      case 3:
-       loop_snowflakes();
-       break;
-       
-     case 4:
-       loop_pixeldust();
-       break;
-       
-     case 5:
-       loop_pixeldust2();
-       break;
-       
-     case 6:
-       loop_rainbow();
-       break;
-
-     case 7:
-       loop_xmas();
-//       loop_stanford(7);
-       break;
-       
-     case 8:
-       loop_battery();
-       break;
-
-     case 9:
-       loop_static();
-       break;
-
-     case 10:
-       loop_theman();
-       break;
-
-     case 11:
-       loop_blank();
+       loop_lunarian();
        break;
        
      default:
@@ -1447,154 +1396,4 @@ void screenHook() {
 //  checkButton();
 }
 
-#ifdef LIGHTCONTROL
-
-
-uint16_t buttonPress = 0;
-bool lightState = true;
-
-#define HOLD_COUNT 30
-
-void checkButton() {
-  uint16_t remotePosition;
-
-#ifdef MEGA
-  remotePosition = analogRead(REMOTE_PIN);
-  //  Serial.print("Remote position ");
-  //  Serial.println(remotePosition);
-
-  //  Serial.print("Button position ");
-  //  Serial.println(buttonPress);
-
-  if (remotePosition > 100) {
-    ledsOn = true;
-  } else {
-    ledsOn = false;
-  }
-
-  if (buttonPress == HOLD_COUNT) {
-    if (lightState == false) {
-      lightState = true;
-      digitalWrite(LRELAY_PIN, HIGH);
-    } else {
-      if (lightState == true) {
-        lightState = false;
-        digitalWrite(LRELAY_PIN, LOW);
-      }  
-    }
-    buttonPress = 0;
-  }
-
-
-  if (remotePosition < 400 && remotePosition > 100) {
-    buttonPress++;
-    if (buttonPress > HOLD_COUNT) {
-      buttonPress = HOLD_COUNT;
-    }
-  } else {
-    if (buttonPress > 0) {
-      buttonPress--;
-    }
-  } 
-#else
-  ledsOn = true;
-#endif
-}
-
-
-#endif
-
-#ifdef CRAP
-
-
-   if (board_mode == 2) {
-      drawUSflag();
-      loopcnt += 50;
-   }
-
-#ifdef FOO
-
-   if (ledsOn) {
-
-    if (loopcnt > 3000) {
-      loopcnt = 0;
-      state++;
-    }
-
-    if (board_mode == 1) {
- /*
-      for (i = 0; i < 5; i++) {
-        drawVMW();
-        strip->show();
-        mydelay(2000);
-        clearScreen();
-        strip->show();
-        mydelay(2000);
-      }
- */
-    
-      drawDistrikt();
-      state = 1;    
-
-/*
-      for (i = 0; i < 20; i++) {
-        drawStanford();
-        strip->show();
-        mydelay(300);
-        fillScreen(rgbTo24BitColor(14, 2, 2u));
-        strip->show();
-        mydelay(300);
-      }
-
-      state = 1;    
-      drawSnowFlakes();
-      shiftMatrixLines();
-
-*/
-    }
-
-
-
-//    if (state == 0) {
-//      drawCenter();
-//      shiftMatrixCircles();
-//    }  
-
-    if (board_mode == 0) {
-//      state = 2;
-      drawHeader();
-      shiftMatrixLines();
-    }  
-
-    if (board_mode == 2) {
-      drawUSflag();
-      loopcnt += 50;
-    }
-
-
-    if (board_mode == 3) {
-      drawStanfordLogo();
-      drawStanfordTree();
-      mydelay(10000);
-      state = 3;    
-    }
-
-    if (board_mode == 5) {
-      loopcnt = 0;
-      state = 0;
-      drawBattery();
-      mydelay(1000);
-      clearScreen();
-    }
-
-
-  } else {
-    clearScreen();
-    strip->show();
-  }
-
-  loopcnt++;
-  
-#endif
-#endif
 

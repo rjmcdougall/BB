@@ -23,7 +23,7 @@ package com.hoho.android.usbserial.driver;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-
+import android.util.Log;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -34,6 +34,8 @@ import java.util.List;
  * @author mike wakerly (opensource@hoho.com)
  */
 public class UsbSerialProber {
+
+    private final String TAG = "UsbSerialProber";
 
     private final ProbeTable mProbeTable;
 
@@ -85,6 +87,8 @@ public class UsbSerialProber {
     public UsbSerialDriver probeDevice(final UsbDevice usbDevice) {
         final int vendorId = usbDevice.getVendorId();
         final int productId = usbDevice.getProductId();
+
+        Log.d(TAG, "Probing USB vendor" + vendorId + " product " + productId);
 
         final Class<? extends UsbSerialDriver> driverClass =
                 mProbeTable.findDriver(vendorId, productId);

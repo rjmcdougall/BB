@@ -59,7 +59,8 @@ class Board_WS2801 : public Adafruit_GFX {
       *pixel_translate;
     uint32_t
       getPixelColor(uint16_t n),
-      getPixelColor(uint16_t x, uint16_t y);
+      getPixelColor(uint16_t x, uint16_t y),
+      updates = 0;
 
   private:
 

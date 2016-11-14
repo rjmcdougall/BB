@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<MusicStream>();
     ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int boardMode; // Mode of the Ardunio/LEDs
+    private int boardMode = 0; // Mode of the Ardunio/LEDs
     private VisualizerView mVisualizerView;
     private String stateMsgAudio = "";
     private String stateMsgConn = "";
@@ -453,6 +453,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             sPort = (UsbSerialPort) mDriver.getPorts().get(0);//Most have just one port (port 0)
             sPort.open(connection);
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+            sPort.setDTR(true);
         } catch (IOException e) {
             l("Error setting up device: " + e.getMessage());
             try {
@@ -480,7 +481,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     }
 
     private void startIoManager() {
-        status.setText("Connected");
 
         synchronized (mSerialConn) {
             if (sPort != null) {
@@ -504,6 +504,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
 
                 boardId = boardGetBoardId();
+                status.setText("Connected to " + boardId);
             }
         }
     }
@@ -881,14 +882,14 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         boardSetMode(98);
         if ((boardMode = boardGetMode()) == -1)
             boardMode--;
-        modeStatus.setText(String.format("%d", boardMode));
+        //modeStatus.setText(String.format("%d", boardMode));
     }
 
     public void onModeUp(View v) {
         boardSetMode(99);
         if ((boardMode = boardGetMode()) == -1)
             boardMode++;
-        modeStatus.setText(String.format("%d", boardMode));
+        //modeStatus.setText(String.format("%d", boardMode));
     }
 
     @Override
@@ -1010,27 +1011,44 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     }
 
+    int sleepTime = 30;
+
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
 
         while (true) {
             switch (boardMode) {
-                case 11:
+                case 4:
+                    sleepTime = 300;
                     modeDisco();
                     break;
-                case 12:
+                case 5:
+                    sleepTime = 30;
                     modeAudioBeat();
+                    break;
+                case 6:
+                    sleepTime = 30;
+                    modeAudioBarV();
+                    break;
+                case 7:
+                    sleepTime = 30;
+                    modeAudioBarH();
+                    break;
+                case 8:
+                    sleepTime = 1000;
+                    modeTest();
+                    break;
                 default:
 //                    modeDisco();
 //                    modeAudioBeat();
 //                    modeAudioBarV();
-                    modeAudioBarH();
+//                    modeAudioBarV();
                     break;
             }
 
             try {
-                Thread.sleep(50);
+                Thread.sleep(sleepTime);
             } catch (Throwable e) {
             }
 
@@ -1041,6 +1059,33 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         }
 
     }
+
+    private int testState = 0;
+    private Random testRandom = new Random();
+    private byte[] testRow1 = "012345678901234567890123456789".getBytes();
+    private byte[] testRow2 = new byte[] {(byte)32, (byte)0, (byte)32, (byte) 33};
+
+
+    void modeTest() {
+        if (mListener != null) {
+            switch (testState) {
+                case 0:
+                    boardSetRow(10, testRow1);
+                    boardUpdate();
+                    break;
+                case 1:
+                    boardSetRow(10, testRow2);
+                    boardUpdate();
+                    break;
+                default:
+                    break;
+            }
+        }
+        testState++;
+        if (testState > 1)
+            testState = 0;
+    }
+
 
     private int discoState = 0;
     private Random discoRandom = new Random();
@@ -1067,7 +1112,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     boardUpdate();
                     break;
                 default:
-                    mListener.sendCmd(7);
+                    //mListener.sendCmd(7);
                     break;
             }
         }
@@ -1161,6 +1206,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 byte rfk;
                 byte ifk;
                 int dbValue = 0;
+                // There are 1024 values - 512 x real, imaginary
                 for (int i = 0; i < 512; i++) {
                     rfk = mBoardFFT[i];
                     ifk = mBoardFFT[i + 1];
@@ -1169,17 +1215,17 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     if (dbValue < 0)
                         dbValue = 0;
 
-                    if ((i & 63) == 0) {
-                        int value = java.lang.Math.min(dbValue / 64, 255);
+                    if ((i & 31) == 0) {
+                        int value = java.lang.Math.min(dbValue / 32, 255);
                         dbValue = 0;
                         //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
 
-                        if (mListener != null && (i > 63))
+                        if (mListener != null && (i > 0))
                             mListener.sendCmdArg(value);
                     }
                 }
                 if (mListener != null) {
-                    mListener.sendCmdArg((int) 0);
+                    //mListener.sendCmdArg((int) 0);
                     mListener.sendCmdEnd();
                 }
             }
@@ -1242,8 +1288,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         String id;
 
         if (mListener != null) {
-            mListener.sendCmd(11);
-            mListener.sendCmdEnd();
+            mListener.sendCmdStart(11);
+            mListener.sendCmdEnd(true, 0, 1000);
             id = mListener.readStringArg();
             return (id);
         }
@@ -1366,6 +1412,21 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         return false;
     }
 
+
+    //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+    public boolean boardSetRow(int row, byte[] pixels) {
+        //l("sendCommand: 16,n,...");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(16);
+                mListener.sendCmdArg(row);
+                mListener.sendCmdEscArg(pixels);
+                mListener.sendCmdEnd();
+                return true;
+            }
+        }
+        return false;
+    }
 
 }
 
