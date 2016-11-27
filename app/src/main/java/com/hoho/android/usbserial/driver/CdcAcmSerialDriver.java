@@ -239,7 +239,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                             + " bytes at offset " + offset + " length=" + src.length);
                 } else {
 
-                    Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);
+                    //Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);
                     offset += amtWritten;
                 }
             }

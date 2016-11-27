@@ -9,7 +9,6 @@ import android.content.Intent;
  */
 
 public class BBRunOnStartup extends BroadcastReceiver {
-
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent i = new Intent(context, MainActivity.class);

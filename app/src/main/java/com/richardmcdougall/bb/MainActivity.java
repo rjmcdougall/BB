@@ -87,6 +87,9 @@ import android.content.Intent;
 
 public class MainActivity extends AppCompatActivity implements InputDeviceListener {
 
+
+    boolean imRunning = false;
+
     TextView voltage;
     TextView status;
     EditText log;
@@ -133,12 +136,17 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     private int statePeers = 0;
     private long stateReplies = 0;
     public byte[] mBoardFFT;
-    public String mSerialConn = "";
+    //public String mSerialConn = "";
+    protected final Object mSerialConn = new Object();
+
 
     int currentRadioStream = 0;
     long phoneModelAudioLatency = 0;
 
     int work = 0;
+
+
+
 
     int doWork() {
         work++;
@@ -242,6 +250,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
         l("MainActivity: onCreate()");
 
+        if (imRunning == true) {
+            l("MainActivity: onCreate(): I was already running");
+            return;
+        }
+        imRunning = true;
+
         String model = android.os.Build.MODEL;
 
         l("Starting BB on phone " + model);
@@ -285,8 +299,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         //ActivityCompat.requestPermissions(this,
         // new String[]{permission.BLUETOOTH_ADMIN}, 1);
 
-        /*
+
         WifiManager mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+
 
         if (mWiFiManager.isWifiEnabled()) {
             l("Wifi Enabled Already");
@@ -296,7 +311,6 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             mWiFiManager.setWifiEnabled(true);
             mWiFiManager.reassociate();
         }
-        */
 
         DownloadMusic2();
 
@@ -380,8 +394,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     protected void onResume() {
         l("MainActivity: onResume()");
 
-
         super.onResume();
+
         if (mWifi != null)
             mWifi.onResume();
 
@@ -397,6 +411,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         l("MainActivity: onPause()");
 
         super.onPause();
+
+
         if (mWifi != null)
             mWifi.onPause();
 
@@ -414,6 +430,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             }
             sPort = null;
         }
+
 
     }
 
@@ -463,8 +480,7 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
             return;
         }
 
-        onDeviceStateChange();
-
+        startIoManager();
     }
 
 
@@ -502,9 +518,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                 ArdunioCallbackMode modeCallback = new ArdunioCallbackMode();
                 mListener.attach(4, modeCallback);
 
+                // attach Mode cmdMessenger callback
+                ArdunioCallbackBoardID boardIDCallback = new ArdunioCallbackBoardID();
+                mListener.attach(11, boardIDCallback);
 
-                boardId = boardGetBoardId();
-                status.setText("Connected to " + boardId);
+                boardGetBoardId();
+                boardGetMode();
             }
         }
     }
@@ -758,8 +777,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     if (lastSeekOffset != 0 && lastSeekTimestamp < ms) {
                         long expectedPosition = lastSeekOffset + (ms - lastSeekTimestamp);
                         seekErr = (curPos - expectedPosition);
-                        while (Math.abs(seekErr) > 1000)
-                            seekErr /= 2;
+                        //while (Math.abs(seekErr) > 1000)
+                        //    seekErr /= 2;
                     }
 
                     String msg =
@@ -984,6 +1003,16 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     }
 
+    public class ArdunioCallbackBoardID implements CmdEvents {
+
+        public void CmdAction(String str) {
+            boardId = mListener.readStringArg();
+            l("ardunio BoardID callback:" + str + " " + boardId);
+            status.setText("Connected to " + boardId);
+
+        }
+
+    }
 
     private int boardDisplayCnt = 0;
     private Visualizer mVisualizer;
@@ -1011,6 +1040,9 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     }
 
+
+
+
     int sleepTime = 30;
 
     // Main thread to drive the Board's display & get status (mode, voltage,...)
@@ -1024,26 +1056,39 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
                     modeDisco();
                     break;
                 case 5:
-                    sleepTime = 30;
-                    modeAudioBeat();
-                    break;
-                case 6:
-                    sleepTime = 30;
+                    sleepTime = 10;
                     modeAudioBarV();
                     break;
-                case 7:
-                    sleepTime = 30;
+                case 6:
+                    sleepTime = 10;
                     modeAudioBarH();
                     break;
-                case 8:
-                    sleepTime = 1000;
+                case 7:
+                    sleepTime = 10;
                     modeTest();
                     break;
+                case 8:
+                    sleepTime = 10;
+                    modeAudioMatrix();
+                    break;
+
+                case 9:
+                    boardSetMode(1);
+                    boardMode = 1;
+                    break;
+
+                //case 9:
+                    //sleepTime = 30;
+                    //modeAudioBeat();
+                    //break;
+
                 default:
 //                    modeDisco();
 //                    modeAudioBeat();
 //                    modeAudioBarV();
 //                    modeAudioBarV();
+//                      sleepTime = 20;
+//                      modeAudioMatrix();
                     break;
             }
 
@@ -1062,8 +1107,8 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     private int testState = 0;
     private Random testRandom = new Random();
-    private byte[] testRow1 = "012345678901234567890123456789".getBytes();
-    private byte[] testRow2 = new byte[] {(byte)32, (byte)0, (byte)32, (byte) 33};
+    private byte[] testRow1 = "012345678901234567890123456789012345".getBytes();
+    private byte[] testRow2 = "567890123456789012345678901234567890".getBytes();
 
 
     void modeTest() {
@@ -1084,6 +1129,62 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
         testState++;
         if (testState > 1)
             testState = 0;
+    }
+
+
+    int testValue = 0;
+
+    void modeAudioMatrix() {
+
+        byte[] pixels = new byte[36];
+
+        if (mBoardFFT == null)
+            return;
+
+        synchronized (mSerialConn) {
+            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
+
+
+                if (mListener == null)
+                    return;
+
+                int pixel = 0;
+                byte rfk;
+                byte ifk;
+                int dbValue = 0;
+                // There are 1024 values - 512 x real, imaginary
+                for (int i = 0; i < 512; i++) {
+                    rfk = mBoardFFT[i];
+                    ifk = mBoardFFT[i + 1];
+                    float magnitude = (rfk * rfk + ifk * ifk);
+                    dbValue += java.lang.Math.max(0, 30 * Math.log10(magnitude));
+
+                    // Aggregate each 8 values to give 64 bars
+                    if ((i & 7) == 0) {
+                        dbValue -= 50;
+                        int value = java.lang.Math.max(dbValue, 0);
+                        value = java.lang.Math.min(value, 255);
+                        dbValue = 0;
+
+                        // Take the 4th through 16th values
+                        if ((i / 8) >= 12 && (i / 8) < 48) {;
+                            pixels[pixel] = (byte)java.lang.Math.max(0, value);
+//                            pixels[pixel] = (byte)testValue;
+                            pixel++;
+                            //System.out.println("modeAudioMatrix Value[" + pixel + "] = " + value);
+                        }
+                    }
+                }
+                boardSetRow(69, pixels);
+                boardUpdate();
+                boardScroll(true);
+            }
+        }
+        testValue++;
+        if (testValue > 255)
+            testValue = 0;
+        return;
+
     }
 
 
@@ -1300,11 +1401,13 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean boardSetMode(int mode) {
         l("sendCommand: 4," + mode);
-        if (mListener != null) {
-            mListener.sendCmdStart(4);
-            mListener.sendCmdArg(mode);
-            mListener.sendCmdEnd();
-            return true;
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(4);
+                mListener.sendCmdArg(mode);
+                mListener.sendCmdEnd();
+                return true;
+            }
         }
         return false;
     }
@@ -1314,10 +1417,12 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
     public boolean boardFade(int amount) {
 
         //l("sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            return true;
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmd(7);
+                mListener.sendCmdEnd();
+                return true;
+            }
         }
         return false;
     }
@@ -1371,12 +1476,14 @@ public class MainActivity extends AppCompatActivity implements InputDeviceListen
 
     //    cmdMessenger.attach(BBScroll, OnScroll);              // 6
     public boolean boardScroll(boolean down) {
-        l("sendCommand: 6,1");
-        if (mListener != null) {
-            mListener.sendCmdStart(6);
-            mListener.sendCmdArg(down == true ? 1 : 0);
-            mListener.sendCmdEnd();
-            return true;
+        //l("sendCommand: 6,1");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(6);
+                mListener.sendCmdArg(down == true ? 1 : 0);
+                mListener.sendCmdEnd();
+                return true;
+            }
         }
         return false;
     }

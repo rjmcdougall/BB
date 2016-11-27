@@ -511,7 +511,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Escape and print a character
      */
     void printEsc(byte ch) {
-        if (ch == field_separator || ch == command_separator || ch == escape_character || ch == '\0') {
+        if (ch == field_separator || ch == command_separator || ch == escape_character) {
             printByte(escape_character);
         }
         printByte(ch);
