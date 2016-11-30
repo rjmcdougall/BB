@@ -121,9 +121,12 @@ char *names[] = {
   "JONATHAN"};
 
 
+char field_separator   = ',';
+char command_separator = ';';
+char escape_separator  = '\\';
 
 // Attach a new CmdMessenger object to the default Serial port
-CmdMessenger cmdMessenger = CmdMessenger(SerialUSB);
+CmdMessenger cmdMessenger = CmdMessenger(SerialUSB, field_separator, command_separator, escape_separator);
 CmdMessenger cmdMessengerCons = CmdMessenger(Serial);
 
 // This is the list of recognized BB commands. 
@@ -194,7 +197,7 @@ void BBattachConsCommandCallbacks()
   cmdMessengerCons.attach(BBVuMeterH, OnVuMeterH);          // 15
 }
 
-#define SHOW_COMMANDS
+#define SHOW_COMMANDS 1
 // Show available commands
 void ShowCommands() 
 {
@@ -255,8 +258,6 @@ void Onsetmode()
 
   // Read led state argument, interpret string as boolean
   mode = cmdMessenger.readInt32Arg();
-
-  
   if (mode == 99) 
     board_mode++;
   else if (mode == 98) 
@@ -278,7 +279,7 @@ void Onsetmode()
   strip->show();
   mydelay(300);
   clearScreen();
-  }
+}
 
 void OnClearScreen()
 {
@@ -316,13 +317,13 @@ void OnGetVoltage() {
 
 void OnGetBoardID() {
   //cmdMessenger.sendCmd(BBGetBoardID,boards[boardId]);
-  cmdMessenger.sendCmdStart(BBacknowledge);
+  cmdMessenger.sendCmdStart(BBGetBoardID);
   cmdMessenger.sendCmdArg(boards[boardId]);
   cmdMessenger.sendCmdEnd();
 }
 
 void OnGetMode() {
-  cmdMessenger.sendCmdStart(BBacknowledge);
+  cmdMessenger.sendCmdStart(BBsetmode);
   cmdMessenger.sendCmdArg(board_mode);
   cmdMessenger.sendCmdEnd();
 }
@@ -339,25 +340,61 @@ void OnFillScreen() {
   
 }
 
+
+struct rowType { char row[36]; };
+typedef rowType rowType;
+
+// Set a row of 12 r,g,b pixels from binary data
+// The first an last pixel are for the side lights
 void OnSetRow() {
-  char *pixels = "";
+  rowType response;
+  char *pixels;
   uint32_t row;
   int i;
+  int nPixels = sizeof(rowType);
+  int r, g, b;
+  int x, y;
   
   row = cmdMessenger.readInt32Arg();
-  pixels =  cmdMessenger.readStringArg();
+  response =  cmdMessenger.readBinArg<rowType>();
+  pixels = (char *)&response;
+  //cmdMessenger.unescape(pixels);
+  /*
   Serial.print("OnSetRow ");
   Serial.print(row);
   Serial.print(" = ");
-  Serial.print(sizeof(pixels));
+  Serial.print(nPixels);
   Serial.print("<");
-  for (i = 0; i < 4; i++) {
-    Serial.print(pixels[i], HEX);
-    Serial.print(" ");
+  */
+  for (i = 0; i < nPixels; i += 3) {
+    x = i / 3;
+    r = pixels[i];
+    b = pixels[i+1];
+    g = pixels[i+2];
+    /*
+    Serial.print("setPixel(");
+    Serial.print(x);
+    Serial.print(",");
+    Serial.print(row);
+    Serial.print(",");
+    Serial.print(r);
+    Serial.print(",");
+    Serial.print(g);
+    Serial.print(",");
+    Serial.print(b);
+    */
+    if (x == 0) {
+        setSideLight(0, row, rgbTo24BitColor(r, g, b));
+    } else if (x < 11) {
+        strip->setPixelColor(x - 1, row, r, g, b);
+    } else if (x == 11) {        
+        setSideLight(1, row, rgbTo24BitColor(r, g, b));
+    }
+    //Serial.println(")");
   }
-  Serial.println(">");
 }
 
+// Pick classic VU meter colors based on volume
 int32_t vuColor(int amount) {
   if (amount < 11)
       return (rgbTo24BitColor(0,255,0));
@@ -424,10 +461,10 @@ void OnVuMeterH() {
     for (x = 1; x < level; x++) {
       for (m = 0; m < 6; m++) {
           y = min(69, 35 + (i * 6) + m);
-          strip->setPixelColor(5 + (x - 1), y, wheel(wheel_color));         // vuColor(x * 5)
+          strip->setPixelColor(5 + (x - 1), y, wheel(wheel_color));        
           strip->setPixelColor(4 - (x - 1), y, wheel(wheel_color));         
           y = max(0, 34 - ((i * 6) + m));
-          strip->setPixelColor(5 + (x - 1), y, wheel(wheel_color));         // vuColor(x * 5)
+          strip->setPixelColor(5 + (x - 1), y, wheel(wheel_color));
           strip->setPixelColor(4 - (x - 1), y, wheel(wheel_color)); 
           wheel_color+= 15;
       }
