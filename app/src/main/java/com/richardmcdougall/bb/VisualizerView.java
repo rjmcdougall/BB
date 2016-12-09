@@ -262,11 +262,13 @@ public class VisualizerView extends View {
     }
 
     // Methods for adding renderers to visualizer
+    /*
     public void addBurnerBoardRenderer(MainActivity activity)
     {
         BurnerBoardRenderer burnerBoardRenderer = new BurnerBoardRenderer(16, activity);
         addRenderer(burnerBoardRenderer);
     }
+    */
 
     // Methods for adding renderers to visualizer
     public void addBarGraphRendererBottom()

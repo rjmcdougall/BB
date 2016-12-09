@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BB</string>
+    <string name="app_name">Burner Board</string>
     <string name="bb_hello">Burner Board</string>
     <string name="bb_voltage">Voltage</string>
     <string name="bb_boardlights">Board Lights</string>

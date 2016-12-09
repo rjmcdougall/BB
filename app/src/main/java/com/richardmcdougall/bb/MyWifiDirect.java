@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb;
 
+import android.app.Activity;
+import android.app.IntentService;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.net.wifi.WifiManager;
@@ -12,6 +14,8 @@ import android.content.IntentFilter;
 
 import java.net.InetAddress;
 import java.util.*;
+
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.*;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import java.lang.reflect.*;
@@ -23,7 +27,9 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
  * Created by Jonathan on 8/21/2016.
  */
 public class MyWifiDirect {
-    public MainActivity mActivity;
+    public static final String ACTION = "com.richardmcdougall.bb.BBService";
+
+    public BBService mActivity;
     public WifiP2pManager mManager;
 
     WiFiDirectBroadcastReceiver mWiFiDirectBroadcastReceiver = null;
@@ -63,6 +69,13 @@ public class MyWifiDirect {
         STATE_SERVING     // state only for server
     };
 
+    private static final String TAG = "BB.MyWifiDirect";
+
+
+    public void l(String s) {
+        Log.v(TAG, s);
+    }
+
 
     StateType state = StateType.STATE_WAITING_MY_NAME;
 
@@ -80,28 +93,48 @@ public class MyWifiDirect {
 
         startStartTime = mActivity.GetCurrentClock();
 
+        /*
         synchronized (mActivity.bleStatus) {
             String ip = UDPClientServer.getIPAddress(true);
             mActivity.bleStatus = "IP=" + ip + " " + myDeviceName + "\n"+oldState.toString() +
                     " -> " + state.toString() + ":" + why;
             //System.out.println(mActivity.bleStatus);
         }
+        */
 
+        String ip = UDPClientServer.getIPAddress(true);
+        String mStatus = "IP=" + ip + " " + myDeviceName + "\n"+oldState.toString() +
+                " -> " + state.toString() + ":" + why;
+        l(mStatus);
+
+
+
+        //mActivity.setStateStats(peers.size(), replyCount);
+
+        // Construct an Intent tying it to the ACTION (arbitrary event namespace)
+        Intent in = new Intent(ACTION);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("msgType", 2);
+        // Put extras into the intent as usual
+        in.putExtra("stateReplies", replyCount);
         switch (state)  {
 
             case STATE_TALKING_TO_SERVER:
-                mActivity.setStateMsgConn("Connected");
+                in.putExtra("stateMsgWifi", "Connected");
+                //mActivity.setStateMsgConn("Connected");
                 break;
 
             case STATE_SERVING:
-                mActivity.setStateMsgConn("Server");
+                in.putExtra("stateMsgWifi", "Server");
+                //mActivity.setStateMsgConn("Server");
                 break;
 
             default:
-                mActivity.setStateMsgConn("Connecting");
+                in.putExtra("stateMsgWifi", "Connecting");
+                //mActivity.setStateMsgConn("Connecting");
         }
-
-        mActivity.setStateStats(peers.size(), replyCount);
+        // Fire the broadcast with intent packaged
+        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(in);
 
     }
 
@@ -547,13 +580,15 @@ public class MyWifiDirect {
     }
 
 
-    MyWifiDirect(MainActivity activity, UDPClientServer cs) {
+    MyWifiDirect(BBService service, UDPClientServer cs) {
+        l("MyWifiDirect");
         mClientServer = cs;
-        mActivity = activity;
-        mManager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
+        mActivity = service;
+        mManager = (WifiP2pManager) service.getSystemService(Context.WIFI_P2P_SERVICE);
 
-        channel = mManager.initialize(activity, activity.getMainLooper(), null);
+        channel = mManager.initialize(service, service.mHandler.getLooper(), null);
 
+        /*
         try {
             Method[] m = mManager.getClass().getMethods();
             for (int i=0; i<m.length;i++) {
@@ -565,8 +600,7 @@ public class MyWifiDirect {
         {
 
         }
-
-
+        */
 
 
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -580,8 +614,15 @@ public class MyWifiDirect {
 
 
     public void onResume() {
-        if (mWiFiDirectBroadcastReceiver!=null)
+        l("OnResume");
+        if (mWiFiDirectBroadcastReceiver!=null){
+            l("OnResume: calling onPause to release mWiFiDirectBroadcastReceiver");
             onPause();
+        } else {
+            l("OnResume: creating new mWiFiDirectBroadcastReceiver");
+
+        }
+
 
         mWiFiDirectBroadcastReceiver = new WiFiDirectBroadcastReceiver(mManager, channel, this);
         mActivity.registerReceiver(mWiFiDirectBroadcastReceiver, intentFilter);
@@ -606,17 +647,19 @@ public class MyWifiDirect {
             public void run() {
                 Poll();
             }
-        }, 2000, 2000);
+        }, 10000, 10000);
 
     }
 
     public void onPause() {
+        l("onPause");
         if (timer != null) {
             timer.cancel();
             timer = null;
         }
 
         if (mWiFiDirectBroadcastReceiver!=null) {
+            l("onPause: releasing mWiFiDirectBroadcastReceiver");
             mActivity.unregisterReceiver(mWiFiDirectBroadcastReceiver);
             mWiFiDirectBroadcastReceiver = null;
         }

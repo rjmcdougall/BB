@@ -53,7 +53,7 @@ public class Webserver implements Runnable {
      * @param ipv4  true=return ipv4, false=return ipv6
      * @return  address or empty string
      */
-    MainActivity mMain;
+    BBService mMain;
     public static String getIPAddress(boolean useIPv4) {
         try {
             List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
@@ -107,7 +107,7 @@ public class Webserver implements Runnable {
     /**
      * WebServer constructor.
      */
-    public Webserver(int port, AssetManager assets, MainActivity mainActivity) {
+    public Webserver(int port, AssetManager assets, BBService mainActivity) {
         mPort = port;
         mAssets = assets;
         mMain = mainActivity;

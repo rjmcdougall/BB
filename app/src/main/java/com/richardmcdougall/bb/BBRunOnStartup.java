@@ -3,19 +3,20 @@ package com.richardmcdougall.bb;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.support.v4.content.WakefulBroadcastReceiver;
 
 /**
  * Created by rmc on 10/15/16.
  */
 
-public class BBRunOnStartup extends BroadcastReceiver {
+public class BBRunOnStartup extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent i = new Intent(context, MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        System.out.print("Starting BB from ON_BOOT");
-        context.startActivity(i);
+        // Launch the specified service when this message is received
+        Intent startServiceIntent = new Intent(context, BBService.class);
+        startWakefulService(context, startServiceIntent);
     }
 
 }
+
 

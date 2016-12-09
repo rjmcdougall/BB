@@ -60,7 +60,6 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     private Runnable mLogLineRunnable;
     private BufferedReader mBufferedReader;
     InputStreamReader mInputStreamReader;
-    MainActivity mActivity;
 
     HashMap<Integer, CmdEvents> callbackList = new HashMap<Integer, CmdEvents>();
 
@@ -70,9 +69,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         void CmdAction(String msg);
     }
 
-    public CmdMessenger(MainActivity Activity, UsbSerialPort Sport, final char fld_separator,
+    public CmdMessenger(UsbSerialPort Sport, final char fld_separator,
                         final char cmd_separator, final char esc_character) {
-        mActivity = Activity;
         print_newlines = false;
         commandBufferTmp = new ByteArrayOutputStream();
 //        commandBufferTmp.reset();
@@ -575,12 +573,10 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     private void l(String str) {
         Log.d(TAG, ">>>>>" + str);
-        //mActivity.l(TAG + str);
     }
 
     private void e(String str) {
         Log.e(TAG, ">>>>>" + str);
-        //mActivity.l(TAG + str);
     }
 
 /*

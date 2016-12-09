@@ -22,7 +22,7 @@ import android.net.wifi.p2p.*;
 public class UDPClientServer {
     private static final int UDP_SERVER_PORT = 8099;
     private static final int MAX_UDP_DATAGRAM_LEN = 1500;
-    MainActivity mMain;
+    BBService mMain;
     public long tSentPackets = 0;
     /* class Record {
         long
@@ -66,7 +66,7 @@ public class UDPClientServer {
 
 
 
-    UDPClientServer(MainActivity mainActivity) {
+    UDPClientServer(BBService mainActivity) {
         mMain = mainActivity;
     }
 
