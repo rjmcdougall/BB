@@ -747,21 +747,6 @@ public class BBService extends Service {
 
     public void SeekAndPlay() {
         try {
-
-            /* Update UDP/Audio state
-            if (syncStatus != null) {
-                syncStatus.setText(stateMsg);
-            }
-
-            if (syncPeers != null) {
-                syncPeers.setText(String.format("%1$d", statePeers));
-            }
-
-            if (syncReplies != null) {
-                syncReplies.setText(String.format("%1$d", stateReplies));
-            }
-            */
-
             if (mediaPlayer != null && downloaded) {
                 synchronized (mediaPlayer) {
                     long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
@@ -770,62 +755,26 @@ public class BBService extends Service {
 
                     long seekOff = ms % lenInMS;
                     long curPos = mediaPlayer.getCurrentPosition();
+                    long seekErr = curPos - seekOff;
 
-                    long seekErr = 0;
-                    if (lastSeekOffset != 0 && lastSeekTimestamp < ms) {
-                        long expectedPosition = lastSeekOffset + (ms - lastSeekTimestamp);
-                        seekErr = (curPos - expectedPosition);
-                        //while (Math.abs(seekErr) > 1000)
-                        //    seekErr /= 2;
-                    }
-
-                    Intent in = new Intent(ACTION_STATS);
-
-                    if (curPos == 0 || Math.abs(curPos - seekOff) > 8) {
-                        //int newPos = (int) (seekOff - seekErr / 2 + phoneModelAudioLatency);
-                        int newPos = (int) (seekOff - seekErr / 2 + phoneModelAudioLatency);
-                        if (newPos < 0)
-                            newPos = 0;
-                        //l(msg);
-                        //setStateMsgAudio("Adjusting");
-                        in.putExtra("stateMsgAudio", "Adjusting");
-
-                        //mediaPlayer.pause();
-                        mediaPlayer.seekTo(newPos);
-                        /* PlaybackParams p;
-                        if (p.getClass().getMethod("setSpeed",
-                        p.setSpeed(0.5);
-                        mediaPlayer.setPlaybackParams(p); */
-                        mediaPlayer.start();
-
-
-                        lastSeekOffset = seekOff;
-                        lastSeekTimestamp = ms;
-                    } else {
-                        //setStateMsgAudio("Synced");
-                        in.putExtra("stateMsgAudio", "Synced");
-
-                    }
-
-
-                    String msg =
-                            "SeekErr " + seekErr +
-                                    " SvOff " + serverTimeOffset +
-                                    " User " + userTimeOffset +
-                                    "\nSeekOff " + seekOff +
-                                    " RTT " + serverRTT +
-                                    " Strm" + currentRadioStream;
-
+                    String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset + " User " + userTimeOffset + "\nSeekOff " + seekOff + " RTT " + serverRTT + " Strm" + currentRadioStream;
                     if (udpClientServer.tSentPackets != 0)
                         msg += "\nSent " + udpClientServer.tSentPackets;
                     l(msg);
 
-                    //syncAdjust.setText(String.format("%1$d", seekErr));
-                    //syncTrack.setText(String.format("%1$d", currentRadioStream));
-                    //syncUsroff.setText(String.format("%1$d", userTimeOffset));
-                    //syncSrvoff.setText(String.format("%1$d", serverTimeOffset));
-                    //syncRTT.setText(String.format("%1$d", serverRTT));
-                    // Construct an Intent tying it to the ACTION (arbitrary event namespace)
+                    if (curPos == 0 || seekErr!=0) {
+                        if (curPos == 0 || Math.abs(seekErr) > 5000)
+                            mediaPlayer.seekTo((int)seekOff);
+                        else {
+                            PlaybackParams params = mediaPlayer.getPlaybackParams();
+                            Float speed = 1.0f + (seekOff - curPos)/2500.0f;
+                            params.setSpeed(speed  );
+                            mediaPlayer.setPlaybackParams(params);
+                            mediaPlayer.start();
+                        }
+                        mediaPlayer.start();
+                    }
+                    Intent in = new Intent(ACTION_STATS);
                     in.putExtra("resultCode", Activity.RESULT_OK);
                     in.putExtra("msgType", 1);
                     // Put extras into the intent as usual
@@ -834,21 +783,11 @@ public class BBService extends Service {
                     in.putExtra("userTimeOffset", userTimeOffset);
                     in.putExtra("serverTimeOffset", serverTimeOffset);
                     in.putExtra("serverRTT", serverRTT);
-                    // Fire the broadcast with intent packaged
-
                     LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-
-
-
-
                 }
             }
         } catch (Throwable thr_err) {
-            l("SeekAndPlay Error" + thr_err.getMessage());
-            try {
-                Thread.sleep(3000);
-            } catch (Throwable e) {
-            }
+
         }
     }
 
