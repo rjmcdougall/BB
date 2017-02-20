@@ -1,16 +1,24 @@
 package com.richardmcdougall.bb;
 
+import android.Manifest;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.app.Activity;
+import android.view.WindowManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
@@ -21,6 +29,22 @@ import android.widget.TextView;
 import android.widget.ImageView;
 import android.view.MotionEvent;
 import android.content.BroadcastReceiver;
+import android.widget.Toast;
+import android.app.admin.DevicePolicyManager;
+import android.app.ActivityManager;
+import android.content.ComponentName;
+import android.content.pm.PackageManager;
+import android.os.BatteryManager;
+import android.app.admin.DeviceAdminReceiver;
+import android.provider.Settings;
+
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+
+import java.io.IOException;
+import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
@@ -60,6 +84,55 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private static final String EXTRA_PARAM1 = "com.richardmcdougall.bb.extra.PARAM1";
     private static final String EXTRA_PARAM2 = "com.richardmcdougall.bb.extra.PARAM2";
 
+    private ComponentName mAdminComponentName;
+    private DevicePolicyManager mDevicePolicyManager;
+    private PackageManager mPackageManager;
+    private static final String Battery_PLUGGED_ANY = Integer.toString(
+            BatteryManager.BATTERY_PLUGGED_AC |
+                    BatteryManager.BATTERY_PLUGGED_USB |
+                    BatteryManager.BATTERY_PLUGGED_WIRELESS);
+
+    static void showToast(Context context, String text) {
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show();
+    }
+
+    static String getHomeActivity(Context c) {
+        PackageManager pm = c.getPackageManager();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        ComponentName cn = intent.resolveActivity(pm);
+        if (cn != null)
+            return cn.flattenToShortString();
+        else
+            return "none";
+    }
+
+
+    static void becomeHomeActivity(Context c) {
+        ComponentName deviceAdmin = new ComponentName(c, AdminReceiver.class);
+        DevicePolicyManager dpm = (DevicePolicyManager) c.getSystemService(Context.DEVICE_POLICY_SERVICE);
+
+        if (!dpm.isAdminActive(deviceAdmin)) {
+            Toast.makeText(c, "This app is not a device admin!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (!dpm.isDeviceOwnerApp(c.getPackageName())) {
+            Toast.makeText(c, "This app is not the device owner!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_MAIN);
+        intentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        intentFilter.addCategory(Intent.CATEGORY_HOME);
+        ComponentName activity = new ComponentName(c, MainActivity.class);
+        dpm.addPersistentPreferredActivity(deviceAdmin, intentFilter, activity);
+        Toast.makeText(c, "Home activity: " + getHomeActivity(c), Toast.LENGTH_LONG).show();
+
+        dpm.setGlobalSetting(
+                deviceAdmin,
+                Settings.Global.STAY_ON_WHILE_PLUGGED_IN,
+                Battery_PLUGGED_ANY);
+
+    }
 
     /**
      * Starts this service to perform action Foo with the given parameters. If
@@ -164,6 +237,14 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                         String stateMsgWifi = intent.getStringExtra("stateMsgWifi");
                         setStateMsgConn(stateMsgWifi);
                         break;
+                    case 3:
+                        String statusMsg = intent.getStringExtra("ledStatus");
+                        status.setText(statusMsg);
+                        break;
+                    case 4:
+                        String logMsg = intent.getStringExtra("logMsg");
+                        l(logMsg);
+                        break;
 
                     default:
                         break;
@@ -174,12 +255,69 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     };
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        l("MainActivity: onStart()");
+
+        // start lock task mode if it's not already active
+        ActivityManager am = (ActivityManager) getSystemService(
+                Context.ACTIVITY_SERVICE);
+        // ActivityManager.getLockTaskModeState api is not available in pre-M.
+        if (am.getLockTaskModeState() ==
+                ActivityManager.LOCK_TASK_MODE_NONE) {
+            // Pin the app
+            // startLockTask();
+        }
+
+        startService(new Intent(getBaseContext(), BBService.class));
+        //Intent startServiceIntent = new Intent(this, BBService.class);
+        //startWakefulService(this, startServiceIntent);
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+
         l("MainActivity: onCreate()");
         super.onCreate(savedInstanceState);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+
+        becomeHomeActivity(this.getApplicationContext());
+
+        //UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+        //static PendingIntent mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+        //mUsbManager.requestPermission(accessory, mPermissionIntent);
+
+        // Here, thisActivity is the current activity
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.RECORD_AUDIO)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO}, 1);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
+
+
 
         // Connect the remote control
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
@@ -228,7 +366,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             }
         });
 
-        startService(new Intent(getBaseContext(), BBService.class));
 
         //startActionMusic(getApplicationContext(), "", "");
 
@@ -243,6 +380,32 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         //    l("Cannot start visualizer!" + e.getMessage());
         //
 
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
 
@@ -409,6 +572,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         return super.onKeyDown(keyCode, event);
     }
+
+
+
+
 
 
 }

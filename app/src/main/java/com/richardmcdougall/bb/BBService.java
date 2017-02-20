@@ -24,6 +24,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -131,6 +132,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import android.support.v4.content.ContextCompat;
+import android.content.pm.PackageManager;
+
+
+
 
 public class BBService extends Service {
 
@@ -181,9 +187,8 @@ public class BBService extends Service {
 
     public void l(String s) {
         Log.v(TAG, s);
+        sendLogMsg(s);
     }
-
-
 
     /**
      * indicates how to behave if the service is killed
@@ -205,10 +210,20 @@ public class BBService extends Service {
      */
     Thread musicPlayer = null;
 
+
+
+
     @Override
     public void onCreate() {
+
         super.onCreate();
         l("onCreate");
+
+
+
+
+
+
 
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -219,7 +234,12 @@ public class BBService extends Service {
                         voice.setLanguage(Locale.US);
                     l( "Text To Speech ready...");
                     String utteranceId = UUID.randomUUID().toString();
-                    voice.speak("This is " + boardId + "'s Burner Board", TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+                    String whosBoard = "Donald Trump";
+                    System.out.println("This is " + boardId + "'s burner board ");
+                    if (boardId != null)
+                            whosBoard = boardId;
+                    voice.setSpeechRate((float)0.8);
+                    voice.speak("This is " + whosBoard + "'s Burner Board", TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 } else if (status == TextToSpeech.ERROR) {
                     l( "Sorry! Text To Speech failed...");
                 }
@@ -266,6 +286,7 @@ public class BBService extends Service {
 
 
     }
+
 
 
     /**
@@ -352,14 +373,32 @@ public class BBService extends Service {
         serverRTT = rtt;
     }
 
+    private void sendLogMsg(String msg) {
+        Intent in = new Intent(ACTION_STATS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("msgType", 4);
+        // Put extras into the intent as usual
+        in.putExtra("logMsg", msg);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+    }
 
-    private void initUsb() {
+    private void updateUsbStatus(String status) {
+        Intent in = new Intent(ACTION_STATS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("msgType", 3);
+        // Put extras into the intent as usual
+        in.putExtra("ledStatus", status);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+    }
+
+    public void initUsb() {
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
             l("No device/driver");
+            updateUsbStatus(("No BB Plugged in"));
             return;
         }
 
@@ -377,10 +416,11 @@ public class BBService extends Service {
 
         if (!manager.hasPermission(device)) {
             //ask for permission
-            PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(GET_USB_PERMISSION), 0);
-            mContext.registerReceiver(mPermissionReceiver, new IntentFilter(GET_USB_PERMISSION));
-            manager.requestPermission(device, pi);
+            //PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(GET_USB_PERMISSION), 0);
+            //mContext.registerReceiver(mPermissionReceiver, new IntentFilter(GET_USB_PERMISSION));
+            //manager.requestPermission(device, pi);
             l("No USB Permission");
+            updateUsbStatus(("No USB Permission"));
             return;
         }
 
@@ -388,6 +428,7 @@ public class BBService extends Service {
         UsbDeviceConnection connection = manager.openDevice(mDriver.getDevice());
         if (connection == null) {
             l("USB connection == null");
+            updateUsbStatus(("No USB device"));
             return;
         }
 
@@ -402,8 +443,13 @@ public class BBService extends Service {
                 sPort.close();
             } catch (IOException e2) {/*ignore*/}
             sPort = null;
+            updateUsbStatus(("USB Device Error"));
             return;
         }
+
+        updateUsbStatus(("Connected to BB"));
+        sendLogMsg("USB Connected");
+
 
         startIoManager();
     }
@@ -426,6 +472,9 @@ public class BBService extends Service {
                 }
                 sPort = null;
             }
+            updateUsbStatus(("Disconnected(1)"));
+            sendLogMsg("USB Disconnected");
+
         }
     }
 
@@ -457,6 +506,8 @@ public class BBService extends Service {
 
                 boardGetBoardId();
                 boardGetMode();
+                updateUsbStatus(("Connected to ") + boardId);
+                sendLogMsg("USB Connected to " + boardId);
             }
         }
     }
@@ -484,7 +535,7 @@ public class BBService extends Service {
     }
 
 
-    private PermissionReceiver mPermissionReceiver = new PermissionReceiver();
+    public PermissionReceiver mPermissionReceiver = new PermissionReceiver();
 
     private class PermissionReceiver extends BroadcastReceiver {
 
@@ -760,7 +811,7 @@ public class BBService extends Service {
                     String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset + " User " + userTimeOffset + "\nSeekOff " + seekOff + " RTT " + serverRTT + " Strm" + currentRadioStream;
                     if (udpClientServer.tSentPackets != 0)
                         msg += "\nSent " + udpClientServer.tSentPackets;
-                    l(msg);
+                    //l(msg);
 
                     if (curPos == 0 || seekErr!=0) {
                         if (curPos == 0 || Math.abs(seekErr) > 5000)
@@ -944,13 +995,13 @@ public class BBService extends Service {
     void boardVisualizerSetup(int audioSessionId) {
         int vSize;
 
-        Log.i(TAG, "session=" + audioSessionId);
+        l( "session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
         // Create the Visualizer object and attach it to our media player.
         try {
             mVisualizer = new Visualizer(audioSessionId);
         } catch (Exception e) {
-            Log.e(TAG, "Error enabling visualizer!", e);
+            l("Error enabling visualizer: " + e.getMessage());
             //System.out.println("Error enabling visualizer:" + e.getMessage());
             return;
         }
@@ -968,6 +1019,8 @@ public class BBService extends Service {
 
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
+
+        l("Starting board display thread...");
 
 
         while (true) {
@@ -1104,6 +1157,8 @@ public class BBService extends Service {
                 boardSetRow(69, pixels);
                 boardUpdate();
                 boardScroll(true);
+            } else {
+                l("visualizer failued");
             }
         }
         testValue++;

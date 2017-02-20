@@ -73,7 +73,18 @@ public class MyWifiDirect {
 
 
     public void l(String s) {
+
         Log.v(TAG, s);
+        sendLogMsg(s);
+    }
+
+    private void sendLogMsg(String msg) {
+        Intent in = new Intent(com.richardmcdougall.bb.BBService.ACTION_STATS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("msgType", 4);
+        // Put extras into the intent as usual
+        in.putExtra("logMsg", msg);
+        LocalBroadcastManager.getInstance(mActivity).sendBroadcast(in);
     }
 
 
@@ -112,7 +123,7 @@ public class MyWifiDirect {
         //mActivity.setStateStats(peers.size(), replyCount);
 
         // Construct an Intent tying it to the ACTION (arbitrary event namespace)
-        Intent in = new Intent(ACTION);
+        Intent in = new Intent(com.richardmcdougall.bb.BBService.ACTION_STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 2);
         // Put extras into the intent as usual

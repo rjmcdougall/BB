@@ -42,6 +42,21 @@
 
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".AdminReceiver"
+            android:label="@string/device_admin"
+            android:permission="android.permission.BIND_DEVICE_ADMIN" >
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -50,11 +65,9 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <!--
-                <category android:name="android.intent.category.LAUNCHER" />
-            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
             </intent-filter>
@@ -63,7 +76,6 @@
                 android:resource="@xml/device_filter" />
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
                 android:resource="@xml/device_filter" />
-            -->
 
         </activity>
 
@@ -71,7 +83,7 @@
         <service
             android:name=".BBService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"/>
     </application>
 
 </manifest>
