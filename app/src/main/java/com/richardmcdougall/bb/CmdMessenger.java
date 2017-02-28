@@ -60,6 +60,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     private Runnable mLogLineRunnable;
     private BufferedReader mBufferedReader;
     InputStreamReader mInputStreamReader;
+    ByteArrayOutputStream sendBuffer; // Buffer that holds the data to send to serial port
+
 
     HashMap<Integer, CmdEvents> callbackList = new HashMap<Integer, CmdEvents>();
 
@@ -80,6 +82,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         command_separator = (byte) cmd_separator;
         escape_character = (byte) esc_character;
 
+        sendBuffer = new ByteArrayOutputStream();
 
         Serial = Sport;
 
@@ -94,6 +97,17 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             e("div setup failed: " + e.getMessage());
         }
 
+    }
+
+    public void flushWrites() {
+        if (sendBuffer.size() > 0) {
+            try {
+                Serial.write(sendBuffer.toByteArray(), 500);
+                sendBuffer.reset();
+            } catch (Exception e) {
+                l("Write Failed: " + e.toString());
+            }
+        }
     }
 
     /**
@@ -284,6 +298,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             printByte(command_separator);
             if (print_newlines)
                 printStr("\r\n".getBytes()); // should append BOTH \r\n
+            flushWrites();
             if (reqAc) {
                 ackReply = blockedTillReply(timeout, ackCmdId);
             }
@@ -488,11 +503,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     void printStr(byte[] str) {
         //System.out.println("cmdMessenger: Send \"" + new String(str) + "\"");
-        try {
-            if (Serial != null) Serial.write(str, str.length);
-        } catch (IOException e) {
-            l("sendCommand err:" + e.getMessage());
-        }
+        sendBuffer.write(str, 0, str.length);
     }
 
     /**

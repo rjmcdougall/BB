@@ -3,6 +3,8 @@
 #include <Adafruit_GFX.h>
 #include "Print.h"
 
+#define TEENSY 1
+
 
 /*****************************************************************************/
 
@@ -211,6 +213,11 @@ void Board_WS2801::updatePins(void) {
 
 // Enable SPI hardware and set up protocol details:
 void Board_WS2801::startSPI(void) {
+#ifdef TEENSY
+  SPI.setMOSI(7);
+  SPI.setMISO(8);
+  SPI.setSCK(14);
+#endif
   SPI.begin();
   SPI.setBitOrder(MSBFIRST);
   SPI.setDataMode(SPI_MODE0);
@@ -218,7 +225,10 @@ void Board_WS2801::startSPI(void) {
 #ifdef MEGA
   //SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
 #else
+  // DUE
   SPI.setClockDivider(82); // 1 MHz max, else flicker
+  // TEENSY
+  SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
 #endif
 }
 
@@ -253,7 +263,7 @@ void Board_WS2801::show(void) {
   //startSPI();
 //    for(i = hasSidelights ? 0 : NUM_EDGE_PIXELS * 3; i<nl3; i++) {
     for(i = 0; i < nl3; i++) {
-	SPI.transfer(pixels[pixel_translate[i]]);
+	SPI.transfer(pixels[pixel_translate[i]] / brightness);
 //      SPDR = pixels[pixel_translate[i]];
 //      while(!(SPSR & (1<<SPIF)));
     }
@@ -364,6 +374,17 @@ uint32_t Board_WS2801::getPixelColor(uint16_t x, uint16_t y) {
 
   return 0; // Pixel # is out of bounds
 }
+
+
+void Board_WS2801::setBrightness(uint8_t b) {
+
+  if (b > 0) 
+    brightness = 255 / b;
+  else
+    brightness = 255;
+}
+
+
 
 
 // Map virtual pixels to physical pixels on the Burner Board Layout

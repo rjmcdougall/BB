@@ -260,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         super.onStart();
         l("MainActivity: onStart()");
 
+
         // start lock task mode if it's not already active
         ActivityManager am = (ActivityManager) getSystemService(
                 Context.ACTIVITY_SERVICE);
@@ -270,7 +271,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             // startLockTask();
         }
 
-        startService(new Intent(getBaseContext(), BBService.class));
         //Intent startServiceIntent = new Intent(this, BBService.class);
         //startWakefulService(this, startServiceIntent);
 
@@ -283,7 +283,22 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         l("MainActivity: onCreate()");
         super.onCreate(savedInstanceState);
 
+        setupPermissions(Manifest.permission.RECORD_AUDIO, 1);
+        setupPermissions(Manifest.permission.ACCESS_WIFI_STATE, 2);
+        setupPermissions(Manifest.permission.CHANGE_WIFI_STATE, 3);
+        setupPermissions(Manifest.permission.ACCESS_COARSE_LOCATION, 4);
+        setupPermissions(Manifest.permission.INTERNET, 5);
+        setupPermissions(Manifest.permission.BLUETOOTH, 6);
+        setupPermissions(Manifest.permission.BLUETOOTH_ADMIN, 7);
+        setupPermissions(Manifest.permission.BLUETOOTH_PRIVILEGED, 8);
+        setupPermissions(Manifest.permission.ACCESS_NETWORK_STATE, 9);
+        setupPermissions(Manifest.permission.ACCESS_FINE_LOCATION, 10);
+
+        startService(new Intent(getBaseContext(), BBService.class));
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
         becomeHomeActivity(this.getApplicationContext());
 
@@ -291,31 +306,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         //static PendingIntent mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
         //mUsbManager.requestPermission(accessory, mPermissionIntent);
 
-        // Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.RECORD_AUDIO)) {
-
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO}, 1);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
-            }
-        }
 
 
 
@@ -355,7 +345,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
 
         voltage.setText("0.0v");
-        log.setText("Hello");
         log.setFocusable(false);
 
         switchHeadlight = (android.widget.Switch) findViewById(R.id.switchHeadlight);
@@ -382,31 +371,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     }
 
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
 
 
     private void updateStatus() {
@@ -517,7 +481,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
    */
     @Override
     public void onInputDeviceAdded(int deviceId) {
-        l("onInputDeviceAdded");
+        l("MainActivity: onInputDeviceAdded");
 
     }
 
@@ -531,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
      */
     @Override
     public void onInputDeviceChanged(int deviceId) {
-        l("onInputDeviceChanged");
+        l("MainAcitivity: onInputDeviceChanged");
 
     }
 
@@ -573,9 +537,70 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         return super.onKeyDown(keyCode, event);
     }
 
+    private void setupPermissions(String permission, int permissionId) {
+        // Here, thisActivity is the current activity
+        l("Checking permission for " + permission + ", requesting as id" + permissionId);
+        if (ContextCompat.checkSelfPermission(this, permission)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            l("Didn't have permission for " + permission + ", requesting as id" + permissionId);
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    permission)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{permission}, permissionId);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+                try {
+                    Thread.sleep(5000);
+                } catch (Throwable e) {
+                }
+            }
+        }
+
+    }
 
 
+    // If we want to do anything when permissions are granted or denied
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
 
+        l("Got permission for id" + requestCode);
+
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
 
 
 }

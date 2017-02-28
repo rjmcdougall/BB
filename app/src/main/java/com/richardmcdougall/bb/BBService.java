@@ -210,20 +210,16 @@ public class BBService extends Service {
      */
     Thread musicPlayer = null;
 
-
-
+    private static final Map<String, String> BoardNames = new HashMap<String, String>();
+    static {
+        BoardNames.put("BISCUIT", "Richard");
+    }
 
     @Override
     public void onCreate() {
 
         super.onCreate();
-        l("onCreate");
-
-
-
-
-
-
+        l("BBService: onCreate");
 
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -235,17 +231,16 @@ public class BBService extends Service {
                     l( "Text To Speech ready...");
                     String utteranceId = UUID.randomUUID().toString();
                     String whosBoard = "Donald Trump";
-                    System.out.println("This is " + boardId + "'s burner board ");
+                    System.out.println("Where do you want to go, " + boardId + "?");
                     if (boardId != null)
-                            whosBoard = boardId;
-                    voice.setSpeechRate((float)0.8);
-                    voice.speak("This is " + whosBoard + "'s Burner Board", TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+                            whosBoard = BoardNames.get(boardId);
+                    voice.setSpeechRate((float)1.2);
+                    voice.speak("Where do you want to go," + whosBoard + "?", TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 } else if (status == TextToSpeech.ERROR) {
                     l( "Sorry! Text To Speech failed...");
                 }
             }
         });
-
 
         mContext = getApplicationContext();
 
@@ -294,6 +289,7 @@ public class BBService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        l("BBService: onStartCommand");
         return mStartMode;
     }
 
@@ -302,6 +298,7 @@ public class BBService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
+        l("BBService: onBind");
         return mBinder;
     }
 
@@ -310,6 +307,7 @@ public class BBService extends Service {
      */
     @Override
     public boolean onUnbind(Intent intent) {
+        l("BBService: onUnbind");
         return mAllowRebind;
     }
 
@@ -318,6 +316,7 @@ public class BBService extends Service {
      */
     @Override
     public void onRebind(Intent intent) {
+        l("BBService: onRebind");
 
     }
 
@@ -326,7 +325,7 @@ public class BBService extends Service {
      */
     @Override
     public void onDestroy() {
-        l("onDestroy");
+        l("BBService: onDestroy");
     }
 
 
@@ -392,6 +391,7 @@ public class BBService extends Service {
     }
 
     public void initUsb() {
+        stopIoManager();
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
@@ -517,7 +517,7 @@ public class BBService extends Service {
     }
 
     private void onDeviceStateChange() {
-        l("MainActivity: onDeviceStateChange()");
+        l("BBservice: onDeviceStateChange()");
 
         stopIoManager();
         startIoManager();
@@ -761,13 +761,18 @@ public class BBService extends Service {
 
 
         if (mWiFiManager.isWifiEnabled()) {
-            l("Wifi Enabled Already");
-            //mWiFiManager.setWifiEnabled(false);
-        } else {
-            l("Enabling Wifi...");
-            mWiFiManager.setWifiEnabled(true);
-            mWiFiManager.reassociate();
+            l("Wifi Enabled Already, disabling");
+            mWiFiManager.setWifiEnabled(false);
         }
+
+            l("Enabling Wifi...");
+            if (mWiFiManager.setWifiEnabled(true) == false) {
+                l("Failed to enable wifi");
+            }
+            if (mWiFiManager.reassociate() == false) {
+                l("Failed to associate wifi");
+            }
+
 
         DownloadMusic2();
 
@@ -967,8 +972,10 @@ public class BBService extends Service {
     public class ArdunioCallbackMode implements CmdMessenger.CmdEvents {
 
         public void CmdAction(String str) {
-            toneG.startTone(ToneGenerator.TONE_PROP_BEEP, 200);
+            //toneG.startTone(ToneGenerator.TONE_PROP_BEEP, 200);
+
             boardMode = mListener.readIntArg();
+            voice.speak("mode" + boardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
             l("ardunio mode callback:" + str + " " + boardMode);
             //modeStatus.setText(String.format("%d", boardMode));
 
@@ -1026,27 +1033,27 @@ public class BBService extends Service {
         while (true) {
             switch (boardMode) {
                 case 4:
-                    sleepTime = 10;
+                    sleepTime = 20;
                     modeEsperanto();
                     break;
                 case 5:
-                    sleepTime = 300;
+                    sleepTime = 20;
                     modeDisco();
                     break;
                 case 6:
-                    sleepTime = 10;
+                    sleepTime = 20;
                     modeAudioBarV();
                     break;
                 case 7:
-                    sleepTime = 10;
+                    sleepTime = 20;
                     modeAudioBarH();
                     break;
                 case 8:
-                    sleepTime = 10;
+                    sleepTime = 20;
                     modeTest();
                     break;
                 case 9:
-                    sleepTime = 10;
+                    sleepTime = 20;
                     modeAudioMatrix();
                     break;
 
@@ -1172,7 +1179,7 @@ public class BBService extends Service {
     private int discoState = 0;
     private Random discoRandom = new Random();
 
-    void modeDisco() {
+    void modeDiscoTest() {
         if (mListener != null) {
             switch (discoState) {
                 case 99:
@@ -1201,6 +1208,7 @@ public class BBService extends Service {
         discoState++;
         if (discoState > 1)
             discoState = 0;
+        boardFlush();
     }
 
     void modeAudioBeat() {
@@ -1269,8 +1277,8 @@ public class BBService extends Service {
                 //    boardUpdate();
             }
         }
+        boardFlush();
         return;
-
     }
 
     void modeAudioBarV() {
@@ -1312,6 +1320,7 @@ public class BBService extends Service {
                 }
             }
         }
+        boardFlush();
         return;
 
     }
@@ -1355,6 +1364,7 @@ public class BBService extends Service {
                 }
             }
         }
+        boardFlush();
         return;
 
     }
@@ -1397,6 +1407,51 @@ public class BBService extends Service {
                 }
             }
         }
+        boardFlush();
+        return;
+
+    }
+
+
+    void modeDisco() {
+
+        if (mBoardFFT == null)
+            return;
+
+        synchronized (mSerialConn) {
+            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
+
+
+                if (mListener != null)
+                    mListener.sendCmdStart(18);
+
+                byte rfk;
+                byte ifk;
+                int dbValue = 0;
+                for (int i = 0; i < 512; i++) {
+                    rfk = mBoardFFT[i];
+                    ifk = mBoardFFT[i + 1];
+                    float magnitude = (rfk * rfk + ifk * ifk);
+                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
+                    if (dbValue < 0)
+                        dbValue = 0;
+
+                    if ((i & 63) == 0) {
+                        int value = java.lang.Math.min(dbValue / 64, 255);
+                        dbValue = 0;
+                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
+
+                        if (mListener != null && (i > 63))
+                            mListener.sendCmdArg(value);
+                    }
+                }
+                if (mListener != null) {
+                    mListener.sendCmdArg((int) 0);
+                    mListener.sendCmdEnd();
+                }
+            }
+        }
+        boardFlush();
         return;
 
     }
@@ -1414,6 +1469,7 @@ public class BBService extends Service {
         if (mListener != null) {
             mListener.sendCmdStart(11);
             mListener.sendCmdEnd(true, 0, 1000);
+            boardFlush();
             id = mListener.readStringArg();
             return (id);
         }
@@ -1424,11 +1480,16 @@ public class BBService extends Service {
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean boardSetMode(int mode) {
         l("sendCommand: 4," + mode);
+        if (mListener == null) {
+            initUsb();
+        }
         synchronized (mSerialConn) {
+
             if (mListener != null) {
                 mListener.sendCmdStart(4);
                 mListener.sendCmdArg(mode);
                 mListener.sendCmdEnd();
+                boardFlush();
                 return true;
             }
         }
@@ -1469,6 +1530,7 @@ public class BBService extends Service {
         if (mListener != null) {
             mListener.sendCmd(9);
             mListener.sendCmdEnd();
+            boardFlush();
             return true;
         }
         return false;
@@ -1481,6 +1543,7 @@ public class BBService extends Service {
             mListener.sendCmdStart(3);
             mListener.sendCmdArg(state == true ? 1 : 0);
             mListener.sendCmdEnd();
+            boardFlush();
             return true;
         }
         return false;
@@ -1520,6 +1583,7 @@ public class BBService extends Service {
         if (mListener != null) {
             mListener.sendCmd(12);
             mListener.sendCmdEnd();
+            boardFlush();
             mode = mListener.readIntArg();
             return (mode);
         }
@@ -1558,5 +1622,12 @@ public class BBService extends Service {
         return false;
     }
 
+    //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+    public void boardFlush() {
+        if (mListener != null) {
+            //mListener.flushWrites();
+        }
+
+    }
 
 }

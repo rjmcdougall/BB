@@ -69,7 +69,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
 
     class CdcAcmSerialPort extends CommonUsbSerialPort {
 
-        private final boolean mEnableAsyncReads;
+        private boolean mEnableAsyncReads;
         private UsbInterface mControlInterface;
         private UsbInterface mDataInterface;
 
@@ -235,8 +235,8 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 if (amtWritten < 0) {
                 // RMC if (amtWritten <= 0) {
                     //throw new IOException("Error writing " + writeLength
-                    Log.d(TAG, "Error writing " + writeLength
-                            + " bytes at offset " + offset + " length=" + src.length);
+                    //Log.d(TAG, "Error writing " + writeLength
+                    //        + " bytes at offset " + offset + " length=" + src.length);
                 } else {
 
                     //Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);

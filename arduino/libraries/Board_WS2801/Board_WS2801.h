@@ -51,7 +51,8 @@ class Board_WS2801 : public Adafruit_GFX {
       updateLength(uint16_t n), // Change strand length
       updateOrder(uint8_t order), // Change data order
       enableSidelights(boolean haslights), // Has side lights
-      print(char *string, uint8_t x, uint8_t y, uint8_t size);
+      print(char *string, uint8_t x, uint8_t y, uint8_t size),
+      setBrightness(uint8_t brightness);
 
 
     uint16_t
@@ -73,7 +74,8 @@ class Board_WS2801 : public Adafruit_GFX {
       *pixels,   // Holds color values for each LED (3 bytes each)
       rgb_order, // Color order; RGB vs GRB (or others, if needed in future)
       clkpin    , datapin,     // Clock & data pin numbers
-      clkpinmask, datapinmask; // Clock & data PORT bitmasks
+      clkpinmask, datapinmask, // Clock & data PORT bitmasks
+      brightness = 1;
     volatile uint8_t
       *clkport  , *dataport;   // Clock & data PORT registers
     boolean

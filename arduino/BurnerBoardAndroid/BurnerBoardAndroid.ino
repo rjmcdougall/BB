@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <Adafruit_GFX.h>
+#define TEENSY 1
 #include <Board_WS2801.h>
 #include "Print.h"
 #include <CmdMessenger.h>
@@ -23,7 +24,8 @@
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 #define MEGA 1
 #else
-#define DUE 1
+//#define DUE 1
+#define TEENSY 1
 #endif
 
 
@@ -84,7 +86,7 @@ uint8_t ledn[8];
 #define ENC_PORT PINF
  
 #define ID_0 25
-#define ID_1 24
+#define ID_1 24 
 #define ID_2 23
 #define ID_3 22
 
@@ -125,9 +127,17 @@ char field_separator   = ',';
 char command_separator = ';';
 char escape_separator  = '\\';
 
+#ifdef DUE
 // Attach a new CmdMessenger object to the default Serial port
 CmdMessenger cmdMessenger = CmdMessenger(SerialUSB, field_separator, command_separator, escape_separator);
 CmdMessenger cmdMessengerCons = CmdMessenger(Serial);
+#endif
+
+#ifdef TEENSY
+// Attach a new CmdMessenger object to the default Serial port
+CmdMessenger cmdMessenger = CmdMessenger(Serial, field_separator, command_separator, escape_separator);
+CmdMessenger cmdMessengerCons = CmdMessenger(Serial1);
+#endif
 
 // This is the list of recognized BB commands. 
 enum
@@ -149,6 +159,8 @@ enum
   BBVuMeterV,
   BBVuMeterH,
   BBSetRow,
+  BBEsperanto,
+  BBDiscoPlain,
   BBerror
 };
 
@@ -173,6 +185,9 @@ void BBattachCommandCallbacks()
   cmdMessenger.attach(BBVuMeterV, OnVuMeterV);          // 14
   cmdMessenger.attach(BBVuMeterH, OnVuMeterH);          // 15
   cmdMessenger.attach(BBSetRow, OnSetRow);              // 16
+  cmdMessenger.attach(BBEsperanto, OnEsperanto);        // 17
+  cmdMessenger.attach(BBDiscoPlain, OnDiscoPlain);      // 18
+
 }
 
 // Callbacks define on which received commands we take action
@@ -195,6 +210,8 @@ void BBattachConsCommandCallbacks()
   cmdMessengerCons.attach(BBFillScreen, OnFillScreen);      // 13
   cmdMessengerCons.attach(BBVuMeterV, OnVuMeterV);          // 14
   cmdMessengerCons.attach(BBVuMeterH, OnVuMeterH);          // 15
+  cmdMessengerCons.attach(BBEsperanto, OnEsperanto);        // 16
+  cmdMessengerCons.attach(BBDiscoPlain, OnDiscoPlain);      // 17
 }
 
 #define SHOW_COMMANDS 1
@@ -202,23 +219,24 @@ void BBattachConsCommandCallbacks()
 void ShowCommands() 
 {
 #ifdef SHOW_COMMANDS
-  Serial.println("\nAvailable commands");
-  Serial.println(" 1;                       - This command list");
-  Serial.println(" 2,<headlight state>;     - Set headlight.");
-  Serial.println(" 3,<led state>;           - Set led. 0 = off, 1 = on"); 
-  Serial.println(" 4,<mode>;                - Set mode n"); 
-  Serial.println(" 5;                       - Clear Screen"); 
-  Serial.println(" 6,<direction>;           - Scroll up or down"); 
-  Serial.println(" 7,<amount>;              - Fade screen by n levels"); 
-  Serial.println(" 8;                       - Render and display screen"); 
-  Serial.println(" 9;                       - Show Battery for 2 seconds"); 
-  Serial.println(" 10;                      - Get battery voltage"); 
-  Serial.println(" 11;                      - Get Board ID"); 
-  Serial.println(" 12;                      - Get mode"); 
-  Serial.println(" 13,r,g,b;                - Fill Screen"); 
-  Serial.println(" 14,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
-  Serial.println(" 15,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
-  Serial.println(" 16,row,binary;           - Fill row of pixels"); 
+  Serial1.println("\nAvailable commands");
+  Serial1.println(" 1;                       - This command list");
+  Serial1.println(" 2,<headlight state>;     - Set headlight.");
+  Serial1.println(" 3,<led state>;           - Set led. 0 = off, 1 = on"); 
+  Serial1.println(" 4,<mode>;                - Set mode n"); 
+  Serial1.println(" 5;                       - Clear Screen"); 
+  Serial1.println(" 6,<direction>;           - Scroll up or down"); 
+  Serial1.println(" 7,<amount>;              - Fade screen by n levels"); 
+  Serial1.println(" 8;                       - Render and display screen"); 
+  Serial1.println(" 9;                       - Show Battery for 2 seconds"); 
+  Serial1.println(" 10;                      - Get battery voltage"); 
+  Serial1.println(" 11;                      - Get Board ID"); 
+  Serial1.println(" 12;                      - Get mode"); 
+  Serial1.println(" 13,r,g,b;                - Fill Screen"); 
+  Serial1.println(" 14,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
+  Serial1.println(" 15,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
+  Serial1.println(" 16,row,binary;           - Fill row of pixels"); 
+  Serial1.println(" 17,L1,L2,L3,...,L8;      - Render Vu Meter values 0-9"); 
 #endif
 }
 
@@ -270,10 +288,10 @@ void Onsetmode()
         board_mode = 0;
   cmdMessenger.sendCmd(BBacknowledge);
   cmdMessenger.sendCmd(BBsetmode,board_mode);
-  Serial.print("setmode: ");
-  Serial.print(mode);
-  Serial.print(":");
-  Serial.println(board_mode);
+  Serial1.print("setmode: ");
+  Serial1.print(mode);
+  Serial1.print(":");
+  Serial1.println(board_mode);
   sprintf(strmode, "%d", board_mode);
   strip->print(strmode, 35, 1, 1);
   strip->show();
@@ -360,11 +378,11 @@ void OnSetRow() {
   pixels = (char *)&response;
   //cmdMessenger.unescape(pixels);
   /*
-  Serial.print("OnSetRow ");
-  Serial.print(row);
-  Serial.print(" = ");
-  Serial.print(nPixels);
-  Serial.print("<");
+  Serial1.print("OnSetRow ");
+  Serial1.print(row);
+  Serial1.print(" = ");
+  Serial1.print(nPixels);
+  Serial1.print("<");
   */
   for (i = 0; i < nPixels; i += 3) {
     x = i / 3;
@@ -372,16 +390,16 @@ void OnSetRow() {
     b = pixels[i+1];
     g = pixels[i+2];
     /*
-    Serial.print("setPixel(");
-    Serial.print(x);
-    Serial.print(",");
-    Serial.print(row);
-    Serial.print(",");
-    Serial.print(r);
-    Serial.print(",");
-    Serial.print(g);
-    Serial.print(",");
-    Serial.print(b);
+    Serial1.print("setPixel(");
+    Serial1.print(x);
+    Serial1.print(",");
+    Serial1.print(row);
+    Serial1.print(",");
+    Serial1.print(r);
+    Serial1.print(",");
+    Serial1.print(g);
+    Serial1.print(",");
+    Serial1.print(b);
     */
     if (x == 0) {
         setSideLight(0, row, rgbTo24BitColor(r, g, b));
@@ -390,7 +408,7 @@ void OnSetRow() {
     } else if (x == 11) {        
         setSideLight(1, row, rgbTo24BitColor(r, g, b));
     }
-    //Serial.println(")");
+    //Serial1.println(")");
   }
 }
 
@@ -472,10 +490,74 @@ void OnVuMeterH() {
   }
   strip->show();
   strip->updates++;
-  //Serial.print("OnVuMeterH: ");
-  //Serial.println(micros() - ts);
+  //Serial1.print("OnVuMeterH: ");
+  //Serial1.println(micros() - ts);
 }
 
+
+int myBrightness = 255;
+
+void OnEsperanto() {
+  int level;
+  int i;
+  int x;
+  int m;
+  int y;
+  int lastLevel = 0;
+
+  unsigned long ts = micros();
+  
+  // Throw away first low? frequency bin
+  level =  cmdMessenger.readInt32Arg();
+  
+  for (i = 0; i < 6; i++) {
+    level =  cmdMessenger.readInt32Arg();
+    //level /= 2;
+    level --;
+    if (level > 7)
+      level = 7;
+    if (i == 2) {
+      if (((level - lastLevel) > 4)) {
+        myBrightness = 255;   
+      } else {
+        myBrightness -= 20;
+      }
+      lastLevel = level;
+    }
+  }
+
+  strip->setBrightness(myBrightness);
+}
+
+void OnDiscoPlain() {
+  int level;
+  int lastlevel = 0;
+  int i;
+  int x;
+  int m;
+  int y;
+  uint32_t color;
+  int total_level = 0;
+
+  unsigned long ts = micros();
+  
+  fadeBoard(20);
+
+  for (i = 0; i < 7; i++) {
+    level =  cmdMessenger.readInt32Arg();
+    if ((level - lastlevel) > 0) {
+      total_level += (level - lastlevel);
+    }
+    
+    if (total_level > 30) {
+        color = wheel(wheel_color);
+        fillScreen(color);  
+        fillSideLights(color);
+        wheel_color+= 15;
+    } 
+  }
+  strip->show();
+}
 
 /* Helper functions */
 /* returns change in encoder state (-1,0,1) */
@@ -507,8 +589,8 @@ void mydelay(uint32_t del) {
     delay(1);
     enc = read_encoder();
     if (enc) {
-//     Serial.print("Counter value: ");
-//    Serial.println(board_mode, DEC);
+//     Serial1.print("Counter value: ");
+//    Serial1.println(board_mode, DEC);
       board_mode += enc;
       if (board_mode < 0)
         board_mode = 0;
@@ -533,10 +615,10 @@ void mydelay(uint32_t del) {
     clearScreen();
   if ((currentTime - lastTick) > 1000) {
     lastTick = currentTime;
-    Serial.print("tick ndelays = ");
-    Serial.print(nDelays, DEC);
-    Serial.print(" updates = ");
-    Serial.println(strip->updates - lastUpdates, DEC);
+    Serial1.print("tick ndelays = ");
+    Serial1.print(nDelays, DEC);
+    Serial1.print(" updates = ");
+    Serial1.println(strip->updates - lastUpdates, DEC);
     lastUpdates = strip->updates;
     nDelays = 0;
   }
@@ -583,7 +665,6 @@ uint32_t wheel(byte WheelPos)
 // along the chain
 void rainbowCycle(uint8_t wait) {
   int i, j;
-  
   for (j=0; j < 256 * 5; j++) {     // 5 cycles of all 25 colors in the wheel
     for (i=0; i < strip->numPixels(); i++) {
       // tricky math! we use each pixel as a fraction of the full 96-color wheel
@@ -638,15 +719,15 @@ void fadeBoard(int amount) {
       if (b < amount)
         b = 0;        
         /*
-      Serial.print("color  ");
-      Serial.print(color, HEX);
-      Serial.print("  ");
-      Serial.print(r, HEX);
-      Serial.print("  ");
-      Serial.print(g, HEX);
-      Serial.print("  ");
-      Serial.print(b, HEX);
-      Serial.println("");
+      Serial1.print("color  ");
+      Serial1.print(color, HEX);
+      Serial1.print("  ");
+      Serial1.print(r, HEX);
+      Serial1.print("  ");
+      Serial1.print(g, HEX);
+      Serial1.print("  ");
+      Serial1.print(b, HEX);
+      Serial1.println("");
       */
       strip->setPixelColor(i, r, g, b);
     }  
@@ -1003,21 +1084,21 @@ uint16_t readID() {
  uint16_t id;
  
  bit = digitalRead(ID_0);
- Serial.print(bit, BIN);
+ Serial1.print(bit, BIN);
  id = !bit;
  bit = digitalRead(ID_1);
- Serial.print(bit, BIN);
+ Serial1.print(bit, BIN);
  id |= !bit << 1;
  bit = digitalRead(ID_2);
- Serial.print(bit, BIN);
+ Serial1.print(bit, BIN);
  id |= !bit << 2; 
  bit = digitalRead(ID_3);
- Serial.print(bit, BIN);
+ Serial1.print(bit, BIN);
  id |= !bit << 3;
  
- Serial.print("Board ID  ");
- Serial.print(id, DEC);
- Serial.println("");
+ Serial1.print("Board ID  ");
+ Serial1.print(id, DEC);
+ Serial1.println("");
 
  return(id);
 
@@ -1066,13 +1147,13 @@ int getBattery() {
   // Convert to level 0-28
   for (i = 0; i < 100; i++) {
     level += sample = analogRead(BATTERY_PIN);
-    //Serial.print("Battery sample ");
-    //Serial.print(sample, DEC);
-    //Serial.println(" ");
+    //Serial1.print("Battery sample ");
+    //Serial1.print(sample, DEC);
+    //Serial1.println(" ");
   }
-  //Serial.print("Battery Level ");
-  //Serial.print(level, DEC);
-  //Serial.println(" ");
+  //Serial1.print("Battery Level ");
+  //Serial1.print(level, DEC);
+  //Serial1.println(" ");
 
   if (level > LEVEL_FULL) {
     level = LEVEL_FULL;
@@ -1090,9 +1171,9 @@ int getBattery() {
 
   level = level / (LEVEL_FULL - LEVEL_EMPTY);
 
-  //Serial.print("Adjusted Level ");
-  //Serial.print(level, DEC);
-  //Serial.println(" ");
+  //Serial1.print("Adjusted Level ");
+  //Serial1.print(level, DEC);
+  //Serial1.println(" ");
   return(level);
   
 }
@@ -1265,7 +1346,7 @@ void setup() {
   // Console for debugging
   Serial.begin(115200);
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
-  Serial.println("Goodnight moon!");
+  Serial1.println("Goodnight moon!");
 
   // Set battery level analogue reference
 #ifdef MEGA
@@ -1344,7 +1425,7 @@ void loop_matrixfast()
 {
   drawHeader(true);
   scrollDown();
-  mydelay(1);
+  mydelay(10);
 }
 
 
@@ -1397,14 +1478,14 @@ void loop() {
   // Process incoming serial data, and perform callbacks
   //ts = micros();
   cmdMessenger.feedinSerialData();
-  //Serial.print("cmdMessenger.feedinSerialData:");
-  //Serial.println(micros() - ts);
+  //Serial1.print("cmdMessenger.feedinSerialData:");
+  //Serial1.println(micros() - ts);
   cmdMessengerCons.feedinSerialData();
    
    /*
-   Serial.print("Encoder sample ");
-   Serial.print(board_mode, DEC);
-   Serial.println(" ");
+   Serial1.print("Encoder sample ");
+   Serial1.print(board_mode, DEC);
+   Serial1.println(" ");
    */
    
    switch (board_mode) {
@@ -1420,7 +1501,11 @@ void loop() {
      case 3:
        loop_lunarian();
        break;
-       
+
+     case 4:
+       loop_matrixfast();
+       break;
+              
      default:
        mydelay(1);
        break;
