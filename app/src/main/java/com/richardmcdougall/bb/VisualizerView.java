@@ -27,11 +27,7 @@ import com.richardmcdougall.bb.BarGraphRenderer;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * A class that draws visualizations of data received from a
- * {@link Visualizer.OnDataCaptureListener#onWaveFormDataCapture } and
- * {@link Visualizer.OnDataCaptureListener#onFftDataCapture }
- */
+
 public class VisualizerView extends View {
 
     private static final String TAG = "VisualizerView";

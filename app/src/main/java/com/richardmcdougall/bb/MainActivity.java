@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     TextView modeStatus;
     private android.widget.Switch switchHeadlight;
 
-    private VisualizerView mVisualizerView;
+    private BoardView mBoardView;
     private String stateMsgAudio = "";
     private String stateMsgConn = "";
     private String stateMsg = "";
@@ -91,6 +91,26 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             BatteryManager.BATTERY_PLUGGED_AC |
                     BatteryManager.BATTERY_PLUGGED_USB |
                     BatteryManager.BATTERY_PLUGGED_WIRELESS);
+
+    private boolean preventDialogs = true;
+
+    // Kill popups which steal remote control input button focus from the app
+    // http://www.andreas-schrade.de/2015/02/16/android-tutorial-how-to-create-a-kiosk-mode-in-android/
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        l("MainActivity: onWindowFocusChanged()");
+
+        if (preventDialogs == false) {
+            return;
+        }
+
+        if(!hasFocus) {
+            // Close every kind of system dialog
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            sendBroadcast(closeDialog);
+        }
+    }
 
     static void showToast(Context context, String text) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
@@ -201,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         }
     }
 
-
     public void setStateMsgAudio(String str) {
         synchronized (stateMsg) {
             stateMsgAudio = str;
@@ -209,8 +228,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         }
     }
 
-    // Define the callback for what to do when data is received
-    private BroadcastReceiver BBReceiver = new BroadcastReceiver() {
+    // Define the callback for what to do when stats are received
+    private BroadcastReceiver BBstatsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
@@ -260,6 +279,9 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         super.onStart();
         l("MainActivity: onStart()");
 
+        // Close every kind of system dialog
+        Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        sendBroadcast(closeDialog);
 
         // start lock task mode if it's not already active
         ActivityManager am = (ActivityManager) getSystemService(
@@ -279,8 +301,11 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
         l("MainActivity: onCreate()");
+
+
+
+
         super.onCreate(savedInstanceState);
 
         setupPermissions(Manifest.permission.RECORD_AUDIO, 1);
@@ -324,8 +349,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         setContentView(R.layout.activity_main);
 
         // Create the graphic equalizer
-        mVisualizerView = (VisualizerView) findViewById(R.id.myvisualizerview);
-
+        mBoardView = (BoardView) findViewById(R.id.myBoardview);
 
         // Create textview
         voltage = (TextView) findViewById(R.id.textViewVoltage);
@@ -398,9 +422,13 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
 //        initUsb();
 
-        // Register for the particular broadcast based on ACTION string
-        IntentFilter filter = new IntentFilter(BBService.ACTION_STATS);
-        LocalBroadcastManager.getInstance(this).registerReceiver(BBReceiver, filter);
+        // Register for the particular broadcast based on Stats Action
+        IntentFilter statFilter = new IntentFilter(BBService.ACTION_STATS);
+        LocalBroadcastManager.getInstance(this).registerReceiver(BBstatsReceiver, statFilter);
+
+        // Register for the particular broadcast based on Graphics Action
+        IntentFilter gfxFilter = new IntentFilter(BBService.ACTION_GRAPHICS);
+        LocalBroadcastManager.getInstance(this).registerReceiver(BBgraphicsReceiver, gfxFilter);
 
     }
 
@@ -420,7 +448,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 //        stopIoManager();
 
         // Unregister the listener when the application is paused
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(BBReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(BBstatsReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(BBgraphicsReceiver);
 
     }
 
@@ -601,6 +630,35 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             // permissions this app might request
         }
     }
+
+    // Define the callback for what to do when graphics are received
+    private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
+            int visualId = intent.getIntExtra("visualId", 0);
+            //l("Graphics " + visualId);
+            if (resultCode == RESULT_OK) {
+                switch (visualId) {
+                    case 13:
+                        int r = intent.getIntExtra("arg1", 0);
+                        int g = intent.getIntExtra("arg2", 0);
+                        int b = intent.getIntExtra("arg3", 0);
+                        mBoardView.fillScreen(r, g, b);
+                        break;
+                    case 7:
+                        int amount = intent.getIntExtra("arg1", 0);
+                        mBoardView.fadeScreen(amount);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+    };
+
+
 
 
 }

@@ -15,10 +15,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/bb_status"
+        android:textSize="10sp"
         android:textAppearance="?android:attr/textAppearanceSmall" />
         android:textAppearance="?android:attr/textAppearanceSmallpro" />
     <TextView
         android:layout_width="wrap_content"
+        android:textSize="10sp"
         android:layout_height="wrap_content"
         android:text="@string/bb_status_disconnected"
         android:id="@+id/textViewStatus"
@@ -30,12 +32,14 @@
         android:orientation="horizontal"
         android:layout_height="wrap_content">
         <TextView
+            android:textSize="10sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/bb_syncstatus"
             android:textAppearance="?android:attr/textAppearanceSmall" />
         <TextView
             android:layout_width="wrap_content"
+            android:textSize="10sp"
             android:layout_height="wrap_content"
             android:text="@string/bb_status_disconnected"
             android:id="@+id/textViewsyncstatus"
@@ -50,6 +54,7 @@
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/bb_synctrack"
+            android:textSize="10sp"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_width="wrap_content" />
@@ -57,6 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
+            android:textSize="10sp"
             android:id="@+id/textViewsynctrack"
             android:textStyle="normal"
             android:gravity="right"
@@ -73,6 +79,7 @@
 
         <TextView
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="@string/bb_syncusroff"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -80,6 +87,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0"
             android:id="@+id/textViewsyncusroff"
             android:textStyle="normal"
@@ -97,6 +105,7 @@
 
         <TextView
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="@string/bb_syncadjust"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -104,6 +113,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0"
             android:id="@+id/textViewsyncadjust"
             android:textStyle="normal"
@@ -121,6 +131,7 @@
 
         <TextView
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="@string/bb_syncpeers"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -128,6 +139,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0"
             android:id="@+id/textViewsyncpeers"
             android:textStyle="normal"
@@ -147,12 +159,14 @@
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/bb_syncsrvoff"
+            android:textSize="10sp"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_width="wrap_content" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0"
             android:id="@+id/textViewsyncsrvoff"
             android:textStyle="normal"
@@ -172,12 +186,14 @@
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/bb_syncrtt"
+            android:textSize="10sp"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_width="wrap_content" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0"
             android:id="@+id/textViewsyncrtt"
             android:textStyle="normal"
@@ -196,12 +212,14 @@
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/bb_syncreplies"
+            android:textSize="10sp"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:layout_width="wrap_content" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0"
             android:id="@+id/textViewsyncreplies"
             android:textStyle="normal"
@@ -223,6 +241,7 @@
 
         <TextView
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="@string/bb_voltage"
             android:textStyle="normal"
             android:textAppearance="?android:attr/textAppearanceSmall"
@@ -230,6 +249,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="0.0v"
             android:id="@+id/textViewVoltage"
             android:textStyle="normal"
@@ -249,6 +269,7 @@
             android:id="@+id/switchHeadlight"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:layout_weight="1"
             android:showText="true"
             android:text="@string/bb_headlight" />
@@ -267,6 +288,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="10sp"
             android:text="Lights Mode"
             android:id="@+id/textView" />
 
@@ -341,10 +363,10 @@
         android:scrollIndicators="right"
         android:layout_weight="0.16" />
 
-    <com.richardmcdougall.bb.VisualizerView
-        android:id="@+id/myvisualizerview"
+    <com.richardmcdougall.bb.BoardView
+        android:id="@+id/myBoardview"
         android:layout_width="match_parent"
-        android:layout_height="40dp" />
+        android:layout_height="80dp" />
 
     </LinearLayout>
 
