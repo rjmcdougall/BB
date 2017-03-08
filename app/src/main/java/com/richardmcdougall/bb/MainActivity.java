@@ -641,14 +641,24 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             if (resultCode == RESULT_OK) {
                 switch (visualId) {
                     case 13:
-                        int r = intent.getIntExtra("arg1", 0);
-                        int g = intent.getIntExtra("arg2", 0);
-                        int b = intent.getIntExtra("arg3", 0);
+                        byte r = (byte)intent.getIntExtra("arg1", 0);
+                        byte g = (byte)intent.getIntExtra("arg2", 0);
+                        byte b = (byte)intent.getIntExtra("arg3", 0);
                         mBoardView.fillScreen(r, g, b);
+                        break;
+                    case 6:
+                        int direction = intent.getIntExtra("arg1", 0);
+                        mBoardView.scroll(direction);
                         break;
                     case 7:
                         int amount = intent.getIntExtra("arg1", 0);
                         mBoardView.fadeScreen(amount);
+                        break;
+                    case 16:
+                        int row = intent.getIntExtra("arg1", 0);
+                        byte [] pixels = intent.getByteArrayExtra("arg2").clone();
+                        //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
+                        mBoardView.setRow(row, pixels);
                         break;
                     default:
                         break;

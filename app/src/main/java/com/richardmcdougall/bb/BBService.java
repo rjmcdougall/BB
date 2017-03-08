@@ -135,6 +135,7 @@ import android.content.Intent;
 
 import android.support.v4.content.ContextCompat;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 
 
 public class BBService extends Service {
@@ -164,7 +165,7 @@ public class BBService extends Service {
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int boardMode = 0; // Mode of the Ardunio/LEDs
+    private int boardMode = 6; // Mode of the Ardunio/LEDs
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -849,8 +850,8 @@ public class BBService extends Service {
                     //modeDisco();
                     break;
                 case 6:
-                    sleepTime = 20;
-                    //modeAudioBarV();
+                    sleepTime = 50;
+                    modeAudioBarV();
                     break;
                 case 7:
                     sleepTime = 20;
@@ -1024,47 +1025,69 @@ public class BBService extends Service {
         return;
     }
 
-    /*
+
+    // Pick classic VU meter colors based on volume
+    int vuColor(int amount) {
+        if (amount < 11)
+            return BurnerBoard.getRGB(0, 255, 0);
+        if (amount < 21)
+            return BurnerBoard.getRGB(255, 165, 0);
+        return BurnerBoard.getRGB(255, 0, 0);
+    }
+
+    int vuColor2(int amount)
+    { return BurnerBoard.getRGB(0, 255, 0);}
+
     void modeAudioBarV() {
 
         if (mBoardFFT == null)
             return;
+        if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
+            return;
 
-            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
+        mBurnerBoard.fadePixels(50);
+        int [] dbLevels = new int[16];
+        byte rfk;
+        byte ifk;
+        int dbValue = 0;
+        // There are 1024 values - 512 x real, imaginary
+        for (int i = 0; i < 512; i+= 8) {
+            rfk = mBoardFFT[i];
+            ifk = mBoardFFT[i + 1];
+            float magnitude = (rfk * rfk + ifk * ifk);
+            dbValue += java.lang.Math.max(0, Math.log10(magnitude));
+            if (dbValue < 0)
+                dbValue = 0;
+            dbLevels[i / 32] += dbValue;
+            dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
+        }
 
-                mListener.sendCmdStart(14);
+        // Iterate through frequency bins: dbLevels[0] is lowest, [15] is highest
+        int row = 0;
+        for (int value = 3; value < 15; value += 2) {
+            int level = java.lang.Math.min(dbLevels[value] / 5 - 5, 35);
+            //l("level " + value + ":" + level + ":" + dbLevels[value]);
+            for (int y = 0; y < level; y++) {
+                if (value == 3) {
+                    //mBurnerBoard.setSideLight(0, 39 + y, vuColor(y));
+                    //mBurnerBoard.setSideLight(0, 38 - y, vuColor(y));
+                    //mBurnerBoard.setSideLight(1, 39 + y, vuColor(y));
+                    //mBurnerBoard.setSideLight(1, 38 - y, vuColor(y));
+                } else {
+                    mBurnerBoard.setPixel(((value / 2) - 2), 35 + y, vuColor(y));
+                    mBurnerBoard.setPixel(((value / 2) - 2), 34 - y, vuColor(y));
+                    mBurnerBoard.setPixel(9 - ((value / 2) - 2), 35 + y, vuColor(y));
+                    mBurnerBoard.setPixel(9 - ((value / 2) - 2), 34 - y, vuColor(y));
 
-                byte rfk;
-                byte ifk;
-                int dbValue = 0;
-                // There are 1024 values - 512 x real, imaginary
-                for (int i = 0; i < 512; i++) {
-                    rfk = mBoardFFT[i];
-                    ifk = mBoardFFT[i + 1];
-                    float magnitude = (rfk * rfk + ifk * ifk);
-                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
-                    if (dbValue < 0)
-                        dbValue = 0;
-
-                    if ((i & 31) == 0) {
-                        int value = java.lang.Math.min(dbValue / 32, 255);
-                        dbValue = 0;
-                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
-
-                        if (mListener != null && (i > 0))
-                            mListener.sendCmdArg(value);
-                    }
-                }
-                    //mListener.sendCmdArg((int) 0);
-                    mListener.sendCmdEnd();
                 }
             }
         }
-        boardFlush();
+        mBurnerBoard.flushPixels();
         return;
 
     }
 
+    /*
 
     void modeAudioBarH() {
 

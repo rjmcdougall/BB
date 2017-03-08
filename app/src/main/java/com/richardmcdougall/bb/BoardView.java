@@ -53,26 +53,30 @@ public class BoardView extends View {
         setWillNotDraw(false);
     }
 
+    static int PIXEL_RED = 0;
+    static int PIXEL_GREEN = 1;
+    static int PIXEL_BLUE = 2;
+    int pixel2Offset(int x, int y, int rgb) {
+        return (y * mBoardWidth + x) * 3 + rgb;
+    }
 
     private Paint mPaint = new Paint();
 
-    public void fillScreen(int r, int g, int b) {
-        //System.out.println("fillScreen start" + (byte)r + "," + (byte)g + "," + (byte)b);
+    public void fillScreen(byte r, byte g, byte b) {
+        System.out.println("fillScreen");
         if (mCanvas == null)
             return;
         //mPaint.setColor(Color.argb(0, r, g, b));
 
         if (mBoardScreen != null) {
-            //System.out.println("fillScreen: update");
 
             int x;
             int y;
             for (x = 0; x < mBoardWidth; x++) {
                 for (y = 0; y < mBoardHeight; y++) {
-                    mBoardScreen[(x * mBoardHeight + y) * 3] = (byte) r;
-                    mBoardScreen[(x * mBoardHeight + y) * 3 + 1] = (byte) g;
-                    mBoardScreen[(x * mBoardHeight + y) * 3 + 2] = (byte) b;
-                    //mBoardScreen[100] = (byte)r;
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
                 }
             }
             //System.out.println("fillScreen end" + (byte)r + "," + (byte)g + "," + (byte)b);
@@ -85,10 +89,93 @@ public class BoardView extends View {
         //System.out.println("fadeScreen");
         if (mCanvas == null)
             return;
-        //mPaint.setColor(Color.argb(0, 0, 0, 0));
-        //invalidate();
+        if (mBoardScreen != null) {
+
+            int x;
+            int y;
+            for (x = 0; x < mBoardWidth; x++) {
+                for (y = 0; y < mBoardHeight; y++) {
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                            (byte)(mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] & 0xFF - amount);
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                            (byte)(mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF - amount);
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                            (byte)(mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF - amount);
+                }
+            }
+            //System.out.println("fillScreen end" + (byte)r + "," + (byte)g + "," + (byte)b);
+        }
+        invalidate();
     }
 
+    public void scroll(int direction) {
+        if (mCanvas == null)
+            return;
+        if (mBoardScreen != null) {
+            int x;
+            int y;
+            if (direction == 0) {
+                for (x = 0; x < mBoardWidth; x++) {
+                    for (y = 0; y < mBoardHeight - 1; y++) {
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                        mBoardScreen[pixel2Offset(x, y , PIXEL_GREEN)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    }
+                }
+            } else {
+                for (x = 0; x < mBoardWidth; x++) {
+                    for (y = mBoardHeight - 2; y >= 0; y--) {
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                        mBoardScreen[pixel2Offset(x, y , PIXEL_GREEN)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    }
+                }
+            }
+        }
+        invalidate();
+    }
+
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    public void setRow(int row, byte[] pixels) {
+        //System.out.print("setRow " + row + ":" + bytesToHex(pixels));
+        //System.out.println("BB setRow " + row + " length " + pixels.length);
+        if (mCanvas == null)
+            return;
+
+        //pixels[3] = (byte)255;
+
+        //java.util.Arrays.fill(pixels, (byte)255);
+        if (mBoardScreen != null) {
+            int x;
+            int y;
+            //System.out.println("BB setRow pixels " + row);
+            for (x = 0; x < mBoardWidth; x++) {
+                // TODO: add sidelights
+                mBoardScreen[pixel2Offset(x, row,  PIXEL_RED)]   = pixels[(x + 1) * 3 + 0]; //r
+                mBoardScreen[pixel2Offset(x, row , PIXEL_GREEN)] = pixels[(x + 1) * 3 + 1]; //g
+                mBoardScreen[pixel2Offset(x, row,  PIXEL_BLUE)]   = pixels[(x + 1) * 3 + 2]; //b
+            }
+        }
+
+        // TODO: invalidate only on update()
+        invalidate();
+    }
 
 
     @Override
@@ -115,15 +202,19 @@ public class BoardView extends View {
         }
 
         if (mBoardScreen != null) {
+            //System.out.println("BB onDraw pixels ");
+
             int x;
             int y;
             for (x = 0; x < mBoardWidth; x += 1) {
                 for (y = 0; y < mBoardHeight; y += 1) {
-                    paint.setColor(Color.argb(255,
-                            mBoardScreen[(x * mBoardHeight + y) * 3],
-                            mBoardScreen[(x * mBoardHeight + y) * 3 + 1],
-                            mBoardScreen[(x * mBoardHeight + y) * 3 + 2]));
-                    mCanvas.drawCircle(150 + y * 10   , 5 + x * 20, 3, paint);
+                    int r = (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] & 0xFF);
+                    int g = (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF);
+                    int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
+                    if (isBoardPixel(x, y)) {
+                        paint.setColor(Color.argb(255, r, g, b));
+                        mCanvas.drawCircle(150 + y * 10, 40 + x * 12, 3, paint);
+                    }
                     //System.out.println("setcolor " + mBoardScreen[(x * mBoardHeight + y) * 3]);
                 }
             }
@@ -135,6 +226,44 @@ public class BoardView extends View {
             canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
         }
         //mCanvas.drawPaint(mPaint);
+    }
+
+    // Check if the board pixel is real to draw the edge of the board
+    boolean isBoardPixel(int x, int y) {
+        int pixel = x * mBoardHeight + y + 1;
+        int newpixel = 0;
+
+        //1  20-50->1-31
+        if (pixel >= 20 && pixel <=50)
+            newpixel = pixel - 19;
+        //2 83-127->76-32
+        if (pixel >= 83 && pixel <= 127)
+            newpixel = 127 - pixel + 32;
+        //3 146-205->77-136
+        if (pixel >= 146 && pixel <= 205)
+            newpixel = pixel - 146 + 77;
+        //4 213-278->202-137
+        if (pixel >= 213 && pixel <= 278)
+            newpixel = 278 - pixel + 137;
+        //5 281-350->203-272
+        if (pixel >= 281 && pixel <= 350)
+            newpixel = pixel - 281 + 203;
+        //6 351-420->342-273
+        if (pixel >= 351 && pixel <=420)
+            newpixel = 420 - pixel + 273;
+        //7 423-488->343-408
+        if (pixel >= 423 && pixel <= 488)
+            newpixel = pixel - 423 + 343;
+        //8 496-555->468-409
+        if (pixel >= 496 && pixel <= 555)
+            newpixel = 555 - pixel + 409;
+        //9 573-617->469-513
+        if (pixel >= 573 && pixel <= 617)
+            newpixel = pixel - 573 + 469;
+        //10 650-680->544-514
+        if (pixel >= 650 && pixel <= 680)
+            newpixel = 680 - pixel + 514;
+        return newpixel != 0;
     }
 
 }
