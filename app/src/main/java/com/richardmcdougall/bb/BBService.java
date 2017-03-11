@@ -1,141 +1,37 @@
 package com.richardmcdougall.bb;
 
+import android.app.Activity;
 import android.app.DownloadManager;
-import android.app.IntentService;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.media.ToneGenerator;
-import android.media.audiofx.Visualizer;
-import android.media.session.MediaSession;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.ResultReceiver;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import android.speech.tts.TextToSpeech;
-
-
-import android.app.IntentService;
-import android.content.Intent;
-import android.content.Context;
-import android.Manifest;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
-import android.media.PlaybackParams;
-import android.media.audiofx.Visualizer;
-import android.net.wifi.WifiManager;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.SystemClock;
-import android.os.Message;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
-import android.media.ToneGenerator;
-
-import com.richardmcdougall.bb.InputManagerCompat;
-import com.richardmcdougall.bb.InputManagerCompat.InputDeviceListener;
-
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
-
-import com.richardmcdougall.bb.CmdMessenger.CmdEvents;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.Exchanger;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.ArrayList;
-
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.view.KeyEvent;
-import android.view.InputDevice;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
-
-import android.os.Environment;
-
-import java.io.OutputStream;
-import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
-
-import android.os.ParcelUuid;
-
-import java.util.*;
-import java.nio.charset.Charset;
-
-import android.text.TextUtils;
-
-import java.nio.*;
-
-import android.content.*;
-
-import java.io.*;
-import java.net.*;
-import java.util.concurrent.ThreadFactory;
-
-import android.os.AsyncTask;
-import android.os.PowerManager;
-//import android.app.*;
-import android.app.Activity;
-import android.net.*;
-import android.Manifest.*;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-
-import android.support.v4.content.ContextCompat;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 
 public class BBService extends Service {
@@ -164,12 +60,12 @@ public class BBService extends Service {
     public UDPClientServer udpClientServer = null;
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
-    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int boardMode = 6; // Mode of the Ardunio/LEDs
+    //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+    private int mBoardMode = 6; // Mode of the Ardunio/LEDs
+    BoardVisualization mBoardVisualization;
 
     private int statePeers = 0;
     private long stateReplies = 0;
-    public byte[] mBoardFFT;
     //public String mSerialConn = "";
 
     int currentRadioStream = 0;
@@ -336,13 +232,11 @@ public class BBService extends Service {
         if (mBurnerBoard != null) {
             mBurnerBoard.attach(new BoardCallback());
         }
-        // Start Board Display
-        Thread boardDisplay = new Thread(new Runnable() {
-            public void run() {
-                boardDisplayThread();
-            }
-        });
-        boardDisplay.start();
+
+        if (mBoardVisualization == null) {
+            mBoardVisualization = new BoardVisualization(this, mBurnerBoard);
+        }
+        mBoardVisualization.setMode(mBoardMode);
     }
 
     long startElapsedTime, startClock;
@@ -427,10 +321,10 @@ public class BBService extends Service {
                         NextStream();
                         break;
                     case BUTTON_MODE_UP:
-                        mBurnerBoard.setMode(99);
+                        setMode(99);
                         break;
                     case BUTTON_MODE_DOWN:
-                        mBurnerBoard.setMode(98);
+                        setMode(98);
                         break;
                     case BUTTON_DRIFT_DOWN:
                         MusicOffset(-10);
@@ -607,7 +501,7 @@ public class BBService extends Service {
 
         mWifi = new MyWifiDirect(this, udpClientServer);
 
-        boardVisualizerSetup(mediaPlayer.getAudioSessionId());
+        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
         //MediaSession ms = new MediaSession(mContext);
 
         while (true) {
@@ -770,18 +664,33 @@ public class BBService extends Service {
                 onVolDown();
                 return false;
             case 99:
-                mBurnerBoard.setMode(99);
+                setMode(99);
                 break;
             case 98:
-                mBurnerBoard.setMode(98);
+                setMode(98);
                 break;
             case 88: //satachi left button
-                mBurnerBoard.setMode(99);
+                setMode(99);
                 break;
         }
         //mHandler.removeCallbacksAndMessages(null);
         return true;
     }
+
+    private void setMode(int mode) {
+        boolean cansetMode = mBurnerBoard.setMode(mode);
+        //if (cansetMode == false) {
+            // Likely not connected to physical burner board, fallback
+            if (mode == 99) {
+                mBoardMode++;
+                mBoardVisualization.setMode(mBoardMode);
+            } else if (mode == 98) {
+                mBoardMode--;
+                mBoardVisualization.setMode(mBoardMode);
+            }
+        //}
+    }
+
 
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
@@ -792,434 +701,17 @@ public class BBService extends Service {
         }
 
         public void BoardMode(int mode) {
-            boardMode = mode;
-            voice.speak("mode" + boardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
-            l("ardunio mode callback:" + boardMode);
-            //modeStatus.setText(String.format("%d", boardMode));
+            mBoardMode = mode;
+            mBoardVisualization.setMode(mBoardMode);
+            voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+            l("ardunio mode callback:" + mBoardMode);
+            //modeStatus.setText(String.format("%d", mBoardMode));
         }
     }
 
-    private int boardDisplayCnt = 0;
-    private Visualizer mVisualizer;
-    private int mAudioSessionId;
 
-    void boardVisualizerSetup(int audioSessionId) {
-        int vSize;
 
-        l("session=" + audioSessionId);
-        mAudioSessionId = audioSessionId;
-        // Create the Visualizer object and attach it to our media player.
-        try {
-            mVisualizer = new Visualizer(audioSessionId);
-        } catch (Exception e) {
-            l("Error enabling visualizer: " + e.getMessage());
-            //System.out.println("Error enabling visualizer:" + e.getMessage());
-            return;
-        }
-        vSize = Visualizer.getCaptureSizeRange()[1];
-        mVisualizer.setEnabled(false);
-        mBoardFFT = new byte[vSize];
-        mVisualizer.setCaptureSize(vSize);
-        mVisualizer.setEnabled(true);
-        l("Enabled visualizer with " + vSize + " bytes");
 
-    }
-
-
-    int sleepTime = 30;
-
-    // Main thread to drive the Board's display & get status (mode, voltage,...)
-    void boardDisplayThread() {
-
-        l("Starting board display thread...");
-
-
-        while (true) {
-            switch (boardMode) {
-
-                case 0:
-                    sleepTime = 20;
-                    modeAudioBeat();
-
-                case 4:
-                    sleepTime = 20;
-                    //modeEsperanto();
-                    break;
-                case 5:
-                    sleepTime = 20;
-                    //modeDisco();
-                    break;
-                case 6:
-                    sleepTime = 50;
-                    modeAudioBarV();
-                    break;
-                case 7:
-                    sleepTime = 20;
-                    //modeAudioBarH();
-                    break;
-                case 8:
-                    sleepTime = 20;
-                    modeTest();
-                    break;
-                case 9:
-                    sleepTime = 20;
-                    modeAudioMatrix();
-                    break;
-
-                case 10:
-                    mBurnerBoard.setMode(1);
-                    boardMode = 1;
-                    break;
-
-                //case 9:
-                //sleepTime = 30;
-                //modeAudioBeat();
-                //break;
-
-                default:
-//                    modeDisco();
-//                    modeAudioBeat();
-//                    modeAudioBarV();
-//                    modeAudioBarV();
-//                      sleepTime = 20;
-//                      modeAudioMatrix();
-                    break;
-            }
-
-            try {
-                Thread.sleep(sleepTime);
-            } catch (Throwable e) {
-            }
-
-            boardDisplayCnt++;
-            if (boardDisplayCnt > 1000) {
-                //updateStatus();
-            }
-        }
-
-    }
-
-    private int testState = 0;
-    private Random testRandom = new Random();
-    private byte[] testRow1 = "012345678901234567890123456789012345".getBytes();
-    private byte[] testRow2 = "567890123456789012345678901234567890".getBytes();
-
-
-    void modeTest() {
-        switch (testState) {
-            case 0:
-                mBurnerBoard.setRow(10, testRow1);
-                mBurnerBoard.update();
-                break;
-            case 1:
-                mBurnerBoard.setRow(10, testRow2);
-                mBurnerBoard.update();
-                break;
-            default:
-                break;
-        }
-
-        testState++;
-        if (testState > 1)
-            testState = 0;
-    }
-
-
-    int testValue = 0;
-
-    void modeAudioMatrix() {
-
-        byte[] pixels = new byte[36];
-
-        if (mBoardFFT == null)
-            return;
-
-        if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
-
-            int pixel = 0;
-            byte rfk;
-            byte ifk;
-            int dbValue = 0;
-            // There are 1024 values - 512 x real, imaginary
-            for (int i = 0; i < 512; i++) {
-                rfk = mBoardFFT[i];
-                ifk = mBoardFFT[i + 1];
-                float magnitude = (rfk * rfk + ifk * ifk);
-                dbValue += java.lang.Math.max(0, 30 * Math.log10(magnitude));
-
-                // Aggregate each 8 values to give 64 bars
-                if ((i & 7) == 0) {
-                    dbValue -= 50;
-                    int value = java.lang.Math.max(dbValue, 0);
-                    value = java.lang.Math.min(value, 255);
-                    dbValue = 0;
-
-                    // Take the 4th through 16th values
-                    if ((i / 8) >= 12 && (i / 8) < 48) {
-                        ;
-                        pixels[pixel] = (byte) java.lang.Math.max(0, value);
-//                            pixels[pixel] = (byte)testValue;
-                        pixel++;
-                        //System.out.println("modeAudioMatrix Value[" + pixel + "] = " + value);
-                    }
-                }
-            }
-            mBurnerBoard.setRow(69, pixels);
-            mBurnerBoard.update();
-            mBurnerBoard.scroll(true);
-        } else {
-            l("visualizer failued");
-        }
-
-        testValue++;
-        if (testValue > 255)
-            testValue = 0;
-        return;
-
-    }
-
-
-    private int discoState = 0;
-    private Random discoRandom = new Random();
-
-    void modeAudioBeat() {
-
-        if (mBoardFFT == null)
-            return;
-        int r = 0;
-        int b = 0;
-        int g = 0;
-
-        if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
-
-
-            byte rfk;
-            byte ifk;
-            int dbValue = 0;
-            for (int i = 0; i < 512; i++) {
-                rfk = mBoardFFT[i];
-                ifk = mBoardFFT[i + 1];
-                float magnitude = (rfk * rfk + ifk * ifk);
-                dbValue += java.lang.Math.max(0, 128 * Math.log10(magnitude));
-                if (dbValue < 0)
-                    dbValue = 0;
-
-                if ((i & 63) == 0) {
-                    int value = java.lang.Math.min(dbValue / 64, 255);
-                    dbValue = 0;
-                    //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
-
-                    if (i == 64)
-                        r = value;
-                    else if (i == 128)
-                        g = value;
-                    else if (i == 256)
-                        b = value;
-                }
-            }
-
-        }
-        mBurnerBoard.fillScreen(r, g, b);
-
-        mBurnerBoard.flush();
-        return;
-    }
-
-
-    // Pick classic VU meter colors based on volume
-    int vuColor(int amount) {
-        if (amount < 11)
-            return BurnerBoard.getRGB(0, 255, 0);
-        if (amount < 21)
-            return BurnerBoard.getRGB(255, 165, 0);
-        return BurnerBoard.getRGB(255, 0, 0);
-    }
-
-    int vuColor2(int amount)
-    { return BurnerBoard.getRGB(0, 255, 0);}
-
-    void modeAudioBarV() {
-
-        if (mBoardFFT == null)
-            return;
-        if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
-            return;
-
-        mBurnerBoard.fadePixels(50);
-        int [] dbLevels = new int[16];
-        byte rfk;
-        byte ifk;
-        int dbValue = 0;
-        // There are 1024 values - 512 x real, imaginary
-        for (int i = 0; i < 512; i+= 8) {
-            rfk = mBoardFFT[i];
-            ifk = mBoardFFT[i + 1];
-            float magnitude = (rfk * rfk + ifk * ifk);
-            dbValue += java.lang.Math.max(0, Math.log10(magnitude));
-            if (dbValue < 0)
-                dbValue = 0;
-            dbLevels[i / 32] += dbValue;
-            dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
-        }
-
-        // Iterate through frequency bins: dbLevels[0] is lowest, [15] is highest
-        int row = 0;
-        for (int value = 3; value < 15; value += 2) {
-            int level = java.lang.Math.min(dbLevels[value] / 5 - 5, 35);
-            //l("level " + value + ":" + level + ":" + dbLevels[value]);
-            for (int y = 0; y < level; y++) {
-                if (value == 3) {
-                    //mBurnerBoard.setSideLight(0, 39 + y, vuColor(y));
-                    //mBurnerBoard.setSideLight(0, 38 - y, vuColor(y));
-                    //mBurnerBoard.setSideLight(1, 39 + y, vuColor(y));
-                    //mBurnerBoard.setSideLight(1, 38 - y, vuColor(y));
-                } else {
-                    mBurnerBoard.setPixel(((value / 2) - 2), 35 + y, vuColor(y));
-                    mBurnerBoard.setPixel(((value / 2) - 2), 34 - y, vuColor(y));
-                    mBurnerBoard.setPixel(9 - ((value / 2) - 2), 35 + y, vuColor(y));
-                    mBurnerBoard.setPixel(9 - ((value / 2) - 2), 34 - y, vuColor(y));
-
-                }
-            }
-        }
-        mBurnerBoard.flushPixels();
-        return;
-
-    }
-
-    /*
-
-    void modeAudioBarH() {
-
-        if (mBoardFFT == null)
-            return;
-
-        synchronized (mSerialConn) {
-            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
-
-
-                if (mListener != null)
-                    mListener.sendCmdStart(15);
-
-                byte rfk;
-                byte ifk;
-                int dbValue = 0;
-                for (int i = 0; i < 512; i++) {
-                    rfk = mBoardFFT[i];
-                    ifk = mBoardFFT[i + 1];
-                    float magnitude = (rfk * rfk + ifk * ifk);
-                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
-                    if (dbValue < 0)
-                        dbValue = 0;
-
-                    if ((i & 63) == 0) {
-                        int value = java.lang.Math.min(dbValue / 64, 255);
-                        dbValue = 0;
-                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
-
-                        if (mListener != null && (i > 63))
-                            mListener.sendCmdArg(value);
-                    }
-                }
-                if (mListener != null) {
-                    mListener.sendCmdArg((int) 0);
-                    mListener.sendCmdEnd();
-                }
-            }
-        }
-        boardFlush();
-        return;
-
-    }
-
-    void modeEsperanto() {
-
-        if (mBoardFFT == null)
-            return;
-
-        synchronized (mSerialConn) {
-            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
-
-
-                if (mListener != null)
-                    mListener.sendCmdStart(17);
-
-                byte rfk;
-                byte ifk;
-                int dbValue = 0;
-                for (int i = 0; i < 512; i++) {
-                    rfk = mBoardFFT[i];
-                    ifk = mBoardFFT[i + 1];
-                    float magnitude = (rfk * rfk + ifk * ifk);
-                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
-                    if (dbValue < 0)
-                        dbValue = 0;
-
-                    if ((i & 63) == 0) {
-                        int value = java.lang.Math.min(dbValue / 64, 255);
-                        dbValue = 0;
-                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
-
-                        if (mListener != null && (i > 63))
-                            mListener.sendCmdArg(value);
-                    }
-                }
-                if (mListener != null) {
-                    mListener.sendCmdArg((int) 0);
-                    mListener.sendCmdEnd();
-                }
-            }
-        }
-        boardFlush();
-        return;
-
-    }
-
-
-    void modeDisco() {
-
-        if (mBoardFFT == null)
-            return;
-
-        synchronized (mSerialConn) {
-            if (mVisualizer.getFft(mBoardFFT) == mVisualizer.SUCCESS) {
-
-
-                if (mListener != null)
-                    mListener.sendCmdStart(18);
-
-                byte rfk;
-                byte ifk;
-                int dbValue = 0;
-                for (int i = 0; i < 512; i++) {
-                    rfk = mBoardFFT[i];
-                    ifk = mBoardFFT[i + 1];
-                    float magnitude = (rfk * rfk + ifk * ifk);
-                    dbValue += java.lang.Math.max(0, 5 * Math.log10(magnitude));
-                    if (dbValue < 0)
-                        dbValue = 0;
-
-                    if ((i & 63) == 0) {
-                        int value = java.lang.Math.min(dbValue / 64, 255);
-                        dbValue = 0;
-                        //System.out.println("Visualizer Value[" + i / 64 + "] = " + value);
-
-                        if (mListener != null && (i > 63))
-                            mListener.sendCmdArg(value);
-                    }
-                }
-                if (mListener != null) {
-                    mListener.sendCmdArg((int) 0);
-                    mListener.sendCmdEnd();
-                }
-            }
-        }
-        boardFlush();
-        return;
-
-    }
-
-    */
 
 
 }

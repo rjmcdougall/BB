@@ -50,7 +50,7 @@ public class MyWifiDirect {
 
     public List peers = new ArrayList();
 
-    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
+    //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
 
     public enum StateType {
 

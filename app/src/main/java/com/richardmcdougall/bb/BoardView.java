@@ -213,7 +213,7 @@ public class BoardView extends View {
                     int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
                     if (isBoardPixel(x, y)) {
                         paint.setColor(Color.argb(255, r, g, b));
-                        mCanvas.drawCircle(150 + y * 10, 40 + x * 12, 3, paint);
+                        mCanvas.drawCircle(35 + y * 14, 20 + x * 16, 3, paint);
                     }
                     //System.out.println("setcolor " + mBoardScreen[(x * mBoardHeight + y) * 3]);
                 }
