@@ -61,8 +61,8 @@ public class BBService extends Service {
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int mBoardMode = 6; // Mode of the Ardunio/LEDs
-    BoardVisualization mBoardVisualization;
+    private int mBoardMode = 1; // Mode of the Ardunio/LEDs
+    BoardVisualization mBoardVisualization = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -120,9 +120,10 @@ public class BBService extends Service {
             public void onInit(int status) {
                 // check for successful instantiation
                 if (status == TextToSpeech.SUCCESS) {
-                    if (voice.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE)
+                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                         voice.setLanguage(Locale.US);
                     l("Text To Speech ready...");
+                    voice.setPitch((float)0.8);
                     String utteranceId = UUID.randomUUID().toString();
                     String whosBoard = "Donald Trump";
                     System.out.println("Where do you want to go, " + boardId + "?");
@@ -164,6 +165,8 @@ public class BBService extends Service {
         }
 
         startLights();
+
+        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
 
         // Supported Languages
         Set<Locale> supportedLanguages = voice.getAvailableLanguages();
@@ -216,7 +219,9 @@ public class BBService extends Service {
      */
     @Override
     public void onDestroy() {
-        l("BBService: onDestroy");
+
+        l("BBService: onDesonDestroy");
+        voice.shutdown();
     }
 
 
@@ -342,8 +347,8 @@ public class BBService extends Service {
 
     public String GetRadioStreamFile(int idx) {
 
-        return (mContext.getExternalFilesDir(
-                Environment.DIRECTORY_MUSIC).toString() + "/test.mp3");
+        //return (mContext.getExternalFilesDir(
+                //Environment.DIRECTORY_MUSIC).toString() + "/test.mp3");
 
                 // RMC get rid of this
         //String radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString() + "/test.mp3";
@@ -358,8 +363,8 @@ public class BBService extends Service {
         } */
 
 
-        //return mContext.getExternalFilesDir(
-                //Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + idx + ".mp3";
+        return mContext.getExternalFilesDir(
+                Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + idx + ".mp3";
 
     }
 
@@ -381,14 +386,15 @@ public class BBService extends Service {
 
         //streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 132223476, 2 * 60 * 60 + 17 * 60 + 43));
         streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2 * 60 * 60 + 7 * 60 + 37));
-        streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2 * 60 * 60 + 3 * 60 + 44));
-        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
-        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
-        streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
-        streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
-        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
-        streamURLs.add(6, new MusicStream("https://dl.dropboxusercontent.com/s/vx11kxtkmhgycd9/click_120bpm_4-4time_610beats_stereo_WjI2zj.mp3?dl=0", 2436288, 5 * 60 + 4));
-        streamURLs.add(7, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 14616192, 30 * 60 + 30));
+        //streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 132223476, 2 * 60 * 60 + 7 * 60 + 37));
+        //streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2 * 60 * 60 + 3 * 60 + 44));
+        //streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
+        //streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
+        //streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
+        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
+        ////streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
+        //streamURLs.add(6, new MusicStream("https://dl.dropboxusercontent.com/s/vx11kxtkmhgycd9/click_120bpm_4-4time_610beats_stereo_WjI2zj.mp3?dl=0", 2436288, 5 * 60 + 4));
+        //streamURLs.add(7, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 14616192, 30 * 60 + 30));
     }
 
 
@@ -481,10 +487,11 @@ public class BBService extends Service {
 
         WifiManager mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
+        // RMC putback
 
         if (mWiFiManager.isWifiEnabled()) {
             l("Wifi Enabled Already, disabling");
-            mWiFiManager.setWifiEnabled(false);
+            //mWiFiManager.setWifiEnabled(false);
         }
 
         l("Enabling Wifi...");
@@ -497,18 +504,17 @@ public class BBService extends Service {
 
 
         // RMC put this back
-        // DownloadMusic2();
+        DownloadMusic2();
 
         mWifi = new MyWifiDirect(this, udpClientServer);
 
-        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
         //MediaSession ms = new MediaSession(mContext);
 
         while (true) {
 
             // Keep checking if music is ready
             // RMC remove this
-            downloaded = true;
+            //downloaded = true;
             if ((started == false) && downloaded) {
                 started = true;
                 l("Radio Mode");
@@ -678,7 +684,8 @@ public class BBService extends Service {
     }
 
     private void setMode(int mode) {
-        boolean cansetMode = mBurnerBoard.setMode(mode);
+        boolean cansetMode = mBurnerBoard.setMode(50);
+        //boolean cansetMode = mBurnerBoard.setMode(mode);
         //if (cansetMode == false) {
             // Likely not connected to physical burner board, fallback
             if (mode == 99) {
@@ -689,6 +696,8 @@ public class BBService extends Service {
                 mBoardVisualization.setMode(mBoardMode);
             }
         //}
+        if (mBoardMode > 20)
+            mBoardMode = 1;
     }
 
 
@@ -701,8 +710,8 @@ public class BBService extends Service {
         }
 
         public void BoardMode(int mode) {
-            mBoardMode = mode;
-            mBoardVisualization.setMode(mBoardMode);
+            //mBoardMode = mode;
+            //mBoardVisualization.setMode(mBoardMode);
             voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
             l("ardunio mode callback:" + mBoardMode);
             //modeStatus.setText(String.format("%d", mBoardMode));

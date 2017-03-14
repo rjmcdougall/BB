@@ -101,15 +101,15 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         super.onWindowFocusChanged(hasFocus);
         l("MainActivity: onWindowFocusChanged()");
 
-        if (preventDialogs == false) {
-            return;
-        }
+        //if (preventDialogs == false) {
+        //    return;
+        //}
 
-        if(!hasFocus) {
+        //if(!hasFocus) {
             // Close every kind of system dialog
             Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
             sendBroadcast(closeDialog);
-        }
+        //}
     }
 
     static void showToast(Context context, String text) {
@@ -279,10 +279,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         super.onStart();
         l("MainActivity: onStart()");
 
-        // Close every kind of system dialog
-        Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-        sendBroadcast(closeDialog);
-
         // start lock task mode if it's not already active
         ActivityManager am = (ActivityManager) getSystemService(
                 Context.ACTIVITY_SERVICE);
@@ -303,7 +299,9 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         l("MainActivity: onCreate()");
 
-
+        // Close every kind of system dialog
+        Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        sendBroadcast(closeDialog);
 
 
         super.onCreate(savedInstanceState);

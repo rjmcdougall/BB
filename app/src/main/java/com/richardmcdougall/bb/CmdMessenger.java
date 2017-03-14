@@ -99,7 +99,21 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     }
 
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+
     public void flushWrites() {
+        //System.out.println("flushWrites: " + sendBuffer.size() + "," + bytesToHex(sendBuffer.toByteArray()));
         if (sendBuffer.size() > 0) {
             try {
                 Serial.write(sendBuffer.toByteArray(), 500);
@@ -298,7 +312,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             printByte(command_separator);
             if (print_newlines)
                 printStr("\r\n".getBytes()); // should append BOTH \r\n
-            flushWrites();
+            //flushWrites();
             if (reqAc) {
                 ackReply = blockedTillReply(timeout, ackCmdId);
             }
@@ -523,7 +537,12 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         if (ch == field_separator || ch == command_separator || ch == escape_character) {
             printByte(escape_character);
         }
-        printByte(ch);
+        if (ch == 0) {
+            printByte(escape_character);
+            printByte((byte)'0');
+        } else {
+            printByte(ch);
+        }
     }
 
     /**

@@ -143,10 +143,14 @@ Board_WS2801::Board_WS2801(void) : Adafruit_GFX(70, 10) {
   updatePins(); // Must assume hardware SPI until pins are set
 }
 
+DMAMEM uint8_t frameBuffer[1024*3];
+
 // Allocate 3 bytes per pixel, init to RGB 'off' state:
 void Board_WS2801::alloc(uint16_t n) {
   begun   = false;
-  numvirtLEDs = ((pixels = (uint8_t *)calloc(n, 3)) != NULL) ? n : 0;
+  //numvirtLEDs = ((pixels = (uint8_t *)calloc(n, 3)) != NULL) ? n : 0;
+  pixels = frameBuffer;
+  numvirtLEDs = n;
 }
 
 
@@ -281,8 +285,10 @@ void Board_WS2801::show(void) {
     }
   }
   updates++;
-  delay(1); // Data is latched by holding clock pin low for 1 millisecond
-  screenHook();
+  // I removed this because we always do more than 1ms of work before coming back
+  // it's possibly we could break this
+  //delay(1); // Data is latched by holding clock pin low for 1 millisecond
+  //screenHook();
 
 }
 

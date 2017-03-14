@@ -216,6 +216,7 @@ public class BurnerBoard {
                 getMode();
                 updateUsbStatus(("Connected to ") + boardId);
                 sendLogMsg("USB Connected to " + boardId);
+                setMode(50);
             }
         }
     }
@@ -314,22 +315,32 @@ public class BurnerBoard {
                 byte br = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                 int r = (br & 0xFF);
                 //System.out.println("br = " + br);
-                if (r >= amount)
+                if (r >= amount) {
                     r -= amount;
+                } else {
+                        r = 0;
+                }
                 br = (byte) r;
                 mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = (byte) br;
                 int g = (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF);
-                if (g >= amount)
-                    g = g - amount;
+                if (g >= amount) {
+                    g -= amount;
+                } else {
+                    g = 0;
+                }
                 byte bg = (byte) g;
                 mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = bg;
                 int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
-                if (b >= amount)
+                if (b >= amount) {
                     b -= amount;
+                } else {
+                    b = 0;
+                }
                 mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = (byte) b;
             }
         }
     }
+
 
     public void fuzzPixels(int amount) {
 
@@ -361,6 +372,7 @@ public class BurnerBoard {
         }
         return false;
     }
+
 
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
     public boolean showBattery() {
@@ -436,22 +448,15 @@ public class BurnerBoard {
         return -1;
     }
 
-    //    cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
-    public boolean fillScreen(int r, int g, int b) {
+    public void fillScreen(byte r, byte g, byte b) {
 
-        sendVisual(13, r, g, b);
-        //l("sendCommand: 13,1");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(13);
-                mListener.sendCmdArg(r);
-                mListener.sendCmdArg(g);
-                mListener.sendCmdArg(b);
-                mListener.sendCmdEnd();
-                return true;
+        int x;
+        int y;
+        for (x = 0; x < mBoardWidth; x++) {
+            for (y = 0; y < mBoardHeight; y++) {
+                setPixel(x, y, r, g, b);
             }
         }
-        return false;
     }
 
 
@@ -459,13 +464,27 @@ public class BurnerBoard {
     // row is 12 pixels : board has 10, plus two side lights
     public boolean setRow(int row, byte[] pixels) {
 
+
+        // Send pixel row to in-app visual display
         sendVisual(16, row, pixels);
+
+        // Do color correction on burner board display pixels
+        byte [] newPixels = new byte[(mBoardWidth + 2) * 3];
+        for (int pixel = 0; pixel < (mBoardWidth + 2) * 3; pixel = pixel + 3) {
+            newPixels[pixel] = pixelColorCorrectionRed(pixels[pixel]);
+            newPixels[pixel + 1] = pixelColorCorrectionGreen(pixels[pixel + 1]);
+            newPixels[pixel + 2] = pixelColorCorrectionBlue(pixels[pixel + 2]);
+        }
+
+        //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
+
+
         //l("sendCommand: 16,n,...");
         synchronized (mSerialConn) {
             if (mListener != null) {
                 mListener.sendCmdStart(16);
                 mListener.sendCmdArg(row);
-                mListener.sendCmdEscArg(pixels);
+                mListener.sendCmdEscArg(newPixels);
                 mListener.sendCmdEnd();
                 return true;
             }
@@ -477,15 +496,17 @@ public class BurnerBoard {
     public void flush() {
 
         if (mListener != null) {
-            //mListener.flushWrites();
+            mListener.flushWrites();
         }
     }
 
     public void clearPixels() {
+
         Arrays.fill(mBoardScreen, (byte) 0);
     }
 
     static public int getRGB(int r, int g, int b) {
+
         return (b * 65536 + g * 256 + r);
     }
 
@@ -502,6 +523,7 @@ public class BurnerBoard {
     static int PIXEL_BLUE = 2;
 
     int pixel2Offset(int x, int y, int rgb) {
+
         return (y * mBoardWidth + x) * 3 + rgb;
     }
 
@@ -582,17 +604,60 @@ public class BurnerBoard {
         return mBoardScreen;
     }
 
+    private byte pixelColorCorrectionRed(byte red) {
+        // convert signed byte to double
+        double correctedRed = red & 0xff;
+        correctedRed = correctedRed * 1.0;
+        return (byte)correctedRed;
+    }
+
+    private byte pixelColorCorrectionGreen(byte green) {
+        // convert signed byte to double
+        double correctedGreen = green & 0xff;
+        correctedGreen = correctedGreen * 0.3;
+        return (byte)correctedGreen;
+    }
+
+    private byte pixelColorCorrectionBlue(byte blue) {
+        // convert signed byte to double
+        double correctedBlue = blue & 0xff;
+        correctedBlue = correctedBlue * 0.3;
+        return (byte)correctedBlue;
+    }
+
+
+
     public void flushPixels() {
-        byte[] rowPixels = new byte[mBoardWidth * 3 + 6];
+        byte[] rowPixels = new byte[(mBoardWidth * 3) + 6];
+        byte[] testRow1 = "012345678901234567890123456789012345".getBytes();
         for (int y = 0; y < mBoardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < mBoardWidth; x++) {
                 rowPixels[(x + 1) * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                 rowPixels[(x + 1) * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                rowPixels[(x + 1) * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                rowPixels[(x + 1) * 3 + 2]  = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
             }
+            rowPixels[0] = rowPixels[3];
+            rowPixels[1] = rowPixels[4];
+            rowPixels[2] = rowPixels[5];
+            rowPixels[33] = rowPixels[30];
+            rowPixels[34] = rowPixels[31];
+            rowPixels[35] = rowPixels[32];
+            /*
+            if (rowPixels[0] ==0) {
+
+                rowPixels[0]= 33;
+                rowPixels[1]= 32;
+                rowPixels[2]= 1;
+                rowPixels[3]= 59;
+                rowPixels[4]= 0;
+                rowPixels[4]= 33;
+                */
             setRow(y, rowPixels);
-            //l("flushPixels row:" + y + "," + bytesToHex(rowPixels));
+            //update();
         }
+        update();
+        flush();
     }
 
     // We use this to catch the USB accessory detached message

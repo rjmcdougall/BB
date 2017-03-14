@@ -236,7 +236,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 // RMC if (amtWritten <= 0) {
                     //throw new IOException("Error writing " + writeLength
                     //Log.d(TAG, "Error writing " + writeLength
-                    //        + " bytes at offset " + offset + " length=" + src.length);
+                     //       + " bytes at offset " + offset + " length=" + src.length);
                 } else {
 
                     //Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);

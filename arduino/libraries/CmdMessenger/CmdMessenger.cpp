@@ -541,6 +541,9 @@ void CmdMessenger::unescape(char *fromChar)
 	while (*fromChar != '\0') {
 		if (*fromChar == escape_character) {
 			fromChar++;
+			if (*fromChar == '0') {
+				*fromChar = 0;
+                        }
 		}
 		*toChar++ = *fromChar++;
 	}
