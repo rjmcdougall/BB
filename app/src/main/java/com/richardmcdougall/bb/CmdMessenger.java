@@ -128,6 +128,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Enables printing newline after a sent command
      */
     void printLfCr(boolean addNewLine) {
+
         print_newlines = addNewLine;
     }
 
@@ -135,6 +136,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Attaches an default function for commands that are not explicitly attached
      */
     public void attach(CmdEvents callback) {
+
         default_callback = callback;
     }
 
@@ -509,10 +511,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
     void printByte(byte b) {
-        byte[] bytes = new byte[1];
-
-        bytes[0] = b;
-        printStr(bytes);
+        sendBuffer.write(b);
     }
 
     void printStr(byte[] str) {
@@ -538,8 +537,10 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             printByte(escape_character);
         }
         if (ch == 0) {
+            printByte((byte)1);
+        } else if (ch == 1) {
             printByte(escape_character);
-            printByte((byte)'0');
+            printByte((byte)'1');
         } else {
             printByte(ch);
         }

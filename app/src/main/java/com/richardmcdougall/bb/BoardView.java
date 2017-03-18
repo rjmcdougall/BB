@@ -164,14 +164,27 @@ public class BoardView extends View {
         if (mBoardScreen != null) {
             int x;
             int y;
-            //System.out.println("BB setRow pixels " + row);
-            for (x = 0; x < mBoardWidth; x++) {
-                // TODO: add sidelights
-                mBoardScreen[pixel2Offset(x, row,  PIXEL_RED)]   = pixels[(x + 1) * 3 + 0]; //r
-                mBoardScreen[pixel2Offset(x, row , PIXEL_GREEN)] = pixels[(x + 1) * 3 + 1]; //g
-                mBoardScreen[pixel2Offset(x, row,  PIXEL_BLUE)]   = pixels[(x + 1) * 3 + 2]; //b
+            if (row < mBoardHeight) {
+                //System.out.println("BB setRow pixels " + row);
+                for (x = 0; x < mBoardWidth; x++) {
+                    // TODO: add sidelights
+                    mBoardScreen[pixel2Offset(x, row, PIXEL_RED)] = pixels[x * 3]; //r
+                    mBoardScreen[pixel2Offset(x, row, PIXEL_GREEN)] = pixels[x * 3 + 1]; //g
+                    mBoardScreen[pixel2Offset(x, row, PIXEL_BLUE)] = pixels[x * 3 + 2]; //b
+                }
             }
         }
+
+        // TODO: invalidate only on update()
+        invalidate();
+    }
+
+
+    public void setOtherLight(int other, byte[] pixels) {
+        //System.out.print("setRow " + row + ":" + bytesToHex(pixels));
+        //System.out.println("BB setRow " + row + " length " + pixels.length);
+        if (mCanvas == null)
+            return;
 
         // TODO: invalidate only on update()
         invalidate();

@@ -652,11 +652,16 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                         int amount = intent.getIntExtra("arg1", 0);
                         mBoardView.fadeScreen(amount);
                         break;
-                    case 16:
+                    case 14:
                         int row = intent.getIntExtra("arg1", 0);
                         byte [] pixels = intent.getByteArrayExtra("arg2").clone();
                         //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
                         mBoardView.setRow(row, pixels);
+                        break;
+                    case 15:
+                        int other = intent.getIntExtra("arg1", 0);
+                        byte [] otherPixels = intent.getByteArrayExtra("arg2").clone();
+                        mBoardView.setOtherLight(other, otherPixels);
                         break;
                     default:
                         break;

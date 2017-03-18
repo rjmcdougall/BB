@@ -247,46 +247,55 @@ public class BoardVisualization {
         switch (testColorState) {
             case 0:
                 mBurnerBoard.fillScreen((byte)255, (byte)0, (byte)0);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 1:
                 mBurnerBoard.fillScreen((byte)0, (byte)255, (byte)0);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 2:
                 mBurnerBoard.fillScreen((byte)0, (byte)0, (byte)255);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 3:
                 mBurnerBoard.fillScreen((byte)10, (byte)0, (byte)0);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 4:
                 mBurnerBoard.fillScreen((byte)0, (byte)10, (byte)0);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 5:
                 mBurnerBoard.fillScreen((byte)0, (byte)0, (byte)10);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 6:
                 mBurnerBoard.fillScreen((byte)0, (byte)0, (byte)10);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 7:
                 mBurnerBoard.fillScreen((byte)255, (byte)128, (byte)0);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 8:
                 mBurnerBoard.fillScreen((byte)204, (byte)0, (byte)204);
+                mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState = 0;
             default:
@@ -352,6 +361,7 @@ public class BoardVisualization {
             }
             wheelInc(1);
         }
+        mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.scrollPixels(true);
         mBurnerBoard.flushPixels();
 
@@ -454,6 +464,7 @@ public class BoardVisualization {
             }
 
             mBurnerBoard.fillScreen((byte) r, (byte) g, (byte) b);
+            mBurnerBoard.setOtherlightsAutomatically();
             mBurnerBoard.flushPixels();
             return;
         }
@@ -522,6 +533,7 @@ public class BoardVisualization {
                 }
             }
         }
+        mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.flushPixels();
         return;
     }
@@ -551,6 +563,7 @@ public class BoardVisualization {
                 }
             }
         }
+        mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.flushPixels();
         return;
     }
@@ -619,6 +632,7 @@ public class BoardVisualization {
 
         }
         //mBurnerBoard.fadePixels(1);
+        mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.flushPixels();
         return;
     }
@@ -807,10 +821,113 @@ public class BoardVisualization {
 
     }
 
+    private final int[] kFireColorsOcto = {
+            BurnerBoard.getRGB(0,0,0),
+            BurnerBoard.getRGB(0,0,0),
+            BurnerBoard.getRGB(1,0,0),
+            BurnerBoard.getRGB(2,0,0),
+            BurnerBoard.getRGB(3,0,0),
+            BurnerBoard.getRGB(4,0,0),
+            BurnerBoard.getRGB(6,0,0),
+            BurnerBoard.getRGB(7,0,0),
+            BurnerBoard.getRGB(9,0,0),
+            BurnerBoard.getRGB(10,0,0),
+            BurnerBoard.getRGB(12,0,0),
+            BurnerBoard.getRGB(14,0,0),
+            BurnerBoard.getRGB(17,0,0),
+            BurnerBoard.getRGB(19,0,0),
+            BurnerBoard.getRGB(21,0,0),
+            BurnerBoard.getRGB(24,0,0),
+            BurnerBoard.getRGB(26,0,0),
+            BurnerBoard.getRGB(29,0,0),
+            BurnerBoard.getRGB(32,0,0),
+            BurnerBoard.getRGB(35,0,0),
+            BurnerBoard.getRGB(38,0,0),
+            BurnerBoard.getRGB(42,0,0),
+            BurnerBoard.getRGB(45,0,0),
+            BurnerBoard.getRGB(48,0,0),
+            BurnerBoard.getRGB(52,0,0),
+            BurnerBoard.getRGB(56,0,0),
+            BurnerBoard.getRGB(59,0,0),
+            BurnerBoard.getRGB(63,0,0),
+            BurnerBoard.getRGB(67,0,0),
+            BurnerBoard.getRGB(72,0,0),
+            BurnerBoard.getRGB(76,0,0),
+            BurnerBoard.getRGB(80,0,0),
+            BurnerBoard.getRGB(84,0,0),
+            BurnerBoard.getRGB(89,0,0),
+            BurnerBoard.getRGB(93,0,0),
+            BurnerBoard.getRGB(98,0,0),
+            BurnerBoard.getRGB(102,0,0),
+            BurnerBoard.getRGB(107,0,0),
+            BurnerBoard.getRGB(112,0,0),
+            BurnerBoard.getRGB(117,0,0),
+            BurnerBoard.getRGB(122,0,0),
+            BurnerBoard.getRGB(127,0,0),
+            BurnerBoard.getRGB(132,0,0),
+            BurnerBoard.getRGB(137,0,0),
+            BurnerBoard.getRGB(142,0,0),
+            BurnerBoard.getRGB(148,0,0),
+            BurnerBoard.getRGB(155,0,0),
+            BurnerBoard.getRGB(160,0,0),
+            BurnerBoard.getRGB(166,0,0),
+            BurnerBoard.getRGB(172,0,0),
+            BurnerBoard.getRGB(176,0,0),
+            BurnerBoard.getRGB(179,0,0),
+            BurnerBoard.getRGB(182,1,0),
+            BurnerBoard.getRGB(185,2,0),
+            BurnerBoard.getRGB(188,3,0),
+            BurnerBoard.getRGB(191,4,0),
+            BurnerBoard.getRGB(194,5,0),
+            BurnerBoard.getRGB(197,7,0),
+            BurnerBoard.getRGB(200,9,0),
+            BurnerBoard.getRGB(203,10,0),
+            BurnerBoard.getRGB(206,12,0),
+            BurnerBoard.getRGB(209,14,0),
+            BurnerBoard.getRGB(212,17,0),
+            BurnerBoard.getRGB(216,19,0),
+            BurnerBoard.getRGB(219,21,0),
+            BurnerBoard.getRGB(222,24,0),
+            BurnerBoard.getRGB(225,26,0),
+            BurnerBoard.getRGB(228,29,0),
+            BurnerBoard.getRGB(232,32,0),
+            BurnerBoard.getRGB(235,35,0),
+            BurnerBoard.getRGB(238,38,0),
+            BurnerBoard.getRGB(243,42,0),
+            BurnerBoard.getRGB(247,45,0),
+            BurnerBoard.getRGB(250,48,0),
+            BurnerBoard.getRGB(253,52,0),
+            BurnerBoard.getRGB(255,56,0),
+            BurnerBoard.getRGB(255,62,0),
+            BurnerBoard.getRGB(255,68,0),
+            BurnerBoard.getRGB(255,74,1),
+            BurnerBoard.getRGB(255,81,1),
+            BurnerBoard.getRGB(255,88,1),
+            BurnerBoard.getRGB(255,94,2),
+            BurnerBoard.getRGB(255,101,2),
+            BurnerBoard.getRGB(255,108,3),
+            BurnerBoard.getRGB(255,115,3),
+            BurnerBoard.getRGB(255,123,4),
+            BurnerBoard.getRGB(255,131,4),
+            BurnerBoard.getRGB(255,140,5),
+            BurnerBoard.getRGB(255,148,6),
+            BurnerBoard.getRGB(255,156,6),
+            BurnerBoard.getRGB(255,164,7),
+            BurnerBoard.getRGB(255,173,8),
+            BurnerBoard.getRGB(255,182,9),
+            BurnerBoard.getRGB(255,191,10),
+            BurnerBoard.getRGB(255,200,10),
+            BurnerBoard.getRGB(255,209,11),
+            BurnerBoard.getRGB(255,220,13),
+            BurnerBoard.getRGB(255,230,14),
+            BurnerBoard.getRGB(255,240,15),
+            BurnerBoard.getRGB(255,250,16)
+    };
 
     private void initFire() {
 
         mFireScreen = new int[mBoardWidth * 2 * (mBoardHeight + 6)];
+
         for (int i = 0; i < 32; ++i) {
             /* black to blue, 32 values*/
             //mFireColors[i][2] = i << 1;
@@ -910,10 +1027,15 @@ public class BoardVisualization {
                             (dofs / (mBoardWidth * 2 )) + 1), 69);
                     if (lastTemps[i] > 32    ) {
                         //mBurnerBoard.setPixel(x / 2, y * 2,
-                                mBurnerBoard.setPixel(x / 2, y,
+                        int temp100 = (int)((float)temp * (float)150 / (float)255);
+                        temp100 = java.lang.Math.min(99, temp100);
+                        mBurnerBoard.setPixel(x / 2, y, kFireColorsOcto[temp100]);
+                        /*
+                        mBurnerBoard.setPixel(x / 2, y,
                                 (byte)mFireColors[temp][0],
                                 (byte)mFireColors[temp][1],
                                 (byte)mFireColors[temp][2]);
+                                */
                         //mBurnerBoard.setPixel(x / 2, y * 2 + 1,
                                 //(byte)mFireColors[temp][0],
                                 //(byte)mFireColors[temp][1],
@@ -926,6 +1048,7 @@ public class BoardVisualization {
             }
             j -= mBoardWidth;
         }
+        mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.flushPixels();
     }
 
