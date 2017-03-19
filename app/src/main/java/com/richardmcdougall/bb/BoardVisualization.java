@@ -25,7 +25,7 @@ public class BoardVisualization {
     private int mBoardHeight = 70;
     private int mBoardSideLights = 78;
     private int [][]  mFireColors = new int[256][3];
-    private byte [] mBoardScreen;
+    private int [] mBoardScreen;
     private int [] mFireScreen;
 
     int mBoardMode;
@@ -177,14 +177,14 @@ public class BoardVisualization {
 
     int testColorState = 0;
     void modeTestRow() {
-        byte [] testRow = new byte[36];
+        int [] testRow = new int[36];
 
         switch (testColorState) {
             case 0:
                 for (int i = 0; i < 12; i += 3) {
-                    testRow[i] = (byte) 255;
-                    testRow[i+1] = (byte) 0;
-                    testRow[i+2] = (byte) 0;
+                    testRow[i] =  255;
+                    testRow[i+1] =  0;
+                    testRow[i+2] =  0;
                 }
                 mBurnerBoard.setRow(0, testRow);
                 mBurnerBoard.flush();
@@ -192,9 +192,9 @@ public class BoardVisualization {
                 break;
             case 1:
                 for (int i = 0; i < 12; i += 3) {
-                    testRow[i] = (byte) 0;
-                    testRow[i+1] = (byte) 255;
-                    testRow[i+2] = (byte) 0;
+                    testRow[i] =  0;
+                    testRow[i+1] =  255;
+                    testRow[i+2] =  0;
                 }
                 mBurnerBoard.setRow(0, testRow);
                 mBurnerBoard.flush();
@@ -202,9 +202,9 @@ public class BoardVisualization {
                 break;
             case 2:
                 for (int i = 0; i < 12; i += 3) {
-                    testRow[i] = (byte) 0;
-                    testRow[i+1] = (byte) 0;
-                    testRow[i+2] = (byte) 255;
+                    testRow[i] =  0;
+                    testRow[i+1] =  0;
+                    testRow[i+2] =  255;
                 }
                 mBurnerBoard.setRow(0, testRow);
                 mBurnerBoard.flush();
@@ -212,9 +212,9 @@ public class BoardVisualization {
                 break;
             case 3:
                 for (int i = 0; i < 12; i += 3) {
-                    testRow[i] = (byte) 100;
-                    testRow[i+1] = (byte) 100;
-                    testRow[i+2] = (byte) 100;
+                    testRow[i] =  100;
+                    testRow[i+1] =  100;
+                    testRow[i+2] =  100;
                 }
                 mBurnerBoard.setRow(0, testRow);
                 mBurnerBoard.flush();
@@ -234,9 +234,9 @@ public class BoardVisualization {
         System.out.println("Firecolor " + mFireColors[testColor][0] + "," + mFireColors[testColor][1] + "," + mFireColors[testColor][2]);
 
         mBurnerBoard.fillScreen(
-                (byte)mFireColors[testColor][0],
-                (byte)mFireColors[testColor][1],
-                (byte)mFireColors[testColor][2]);
+                mFireColors[testColor][0],
+                mFireColors[testColor][1],
+                mFireColors[testColor][2]);
         mBurnerBoard.flushPixels();
         testColor++;
         if (testColor > 255) {
@@ -248,55 +248,55 @@ public class BoardVisualization {
     private void modeTestColors() {
         switch (testColorState) {
             case 0:
-                mBurnerBoard.fillScreen((byte)255, (byte)0, (byte)0);
+                mBurnerBoard.fillScreen(255, 0, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 1:
-                mBurnerBoard.fillScreen((byte)0, (byte)255, (byte)0);
+                mBurnerBoard.fillScreen(0, 255, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 2:
-                mBurnerBoard.fillScreen((byte)0, (byte)0, (byte)255);
+                mBurnerBoard.fillScreen(0, 0, 255);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 3:
-                mBurnerBoard.fillScreen((byte)10, (byte)0, (byte)0);
+                mBurnerBoard.fillScreen(10, 0, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 4:
-                mBurnerBoard.fillScreen((byte)0, (byte)10, (byte)0);
+                mBurnerBoard.fillScreen(0, 10, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 5:
-                mBurnerBoard.fillScreen((byte)0, (byte)0, (byte)10);
+                mBurnerBoard.fillScreen(0, 0, 10);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 6:
-                mBurnerBoard.fillScreen((byte)0, (byte)0, (byte)10);
+                mBurnerBoard.fillScreen(0, 0, 10);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 7:
-                mBurnerBoard.fillScreen((byte)255, (byte)128, (byte)0);
+                mBurnerBoard.fillScreen(255, 128, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState++;
                 break;
             case 8:
-                mBurnerBoard.fillScreen((byte)204, (byte)0, (byte)204);
+                mBurnerBoard.fillScreen(204, 0, 204);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState = 0;
@@ -335,7 +335,7 @@ public class BoardVisualization {
     void modeMatrix(boolean isTop) {
 
         // Row plus two pixels for side lights
-        byte[] pixels = new byte[mBoardWidth * 3 + 6];
+        int[] pixels = new int[mBoardWidth * 3 + 6];
 
         int color;
         int x;
@@ -375,7 +375,7 @@ public class BoardVisualization {
 
     void modeAudioMatrix() {
 
-        byte[] pixels = new byte[36];
+        int[] pixels = new int[36];
 
         if (mBoardFFT == null)
             return;
@@ -403,8 +403,8 @@ public class BoardVisualization {
                     // Take the 4th through 16th values
                     if ((i / 8) >= 12 && (i / 8) < 48) {
                         ;
-                        pixels[pixel] = (byte) java.lang.Math.max(0, value);
-//                            pixels[pixel] = (byte)testValue;
+                        pixels[pixel] =  java.lang.Math.max(0, value);
+//                            pixels[pixel] = testValue;
                         pixel++;
                         //System.out.println("modeAudioMatrix Value[" + pixel + "] = " + value);
                     }
@@ -465,8 +465,8 @@ public class BoardVisualization {
                 }
             }
 
-            //mBurnerBoard.fillScreen((byte) r, (byte) g, (byte) b);
-            //mBurnerBoard.fillScreen((byte) 255, (byte) 140, (byte) 0);
+            //mBurnerBoard.fillScreen( r,  g,  b);
+            //mBurnerBoard.fillScreen( 255,  140,  0);
             mBurnerBoard.fillScreen(wheel(85));
             mBurnerBoard.setOtherlightsAutomatically();
             mBurnerBoard.flushPixels();
@@ -972,8 +972,8 @@ public class BoardVisualization {
         }
 
         for (int i = 0; i < 256; i++) {
-            final int fireColor = wheel(80 - (i / 6));
-            final int dimmer =  java.lang.Math.max(1, 256 - (int)(java.lang.Math.log10((double)(i + 1)) * 150));
+            final int fireColor = wheel(95 - (i / 4));
+            final int dimmer =  java.lang.Math.max(1, 256 - (int)(java.lang.Math.log10((double)(i / 4 + 1)) * 200));
             mFireColors[i][0] =  (fireColor & 0xff) / dimmer;
             mFireColors[i][1] =  ((fireColor & 0xff00) >> 8) / dimmer;
             mFireColors[i][2] =   ((fireColor & 0xff0000) >> 16) / dimmer;
@@ -1037,22 +1037,22 @@ public class BoardVisualization {
                     int x = dofs % (mBoardWidth * 2);
                     int y = java.lang.Math.min(java.lang.Math.max(0,
                             (dofs / (mBoardWidth * 2 )) + 1), 69);
-                    if (lastTemps[i] > 32    ) {
+                    if (lastTemps[i] > 40    ) {
                         //mBurnerBoard.setPixel(x / 2, y * 2,
                         //int temp100 = (int)((float)temp * (float)150 / (float)255);
                         //temp100 = java.lang.Math.min(99, temp100);
                         //mBurnerBoard.setPixel(x / 2, y, kFireColorsOcto[temp100]);
                         mBurnerBoard.setPixel(x / 2, y,
-                                (byte)mFireColors[temp][0],
-                                (byte)mFireColors[temp][1],
-                                (byte)mFireColors[temp][2]);
+                                mFireColors[temp][0],
+                                mFireColors[temp][1],
+                                mFireColors[temp][2]);
 
                         //mBurnerBoard.setPixel(x / 2, y * 2 + 1,
-                                //(byte)mFireColors[temp][0],
-                                //(byte)mFireColors[temp][1],
-                                //(byte)mFireColors[temp][2]);
+                                //mFireColors[temp][0],
+                                //mFireColors[temp][1],
+                                //mFireColors[temp][2]);
                     } else {
-                        //mBurnerBoard.setPixel(x / 2, y, (byte)0, (byte)255, (byte) 0);
+                        //mBurnerBoard.setPixel(x / 2, y, 0, 255,  0);
                     }
                     lastTemps[i] = temp;
                 }

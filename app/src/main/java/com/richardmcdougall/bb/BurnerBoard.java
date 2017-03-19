@@ -44,8 +44,8 @@ public class BurnerBoard {
     private int mBoardWidth = 10;
     private int mBoardHeight = 70;
     private int mBoardSideLights = 79;
-    private byte[] mBoardScreen;
-    private byte[] mBoardOtherlights;
+    private int[] mBoardScreen;
+    private int[] mBoardOtherlights;
     private BurnerBoard.BoardEvents boardCallback = null;
 
     public interface BoardEvents {
@@ -56,8 +56,8 @@ public class BurnerBoard {
 
     public BurnerBoard(BBService service, Context context) {
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
-        mBoardScreen = new byte[mBoardWidth * mBoardHeight * 3];
-        mBoardOtherlights = new byte[mBoardSideLights * 3 * 2];
+        mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
+        mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         mBBService = service;
         mContext = context;
         initUsb();
@@ -315,31 +315,28 @@ public class BurnerBoard {
 
         for (int x = 0; x < mBoardWidth; x++) {
             for (int y = 0; y < mBoardHeight; y++) {
-                byte br = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                int r = (br & 0xFF);
+                int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                 //System.out.println("br = " + br);
                 if (r >= amount) {
                     r -= amount;
                 } else {
                         r = 0;
                 }
-                br = (byte) r;
-                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = (byte) br;
-                int g = (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF);
+                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
+                int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
                 if (g >= amount) {
                     g -= amount;
                 } else {
                     g = 0;
                 }
-                byte bg = (byte) g;
-                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = bg;
-                int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
+                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
+                int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 if (b >= amount) {
                     b -= amount;
                 } else {
                     b = 0;
                 }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = (byte) b;
+                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
             }
         }
     }
@@ -350,11 +347,11 @@ public class BurnerBoard {
         for (int x = 0; x < mBoardWidth; x++) {
             for (int y = 0; y < mBoardHeight; y++) {
                 mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                        (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] - amount);
+                        (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] - amount);
                 mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                        (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] - amount);
+                        (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] - amount);
                 mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                        (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] - amount);
+                        (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] - amount);
 
             }
         }
@@ -453,13 +450,13 @@ public class BurnerBoard {
 
     public void fillScreen(int color) {
 
-        byte r = (byte) (color & 0xff);
-        byte g = (byte) ((color & 0xff00) >> 8);
-        byte b = (byte) ((color & 0xff0000) >> 16);
+        int r = (color & 0xff);
+        int g = ((color & 0xff00) >> 8);
+        int b =((color & 0xff0000) >> 16);
         fillScreen(r, g, b);
     }
 
-    public void fillScreen(byte r, byte g, byte b) {
+    public void fillScreen(int r, int g, int b) {
 
         //System.out.println("Fillscreen " + r + "," + g + "," + b);
         int x;
@@ -474,7 +471,7 @@ public class BurnerBoard {
 
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     // row is 12 pixels : board has 10
-    public boolean setRow(int row, byte[] pixels) {
+    public boolean setRow(int row, int[] pixels) {
 
         // Send pixel row to in-app visual display
         sendVisual(14, row, pixels);
@@ -482,9 +479,9 @@ public class BurnerBoard {
         // Do color correction on burner board display pixels
         byte [] newPixels = new byte[mBoardWidth * 3];
         for (int pixel = 0; pixel < mBoardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = pixelColorCorrectionBlue(pixels[pixel + 2]);
+            newPixels[pixel] = (byte)pixelColorCorrectionRed(pixels[pixel]);
+            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(pixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(pixels[pixel + 2]);
         }
 
         //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
@@ -506,7 +503,7 @@ public class BurnerBoard {
 
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     // row is 12 pixels : board has 10
-    public boolean setOtherlight(int other, byte[] pixels) {
+    public boolean setOtherlight(int other, int[] pixels) {
 
 
         // Send pixel row to in-app visual display
@@ -516,9 +513,9 @@ public class BurnerBoard {
         //byte [] newPixels = new byte[pixels.length];
         byte [] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = pixelColorCorrectionBlue(pixels[pixel + 2]);
+            newPixels[pixel] = (byte)pixelColorCorrectionRed(pixels[pixel]);
+            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(pixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(pixels[pixel + 2]);
         }
 
         //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
@@ -552,7 +549,7 @@ public class BurnerBoard {
 
     public void clearPixels() {
 
-        Arrays.fill(mBoardScreen, (byte) 0);
+        Arrays.fill(mBoardScreen, 0);
     }
 
 
@@ -563,9 +560,9 @@ public class BurnerBoard {
 
     public void setPixel(int x, int y, int color) {
 
-        byte r = (byte) (color & 0xff);
-        byte g = (byte) ((color & 0xff00) >> 8);
-        byte b = (byte) ((color & 0xff0000) >> 16);
+        int r = (color & 0xff);
+        int g = ((color & 0xff00) >> 8);
+        int b = ((color & 0xff0000) >> 16);
         setPixel(x, y, r, g, b);
     }
 
@@ -573,13 +570,13 @@ public class BurnerBoard {
     // Side lights: other = 1 left, other = 2 right
     public void setPixelOtherlight(int pixel, int other, int color) {
 
-        byte r = (byte) (color & 0xff);
-        byte g = (byte) ((color & 0xff00) >> 8);
-        byte b = (byte) ((color & 0xff0000) >> 16);
+        int r = (color & 0xff);
+        int g = ((color & 0xff00) >> 8);
+        int b = ((color & 0xff0000) >> 16);
         setPixelOtherlight(pixel, other, r, g, b);
     }
 
-    public void setPixelOtherlight(int pixel, int other, byte r, byte g, byte b) {
+    public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
 
         //System.out.println("setpixelotherlight pixel:" + pixel + " light:" + other);
 
@@ -596,9 +593,11 @@ public class BurnerBoard {
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
 
-    final int pixel2Offset(int x, int y, int rgb) {
 
-        return (y * mBoardWidth + x) * 3 + rgb;
+    // TODO: Had to hardcode boardwidth to 10 for speed
+    static int pixel2Offset(int x, int y, int rgb) {
+
+        return (y * 10 + x) * 3 + rgb;
     }
 
     // Convert other lights to pixel buffer address
@@ -610,7 +609,7 @@ public class BurnerBoard {
         return (other * mBoardSideLights + pixel) * 3 + rgb;
     }
 
-    public void setPixel(int x, int y, byte r, byte g, byte b) {
+    public void setPixel(int x, int y, int r, int g, int b) {
         //System.out.println("Setting pixel " + x + "," + y + " : " + pixel2Offset(x, y, PIXEL_RED) + " to " + r +  "," + g + "," + b);
         //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
         //Sstem.out.println("setpixel r = " + r);
@@ -623,7 +622,7 @@ public class BurnerBoard {
         mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
     }
 
-    public void setPixel(int pixel, byte r, byte g, byte b) {
+    public void setPixel(int pixel, int r, int g, int b) {
 
         if (pixel < 0 || pixel >= (mBoardWidth * mBoardHeight)) {
             l("setPixel out of range: " + pixel);
@@ -699,35 +698,30 @@ public class BurnerBoard {
 
     }
 
-    byte [] getPixelBuffer() {
+    int [] getPixelBuffer() {
         return mBoardScreen;
     }
 
     // TODO: make faster by using ints
-    private byte pixelColorCorrectionRed(byte red) {
+    private int pixelColorCorrectionRed(int red) {
         // convert signed byte to double
-        double correctedRed = red & 0xff;
-        correctedRed = correctedRed * 1;
-        return (byte)correctedRed;
+        return red;
     }
 
-    private byte pixelColorCorrectionGreen(byte green) {
-        // convert signed byte to double
-        double correctedGreen = green & 0xff;
-        correctedGreen = correctedGreen * .3;
-        return (byte)correctedGreen;
+    private int pixelColorCorrectionGreen(int green) {
+        return (green * 300) / 1000;
     }
 
-    private byte pixelColorCorrectionBlue(byte blue) {
+    private int pixelColorCorrectionBlue(int blue) {
         // convert signed byte to double
         double correctedBlue = blue & 0xff;
         correctedBlue = correctedBlue * .2;
-        return (byte)correctedBlue;
+        return (blue * 200) / 1000;
     }
 
 
     public void flushPixels() {
-        byte[] rowPixels = new byte[mBoardWidth * 3];
+        int[] rowPixels = new int[mBoardWidth * 3];
         for (int y = 0; y < mBoardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < mBoardWidth; x++) {
@@ -760,7 +754,7 @@ public class BurnerBoard {
 
 
         for (int x = 0; x < kOtherLights; x++) {
-            byte [] otherPixels = new byte[mBoardSideLights * 3];
+            int [] otherPixels = new int[mBoardSideLights * 3];
             for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
                 otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
                         mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
@@ -851,14 +845,18 @@ public class BurnerBoard {
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
     }
 
-    private void sendVisual(int visualId, int arg1, byte[] arg2) {
+    private void sendVisual(int visualId, int arg1, int[] arg2) {
+        final byte [] pixels = new byte[arg2.length];
+        for (int i = 0; i < arg2.length; i++) {
+            pixels[i] = (byte)arg2[i];
+        }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
         in.putExtra("arg1", arg1);
         //java.util.Arrays.fill(arg2, (byte) 128);
-        in.putExtra("arg2", arg2.clone());
+        in.putExtra("arg2", pixels.clone());
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
     }
 
