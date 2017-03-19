@@ -231,6 +231,8 @@ public class BoardVisualization {
 
     void modeTest() {
 
+        System.out.println("Firecolor " + mFireColors[testColor][0] + "," + mFireColors[testColor][1] + "," + mFireColors[testColor][2]);
+
         mBurnerBoard.fillScreen(
                 (byte)mFireColors[testColor][0],
                 (byte)mFireColors[testColor][1],
@@ -463,7 +465,9 @@ public class BoardVisualization {
                 }
             }
 
-            mBurnerBoard.fillScreen((byte) r, (byte) g, (byte) b);
+            //mBurnerBoard.fillScreen((byte) r, (byte) g, (byte) b);
+            //mBurnerBoard.fillScreen((byte) 255, (byte) 140, (byte) 0);
+            mBurnerBoard.fillScreen(wheel(85));
             mBurnerBoard.setOtherlightsAutomatically();
             mBurnerBoard.flushPixels();
             return;
@@ -966,6 +970,14 @@ public class BoardVisualization {
             //mFireColors[i + 224][2] = 224 + i;
             mFireColors[i + 224][2] = 48 + i;
         }
+
+        for (int i = 0; i < 256; i++) {
+            final int fireColor = wheel(80 - (i / 6));
+            final int dimmer =  java.lang.Math.max(1, 256 - (int)(java.lang.Math.log10((double)(i + 1)) * 150));
+            mFireColors[i][0] =  (fireColor & 0xff) / dimmer;
+            mFireColors[i][1] =  ((fireColor & 0xff00) >> 8) / dimmer;
+            mFireColors[i][2] =   ((fireColor & 0xff0000) >> 16) / dimmer;
+        }
     }
 
     /*
@@ -1027,15 +1039,14 @@ public class BoardVisualization {
                             (dofs / (mBoardWidth * 2 )) + 1), 69);
                     if (lastTemps[i] > 32    ) {
                         //mBurnerBoard.setPixel(x / 2, y * 2,
-                        int temp100 = (int)((float)temp * (float)150 / (float)255);
-                        temp100 = java.lang.Math.min(99, temp100);
-                        mBurnerBoard.setPixel(x / 2, y, kFireColorsOcto[temp100]);
-                        /*
+                        //int temp100 = (int)((float)temp * (float)150 / (float)255);
+                        //temp100 = java.lang.Math.min(99, temp100);
+                        //mBurnerBoard.setPixel(x / 2, y, kFireColorsOcto[temp100]);
                         mBurnerBoard.setPixel(x / 2, y,
                                 (byte)mFireColors[temp][0],
                                 (byte)mFireColors[temp][1],
                                 (byte)mFireColors[temp][2]);
-                                */
+
                         //mBurnerBoard.setPixel(x / 2, y * 2 + 1,
                                 //(byte)mFireColors[temp][0],
                                 //(byte)mFireColors[temp][1],

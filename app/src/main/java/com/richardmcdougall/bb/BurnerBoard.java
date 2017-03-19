@@ -451,8 +451,17 @@ public class BurnerBoard {
         return -1;
     }
 
+    public void fillScreen(int color) {
+
+        byte r = (byte) (color & 0xff);
+        byte g = (byte) ((color & 0xff00) >> 8);
+        byte b = (byte) ((color & 0xff0000) >> 16);
+        fillScreen(r, g, b);
+    }
+
     public void fillScreen(byte r, byte g, byte b) {
 
+        //System.out.println("Fillscreen " + r + "," + g + "," + b);
         int x;
         int y;
         for (x = 0; x < mBoardWidth; x++) {
@@ -587,7 +596,7 @@ public class BurnerBoard {
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
 
-    int pixel2Offset(int x, int y, int rgb) {
+    final int pixel2Offset(int x, int y, int rgb) {
 
         return (y * mBoardWidth + x) * 3 + rgb;
     }
@@ -705,14 +714,14 @@ public class BurnerBoard {
     private byte pixelColorCorrectionGreen(byte green) {
         // convert signed byte to double
         double correctedGreen = green & 0xff;
-        correctedGreen = correctedGreen * .5;
+        correctedGreen = correctedGreen * .3;
         return (byte)correctedGreen;
     }
 
     private byte pixelColorCorrectionBlue(byte blue) {
         // convert signed byte to double
         double correctedBlue = blue & 0xff;
-        correctedBlue = correctedBlue * .5;
+        correctedBlue = correctedBlue * .2;
         return (byte)correctedBlue;
     }
 
