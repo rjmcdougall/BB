@@ -66,7 +66,9 @@ public class BoardVisualization {
     }
 
     public void setMode(int mode) {
+
         mBoardMode = mode;
+        mBurnerBoard.resetParams();
     }
 
     public void attachAudio(int audioSessionId) {
@@ -103,62 +105,53 @@ public class BoardVisualization {
         while (true) {
             switch (mBoardMode) {
 
-                case 0:
-                    sleepTime = 20;
-                    modeAudioBeat();
-                    break;
-
                 case 1:
                     sleepTime = 20;
-                    modeMatrix(true);
-                    //modeTestRow();
+                    modeMatrix(kMatrixBurnerColor);
                     break;
 
                 case 2:
                     sleepTime = 20;
-                    modeAudioCenter();
+                    modeMatrix(kMatrixFire);
                     break;
 
                 case 3:
-                    sleepTime = 50;
-                    modeFire();
+                    sleepTime = 20;
+                    modeMatrix(kMatrixLunarian);
                     break;
 
                 case 4:
                     sleepTime = 20;
-                    modeTest();
+                    modeAudioCenter();
                     break;
+
                 case 5:
+                    sleepTime = 50;
+                    modeFire();
+                    break;
+
+
+                case 6:
                     sleepTime = 20;
                     modeTheMan();
                     break;
-                case 6:
+
+                case 7:
                     sleepTime = 20;
                     modeAudioBarV();
                     break;
-                case 7:
-                    sleepTime = 20;
-                    modeAudioFuzzer();
-                    break;
+
                 case 8:
                     sleepTime = 20;
-                    //modeTest();
-                    modeAudioBeat();
+                    modeMatrix(kMatrixGoogle);
                     break;
 
                 case 9:
                     sleepTime = 20;
-                    modeTestColors();
+                    modeMatrix(kMatrixEsperanto);
                     break;
 
-                //case 9:
-                //sleepTime = 30;
-                //modeAudioBeat();
-                //break;
-
                 default:
-                    //mBurnerBoard.setMode(1);
-                    mBoardMode = 1;
                     break;
             }
 
@@ -175,7 +168,7 @@ public class BoardVisualization {
 
     }
 
-    int testColorState = 0;
+    /*
     void modeTestRow() {
         int [] testRow = new int[36];
 
@@ -226,6 +219,7 @@ public class BoardVisualization {
         }
 
     }
+    */
 
     int testColor = 0;
 
@@ -245,6 +239,7 @@ public class BoardVisualization {
 
     }
 
+    int testColorState = 0;
     private void modeTestColors() {
         switch (testColorState) {
             case 0:
@@ -300,6 +295,8 @@ public class BoardVisualization {
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flushPixels();
                 testColorState = 0;
+                break;
+
             default:
                 break;
         }
@@ -332,7 +329,25 @@ public class BoardVisualization {
     }
 
 
-    void modeMatrix(boolean isTop) {
+
+    public static final int kMatrixBurnerColor = 1;
+    public static final int kMatrixFire = 2;
+    public static final int kMatrixLunarian = 3;
+    public static final int kMatrixGoogle = 4;
+    public static final int kMatrixEsperanto = 5;
+
+    private static final int[] googleColors = {
+            BurnerBoard.getRGB(60, 186, 84),
+            BurnerBoard.getRGB(244, 194, 13),
+            BurnerBoard.getRGB(219, 50, 54),
+            BurnerBoard.getRGB(72, 133, 237),
+            BurnerBoard.getRGB(255, 255, 255)
+    };
+
+    private int fireColor = 40;
+    private int googleColor = 0;
+
+    void modeMatrix(int mode) {
 
         // Row plus two pixels for side lights
         int[] pixels = new int[mBoardWidth * 3 + 6];
@@ -342,35 +357,76 @@ public class BoardVisualization {
         int y;
         int sideLight;
 
-        if (isTop) {
-            y = 69;
-            sideLight = mBoardSideLights  - 1;
-        } else {
-            y = 0;
-            sideLight = 0;
-        }
+        y = 69;
+        sideLight = mBoardSideLights  - 1;
+
 
         for (x = 0; x < 10; x++) {
             //Chance of 1/3rd
-            color = mRandom.nextInt(2) == 0 ? BurnerBoard.getRGB(0, 0, 0): wheel(wheel_color);
+            switch (mode) {
+                case kMatrixEsperanto:
+                case kMatrixBurnerColor:
+                    color = mRandom.nextInt(2) == 0 ?
+                            BurnerBoard.getRGB(0, 0, 0): wheel(wheel_color);
+                    break;
+                case kMatrixLunarian:
+                    color = mRandom.nextInt(2) == 0 ?
+                            BurnerBoard.getRGB(0, 0, 0): BurnerBoard.getRGB(255, 255, 255);
+                    break;
+                case kMatrixFire:
+                    color = mRandom.nextInt(2) == 0 ?
+                            BurnerBoard.getRGB(0, 0, 0):
+                            BurnerBoard.getRGB(
+                                    mFireColors[fireColor][0],
+                                    mFireColors[fireColor][1],
+                                    mFireColors[fireColor][2]);
+
+                    break;
+                case kMatrixGoogle:
+                    color = mRandom.nextInt(2) == 0 ?
+                            BurnerBoard.getRGB(0, 0, 0): googleColors[googleColor / 8
+                            ];
+                    break;
+
+                default:
+                    color = 0;
+            }
             mBurnerBoard.setPixel(x, y, color);
             // Ripple down the side lights with the same color as the edges
             if (x == 0) {
-                mBurnerBoard.setSideLight(0, sideLight, color);
+                mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoard.kLeftSightlight, color);
             }
             if (x == 9) {
-                mBurnerBoard.setSideLight(1, sideLight, color);
+                mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoard.kRightSidelight, color);
             }
+            fireColor += 1;
+            if (fireColor > 200) {
+                fireColor = 40;
+            }
+
             wheelInc(1);
         }
-        mBurnerBoard.setOtherlightsAutomatically();
+        googleColor++;
+        if (googleColor >= googleColors.length * 8) {
+            googleColor = 0;
+        }
+
         mBurnerBoard.scrollPixels(true);
+        switch (mode) {
+            case kMatrixEsperanto:
+                mBurnerBoard.dimPixels((getLevel() * 3) / 2);
+                break;
+            default:
+                break;
+        }
         mBurnerBoard.flushPixels();
 
         return;
 
     }
 
+
+    /*
     int testValue = 0;
 
     void modeAudioMatrix() {
@@ -473,6 +529,7 @@ public class BoardVisualization {
             return;
         }
     }
+    */
 
 
     // Pick classic VU meter colors based on volume
@@ -510,6 +567,15 @@ public class BoardVisualization {
         }
         return dbLevels;
     }
+
+    private int getLevel() {
+
+        int [] dbLevels = getLevels();
+        if (dbLevels == null)
+            return(0);
+        return dbLevels[3];
+    }
+
 
     void modeAudioBarV() {
 
@@ -1037,7 +1103,8 @@ public class BoardVisualization {
                     int x = dofs % (mBoardWidth * 2);
                     int y = java.lang.Math.min(java.lang.Math.max(0,
                             (dofs / (mBoardWidth * 2 )) + 1), 69);
-                    if (lastTemps[i] > 40    ) {
+                    // Bigger number leaves more flame tails
+                    if (lastTemps[i] > 55    ) {
                         //mBurnerBoard.setPixel(x / 2, y * 2,
                         //int temp100 = (int)((float)temp * (float)150 / (float)255);
                         //temp100 = java.lang.Math.min(99, temp100);
@@ -1146,6 +1213,8 @@ public class BoardVisualization {
                         color : BurnerBoard.getRGB(0, 0, 0));
             }
         }
+        mBurnerBoard.filllOtherlight(BurnerBoard.kLeftSightlight, color);
+        mBurnerBoard.filllOtherlight(BurnerBoard.kRightSidelight, color);
         mBurnerBoard.flushPixels();
     }
 
@@ -1157,5 +1226,8 @@ public class BoardVisualization {
         wheelInc(1);
         drawTheMan(color);
     }
+
+
+
 
 }

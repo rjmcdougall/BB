@@ -47,6 +47,7 @@ public class BurnerBoard {
     private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private BurnerBoard.BoardEvents boardCallback = null;
+    private int mDimmerLevel = 255;
 
     public interface BoardEvents {
         void BoardId(String msg);
@@ -65,6 +66,10 @@ public class BurnerBoard {
 
     public void attach(BoardEvents newfunction) {
         boardCallback = newfunction;
+    }
+
+    public void resetParams() {
+        mDimmerLevel = 255;
     }
 
     public void l(String s) {
@@ -471,17 +476,23 @@ public class BurnerBoard {
 
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     // row is 12 pixels : board has 10
-    public boolean setRow(int row, int[] pixels) {
+    private boolean setRow(int row, int[] pixels) {
+
+        int [] dimPixels = new int [pixels.length];
+        for (int pixel = 0; pixel < pixels.length; pixel++) {
+            dimPixels[pixel] =
+                        (mDimmerLevel * pixels[pixel]) / 255;
+        }
 
         // Send pixel row to in-app visual display
-        sendVisual(14, row, pixels);
+        sendVisual(14, row, dimPixels);
 
         // Do color correction on burner board display pixels
         byte [] newPixels = new byte[mBoardWidth * 3];
         for (int pixel = 0; pixel < mBoardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(pixels[pixel + 2]);
+            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
+            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
         }
 
         //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
@@ -558,6 +569,17 @@ public class BurnerBoard {
         return (b * 65536 + g * 256 + r);
     }
 
+    static public int colorDim(int dimValue, int color) {
+        int r = (dimValue * (color & 0xff)) / 255;
+        int g = (dimValue * ((color & 0xff00) >> 8) / 255);
+        int b = (dimValue * ((color & 0xff0000) >> 16) / 255);
+        return (BurnerBoard.getRGB(r, g, b));
+    }
+
+    public void dimPixels(int level) {
+        mDimmerLevel = level;
+    }
+
     public void setPixel(int x, int y, int color) {
 
         int r = (color & 0xff);
@@ -589,6 +611,26 @@ public class BurnerBoard {
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_BLUE)] = b;
     }
 
+    public void filllOtherlight(int other, int color) {
+
+        int r = (color & 0xff);
+        int g = ((color & 0xff00) >> 8);
+        int b = ((color & 0xff0000) >> 16);
+        filllOtherlight(other, r, g, b);
+    }
+
+    public void filllOtherlight(int other, int r, int g, int b) {
+        int nPixels = 0;
+        if (other == kRightSidelight || other == kLeftSightlight) {
+            nPixels = mBoardSideLights;
+        }
+        for (int pixel = pixelOtherlight2Offset(0, other, 0); pixel < nPixels; pixel++) {
+            mBoardOtherlights[pixel] = r;
+            mBoardOtherlights[pixel + 1] = b;
+            mBoardOtherlights[pixel + 2] = g;
+        }
+    }
+
     static int PIXEL_RED = 0;
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
@@ -601,9 +643,9 @@ public class BurnerBoard {
     }
 
     // Convert other lights to pixel buffer address
-    private static final int kOtherLights = 2;
-    private static final int kLeftSightlight = 0;
-    private static final int kRightSidelight = 1;
+    public static final int kOtherLights = 2;
+    public static final int kLeftSightlight = 0;
+    public static final int kRightSidelight = 1;
     int pixelOtherlight2Offset(int pixel, int other, int rgb) {
 
         return (other * mBoardSideLights + pixel) * 3 + rgb;

@@ -694,7 +694,7 @@ public class BBService extends Service {
                 mBoardVisualization.setMode(mBoardMode);
             }
         //}
-        if (mBoardMode > 10)
+        if (mBoardMode > 15)
             mBoardMode = 1;
     }
 
