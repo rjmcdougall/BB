@@ -70,12 +70,16 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
     class CdcAcmSerialPort extends CommonUsbSerialPort {
 
         private boolean mEnableAsyncReads;
+        private boolean mEnableAsyncWrites;
         private UsbInterface mControlInterface;
         private UsbInterface mDataInterface;
 
         private UsbEndpoint mControlEndpoint;
         private UsbEndpoint mReadEndpoint;
         private UsbEndpoint mWriteEndpoint;
+
+        private UsbRequest writeRequest = null;
+
 
         private boolean mRts = false;
         private boolean mDtr = false;
@@ -91,7 +95,8 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
         public CdcAcmSerialPort(UsbDevice device, int portNumber) {
             super(device, portNumber);
             mEnableAsyncReads = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1);
-            // rmc mEnableAsyncReads = false;
+            mEnableAsyncReads = false;
+            mEnableAsyncWrites = true;
         }
 
         @Override
@@ -136,6 +141,12 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 } else {
                   Log.d(TAG, "Async reads disabled.");
                 }
+                if (mEnableAsyncWrites) {
+                    Log.d(TAG, "Async writes enabled");
+                } else {
+                    Log.d(TAG, "Async writes disabled.");
+                }
+
                 opened = true;
             } finally {
                 if (!opened) {
@@ -211,40 +222,66 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
         @Override
         public int write(byte[] src, int timeoutMillis) throws IOException {
             // TODO(mikey): Nearly identical to FtdiSerial write. Refactor.
-            int offset = 0;
 
-            while (offset < src.length) {
-                final int writeLength;
-                final int amtWritten;
+            // TODO: update async mode to allow more than one outstanding request
+            if (mEnableAsyncWrites) {
+                //final UsbRequest request = new UsbRequest();
 
-                synchronized (mWriteBufferLock) {
-                    final byte[] writeBuffer;
-
-                    writeLength = Math.min(src.length - offset, mWriteBuffer.length);
-                    if (offset == 0) {
-                        writeBuffer = src;
-                    } else {
-                        // bulkTransfer does not support offsets, make a copy.
-                        System.arraycopy(src, offset, mWriteBuffer, 0, writeLength);
-                        writeBuffer = mWriteBuffer;
-                    }
-
-                    amtWritten = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, writeLength,
-                            timeoutMillis);
-                }
-                if (amtWritten < 0) {
-                // RMC if (amtWritten <= 0) {
-                    //throw new IOException("Error writing " + writeLength
-                    //Log.d(TAG, "Error writing " + writeLength
-                     //       + " bytes at offset " + offset + " length=" + src.length);
+                if (writeRequest == null) {
+                    writeRequest = new UsbRequest();
+                    writeRequest.initialize(mConnection, mWriteEndpoint);
                 } else {
-
-                    //Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);
-                    Log.d(TAG, "Wrote " +  " amt=" + amtWritten + " attempted=" + writeLength);
-                    offset += amtWritten;
+                    mConnection.requestWait();
                 }
+                try {
+
+                    if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
+                        throw new IOException("Error queueing request.");
+                    }
+                    //final UsbRequest response = mConnection.requestWait();
+                    //if (response == null) {
+                    //    throw new IOException("Null response");
+                    //}
+                } finally {
+                    //request.close();
+                }
+            } else {
+                int offset = 0;
+                while (offset < src.length) {
+                    final int writeLength;
+                    final int amtWritten;
+
+                    synchronized (mWriteBufferLock) {
+                        final byte[] writeBuffer;
+
+                        writeLength = Math.min(src.length - offset, mWriteBuffer.length);
+                        if (offset == 0) {
+                            writeBuffer = src;
+                        } else {
+                            // bulkTransfer does not support offsets, make a copy.
+                            System.arraycopy(src, offset, mWriteBuffer, 0, writeLength);
+                            writeBuffer = mWriteBuffer;
+                        }
+
+                        amtWritten = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, writeLength,
+                                timeoutMillis);
+                    }
+                    if (amtWritten < 0) {
+                        // RMC if (amtWritten <= 0) {
+                        //throw new IOException("Error writing " + writeLength
+                        //Log.d(TAG, "Error writing " + writeLength
+                        //       + " bytes at offset " + offset + " length=" + src.length);
+                    } else {
+
+                        //Log.d(TAG, "Wrote " + new String(src) + " amt=" + amtWritten + " attempted=" + writeLength);
+                        //Log.d(TAG, "Wrote " +  " amt=" + amtWritten + " attempted=" + writeLength);
+                        offset += amtWritten;
+                    }
+                }
+                return offset;
             }
-            return offset;
+
+            return 0;
         }
 
         @Override

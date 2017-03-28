@@ -522,10 +522,19 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Escape and print a string
      */
-
     void printEsc(byte[] str) {
         for (byte ch : str) {
-            printEsc(ch);
+            if (ch == field_separator || ch == command_separator || ch == escape_character) {
+                sendBuffer.write(escape_character);
+            }
+            if (ch == 0) {
+                sendBuffer.write((byte)1);
+            } else if (ch == 1) {
+                sendBuffer.write(escape_character);
+                sendBuffer.write((byte)'1');
+            } else {
+                sendBuffer.write(ch);
+            }
         }
     }
 

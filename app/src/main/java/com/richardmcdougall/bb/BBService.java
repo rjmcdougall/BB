@@ -32,6 +32,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
+import android.media.AudioTrack;
+import android.media.AudioFormat;
 
 
 public class BBService extends Service {
@@ -385,14 +389,18 @@ public class BBService extends Service {
         //streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 132223476, 2 * 60 * 60 + 17 * 60 + 43));
         streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2 * 60 * 60 + 7 * 60 + 37)); // real one
         //streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 132223476, 2 * 60 * 60 + 7 * 60 + 37));
-        //streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2 * 60 * 60 + 3 * 60 + 44));
-        //streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
-        //streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
-        //streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
-        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
-        ////streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
-        //streamURLs.add(6, new MusicStream("https://dl.dropboxusercontent.com/s/vx11kxtkmhgycd9/click_120bpm_4-4time_610beats_stereo_WjI2zj.mp3?dl=0", 2436288, 5 * 60 + 4));
-        //streamURLs.add(7, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 14616192, 30 * 60 + 30));
+        // Stream 1 is reserved for Bluetooth input
+        streamURLs.add(1, null);
+        /*
+        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2 * 60 * 60 + 3 * 60 + 44));
+        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
+        streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
+        streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
+        streamURLs.add(6, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
+        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
+        streamURLs.add(7, new MusicStream("https://dl.dropboxusercontent.com/s/vx11kxtkmhgycd9/click_120bpm_4-4time_610beats_stereo_WjI2zj.mp3?dl=0", 2436288, 5 * 60 + 4));
+        streamURLs.add(8, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 14616192, 30 * 60 + 30));
+        */
     }
 
 
@@ -453,8 +461,6 @@ public class BBService extends Service {
     // Main thread to drive the music player
     void musicPlayerThread() {
 
-        boolean started = false;
-
         String model = android.os.Build.MODEL;
 
         l("Starting BB on phone " + model);
@@ -508,23 +514,44 @@ public class BBService extends Service {
 
         //MediaSession ms = new MediaSession(mContext);
 
+        bluetoothModeInit();
+
+        int musicState = 0;
+
         while (true) {
 
-            // Keep checking if music is ready
-            // RMC remove this
-            //downloaded = true;
-            if ((started == false) && downloaded) {
-                started = true;
-                l("Radio Mode");
-                RadioMode();
-            } else {
+            switch (musicState) {
 
-                SeekAndPlay();
+                case 0:
+                    if (downloaded) {
+                        musicState = 1;
+                        l("Radio Mode");
+                        RadioMode();
+                    }
+                    break;
 
-                try {
-                    Thread.sleep(1000);
-                } catch (Throwable e) {
-                }
+                case 1:
+                    SeekAndPlay();
+                    try {
+                        Thread.sleep(1000);
+                    } catch (Throwable e) {
+                    }
+                    if (currentRadioStream == 1) {
+                        musicState = 2;
+                    }
+                    break;
+
+                case 2:
+                    bluetoothPlay();
+                    if (currentRadioStream != 1) {
+                        musicState = 1;
+                    }
+                    break;
+
+                default:
+                    break;
+
+
             }
 
         }
@@ -579,41 +606,93 @@ public class BBService extends Service {
         }
     }
 
+    private void RadioStop() {
+
+    }
+
+    private void RadioResume() {
+
+    }
+
     void NextStream() {
         int nextRadioStream = currentRadioStream + 1;
-        if (nextRadioStream == streamURLs.size())
+        if (nextRadioStream > streamURLs.size())
             nextRadioStream = 0;
         SetRadioStream(nextRadioStream);
     }
 
+
+    // Set radio input mode
     void SetRadioStream(int index) {
         l("SetRadioStream: " + index);
-        try {
-            if (mediaPlayer != null) {
-                //synchronized (mediaPlayer) {
-                lastSeekOffset = 0;
-                currentRadioStream = index;
-                FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
-                l("playing file " + GetRadioStreamFile(index));
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(fds.getFD());
-                fds.close();
+        currentRadioStream = index;
+        if (index == 1) {
+            l("Bluetooth Mode");
+            mediaPlayer.pause();
+            bluetoothModeEnable();
+        } else {
+            l("Radio Mode");
+            bluetoothModeDisable();
+            try {
+                if (mediaPlayer != null) {
+                    //synchronized (mediaPlayer) {
+                    lastSeekOffset = 0;
+                    FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
+                    l("playing file " + GetRadioStreamFile(index));
+                    mediaPlayer.reset();
+                    mediaPlayer.setDataSource(fds.getFD());
+                    fds.close();
 
-                mediaPlayer.setLooping(true);
-                mediaPlayer.setVolume(vol, vol);
-                mediaPlayer.prepare();
-                //}
+                    mediaPlayer.setLooping(true);
+                    mediaPlayer.setVolume(vol, vol);
+                    mediaPlayer.prepare();
+                    mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
+                    //}
+                }
+                SeekAndPlay();
+            } catch (Throwable err) {
+                String msg = err.getMessage();
+                System.out.println(msg);
             }
-            SeekAndPlay();
-        } catch (Throwable err) {
-            String msg = err.getMessage();
-            System.out.println(msg);
         }
     }
 
     public void RadioMode() {
         SetRadioStream(currentRadioStream);
     }
+
+
+    private AudioRecord mAudioInStream;
+    private AudioTrack mAudioOutStream;
+    private byte [] mAudioBuffer;
+
+    public void bluetoothModeInit() {
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+        int buffersize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+        mAudioInStream = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat. CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize);
+        mAudioOutStream = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize, AudioTrack.MODE_STREAM);
+        mAudioOutStream.setPlaybackRate(44100);
+        mAudioOutStream.setVolume(vol);
+        mAudioBuffer = new byte[buffersize];
+        mAudioInStream.startRecording();
+        mAudioOutStream.play();
+    }
+
+    public void bluetoothModeEnable() {
+        mAudioOutStream.play();
+        mAudioInStream.startRecording();
+        mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
+    }
+
+    public void bluetoothModeDisable() {
+        mAudioInStream.stop();
+    }
+
+    public void bluetoothPlay() {
+        mAudioInStream.read(mAudioBuffer, 0, mAudioBuffer.length);
+        mAudioOutStream.write(mAudioBuffer, 0, mAudioBuffer.length);
+    }
+
 
     void MusicOffset(int ms) {
         userTimeOffset += ms;
@@ -653,6 +732,7 @@ public class BBService extends Service {
             case 20:
                 MusicOffset(-10);
                 break;
+
 
             //case 99:
             case 19:

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.Arrays;
+import java.lang.System;
 
 /**
  * Created by rmc on 3/5/17.
@@ -62,6 +63,7 @@ public class BurnerBoard {
         mBBService = service;
         mContext = context;
         initUsb();
+        initPixelOffset();
     }
 
     public void attach(BoardEvents newfunction) {
@@ -225,8 +227,29 @@ public class BurnerBoard {
                 updateUsbStatus(("Connected to ") + boardId);
                 sendLogMsg("USB Connected to " + boardId);
                 setMode(50);
+                testPerf();
             }
         }
+    }
+
+    private void testPerf() {
+        byte[] testRow1 = "0123456789012345678901234567890".getBytes();
+        long startTime = java.lang.System.currentTimeMillis();
+        final int Iters = 10;
+        final int Rows = 86;
+
+        for (int iters = 0; iters < Iters; iters++) {
+            for (int i = 0; i < Rows; i++) {
+                pingRow(0, testRow1);
+            }
+            flush();
+        }
+        int elapsedTime = (int)(java.lang.System.currentTimeMillis() - startTime);
+        int bytes = Iters * Rows * testRow1.length;
+
+        l("USB Benchmark: " + bytes + " bytes in " + elapsedTime + ", " +
+                (bytes * 1000 / elapsedTime / 1024) + " kbytes/sec");
+        return;
     }
 
     public class ArdunioCallbackDefault implements CmdMessenger.CmdEvents {
@@ -510,10 +533,22 @@ public class BurnerBoard {
         return false;
     }
 
+    private boolean pingRow(int row, byte[] pixels) {
 
+        //l("sendCommand: 16,n,...");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(16);
+                mListener.sendCmdArg(row);
+                mListener.sendCmdEscArg(pixels);
+                mListener.sendCmdEnd();
+                return true;
+            }
+        }
+        return false;
+    }
 
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
-    // row is 12 pixels : board has 10
     public boolean setOtherlight(int other, int[] pixels) {
 
 
@@ -550,9 +585,20 @@ public class BurnerBoard {
     }
 
 
+    private int flushCnt = 0;
+    long lastFlushTime = java.lang.System.currentTimeMillis();
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     public void flush() {
 
+        flushCnt++;
+        if (flushCnt > 100) {
+            int elapsedTime = (int)(java.lang.System.currentTimeMillis() - lastFlushTime);
+            lastFlushTime = java.lang.System.currentTimeMillis();
+
+            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
+            flushCnt = 0;
+        }
         if (mListener != null) {
             mListener.flushWrites();
         }
@@ -611,23 +657,24 @@ public class BurnerBoard {
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_BLUE)] = b;
     }
 
-    public void filllOtherlight(int other, int color) {
+    public void fillOtherlight(int other, int color) {
 
         int r = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
         int b = ((color & 0xff0000) >> 16);
-        filllOtherlight(other, r, g, b);
+        fillOtherlight(other, r, g, b);
     }
 
-    public void filllOtherlight(int other, int r, int g, int b) {
+    public void fillOtherlight(int other, int r, int g, int b) {
         int nPixels = 0;
+        final int pixelOffset = pixelOtherlight2Offset(0, other, 0);
         if (other == kRightSidelight || other == kLeftSightlight) {
             nPixels = mBoardSideLights;
         }
-        for (int pixel = pixelOtherlight2Offset(0, other, 0); pixel < nPixels; pixel++) {
-            mBoardOtherlights[pixel] = r;
-            mBoardOtherlights[pixel + 1] = b;
-            mBoardOtherlights[pixel + 2] = g;
+        for (int pixel = 0; pixel < nPixels * 3; pixel += 3) {
+            mBoardOtherlights[pixel + pixelOffset] = r;
+            mBoardOtherlights[pixel + pixelOffset + 1] = b;
+            mBoardOtherlights[pixel + pixelOffset + 2] = g;
         }
     }
 
@@ -635,11 +682,25 @@ public class BurnerBoard {
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
 
+    static int [][][] pixel2OffsetTable = new int[255][255][3];
+
+    private void initPixelOffset() {
+        for (int x = 0; x < mBoardWidth; x++) {
+            for (int y = 0; y < mBoardHeight; y++) {
+                for (int rgb = 0; rgb < 3; rgb++) {
+                    pixel2OffsetTable[x][y][rgb] = pixel2OffsetCalc(x, y, rgb);
+                }
+            }
+        }
+    }
 
     // TODO: Had to hardcode boardwidth to 10 for speed
-    static int pixel2Offset(int x, int y, int rgb) {
-
+    static int pixel2OffsetCalc(int x, int y, int rgb) {
         return (y * 10 + x) * 3 + rgb;
+    }
+
+    static int pixel2Offset(int x, int y, int rgb) {
+        return pixel2OffsetTable[x][y][rgb];
     }
 
     // Convert other lights to pixel buffer address
@@ -712,22 +773,30 @@ public class BurnerBoard {
         if (mBoardScreen == null) {
             return;
         }
-        int x;
-        int y;
         if (down) {
-            for (x = 0; x < mBoardWidth; x++) {
-                for (y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < mBoardWidth; x++) {
+                for (int y = 0; y < mBoardHeight - 1; y++) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                }
+            }
+            for (int x = 0; x < kOtherLights; x++) {
+                for (int pixel = 0; pixel < mBoardSideLights - 1; pixel++) {
+                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_RED)];
+                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_GREEN)];
+                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_BLUE)];
                 }
             }
         } else {
-            for (x = 0; x < mBoardWidth; x++) {
-                for (y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < mBoardWidth; x++) {
+                for (int y = mBoardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -736,6 +805,7 @@ public class BurnerBoard {
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
                 }
             }
+            // TODO: scroll up side lights
         }
 
     }
@@ -744,6 +814,10 @@ public class BurnerBoard {
         return mBoardScreen;
     }
 
+    // TODO: gamma correction
+    // encoded = ((original / 255) ^ (1 / gamma)) * 255
+    // original = ((encoded / 255) ^ gamma) * 255
+
     // TODO: make faster by using ints
     private int pixelColorCorrectionRed(int red) {
         // convert signed byte to double
@@ -751,14 +825,14 @@ public class BurnerBoard {
     }
 
     private int pixelColorCorrectionGreen(int green) {
-        return (green * 300) / 1000;
+        return (green * 450) / 1000;
     }
 
     private int pixelColorCorrectionBlue(int blue) {
         // convert signed byte to double
         double correctedBlue = blue & 0xff;
         correctedBlue = correctedBlue * .2;
-        return (blue * 200) / 1000;
+        return (blue * 350) / 1000;
     }
 
 
@@ -898,7 +972,7 @@ public class BurnerBoard {
         in.putExtra("visualId", visualId);
         in.putExtra("arg1", arg1);
         //java.util.Arrays.fill(arg2, (byte) 128);
-        in.putExtra("arg2", pixels.clone());
+        in.putExtra("arg2", pixels);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
     }
 

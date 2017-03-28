@@ -23,7 +23,7 @@ public class BoardVisualization {
     public byte[] mBoardFFT;
     private int mBoardWidth = 10;
     private int mBoardHeight = 70;
-    private int mBoardSideLights = 78;
+    private int mBoardSideLights = 79;
     private int [][]  mFireColors = new int[256][3];
     private int [] mBoardScreen;
     private int [] mFireScreen;
@@ -106,49 +106,69 @@ public class BoardVisualization {
             switch (mBoardMode) {
 
                 case 1:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeMatrix(kMatrixBurnerColor);
                     break;
 
                 case 2:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeMatrix(kMatrixFire);
                     break;
 
                 case 3:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeMatrix(kMatrixLunarian);
                     break;
 
                 case 4:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeAudioCenter();
                     break;
 
                 case 5:
-                    sleepTime = 50;
+                    sleepTime = 5;
                     modeFire();
                     break;
 
 
                 case 6:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeTheMan();
                     break;
 
                 case 7:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeAudioBarV();
                     break;
 
                 case 8:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeMatrix(kMatrixGoogle);
                     break;
 
                 case 9:
-                    sleepTime = 20;
+                    sleepTime = 5;
                     modeMatrix(kMatrixEsperanto);
+                    break;
+
+                case 10:
+                    sleepTime = 5;
+                    modeMatrix(kMatrixIrukandji);
+                    break;
+
+                case 11:
+                    sleepTime = 5;
+                    modeMatrix(kMatrixFireFull);
+                    break;
+
+                case 12:
+                    sleepTime = 5;
+                    modeAudioFront();
+                    break;
+
+                case 13:
+                    sleepTime = 5;
+                    modeAudioTile();
                     break;
 
                 default:
@@ -335,12 +355,22 @@ public class BoardVisualization {
     public static final int kMatrixLunarian = 3;
     public static final int kMatrixGoogle = 4;
     public static final int kMatrixEsperanto = 5;
+    public static final int kMatrixIrukandji = 6;
+    public static final int kMatrixFireFull = 7;
 
-    private static final int[] googleColors = {
+    private static final int[] googleColorsOrig = {
             BurnerBoard.getRGB(60, 186, 84),
             BurnerBoard.getRGB(244, 194, 13),
             BurnerBoard.getRGB(219, 50, 54),
             BurnerBoard.getRGB(72, 133, 237),
+            BurnerBoard.getRGB(255, 255, 255)
+    };
+
+    private static final int[] googleColors = {
+            BurnerBoard.getRGB(40, 200, 60),
+            BurnerBoard.getRGB(200, 194, 13),
+            BurnerBoard.getRGB(255, 10, 10),
+            BurnerBoard.getRGB(20, 50, 237),
             BurnerBoard.getRGB(255, 255, 255)
     };
 
@@ -368,10 +398,12 @@ public class BoardVisualization {
                 case kMatrixBurnerColor:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0): wheel(wheel_color);
+                    mBurnerBoard.setPixel(x, y, color);
                     break;
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0): BurnerBoard.getRGB(255, 255, 255);
+                    mBurnerBoard.setPixel(x, y, color);
                     break;
                 case kMatrixFire:
                     color = mRandom.nextInt(2) == 0 ?
@@ -380,18 +412,31 @@ public class BoardVisualization {
                                     mFireColors[fireColor][0],
                                     mFireColors[fireColor][1],
                                     mFireColors[fireColor][2]);
-
+                    mBurnerBoard.setPixel(x, y, color);
                     break;
                 case kMatrixGoogle:
                     color = mRandom.nextInt(2) == 0 ?
-                            BurnerBoard.getRGB(0, 0, 0): googleColors[googleColor / 8
-                            ];
+                            BurnerBoard.getRGB(0, 0, 0): googleColors[googleColor / 8];
+                    mBurnerBoard.setPixel(x, y, color);
                     break;
+                case kMatrixIrukandji:
+                    color = wheel(wheel_color);
+                    if (x > 0 || x < 10) {
+                        mBurnerBoard.setPixel(x, y, BurnerBoard.getRGB(0, 0, 0));
+                    }
+                    break;
+                case kMatrixFireFull:
+                    color = BurnerBoard.getRGB(
+                                    mFireColors[fireColor][0],
+                                    mFireColors[fireColor][1],
+                                    mFireColors[fireColor][2]);
+                    mBurnerBoard.setPixel(x, y, color);
+                    break;
+
 
                 default:
                     color = 0;
             }
-            mBurnerBoard.setPixel(x, y, color);
             // Ripple down the side lights with the same color as the edges
             if (x == 0) {
                 mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoard.kLeftSightlight, color);
@@ -400,7 +445,7 @@ public class BoardVisualization {
                 mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoard.kRightSidelight, color);
             }
             fireColor += 1;
-            if (fireColor > 200) {
+            if (fireColor > 180) {
                 fireColor = 40;
             }
 
@@ -414,7 +459,8 @@ public class BoardVisualization {
         mBurnerBoard.scrollPixels(true);
         switch (mode) {
             case kMatrixEsperanto:
-                mBurnerBoard.dimPixels((getLevel() * 3) / 2);
+                int level = java.lang.Math.max(0, (getLevel() * 3) - 80);
+                mBurnerBoard.dimPixels(level);
                 break;
             default:
                 break;
@@ -556,14 +602,18 @@ public class BoardVisualization {
         int dbValue = 0;
         // There are 1024 values - 512 x real, imaginary
         for (int i = 0; i < 512; i+= 8) {
+            if ((i % 32) == 0) {
+                dbValue = 0;
+            }
             rfk = mBoardFFT[i];
             ifk = mBoardFFT[i + 1];
             float magnitude = (rfk * rfk + ifk * ifk);
-            dbValue += java.lang.Math.max(0, 3 * (Math.log10(magnitude) - 1));
+            dbValue += java.lang.Math.max(0, 50 * (Math.log10(magnitude) - 1));
             if (dbValue < 0)
                 dbValue = 0;
             dbLevels[i / 32] += dbValue;
             dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
+
         }
         return dbLevels;
     }
@@ -587,10 +637,10 @@ public class BoardVisualization {
         int row = 0;
         for (int value = 3; value < 15; value += 2) {
             //System.out.println("level " + dbLevels[value]);
-            int level = java.lang.Math.min(dbLevels[value] / 7, 35);
+            int level = java.lang.Math.min(dbLevels[value-1] / 6, 35);
             //l("level " + value + ":" + level + ":" + dbLevels[value]);
             for (int y = 0; y < level; y++) {
-                if (value == 3) {
+                if (value == 3  ) {
                     //mBurnerBoard.setSideLight(0, 39 + y, vuColor(y));
                     //mBurnerBoard.setSideLight(0, 38 - y, vuColor(y));
                     //mBurnerBoard.setSideLight(1, 39 + y, vuColor(y));
@@ -700,6 +750,99 @@ public class BoardVisualization {
             }
             //System.out.println(x + ":" + level);
 
+        }
+        //mBurnerBoard.fadePixels(1);
+        mBurnerBoard.setOtherlightsAutomatically();
+        mBurnerBoard.flushPixels();
+        return;
+    }
+
+    private void drawRectFront(int size, int color) {
+        if (size == 0)
+            return;
+        int x1 = mBoardWidth / 2 - 1; // 4
+        int y1 = mBoardHeight - 6;
+        int xSizeLim = java.lang.Math.min((size + 1), 5);
+        for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim ; x++) { // 1: 4...5
+            mBurnerBoard.setPixel(x, y1 - (size - 1) , color); // 1: 34
+            mBurnerBoard.setPixel(x, y1 + (size - 1) + 1, color); // 1: 35
+        }
+        for (int y = y1 - (size - 1); y <= y1 + size; y++) { // 1: 34..35
+            if((size + 3) > (mBoardWidth / 2))
+                continue;
+            mBurnerBoard.setPixel(x1 - (xSizeLim - 1), y, color); //
+            mBurnerBoard.setPixel(x1 + (xSizeLim - 1) + 1, y, color);
+
+        }
+    }
+
+    void modeAudioFront() {
+
+        int [] dbLevels = getLevels();
+        if (dbLevels == null)
+            return;
+        for (int x = 0; x < 6; x++) {
+            dbLevels = getLevels();
+            //mBurnerBoard.fadePixels(10);
+            int level = java.lang.Math.max(0, (dbLevels[5] / 8 - 8));
+            if (dbLevels == null)
+                return;
+            //drawRectCenter(x, wheel(wheel_color));
+            if (level > 0) {
+                int c = wheel(wheel_color);
+                drawRectFront(x, c);
+                wheelInc(level);
+            }
+            //System.out.println(x + ":" + level);
+
+        }
+        //mBurnerBoard.fadePixels(1);
+        mBurnerBoard.setOtherlightsAutomatically();
+        mBurnerBoard.flushPixels();
+        mBurnerBoard.scrollPixels(true);
+
+        return;
+    }
+
+    private void drawRectTile(int tileNo, int color) {
+        int x1 = 0;
+        int y1 = 0;
+        final int tiles = mBoardHeight / mBoardWidth;
+        if (tileNo >= tiles * 2)
+            return;
+        if (tileNo < tiles) {
+            x1 = 0;
+            y1 = tileNo * mBoardWidth;
+        } else {
+            x1 = mBoardWidth / 2;
+            y1 = (tileNo - tiles) * mBoardWidth;
+        }
+        int x2 = x1 + mBoardWidth / 2 - 1;
+        int y2 = y1 + mBoardWidth - 1;
+        for (int x = x1; x <= x2; x++) {
+            for (int y = y1; y <= y2; y++) {
+                mBurnerBoard.setPixel(x, y, color);
+            }
+        }
+    }
+
+
+    void modeAudioTile() {
+
+        int [] dbLevels = getLevels();
+        mBurnerBoard.fadePixels(5);
+        if (dbLevels == null)
+            return;
+            dbLevels = getLevels();
+            int level = java.lang.Math.max(0, (dbLevels[5] / 5 - 8));
+            if (dbLevels == null)
+                return;
+            if (level > 0) {
+                for (int tile = 0; tile < mBoardHeight / mBoardWidth * 2; tile++) {
+                    int c = wheel(wheel_color);
+                    drawRectTile(tile, 255 * mRandom.nextInt(65536));
+                    wheelInc(23);
+            }
         }
         //mBurnerBoard.fadePixels(1);
         mBurnerBoard.setOtherlightsAutomatically();
@@ -1038,7 +1181,7 @@ public class BoardVisualization {
         }
 
         for (int i = 0; i < 256; i++) {
-            final int fireColor = wheel(95 - (i / 4));
+            final int fireColor = wheel(90 - (i / 5));
             final int dimmer =  java.lang.Math.max(1, 256 - (int)(java.lang.Math.log10((double)(i / 4 + 1)) * 200));
             mFireColors[i][0] =  (fireColor & 0xff) / dimmer;
             mFireColors[i][1] =  ((fireColor & 0xff00) >> 8) / dimmer;
@@ -1070,7 +1213,7 @@ public class BoardVisualization {
 		/* move fire upwards, start at bottom*/
         int temp;
         int [] lastTemps = new int[mBoardWidth * 2];
-        for (int index = 0; index < mBoardHeight+1; index++) {
+        for (int index = 0; index < mBoardHeight + 1; index++) {
             for (int i = 0; i < mBoardWidth * 2; i++) {
                 if (i == 0) {
 					/* at the left border*/
@@ -1213,8 +1356,8 @@ public class BoardVisualization {
                         color : BurnerBoard.getRGB(0, 0, 0));
             }
         }
-        mBurnerBoard.filllOtherlight(BurnerBoard.kLeftSightlight, color);
-        mBurnerBoard.filllOtherlight(BurnerBoard.kRightSidelight, color);
+        mBurnerBoard.fillOtherlight(BurnerBoard.kLeftSightlight, color);
+        mBurnerBoard.fillOtherlight(BurnerBoard.kRightSidelight, color);
         mBurnerBoard.flushPixels();
     }
 
