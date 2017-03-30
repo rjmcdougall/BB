@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.PixelFormat;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -22,6 +23,7 @@ import android.view.WindowManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Gravity;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
@@ -49,8 +51,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";
-
-    private Context mContext;
 
     boolean imRunning = false;
 
@@ -108,9 +108,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         //if(!hasFocus) {
             // Close every kind of system dialog
             Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-            sendBroadcast(closeDialog);
+            this.sendBroadcast(closeDialog);
         //}
     }
+
 
     static void showToast(Context context, String text) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
@@ -286,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         if (am.getLockTaskModeState() ==
                 ActivityManager.LOCK_TASK_MODE_NONE) {
             // Pin the app
-            // startLockTask();
+             startLockTask();
         }
 
         //Intent startServiceIntent = new Intent(this, BBService.class);
@@ -301,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         // Close every kind of system dialog
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-        sendBroadcast(closeDialog);
+        this.sendBroadcast(closeDialog);
 
 
         super.onCreate(savedInstanceState);
@@ -365,6 +366,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         // Create the logging window
         log = (EditText) findViewById(R.id.editTextLog);
         log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
+        log.setMaxLines(100);
 
         voltage.setText("0.0v");
         log.setFocusable(false);

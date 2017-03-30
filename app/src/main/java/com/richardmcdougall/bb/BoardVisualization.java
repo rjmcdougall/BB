@@ -77,6 +77,9 @@ public class BoardVisualization {
         l("session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
         // Create the Visualizer object and attach it to our media player.
+        if (mVisualizer != null) {
+            mVisualizer.release();
+        }
         try {
             mVisualizer = new Visualizer(audioSessionId);
         } catch (Exception e) {
@@ -618,12 +621,25 @@ public class BoardVisualization {
         return dbLevels;
     }
 
+    private static final int kNumLevels = 8;
+    private int [] oldLevels = new int[kNumLevels];
+
     private int getLevel() {
 
-        int [] dbLevels = getLevels();
+        int level = 0;
+        int delta;
+        int[] dbLevels = getLevels();
         if (dbLevels == null)
-            return(0);
-        return dbLevels[3];
+            return (0);
+        for (int i = 0; i < kNumLevels; i++) {
+            if ((delta = dbLevels[i] - oldLevels[i]) > 0) {
+                level += delta;
+            }
+        }
+        System.arraycopy(dbLevels, 0, oldLevels, 0, kNumLevels);
+        level = (int)(25.01 * java.lang.Math.log((float)(level + 1)));
+        //System.out.println("level: " + level);
+        return level;
     }
 
 
@@ -733,25 +749,20 @@ public class BoardVisualization {
 
     void modeAudioCenter() {
 
-        int [] dbLevels = getLevels();
-        if (dbLevels == null)
-            return;
-        for (int x = 0; x < 35; x++) {
-            dbLevels = getLevels();
-            //mBurnerBoard.fadePixels(10);
-            int level = java.lang.Math.max(0, (dbLevels[5] / 8 - 8));
-            if (dbLevels == null)
-                return;
-            //drawRectCenter(x, wheel(wheel_color));
-            if (level > 0) {
+        int level;
+        level = getLevel();
+        mBurnerBoard.fadePixels(15);
+        if (level > 130) {
+            for (int x = 0; x < 35; x++) {
                 int c = wheel(wheel_color);
                 drawRectCenter(x, c);
-                wheelInc(level);
+                wheelInc(4);
             }
             //System.out.println(x + ":" + level);
 
+            //mBurnerBoard.fadePixels(1);
+
         }
-        //mBurnerBoard.fadePixels(1);
         mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.flushPixels();
         return;
@@ -778,20 +789,13 @@ public class BoardVisualization {
 
     void modeAudioFront() {
 
-        int [] dbLevels = getLevels();
-        if (dbLevels == null)
-            return;
+        int level;
+        level = getLevel();
         for (int x = 0; x < 6; x++) {
-            dbLevels = getLevels();
-            //mBurnerBoard.fadePixels(10);
-            int level = java.lang.Math.max(0, (dbLevels[5] / 8 - 8));
-            if (dbLevels == null)
-                return;
-            //drawRectCenter(x, wheel(wheel_color));
-            if (level > 0) {
+            if (level > 50) {
                 int c = wheel(wheel_color);
                 drawRectFront(x, c);
-                wheelInc(level);
+                wheelInc(level / 30);
             }
             //System.out.println(x + ":" + level);
 
@@ -821,7 +825,11 @@ public class BoardVisualization {
         int y2 = y1 + mBoardWidth - 1;
         for (int x = x1; x <= x2; x++) {
             for (int y = y1; y <= y2; y++) {
-                mBurnerBoard.setPixel(x, y, color);
+                if (x == x1 || x == x2 || y == y1 || y == y2) {
+                    mBurnerBoard.setPixel(x, y, BurnerBoard.colorDim(100, color));
+                } else {
+                    mBurnerBoard.setPixel(x, y, color);
+                }
             }
         }
     }
@@ -829,19 +837,21 @@ public class BoardVisualization {
 
     void modeAudioTile() {
 
-        int [] dbLevels = getLevels();
+        //int [] dbLevels = getLevels();
         mBurnerBoard.fadePixels(5);
-        if (dbLevels == null)
-            return;
-            dbLevels = getLevels();
-            int level = java.lang.Math.max(0, (dbLevels[5] / 5 - 8));
-            if (dbLevels == null)
-                return;
-            if (level > 0) {
+        //if (dbLevels == null)
+        //    return;
+            //dbLevels = getLevels();
+            //int level = java.lang.Math.max(0, (dbLevels[5] / 5 - 8));
+            //if (dbLevels == null)
+            //    return;
+            if (getLevel() > 140) {
                 for (int tile = 0; tile < mBoardHeight / mBoardWidth * 2; tile++) {
                     int c = wheel(wheel_color);
-                    drawRectTile(tile, 255 * mRandom.nextInt(65536));
-                    wheelInc(23);
+                    //drawRectTile(tile, 255 * mRandom.nextInt(65536));
+                    drawRectTile(tile, wheel(mRandom.nextInt(255)));
+                    //drawRectTile(tile, wheel((wheel_color)));
+                    wheelInc(59);
             }
         }
         //mBurnerBoard.fadePixels(1);

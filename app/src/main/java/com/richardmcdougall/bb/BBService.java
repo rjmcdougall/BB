@@ -179,6 +179,7 @@ public class BBService extends Service {
                 l("Voice Supported Language: " + lang);
             }
         }
+        //startActivity(new Intent(this, MainActivity.class));
     }
 
 
@@ -630,12 +631,16 @@ public class BBService extends Service {
             l("Bluetooth Mode");
             mediaPlayer.pause();
             bluetoothModeEnable();
+            voice.speak("Blue tooth Audio", TextToSpeech.QUEUE_FLUSH, null, "bluetooth");
+
         } else {
             l("Radio Mode");
+            voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             bluetoothModeDisable();
             try {
                 if (mediaPlayer != null) {
                     //synchronized (mediaPlayer) {
+                    mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     lastSeekOffset = 0;
                     FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
                     l("playing file " + GetRadioStreamFile(index));
@@ -646,7 +651,6 @@ public class BBService extends Service {
                     mediaPlayer.setLooping(true);
                     mediaPlayer.setVolume(vol, vol);
                     mediaPlayer.prepare();
-                    mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     //}
                 }
                 SeekAndPlay();
@@ -686,6 +690,7 @@ public class BBService extends Service {
 
     public void bluetoothModeDisable() {
         mAudioInStream.stop();
+        mAudioOutStream.stop();
     }
 
     public void bluetoothPlay() {
@@ -768,14 +773,14 @@ public class BBService extends Service {
             // Likely not connected to physical burner board, fallback
             if (mode == 99) {
                 mBoardMode++;
-                mBoardVisualization.setMode(mBoardMode);
             } else if (mode == 98) {
                 mBoardMode--;
-                mBoardVisualization.setMode(mBoardMode);
             }
         //}
         if (mBoardMode > 15)
             mBoardMode = 1;
+        mBoardVisualization.setMode(mBoardMode);
+        voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
     }
 
 
@@ -790,7 +795,7 @@ public class BBService extends Service {
         public void BoardMode(int mode) {
             //mBoardMode = mode;
             //mBoardVisualization.setMode(mBoardMode);
-            voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+            //voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
             l("ardunio mode callback:" + mBoardMode);
             //modeStatus.setText(String.format("%d", mBoardMode));
         }
