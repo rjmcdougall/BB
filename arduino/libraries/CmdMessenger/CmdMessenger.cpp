@@ -534,22 +534,28 @@ uint8_t CmdMessenger::compareStringArg(char *string)
  * Unescapes a string
  * Note that this is done inline
  */
-void CmdMessenger::unescape(char *fromChar)
+void CmdMessenger::unescape(char *data, int n)
 {
 	// Move unescaped characters right
-	char *toChar = fromChar;
-	while (*fromChar != '\0') {
-		if (*fromChar == escape_character) {
+	int toChar = 0;
+	int fromChar;
+	for (fromChar = 0; fromChar < n; fromChar++) {
+                // Escape the rate case 1 as 1
+                // Convert 1's back to 0's (common case)
+		if (data[fromChar] == escape_character) {
 			fromChar++;
-			if (*fromChar == '0') {
-				*fromChar = 0;
+			if (data[fromChar] == '1') {
+				data[toChar] = 1;
                         }
+		} else if (data[fromChar] == 1) {
+			data[toChar] = 0;
+		} else {
+			data[toChar] = data[fromChar];
 		}
-		*toChar++ = *fromChar++;
 	}
 	// Pad string with \0 if string was shortened
 	for (; toChar < fromChar; toChar++) {
-		*toChar = '\0';
+		data[toChar] = '\0';
 	}
 }
 

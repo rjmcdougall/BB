@@ -127,7 +127,7 @@ private:
 	T readBin(char *str)
 	{
 		T value;
-		unescape(str);
+		unescape(str, sizeof(T));
 		byte *bytePointer = (byte *)(const void *)&value;
 		for (unsigned int i = 0; i < sizeof(value); i++)
 		{
@@ -293,7 +293,7 @@ public:
 
 	// **** Escaping tools ****
 
-	void unescape(char *fromChar);
+	void unescape(char *fromChar, int n);
 	void printSci(double f, unsigned int digits);
 
 
