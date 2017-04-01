@@ -170,7 +170,7 @@ public class BBService extends Service {
 
         startLights();
 
-        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
+        //mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
 
         // Supported Languages
         Set<Locale> supportedLanguages = voice.getAvailableLanguages();
@@ -617,7 +617,7 @@ public class BBService extends Service {
 
     void NextStream() {
         int nextRadioStream = currentRadioStream + 1;
-        if (nextRadioStream > streamURLs.size())
+        if (nextRadioStream >= streamURLs.size())
             nextRadioStream = 0;
         SetRadioStream(nextRadioStream);
     }
@@ -640,12 +640,12 @@ public class BBService extends Service {
             try {
                 if (mediaPlayer != null) {
                     //synchronized (mediaPlayer) {
-                    mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     lastSeekOffset = 0;
                     FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
                     l("playing file " + GetRadioStreamFile(index));
                     mediaPlayer.reset();
                     mediaPlayer.setDataSource(fds.getFD());
+                    mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     fds.close();
 
                     mediaPlayer.setLooping(true);
@@ -656,6 +656,7 @@ public class BBService extends Service {
                 SeekAndPlay();
             } catch (Throwable err) {
                 String msg = err.getMessage();
+                l("Radio mode failed" + msg);
                 System.out.println(msg);
             }
         }
@@ -675,17 +676,17 @@ public class BBService extends Service {
         int buffersize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
         mAudioInStream = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat. CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize);
         mAudioOutStream = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize, AudioTrack.MODE_STREAM);
-        mAudioOutStream.setPlaybackRate(44100);
-        mAudioOutStream.setVolume(vol);
         mAudioBuffer = new byte[buffersize];
         mAudioInStream.startRecording();
         mAudioOutStream.play();
     }
 
     public void bluetoothModeEnable() {
-        mAudioOutStream.play();
         mAudioInStream.startRecording();
         mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
+        mAudioOutStream.play();
+        mAudioOutStream.setPlaybackRate(44100);
+        mAudioOutStream.setVolume(vol);
     }
 
     public void bluetoothModeDisable() {

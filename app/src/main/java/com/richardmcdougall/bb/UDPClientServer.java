@@ -170,7 +170,8 @@ public class UDPClientServer {
 
 
     InetAddress getBroadcastAddress() throws IOException {
-        WifiManager wifi = (WifiManager) mMain.getSystemService(mMain.WIFI_SERVICE);
+        WifiManager wifi =
+                (WifiManager) mMain.getApplicationContext().getSystemService(mMain.WIFI_SERVICE);
         DhcpInfo dhcp = wifi.getDhcpInfo();
         // handle null somehow
 

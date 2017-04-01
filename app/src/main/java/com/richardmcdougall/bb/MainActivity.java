@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
             this.sendBroadcast(closeDialog);
         //}
+        ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
     }
 
 
@@ -287,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         if (am.getLockTaskModeState() ==
                 ActivityManager.LOCK_TASK_MODE_NONE) {
             // Pin the app
-             startLockTask();
+            // startLockTask();
         }
 
         //Intent startServiceIntent = new Intent(this, BBService.class);
@@ -300,12 +302,14 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         l("MainActivity: onCreate()");
 
+        super.onCreate(savedInstanceState);
+
         // Close every kind of system dialog
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         this.sendBroadcast(closeDialog);
 
-
-        super.onCreate(savedInstanceState);
+        ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
 
         setupPermissions(Manifest.permission.RECORD_AUDIO, 1);
         setupPermissions(Manifest.permission.ACCESS_WIFI_STATE, 2);

@@ -538,14 +538,17 @@ void CmdMessenger::unescape(char *data, int n)
 {
 	// Move unescaped characters right
 	int toChar = 0;
-	int fromChar;
-	for (fromChar = 0; fromChar < n; fromChar++) {
+	int fromChar = 0;
+	for (toChar = 0; (toChar < n) && (data[fromChar] != 0); toChar++, fromChar++) {
                 // Escape the rate case 1 as 1
                 // Convert 1's back to 0's (common case)
 		if (data[fromChar] == escape_character) {
 			fromChar++;
 			if (data[fromChar] == '1') {
 				data[toChar] = 1;
+                        } else {
+                                // Todo this shouldn't happen
+				data[toChar] = 0;
                         }
 		} else if (data[fromChar] == 1) {
 			data[toChar] = 0;
@@ -554,9 +557,9 @@ void CmdMessenger::unescape(char *data, int n)
 		}
 	}
 	// Pad string with \0 if string was shortened
-	for (; toChar < fromChar; toChar++) {
-		data[toChar] = '\0';
-	}
+	//for (; toChar < fromChar; toChar++) {
+	//	data[toChar] = '\0';
+	//}
 }
 
 /**

@@ -127,7 +127,7 @@ private:
 	T readBin(char *str)
 	{
 		T value;
-		unescape(str, sizeof(T));
+		//unescape(str, sizeof(T));
 		byte *bytePointer = (byte *)(const void *)&value;
 		for (unsigned int i = 0; i < sizeof(value); i++)
 		{

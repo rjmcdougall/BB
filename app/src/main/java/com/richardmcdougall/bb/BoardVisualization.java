@@ -24,9 +24,9 @@ public class BoardVisualization {
     private int mBoardWidth = 10;
     private int mBoardHeight = 70;
     private int mBoardSideLights = 79;
-    private int [][]  mFireColors = new int[256][3];
-    private int [] mBoardScreen;
-    private int [] mFireScreen;
+    private int[][] mFireColors = new int[256][3];
+    private int[] mBoardScreen;
+    private int[] mFireScreen;
 
     int mBoardMode;
     Context mContext;
@@ -76,24 +76,26 @@ public class BoardVisualization {
 
         l("session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
-        // Create the Visualizer object and attach it to our media player.
-        if (mVisualizer != null) {
-            mVisualizer.release();
-        }
+
         try {
+            if (mVisualizer != null) {
+                //mVisualizer.release();
+            }
             mVisualizer = new Visualizer(audioSessionId);
+            synchronized (mVisualizer) {
+                // Create the Visualizer object and attach it to our media player.
+                vSize = Visualizer.getCaptureSizeRange()[1];
+                mVisualizer.setEnabled(false);
+                mBoardFFT = new byte[vSize];
+                mVisualizer.setCaptureSize(vSize);
+                mVisualizer.setEnabled(true);
+            }
         } catch (Exception e) {
             l("Error enabling visualizer: " + e.getMessage());
             //System.out.println("Error enabling visualizer:" + e.getMessage());
             return;
         }
-        vSize = Visualizer.getCaptureSizeRange()[1];
-        mVisualizer.setEnabled(false);
-        mBoardFFT = new byte[vSize];
-        mVisualizer.setCaptureSize(vSize);
-        mVisualizer.setEnabled(true);
         l("Enabled visualizer with " + vSize + " bytes");
-
     }
 
 
@@ -130,46 +132,51 @@ public class BoardVisualization {
 
                 case 5:
                     sleepTime = 5;
-                    modeFire();
+                    modeFire(kModeFireNormal);
                     break;
 
 
                 case 6:
                     sleepTime = 5;
-                    modeTheMan();
+                    modeFire(kModeFireDistrikt);
                     break;
 
                 case 7:
                     sleepTime = 5;
-                    modeAudioBarV();
+                    modeFire(kModeFireTheMan);
                     break;
 
                 case 8:
                     sleepTime = 5;
-                    modeMatrix(kMatrixGoogle);
+                    modeAudioBarV();
                     break;
 
                 case 9:
                     sleepTime = 5;
-                    modeMatrix(kMatrixEsperanto);
+                    modeMatrix(kMatrixGoogle);
                     break;
 
                 case 10:
                     sleepTime = 5;
-                    modeMatrix(kMatrixIrukandji);
+                    modeMatrix(kMatrixEsperanto);
                     break;
 
                 case 11:
                     sleepTime = 5;
-                    modeMatrix(kMatrixFireFull);
+                    modeMatrix(kMatrixIrukandji);
                     break;
 
                 case 12:
                     sleepTime = 5;
-                    modeAudioFront();
+                    modeMatrix(kMatrixFireFull);
                     break;
 
                 case 13:
+                    sleepTime = 5;
+                    modeAudioFront();
+                    break;
+
+                case 14:
                     sleepTime = 5;
                     modeAudioTile();
                     break;
@@ -263,6 +270,7 @@ public class BoardVisualization {
     }
 
     int testColorState = 0;
+
     private void modeTestColors() {
         switch (testColorState) {
             case 0:
@@ -327,13 +335,11 @@ public class BoardVisualization {
     }
 
 
-
-
     int wheel_color = 0;
+
     // Input a value 0 to 255 to get a color value.
     // The colours are a transition r - g -b - back to r
-    int wheel(int WheelPos)
-    {
+    int wheel(int WheelPos) {
         if (WheelPos < 85) {
             return BurnerBoard.getRGB(WheelPos * 3, 255 - WheelPos * 3, 0);
         } else if (WheelPos < 170) {
@@ -350,7 +356,6 @@ public class BoardVisualization {
         if (wheel_color > 255)
             wheel_color = 0;
     }
-
 
 
     public static final int kMatrixBurnerColor = 1;
@@ -391,7 +396,7 @@ public class BoardVisualization {
         int sideLight;
 
         y = 69;
-        sideLight = mBoardSideLights  - 1;
+        sideLight = mBoardSideLights - 1;
 
 
         for (x = 0; x < 10; x++) {
@@ -400,17 +405,17 @@ public class BoardVisualization {
                 case kMatrixEsperanto:
                 case kMatrixBurnerColor:
                     color = mRandom.nextInt(2) == 0 ?
-                            BurnerBoard.getRGB(0, 0, 0): wheel(wheel_color);
+                            BurnerBoard.getRGB(0, 0, 0) : wheel(wheel_color);
                     mBurnerBoard.setPixel(x, y, color);
                     break;
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
-                            BurnerBoard.getRGB(0, 0, 0): BurnerBoard.getRGB(255, 255, 255);
+                            BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
                     mBurnerBoard.setPixel(x, y, color);
                     break;
                 case kMatrixFire:
                     color = mRandom.nextInt(2) == 0 ?
-                            BurnerBoard.getRGB(0, 0, 0):
+                            BurnerBoard.getRGB(0, 0, 0) :
                             BurnerBoard.getRGB(
                                     mFireColors[fireColor][0],
                                     mFireColors[fireColor][1],
@@ -419,7 +424,7 @@ public class BoardVisualization {
                     break;
                 case kMatrixGoogle:
                     color = mRandom.nextInt(2) == 0 ?
-                            BurnerBoard.getRGB(0, 0, 0): googleColors[googleColor / 8];
+                            BurnerBoard.getRGB(0, 0, 0) : googleColors[googleColor / 8];
                     mBurnerBoard.setPixel(x, y, color);
                     break;
                 case kMatrixIrukandji:
@@ -430,9 +435,9 @@ public class BoardVisualization {
                     break;
                 case kMatrixFireFull:
                     color = BurnerBoard.getRGB(
-                                    mFireColors[fireColor][0],
-                                    mFireColors[fireColor][1],
-                                    mFireColors[fireColor][2]);
+                            mFireColors[fireColor][0],
+                            mFireColors[fireColor][1],
+                            mFireColors[fireColor][2]);
                     mBurnerBoard.setPixel(x, y, color);
                     break;
 
@@ -593,36 +598,38 @@ public class BoardVisualization {
     // Get levels from Android visualizer engine
     // 16 int buckets of frequency levels from low to high
     // Range is 0-255 per bucket
-    int [] getLevels() {
+    int[] getLevels() {
         if (mBoardFFT == null)
             return null;
-        if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
-            return null;
+        synchronized (mVisualizer) {
+            if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
+                return null;
 
-        int [] dbLevels = new int[16];
-        byte rfk;
-        byte ifk;
-        int dbValue = 0;
-        // There are 1024 values - 512 x real, imaginary
-        for (int i = 0; i < 512; i+= 8) {
-            if ((i % 32) == 0) {
-                dbValue = 0;
+            int[] dbLevels = new int[16];
+            byte rfk;
+            byte ifk;
+            int dbValue = 0;
+            // There are 1024 values - 512 x real, imaginary
+            for (int i = 0; i < 512; i += 8) {
+                if ((i % 32) == 0) {
+                    dbValue = 0;
+                }
+                rfk = mBoardFFT[i];
+                ifk = mBoardFFT[i + 1];
+                float magnitude = (rfk * rfk + ifk * ifk);
+                dbValue += java.lang.Math.max(0, 50 * (Math.log10(magnitude) - 1));
+                if (dbValue < 0)
+                    dbValue = 0;
+                dbLevels[i / 32] += dbValue;
+                dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
+
             }
-            rfk = mBoardFFT[i];
-            ifk = mBoardFFT[i + 1];
-            float magnitude = (rfk * rfk + ifk * ifk);
-            dbValue += java.lang.Math.max(0, 50 * (Math.log10(magnitude) - 1));
-            if (dbValue < 0)
-                dbValue = 0;
-            dbLevels[i / 32] += dbValue;
-            dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
-
+            return dbLevels;
         }
-        return dbLevels;
     }
 
     private static final int kNumLevels = 8;
-    private int [] oldLevels = new int[kNumLevels];
+    private int[] oldLevels = new int[kNumLevels];
 
     private int getLevel() {
 
@@ -637,7 +644,7 @@ public class BoardVisualization {
             }
         }
         System.arraycopy(dbLevels, 0, oldLevels, 0, kNumLevels);
-        level = (int)(25.01 * java.lang.Math.log((float)(level + 1)));
+        level = (int) (25.01 * java.lang.Math.log((float) (level + 1)));
         //System.out.println("level: " + level);
         return level;
     }
@@ -645,7 +652,7 @@ public class BoardVisualization {
 
     void modeAudioBarV() {
 
-        int [] dbLevels = getLevels();
+        int[] dbLevels = getLevels();
         if (dbLevels == null)
             return;
         mBurnerBoard.fadePixels(50);
@@ -653,10 +660,10 @@ public class BoardVisualization {
         int row = 0;
         for (int value = 3; value < 15; value += 2) {
             //System.out.println("level " + dbLevels[value]);
-            int level = java.lang.Math.min(dbLevels[value-1] / 6, 35);
+            int level = java.lang.Math.min(dbLevels[value - 1] / 6, 35);
             //l("level " + value + ":" + level + ":" + dbLevels[value]);
             for (int y = 0; y < level; y++) {
-                if (value == 3  ) {
+                if (value == 3) {
                     //mBurnerBoard.setSideLight(0, 39 + y, vuColor(y));
                     //mBurnerBoard.setSideLight(0, 38 - y, vuColor(y));
                     //mBurnerBoard.setSideLight(1, 39 + y, vuColor(y));
@@ -676,7 +683,7 @@ public class BoardVisualization {
 
     void modeAudioFuzzer() {
 
-        int [] dbLevels = getLevels();
+        int[] dbLevels = getLevels();
         if (dbLevels == null)
             return;
         mBurnerBoard.fuzzPixels(10);
@@ -734,12 +741,12 @@ public class BoardVisualization {
         int x1 = mBoardWidth / 2 - 1; // 4
         int y1 = mBoardHeight / 2 - 1;  // 34
         int xSizeLim = java.lang.Math.min((size + 3) / 4, 5);
-        for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim ; x++) { // 1: 4...5
-            mBurnerBoard.setPixel(x, y1 - (size - 1) , color); // 1: 34
+        for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim; x++) { // 1: 4...5
+            mBurnerBoard.setPixel(x, y1 - (size - 1), color); // 1: 34
             mBurnerBoard.setPixel(x, y1 + (size - 1) + 1, color); // 1: 35
         }
         for (int y = y1 - (size - 1); y <= y1 + size; y++) { // 1: 34..35
-            if((size + 3) / 4 > (mBoardWidth / 2))
+            if ((size + 3) / 4 > (mBoardWidth / 2))
                 continue;
             mBurnerBoard.setPixel(x1 - (xSizeLim - 1), y, color); //
             mBurnerBoard.setPixel(x1 + (xSizeLim - 1) + 1, y, color);
@@ -774,12 +781,12 @@ public class BoardVisualization {
         int x1 = mBoardWidth / 2 - 1; // 4
         int y1 = mBoardHeight - 6;
         int xSizeLim = java.lang.Math.min((size + 1), 5);
-        for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim ; x++) { // 1: 4...5
-            mBurnerBoard.setPixel(x, y1 - (size - 1) , color); // 1: 34
+        for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim; x++) { // 1: 4...5
+            mBurnerBoard.setPixel(x, y1 - (size - 1), color); // 1: 34
             mBurnerBoard.setPixel(x, y1 + (size - 1) + 1, color); // 1: 35
         }
         for (int y = y1 - (size - 1); y <= y1 + size; y++) { // 1: 34..35
-            if((size + 3) > (mBoardWidth / 2))
+            if ((size + 3) > (mBoardWidth / 2))
                 continue;
             mBurnerBoard.setPixel(x1 - (xSizeLim - 1), y, color); //
             mBurnerBoard.setPixel(x1 + (xSizeLim - 1) + 1, y, color);
@@ -841,17 +848,17 @@ public class BoardVisualization {
         mBurnerBoard.fadePixels(5);
         //if (dbLevels == null)
         //    return;
-            //dbLevels = getLevels();
-            //int level = java.lang.Math.max(0, (dbLevels[5] / 5 - 8));
-            //if (dbLevels == null)
-            //    return;
-            if (getLevel() > 140) {
-                for (int tile = 0; tile < mBoardHeight / mBoardWidth * 2; tile++) {
-                    int c = wheel(wheel_color);
-                    //drawRectTile(tile, 255 * mRandom.nextInt(65536));
-                    drawRectTile(tile, wheel(mRandom.nextInt(255)));
-                    //drawRectTile(tile, wheel((wheel_color)));
-                    wheelInc(59);
+        //dbLevels = getLevels();
+        //int level = java.lang.Math.max(0, (dbLevels[5] / 5 - 8));
+        //if (dbLevels == null)
+        //    return;
+        if (getLevel() > 140) {
+            for (int tile = 0; tile < mBoardHeight / mBoardWidth * 2; tile++) {
+                int c = wheel(wheel_color);
+                //drawRectTile(tile, 255 * mRandom.nextInt(65536));
+                drawRectTile(tile, wheel(mRandom.nextInt(255)));
+                //drawRectTile(tile, wheel((wheel_color)));
+                wheelInc(59);
             }
         }
         //mBurnerBoard.fadePixels(1);
@@ -997,10 +1004,10 @@ public class BoardVisualization {
     /**
      * Converts HSL components of a color to a set of RGB components.
      *
-     * @param hsl  a float array with length equal to
-     *             the number of HSL components
-     * @param rgb  a float array with length of at least 3
-     *             that contains RGB components of a color
+     * @param hsl a float array with length equal to
+     *            the number of HSL components
+     * @param rgb a float array with length of at least 3
+     *            that contains RGB components of a color
      * @return a float array that contains RGB components
      */
     private static float[] HSLtoRGB(float[] hsl, float[] rgb) {
@@ -1015,11 +1022,10 @@ public class BoardVisualization {
             hue = (hue < 1.0f) ? hue * 6.0f : 0.0f;
             float q = lightness + saturation * ((lightness > 0.5f) ? 1.0f - lightness : lightness);
             float p = 2.0f * lightness - q;
-            rgb[0]= normalize(q, p, (hue < 4.0f) ? (hue + 2.0f) : (hue - 4.0f));
-            rgb[1]= normalize(q, p, hue);
-            rgb[2]= normalize(q, p, (hue < 2.0f) ? (hue + 4.0f) : (hue - 2.0f));
-        }
-        else {
+            rgb[0] = normalize(q, p, (hue < 4.0f) ? (hue + 2.0f) : (hue - 4.0f));
+            rgb[1] = normalize(q, p, hue);
+            rgb[2] = normalize(q, p, (hue < 2.0f) ? (hue + 4.0f) : (hue - 2.0f));
+        } else {
             rgb[0] = lightness;
             rgb[1] = lightness;
             rgb[2] = lightness;
@@ -1045,106 +1051,106 @@ public class BoardVisualization {
     }
 
     private final int[] kFireColorsOcto = {
-            BurnerBoard.getRGB(0,0,0),
-            BurnerBoard.getRGB(0,0,0),
-            BurnerBoard.getRGB(1,0,0),
-            BurnerBoard.getRGB(2,0,0),
-            BurnerBoard.getRGB(3,0,0),
-            BurnerBoard.getRGB(4,0,0),
-            BurnerBoard.getRGB(6,0,0),
-            BurnerBoard.getRGB(7,0,0),
-            BurnerBoard.getRGB(9,0,0),
-            BurnerBoard.getRGB(10,0,0),
-            BurnerBoard.getRGB(12,0,0),
-            BurnerBoard.getRGB(14,0,0),
-            BurnerBoard.getRGB(17,0,0),
-            BurnerBoard.getRGB(19,0,0),
-            BurnerBoard.getRGB(21,0,0),
-            BurnerBoard.getRGB(24,0,0),
-            BurnerBoard.getRGB(26,0,0),
-            BurnerBoard.getRGB(29,0,0),
-            BurnerBoard.getRGB(32,0,0),
-            BurnerBoard.getRGB(35,0,0),
-            BurnerBoard.getRGB(38,0,0),
-            BurnerBoard.getRGB(42,0,0),
-            BurnerBoard.getRGB(45,0,0),
-            BurnerBoard.getRGB(48,0,0),
-            BurnerBoard.getRGB(52,0,0),
-            BurnerBoard.getRGB(56,0,0),
-            BurnerBoard.getRGB(59,0,0),
-            BurnerBoard.getRGB(63,0,0),
-            BurnerBoard.getRGB(67,0,0),
-            BurnerBoard.getRGB(72,0,0),
-            BurnerBoard.getRGB(76,0,0),
-            BurnerBoard.getRGB(80,0,0),
-            BurnerBoard.getRGB(84,0,0),
-            BurnerBoard.getRGB(89,0,0),
-            BurnerBoard.getRGB(93,0,0),
-            BurnerBoard.getRGB(98,0,0),
-            BurnerBoard.getRGB(102,0,0),
-            BurnerBoard.getRGB(107,0,0),
-            BurnerBoard.getRGB(112,0,0),
-            BurnerBoard.getRGB(117,0,0),
-            BurnerBoard.getRGB(122,0,0),
-            BurnerBoard.getRGB(127,0,0),
-            BurnerBoard.getRGB(132,0,0),
-            BurnerBoard.getRGB(137,0,0),
-            BurnerBoard.getRGB(142,0,0),
-            BurnerBoard.getRGB(148,0,0),
-            BurnerBoard.getRGB(155,0,0),
-            BurnerBoard.getRGB(160,0,0),
-            BurnerBoard.getRGB(166,0,0),
-            BurnerBoard.getRGB(172,0,0),
-            BurnerBoard.getRGB(176,0,0),
-            BurnerBoard.getRGB(179,0,0),
-            BurnerBoard.getRGB(182,1,0),
-            BurnerBoard.getRGB(185,2,0),
-            BurnerBoard.getRGB(188,3,0),
-            BurnerBoard.getRGB(191,4,0),
-            BurnerBoard.getRGB(194,5,0),
-            BurnerBoard.getRGB(197,7,0),
-            BurnerBoard.getRGB(200,9,0),
-            BurnerBoard.getRGB(203,10,0),
-            BurnerBoard.getRGB(206,12,0),
-            BurnerBoard.getRGB(209,14,0),
-            BurnerBoard.getRGB(212,17,0),
-            BurnerBoard.getRGB(216,19,0),
-            BurnerBoard.getRGB(219,21,0),
-            BurnerBoard.getRGB(222,24,0),
-            BurnerBoard.getRGB(225,26,0),
-            BurnerBoard.getRGB(228,29,0),
-            BurnerBoard.getRGB(232,32,0),
-            BurnerBoard.getRGB(235,35,0),
-            BurnerBoard.getRGB(238,38,0),
-            BurnerBoard.getRGB(243,42,0),
-            BurnerBoard.getRGB(247,45,0),
-            BurnerBoard.getRGB(250,48,0),
-            BurnerBoard.getRGB(253,52,0),
-            BurnerBoard.getRGB(255,56,0),
-            BurnerBoard.getRGB(255,62,0),
-            BurnerBoard.getRGB(255,68,0),
-            BurnerBoard.getRGB(255,74,1),
-            BurnerBoard.getRGB(255,81,1),
-            BurnerBoard.getRGB(255,88,1),
-            BurnerBoard.getRGB(255,94,2),
-            BurnerBoard.getRGB(255,101,2),
-            BurnerBoard.getRGB(255,108,3),
-            BurnerBoard.getRGB(255,115,3),
-            BurnerBoard.getRGB(255,123,4),
-            BurnerBoard.getRGB(255,131,4),
-            BurnerBoard.getRGB(255,140,5),
-            BurnerBoard.getRGB(255,148,6),
-            BurnerBoard.getRGB(255,156,6),
-            BurnerBoard.getRGB(255,164,7),
-            BurnerBoard.getRGB(255,173,8),
-            BurnerBoard.getRGB(255,182,9),
-            BurnerBoard.getRGB(255,191,10),
-            BurnerBoard.getRGB(255,200,10),
-            BurnerBoard.getRGB(255,209,11),
-            BurnerBoard.getRGB(255,220,13),
-            BurnerBoard.getRGB(255,230,14),
-            BurnerBoard.getRGB(255,240,15),
-            BurnerBoard.getRGB(255,250,16)
+            BurnerBoard.getRGB(0, 0, 0),
+            BurnerBoard.getRGB(0, 0, 0),
+            BurnerBoard.getRGB(1, 0, 0),
+            BurnerBoard.getRGB(2, 0, 0),
+            BurnerBoard.getRGB(3, 0, 0),
+            BurnerBoard.getRGB(4, 0, 0),
+            BurnerBoard.getRGB(6, 0, 0),
+            BurnerBoard.getRGB(7, 0, 0),
+            BurnerBoard.getRGB(9, 0, 0),
+            BurnerBoard.getRGB(10, 0, 0),
+            BurnerBoard.getRGB(12, 0, 0),
+            BurnerBoard.getRGB(14, 0, 0),
+            BurnerBoard.getRGB(17, 0, 0),
+            BurnerBoard.getRGB(19, 0, 0),
+            BurnerBoard.getRGB(21, 0, 0),
+            BurnerBoard.getRGB(24, 0, 0),
+            BurnerBoard.getRGB(26, 0, 0),
+            BurnerBoard.getRGB(29, 0, 0),
+            BurnerBoard.getRGB(32, 0, 0),
+            BurnerBoard.getRGB(35, 0, 0),
+            BurnerBoard.getRGB(38, 0, 0),
+            BurnerBoard.getRGB(42, 0, 0),
+            BurnerBoard.getRGB(45, 0, 0),
+            BurnerBoard.getRGB(48, 0, 0),
+            BurnerBoard.getRGB(52, 0, 0),
+            BurnerBoard.getRGB(56, 0, 0),
+            BurnerBoard.getRGB(59, 0, 0),
+            BurnerBoard.getRGB(63, 0, 0),
+            BurnerBoard.getRGB(67, 0, 0),
+            BurnerBoard.getRGB(72, 0, 0),
+            BurnerBoard.getRGB(76, 0, 0),
+            BurnerBoard.getRGB(80, 0, 0),
+            BurnerBoard.getRGB(84, 0, 0),
+            BurnerBoard.getRGB(89, 0, 0),
+            BurnerBoard.getRGB(93, 0, 0),
+            BurnerBoard.getRGB(98, 0, 0),
+            BurnerBoard.getRGB(102, 0, 0),
+            BurnerBoard.getRGB(107, 0, 0),
+            BurnerBoard.getRGB(112, 0, 0),
+            BurnerBoard.getRGB(117, 0, 0),
+            BurnerBoard.getRGB(122, 0, 0),
+            BurnerBoard.getRGB(127, 0, 0),
+            BurnerBoard.getRGB(132, 0, 0),
+            BurnerBoard.getRGB(137, 0, 0),
+            BurnerBoard.getRGB(142, 0, 0),
+            BurnerBoard.getRGB(148, 0, 0),
+            BurnerBoard.getRGB(155, 0, 0),
+            BurnerBoard.getRGB(160, 0, 0),
+            BurnerBoard.getRGB(166, 0, 0),
+            BurnerBoard.getRGB(172, 0, 0),
+            BurnerBoard.getRGB(176, 0, 0),
+            BurnerBoard.getRGB(179, 0, 0),
+            BurnerBoard.getRGB(182, 1, 0),
+            BurnerBoard.getRGB(185, 2, 0),
+            BurnerBoard.getRGB(188, 3, 0),
+            BurnerBoard.getRGB(191, 4, 0),
+            BurnerBoard.getRGB(194, 5, 0),
+            BurnerBoard.getRGB(197, 7, 0),
+            BurnerBoard.getRGB(200, 9, 0),
+            BurnerBoard.getRGB(203, 10, 0),
+            BurnerBoard.getRGB(206, 12, 0),
+            BurnerBoard.getRGB(209, 14, 0),
+            BurnerBoard.getRGB(212, 17, 0),
+            BurnerBoard.getRGB(216, 19, 0),
+            BurnerBoard.getRGB(219, 21, 0),
+            BurnerBoard.getRGB(222, 24, 0),
+            BurnerBoard.getRGB(225, 26, 0),
+            BurnerBoard.getRGB(228, 29, 0),
+            BurnerBoard.getRGB(232, 32, 0),
+            BurnerBoard.getRGB(235, 35, 0),
+            BurnerBoard.getRGB(238, 38, 0),
+            BurnerBoard.getRGB(243, 42, 0),
+            BurnerBoard.getRGB(247, 45, 0),
+            BurnerBoard.getRGB(250, 48, 0),
+            BurnerBoard.getRGB(253, 52, 0),
+            BurnerBoard.getRGB(255, 56, 0),
+            BurnerBoard.getRGB(255, 62, 0),
+            BurnerBoard.getRGB(255, 68, 0),
+            BurnerBoard.getRGB(255, 74, 1),
+            BurnerBoard.getRGB(255, 81, 1),
+            BurnerBoard.getRGB(255, 88, 1),
+            BurnerBoard.getRGB(255, 94, 2),
+            BurnerBoard.getRGB(255, 101, 2),
+            BurnerBoard.getRGB(255, 108, 3),
+            BurnerBoard.getRGB(255, 115, 3),
+            BurnerBoard.getRGB(255, 123, 4),
+            BurnerBoard.getRGB(255, 131, 4),
+            BurnerBoard.getRGB(255, 140, 5),
+            BurnerBoard.getRGB(255, 148, 6),
+            BurnerBoard.getRGB(255, 156, 6),
+            BurnerBoard.getRGB(255, 164, 7),
+            BurnerBoard.getRGB(255, 173, 8),
+            BurnerBoard.getRGB(255, 182, 9),
+            BurnerBoard.getRGB(255, 191, 10),
+            BurnerBoard.getRGB(255, 200, 10),
+            BurnerBoard.getRGB(255, 209, 11),
+            BurnerBoard.getRGB(255, 220, 13),
+            BurnerBoard.getRGB(255, 230, 14),
+            BurnerBoard.getRGB(255, 240, 15),
+            BurnerBoard.getRGB(255, 250, 16)
     };
 
     private void initFire() {
@@ -1192,10 +1198,10 @@ public class BoardVisualization {
 
         for (int i = 0; i < 256; i++) {
             final int fireColor = wheel(90 - (i / 5));
-            final int dimmer =  java.lang.Math.max(1, 256 - (int)(java.lang.Math.log10((double)(i / 4 + 1)) * 200));
-            mFireColors[i][0] =  (fireColor & 0xff) / dimmer;
-            mFireColors[i][1] =  ((fireColor & 0xff00) >> 8) / dimmer;
-            mFireColors[i][2] =   ((fireColor & 0xff0000) >> 16) / dimmer;
+            final int dimmer = java.lang.Math.max(1, 256 - (int) (java.lang.Math.log10((double) (i / 4 + 1)) * 200));
+            mFireColors[i][0] = (fireColor & 0xff) / dimmer;
+            mFireColors[i][1] = ((fireColor & 0xff00) >> 8) / dimmer;
+            mFireColors[i][2] = ((fireColor & 0xff0000) >> 16) / dimmer;
         }
     }
 
@@ -1203,13 +1209,17 @@ public class BoardVisualization {
     * From PixelController Fire.java
     * Originally modeled from http://lodev.org/cgtutor/fire.html
     */
-    public void modeFire() {
+    private static final int kModeFireNormal = 1;
+    private static final int kModeFireDistrikt = 2;
+    private static final int kModeFireTheMan = 3;
+
+    public void modeFire(int mode) {
         int j = mBoardWidth * 2 * (mBoardHeight + 1);
         int random;
         for (int i = 0; i < (mBoardWidth * 2); i++) {
             random = mRandom.nextInt(16);
-			// the lower the value, the intense the fire,
-			// compensate a lower value with a higher decay value
+            // the lower the value, the intense the fire,
+            // compensate a lower value with a higher decay value
             if (random > 8) {
 				/*maximum heat*/
                 mFireScreen[j + i] = 255;
@@ -1218,11 +1228,10 @@ public class BoardVisualization {
             }
         }
 
-        mBurnerBoard.scrollPixels(true);
 
 		/* move fire upwards, start at bottom*/
         int temp;
-        int [] lastTemps = new int[mBoardWidth * 2];
+        int[] lastTemps = new int[mBoardWidth * 2];
         for (int index = 0; index < mBoardHeight + 1; index++) {
             for (int i = 0; i < mBoardWidth * 2; i++) {
                 if (i == 0) {
@@ -1230,9 +1239,8 @@ public class BoardVisualization {
                     temp = mFireScreen[j];
                     temp += mFireScreen[j + 1];
                     temp += mFireScreen[j - mBoardWidth * 2];
-                    temp /=3;
-                } else
-                if (i == mBoardWidth) {
+                    temp /= 3;
+                } else if (i == mBoardWidth) {
 						/* at the right border*/
                     temp = mFireScreen[j + i];
                     temp += mFireScreen[j - mBoardWidth * 2 + i];
@@ -1247,17 +1255,17 @@ public class BoardVisualization {
                 }
                 if (temp > 1) {
 					/* decay */
-                    temp --;
+                    temp--;
                 }
 
                 int dofs = j - mBoardWidth * 2 + i;
                 mFireScreen[dofs] = temp;
-                if (dofs<(mBoardWidth * 2 * mBoardHeight)) {
+                if (dofs < (mBoardWidth * 2 * mBoardHeight)) {
                     int x = dofs % (mBoardWidth * 2);
                     int y = java.lang.Math.min(java.lang.Math.max(0,
-                            (dofs / (mBoardWidth * 2 )) + 1), 69);
+                            (dofs / (mBoardWidth * 2)) + 1), 69);
                     // Bigger number leaves more flame tails
-                    if (lastTemps[i] > 55    ) {
+                    if (lastTemps[i] > 55) {
                         //mBurnerBoard.setPixel(x / 2, y * 2,
                         //int temp100 = (int)((float)temp * (float)150 / (float)255);
                         //temp100 = java.lang.Math.min(99, temp100);
@@ -1268,9 +1276,9 @@ public class BoardVisualization {
                                 mFireColors[temp][2]);
 
                         //mBurnerBoard.setPixel(x / 2, y * 2 + 1,
-                                //mFireColors[temp][0],
-                                //mFireColors[temp][1],
-                                //mFireColors[temp][2]);
+                        //mFireColors[temp][0],
+                        //mFireColors[temp][1],
+                        //mFireColors[temp][2]);
                     } else {
                         //mBurnerBoard.setPixel(x / 2, y, 0, 255,  0);
                     }
@@ -1278,6 +1286,19 @@ public class BoardVisualization {
                 }
             }
             j -= mBoardWidth;
+        }
+        //mBurnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
+        mBurnerBoard.scrollPixels(true);
+        switch (mode) {
+            case kModeFireDistrikt:
+                drawDistrikt(BurnerBoard.getRGB(255, 255, 255));
+                break;
+            case kModeFireTheMan:
+                drawTheMan(BurnerBoard.getRGB(mFireColors[200][0], mFireColors[100][1], mFireColors[200][2]));
+                break;
+            default:
+                break;
+
         }
         mBurnerBoard.setOtherlightsAutomatically();
         mBurnerBoard.flushPixels();
@@ -1362,25 +1383,332 @@ public class BoardVisualization {
         //mBoardScreen.clear();
         for (row = 0; row < the_man.length; row++) {
             for (x = 0; x < mBoardWidth; x++) {
-                mBurnerBoard.setPixel(x, row, ((the_man[row] & (1 << x)) > 0)?
-                        color : BurnerBoard.getRGB(0, 0, 0));
+                if ((the_man[row] & (1 << x)) > 0) {
+                    mBurnerBoard.setPixel(x, row, color);
+                }
             }
         }
-        mBurnerBoard.fillOtherlight(BurnerBoard.kLeftSightlight, color);
-        mBurnerBoard.fillOtherlight(BurnerBoard.kRightSidelight, color);
-        mBurnerBoard.flushPixels();
+        //mBurnerBoard.fillOtherlight(BurnerBoard.kLeftSightlight, color);
+        //mBurnerBoard.fillOtherlight(BurnerBoard.kRightSidelight, color);
+        //mBurnerBoard.flushPixels();
     }
 
     // Thanks Pruss...
     // I see blondes, brunets, redheads...
     private void modeTheMan() {
         int color;
-        color = mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80): wheel(wheel_color); //Chance of 1/3rd
+        color = mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80) : wheel(wheel_color); //Chance of 1/3rd
         wheelInc(1);
+        mBurnerBoard.clearPixels();
         drawTheMan(color);
     }
 
+    void drawStanford(int color) {
+        int x;
+        int row;
 
+        int stanfordTree[] = {
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000010000,
+                0b00000100000,
+                0b00000010000,
+                0b00000100000,
+                0b00000110000,
+                0b00000111000,
+                0b00001101100,
+                0b00000110100,
+                0b00001011000,
+                0b00000010000,
+                0b00010101000,
+                0b00001010100,
+                0b00010101000,
+                0b00001101000,
+                0b00011011100,
+                0b00110110010,
+                0b00000100100,
+                0b00000110000,
+                0b00000110000,
+                0b00001111000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000};
+        int stanfordLogo[] = {
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00011111100,
+                0b00111111110,
+                0b01111111111,
+                0b01111111111,
+                0b01110000111,
+                0b01110000000,
+                0b01110000000,
+                0b01111111000,
+                0b00111111110,
+                0b00011111111,
+                0b00011111111,
+                0b00000000111,
+                0b00000000111,
+                0b00000000111,
+                0b01111111111,
+                0b01111111111,
+                0b00111111110,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000};
+        int stanford[] = {
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00001111000,
+                0b00010000100,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00001101100,
+                0b00011010000,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00001111000,
+                0b00010000100,
+                0b00011111100,
+                0b00001111000,
+                0b00000000000,
+                0b00000000000,
+                0b00011010000,
+                0b00011010000,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00011111100,
+                0b00000011000,
+                0b00001100000,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00001111100,
+                0b00010010000,
+                0b00011111100,
+                0b00001111100,
+                0b00000000000,
+                0b00000000000,
+                0b00011000000,
+                0b00011111100,
+                0b00011111100,
+                0b00011000000,
+                0b00000000000,
+                0b00000000000,
+                0b00011011000,
+                0b00011011100,
+                0b00011101100,
+                0b00001101100,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000};
+
+    }
+
+
+    void drawDistrikt(int color) {
+        int x;
+        int row;
+
+        // DISTRIKT
+        int distrikt[] = {
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00011000000,
+                0b00011111100,
+                0b00011111100,
+                0b00011000000,
+                0b00000000000,
+                0b00000000000,
+                0b00011001100,
+                0b00000110000,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00001101100,
+                0b00011010000,
+                0b00011010000,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00011000000,
+                0b00011111100,
+                0b00011111100,
+                0b00011000000,
+                0b00000000000,
+                0b00000000000,
+                0b00001011000,
+                0b00011011000,
+                0b00011101100,
+                0b00001101100,
+                0b00000000000,
+                0b00000000000,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00001111000,
+                0b00010000100,
+                0b00011111100,
+                0b00011111100,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000,
+                0b00000000000};
+
+        //mBoardScreen.clear();
+        for (row = 0; row < distrikt.length; row++) {
+            for (x = 0; x < mBoardWidth; x++) {
+                if ((distrikt[row] & (1 << x)) > 0) {
+                    mBurnerBoard.setPixel(x, row, color);
+                }
+            }
+        }
+    }
 
 
 }
