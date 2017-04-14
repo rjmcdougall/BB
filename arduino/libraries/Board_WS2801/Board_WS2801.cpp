@@ -143,13 +143,14 @@ Board_WS2801::Board_WS2801(void) : Adafruit_GFX(70, 10) {
   updatePins(); // Must assume hardware SPI until pins are set
 }
 
-DMAMEM uint8_t frameBuffer[1024*3];
+//DMAMEM uint8_t frameBuffer[1024*3];
+uint8_t frameBuffer[1024*3];
 
 // Allocate 3 bytes per pixel, init to RGB 'off' state:
 void Board_WS2801::alloc(uint16_t n) {
   begun   = false;
   //numvirtLEDs = ((pixels = (uint8_t *)calloc(n, 3)) != NULL) ? n : 0;
-  pixels = frameBuffer;
+  pixels = &frameBuffer[0];
   numvirtLEDs = n;
 }
 
@@ -159,13 +160,15 @@ void Board_WS2801::alloc(uint16_t n) {
 // Cycles for load = 1
 // Performance per instruction on page 10 of http://www.atmel.com/Images/doc0856.pdf
 // translation is real board string pixel# = pixel_translate(virtual matrix with holes pixel#)
+
 void Board_WS2801::translationArray(uint16_t n) {
   uint16_t virtpixel, newpixel, rgb;
 
   numboardLEDs = n;
 
   // Allocate Burner Board pix translation map
-  pixel_translate = (uint16_t *)calloc(numboardLEDs, 3);
+  //pixel_translate = (uint16_t *)calloc(numboardLEDs, 3);
+  pixel_translate = (uint16_t *)calloc(numboardLEDs, sizeof(uint16_t) * 3);
 
   if (pixel_translate == NULL)
     return;
@@ -268,7 +271,7 @@ void Board_WS2801::show(void) {
 //    for(i = hasSidelights ? 0 : NUM_EDGE_PIXELS * 3; i<nl3; i++) {
     for(i = 0; i < nl3; i++) {
 	SPI.transfer(pixels[pixel_translate[i]] / brightness);
-//      SPDR = pixels[pixel_translate[i]];
+//      SPDR = pixels[;ixel_translate[i]];
 //      while(!(SPSR & (1<<SPIF)));
     }
 		//interrupts();

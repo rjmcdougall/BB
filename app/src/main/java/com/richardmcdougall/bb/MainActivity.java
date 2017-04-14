@@ -52,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private static final String TAG = "BB.MainActivity";
 
+    public static final boolean kEmbeddedMode = true;
+
     boolean imRunning = false;
 
     TextView voltage;
@@ -198,6 +200,12 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private void l(String msg) {
         if (log == null)
             return;
+
+        Log.v(TAG, msg);
+
+        if (kEmbeddedMode == true)
+            return;
+
         // append the new string
         log.append(msg + "\n");
         // find the amount we need to scroll.  This works by
@@ -213,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             else
                 log.scrollTo(0, 0);
         }
-        Log.v(TAG, msg);
     }
 
     public void setStateMsgConn(String str) {
@@ -639,6 +646,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            if (kEmbeddedMode == true)
+                return;
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
             int visualId = intent.getIntExtra("visualId", 0);
             //l("Graphics " + visualId);

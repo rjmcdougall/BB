@@ -41,7 +41,7 @@ extern "C"
 }
 
 #define MAXCALLBACKS        50   // The maximum number of commands   (default: 50)
-#define MESSENGERBUFFERSIZE 8192   // The length of the commandbuffer  (default: 64)
+#define MESSENGERBUFFERSIZE 1024   // The length of the commandbuffer  (default: 64)
 #define MAXSTREAMBUFFERSIZE 8192  // The length of the streambuffer   (default: 64)
 #define DEFAULT_TIMEOUT     5000 // Time out on unanswered messages. (default: 5s)
 
@@ -63,15 +63,19 @@ private:
 
 	bool    startCommand;            // Indicates if sending of a command is underway
 	uint8_t lastCommandId;		    // ID of last received command 
-	uint8_t bufferIndex;              // Index where to write data in buffer
-	uint8_t bufferLength;             // Is set to MESSENGERBUFFERSIZE
-	uint8_t bufferLastIndex;          // The last index of the buffer
+	//uint8_t bufferIndex;              // Index where to write data in buffer
+	//uint8_t bufferLength;             // Is set to MESSENGERBUFFERSIZE
+	//uint8_t bufferLastIndex;          // The last index of the buffer
+	uint32_t bufferIndex;              // Index where to write data in buffer
+	uint32_t bufferLength;             // Is set to MESSENGERBUFFERSIZE
+	uint32_t bufferLastIndex;          // The last index of the buffer
 	char ArglastChar;                 // Bookkeeping of argument escape char 
 	char CmdlastChar;                 // Bookkeeping of command escape char 
 	bool pauseProcessing;             // pauses processing of new commands, during sending
 	bool print_newlines;              // Indicates if \r\n should be added after send command
 	char commandBuffer[MESSENGERBUFFERSIZE]; // Buffer that holds the data
-	char streamBuffer[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
+	//char streamBuffer[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
+	char *streamBuffer;               // Buffer that holds the data
 	uint8_t messageState;             // Current state of message processing
 	bool dumped;                      // Indicates if last argument has been externally read 
 	bool ArgOk;						// Indicated if last fetched argument could be read
@@ -274,8 +278,8 @@ public:
 	float readFloatArg();
 	double readDoubleArg();
 	char *readStringArg();
-	void copyStringArg(char *string, uint8_t size);
-	uint8_t compareStringArg(char *string);
+	void copyStringArg(char *string, uint32_t size);
+	uint32_t compareStringArg(char *string);
 
 	/**
 	 * Read an argument of any type in binary format

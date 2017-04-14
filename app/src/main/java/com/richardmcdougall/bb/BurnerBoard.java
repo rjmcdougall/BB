@@ -49,6 +49,7 @@ public class BurnerBoard {
     private int[] mBoardOtherlights;
     private BurnerBoard.BoardEvents boardCallback = null;
     private int mDimmerLevel = 255;
+    private String mEchoString = "";
 
     public interface BoardEvents {
         void BoardId(String msg);
@@ -222,11 +223,17 @@ public class BurnerBoard {
                         new BurnerBoard.ArdunioCallbackBoardID();
                 mListener.attach(11, boardIDCallback);
 
+                // attach echoRow cmdMessenger callback
+                BurnerBoard.ArdunioCallbackEchoRow echoCallback =
+                        new BurnerBoard.ArdunioCallbackEchoRow();
+                mListener.attach(17, echoCallback);
+
                 getBoardId();
                 getMode();
                 updateUsbStatus(("Connected to ") + boardId);
                 sendLogMsg("USB Connected to " + boardId);
                 setMode(50);
+                testTeensy();
                 testPerf();
             }
         }
@@ -235,7 +242,7 @@ public class BurnerBoard {
     private void testPerf() {
         byte[] testRow1 = "0123456789012345678901234567890".getBytes();
         long startTime = java.lang.System.currentTimeMillis();
-        final int Iters = 10;
+        final int Iters = 100;
         final int Rows = 86;
 
         for (int iters = 0; iters < Iters; iters++) {
@@ -249,6 +256,25 @@ public class BurnerBoard {
 
         l("USB Benchmark: " + bytes + " bytes in " + elapsedTime + ", " +
                 (bytes * 1000 / elapsedTime / 1024) + " kbytes/sec");
+        return;
+    }
+
+    private void testTeensy() {
+        byte[] testRow1 = "0123456789012345".getBytes();
+
+        for (int c = 0; c < 256;) {
+            for (int i = 0; i < 16; i++, c++) {
+                testRow1[i] =  (byte)c;
+            }
+            echoRow(0, testRow1);
+        }
+        flush();
+        try {
+            Thread.sleep(1000);
+        } catch (Throwable e) {
+        }
+        l("testTeensy: " + mEchoString);
+
         return;
     }
 
@@ -275,6 +301,13 @@ public class BurnerBoard {
         public void CmdAction(String str) {
             String boardId = mListener.readStringArg();
             boardCallback.BoardId(boardId);
+        }
+    }
+
+    public class ArdunioCallbackEchoRow implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            mEchoString = mListener.readStringArg();
+            l("echoRow: " + mEchoString);
         }
     }
 
@@ -548,6 +581,20 @@ public class BurnerBoard {
         return false;
     }
 
+
+    private boolean echoRow(int row, byte[] pixels) {
+
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(17);
+                mListener.sendCmdEscArg(pixels);
+                mListener.sendCmdEnd();
+                return true;
+            }
+        }
+        return false;
+    }
+
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     public boolean setOtherlight(int other, int[] pixels) {
 
@@ -809,6 +856,53 @@ public class BurnerBoard {
         }
 
     }
+
+    public void scrollPixelsExcept(boolean down, int color) {
+
+        if (mBoardScreen == null) {
+            return;
+        }
+        if (down) {
+            for (int x = 0; x < mBoardWidth; x++) {
+                for (int y = 0; y < mBoardHeight - 1; y++) {
+                    if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    }
+                }
+            }
+            for (int x = 0; x < kOtherLights; x++) {
+                for (int pixel = 0; pixel < mBoardSideLights - 1; pixel++) {
+                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_RED)];
+                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_GREEN)];
+                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_BLUE)];
+                }
+            }
+        } else {
+            for (int x = 0; x < mBoardWidth; x++) {
+                for (int y = mBoardHeight - 2; y >= 0; y--) {
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                }
+            }
+            // TODO: scroll up side lights
+        }
+
+    }
+
 
     int [] getPixelBuffer() {
         return mBoardScreen;

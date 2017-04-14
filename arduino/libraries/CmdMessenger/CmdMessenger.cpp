@@ -52,6 +52,9 @@ extern "C" {
 
 // **** Initialization **** 
 
+DMAMEM char streamBufferMem[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
+//char streamBufferMem[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
+
 /**
  * CmdMessenger constructor
  */
@@ -73,6 +76,7 @@ void CmdMessenger::init(Stream &ccomms, const char fld_separator, const char cmd
 	escape_character = esc_character;
 	bufferLength = MESSENGERBUFFERSIZE;
 	bufferLastIndex = MESSENGERBUFFERSIZE - 1;
+	streamBuffer = &streamBufferMem[0];
 	reset();
 
 	default_callback = NULL;
@@ -496,7 +500,7 @@ char* CmdMessenger::readStringArg()
  * Return next argument as a new string
  * Note that this is useful if the string needs to be persisted
  */
-void CmdMessenger::copyStringArg(char *string, uint8_t size)
+void CmdMessenger::copyStringArg(char *string, uint32_t size)
 {
 	if (next()) {
 		dumped = true;
@@ -512,7 +516,7 @@ void CmdMessenger::copyStringArg(char *string, uint8_t size)
 /**
  * Compare the next argument with a string
  */
-uint8_t CmdMessenger::compareStringArg(char *string)
+uint32_t CmdMessenger::compareStringArg(char *string)
 {
 	if (next()) {
 		if (strcmp(string, current) == 0) {
@@ -547,8 +551,7 @@ void CmdMessenger::unescape(char *data, int n)
 			if (data[fromChar] == '1') {
 				data[toChar] = 1;
                         } else {
-                                // Todo this shouldn't happen
-				data[toChar] = 0;
+				data[toChar] = data[fromChar];
                         }
 		} else if (data[fromChar] == 1) {
 			data[toChar] = 0;

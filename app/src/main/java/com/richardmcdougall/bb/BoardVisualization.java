@@ -69,6 +69,7 @@ public class BoardVisualization {
 
         mBoardMode = mode;
         mBurnerBoard.resetParams();
+        mBurnerBoard.clearPixels();
     }
 
     public void attachAudio(int audioSessionId) {
@@ -798,11 +799,11 @@ public class BoardVisualization {
 
         int level;
         level = getLevel();
-        for (int x = 0; x < 6; x++) {
+        for (int x = 0; x < java.lang.Math.min(6, (level * level) / 3000); x++) {
             if (level > 50) {
                 int c = wheel(wheel_color);
                 drawRectFront(x, c);
-                wheelInc(level / 30);
+                wheelInc(2);
             }
             //System.out.println(x + ":" + level);
 
@@ -1287,16 +1288,25 @@ public class BoardVisualization {
             }
             j -= mBoardWidth;
         }
-        //mBurnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
-        mBurnerBoard.scrollPixels(true);
+        //for (j = 1; j < mBoardHeight - 1; j++) {
+        //    System.arraycopy(mFireScreen, j * mBoardWidth * 2,
+        //            mFireScreen, (j + 1) * mBoardWidth * 2, mBoardWidth * 2);
+        //}
+
         switch (mode) {
             case kModeFireDistrikt:
+                mBurnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
                 drawDistrikt(BurnerBoard.getRGB(255, 255, 255));
                 break;
             case kModeFireTheMan:
-                drawTheMan(BurnerBoard.getRGB(mFireColors[200][0], mFireColors[100][1], mFireColors[200][2]));
+                drawTheMan(BurnerBoard.getRGB(mFireColors[200][0],
+                        mFireColors[100][1], mFireColors[200][2]));
+                mBurnerBoard.scrollPixelsExcept(true,
+                        BurnerBoard.getRGB(mFireColors[200][0],
+                                mFireColors[100][1], mFireColors[200][2]));
                 break;
             default:
+                mBurnerBoard.scrollPixels(true);
                 break;
 
         }

@@ -55,9 +55,10 @@ class Board_WS2801 : public Adafruit_GFX {
       setBrightness(uint8_t brightness);
 
 
+
     uint16_t
-      numPixels(void),
-      *pixel_translate;
+      *pixel_translate,
+      numPixels(void);
     uint32_t
       getPixelColor(uint16_t n),
       getPixelColor(uint16_t x, uint16_t y),

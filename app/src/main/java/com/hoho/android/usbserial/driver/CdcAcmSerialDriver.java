@@ -169,9 +169,20 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
             mConnection = null;
         }
 
+        private final char[] hexArray = "0123456789ABCDEF".toCharArray();
+        private String bytesToHex(byte[] bytes) {
+            char[] hexChars = new char[bytes.length * 2];
+            for (int j = 0; j < bytes.length; j++) {
+                int v = bytes[j] & 0xFF;
+                hexChars[j * 2] = hexArray[v >>> 4];
+                hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+            }
+            return new String(hexChars);
+        }
+
         @Override
         public int read(byte[] dest, int timeoutMillis) throws IOException {
-            Log.d(TAG, "read()");
+            //Log.d(TAG, "read()");
             if (mEnableAsyncReads) {
               final UsbRequest request = new UsbRequest();
               try {
@@ -188,7 +199,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
 
                 final int nread = buf.position();
                 if (nread > 0) {
-                  //Log.d(TAG, HexDump.dumpHexString(dest, 0, Math.min(32, dest.length)));
+                  Log.d(TAG, bytesToHex(dest));
                   return nread;
                 } else {
                   return 0;
@@ -216,6 +227,8 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 }
                 System.arraycopy(mReadBuffer, 0, dest, 0, numBytesRead);
             }
+            //Log.d(TAG, HexDump.dumpHexString(dest, 0, Math.min(32, dest.length)));
+
             return numBytesRead;
         }
 
