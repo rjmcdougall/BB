@@ -132,8 +132,10 @@ public class UDPClientServer {
                     // send the client's timestamp back along with ours so it can figure out how to adjust it's clock
                     long clientTimestamp = bytesToLong(dp.getData(), 4);
                     long curTimeStamp = mMain.GetCurrentClock();
+                    int boardMode = mMain.getCurrentBoardMode();
+                    int boardVol = mMain.getCurrentBoardVol();
 
-                    byte[] rp = new byte[21];
+                    byte[] rp = new byte[23];
                     rp[0] = 'B';
                     rp[1] = 'B';
                     rp[2] = 'S';
@@ -141,15 +143,17 @@ public class UDPClientServer {
                     longToBytes(clientTimestamp, rp, 4);
                     longToBytes(curTimeStamp, rp, 12);
                     rp[20] = (byte)mMain.currentRadioStream;   // tell clients the current radio stream to play
+                    rp[21] = (byte)boardMode; // tell clients which graphics mode to use
+                    rp[22] = (byte)boardVol; // tell clients audio volume
 
                     DatagramPacket sendPacket = new DatagramPacket(rp, rp.length, dp.getAddress(), UDP_SERVER_PORT);
                     socket.send(sendPacket);
                     tSentPackets++;
 
                     System.out.println("UDP packet received from " + dp.getAddress().toString() + " drift=" + (clientTimestamp-curTimeStamp));
-                }
-                else
+                } else {
                     System.out.println("*malformed* UDP packet received from " + dp.getAddress().toString());
+                }
 
             }
 
@@ -281,9 +285,21 @@ public class UDPClientServer {
                                     long adjDrift;
                                     long roundTripTime = (curTime - myTimeStamp);
                                     int serverStreamIndex = b[20];
+                                    int boardMode = (int) b[21];
+                                    int boardVol = (int) b[22];
 
                                     if (serverStreamIndex!=mMain.currentRadioStream) {
                                         mMain.SetRadioStream(serverStreamIndex);
+                                    }
+
+                                    if (boardMode > 0 &&
+                                            boardMode != mMain.getCurrentBoardMode()) {
+                                        mMain.setMode(boardMode);
+                                    }
+
+                                    if (boardVol != mMain.getCurrentBoardVol()) {
+                                        //System.out.println("UDP: set vol = " + boardVol);
+                                        mMain.setBoardVolume(boardVol);
                                     }
 
                                     if (roundTripTime > 200) {      // probably we are a packet behind, try to read an extra packet

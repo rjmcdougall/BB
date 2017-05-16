@@ -72,6 +72,10 @@ public class BoardVisualization {
         mBurnerBoard.clearPixels();
     }
 
+    public int getMode() {
+        return(mBoardMode);
+    }
+
     public void attachAudio(int audioSessionId) {
         int vSize;
 

@@ -46,6 +46,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
 import java.util.List;
+import android.text.InputFilter;
 
 
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
@@ -208,6 +209,14 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         // append the new string
         log.append(msg + "\n");
+
+        String tMsg = log.getText().toString();
+        int msgLen = tMsg.length();
+        if (msgLen > 1000) {
+            tMsg = tMsg.substring(msgLen - 1000, msgLen);
+        }
+        log.setText(tMsg);
+
         // find the amount we need to scroll.  This works by
         // asking the TextView's internal layout for the position
         // of the final line and then subtracting the TextView's height
@@ -377,7 +386,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         // Create the logging window
         log = (EditText) findViewById(R.id.editTextLog);
         log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
-        log.setMaxLines(100);
+        log.setMaxLines(40);
+
+        //int maxLength = 500;
+        //log.setFilters(new InputFilter[] {new InputFilter.LengthFilter(maxLength)});
 
         voltage.setText("0.0v");
         log.setFocusable(false);
@@ -509,9 +521,28 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_DRIFT_UP);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-        //MusicOffset(2);
     }
 
+    public void onVolDown(View v) {
+        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_DOWN);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+    }
+
+    public void onVolUp(View v) {
+        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_UP);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+    }
+
+    public void onVolPause(View v) {
+        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_PAUSE);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+    }
 
     /*
    * When an input device is added, we add a ship based upon the device.

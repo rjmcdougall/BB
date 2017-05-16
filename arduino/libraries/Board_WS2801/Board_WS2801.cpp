@@ -235,7 +235,9 @@ void Board_WS2801::startSPI(void) {
   // DUE
   SPI.setClockDivider(82); // 1 MHz max, else flicker
   // TEENSY
-  SPI.setClockDivider(SPI_CLOCK_DIV16); // 1 MHz max, else flicker
+  // 1 MHz max, else flicker on most boards
+  // 512k on Boadie for some reason
+  SPI.setClockDivider(SPI_CLOCK_DIV32); 
 #endif
 }
 

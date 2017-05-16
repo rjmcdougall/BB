@@ -50,6 +50,7 @@ public class BurnerBoard {
     private BurnerBoard.BoardEvents boardCallback = null;
     private int mDimmerLevel = 255;
     private String mEchoString = "";
+    public int mBatteryLevel;
 
     public interface BoardEvents {
         void BoardId(String msg);
@@ -204,29 +205,34 @@ public class BurnerBoard {
                 mExecutor.submit(mSerialIoManager);
 
                 // attach default cmdMessenger callback
-                BurnerBoard.ArdunioCallbackDefault defaultCallback =
-                        new BurnerBoard.ArdunioCallbackDefault();
+                BurnerBoard.BoardCallbackDefault defaultCallback =
+                        new BurnerBoard.BoardCallbackDefault();
                 mListener.attach(defaultCallback);
 
                 // attach Test cmdMessenger callback
-                BurnerBoard.ArdunioCallbackTest testCallback =
-                        new BurnerBoard.ArdunioCallbackTest();
+                BurnerBoard.BoardCallbackTest testCallback =
+                        new BurnerBoard.BoardCallbackTest();
                 mListener.attach(5, testCallback);
 
                 // attach Mode cmdMessenger callback
-                BurnerBoard.ArdunioCallbackMode modeCallback =
-                        new BurnerBoard.ArdunioCallbackMode();
+                BurnerBoard.BoardCallbackMode modeCallback =
+                        new BurnerBoard.BoardCallbackMode();
                 mListener.attach(4, modeCallback);
 
                 // attach Mode cmdMessenger callback
-                BurnerBoard.ArdunioCallbackBoardID boardIDCallback =
-                        new BurnerBoard.ArdunioCallbackBoardID();
+                BurnerBoard.BoardCallbackBoardID boardIDCallback =
+                        new BurnerBoard.BoardCallbackBoardID();
                 mListener.attach(11, boardIDCallback);
 
                 // attach echoRow cmdMessenger callback
-                BurnerBoard.ArdunioCallbackEchoRow echoCallback =
-                        new BurnerBoard.ArdunioCallbackEchoRow();
+                BurnerBoard.BoardCallbackEchoRow echoCallback =
+                        new BurnerBoard.BoardCallbackEchoRow();
                 mListener.attach(17, echoCallback);
+
+                // attach getBatteryLevel cmdMessenger callback
+                BurnerBoard.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
+                        new BurnerBoard.BoardCallbackGetBatteryLevel();
+                mListener.attach(10, getBatteryLevelCallback);
 
                 getBoardId();
                 getMode();
@@ -278,39 +284,45 @@ public class BurnerBoard {
         return;
     }
 
-    public class ArdunioCallbackDefault implements CmdMessenger.CmdEvents {
+    public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             Log.d(TAG, "ardunio default callback:" + str);
         }
     }
 
-    public class ArdunioCallbackTest implements CmdMessenger.CmdEvents {
+    public class BoardCallbackTest implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             l("ardunio test callback:" + str);
         }
     }
 
-    public class ArdunioCallbackMode implements CmdMessenger.CmdEvents {
+    public class BoardCallbackMode implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             int boardMode = mListener.readIntArg();
             boardCallback.BoardMode(boardMode);
         }
     }
 
-    public class ArdunioCallbackBoardID implements CmdMessenger.CmdEvents {
+    public class BoardCallbackBoardID implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             String boardId = mListener.readStringArg();
             boardCallback.BoardId(boardId);
         }
     }
 
-    public class ArdunioCallbackEchoRow implements CmdMessenger.CmdEvents {
+    public class BoardCallbackEchoRow implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             mEchoString = mListener.readStringArg();
             l("echoRow: " + mEchoString);
         }
     }
 
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            mBatteryLevel = mListener.readIntArg();
+            l("getBatteryLevel: " + mBatteryLevel);
+        }
+    }
 
     //    cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
     public float getVoltage() {

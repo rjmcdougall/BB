@@ -335,38 +335,45 @@
         android:layout_width="wrap_content"
         android:text="--"
         android:layout_weight="1"
-        android:onClick="onDriftDown" />
+        android:onClick="onVolDown" />
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="||"
+        android:layout_weight="1"
+        android:onClick="onVolPause" />
     <Button
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:text="++"
         android:layout_weight="1"
-        android:onClick="onDriftUp" />
+        android:onClick="onVolUp" />
     </LinearLayout>
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="154dp"
-        android:inputType="textMultiLine"
-        android:ems="10"
-        android:id="@+id/editTextLog"
-        android:textSize="10dp"
-        android:minLines="4"
-        android:layout_gravity="top"
-        android:editable="false"
-        android:nestedScrollingEnabled="true"
-        android:scrollIndicators="right"
-        android:layout_weight="0.16" />
+        <EditText
+            android:id="@+id/editTextLog"
+            android:layout_width="match_parent"
+            android:layout_height="154dp"
+            android:layout_gravity="top"
+            android:layout_weight="0.16"
+            android:editable="false"
+            android:ems="10"
+            android:inputType="textMultiLine"
+            android:maxLines="6"
+            android:minLines="4"
+            android:nestedScrollingEnabled="true"
+            android:scrollIndicators="right"
+            android:textSize="10dp" />
 
-    <com.richardmcdougall.bb.BoardView
-        android:id="@+id/myBoardview"
-        android:layout_width="match_parent"
-        android:layout_height="80dp" />
+        <com.richardmcdougall.bb.BoardView
+            android:id="@+id/myBoardview"
+            android:layout_width="match_parent"
+            android:layout_height="80dp" />
 
     </LinearLayout>
 

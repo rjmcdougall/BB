@@ -4,6 +4,7 @@
 #include <Board_WS2801.h>
 #include "Print.h"
 #include <CmdMessenger.h>
+#include <EEPROM.h>
 
 
 /*****************************************************************************
@@ -51,7 +52,6 @@
 //  - 9, jonathan x - 1,0,0,1 - 22,25
   
 
-uint16_t boardId = 0;
 const long intensity = 300;
 int8_t board_mode = 0;
 bool ledsOn = false;
@@ -70,16 +70,6 @@ uint8_t ledn[8];
 #define RGB_DIM 80  
 
 
-/* Rotary encoder read example */
-#define ENC_A A6
-#define ENC_B A7
-#define ENC_PORT PINF
- 
-#define ID_0 25
-#define ID_1 24 
-#define ID_2 23
-#define ID_3 22
-
 char *boards[] = {
   "PROTO",
   "PROTO",
@@ -92,19 +82,6 @@ char *boards[] = {
   "BISCUIT",
   "SQUEEZE"};
   
-char *names[] = {
-  "RICHARD",
-  "RICHARD",
-  "WOODSON",  
-  "RIC", 
-  "STEVE", 
-  "STEVE", 
-  "JOON",
-  "JAMES",
-  "RICHARD",
-  "JONATHAN"};
-
-
 char field_separator   = ',';
 char command_separator = ';';
 char escape_separator  = '\\';
@@ -121,6 +98,24 @@ CmdMessenger cmdMessenger = CmdMessenger(Serial, field_separator, command_separa
 CmdMessenger cmdMessengerCons = CmdMessenger(Serial1);
 #endif
 
+
+boolean batteryCritical = false;
+boolean batteryLow = false;
+int32_t batteryLevel = -1;
+
+
+void setBoardName(String name) {
+  EEPROM.put(0, name);
+}
+
+
+const char * getBoardName() {
+  String name;
+  EEPROM.get(0, name);
+  return name.c_str();
+} 
+
+
 // This is the list of recognized BB commands. 
 enum
 {
@@ -134,14 +129,15 @@ enum
   BBFade,
   BBUpdate,
   BBShowBattery,
-  BBGetVoltage,
-  BBGetBoardID,
+  BBGetBatteryLevel,
+  BBGetBoardName,
   BBGetMode,
   BBFillScreen,
   BBSetRow,
   BBSetOtherlight,
   BBPingRow,
   BBEchoRow,
+  BBSetBoardID,
   BBerror
 };
 
@@ -159,41 +155,21 @@ void BBattachCommandCallbacks()
   cmdMessenger.attach(BBFade, OnFade);                  // 7
   cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
   cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
-  cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
-  cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
+  cmdMessenger.attach(BBGetBatteryLevel, OnGetBatteryLevel);      // 10
+  cmdMessenger.attach(BBGetBoardName, OnGetBoardName);  // 11
   cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
   cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 13
   cmdMessenger.attach(BBSetRow, OnSetRow);              // 14
   cmdMessenger.attach(BBSetOtherlight, OnSetOtherlight);// 15
   cmdMessenger.attach(BBPingRow, OnPingRow);            // 16
   cmdMessenger.attach(BBEchoRow, OnEchoRow);            // 17
+  cmdMessenger.attach(BBSetBoardID, OnSetBoardName);      // 18
 }
 
-// Callbacks define on which received commands we take action
-void BBattachConsCommandCallbacks()
-{
-  // Attach callback methods
-  cmdMessengerCons.attach(BBCommandList, ShowCommands);     // 0
-  cmdMessengerCons.attach(BBCmdOne);                        // 1
-  cmdMessengerCons.attach(BBsetled, Onsetled);              // 2
-  cmdMessengerCons.attach(BBsetheadlight, Onsetheadlight);  // 3
-  cmdMessengerCons.attach(BBsetmode, Onsetmode);            // 4
-  cmdMessengerCons.attach(BBClearScreen, OnClearScreen);    // 5
-  cmdMessengerCons.attach(BBScroll, OnScroll);              // 6
-  cmdMessengerCons.attach(BBFade, OnFade);                  // 7
-  cmdMessengerCons.attach(BBUpdate, OnUpdate);              // 8
-  cmdMessengerCons.attach(BBShowBattery, OnShowBattery);    // 9
-  cmdMessengerCons.attach(BBGetVoltage, OnGetVoltage);      // 10
-  cmdMessengerCons.attach(BBGetBoardID, OnGetBoardID);      // 11
-  cmdMessengerCons.attach(BBGetMode, OnGetMode);            // 12
-  cmdMessengerCons.attach(BBFillScreen, OnFillScreen);      // 13
-}
 
-#define SHOW_COMMANDS 1
 // Show available commands
 void ShowCommands() 
 {
-#ifdef SHOW_COMMANDS
   Serial1.println("\nAvailable commands");
   Serial1.println(" 1;                       - This command list");
   Serial1.println(" 2,<headlight state>;     - Set headlight.");
@@ -204,12 +180,15 @@ void ShowCommands()
   Serial1.println(" 7,<amount>;              - Fade screen by n levels"); 
   Serial1.println(" 8;                       - Render and display screen"); 
   Serial1.println(" 9;                       - Show Battery for 2 seconds"); 
-  Serial1.println(" 10;                      - Get battery voltage"); 
-  Serial1.println(" 11;                      - Get Board ID"); 
+  Serial1.println(" 10;                      - Get battery level"); 
+  Serial1.println(" 11;                      - Get Board Name"); 
   Serial1.println(" 12;                      - Get mode"); 
   Serial1.println(" 13,r,g,b;                - Fill Screen"); 
   Serial1.println(" 14,row,binary;           - Fill row of pixels"); 
-#endif
+  Serial1.println(" 15,which,binary;         - Fill row of pixels on aux lights (sides)"); 
+  Serial1.println(" 16,row,binary;           - ping round trip test of row"); 
+  Serial1.println(" 17,binary;               - Echo back row of pixels"); 
+  Serial1.println(" 18,name;                 - Set name of board"); 
 }
 
 // Called when a received command has no attached function
@@ -289,23 +268,39 @@ void OnFade() {
 }
 
 void OnUpdate() {
+
+  if (batteryCritical) {
+    fillScreen(rgbTo24BitColor(255,0,0));
+    fillSideLights(rgbTo24BitColor(255,0,0));
+  }
+  if (batteryLow) {
+    drawBattery();
+  }
   strip->show();
 }
 
 
 void OnShowBattery() {
+  clearScreen();
   drawBattery();
+  strip->show();
 }
 
-void OnGetVoltage() {
-  
-}
-
-void OnGetBoardID() {
-  //cmdMessenger.sendCmd(BBGetBoardID,boards[boardId]);
-  cmdMessenger.sendCmdStart(BBGetBoardID);
-  cmdMessenger.sendCmdArg(boards[boardId]);
+void OnGetBatteryLevel() {
+  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
+  cmdMessenger.sendCmdArg(batteryLevel);
   cmdMessenger.sendCmdEnd();
+}
+
+void OnGetBoardName() {
+  cmdMessenger.sendCmdStart(BBGetBoardName);
+  cmdMessenger.sendCmdArg(getBoardName());
+  cmdMessenger.sendCmdEnd();
+}
+
+void OnSetBoardName() {
+  String name =  cmdMessenger.readStringArg();
+  setBoardName(name);
 }
 
 void OnGetMode() {
@@ -463,63 +458,15 @@ void OnSetOtherlight() {
 }
 
 
-
-
-
-/* Helper functions */
-/* returns change in encoder state (-1,0,1) */
-int8_t read_encoder()
-{
-  static int8_t enc_states[] = {0,-1,1,0,1,0,0,-1,-1,0,0,1,0,1,-1,0};
-  static uint8_t old_AB = 0;
-  /**/
-  old_AB <<= 2;                   //remember previous state
-//  old_AB |= ( ENC_PORT & 0x03 );  //add current state
-  old_AB |= (digitalRead(ENC_B) | (digitalRead(ENC_A) <<1));
-  return ( enc_states[( old_AB & 0x0f )]);
-}
-
 long nDelays;
 long lastUpdates;
 unsigned long lastTick = 0;
 
 // My Delay includes a check for the input control dial
 void mydelay(uint32_t del) {
-  int i;
-  int8_t enc;
-  char mode[10];
-  boolean newmode = false;
+
   unsigned long currentTime = millis();
   
-  for (i = 0; i < del; i++) {
-    nDelays++;
-    delay(1);
-    enc = read_encoder();
-    if (enc) {
-//     Serial1.print("Counter value: ");
-//    Serial1.println(board_mode, DEC);
-      board_mode += enc;
-      if (board_mode < 0)
-        board_mode = 0;
-      if (board_mode > 20)
-        board_mode = 20;
-      clearScreen();
-      sprintf(mode, "%d", board_mode);
-      // Tell android of new mode
-      cmdMessenger.sendCmdStart(BBsetmode);
-      cmdMessenger.sendCmdArg(board_mode);
-      cmdMessenger.sendCmdEnd();
-      strip->print(mode, 35, 1, 1);
-      strip->show();
-      del = 300;
-      newmode = true;
-      // Process incoming serial data, and perform callbacks
-      cmdMessenger.feedinSerialData();
-      cmdMessengerCons.feedinSerialData();
-    }
-  }
-  if (newmode == true)
-    clearScreen();
   if ((currentTime - lastTick) > 1000) {
     lastTick = currentTime;
     Serial1.print("tick ndelays = ");
@@ -712,106 +659,40 @@ void fillScreen(uint32_t color)
 
 
 
+#include <Wire.h>  // Wire library for communicating over I2C
+#define BQ34Z100 0x55
 
-
-uint16_t readID() {
- uint16_t bit;
- uint16_t id;
- 
- bit = digitalRead(ID_0);
- Serial1.print(bit, BIN);
- id = !bit;
- bit = digitalRead(ID_1);
- Serial1.print(bit, BIN);
- id |= !bit << 1;
- bit = digitalRead(ID_2);
- Serial1.print(bit, BIN);
- id |= !bit << 2; 
- bit = digitalRead(ID_3);
- Serial1.print(bit, BIN);
- id |= !bit << 3;
- 
- Serial1.print("Board ID  ");
- Serial1.print(id, DEC);
- Serial1.println("");
-
- return(id);
-
-}
-
-
-// Working on proto, but low end is over
-// = 90% = 30350
-// 38.1 = 100% = 102400
-// 36v = 40% = 96900
-// 10% = 91800
-//#define LEVEL_EMPTY 91800
-//#define LEVEL_FULL  102300
-
-// New settings, 8/17/2013
-// 0 = 92900
-// 100 = 102300
-//#define LEVEL_EMPTY 92900
-//#define LEVEL_FULL  102300
-// Lifep04 batteries range is 39.1 -> 36.0v
-#define LEVEL_EMPTY 93700
-#define LEVEL_FULL  102300
-
-// = 90% = 30350
-// 38.1 = 100% = 102400
-// 36v = 40% = 96900
-// 10% = 91800
-
-// Battery Level Meter
-// This is a simple starting point
-// Todo: Sample the battery level continously and maintain a rolling average
-//       This will help with the varying voltages as motor load changes, which
-//       will result in varing results depending on load with this current code
-//
-#define BATTERY_PIN A0
 int getBattery() {
-  int32_t level = 0;
-  uint16_t i;
-  uint16_t sample;
 
-  // Read Battery Level
-  // 18 * 1.75v = 31.5v for low voltage
-  // Set zero to 30v
-  // Set 100% to 38v
+  int level = -1;
 
-  // Convert to level 0-28
-  for (i = 0; i < 100; i++) {
-    level += sample = analogRead(BATTERY_PIN);
-    //Serial1.print("Battery sample ");
-    //Serial1.print(sample, DEC);
-    //Serial1.println(" ");
-  }
-  //Serial1.print("Battery Level ");
-  //Serial1.print(level, DEC);
-  //Serial1.println(" ");
-
-  if (level > LEVEL_FULL) {
-    level = LEVEL_FULL;
-  }
-
-  // Sometimes noise makes level just below zero
-  if (level > LEVEL_EMPTY) {
-    level -= LEVEL_EMPTY;
-  } else {
-    level = 0;
-  }
-
-
-  level *= 29;
-
-  level = level / (LEVEL_FULL - LEVEL_EMPTY);
-
-  //Serial1.print("Adjusted Level ");
-  //Serial1.print(level, DEC);
-  //Serial1.println(" ");
-  return(level);
+  Wire.beginTransmission(BQ34Z100);
+  Wire.write(0x02);
+  Wire.endTransmission();
   
+  Wire.requestFrom(BQ34Z100,1);
+  
+  for (int i = 0; level < 0 && i < 100; i++) {
+    if (Wire.available() > 0) {
+      level = Wire.read();
+    }
+  }
+
+  //Serial.print("Battery = ");
+  //Serial.println(level);
+
+ 
+  if (level > 100) {
+    level = 100;
+  }
+
+  if (level >= 0) {
+    batteryLevel = level;
+  }
+
+  return(level);
 }
+
 
 
 void drawBattery() {
@@ -819,13 +700,8 @@ void drawBattery() {
   uint16_t x;
   uint8_t row;
   int level;
-
-  // Clear screen and measure voltage, since screen load varies it!
-  clearScreen();
-  strip->show();
-  mydelay(1000);
   
-  level = getBattery();
+  level = getBattery() / 3.571; // convert 100 to max of 28
 
   row = 20;
 
@@ -856,55 +732,44 @@ void drawBattery() {
   }
   row+=2;
 
-  // Battery Level
-  for (row = 21; row < 21 + level; row++) {
-    for (x = 1; x < 9; x++) {
-      strip->setPixelColor(x, row, rgbTo24BitColor(0, RGB_DIM, 0));
+  // Get level failed
+  if (level < 0) {
+    // RED
+    for (row = 21; row < 21 + 28; row++) {
+      for (x = 1; x < 9; x++) {
+        strip->setPixelColor(x, row, rgbTo24BitColor(255, 0, 0));
+      }
+    }
+  } else {
+    // Battery Level
+    uint32_t batteryColor;
+    if (batteryCritical) {
+      batteryColor = rgbTo24BitColor(255, 0, 0);
+    } else if (batteryLow) {
+      batteryColor = rgbTo24BitColor(255, 40, 0);
+    }  else {
+      batteryColor = rgbTo24BitColor(0, 255, 0);
+    }
+    for (row = 21; row < 21 + level; row++) {
+      for (x = 1; x < 9; x++) {
+        strip->setPixelColor(x, row, batteryColor);
+      }
     }
   }
 
-  strip->show();
 }
-
-
-
 
 
 
 void setup() {
 
   uint16_t i;
+  Wire.begin();
 
   // Console for debugging
   Serial1.begin(115200);
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
   Serial1.println("Goodnight moon!");
-
-  // Set battery level analogue reference
-#ifdef MEGA
-  analogReference(INTERNAL1V1);
-#else
-  //analogReference(INTERNAL);
-#endif
-
-  
-// ID Pins  
-  pinMode(ID_0, INPUT);
-  digitalWrite(ID_0, HIGH);
-  pinMode(ID_1, INPUT);
-  digitalWrite(ID_1, HIGH);
-  pinMode(ID_2, INPUT);
-  digitalWrite(ID_2, HIGH);
-  pinMode(ID_3, INPUT);
-  digitalWrite(ID_3, HIGH);
-  
-  // Encoder Pins
-  pinMode(ENC_A, INPUT);
-  digitalWrite(ENC_A, HIGH);
-  pinMode(ENC_B, INPUT);
-  digitalWrite(ENC_B, HIGH);
-
-  boardId = readID();
 
   strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)true);
 
@@ -914,16 +779,13 @@ void setup() {
   clearScreen();
   strip->show();
   
-  strip->print(boards[boardId], 15, 1, 1);
+  strip->print((char *)getBoardName(), 15, 1, 1);
   strip->show();
   mydelay(1000);
 
   clearScreen();
-  strip->print(names[boardId], 15, 1, 1);
-  strip->show();
-  mydelay(1000);
-
   drawBattery();
+  strip->show();
   mydelay(1000);
 
   clearScreen();
@@ -976,23 +838,60 @@ void loop_matrixfast()
 }
 
 
+// Counter to see if we check battery level
+unsigned long lastBatteryCheck = micros();
+
+
 void loop() {
   int i;
   unsigned long ts;
+  int batteryLevel = -1;
   
   // Process incoming serial data, and perform callbacks
-  //ts = micros();
+  ts = micros();
+
+
+  // Every 10 seconds check batter level from battery computer
+  if ((ts - lastBatteryCheck) > 10000000) {
+    lastBatteryCheck = ts;
+    batteryLevel = getBattery();
+    if (batteryLevel >= 0) {
+      // valid reading
+      if (batteryLevel <= 25) {
+        batteryLow = true;
+      } else {
+        batteryLow = false;
+      }
+      if (batteryLevel <= 10) {
+        batteryCritical = true;
+      } else {
+        batteryCritical = false;
+      }
+    }
+    OnGetBatteryLevel();
+
+  }
+
+  // Uh oh, battery is almost dead
+  if (batteryCritical) {
+      fillScreen(rgbTo24BitColor(255,0,0));
+      strip->show();
+  }
+
   cmdMessenger.feedinSerialData();
   //Serial1.print("cmdMessenger.feedinSerialData:");
   //Serial1.println(micros() - ts);
   cmdMessengerCons.feedinSerialData();
-   
+
+  
+  //loop_matrixfast();
+
    /*
    Serial1.print("Encoder sample ");
    Serial1.print(board_mode, DEC);
    Serial1.println(" ");
    */
-   
+   /*
    switch (board_mode) {
      
      case 1:
@@ -1008,6 +907,9 @@ void loop() {
        mydelay(1);
        break;
    }  
+   */
+
+   
 
 }
 

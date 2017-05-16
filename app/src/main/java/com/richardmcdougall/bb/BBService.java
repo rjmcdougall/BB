@@ -49,7 +49,8 @@ public class BBService extends Service {
 
     public static enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
-        BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE
+        BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE,
+        BUTTON_VOL_UP, BUTTON_VOL_DOWN, BUTTON_VOL_PAUSE
     }
 
     //private BBListenerAdapter mListener = null;
@@ -130,12 +131,12 @@ public class BBService extends Service {
                     l("Text To Speech ready...");
                     voice.setPitch((float)0.8);
                     String utteranceId = UUID.randomUUID().toString();
-                    String whosBoard = "Donald Trump";
+                    String whosBoard = "Burner Board";
                     System.out.println("Where do you want to go, " + boardId + "?");
                     if (boardId != null)
                         whosBoard = BoardNames.get(boardId);
-                    voice.setSpeechRate((float) 1.2);
-                    voice.speak("Lets ride," + whosBoard + "?",
+                    voice.setSpeechRate((float) 8.7);
+                    voice.speak("" + whosBoard + "?",
                             TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 } else if (status == TextToSpeech.ERROR) {
                     l("Sorry! Text To Speech failed...");
@@ -343,6 +344,15 @@ public class BBService extends Service {
                     case BUTTON_DRIFT_UP:
                         MusicOffset(10);
                         break;
+                    case BUTTON_VOL_DOWN:
+                        onVolDown();
+                        break;
+                    case BUTTON_VOL_UP:
+                        onVolUp();
+                        break;
+                    case BUTTON_VOL_PAUSE:
+                        onVolPause();
+                        break;
                     default:
                         break;
                 }
@@ -378,6 +388,24 @@ public class BBService extends Service {
         return mContext.getExternalFilesDir(
                 Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + (idx - 1) + ".mp3";
 
+    }
+
+    public int getCurrentBoardMode() {
+        if (mBoardVisualization != null) {
+            return mBoardVisualization.getMode();
+        } else {
+            return 0;
+        }
+    }
+
+    public int getCurrentBoardVol() {
+        return((int)(vol * (float)127.0));
+    }
+
+    public void setBoardVolume(int v) {
+        l("Volume: " + vol + " -> " + v);
+        vol = (float)v / (float)127;
+        mediaPlayer.setVolume(vol, vol);
     }
 
     class MusicStream {
@@ -574,7 +602,6 @@ public class BBService extends Service {
 
     public void SeekAndPlay() {
         //l("SeekAndPlay: downloaded = " + downloaded + ", mediaPlayer = " + mediaPlayer);
-        try {
             if (mediaPlayer != null && downloaded) {
                 synchronized (mediaPlayer) {
                     long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
@@ -585,25 +612,42 @@ public class BBService extends Service {
                     long curPos = mediaPlayer.getCurrentPosition();
                     long seekErr = curPos - seekOff;
 
+
+                    if (curPos == 0 || seekErr != 0) {
+                        if (curPos == 0 || Math.abs(seekErr) > 10) {
+                            l("SeekAndPlay: qqexplicit seek");
+                            //mediaPlayer.pause();
+                            // hack: I notice i taked 79ms on dragonboard to seekTo
+                            mediaPlayer.seekTo((int) seekOff + 79);
+                            mediaPlayer.start();
+                        } else {
+                            //PlaybackParams params = mediaPlayer.getPlaybackParams();
+                            PlaybackParams params = new PlaybackParams();
+                            Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
+                            l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
+                            params.setSpeed(speed);
+                            try {
+                                //l("SeekAndPlay: pause()");
+                                //mediaPlayer.pause();
+                                l("SeekAndPlay: setPlaybackParams()");
+                                mediaPlayer.setPlaybackParams(params);
+                                l("SeekAndPlay: setPlaybackParams() Sucesss!!");
+                            } catch (Throwable err) {
+                                l("SeekAndPlay setPlaybackParams: " + err.getMessage());
+                                err.printStackTrace();
+                            }
+                            l("SeekAndPlay: start()");
+                            mediaPlayer.start();
+                        }
+                    }
+
                     String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
                             " User " + userTimeOffset + "\nSeekOff " + seekOff +
                             " RTT " + serverRTT + " Strm" + currentRadioStream;
                     if (udpClientServer.tSentPackets != 0)
                         msg += "\nSent " + udpClientServer.tSentPackets;
-                    //l(msg);
+                    l(msg);
 
-                    if (curPos == 0 || seekErr != 0) {
-                        if (curPos == 0 || Math.abs(seekErr) > 5000)
-                            mediaPlayer.seekTo((int) seekOff);
-                        else {
-                            PlaybackParams params = mediaPlayer.getPlaybackParams();
-                            Float speed = 1.0f + (seekOff - curPos) / 2500.0f;
-                            params.setSpeed(speed);
-                            mediaPlayer.setPlaybackParams(params);
-                            mediaPlayer.start();
-                        }
-                        mediaPlayer.start();
-                    }
                     Intent in = new Intent(ACTION_STATS);
                     in.putExtra("resultCode", Activity.RESULT_OK);
                     in.putExtra("msgType", 1);
@@ -616,9 +660,7 @@ public class BBService extends Service {
                     LocalBroadcastManager.getInstance(this).sendBroadcast(in);
                 }
             }
-        } catch (Throwable thr_err) {
-            l("error in SeekAndPlay: " + thr_err.getMessage());
-        }
+
     }
 
     private void RadioStop() {
@@ -745,6 +787,17 @@ public class BBService extends Service {
         l("Volume " + vol * 100.0f + "%");
     }
 
+    float recallVol = 0;
+    public void onVolPause() {
+        if (vol > 0) {
+            recallVol = vol;
+            vol = 0;
+        } else {
+            vol = recallVol;
+        }
+        mediaPlayer.setVolume(vol, vol);
+        l("Volume " + vol * 100.0f + "%");
+    }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         boolean handled = false;
@@ -792,7 +845,7 @@ public class BBService extends Service {
         return true;
     }
 
-    private void setMode(int mode) {
+    public void setMode(int mode) {
         boolean cansetMode = mBurnerBoard.setMode(50);
         //boolean cansetMode = mBurnerBoard.setMode(mode);
         //if (cansetMode == false) {
@@ -801,10 +854,13 @@ public class BBService extends Service {
                 mBoardMode++;
             } else if (mode == 98) {
                 mBoardMode--;
+            } else {
+                mBoardMode = mode;
             }
         //}
         if (mBoardMode > 15)
             mBoardMode = 1;
+        l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
         mBoardVisualization.setMode(mBoardMode);
         voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
     }
