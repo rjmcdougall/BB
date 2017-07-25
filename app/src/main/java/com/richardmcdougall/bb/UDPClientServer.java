@@ -2,6 +2,7 @@ package com.richardmcdougall.bb;
 import java.net.*;
 
 
+import android.content.Intent;
 import android.provider.SyncStateContract;
 import android.util.Log;
 import java.io.*;
@@ -13,6 +14,8 @@ import android.net.*;
 import android.content.SharedPreferences;
 
 import android.net.wifi.p2p.*;
+import android.app.Activity;
+import android.support.v4.content.LocalBroadcastManager;
 
 
 
@@ -24,6 +27,10 @@ public class UDPClientServer {
     private static final int MAX_UDP_DATAGRAM_LEN = 1500;
     BBService mMain;
     public long tSentPackets = 0;
+    private long replyCount = 0;
+    private static final String TAG = "BB.UDPClientServer";
+
+
     /* class Record {
         long
     };
@@ -32,6 +39,21 @@ public class UDPClientServer {
         InetAddress addr;
         ArrayList<>
     }; */
+
+    public void l(String s) {
+
+        Log.v(TAG, s);
+        sendLogMsg(s);
+    }
+
+    private void sendLogMsg(String msg) {
+        Intent in = new Intent(com.richardmcdougall.bb.BBService.ACTION_STATS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("msgType", 4);
+        // Put extras into the intent as usual
+        in.putExtra("logMsg", msg);
+        LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+    }
 
 
     InetAddress serverAddress = null;
@@ -80,17 +102,7 @@ public class UDPClientServer {
         t.start();
     }
 
-    public MyWifiDirect mNotifyClient = null;
 
-    void UpdateServerAddress(String s, MyWifiDirect notifyClient) {
-        try {
-            serverAddress = InetAddress.getByName(s);
-            mNotifyClient = notifyClient;
-        } catch (Throwable e) {
-            serverAddress = null;
-            mNotifyClient= null;
-        }
-    }
 
 
     public static byte[] longToBytes(long l, byte [] result, int offset) {
@@ -111,24 +123,38 @@ public class UDPClientServer {
         return result;
     }
 
-
+    // TODO: Check if try can cause server loop to exit
     void ServerLoop() {
         String lText;
         byte[] lMsg = new byte[MAX_UDP_DATAGRAM_LEN];
         DatagramPacket dp = new DatagramPacket(lMsg, lMsg.length);
         DatagramSocket ds = null;
 
-        mMain.l("Receiver running on IP Address : " + getIPAddress(true));
+        l("Receiver running on IP Address : " + getIPAddress(true));
+
 
         DatagramSocket socket = null;
         try {
-            socket = new DatagramSocket(UDP_SERVER_PORT, InetAddress.getByName("192.168.49.1"));
+            //socket = new DatagramSocket(UDP_SERVER_PORT, InetAddress.getByName("192.168.49.1"));
+            socket = new DatagramSocket(UDP_SERVER_PORT, InetAddress.getByName("0.0.0.0"));
             socket.setSoTimeout(500);
 
             socket.setSoTimeout(0);
             while (true) {
+                if (amServer()) {
+                    replyCount++;
+                    Intent in = new Intent(BBService.ACTION_STATS);
+                    in.putExtra("resultCode", Activity.RESULT_OK);
+                    in.putExtra("msgType", 2);
+                    // Put extras into the intent as usual
+                    in.putExtra("stateReplies", replyCount);
+                    in.putExtra("stateMsgWifi", "Server");
+
+                    // Fire the broadcast with intent packaged
+                    LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+                }
                 socket.receive(dp);
-                if (dp.getLength()>=12 && (dp.getData()[0]=='B' && dp.getData()[1]=='B' && dp.getData()[2]=='C' && dp.getData()[3]=='L')) {
+                if (dp.getLength() >= 12 && (dp.getData()[0] == 'B' && dp.getData()[1] == 'B' && dp.getData()[2] == 'C' && dp.getData()[3] == 'L')) {
                     // send the client's timestamp back along with ours so it can figure out how to adjust it's clock
                     long clientTimestamp = bytesToLong(dp.getData(), 4);
                     long curTimeStamp = mMain.GetCurrentClock();
@@ -142,17 +168,17 @@ public class UDPClientServer {
                     rp[3] = 'V';
                     longToBytes(clientTimestamp, rp, 4);
                     longToBytes(curTimeStamp, rp, 12);
-                    rp[20] = (byte)mMain.currentRadioStream;   // tell clients the current radio stream to play
-                    rp[21] = (byte)boardMode; // tell clients which graphics mode to use
-                    rp[22] = (byte)boardVol; // tell clients audio volume
+                    rp[20] = (byte) mMain.currentRadioStream;   // tell clients the current radio stream to play
+                    rp[21] = (byte) boardMode; // tell clients which graphics mode to use
+                    rp[22] = (byte) boardVol; // tell clients audio volume
 
                     DatagramPacket sendPacket = new DatagramPacket(rp, rp.length, dp.getAddress(), UDP_SERVER_PORT);
                     socket.send(sendPacket);
                     tSentPackets++;
 
-                    System.out.println("UDP packet received from " + dp.getAddress().toString() + " drift=" + (clientTimestamp-curTimeStamp));
+                    l("UDP packet received from " + dp.getAddress().toString() + " drift=" + (clientTimestamp - curTimeStamp));
                 } else {
-                    System.out.println("*malformed* UDP packet received from " + dp.getAddress().toString());
+                    l("*malformed* UDP packet received from " + dp.getAddress().toString());
                 }
 
             }
@@ -165,7 +191,7 @@ public class UDPClientServer {
             if (ds != null) {
                 ds.close();
             }
-            if (socket!=null)
+            if (socket != null)
                 socket.close();
         }
     }
@@ -187,7 +213,11 @@ public class UDPClientServer {
     }
 
     InetAddress GetServerAddress() {
-        return serverAddress;
+        try {
+            return InetAddress.getByName("10.10.10.200");
+        } catch (Exception e){
+            return null;
+        }
     }
 
 
@@ -221,26 +251,12 @@ public class UDPClientServer {
 
 
     void Start() {
+        l("Staring");
         SharedPreferences prefs = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE);
         long drift = prefs.getLong("drift", 0);
         long rtt = prefs.getLong("rtt", 100);
         mMain.SetServerClockOffset(drift, rtt);
 
-
-        while (true) {
-            try {
-                while (MyWifiDirect.isP2PIpAddressAvailable() == false) {
-                    Thread.sleep(1000);
-                }
-            } catch (Throwable e) {
-
-            }
-            RunThread();
-        }
-
-    }
-
-    void RunThread() {
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new   StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -248,37 +264,59 @@ public class UDPClientServer {
         SharedPreferences.Editor editor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
 
         DatagramSocket socket = null;
+
+        DatagramPacket recvPacket = null;
+
         try {
 
             byte[] lMsg = new byte[MAX_UDP_DATAGRAM_LEN];
-            DatagramPacket recvPacket = new DatagramPacket(lMsg, lMsg.length);
+            recvPacket = new DatagramPacket(lMsg, lMsg.length);
             // InetAddress.getByName("0.0.0.0")
             socket = new DatagramSocket(UDP_SERVER_PORT, InetAddress.getByName("0.0.0.0"));
             socket.setSoTimeout(500);
+        } catch (Throwable e) {
 
-            Sample lastSample = null;
-            while (true) {
-                if (MyWifiDirect.amServer()==false) {
+            //if (mMain.mWifi.state == MyWifiDirect.StateType.STATE_TALKING_TO_SERVER)
+            //    mMain.mWifi.SetState(MyWifiDirect.StateType.STATE_RESET, "Error: " + e.getMessage());
+
+            if (socket != null) {
+                socket.close();
+            }
+            l("Client loop crashed");
+
+        }
+
+        Sample lastSample = null;
+        while (true) {
+
+            if (amServer() == false) {
+                try {
+
+                    l("Client loop");
 
                     InetAddress addr = GetServerAddress();
                     if (addr != null) {
 
 
                         byte[] d = new byte[12];
-                        d[0]='B';
-                        d[1]='B';
-                        d[2]='C';
-                        d[3]='L';
+                        d[0] = 'B';
+                        d[1] = 'B';
+                        d[2] = 'C';
+                        d[3] = 'L';
                         longToBytes(mMain.GetCurrentClock(), d, 4);
                         DatagramPacket dp = new DatagramPacket(d, d.length, addr, UDP_SERVER_PORT);
 
+                        l("UDP send ");
                         socket.send(dp);
-                        try {
+                        l("Sent from " + getIPAddress(true) + " to " + addr);
+                            l("UDP receive ");
                             socket.receive(recvPacket);
+                            l("UDP receive done ");
 
-                            if (recvPacket.getLength()>=21) {
+                            if (recvPacket.getLength() >= 21) {
+                                l("UDP packet received from " + recvPacket.getAddress().toString());
                                 byte[] b = recvPacket.getData();
-                                if (b[0]=='B' && b[1]=='B' && b[2]=='S' && b[3]=='V') {
+                                if (b[0] == 'B' && b[1] == 'B' && b[2] == 'S' && b[3] == 'V') {
                                     long myTimeStamp = bytesToLong(b, 4);
                                     long svTimeStamp = bytesToLong(b, 12);
                                     long curTime = mMain.GetCurrentClock();
@@ -288,7 +326,7 @@ public class UDPClientServer {
                                     int boardMode = (int) b[21];
                                     int boardVol = (int) b[22];
 
-                                    if (serverStreamIndex!=mMain.currentRadioStream) {
+                                    if (serverStreamIndex != mMain.currentRadioStream) {
                                         mMain.SetRadioStream(serverStreamIndex);
                                     }
 
@@ -304,29 +342,38 @@ public class UDPClientServer {
 
                                     if (roundTripTime > 200) {      // probably we are a packet behind, try to read an extra packet
                                         socket.receive(recvPacket);
-                                    }
-                                    else if (roundTripTime<40) {
+                                    } else if (roundTripTime < 40) {
                                         if (svTimeStamp < myTimeStamp) {
                                             adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
                                         } else
                                             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
-                                        //mMain.l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+                                        l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
                                         AddSample(adjDrift, roundTripTime);
 
-                                        Sample s=BestSample();
-                                        if (mNotifyClient!=null) {
-                                            mNotifyClient.UdpReplySeen();
-                                        }
+                                        Sample s = BestSample();
 
-                                        if (lastSample==null || !s.equals(lastSample)) {
+                                        replyCount++;
+                                        Intent in = new Intent(BBService.ACTION_STATS);
+                                        in.putExtra("resultCode", Activity.RESULT_OK);
+                                        in.putExtra("msgType", 2);
+                                        // Put extras into the intent as usual
+                                        in.putExtra("stateReplies", replyCount);
+
+                                        in.putExtra("stateMsgWifi", "Client");
+                                        //mActivity.setStateMsgConn("Connected");
+
+                                        // Fire the broadcast with intent packaged
+                                        LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+
+                                        if (lastSample == null || !s.equals(lastSample)) {
                                             editor.putLong("drift", s.drift);
                                             editor.putLong("rtt", s.roundTripTime);
                                             editor.commit();
                                         }
 
-                                        System.out.println("Drift=" + s.drift + " RTT=" + s.roundTripTime);
+                                        l("Drift=" + s.drift + " RTT=" + s.roundTripTime);
 
 
                                         mMain.SetServerClockOffset(s.drift, s.roundTripTime);
@@ -334,32 +381,38 @@ public class UDPClientServer {
                                 }
                             }
 
-                        } catch (SocketTimeoutException e) {
-                            System.out.println("receive timeout");
-                        }
 
-                        //mMain.l("Sent from " + getIPAddress(true) + " to " + saddr);
                     }
-                } else {
-                    if (!MyWifiDirect.isP2PIpAddressAvailable()) {
-                        System.out.println("Server IP not initialized yet");
-                    }
-                    else {
-                         socket.close();
-                        socket = null;
-                        ServerLoop();
-                    }
+
+                } catch(Throwable e) {
+                    l("Client UDP failed");
                 }
-                Thread.sleep(500);
-            }
-        } catch (Throwable e) {
-            if (mMain.mWifi.state==MyWifiDirect.StateType.STATE_TALKING_TO_SERVER)
-                mMain.mWifi.SetState(MyWifiDirect.StateType.STATE_RESET, "Error: " + e.getMessage());
-
-            if (socket!=null)
+            } else{
+                //if (!MyWifiDirect.isP2PIpAddressAvailable()) {
+                //    System.out.println("Server IP not initialized yet");
+                // }
+                //else {
                 socket.close();
+                socket = null;
+                l("Server loop");
+                ServerLoop();
+                //}
+            }
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+            }
+        }
+
+    }
 
 
+    public static boolean amServer() {
+        String addr = getIPAddress(true);
+        if (addr.equals("10.10.10.200")) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

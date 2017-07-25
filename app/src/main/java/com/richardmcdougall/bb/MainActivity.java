@@ -344,13 +344,13 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        becomeHomeActivity(this.getApplicationContext());
+        if (kEmbeddedMode == true) {
+            becomeHomeActivity(this.getApplicationContext());
+        }
 
         //UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         //static PendingIntent mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
         //mUsbManager.requestPermission(accessory, mPermissionIntent);
-
-
 
 
         // Connect the remote control

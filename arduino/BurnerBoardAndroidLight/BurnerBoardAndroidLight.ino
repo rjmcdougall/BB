@@ -101,18 +101,23 @@ CmdMessenger cmdMessengerCons = CmdMessenger(Serial1);
 
 boolean batteryCritical = false;
 boolean batteryLow = false;
-int32_t batteryLevel = -1;
-
+int  batteryLevel = -1;
+int batteryCapacityRemaining = -1;
+int batteryCapacityMax = -1;
+int batteryVoltage = -1;
+int batteryCurrent = -1;
 
 void setBoardName(String name) {
-  EEPROM.put(0, name);
+  EEPROM.put(0, &name);
 }
 
+char * tmpBoardName = "Biscuit";
 
 const char * getBoardName() {
   String name;
-  EEPROM.get(0, name);
-  return name.c_str();
+  //EEPROM.get(0, &name);
+  //return name.c_str();
+  return (tmpBoardName);
 } 
 
 
@@ -273,7 +278,13 @@ void OnUpdate() {
     fillScreen(rgbTo24BitColor(255,0,0));
     fillSideLights(rgbTo24BitColor(255,0,0));
   }
+  // skip if charging
+  if (0 && batteryCurrent < 32000) {
+    return;
+  }
+  
   if (batteryLow) {
+    clearScreen();
     drawBattery();
   }
   strip->show();
@@ -284,11 +295,16 @@ void OnShowBattery() {
   clearScreen();
   drawBattery();
   strip->show();
+  delay(3000);
+  batteryStats();
 }
 
 void OnGetBatteryLevel() {
   cmdMessenger.sendCmdStart(BBGetBatteryLevel);
   cmdMessenger.sendCmdArg(batteryLevel);
+  cmdMessenger.sendCmdArg(batteryCapacityRemaining);
+  cmdMessenger.sendCmdArg(batteryCapacityMax);
+  cmdMessenger.sendCmdArg(batteryVoltage);
   cmdMessenger.sendCmdEnd();
 }
 
@@ -657,42 +673,134 @@ void fillScreen(uint32_t color)
   }
 }
 
+void batteryStats() {
+  char batt[16];
+  
+  clearScreen();
+  drawBattery();
+  strip->show();
+  delay(5000);
 
+  clearScreen();
+  sprintf(batt, "%d v", batteryVoltage);
+  strip->print(batt, 12, 1, 1);
+  strip->show();
+  delay(5000);
+
+  clearScreen();
+  sprintf(batt, "%d C", batteryCapacityRemaining);
+  strip->print(batt, 12, 1, 1);
+  strip->show();
+  delay(5000);
+
+  clearScreen();
+  sprintf(batt, "%d F", batteryCapacityMax);
+  strip->print(batt, 12, 1, 1);
+  strip->show();
+  delay(5000);
+
+  clearScreen();
+  sprintf(batt, "%d A", batteryCurrent);
+  strip->print(batt, 12, 1, 1);
+  strip->show();
+  delay(5000);
+  
+}
 
 #include <Wire.h>  // Wire library for communicating over I2C
 #define BQ34Z100 0x55
 
-int getBattery() {
-
-  int level = -1;
-
-  Wire.beginTransmission(BQ34Z100);
-  Wire.write(0x02);
-  Wire.endTransmission();
-  
-  Wire.requestFrom(BQ34Z100,1);
-  
-  for (int i = 0; level < 0 && i < 100; i++) {
-    if (Wire.available() > 0) {
-      level = Wire.read();
-    }
+unsigned int nonBlockingRead() {
+  for (int i = 0; (i < 3) &&  (!Wire.available()); i++) {
+    delay(1);
   }
-
-  //Serial.print("Battery = ");
-  //Serial.println(level);
-
- 
-  if (level > 100) {
-    level = 100;
+  if (Wire.available()) {
+    return(Wire.read());
+  } else {
+    return (-1);
   }
-
-  if (level >= 0) {
-    batteryLevel = level;
-  }
-
-  return(level);
 }
 
+int getBattery8(int reg) {
+  Wire.beginTransmission(BQ34Z100);
+  Wire.write(reg);
+  Wire.endTransmission();
+  Wire.requestFrom(BQ34Z100,1);
+  return (nonBlockingRead());
+}
+
+int getBattery16(int register1, int register2) {
+  unsigned int low;
+  unsigned int high;
+  unsigned int high1;
+  int value = -1;
+  
+  if ((value = getBattery8(register1)) != -1) {
+    low = value;
+    if ((value = getBattery8(register2)) != -1) {
+      high1 = value << 8;
+      high1 = high1 + low;
+      return(high1);
+    }
+  }
+  return(-1);
+}
+
+int getBatteryAll() {
+
+  int value;
+
+  // Capacity in %age
+  value = getBattery8(0x02);
+  if (value > 100) {
+    value = 100;
+  }
+  if (value >= 0) {
+    batteryLevel = value;
+  }
+
+  // Capacity in mAH
+  value = getBattery16(0x04, 0x05);
+  if (value != -1) {
+    batteryCapacityRemaining = value;
+  }
+  
+  // Learned Capacity 
+  value = getBattery16(0x06, 0x07);
+  if (value != -1) {
+    batteryCapacityMax = value;
+  }
+
+  // Voltage
+  value = getBattery16(0x08, 0x09);
+  if (value != -1) {
+    batteryVoltage = value;
+  }
+
+  // Current
+  value = getBattery16(0xa, 0xb);
+  if (value != -1) {
+    batteryCurrent = value;
+  }
+  
+  return(batteryLevel);
+}
+
+int getBatteryLevel() {
+
+  int value;
+
+  // Capacity in %age
+  value = getBattery8(0x02);
+  if (value > 100) {
+    value = 100;
+  }
+  if (value >= 0) {
+    batteryLevel = value;
+  }
+  
+  return(batteryLevel);
+}
 
 
 void drawBattery() {
@@ -701,7 +809,7 @@ void drawBattery() {
   uint8_t row;
   int level;
   
-  level = getBattery() / 3.571; // convert 100 to max of 28
+  level = getBatteryLevel() / 3.571; // convert 100 to max of 28
 
   row = 20;
 
@@ -764,7 +872,8 @@ void drawBattery() {
 void setup() {
 
   uint16_t i;
-  Wire.begin();
+  char batt[16];
+  setBoardName("Biscuit");
 
   // Console for debugging
   Serial1.begin(115200);
@@ -779,16 +888,21 @@ void setup() {
   clearScreen();
   strip->show();
   
-  strip->print((char *)getBoardName(), 15, 1, 1);
+  fillScreen(65355);
+  //strip->print((char *)getBoardName(), 15, 1, 1);
   strip->show();
-  mydelay(1000);
+  fillScreen(65536);
+  delay(3000);
 
-  clearScreen();
-  drawBattery();
-  strip->show();
-  mydelay(1000);
+  Wire.begin();
 
-  clearScreen();
+  getBatteryAll();
+
+  batteryStats();
+
+  delay(3000);
+
+  //clearScreen();
 
   BBattachCommandCallbacks();
   cmdMessenger.sendCmd(BBacknowledge,"BB Ready\n");
@@ -854,7 +968,7 @@ void loop() {
   // Every 10 seconds check batter level from battery computer
   if ((ts - lastBatteryCheck) > 10000000) {
     lastBatteryCheck = ts;
-    batteryLevel = getBattery();
+    batteryLevel = getBatteryLevel();
     if (batteryLevel >= 0) {
       // valid reading
       if (batteryLevel <= 25) {
@@ -868,6 +982,7 @@ void loop() {
         batteryCritical = false;
       }
     }
+
     OnGetBatteryLevel();
 
   }
@@ -875,9 +990,20 @@ void loop() {
   // Uh oh, battery is almost dead
   if (batteryCritical) {
       fillScreen(rgbTo24BitColor(255,0,0));
+      drawBattery();
       strip->show();
   }
 
+  // display battery if charging, currrent > 1000mah (10 divider)
+  if (0 && batteryCurrent < 32000) {
+    clearScreen();
+    drawBattery();
+    strip->show();
+    delay(2000);
+    clearScreen();
+    strip->show();
+    delay(2000);
+  }
   cmdMessenger.feedinSerialData();
   //Serial1.print("cmdMessenger.feedinSerialData:");
   //Serial1.println(micros() - ts);

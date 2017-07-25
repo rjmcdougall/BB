@@ -62,7 +62,6 @@ public class BBService extends Service {
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
     private int userTimeOffset = 0;
-    public MyWifiDirect mWifi = null;
     public UDPClientServer udpClientServer = null;
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
@@ -135,7 +134,7 @@ public class BBService extends Service {
                     System.out.println("Where do you want to go, " + boardId + "?");
                     if (boardId != null)
                         whosBoard = BoardNames.get(boardId);
-                    voice.setSpeechRate((float) 8.7);
+                    voice.setSpeechRate((float) 1.1);
                     voice.speak("" + whosBoard + "?",
                             TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 } else if (status == TextToSpeech.ERROR) {
@@ -547,9 +546,8 @@ public class BBService extends Service {
         // RMC put this back
         DownloadMusic2();
 
-        mWifi = new MyWifiDirect(this, udpClientServer);
 
-        //MediaSession ms = new MediaSession(mContext);
+        // MediaSession ms = new MediaSession(mContext);
 
         bluetoothModeInit();
 
@@ -699,19 +697,19 @@ public class BBService extends Service {
             bluetoothModeDisable();
             try {
                 if (mediaPlayer != null) {
-                    //synchronized (mediaPlayer) {
-                    lastSeekOffset = 0;
-                    FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
-                    l("playing file " + GetRadioStreamFile(index));
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(fds.getFD());
-                    mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
-                    fds.close();
+                    synchronized (mediaPlayer) {
+                        lastSeekOffset = 0;
+                        FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
+                        l("playing file " + GetRadioStreamFile(index));
+                        mediaPlayer.reset();
+                        mediaPlayer.setDataSource(fds.getFD());
+                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
+                        fds.close();
 
-                    mediaPlayer.setLooping(true);
-                    mediaPlayer.setVolume(vol, vol);
-                    mediaPlayer.prepare();
-                    //}
+                        mediaPlayer.setLooping(true);
+                        mediaPlayer.setVolume(vol, vol);
+                        mediaPlayer.prepare();
+                    }
                 }
                 SeekAndPlay();
             } catch (Throwable err) {
@@ -882,8 +880,6 @@ public class BBService extends Service {
             //modeStatus.setText(String.format("%d", mBoardMode));
         }
     }
-
-
 
 
 
