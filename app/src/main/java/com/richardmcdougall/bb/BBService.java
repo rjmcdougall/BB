@@ -239,7 +239,8 @@ public class BBService extends Service {
     private BurnerBoard mBurnerBoard;
 
     private void startLights() {
-        mBurnerBoard = new BurnerBoard(this, mContext);
+        //mBurnerBoard = new BurnerBoardClassic(this, mContext);
+        mBurnerBoard = new BurnerBoardAzul(this, mContext);
         if (mBurnerBoard != null) {
             mBurnerBoard.attach(new BoardCallback());
         }

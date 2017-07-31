@@ -25,8 +25,8 @@ public class BoardView extends View {
     private static final String TAG = "BoardView";
     private byte[] mBoardScreen;
     private Rect mRect = new Rect();
-    private int mBoardWidth = 10;
-    private int mBoardHeight = 70;
+    private int mBoardWidth = 46;
+    private int mBoardHeight = 118;
     Bitmap mCanvasBitmap;
     Canvas mCanvas;
 
@@ -224,10 +224,10 @@ public class BoardView extends View {
                     int r = (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] & 0xFF);
                     int g = (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF);
                     int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
-                    if (isBoardPixel(x, y)) {
+                    //if (isBoardPixel(x, y)) {
                         paint.setColor(Color.argb(255, r, g, b));
-                        mCanvas.drawCircle(35 + y * 14, 20 + x * 16, 3, paint);
-                    }
+                        mCanvas.drawCircle(15 + y * 5, 5 + x * 5, 2, paint);
+                    //}
                     //System.out.println("setcolor " + mBoardScreen[(x * mBoardHeight + y) * 3]);
                 }
             }
