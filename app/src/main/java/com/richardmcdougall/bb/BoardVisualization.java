@@ -214,6 +214,11 @@ public class BoardVisualization {
                     modeAudioTile();
                     break;
 
+                case 15:
+                    sleepTime = 1000;
+                    modeTestColors();
+                    break;
+
                 default:
                     break;
             }
@@ -307,61 +312,33 @@ public class BoardVisualization {
     private void modeTestColors() {
         switch (testColorState) {
             case 0:
-                mBurnerBoard.fillScreen(255, 0, 0);
+                mBurnerBoard.fillScreen(40, 0, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
                 break;
             case 1:
-                mBurnerBoard.fillScreen(0, 255, 0);
+                mBurnerBoard.fillScreen(0, 40, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
                 break;
             case 2:
-                mBurnerBoard.fillScreen(0, 0, 255);
+                mBurnerBoard.fillScreen(0, 0, 40);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
                 break;
+
             case 3:
-                mBurnerBoard.fillScreen(10, 0, 0);
+                mBurnerBoard.fillScreen(10, 10, 10);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
-                break;
-            case 4:
-                mBurnerBoard.fillScreen(0, 10, 0);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
-                testColorState++;
-                break;
-            case 5:
-                mBurnerBoard.fillScreen(0, 0, 10);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
-                testColorState++;
-                break;
-            case 6:
-                mBurnerBoard.fillScreen(0, 0, 10);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
-                testColorState++;
-                break;
-            case 7:
-                mBurnerBoard.fillScreen(255, 128, 0);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
-                testColorState++;
-                break;
-            case 8:
-                mBurnerBoard.fillScreen(204, 0, 204);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
-                testColorState = 0;
                 break;
 
             default:
+                testColorState = 0;
                 break;
         }
 
@@ -432,20 +409,19 @@ public class BoardVisualization {
         sideLight = mBoardSideLights - 1;
 
 
-        //for (x = 0; x < mBoardWidth; x++)
-        for (x = 0; x < 3; x++) {
+        for (x = 0; x < mBoardWidth / 3; x++) {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixEsperanto:
                 case kMatrixBurnerColor:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : wheel(wheel_color);
-                    mBurnerBoard.setPixel(x, y, color);
+                    mBurnerBoard.setPixel(23, y, color);
                     break;
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
-                    mBurnerBoard.setPixel(x, y, color);
+                    mBurnerBoard.setPixel(3 * x, y, color);
                     break;
                 case kMatrixFire:
                     color = mRandom.nextInt(2) == 0 ?
@@ -454,17 +430,17 @@ public class BoardVisualization {
                                     mFireColors[fireColor][0],
                                     mFireColors[fireColor][1],
                                     mFireColors[fireColor][2]);
-                    mBurnerBoard.setPixel(x, y, color);
+                    mBurnerBoard.setPixel(3 * x, y, color);
                     break;
                 case kMatrixGoogle:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : googleColors[googleColor / 8];
-                    mBurnerBoard.setPixel(x, y, color);
+                    mBurnerBoard.setPixel(3 * x, y, color);
                     break;
                 case kMatrixIrukandji:
                     color = wheel(wheel_color);
                     if (x > 0 || x < mBoardWidth) {
-                        mBurnerBoard.setPixel(x, y, BurnerBoard.getRGB(0, 0, 0));
+                        mBurnerBoard.setPixel(3 * x, y, BurnerBoard.getRGB(0, 0, 0));
                     }
                     break;
                 case kMatrixFireFull:
@@ -472,7 +448,7 @@ public class BoardVisualization {
                             mFireColors[fireColor][0],
                             mFireColors[fireColor][1],
                             mFireColors[fireColor][2]);
-                    mBurnerBoard.setPixel(x, y, color);
+                    mBurnerBoard.setPixel(3 * x, y, color);
                     break;
 
 
@@ -480,12 +456,12 @@ public class BoardVisualization {
                     color = 0;
             }
             // Ripple down the side lights with the same color as the edges
-            if (x == 0) {
-                mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoardClassic.kLeftSightlight, color);
-            }
-            if (x == 9) {
-                mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoardClassic.kRightSidelight, color);
-            }
+            //if (x == 0) {
+            //    mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoardClassic.kLeftSightlight, color);
+            //}
+            //if (x == 9) {
+        //   mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoardClassic.kRightSidelight, color);
+            //}
             fireColor += 1;
             if (fireColor > 180) {
                 fireColor = 40;

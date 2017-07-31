@@ -66,7 +66,7 @@ public class BBService extends Service {
     public String boardId;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int mBoardMode = 1; // Mode of the Ardunio/LEDs
+    private int mBoardMode = 5; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
 
     private int statePeers = 0;

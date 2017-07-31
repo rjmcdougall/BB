@@ -285,21 +285,13 @@ public class BurnerBoardAzul extends BurnerBoard {
     // original = ((encoded / 255) ^ gamma) * 255
 
     // TODO: make faster by using ints
-    private int pixelColorCorrectionRed(int red) {
-        // convert signed byte to double
-        return red;
-    }
+    private int pixelColorCorrectionRed(int red) { return red ; }
 
     private int pixelColorCorrectionGreen(int green) {
-        return (green * 450) / 1000;
+        return green;
     }
 
-    private int pixelColorCorrectionBlue(int blue) {
-        // convert signed byte to double
-        double correctedBlue = blue & 0xff;
-        correctedBlue = correctedBlue * .2;
-        return (blue * 350) / 1000;
-    }
+    private int pixelColorCorrectionBlue(int blue) { return blue; }
 
     public void clearPixels() {
         Arrays.fill(mBoardScreen, 0);
@@ -329,9 +321,9 @@ public class BurnerBoardAzul extends BurnerBoard {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s]* 3;) {
-                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset][PIXEL_RED]];
-                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset][PIXEL_GREEN]];
-                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset][PIXEL_BLUE]];
+                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset]];
+                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset]];
+                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset]];
             }
             setStrip(s, stripPixels);
             // Send to board
@@ -417,14 +409,15 @@ public class BurnerBoardAzul extends BurnerBoard {
         int[] dimPixels = new int[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 255;
+                    (mDimmerLevel * pixels[pixel]) / 512;  // Half Brightness
         }
         // Do color correction on burner board display pixels
+        // Hack! Change to BRG since Ardunio is in the wrong mode
         byte [] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+            newPixels[pixel + 1] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
+            newPixels[pixel + 2] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
+            newPixels[pixel] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
         }
 
         //newPixels[0]=2;
@@ -477,24 +470,24 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
     }
 
-    static int pixelMap2Board(int s, int offset, int rgb)
+    static int pixelMap2Board(int s, int offset)
     {
-        return pixelMap2BoardTable[s][offset][rgb];
+        return pixelMap2BoardTable[s][offset];
     }
 
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset][PIXEL_RED] =
-                pixel2Offset(x, y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset][PIXEL_GREEN] =
-                pixel2Offset(x, y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset][PIXEL_BLUE] =
-                pixel2Offset(x, y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] =
+                pixel2Offset(mBoardWidth - x, mBoardHeight - y, PIXEL_RED);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] =
+                pixel2Offset(mBoardWidth - x, mBoardHeight - y, PIXEL_GREEN);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] =
+                pixel2Offset(mBoardWidth - x, mBoardHeight - y, PIXEL_BLUE);
     }
 
     // Two primary mapping functions
     static int kStrips = 8;
     static int [] pixelsPerStrip = new int[8];
-    static int [][][] pixelMap2BoardTable = new int[8][4096][3];
+    static int [][] pixelMap2BoardTable = new int[8][4096];
 
     private void initpixelMap2Board() {
         int x, y;
@@ -516,22 +509,22 @@ public class BurnerBoardAzul extends BurnerBoard {
         for (y = 0; y < boardMap.length; y++) {
             if (boardMap[y].stripDirection == 1) {
                 // Strip has x1 ... x2
-                for (x = boardMap[y].startX; x < boardMap[y].endX + 1; x++) {
+                for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
                     int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
-                    pixelRemap(x, y, stripOffset);
+                    pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
                 // Strip has x2 ... x1 (reverse order)
-                for (x = boardMap[y].endX; x < boardMap[y].startX + 1; x++) {
-                    int stripOffset = boardMap[y].stripOffset + x - boardMap[y].endX;
-                    pixelRemap(x, y, stripOffset);
+                for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
+                    int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
+                    pixelRemap(x, y, stripOffset * 3);
                 }
             }
         }
         for (int s = 0; s < kStrips; s++) {
             // Walk through all the pixels in the strip
-            for (int offset = 0; offset < pixelsPerStrip[s]* 3; offset += 3) {
-                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset][PIXEL_RED]);
+            for (int offset = 0; offset < pixelsPerStrip[s]* 3; offset++) {
+                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
             }
         }
     }
