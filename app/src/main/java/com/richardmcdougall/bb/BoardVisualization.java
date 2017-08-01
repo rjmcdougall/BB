@@ -55,6 +55,7 @@ public class BoardVisualization {
     private int[][] mFireColors = new int[256][3];
     private int[] mBoardScreen;
     private int[] mFireScreen;
+    private int mFireHeight;
 
     int mBoardMode;
     Context mContext;
@@ -312,26 +313,26 @@ public class BoardVisualization {
     private void modeTestColors() {
         switch (testColorState) {
             case 0:
-                mBurnerBoard.fillScreen(40, 0, 0);
+                mBurnerBoard.fillScreen(128, 0, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
                 break;
             case 1:
-                mBurnerBoard.fillScreen(0, 40, 0);
+                mBurnerBoard.fillScreen(0, 128, 0);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
                 break;
             case 2:
-                mBurnerBoard.fillScreen(0, 0, 40);
+                mBurnerBoard.fillScreen(0, 0, 128);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
                 break;
 
             case 3:
-                mBurnerBoard.fillScreen(10, 10, 10);
+                mBurnerBoard.fillScreen(64, 64, 64);
                 mBurnerBoard.setOtherlightsAutomatically();
                 mBurnerBoard.flush();
                 testColorState++;
@@ -416,7 +417,7 @@ public class BoardVisualization {
                 case kMatrixBurnerColor:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : wheel(wheel_color);
-                    mBurnerBoard.setPixel(23, y, color);
+                    mBurnerBoard.setPixel(3 * x, y, color);
                     break;
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
@@ -1165,7 +1166,9 @@ public class BoardVisualization {
 
     private void initFire() {
 
-        mFireScreen = new int[mBoardWidth * 2 * (mBoardHeight + 6)];
+        mFireHeight = mBoardHeight;
+
+        mFireScreen = new int[mBoardWidth * 2 * (mFireHeight + 6)];
 
         for (int i = 0; i < 32; ++i) {
             /* black to blue, 32 values*/
@@ -1256,7 +1259,7 @@ public class BoardVisualization {
     private static final int kModeFireTheMan = 3;
 
     public void modeFire(int mode) {
-        int j = mBoardWidth * 2 * (mBoardHeight + 1);
+        int j = mBoardWidth * 2 * (mFireHeight + 1);
         int random;
         for (int i = 0; i < (mBoardWidth * 2); i++) {
             random = mRandom.nextInt(16);
@@ -1275,7 +1278,7 @@ public class BoardVisualization {
 		/* move fire upwards, start at bottom*/
         int temp;
         int[] lastTemps = new int[mBoardWidth * 2];
-        for (int index = 0; index < mBoardHeight + 1; index++) {
+        for (int index = 0; index < mFireHeight + 1; index++) {
             for (int i = 0; i < mBoardWidth * 2; i++) {
                 if (i == 0) {
 					/* at the left border*/
@@ -1303,13 +1306,13 @@ public class BoardVisualization {
 
                 int dofs = j - mBoardWidth * 2 + i;
                 mFireScreen[dofs] = temp;
-                if (dofs < (mBoardWidth * 2 * mBoardHeight)) {
+                if (dofs < (mBoardWidth * 2 * mFireHeight)) {
                     int x = dofs % (mBoardWidth * 2);
                     int y = java.lang.Math.min(java.lang.Math.max(0,
                             (dofs / (mBoardWidth * 2)) + 1), mBoardHeight - 1);
                     // Bigger number leaves more flame tails
                     // BB Classic was 55
-                    if (lastTemps[i] > 50) {
+                    if (true || lastTemps[i] > 50) {
                         //mBurnerBoard.setPixel(x / 2, y * 2,
                         //int templ0 = (int)((float)temp * (float)150 / (float)255);
                         //temp100 = java.lang.Math.min(99, temp100);
@@ -1437,7 +1440,7 @@ public class BoardVisualization {
         for (row = 0; row < the_man.length; row++) {
             for (x = 0; x < mBoardWidth; x++) {
                 if ((the_man[row] & (1 << x)) > 0) {
-                    mBurnerBoard.setPixel(x, row, color);
+                    mBurnerBoard.setPixel(x + 15, row, color);
                 }
             }
         }
