@@ -181,7 +181,7 @@ public class BurnerBoard {
         stopIoManager();
 
         try {
-            Thread.sleep(1000);
+            Thread.sleep(100);
         } catch (Exception e) {
 
         }

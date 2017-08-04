@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private static final String TAG = "BB.MainActivity";
 
-    public static final boolean kEmbeddedMode = false;
+    public static final boolean kEmbeddedMode = true;
 
     boolean imRunning = false;
 

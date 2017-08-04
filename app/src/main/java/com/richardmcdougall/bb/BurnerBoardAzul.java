@@ -276,6 +276,31 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
     }
 
+    // Gamma correcttion for LEDs
+    static int  gamma8[] = {
+        0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
+                1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
+                2,  3,  3,  3,  3,  3,  3,  3,  4,  4,  4,  4,  4,  5,  5,  5,
+                5,  6,  6,  6,  6,  7,  7,  7,  7,  8,  8,  8,  9,  9,  9, 10,
+                10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+                17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+                25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+                37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+                51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+                69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+                90, 92, 93, 95, 96, 98, 99,101,102,104,105,107,109,110,112,114,
+                115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
+                144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
+                177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
+                215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
+
+
+    static int gammaCorrect(int value) {
+        //return ((value / 255) ^ (1 / gamma)) * 255;
+        return gamma8[value];
+    }
+
     public int [] getPixelBuffer() {
         return mBoardScreen;
     }
@@ -285,13 +310,18 @@ public class BurnerBoardAzul extends BurnerBoard {
     // original = ((encoded / 255) ^ gamma) * 255
 
     // TODO: make faster by using ints
-    private int pixelColorCorrectionRed(int red) { return red ; }
-
-    private int pixelColorCorrectionGreen(int green) {
-        return green;
+    private int pixelColorCorrectionRed(int red) {
+        return gammaCorrect(red) ;
     }
 
-    private int pixelColorCorrectionBlue(int blue) { return blue; }
+
+    private int pixelColorCorrectionGreen(int green) {
+        return gammaCorrect(green);
+    }
+
+    private int pixelColorCorrectionBlue(int blue) {
+        return gammaCorrect(blue);
+    }
 
     public void clearPixels() {
         Arrays.fill(mBoardScreen, 0);
@@ -321,9 +351,9 @@ public class BurnerBoardAzul extends BurnerBoard {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s]* 3;) {
-                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset]];
-                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset]];
-                stripPixels[offset++] = mBoardScreen[pixelMap2BoardTable[s][offset]];
+                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels);
             // Send to board
@@ -409,20 +439,20 @@ public class BurnerBoardAzul extends BurnerBoard {
         int[] dimPixels = new int[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 512;  // Half Brightness
-        }
-        // Do color correction on burner board display pixels
-        // Hack! Change to BRG since Ardunio is in the wrong mode
-        byte [] newPixels = new byte[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+                    (mDimmerLevel * pixels[pixel]) / 384;  // Half Brightness
         }
 
-        //newPixels[0]=2;
-        //newPixels[1]=2;
-        //newPixels[2]=40;
+        // Do color correction on burner board display pixels
+        byte [] newPixels = new byte[pixels.length];
+        for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
+            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
+            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+        }
+
+        //newPixels[30]=(byte)128;
+        //newPixels[31]=(byte)128;
+        //newPixels[32]=(byte)128;
         //newPixels[3]=2;
         //newPixels[4]=40;
         //newPixels[5]=2;
@@ -501,7 +531,7 @@ public class BurnerBoardAzul extends BurnerBoard {
                         boardMap[i].startX) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
-                    l("boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
+                    //l("boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
@@ -529,7 +559,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
     }
 
-    static TranslationMap[] boardMap = {
+    static TranslationMap[] boardMapOrig = {
 //Y,StartX,End X,Direction,Strip #,Offset in strip
             new TranslationMap(0,23,22,-1,8,452),
             new TranslationMap(1,20,25,1,8,446),
@@ -650,8 +680,130 @@ public class BurnerBoardAzul extends BurnerBoard {
             new TranslationMap(116,14,31,1,1,518),
             new TranslationMap(117,26,19,-1,1,536)
     };
-}
 
+
+    static TranslationMap[] boardMap = {
+//Y,StartX,End X,Direction,Strip #,Offset in strip
+            new TranslationMap(0,23,22,-1,8,452),
+            new TranslationMap(1,20,25,1,8,446),
+            new TranslationMap(2,27,18,-1,8,436),
+            new TranslationMap(3,16,29,1,8,422),
+            new TranslationMap(4,30,15,-1,8,406),
+            new TranslationMap(5,14,31,1,8,388),
+            new TranslationMap(6,33,12,-1,8,366),
+            new TranslationMap(7,11,34,1,8,342),
+            new TranslationMap(8,31,14,-1,8,324),
+            new TranslationMap(9,14,31,1,8,306),
+            new TranslationMap(10,32,13,-1,8,286),
+            new TranslationMap(11,12,33,1,8,264),
+            new TranslationMap(12,34,11,-1,8,240),
+            new TranslationMap(13,11,34,1,8,216),
+            new TranslationMap(14,35,10,-1,8,190),
+            new TranslationMap(15,9,36,1,8,162),
+            new TranslationMap(16,37,8,-1,8,132),
+            new TranslationMap(17,8,37,1,8,102),
+            new TranslationMap(18,38,7,-1,8,70),
+            new TranslationMap(19,6,39,1,8,36),
+            new TranslationMap(20,40,5,-1,8,0),
+            new TranslationMap(21,40,5,-1,7,0),
+            new TranslationMap(22,7,38,1,7,36),
+            new TranslationMap(23,38,7,-1,7,68),
+            new TranslationMap(24,6,39,1,7,100),
+            new TranslationMap(25,39,6,-1,7,134),
+            new TranslationMap(26,5,40,1,7,168),
+            new TranslationMap(27,40,5,-1,7,204),
+            new TranslationMap(28,4,40,1,7,240), // 41 -> 40
+            new TranslationMap(29,41,4,-1,7,277),
+            new TranslationMap(30,4,41,1,7,315),
+            new TranslationMap(31,42,3,-1,7,353),
+            new TranslationMap(32,3,42,1,7,393),
+            new TranslationMap(33,42,3,-1,7,433),
+            new TranslationMap(34,2,43,1,7,473),
+            new TranslationMap(35,43,2,-1,6,0),
+            new TranslationMap(36,2,43,1,6,42),
+            new TranslationMap(37,44,1,-1,6,84),
+            new TranslationMap(38,1,44,1,6,128),
+            new TranslationMap(39,45,0,-1,6,172), //fixed
+            new TranslationMap(40,1,44,1,6,216),
+            new TranslationMap(41,44,1,-1,6,260),
+            new TranslationMap(42,1,44,1,6,304),
+            new TranslationMap(43,44,1,-1,6,348),
+            new TranslationMap(44,0,45,1,6,392),
+            new TranslationMap(45,45,0,-1,6,438),
+            new TranslationMap(46,0,45,1,6,484),
+            new TranslationMap(47,45,0,-1,5,0),
+            new TranslationMap(48,0,45,1,5,46),
+            new TranslationMap(49,45,0,-1,5,92),
+            new TranslationMap(50,0,45,1,5,138),
+            new TranslationMap(51,45,0,-1,5,184),
+            new TranslationMap(52,0,45,1,5,230),
+            new TranslationMap(53,45,0,-1,5,276),
+            new TranslationMap(54,0,45,1,5,322),
+            new TranslationMap(55,45,0,-1,5,368),
+            new TranslationMap(56,0,45,1,5,414),
+            new TranslationMap(57,45,0,-1,5,460),
+            new TranslationMap(58,0,45,1,5,506),
+            new TranslationMap(59,45,0,-1,4,0),
+            new TranslationMap(60,0,45,1,4,46),
+            new TranslationMap(61,45,0,-1,4,92),
+            new TranslationMap(62,0,45,1,4,138),
+            new TranslationMap(63,45,0,-1,4,184),
+            new TranslationMap(64,0,45,1,4,230),
+            new TranslationMap(65,45,0,-1,4,276),
+            new TranslationMap(66,0,45,1,4,322),
+            new TranslationMap(67,45,0,-1,4,368),
+            new TranslationMap(68,0,45,1,4,414),
+            new TranslationMap(69,45,0,-1,4,460),
+            new TranslationMap(70,1,44,1,4,506),
+            new TranslationMap(71,44,1,-1,3,0),
+            new TranslationMap(72,1,44,1,3,44),
+            new TranslationMap(73,44,1,-1,3,88),
+            new TranslationMap(74,1,44,1,3,132),
+            new TranslationMap(75,44,1,-1,3,176),
+            new TranslationMap(76,1,44,1,3,220),
+            new TranslationMap(77,44,1,-1,3,264),
+            new TranslationMap(78,1,44,1,3,308),
+            new TranslationMap(79,43,2,-1,3,352),
+            new TranslationMap(80,2,43,1,3,394),
+            new TranslationMap(81,43,2,-1,3,436),
+            new TranslationMap(82,2,43,1,3,478),
+            new TranslationMap(83,42,3,-1,2,0),
+            new TranslationMap(84,3,42,1,2,40),
+            new TranslationMap(85,42,3,-1,2,80),
+            new TranslationMap(86,3,42,1,2,120),
+            new TranslationMap(87,42,3,-1,2,160),
+            new TranslationMap(88,4,41,1,2,200),
+            new TranslationMap(89,41,4,-1,2,238),
+            new TranslationMap(90,4,41,1,2,276),
+            new TranslationMap(91,40,5,-1,2,314),
+            new TranslationMap(92,5,40,1,2,350),
+            new TranslationMap(93,40,5,-1,2,386),
+            new TranslationMap(94,6,39,1,2,422),
+            new TranslationMap(95,39,6,-1,2,456),
+            new TranslationMap(96,6,39,1,2,490),
+            new TranslationMap(97,39,6,-1,1,0),
+            new TranslationMap(98,7,38,1,1,34),
+            new TranslationMap(99,38,7,-1,1,66),
+            new TranslationMap(100,8,37,1,1,98),
+            new TranslationMap(101,37,8,-1,1,128),
+            new TranslationMap(102,9,36,1,1,158),
+            new TranslationMap(103,36,9,-1,1,186),
+            new TranslationMap(104,10,35,1,1,214),
+            new TranslationMap(105,38,7,-1,1,240),
+            new TranslationMap(106,8,37,1,1,272),
+            new TranslationMap(107,36,9,-1,1,302),
+            new TranslationMap(108,9,36,1,1,330),
+            new TranslationMap(109,35,10,-1,1,358),
+            new TranslationMap(110,10,35,1,1,384),
+            new TranslationMap(111,34,11,-1,1,410),
+            new TranslationMap(112,12,33,1,1,434),
+            new TranslationMap(113,32,13,-1,1,456),
+            new TranslationMap(114,14,31,1,1,476),
+            new TranslationMap(115,34,11,-1,1,494),
+            new TranslationMap(116,14,31,1,1,518),
+            new TranslationMap(117,26,19,-1,1,536)
+    };
+}
 
 /*
 void BBattachCommandCallbacks()
