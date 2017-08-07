@@ -80,6 +80,10 @@ public class BoardVisualization {
     private Visualizer mVisualizer;
     private int mAudioSessionId;
 
+    private RandomSquares randomSquares = null;
+    private Checkerboard checkerboard = null;
+
+
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
@@ -222,9 +226,19 @@ public class BoardVisualization {
 
                 case 16:
                     sleepTime = 5;
-                    modeRandomSquares();
+                    if (randomSquares == null) {
+                        randomSquares = new RandomSquares(mBurnerBoard,mBoardHeight,mBoardWidth);
+                    }
+                    randomSquares.modeRandomSquares();
                     break;
-
+                case 17:
+                    sleepTime = 5;
+                    //modeFire(kModeFireNormal);
+                    if (checkerboard == null) {
+                        checkerboard = new Checkerboard(mBurnerBoard,mBoardHeight,mBoardWidth);
+                    }
+                    checkerboard.modeCheckerboard();
+                    break;
                 default:
                     break;
             }
@@ -1681,134 +1695,6 @@ public class BoardVisualization {
                 0b00000000000,
                 0b00000000000,
                 0b00000000000};
-
-    }
-
-    //********* Random Squares **********
-    private static final int[] sfColors = {
-            BurnerBoard.getRGB(0, 161, 224), // light blue
-            BurnerBoard.getRGB(255, 255, 255), // white
-            BurnerBoard.getRGB(220, 115, 10), // orange (marketing)
-            BurnerBoard.getRGB(125, 30, 171), // purple
-            BurnerBoard.getRGB(80, 176, 50), // green
-            BurnerBoard.getRGB(235, 180, 40), // yellow
-            BurnerBoard.getRGB(20,155,155), // analytics blue
-            BurnerBoard.getRGB(53,120,214), // apps blue
-
-    };
-
-    private static int sfColorPointer=0;
-    private static int USE_SOLID_SQUARE=1;
-    private static int USE_HOLLOW_SQUARE=2;
-    private static int USE_MIXTURE_SQUARE=3;
-
-    // This will create random placement of colored squares across the entire surface of the board.
-     void modeRandomSquares() {
-
-         // 1 is solid, 2 is hollow, 3 is a mixture.
-         int squareMode = USE_HOLLOW_SQUARE;
-
-        //set line thickness for hollow squares
-        int thick = 1;
-
-        // pick a random amount to draw in 1 flush
-        int count = mRandom.nextInt(5);
-        for(int i=0;i<count;i++){
-            drawRandomSquare(squareMode, thick);
-        }
-
-        //Richard wtf is this stuff?
-        mBurnerBoard.setOtherlightsAutomatically();
-        mBurnerBoard.flush();
-    }
-
-    // Draw a single square
-    void drawRandomSquare(int squareMode, int thick){
-
-        int x;
-        int row;
-        int lengthOfSquare = mRandom.nextInt(20);
-        int xPos = mRandom.nextInt(mBoardWidth ) - lengthOfSquare / 2; // allow placement of partial visuals
-        int yPos = mRandom.nextInt(mBoardHeight  ) - lengthOfSquare / 2; // allow placement of partial visuals
-
-        // loop back when you get to the end of the color list.  Random was nasty looking.
-        if(sfColorPointer >= sfColors.length) { // restart at the beginning.
-            sfColorPointer = 0;
-        }
-        int color = sfColors[sfColorPointer];
-
-        if(squareMode==USE_SOLID_SQUARE) {
-            DrawSolidSquare(lengthOfSquare, xPos, yPos, color);
-        }
-        else if (squareMode==USE_HOLLOW_SQUARE) {
-            DrawHollowSquare(lengthOfSquare, xPos, yPos, color,thick);
-        }
-        else if (squareMode==USE_MIXTURE_SQUARE) {
-            if(mRandom.nextBoolean())
-                DrawSolidSquare(lengthOfSquare, xPos, yPos, color);
-            else
-                DrawHollowSquare(lengthOfSquare, xPos, yPos, color,thick);
-         }
-
-        sfColorPointer++;
-
-    }
-
-    // Draw a single solid square.
-    private void DrawSolidSquare(int lengthOfSquare, int xPos, int yPos, int color){
-
-        for (int row = 0; row < lengthOfSquare ; row++) {
-            for (int x = 0; x < lengthOfSquare ; x++) {
-
-                // prevent out of range exceptions and allow partial rendering.
-                if(x+xPos >=0 && x+xPos < mBoardWidth && row + yPos >=0 && row + yPos < mBoardHeight){
-                    mBurnerBoard.setPixel(x + xPos, row + yPos, color);
-                }
-            }
-        }
-    }
-
-    // Draw a single Hollow Square
-    void DrawHollowSquare(int lengthOfSquare, int xPos, int yPos, int color, int lineThickness){
-        int x;
-        int row;
-
-        // draw the top line.
-        row = 0;
-        for (x = 0; x < lengthOfSquare ; x++) {
-            if(x+xPos >=0 && x+xPos < mBoardWidth && row + yPos >=0 && row + yPos < mBoardHeight){
-                for(int thick=0;thick<lineThickness;thick++){
-                    mBurnerBoard.setPixel(x + xPos, row + thick + yPos, color);
-                }
-            }
-        }
-        // now at the top-right, turn downward to the lower right.
-        for (row = 0; row < lengthOfSquare-1 ; row++) {
-            // prevent out of range exceptions and allow partial rendering.
-            if(x+xPos >=0 && x+xPos < mBoardWidth && row + yPos >=0 && row + yPos < mBoardHeight){
-                for(int thick=0;thick<lineThickness;thick++) {
-                    mBurnerBoard.setPixel(x-thick + xPos, row + yPos, color);
-                }
-            }
-        }
-        //  now at the bottom right, go left.
-        for (x = x; x >= 0 ; x--) {
-            // prevent out of range exceptions and allow partial rendering.
-            if(x+xPos >=0 && x+xPos < mBoardWidth && row + yPos >=0 && row + yPos < mBoardHeight){
-                for(int thick=0;thick<lineThickness;thick++) {
-                    mBurnerBoard.setPixel(x + xPos, row-thick + yPos, color);
-                }
-            }
-        }
-        //now at the bottom left. back to the top left.
-        for (row = row; row >= 0 ; row--) {
-            // prevent out of range exceptions and allow partial rendering.
-            if(x+xPos >=0 && x+xPos < mBoardWidth && row + yPos >=0 && row + yPos < mBoardHeight){
-                for(int thick=0;thick<lineThickness;thick++) {
-                    mBurnerBoard.setPixel(x + thick + xPos, row + yPos, color);
-                }
-            }
-        }
 
     }
 
