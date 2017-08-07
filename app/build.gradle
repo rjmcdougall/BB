@@ -5,7 +5,7 @@ android {
         burnerboard {
             keyAlias 'burnerkey'
             keyPassword 'burner'
-            storeFile file('/Users/rmc/keystores/burnerkeystore')
+            storeFile file('/Users/d.wilson/keystores/burnerkeystore')
             storePassword 'kermit01'
         }
     }

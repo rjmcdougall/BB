@@ -80,6 +80,10 @@ public class BoardVisualization {
     private Visualizer mVisualizer;
     private int mAudioSessionId;
 
+    private RandomSquares randomSquares = null;
+    private Checkerboard checkerboard = null;
+
+
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
@@ -220,6 +224,21 @@ public class BoardVisualization {
                     modeTestColors();
                     break;
 
+                case 16:
+                    sleepTime = 5;
+                    if (randomSquares == null) {
+                        randomSquares = new RandomSquares(mBurnerBoard,mBoardHeight,mBoardWidth);
+                    }
+                    randomSquares.modeRandomSquares();
+                    break;
+                case 17:
+                    sleepTime = 5;
+                    //modeFire(kModeFireNormal);
+                    if (checkerboard == null) {
+                        checkerboard = new Checkerboard(mBurnerBoard,mBoardHeight,mBoardWidth);
+                    }
+                    checkerboard.modeCheckerboard();
+                    break;
                 default:
                     break;
             }
@@ -1642,7 +1661,6 @@ public class BoardVisualization {
                 0b00000000000};
 
     }
-
 
     void drawDistrikt(int color) {
         int x;
