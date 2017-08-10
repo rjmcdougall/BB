@@ -71,21 +71,31 @@ public class VideoDecoder extends AndroidTestCase {
 
     public String sourceFilename;
     public int outWidth = 118, outHeight = 46;
+    private boolean stopRequested = false;
+    public Thread decodeThread = null;
 
     enum StateType {
         STOPPED,
-        DECODING,
-        STOPPING
+        DECODING
     };
     StateType state = StateType.STOPPED;
 
     ExtractMpegFramesWrapper wrapper = null;
 
-    public Boolean IsRunning() { return state==StateType.DECODING; }
+    public Boolean IsRunning() {
+        Thread dt = decodeThread;
+        if (dt!=null && !dt.isAlive()) {
+            stopRequested = true;
+            state = StateType.STOPPED;
+            return false;
+        }
+        return state==StateType.DECODING;
+    }
 
     /** test entry point */
     public void Start(String fname, int xRes, int yRes) throws Throwable {
         Stop();
+        stopRequested = false;
         sourceFilename = fname;
         outWidth = xRes;
         outHeight = yRes;
@@ -94,14 +104,15 @@ public class VideoDecoder extends AndroidTestCase {
     }
 
     public void Stop() {
-        if (state==StateType.DECODING) {
-            state = StateType.STOPPING;
-        }
-        while (state != StateType.STOPPED) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        Thread waitThread = decodeThread;
+        if (waitThread!=null) {
+            stopRequested = true;
+            while (waitThread.isAlive()) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -141,8 +152,9 @@ public class VideoDecoder extends AndroidTestCase {
         /** Entry point. */
         public static ExtractMpegFramesWrapper Start(VideoDecoder obj) throws Throwable {
             ExtractMpegFramesWrapper wrapper = new ExtractMpegFramesWrapper(obj);
-            Thread th = new Thread(wrapper, "codec test");
-            th.start();
+            obj.decodeThread = new Thread(wrapper, "codec test");
+            obj.decodeThread.start();
+
             //th.join();
             if (wrapper.mThrowable != null) {
                 throw wrapper.mThrowable;
@@ -168,7 +180,7 @@ public class VideoDecoder extends AndroidTestCase {
 
 
         try {
-            while (state==StateType.DECODING) {
+            while (!stopRequested) {
                 File inputFile = new File(sourceFilename);   // must be an absolute path
                 // The MediaExtractor error messages aren't very useful.  Check to see if the input
                 // file exists so we can throw a better one if it's not there.
@@ -263,7 +275,7 @@ public class VideoDecoder extends AndroidTestCase {
 
         boolean outputDone = false;
         boolean inputDone = false;
-        while (!outputDone && parent.state==StateType.DECODING) {
+        while (!outputDone && !parent.stopRequested) {
             if (VERBOSE) Log.d(TAG, "loop");
 
             // Feed more data to the decoder.
