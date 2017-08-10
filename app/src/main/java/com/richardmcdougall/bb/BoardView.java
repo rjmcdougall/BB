@@ -180,6 +180,7 @@ public class BoardView extends View {
     }
 
 
+
     public void setOtherLight(int other, byte[] pixels) {
         //System.out.print("setRow " + row + ":" + bytesToHex(pixels));
         //System.out.println("BB setRow " + row + " length " + pixels.length);
@@ -204,13 +205,13 @@ public class BoardView extends View {
         paint.setAntiAlias(true);
 
         if (mCanvasBitmap == null) {
-            System.out.println("onDraw bitmap");
+            //System.out.println("onDraw bitmap");
             mCanvasBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(),
                     Bitmap.Config.ARGB_8888);
-            System.out.println("Size is " + getWidth() + "," + getHeight());
+            //System.out.println("Size is " + getWidth() + "," + getHeight());
         }
         if (mCanvas == null) {
-            System.out.println("onDraw canvas");
+            //System.out.println("onDraw canvas");
             mCanvas = new Canvas(mCanvasBitmap);
         }
 

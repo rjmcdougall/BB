@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private static final String TAG = "BB.MainActivity";
 
-    public static final boolean kEmbeddedMode = true;
+    public static final boolean kEmbeddedMode = false;
 
     boolean imRunning = false;
 
@@ -690,6 +690,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                         byte b = (byte)intent.getIntExtra("arg3", 0);
                         mBoardView.fillScreen(r, g, b);
                         break;
+                    case 8:
+                        mBoardView.invalidate();
+                        break;
+
                     case 6:
                         int direction = intent.getIntExtra("arg1", 0);
                         mBoardView.scroll(direction);

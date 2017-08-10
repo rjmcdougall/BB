@@ -5,7 +5,7 @@ android {
         burnerboard {
             keyAlias 'burnerkey'
             keyPassword 'burner'
-            storeFile file('/Users/rmc/keystores/burnerkeystore')
+            storeFile file('../keystores/burnerkeystore')
             storePassword 'kermit01'
         }
     }
@@ -23,6 +23,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            debuggable true
         }
     }
     productFlavors {

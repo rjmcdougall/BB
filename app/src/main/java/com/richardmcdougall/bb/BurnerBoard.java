@@ -425,7 +425,7 @@ public class BurnerBoard {
         } else {
             // Emulate board's 30ms refresh time
             try {
-                Thread.sleep(30);
+ //               Thread.sleep(30);
             } catch (Throwable e) {
             }
         }
