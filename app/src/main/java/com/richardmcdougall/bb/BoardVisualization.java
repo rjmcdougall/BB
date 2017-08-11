@@ -82,7 +82,7 @@ public class BoardVisualization {
 
     private RandomSquares randomSquares = null;
     private Checkerboard checkerboard = null;
-
+    private RandomlyBouncingBalls randomlyBouncingBalls  = null;
 
     public void l(String s) {
         Log.v(TAG, s);
@@ -198,7 +198,6 @@ public class BoardVisualization {
                     sleepTime = 5;
                     modeMatrix(kMatrixEsperanto);
                     break;
-
                 case 11:
                     sleepTime = 5;
                     modeMatrix(kMatrixIrukandji);
@@ -239,6 +238,12 @@ public class BoardVisualization {
                     }
                     checkerboard.modeCheckerboard();
                     break;
+                case 18:
+                    sleepTime = 5;
+                    if (randomlyBouncingBalls == null) {
+                        randomlyBouncingBalls = new RandomlyBouncingBalls(mBurnerBoard,mBoardHeight,mBoardWidth);
+                    }
+                    randomlyBouncingBalls.modeRandomlyBouncingBalls();
                 default:
                     break;
             }

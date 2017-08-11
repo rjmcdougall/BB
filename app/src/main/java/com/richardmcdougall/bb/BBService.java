@@ -857,7 +857,7 @@ public class BBService extends Service {
                 mBoardMode = mode;
             }
         //}
-        if (mBoardMode > 17)
+        if (mBoardMode > 18)
             mBoardMode = 1;
         l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
         mBoardVisualization.setMode(mBoardMode);
