@@ -39,6 +39,9 @@ import android.media.AudioTrack;
 import android.media.AudioFormat;
 import android.os.Build;
 
+import org.json.JSONObject;
+
+
 public class BBService extends Service {
 
     private static final String TAG = "BB.BBService";
@@ -46,6 +49,11 @@ public class BBService extends Service {
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
     public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
+    public int GetMaxLightModes() {
+        return dlManager.GetTotalVideo() + 16;
+    }
+
+    public BBDownloadManager dlManager;
 
     public static enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
@@ -58,7 +66,6 @@ public class BBService extends Service {
     private Context mContext;
     private MediaPlayer mediaPlayer = new MediaPlayer();
     private float vol = 0.80f;
-    private boolean downloaded = false;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
     private int userTimeOffset = 0;
@@ -66,8 +73,9 @@ public class BBService extends Service {
     public String boardId = Build.SERIAL;
     public String boardType = Build.TYPE;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
+    public String boardId;
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int mBoardMode = 5; // Mode of the Ardunio/LEDs
+    private int mBoardMode = 16; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
 
     private int statePeers = 0;
@@ -122,6 +130,9 @@ public class BBService extends Service {
         super.onCreate();
         l("BBService: onCreate");
 
+
+
+
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -144,6 +155,30 @@ public class BBService extends Service {
                 }
             }
         });
+
+
+        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath());
+        dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
+            long lastTextTime = 0;
+
+            public void onProgress(String file, long fileSize, long bytesDownloaded) {
+                if (fileSize<=0)
+                    return ;
+
+                long curTime = System.currentTimeMillis();
+                if (curTime-lastTextTime>10000) {
+                    lastTextTime = curTime;
+                    long percent = bytesDownloaded*100/fileSize;
+
+                    voice.speak("Downloading " + file + ", " + String.valueOf(percent) + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    lastTextTime = curTime;
+                    l(String.format("Downloading %02x%% %s", bytesDownloaded*100/fileSize, file));
+                }
+            }
+            public void onVoiceCue(String msg) {
+                voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+            }
+        };
 
         mContext = getApplicationContext();
 
@@ -410,92 +445,12 @@ public class BBService extends Service {
         mediaPlayer.setVolume(vol, vol);
     }
 
-    class MusicStream {
-        public String downloadURL;
-        public long fileSize;
-        public long lengthInSeconds;   // android method for determining the song length seems to vary from OS to OS
-
-        public MusicStream(String url, long _size, long len) {
-            downloadURL = url;
-            fileSize = _size;
-            lengthInSeconds = len;
-        }
-    };
-
-    void MusicListInit() {
-
-        //streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 132223476, 2 * 60 * 60 + 17 * 60 + 43));
-        streamURLs.add(0, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 122529253, 2 * 60 * 60 + 7 * 60 + 37)); // real one
-        //streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 132223476, 2 * 60 * 60 + 7 * 60 + 37)); // tmp for dev
-
-        streamURLs.add(1, new MusicStream("https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 118796042, 2 * 60 * 60 + 3 * 60 + 44));
-        streamURLs.add(2, new MusicStream("https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
-        streamURLs.add(3, new MusicStream("https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 122457782, 2 * 60 * 60 + 7 * 60 + 33));
-        //streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/52iq1ues7qz194e/Flamethrower%20Sound%20Effects.mp3?dl=0", 805754, 33));
-        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/fqsffn03qdyo9tm/Funk%20Blues%20Drumless%20Jam%20Track%20Click%20Track%20Version2.mp3?dl=0", 6532207, 4 * 60 + 32));
-        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/39x2hdu5k5n6628/Beatles%20Long%20Track.mp3?dl=0", 58515039, 2438));
-        // fast metronome
-        //streamURLs.add(4, new MusicStream("https://dl.dropboxusercontent.com/s/vx11kxtkmhgycd9/click_120bpm_4-4time_610beats_stereo_WjI2zj.mp3?dl=0", 2436288, 5 * 60 + 4));
-        // slow metronome
-        //streamURLs.add(5, new MusicStream("https://dl.dropboxusercontent.com/s/2m7onrf1i5oobxr/bottle_20bpm_4-4time_610beats_stereo_uUzFTJ.mp3?dl=0", 14616192, 30 * 60 + 30));
-
-    }
-
-
-    public void DownloadMusic2() {
-        try {
-            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            downloaded = true;
-            for (int i = 0; i < streamURLs.size(); i++) {
-                String destPath = GetRadioStreamFile(i + 1);
-                long expectedSize = streamURLs.get(i).fileSize;
-
-                boolean download = true;
-                File f = new File(destPath);
-                if (f.exists()) {
-                    long len = f.length();
-
-                    if (len != expectedSize) {
-                        boolean result = f.delete();
-                        boolean result2 = f.exists();
-                        l("exists but not correct size (" + len + "!=" + expectedSize + "), " +
-                                "delete = " + result);
-                    } else {
-                        l("Already downloaded (" + len + "): " + streamURLs.get(i).downloadURL);
-                        download = false;
-                    }
-                }
-
-                if (download) {
-                    DownloadManager.Request r =
-                            new DownloadManager.Request(Uri.parse(streamURLs.get(i).downloadURL));
-
-                    r.setTitle("Downloading: " + "Stream " + i + " (" + expectedSize + ")");
-                    r.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI |
-                            DownloadManager.Request.NETWORK_MOBILE);
-                    r.setDescription("BurnerBoard Radio Stream " + i);
-                    r.setVisibleInDownloadsUi(true);
-                    r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-                    r.setDestinationUri(Uri.parse("file://" + destPath));
-
-                    downloaded = false;
-                    long result = dm.enqueue(r);
-                    l("Downloading : " + streamURLs.get(i).downloadURL);
-                }
-            }
-        } catch (Throwable err) {
-            String msg = err.getMessage();
-            l(msg);
-        }
-    }
-
     long lastSeekOffset = 0;
     long lastSeekTimestamp = 0;
 
     long GetCurrentStreamLengthInSeconds() {
-        return streamURLs.get(currentRadioStream - 1).lengthInSeconds;
+        return dlManager.GetAudioLength(currentRadioStream-1);
     }
-
 
     // Main thread to drive the music player
     void musicPlayerThread() {
@@ -520,7 +475,6 @@ public class BBService extends Service {
 
 
         InitClock();
-        MusicListInit();
 
         udpClientServer = new UDPClientServer(this);
         udpClientServer.Run();
@@ -545,9 +499,8 @@ public class BBService extends Service {
             l("Failed to associate wifi");
         }
 
+        dlManager.StartDownloads();
 
-        // RMC put this back
-        DownloadMusic2();
 
 
         // MediaSession ms = new MediaSession(mContext);
@@ -560,7 +513,7 @@ public class BBService extends Service {
 
             switch (musicState) {
                 case 0:
-                    if (downloaded) {
+                    if (dlManager.GetTotalAudio()!=0) {
                         musicState = 1;
                         l("Downloadd: Starting Radio Mode");
                         RadioMode();
@@ -602,8 +555,7 @@ public class BBService extends Service {
     }
 
     public void SeekAndPlay() {
-        //l("SeekAndPlay: downloaded = " + downloaded + ", mediaPlayer = " + mediaPlayer);
-            if (mediaPlayer != null && downloaded) {
+            if (mediaPlayer != null && dlManager.GetTotalAudio()!=0) {
                 synchronized (mediaPlayer) {
                     long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
@@ -631,7 +583,8 @@ public class BBService extends Service {
                                 //l("SeekAndPlay: pause()");
                                 //mediaPlayer.pause();
                                 l("SeekAndPlay: setPlaybackParams()");
-                                mediaPlayer.setPlaybackParams(params);
+                                mediaPlayer.getPlaybackParams().setSpeed(speed);
+                                        //setPlaybackParams(params);
                                 l("SeekAndPlay: setPlaybackParams() Sucesss!!");
                             } catch (Throwable err) {
                                 l("SeekAndPlay setPlaybackParams: " + err.getMessage());
@@ -674,7 +627,7 @@ public class BBService extends Service {
 
     void NextStream() {
         int nextRadioStream = currentRadioStream + 1;
-        if (nextRadioStream > streamURLs.size())
+        if (nextRadioStream > dlManager.GetTotalAudio())
             nextRadioStream = 0;
         SetRadioStream(nextRadioStream);
     }
@@ -699,10 +652,10 @@ public class BBService extends Service {
             voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             bluetoothModeDisable();
             try {
-                if (mediaPlayer != null) {
+                if (mediaPlayer != null  && dlManager.GetTotalAudio()!=0) {
                     synchronized (mediaPlayer) {
                         lastSeekOffset = 0;
-                        FileInputStream fds = new FileInputStream(GetRadioStreamFile(index));
+                        FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index));
                         l("playing file " + GetRadioStreamFile(index));
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(fds.getFD());
@@ -744,7 +697,11 @@ public class BBService extends Service {
         mAudioInStream = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat. CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize);
         mAudioOutStream = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize, AudioTrack.MODE_STREAM);
         mAudioBuffer = new byte[buffersize];
-        mAudioInStream.startRecording();
+        try {
+            mAudioInStream.startRecording();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         mAudioOutStream.play();
     }
 
@@ -758,8 +715,13 @@ public class BBService extends Service {
     }
 
     public void bluetoothModeDisable() {
-        mAudioInStream.stop();
-        mAudioOutStream.stop();
+        try {
+            mAudioInStream.stop();
+            mAudioOutStream.stop();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void bluetoothPlay() {
@@ -859,8 +821,12 @@ public class BBService extends Service {
                 mBoardMode = mode;
             }
         //}
-        if (mBoardMode > 15)
+        int maxModes = GetMaxLightModes();
+        if (mBoardMode > maxModes)
             mBoardMode = 1;
+        else if (mBoardMode<1)
+            mBoardMode = maxModes;
+
         l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
         mBoardVisualization.setMode(mBoardMode);
         voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");

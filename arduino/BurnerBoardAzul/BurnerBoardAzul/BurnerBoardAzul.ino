@@ -6,6 +6,8 @@
 
 //#define DEBUG_PIXELS 1
 
+#define RGB_MAX 255
+
 const int ledsPerStrip = 552;
 const int NUM_LEDS = 4416;
 
@@ -401,6 +403,7 @@ int getBatteryAll() {
 
 int getBatteryLevel() {
 
+  return 50;
   int value;
 
   // Capacity in %age
@@ -417,6 +420,71 @@ int getBatteryLevel() {
 
 
 void drawBattery() {
+  uint32_t color;
+  uint16_t x;
+  int level;
+  int battWidth = 20;
+  int battLeft = 23 - battWidth / 2;
+  int startRow = 34;
+  int row;
+  int endRow = 84;
+  
+  level = getBatteryLevel() / 2; // convert 100 to max of 50
+
+  row = startRow;
+  
+  // White Battery Shell with Green level
+
+  // Battery Bottom
+  for (x = 0; x < battWidth; x++) {
+    translatePixel(x + battLeft, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+  row++;
+
+  // Battery Sides
+  for (; row <= endRow; row++) {
+    translatePixel(battLeft, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+    translatePixel(battLeft + battWidth - 1, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+
+  // Battery Top
+  for (x = 0; x < battWidth; x++) {
+    translatePixel(x + battLeft, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+  row++;
+
+  // Battery button
+  for (x = battWidth / 2 - 6; x < battWidth / 2 + 6; x++) {
+    translatePixel(x + battLeft, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+    translatePixel(x + battLeft, row+1, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+    translatePixel(x + battLeft, row+2, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+    translatePixel(x + battLeft, row+3, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+
+  // Get level failed
+  if (level < 0) {
+    // RED
+    for (row = startRow + 1; row < endRow ; row++) {
+      for (x = battLeft; x < battLeft + battWidth; x++) {
+        translatePixel(x, row, rgbTo24BitColor(255, 0, 0));
+      }
+    }
+  } else {
+    // Battery Level
+    uint32_t batteryColor;
+    if (batteryCritical) {
+      batteryColor = rgbTo24BitColor(255, 0, 0);
+    } else if (batteryLow) {
+      batteryColor = rgbTo24BitColor(255, 40, 0);
+    }  else {
+      batteryColor = rgbTo24BitColor(0, 255, 0);
+    }
+    for (row = startRow + 1; row < startRow + level ; row++) {
+      for (x = battLeft; x < battLeft + battWidth; x++) {
+        translatePixel(x, row, batteryColor);
+      }
+    }
+  }
 }
 
 
@@ -443,19 +511,333 @@ void setup() {
 
 }
 
-
 uint8_t c = 0;
+
+#define RED    0x160000
+#define GREEN  0x001600
+#define BLUE   0x000016
+#define YELLOW 0x101400
+#define PINK   0x120009
+#define ORANGE 0x100400
+#define WHITE  0x202020
+
 
 void loop() {
   if (inited == false) {
-    fillScreen(rgbTo24BitColor(c,c + 10,48));
+    //fillScreen(rgbTo24BitColor(c,c + 10,48));
+    //drawBattery();
+    testPattern();
     leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(RED);
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(GREEN);
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(BLUE);
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(WHITE);
+    leds.show();
+    delay(10000);
     c++;
     if (c > 64)
       c = 0;
   }
   cmdMessenger.feedinSerialData();
-
 }
 
 
+
+struct TranslationMap {
+                int y;
+                int startX;
+                int endX;
+                int stripDirection;
+                int stripNumber;
+                int stripOffset;
+                };
+
+
+struct TranslationMap boardMap[] = {
+  0,23,22,-1,8,452,
+  1,20,25,1,8,446,
+  2,27,18,-1,8,436,
+  3,16,29,1,8,422,
+  4,30,15,-1,8,406,
+  5,14,31,1,8,388,
+  6,33,12,-1,8,366,
+  7,11,34,1,8,342,
+  8,31,14,-1,8,324,
+  9,14,31,1,8,306,
+  10,32,13,-1,8,286,
+  11,12,33,1,8,264,
+  12,34,11,-1,8,240,
+  13,11,34,1,8,216,
+  14,35,10,-1,8,190,
+  15,9,36,1,8,162,
+  16,37,8,-1,8,132,
+  17,8,37,1,8,102,
+  18,38,7,-1,8,70,
+  19,6,39,1,8,36,
+  20,40,5,-1,8,0,
+  21,40,5,-1,7,0,
+  22,7,38,1,7,36,
+  23,38,7,-1,7,68,
+  24,6,39,1,7,100,
+  25,39,6,-1,7,134,
+  26,5,40,1,7,168,
+  27,40,5,-1,7,204,
+  28,4,41,1,7,240,
+  29,41,4,-1,7,278,
+  30,4,41,1,7,316,
+  31,42,3,-1,7,354,
+  32,3,42,1,7,394,
+  33,42,3,-1,7,434,
+  34,2,43,1,7,474,
+  35,43,2,-1,6,0,
+  36,2,43,1,6,42,
+  37,44,1,-1,6,84,
+  38,1,44,1,6,128,
+  39,44,1,-1,6,172,
+  40,1,44,1,6,216,
+  41,44,1,-1,6,260,
+  42,1,44,1,6,304,
+  43,44,1,-1,6,348,
+  44,0,45,1,6,392,
+  45,45,0,-1,6,438,
+  46,0,45,1,6,484,
+  47,45,0,-1,5,0,
+  48,0,45,1,5,46,
+  49,45,0,-1,5,92,
+  50,0,45,1,5,138,
+  51,45,0,-1,5,184,
+  52,0,45,1,5,230,
+  53,45,0,-1,5,276,
+  54,0,45,1,5,322,
+  55,45,0,-1,5,368,
+  56,0,45,1,5,414,
+  57,45,0,-1,5,460,
+  58,0,45,1,5,506,
+  59,45,0,-1,4,0,
+  60,0,45,1,4,46,
+  61,45,0,-1,4,92,
+  62,0,45,1,4,138,
+  63,45,0,-1,4,184,
+  64,0,45,1,4,230,
+  65,45,0,-1,4,276,
+  66,0,45,1,4,322,
+  67,45,0,-1,4,368,
+  68,0,45,1,4,414,
+  69,45,0,-1,4,460,
+  70,1,44,1,4,506,
+  71,44,1,-1,3,0,
+  72,1,44,1,3,44,
+  73,44,1,-1,3,88,
+  74,1,44,1,3,132,
+  75,44,1,-1,3,176,
+  76,1,44,1,3,220,
+  77,44,1,-1,3,264,
+  78,1,44,1,3,308,
+  79,43,2,-1,3,352,
+  80,2,43,1,3,394,
+  81,43,2,-1,3,436,
+  82,2,43,1,3,478,
+  83,42,3,-1,2,0,
+  84,3,42,1,2,40,
+  85,42,3,-1,2,80,
+  86,3,42,1,2,120,
+  87,42,3,-1,2,160,
+  88,4,41,1,2,200,
+  89,41,4,-1,2,238,
+  90,4,41,1,2,276,
+  91,40,5,-1,2,314,
+  92,5,40,1,2,350,
+  93,40,5,-1,2,386,
+  94,6,39,1,2,422,
+  95,39,6,-1,2,456,
+  96,6,39,1,2,490,
+  97,39,6,-1,1,0,
+  98,7,38,1,1,34,
+  99,38,7,-1,1,66,
+  100,8,37,1,1,98,
+  101,37,8,-1,1,128,
+  102,9,36,1,1,158,
+  103,36,9,-1,1,186,
+  104,10,35,1,1,214,
+  105,38,7,-1,1,240,
+  106,8,37,1,1,272,
+  107,36,9,-1,1,302,
+  108,9,36,1,1,330,
+  109,35,10,-1,1,358,
+  110,10,35,1,1,384,
+  111,34,11,-1,1,410,
+  112,12,33,1,1,434,
+  113,32,13,-1,1,456,
+  114,14,31,1,1,476,
+  115,34,11,-1,1,494,
+  116,14,31,1,1,518,
+  117,26,19,-1,1,536
+};
+
+struct TranslationMap boardMapAzul[] = {
+  0,23,22,-1,8,452,
+  1,20,25,1,8,446,
+  2,27,18,-1,8,436,
+  3,16,29,1,8,422,
+  4,30,15,-1,8,406,
+  5,14,31,1,8,388,
+  6,33,12,-1,8,366,
+  7,11,34,1,8,342,
+  8,31,14,-1,8,324,
+  9,14,31,1,8,306,
+  10,32,13,-1,8,286,
+  11,12,33,1,8,264,
+  12,34,11,-1,8,240,
+  13,11,34,1,8,216,
+  14,35,10,-1,8,190,
+  15,9,36,1,8,162,
+  16,37,8,-1,8,132,
+  17,8,37,1,8,102,
+  18,38,7,-1,8,70,
+  19,6,39,1,8,36,
+  20,40,5,-1,8,0,
+  21,40,5,-1,7,0,
+  22,7,38,1,7,36,
+  23,38,7,-1,7,68,
+  24,6,39,1,7,100,
+  25,39,6,-1,7,134,
+  26,5,40,1,7,168,
+  27,40,5,-1,7,204,
+  28,4,40,1,7,240,
+  29,41,4,-1,7,277,
+  30,4,41,1,7,315,
+  31,42,3,-1,7,353,
+  32,3,42,1,7,393,
+  33,42,3,-1,7,433,
+  34,2,43,1,7,473,
+  35,43,2,-1,6,0,
+  36,2,43,1,6,42,
+  37,44,1,-1,6,84,
+  38,1,44,1,6,128,
+  39,44,1,-1,6,172,
+  40,1,44,1,6,216,
+  41,44,1,-1,6,260,
+  42,1,44,1,6,304,
+  43,44,1,-1,6,348,
+  44,0,45,1,6,392,
+  45,45,0,-1,6,438,
+  46,0,45,1,6,484,
+  47,45,0,-1,5,0,
+  48,0,45,1,5,46,
+  49,45,0,-1,5,92,
+  50,0,45,1,5,138,
+  51,45,0,-1,5,184,
+  52,0,45,1,5,230,
+  53,45,0,-1,5,276,
+  54,0,45,1,5,322,
+  55,45,0,-1,5,368,
+  56,0,45,1,5,414,
+  57,45,0,-1,5,460,
+  58,0,45,1,5,506,
+  59,45,0,-1,4,0,
+  60,0,45,1,4,46,
+  61,45,0,-1,4,92,
+  62,0,45,1,4,138,
+  63,45,0,-1,4,184,
+  64,0,45,1,4,230,
+  65,45,0,-1,4,276,
+  66,0,45,1,4,322,
+  67,45,0,-1,4,368,
+  68,0,45,1,4,414,
+  69,45,0,-1,4,460,
+  70,1,44,1,4,506,
+  71,44,1,-1,3,0,
+  72,1,44,1,3,44,
+  73,44,1,-1,3,88,
+  74,1,44,1,3,132,
+  75,44,1,-1,3,176,
+  76,1,44,1,3,220,
+  77,44,1,-1,3,264,
+  78,1,44,1,3,308,
+  79,43,2,-1,3,352,
+  80,2,43,1,3,394,
+  81,43,2,-1,3,436,
+  82,2,43,1,3,478,
+  83,42,3,-1,2,0,
+  84,3,42,1,2,40,
+  85,42,3,-1,2,80,
+  86,3,42,1,2,120,
+  87,42,3,-1,2,160,
+  88,4,41,1,2,200,
+  89,41,4,-1,2,238,
+  90,4,41,1,2,276,
+  91,40,5,-1,2,314,
+  92,5,40,1,2,350,
+  93,40,5,-1,2,386,
+  94,6,39,1,2,422,
+  95,39,6,-1,2,456,
+  96,6,39,1,2,490,
+  97,39,6,-1,1,0,
+  98,7,38,1,1,34,
+  99,38,7,-1,1,66,
+  100,8,37,1,1,98,
+  101,37,8,-1,1,128,
+  102,9,36,1,1,158,
+  103,36,9,-1,1,186,
+  104,10,35,1,1,214,
+  105,38,7,-1,1,240,
+  106,8,37,1,1,272,
+  107,36,9,-1,1,302,
+  108,9,36,1,1,330,
+  109,35,10,-1,1,358,
+  110,10,35,1,1,384,
+  111,34,11,-1,1,410,
+  112,12,33,1,1,434,
+  113,32,13,-1,1,456,
+  114,14,31,1,1,476,
+  115,34,11,-1,1,494,
+  116,14,31,1,1,518,
+  117,26,19,-1,1,536};
+
+
+#define PIXEL_RED  0;
+#define  PIXEL_GREEN 1;
+#define  PIXEL_BLUE 2;
+
+void translatePixel(int x, int y, int color) {
+  int startX = boardMap[y].startX;
+  int endX = boardMap[y].endX;
+  int stripOffset = boardMap[y].stripOffset;
+  int stripNumber = boardMap[y].stripNumber - 1;
+  int stripDirection = boardMap[y].stripDirection;
+
+  int pixelOffset;
+
+  // Check it off screen
+  if (x < min (startX, endX)  && x > max(startX, endX))
+    return;
+
+  // Calculate strip number and offset first
+  if (stripDirection == 1) {
+    pixelOffset = stripOffset + x - startX ;
+    leds.setPixel(stripNumber * ledsPerStrip + pixelOffset, color);
+  } else {
+    pixelOffset = stripOffset + startX - x;
+    leds.setPixel(stripNumber * ledsPerStrip + pixelOffset, color);
+  }
+} 
+
+void testPattern() {
+  int row;
+  int endRow = 118;
+  for (row = 0; row < endRow; row++) {
+    translatePixel(22, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+    translatePixel(23, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+}

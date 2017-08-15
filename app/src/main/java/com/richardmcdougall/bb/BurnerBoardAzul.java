@@ -41,7 +41,7 @@ import java.util.Arrays;
 public class BurnerBoardAzul extends BurnerBoard {
     private int mBoardWidth = 46;
     private int mBoardHeight = 118;
-    private int[] mBoardScreen;
+    public int[] mBoardScreen;
     private int mDimmerLevel = 255;
     private static final String TAG = "BurnerBoardAzul";
     public int mBatteryLevel;
@@ -298,6 +298,8 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     static int gammaCorrect(int value) {
         //return ((value / 255) ^ (1 / gamma)) * 255;
+        if (value>255) value=255;
+        if (value<0) value =0;
         return gamma8[value];
     }
 
@@ -367,6 +369,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     public boolean update() {
 
         sendVisual(8);
+
         //l("sendCommand: 5");
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -374,7 +377,15 @@ public class BurnerBoardAzul extends BurnerBoard {
                 mListener.sendCmdEnd();
                 return true;
             }
+            else {
+                // Emulate board's 30ms refresh time
+                try {
+                    Thread.sleep(5);
+                } catch (Throwable e) {
+                }
+            }
         }
+
         return false;
     }
 

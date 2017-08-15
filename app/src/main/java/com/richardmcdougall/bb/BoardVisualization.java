@@ -3,6 +3,7 @@ package com.richardmcdougall.bb;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.audiofx.Visualizer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -56,6 +57,8 @@ public class BoardVisualization {
     private int[] mBoardScreen;
     private int[] mFireScreen;
     private int mFireHeight;
+    private VideoDecoder mVideoDecoder = new VideoDecoder();
+    private int lastVideoMode = -1;
 
     int mBoardMode;
     Context mContext;
@@ -220,8 +223,13 @@ public class BoardVisualization {
                     modeTestColors();
                     break;
 
+
                 default:
-                    break;
+                    if (mBoardMode>=16) {
+                        sleepTime = 0;
+                        modeVideo(mBoardMode - 16);
+                        break;
+                    }
             }
 
             try {
@@ -790,6 +798,70 @@ public class BoardVisualization {
         mBurnerBoard.flush();
         return;
     }
+
+    public SimpleImage currentVideoFrame = null;
+    void modeVideo(int videoNumber) {
+
+        int nVideos = mBurnerBoard.mBBService.dlManager.GetTotalVideo();
+        if (nVideos==0)
+            return ;
+
+        int curVidIndex = videoNumber % nVideos;
+        if (curVidIndex!=lastVideoMode && mVideoDecoder.IsRunning()) {
+            mVideoDecoder.Stop();
+        }
+
+        if (!mVideoDecoder.IsRunning()) {
+
+            if (curVidIndex!=lastVideoMode) {
+
+                mVideoDecoder.Stop();
+                mVideoDecoder.onFrameReady = new VideoDecoder.OnFrameReadyCallback() {
+                    public void callbackCall(SimpleImage img) {
+                        currentVideoFrame = img;
+                        currentVideoFrame = img.dup();
+                    }
+                };
+
+                try {
+                    mVideoDecoder.Start(mBurnerBoard.mBBService.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
+                lastVideoMode = curVidIndex;
+            }
+        }
+        if (currentVideoFrame!=null) {
+            int w = currentVideoFrame.width;
+            BurnerBoardAzul ba = (BurnerBoardAzul)mBurnerBoard;
+
+            try {
+                int srcOff = 0, dstOff = 0;
+                for (int y = 0; y < currentVideoFrame.height; y++) {
+                    for (int x = 0; x < w; x++) {
+                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff++];
+                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff++];
+                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff++];
+                        srcOff++;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();;
+            }
+/*
+                        mBurnerBoard.setPixel(x, y,
+                                currentVideoFrame.mPixelBuf.array()[(y * w + x) * 4],
+                                currentVideoFrame.mPixelBuf.array()[(y * w + x) * 4 + 1],
+                                currentVideoFrame.mPixelBuf.array()[(y * w + x) * 4 + 2]
+                        ); */
+
+
+
+        }
+        mBurnerBoard.flush();
+        return;
+    }
+
 
     private void drawRectFront(int size, int color) {
         if (size == 0)
