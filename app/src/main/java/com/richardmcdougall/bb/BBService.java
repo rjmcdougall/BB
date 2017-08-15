@@ -37,7 +37,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.AudioTrack;
 import android.media.AudioFormat;
-
+import android.os.Build;
 
 public class BBService extends Service {
 
@@ -63,7 +63,8 @@ public class BBService extends Service {
     public long serverRTT = 0;
     private int userTimeOffset = 0;
     public UDPClientServer udpClientServer = null;
-    public String boardId;
+    public String boardId = Build.SERIAL;
+    public String boardType = Build.TYPE;
     ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 5; // Mode of the Ardunio/LEDs
@@ -112,6 +113,7 @@ public class BBService extends Service {
 
     static {
         BoardNames.put("BISCUIT", "Richard");
+        BoardNames.put("newproto", "Richard")
     }
 
     @Override
