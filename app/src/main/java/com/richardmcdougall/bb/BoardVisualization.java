@@ -8,6 +8,7 @@ import android.media.audiofx.Visualizer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 /**
@@ -832,31 +833,26 @@ public class BoardVisualization {
             }
         }
         if (currentVideoFrame!=null) {
-            int w = currentVideoFrame.width;
+            SimpleImage curVideo = currentVideoFrame;  // save pointer to current video frame, it might change in another thread
+            int totalPixels = curVideo.width * curVideo.height;
             BurnerBoardAzul ba = (BurnerBoardAzul)mBurnerBoard;
 
             try {
                 int srcOff = 0, dstOff = 0;
-                for (int y = 0; y < currentVideoFrame.height; y++) {
-                    for (int x = 0; x < w; x++) {
-                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff] & 0xFF;
-                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff+1] & 0xFF;
-                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff+2] & 0xFF;
-                        srcOff+= 4;
-                    }
+                int[] dst = ba.mBoardScreen;
+                byte[] src = curVideo.mPixelBuf.array();
+
+                // convert from 32 bit RGBA byte pixels to 96 bit RGB int pixels
+                while (totalPixels !=0) {
+                    dst[dstOff++] = src[srcOff+0] & 0xff;
+                    dst[dstOff++] = src[srcOff+1] & 0xff;
+                    dst[dstOff++] = src[srcOff+2] & 0xff;
+                    srcOff+=4;                         // skip alpha channel, this isn't used
+                    totalPixels--;
                 }
             } catch (Exception e) {
                 e.printStackTrace();;
             }
-/*
-                        mBurnerBoard.setPixel(x, y,
-                                currentVideoFrame.mPixelBuf.array()[(y * w + x) * 4],
-                                currentVideoFrame.mPixelBuf.array()[(y * w + x) * 4 + 1],
-                                currentVideoFrame.mPixelBuf.array()[(y * w + x) * 4 + 2]
-                        ); */
-
-
-
         }
         mBurnerBoard.flush();
         return;
