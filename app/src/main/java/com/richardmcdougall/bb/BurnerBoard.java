@@ -406,26 +406,16 @@ public class BurnerBoard {
         }
     };
 
-    private int flushCnt = 0;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
+
 
     public void flush2Board() {
 
-        flushCnt++;
-        if (flushCnt > 100) {
-            int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
-            lastFlushTime = java.lang.System.currentTimeMillis();
-
-            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
-                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
-            flushCnt = 0;
-        }
         if (mListener != null) {
             mListener.flushWrites();
         } else {
             // Emulate board's 30ms refresh time
             try {
- //               Thread.sleep(30);
+                Thread.sleep(2);
             } catch (Throwable e) {
             }
         }

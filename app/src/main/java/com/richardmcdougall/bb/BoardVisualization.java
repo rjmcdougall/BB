@@ -839,10 +839,10 @@ public class BoardVisualization {
                 int srcOff = 0, dstOff = 0;
                 for (int y = 0; y < currentVideoFrame.height; y++) {
                     for (int x = 0; x < w; x++) {
-                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff++];
-                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff++];
-                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff++];
-                        srcOff++;
+                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff] & 0xFF;
+                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff+1] & 0xFF;
+                        ba.mBoardScreen[dstOff++] = currentVideoFrame.mPixelBuf.array()[srcOff+2] & 0xFF;
+                        srcOff+= 4;
                     }
                 }
             } catch (Exception e) {

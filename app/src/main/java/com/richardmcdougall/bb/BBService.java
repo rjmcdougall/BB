@@ -20,7 +20,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
-import android.support.v4.content.LocalBroadcastManager;
+import 	android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -72,8 +72,7 @@ public class BBService extends Service {
     public UDPClientServer udpClientServer = null;
     public String boardId = Build.SERIAL;
     public String boardType = Build.TYPE;
-    ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
-    public String boardId;
+    //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 16; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
@@ -121,7 +120,7 @@ public class BBService extends Service {
 
     static {
         BoardNames.put("BISCUIT", "Richard");
-        BoardNames.put("newproto", "Richard")
+        BoardNames.put("newproto", "Richard");
     }
 
     @Override
