@@ -844,10 +844,10 @@ public class BoardVisualization {
 
                 // convert from 32 bit RGBA byte pixels to 96 bit RGB int pixels
                 while (totalPixels !=0) {
-                    dst[dstOff++] = src[srcOff++];
-                    dst[dstOff++] = src[srcOff++];
-                    dst[dstOff++] = src[srcOff++];
-                    srcOff++;                         // skip alpha channel, this isn't used
+                    dst[dstOff++] = src[srcOff+0] & 0xff;
+                    dst[dstOff++] = src[srcOff+1] & 0xff;
+                    dst[dstOff++] = src[srcOff+2] & 0xff;
+                    srcOff+=4;                         // skip alpha channel, this isn't used
                     totalPixels--;
                 }
             } catch (Exception e) {
