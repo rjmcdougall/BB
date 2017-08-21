@@ -275,6 +275,8 @@ public class VideoDecoder extends AndroidTestCase {
 
         boolean outputDone = false;
         boolean inputDone = false;
+        long lastFrameTime = System.currentTimeMillis();
+
         while (!outputDone && !parent.stopRequested) {
             if (VERBOSE) Log.d(TAG, "loop");
 
@@ -362,6 +364,17 @@ public class VideoDecoder extends AndroidTestCase {
                        if (callback != null)
                             callback.callbackCall(outputSurface.outImage);
 
+                        long curFrameTime = System.currentTimeMillis();
+
+                        // limit output framerate to 30fps (33ms per frame)
+                        if (curFrameTime-lastFrameTime<33) {
+                            try {
+                                Thread.sleep(33 - (curFrameTime - lastFrameTime));
+                            } catch (Throwable er) {
+                                er.printStackTrace();
+                            }
+                        }
+                        lastFrameTime = curFrameTime;
 
 
 /*                        if (decodeCount < MAX_FRAMES) {

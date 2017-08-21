@@ -255,40 +255,12 @@ public class BBDownloadManager {
             }
         }
 
-        @Override
-        public void run() {
+        public void CleanupOldFiles() {
             try {
-                String dataDir = mDM.mFilesDir;
-
-                long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "directory.tmp", "Directory");
-                if (ddsz<0) {
-                    // if we can't get the latest directory information we probably aren't connected to the internet
-                    // let's give up on downloading until the next reboot
+                ArrayList<String> refrerencedFiles = new ArrayList<String>();
 
 
-                    if (mDM.onProgressCallback!=null)
-                        mDM.onProgressCallback.onVoiceCue("No Internet");
-
-                    // if we have a locally cached data directory, use that
-                    if (new File(mDM.mFilesDir, "directory.json").exists()) {
-                        String dText = LoadTextFile("directory.json");
-                        mDM.dataDirectory = new JSONObject(dText);
-                        return ;
-                    }
-                }
-                
-                String origDir = LoadTextFile("directory.json");
-                if (origDir == null || !origDir.equals(LoadTextFile("directory.tmp"))) {
-                    File orig = new File(dataDir, "directory.json");
-                    if (orig.exists())
-                        orig.delete();
-                    new File(dataDir, "directory.tmp").renameTo(orig);
-                    origDir = LoadTextFile("directory.json");
-
-                }
-
-                JSONObject dir = new JSONObject(origDir);
-                int tFiles = 0;
+                JSONObject dir = mDM.dataDirectory;
 
                 String[] dTypes = new String[]{"audio", "video"};
                 String[] extTypes = new String[]{"mp3", "mp4"};
@@ -296,58 +268,143 @@ public class BBDownloadManager {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
                     for (int j = 0; j < tList.length(); j++) {
                         JSONObject elm = tList.getJSONObject(j);
-                        String url = elm.getString("URL");
-
-                        String localName;
-                        if (elm.has("localName"))
-                            localName = elm.getString("localName");
-                        else
-                            localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
-
-                        Boolean upTodate = false;
-                        File dstFile = new File(dataDir, localName);
-                        if (elm.has("Size")) {
-                            long sz = elm.getLong("Size");
-
-                            if (dstFile.exists()) {
-                                long curSze = dstFile.length();
-                                if (dstFile.length() ==sz) {
-                                    upTodate = true;
-                                }
-                            }
-                        } else {
-                            if (dstFile.exists()) {
-                                long remoteSz = GetURLFileSize(url);
-                                long curSze = dstFile.length();
-
-                                if (dstFile.length() == remoteSz) {
-                                    upTodate = true;
-                                }
-                            }
-                        }
-
-                        if (!upTodate) {
-                            DownloadURL(url, "tmp", localName);
-                            tFiles++;
-                            if (dstFile.exists())
-                                dstFile.delete();
-                            new File(dataDir, "tmp").renameTo(dstFile);
+                        if (elm.has("localName")) {
+                            refrerencedFiles.add(elm.getString("localName"));
                         }
                     }
                 }
-                mDM.dataDirectory = dir;
 
-                if (mDM.onProgressCallback!=null) {
-                    if (tFiles == 0 )
-                        mDM.onProgressCallback.onVoiceCue("Media ready");
-                    else
-                        mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
+                String dataDir = mDM.mFilesDir;
+                File[] flist = new File(dataDir).listFiles();
+                for (int i=0; i<flist.length; i++) {
+                    String fname = flist[i].getName();
+
+                    if (fname.endsWith(".mp4") || fname.endsWith(".mp3")) {
+                        if (!refrerencedFiles.contains(fname)) {
+                            flist[i].delete();
+                        }
+                    }
                 }
 
+            } catch (Throwable er) {
+            }
+        }
+
+        public void LoadInitialDataDirectory() {
+            try {
+                String dataDir = mDM.mFilesDir;
+                File[] flist = new File(dataDir).listFiles();
+                for (int i=0; i<flist.length; i++) {
+                    String fname = flist[i].getName();
+                    if (fname.endsWith(".tmp")) {   // download finished, move it over
+                        String dstName = flist[i].getName().substring(0, flist[i].getName().lastIndexOf('.'));
+                        flist[i].renameTo(new File(dataDir, dstName));
+                    }
+                }
+
+                String origDir = LoadTextFile("directory.json");
+                if (origDir != null) {
+                    JSONObject dir = new JSONObject(origDir);
+                    mDM.dataDirectory = dir;
+                    CleanupOldFiles();
+                }
+            } catch (Throwable er) {
+                er.printStackTrace();
+            }
+        }
+
+
+        @Override
+        public void run() {
+            LoadInitialDataDirectory();  // get started rught away using the data we have on the board already (if any)
+
+            // keep trying to connect to the Internet to look for updates until we are able to connect
+            try {
+                boolean downloadSuccess = false;
+
+                while (!downloadSuccess) {
+
+                    String dataDir = mDM.mFilesDir;
+
+                    long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "tmp", "Directory");
+                    if (ddsz < 0) {
+                        Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
+                    } else {
+                        new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
+
+                        String dirTxt = LoadTextFile("directory.json.tmp");
+                        JSONObject dir = new JSONObject(dirTxt);
+
+                        int tFiles = 0;
+
+                        String[] dTypes = new String[]{"audio", "video"};
+                        String[] extTypes = new String[]{"mp3", "mp4"};
+                        for (int i = 0; i < dTypes.length; i++) {
+                            JSONArray tList = dir.getJSONArray(dTypes[i]);
+                            for (int j = 0; j < tList.length(); j++) {
+                                JSONObject elm = tList.getJSONObject(j);
+                                String url = elm.getString("URL");
+
+                                String localName;
+                                if (elm.has("localName"))
+                                    localName = elm.getString("localName");
+                                else
+                                    localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
+
+                                Boolean upTodate = false;
+                                File dstFile = new File(dataDir, localName);
+                                if (elm.has("Size")) {
+                                    long sz = elm.getLong("Size");
+
+                                    if (dstFile.exists()) {
+                                        long curSze = dstFile.length();
+                                        if (dstFile.length() == sz) {
+                                            upTodate = true;
+                                        }
+                                    }
+                                } else {
+                                    if (dstFile.exists()) {
+                                        long remoteSz = GetURLFileSize(url);
+                                        long curSze = dstFile.length();
+
+                                        if (dstFile.length() == remoteSz) {
+                                            upTodate = true;
+                                        }
+                                    }
+                                }
+
+                                if (!upTodate) {
+                                    DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+                                    tFiles++;
+
+                                    File dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
+                                    if (dstFile2.exists())
+                                        dstFile2.delete();
+                                    new File(dataDir, "tmp").renameTo(dstFile2);
+                                }
+                            }
+                        }
+                        mDM.dataDirectory = dir;
+
+                        if (mDM.onProgressCallback != null) {
+                            if (tFiles == 0)
+                                mDM.onProgressCallback.onVoiceCue("Media ready");
+                            else
+                                mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
+                        }
+                        downloadSuccess = true;
+
+                    }
+                }
 
             } catch (Throwable th) {
                 if (mDM.onProgressCallback!=null)
                     mDM.onProgressCallback.onVoiceCue(th.getMessage());
+                try {
+                    Thread.sleep(10000);   // wait 10 second if unexpected error
+                } catch (Throwable er) {
+
+                }
             }
         }
     }
