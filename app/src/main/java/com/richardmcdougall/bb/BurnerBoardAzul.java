@@ -298,8 +298,8 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     static int gammaCorrect(int value) {
         //return ((value / 255) ^ (1 / gamma)) * 255;
-        if (value>255) value=255;
-        if (value<0) value =0;
+        if (value>255) value = 255;
+        if (value < 0) value = 0;
         return gamma8[value];
     }
 
@@ -333,8 +333,21 @@ public class BurnerBoardAzul extends BurnerBoard {
         mDimmerLevel = level;
     }
 
+    private int flushCnt = 0;
+    long lastFlushTime = java.lang.System.currentTimeMillis();
 
     public void flush() {
+
+        flushCnt++;
+        if (flushCnt > 100) {
+            int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
+            lastFlushTime = java.lang.System.currentTimeMillis();
+
+            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
+            flushCnt = 0;
+        }
+
         int[] rowPixels = new int[mBoardWidth * 3];
         for (int y = 0; y < mBoardHeight; y++) {
             //for (int y = 30; y < 31; y++) {

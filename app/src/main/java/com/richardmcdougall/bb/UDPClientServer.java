@@ -140,7 +140,12 @@ public class UDPClientServer {
             socket.setSoTimeout(500);
 
             socket.setSoTimeout(0);
-            while (true) {
+        } catch (Exception e) {
+        }
+
+
+        while (true) {
+            try {
                 if (amServer()) {
                     replyCount++;
                     Intent in = new Intent(BBService.ACTION_STATS);
@@ -181,18 +186,11 @@ public class UDPClientServer {
                     l("*malformed* UDP packet received from " + dp.getAddress().toString());
                 }
 
+            } catch (SocketException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-        } catch (SocketException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (ds != null) {
-                ds.close();
-            }
-            if (socket != null)
-                socket.close();
         }
     }
 

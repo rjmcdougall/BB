@@ -72,7 +72,7 @@ public class BBService extends Service {
     public UDPClientServer udpClientServer = null;
     public String boardId = Build.SERIAL;
     public String boardType = Build.TYPE;
-
+    //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 16; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
