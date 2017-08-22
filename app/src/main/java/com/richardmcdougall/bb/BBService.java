@@ -70,8 +70,8 @@ public class BBService extends Service {
     public long serverRTT = 0;
     private int userTimeOffset = 0;
     public UDPClientServer udpClientServer = null;
-    public String boardId = Build.SERIAL;
-    public String boardType = Build.TYPE;
+    public String boardId = Build.MODEL;
+    //public String boardType = Build.TYPE;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 16; // Mode of the Ardunio/LEDs
@@ -142,12 +142,9 @@ public class BBService extends Service {
                     l("Text To Speech ready...");
                     voice.setPitch((float)0.8);
                     String utteranceId = UUID.randomUUID().toString();
-                    String whosBoard = "Burner Board";
                     System.out.println("Where do you want to go, " + boardId + "?");
-                    if (boardId != null)
-                        whosBoard = BoardNames.get(boardId);
-                    voice.setSpeechRate((float) 1.1);
-                    voice.speak("" + whosBoard + "?",
+                    voice.setSpeechRate((float) 0.9);
+                    voice.speak("I am " + boardId + "?",
                             TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 } else if (status == TextToSpeech.ERROR) {
                     l("Sorry! Text To Speech failed...");
