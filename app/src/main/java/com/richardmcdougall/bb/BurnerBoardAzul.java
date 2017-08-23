@@ -46,8 +46,10 @@ public class BurnerBoardAzul extends BurnerBoard {
     private static final String TAG = "BurnerBoardAzul";
     public int mBatteryLevel;
 
+
     public BurnerBoardAzul(BBService service, Context context) {
         super(service, context);
+        boardType = "Burner Board Azul";
         l("Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
@@ -129,6 +131,10 @@ public class BurnerBoardAzul extends BurnerBoard {
             mBatteryLevel = mListener.readIntArg();
             l("getBatteryLevel: " + mBatteryLevel);
         }
+    }
+
+    public int getBattery() {
+        return mBatteryLevel;
     }
 
     public void fuzzPixels(int amount) {

@@ -289,8 +289,8 @@ void OnUpdate() {
   }
   
   if (batteryLow) {
-    clearScreen();
-    drawBattery();
+    //clearScreen();
+    drawBatteryTop();
   }
   strip->show();
 }
@@ -683,9 +683,12 @@ void batteryStats() {
   
   clearScreen();
   drawBattery();
+
   strip->show();
   delay(5000);
 
+  return;
+  
   clearScreen();
   sprintf(batt, "%d v", batteryVoltage);
   strip->print(batt, 12, 1, 1);
@@ -872,6 +875,75 @@ void drawBattery() {
 
 }
 
+void drawBatteryTop() {
+  uint32_t color;
+  uint16_t x;
+  uint8_t row;
+  int level;
+
+  // Little battery at top
+  // row 60-69
+  // 60-67 is battery
+  // 68-69 is button
+  // inside is 61-68
+  
+  level = getBatteryLevel() / 12.5; // convert 100 to max of 7
+
+  row = 60;
+
+  // White Battery Shell with Green level
+
+  // Battery Bottom
+  for (x = 3; x < 7; x++) {
+    strip->setPixelColor(x, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+  row++;
+
+  // Battery Sides
+  for (; row < 67; row++) {
+    strip->setPixelColor(3, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+    strip->setPixelColor(6, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+
+  // Battery Top
+  for (x = 3; x < 7; x++) {
+    strip->setPixelColor(x, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+  row++;
+
+  // Battery button
+  for (x = 4; x < 6; x++) {
+    strip->setPixelColor(x, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
+  }
+ 
+
+  // Get level failed
+  if (level < 0) {
+    // RED
+    for (row = 61; row < 67; row++) {
+      for (x = 4; x < 6; x++) {
+        strip->setPixelColor(x, row, rgbTo24BitColor(255, 0, 0));
+      }
+    }
+  } else {
+    // Battery Level
+    uint32_t batteryColor;
+    if (batteryCritical) {
+      batteryColor = rgbTo24BitColor(255, 0, 0);
+    } else if (batteryLow) {
+      batteryColor = rgbTo24BitColor(255, 40, 0);
+    }  else {
+      batteryColor = rgbTo24BitColor(0, 255, 0);
+    }
+    for (row = 61; row < 61 + level; row++) {
+      for (x = 4; x < 6; x++) {
+        strip->setPixelColor(x, row, batteryColor);
+      }
+    }
+  }
+
+}
+
 
 
 void setup() {
@@ -900,11 +972,11 @@ void setup() {
   clearScreen();
   strip->show();
   
-  fillScreen(65355);
+  //fillScreen(65355);
   //strip->print((char *)getBoardName(), 15, 1, 1);
   strip->show();
   fillScreen(65536);
-  delay(3000);
+  ///delay(3000);
 
   Wire.begin();
 
@@ -988,7 +1060,7 @@ void loop() {
       } else {
         batteryLow = false;
       }
-      if (batteryLevel <= 10) {
+      if (batteryLevel <= 15) {
         limitBoardSpeed(true);
         batteryCritical = true;
       } else {
@@ -996,7 +1068,6 @@ void loop() {
         batteryCritical = false;
       }
     }
-
     OnGetBatteryLevel();
 
   }
@@ -1005,6 +1076,7 @@ void loop() {
   if (batteryCritical) {
       fillScreen(rgbTo24BitColor(255,0,0));
       drawBattery();
+      drawBatteryTop();
       strip->show();
   }
 

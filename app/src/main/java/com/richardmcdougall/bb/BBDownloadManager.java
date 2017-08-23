@@ -326,7 +326,8 @@ public class BBDownloadManager {
 
                     String dataDir = mDM.mFilesDir;
 
-                    long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "tmp", "Directory");
+                    //long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "tmp", "Directory");
+                    long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/dsm6hofocn6n4p1/DownloadDirectorySmall.json?dl=0", "tmp", "Directory");
                     if (ddsz < 0) {
                         Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
                     } else {

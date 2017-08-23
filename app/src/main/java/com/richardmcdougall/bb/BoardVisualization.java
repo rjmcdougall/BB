@@ -51,8 +51,8 @@ public class BoardVisualization {
     private byte[] testRow1 = "012345678901234567890123456789012345".getBytes();
     private byte[] testRow2 = "567890123456789012345678901234567890".getBytes();
     public byte[] mBoardFFT;
-    private int mBoardWidth = 46;
-    private int mBoardHeight = 118;
+    private int mBoardWidth;
+    private int mBoardHeight;
     private int mBoardSideLights = 79;
     private int[][] mFireColors = new int[256][3];
     private int[] mBoardScreen;
@@ -68,6 +68,15 @@ public class BoardVisualization {
 
     BoardVisualization(Context context, BurnerBoard board) {
         mBurnerBoard = board;
+        if (new String(mBurnerBoard.boardType).equals(new String("Burner Board Classic"))) {
+            l("Starting Classic Visualization");
+            mBoardWidth = 10;
+            mBoardHeight = 70;
+        } else {
+            l("Starting Azul Visualization");
+            mBoardWidth = 46;
+            mBoardHeight = 118;
+        }
         mContext = context;
         // Start Board Display
         Thread boardDisplay = new Thread(new Runnable() {
@@ -835,7 +844,7 @@ public class BoardVisualization {
         if (currentVideoFrame!=null) {
             SimpleImage curVideo = currentVideoFrame;  // save pointer to current video frame, it might change in another thread
             int totalPixels = curVideo.width * curVideo.height;
-            BurnerBoardAzul ba = (BurnerBoardAzul)mBurnerBoard;
+            BurnerBoard ba = (BurnerBoard)mBurnerBoard;
 
             try {
                 int srcOff = 0, dstOff = 0;

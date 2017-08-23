@@ -12,19 +12,21 @@ import java.util.Arrays;
 public class BurnerBoardClassic extends BurnerBoard {
 
 
-    private int mBoardWidth = 46;
-    private int mBoardHeight = 118;
+    private int mBoardWidth = 10;
+    private int mBoardHeight = 70;
     private int mBoardSideLights = 79;
     private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
-    public int mBatteryLevel;
+    public int mBatteryLevel = -1;
     private static final String TAG = "BurnerBoardClassic";
+    public String boardType = "Burner Board Classic";
 
 
 
     public BurnerBoardClassic(BBService service, Context context) {
         super(service, context);
+        boardType = "Burner Board Classic";
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
@@ -96,8 +98,8 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     public class BoardCallbackBoardID implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
-            String boardId = mListener.readStringArg();
-            boardCallback.BoardId(boardId);
+            //String boardId = mListener.readStringArg();
+            //boardCallback.BoardId(boardId);
         }
     }
 
@@ -159,6 +161,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         return true;
     }
 
+    public int getBattery() {
+        return mBatteryLevel;
+    }
 
     //    cmdMessenger.attach(BBFade, OnFade);                  // 7
     public boolean fadeBoard(int amount) {
@@ -475,7 +480,7 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     // TODO: Had to hardcode boardwidth to 10 for speed
     static int pixel2OffsetCalc(int x, int y, int rgb) {
-        return (y * 46 + x) * 3 + rgb;
+        return (y * 10 + x) * 3 + rgb;
     }
 
     static int pixel2Offset(int x, int y, int rgb) {

@@ -4,11 +4,12 @@
 #include <CmdMessenger.h>
 
 
-//#define DEBUG_PIXELS 1
-
 // Burner Boards have 2 relay outputs, speed-pin control and a spare aux relay
 #define SPEED_PIN 23
 #define AUX_PIN 22
+
+
+//#define DEBUG_PIXELS 1
 
 #define RGB_MAX 255
 
@@ -125,7 +126,7 @@ void OnClearScreen()
 void OnUpdate() {
 
   if (batteryCritical) {
-    fillScreen(rgbTo24BitColor(40,0,0));
+    fillScreen(rgbTo24BitColor(255,0,0));
   }
   // skip if charging
   if (0 && batteryCurrent < 32000) {
@@ -133,8 +134,8 @@ void OnUpdate() {
   }
   
   if (batteryLow) {
-    //clearScreen();
-    drawBatteryTop();
+    clearScreen();
+    //drawBattery();
   }
   leds.show();
   inited = true;
@@ -289,6 +290,7 @@ void fillScreen(uint32_t color) {
   for (i=0; i < NUM_LEDS; i++) {
     leds.setPixel(i, color);
   }
+  leds.show();
 }
 
 void batteryStats() {
@@ -406,7 +408,7 @@ int getBatteryAll() {
 
 int getBatteryLevel() {
 
-  //return 14;
+  return 50;
   int value;
 
   // Capacity in %age
@@ -478,95 +480,16 @@ void drawBattery() {
     if (batteryCritical) {
       batteryColor = rgbTo24BitColor(255, 0, 0);
     } else if (batteryLow) {
-      batteryColor = rgbTo24BitColor(255, 165, 0);
+      batteryColor = rgbTo24BitColor(255, 40, 0);
     }  else {
       batteryColor = rgbTo24BitColor(0, 255, 0);
     }
     for (row = startRow + 1; row < startRow + level ; row++) {
-      for (x = battLeft  + 1; x < battLeft + battWidth - 1; x++) {
+      for (x = battLeft; x < battLeft + battWidth; x++) {
         translatePixel(x, row, batteryColor);
       }
     }
-    for (; row <= endRow ; row++) {
-      for (x = battLeft + 1; x < battLeft + battWidth - 1; x++) {
-        translatePixel(x, row, 0);
-      }
-    }
   }
-}
-
-void drawBatteryTop() {
-  uint32_t color;
-  uint16_t x;
-  uint8_t row;
-  int level;
-
-  // Little battery at top
-  // row 105-114
-  // 105-112 is battery
-  // 113-114 is button
-  // inside is 106-111
-  
-  level = 1 + getBatteryLevel() / 19; // convert 100 to max of 7
-
-  row = 105;
-
-  // White Battery Shell with Green level
-
-  // Battery Bottom
-  for (x = 20; x < 26; x++) {
-    translatePixel(x, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
-  }
-  row++;
-
-  // Battery Sides
-  for (; row < 112; row++) {
-    translatePixel(20, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
-    translatePixel(25, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
-  }
-
-  // Battery Top
-  for (x = 20; x < 26; x++) {
-    translatePixel(x, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
-  }
-  row++;
-
-  // Battery button
-  for (x = 22; x < 24; x++) {
-    translatePixel(x, row, rgbTo24BitColor(RGB_MAX, RGB_MAX, RGB_MAX));
-  }
- 
-
-  // Get level failed
-  if (level < 0) {
-    // RED
-    for (row = 106; row < 112; row++) {
-      for (x = 21; x < 25; x++) {
-        translatePixel(x, row, rgbTo24BitColor(255, 0, 0));
-      }
-    }
-  } else {
-    // Battery Level
-    uint32_t batteryColor;
-    if (batteryCritical) {
-      batteryColor = rgbTo24BitColor(255, 0, 0);
-    } else if (batteryLow) {
-      batteryColor = rgbTo24BitColor(255, 165, 0);
-    }  else {
-      batteryColor = rgbTo24BitColor(0, 255, 0);
-    }
-    for (row = 106; row < 106 + level; row++) {
-      for (x = 21; x < 25; x++) {
-        translatePixel(x, row, batteryColor);
-      }
-    }
-    for (; row < 112; row++) {
-      for (x = 21; x < 25; x++) {
-        translatePixel(x, row, 0);
-      }
-    }
-  }
-
 }
 
 
@@ -579,18 +502,23 @@ void setup() {
   Serial.println("Goodnight moon!");
   Serial1.println("Goodnight moon!");
 
-  // Setup motor control speed limiter to no-limit
   pinMode(AUX_PIN, OUTPUT);
   pinMode(SPEED_PIN, OUTPUT);
+
   limitBoardSpeed(false);
   
   BBattachCommandCallbacks();
   cmdMessenger.sendCmd(BBacknowledge,"BB Ready\n");
   ShowCommands();
-
-  Wire.begin();
-
+  
   leds.begin();
+  //fillScreen(rgbTo24BitColor(13,30,96));
+  //leds.show();
+
+  for (int i = 0; i < 100; i++) {
+    leds.setPixel((0 * 552) + i,0,0,40);
+    leds.show();
+  }
 
 }
 
@@ -604,72 +532,38 @@ uint8_t c = 0;
 #define ORANGE 0x100400
 #define WHITE  0x202020
 
-// Counter to see if we check battery level
-unsigned long lastBatteryCheck = 0;
 
 void loop() {
-
-  int i;
-  unsigned long ts;
-  int batteryLevel = -1;
-  
-  // Process incoming serial data, and perform callbacks
-  ts = micros();
-
-  // Every 10 seconds check batter level from battery computer
-  if ((ts - lastBatteryCheck) > 10000000) {
-    lastBatteryCheck = ts;
-    batteryLevel = getBatteryLevel();
-    if (batteryLevel >= 0) {
-      // valid reading
-      if (batteryLevel <= 25) {
-        batteryLow = true;
-      } else {
-        batteryLow = false;
-      }
-      if (batteryLevel <= 15) {
-        limitBoardSpeed(true);
-        batteryCritical = true;
-      } else {
-        limitBoardSpeed(false);
-        batteryCritical = false;
-      }
-    }
-    OnGetBatteryLevel();
-  }
-
-  // Uh oh, battery is almost dead
-  if (batteryCritical) {
-      fillScreen(rgbTo24BitColor(40,0,0));
-      drawBattery();
-      drawBatteryTop();
-      leds.show();
-  } else {
-
-    // display battery if charging, currrent > 1000mah (10 divider)
-    if (0 && batteryCurrent < 32000) {
-      clearScreen();
-      drawBattery();
-      leds.show();
-      delay(2000);
-      clearScreen();
-      leds.show();
-      delay(2000);
-    }
-
-    // Pulse the screen until connected to android
-    if (inited == false) {
-      fillScreen(rgbTo24BitColor(c,c + 10,40));
-      batteryLevel = getBatteryLevel();
-      drawBattery();
-      c++;
-      if (c > 25)
-        c = 0;
-      leds.show();
-    }
+  if (inited == false) {
+    //fillScreen(rgbTo24BitColor(c,c + 10,48));
+    //drawBattery();
+    clearScreen();
+    testPattern();
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(RED);
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(GREEN);
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(BLUE);
+    leds.show();
+    delay(10000);
+    clearScreen();
+    fillScreen(WHITE);
+    leds.show();
+    delay(10000);
+    c++;
+    if (c > 64)
+      c = 0;
   }
   cmdMessenger.feedinSerialData();
 }
+
 
 // Enable the speed pin -- true means make the board speed limited
 void limitBoardSpeed(bool limit) {
@@ -680,6 +574,7 @@ void limitBoardSpeed(bool limit) {
     }
 }
 
+
 struct TranslationMap {
                 int y;
                 int startX;
@@ -689,8 +584,8 @@ struct TranslationMap {
                 int stripOffset;
                 };
 
-// Standard
-struct TranslationMap boardMapStd[] = {
+
+struct TranslationMap boardMap[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,
@@ -811,9 +706,7 @@ struct TranslationMap boardMapStd[] = {
   117,26,19,-1,1,536
 };
 
-
-// Candy
-struct TranslationMap boardMap[] = {
+struct TranslationMap boardMapAzul[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,
@@ -853,7 +746,7 @@ struct TranslationMap boardMap[] = {
   36,2,43,1,6,42,
   37,44,1,-1,6,84,
   38,1,44,1,6,128,
-  39,45,0,-1,6,172,
+  39,44,1,-1,6,172,
   40,1,44,1,6,216,
   41,44,1,-1,6,260,
   42,1,44,1,6,304,
@@ -939,12 +832,11 @@ struct TranslationMap boardMap[] = {
 #define  PIXEL_BLUE 2;
 
 void translatePixel(int x, int y, int color) {
-  int flipY = 117 - y;
-  int startX = boardMap[flipY].startX;
-  int endX = boardMap[flipY].endX;
-  int stripOffset = boardMap[flipY].stripOffset;
-  int stripNumber = boardMap[flipY].stripNumber - 1;
-  int stripDirection = boardMap[flipY].stripDirection;
+  int startX = boardMap[y].startX;
+  int endX = boardMap[y].endX;
+  int stripOffset = boardMap[y].stripOffset;
+  int stripNumber = boardMap[y].stripNumber - 1;
+  int stripDirection = boardMap[y].stripDirection;
 
   int pixelOffset;
 

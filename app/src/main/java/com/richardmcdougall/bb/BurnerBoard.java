@@ -42,8 +42,10 @@ public class BurnerBoard {
     private static final String TAG = "BurnerBoard";
     public Context mContext = null;
     public String boardId;
+    public String boardType = "Burner Board Classic";
     public BBService mBBService = null;
     public String mEchoString = "";
+    public int[] mBoardScreen;
 
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
@@ -56,6 +58,9 @@ public class BurnerBoard {
         void BoardMode(int mode);
     }
 
+    public int getBattery() {
+        return -1;
+    }
 
     static public int getRGB(int r, int g, int b) {
 
@@ -281,9 +286,10 @@ public class BurnerBoard {
 
                 updateUsbStatus(("Connected to ") + boardId);
                 sendLogMsg("USB Connected to " + boardId);
-                setMode(50);
-                testTeensy();
-                testPerf();
+                // Perf Tests thare are useful during debugging
+                //setMode(50);
+                //testTeensy();
+                //testPerf();
             }
         }
     }
@@ -462,6 +468,10 @@ public class BurnerBoard {
         //java.util.Arrays.fill(arg2, (byte) 128);
         in.putExtra("arg2", pixels);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+    }
+
+    public void batteryActions(int level) {
+
     }
 }
 

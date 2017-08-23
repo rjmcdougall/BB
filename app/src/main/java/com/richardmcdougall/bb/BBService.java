@@ -40,7 +40,9 @@ import android.media.AudioFormat;
 import android.os.Build;
 
 import org.json.JSONObject;
-
+import android.bluetooth.BluetoothDevice;
+import android.media.RingtoneManager;
+import android.media.Ringtone;
 
 public class BBService extends Service {
 
@@ -71,7 +73,7 @@ public class BBService extends Service {
     private int userTimeOffset = 0;
     public UDPClientServer udpClientServer = null;
     public String boardId = Build.MODEL;
-    //public String boardType = Build.TYPE;
+    public String boardType = Build.BRAND;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 16; // Mode of the Ardunio/LEDs
@@ -116,6 +118,12 @@ public class BBService extends Service {
      */
     Thread musicPlayer = null;
 
+    /**
+     * Called when the service is being created.
+     */
+    Thread batteryMonitor = null;
+
+
     private static final Map<String, String> BoardNames = new HashMap<String, String>();
 
     static {
@@ -129,8 +137,8 @@ public class BBService extends Service {
         super.onCreate();
         l("BBService: onCreate");
 
-
-
+        // Setup beep for blueooth remote connect
+        btNotifier();
 
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -152,7 +160,6 @@ public class BBService extends Service {
             }
         });
 
-
         dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath());
         dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
@@ -162,7 +169,7 @@ public class BBService extends Service {
                     return ;
 
                 long curTime = System.currentTimeMillis();
-                if (curTime-lastTextTime>10000) {
+                if (curTime-lastTextTime>30000) {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded*100/fileSize;
 
@@ -200,6 +207,19 @@ public class BBService extends Service {
             musicPlayer.start();
         } else {
             l("music player already running");
+        }
+
+        if (batteryMonitor == null) {
+            l("starting music player thread");
+            // Start Music Player
+            Thread batteryMonitor = new Thread(new Runnable() {
+                public void run() {
+                    batteryThread();
+                }
+            });
+            batteryMonitor.start();
+        } else {
+            l("battery moniitor already running");
         }
 
         startLights();
@@ -272,8 +292,11 @@ public class BBService extends Service {
     private BurnerBoard mBurnerBoard;
 
     private void startLights() {
-        //mBurnerBoard = new BurnerBoardClassic(this, mContext);
-        mBurnerBoard = new BurnerBoardAzul(this, mContext);
+        //if (boardType.contains("Classic")) {
+            mBurnerBoard = new BurnerBoardClassic(this, mContext);
+        //} else {
+        //    mBurnerBoard = new BurnerBoardAzul(this, mContext);
+        //}
         if (mBurnerBoard != null) {
             mBurnerBoard.attach(new BoardCallback());
         }
@@ -846,7 +869,68 @@ public class BBService extends Service {
         }
     }
 
+    private long lastOkStatement = System.currentTimeMillis();
+    private long lastLowStatement = System.currentTimeMillis();
+    private long lastUnknownStatement = System.currentTimeMillis();
 
+    private void batteryThread() {
+
+        boolean announce = false;
+        if (mBurnerBoard != null) {
+            int level = mBurnerBoard.getBattery();
+            if (level < 0) {
+                if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
+                    lastUnknownStatement = System.currentTimeMillis();
+                    voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
+                }
+            }
+            if (level < 15) {
+                voice.speak("Battery almost empty, back to camp. Level is " +
+                        level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
+            } else if (level <= 25) {
+                if (System.currentTimeMillis() - lastLowStatement > 300000) {
+                    lastLowStatement = System.currentTimeMillis();
+                    announce = true;
+                }
+            } else {
+                if (System.currentTimeMillis() - lastOkStatement > 1800000) {
+                    lastOkStatement = System.currentTimeMillis();
+                    announce = true;
+                }
+            }
+            if (announce) {
+                voice.speak("Battery almost empty, back to camp. Level is " +
+                        level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
+            }
+        }
+        try {
+            Thread.sleep(60000);
+        } catch (Throwable e) {
+        }
+    }
+
+    private void btNotifier() {
+        //you can get notified when a new device is connected using Broadcast receiver
+        BroadcastReceiver btReceive=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                String action = intent.getAction();
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    //the device is found
+                    try {
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                        r.play();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+    }
 
 
 }

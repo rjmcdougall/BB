@@ -30,11 +30,6 @@
 #endif
 
 
-// Burner Boards have 2 relay outputs, speed-pin control and a spare aux relay
-#define SPEED_PIN 23
-#define AUX_PIN 22
-
-
 #define NSIDELIGHTS 79
 // smallboard has 57  
 //#define NSIDELIGHTS 57
@@ -795,6 +790,8 @@ int getBatteryLevel() {
 
   int value;
 
+  return 50;
+
   // Capacity in %age
   value = getBattery8(0x02);
   if (value > 100) {
@@ -880,17 +877,10 @@ void setup() {
   char batt[16];
   setBoardName("Biscuit");
 
-  // Setup motor control speed limiter to no-limit
-  pinMode(AUX_PIN, OUTPUT);
-  pinMode(SPEED_PIN, OUTPUT);
-  limitBoardSpeed(false);
-  
   // Console for debugging
   Serial1.begin(115200);
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
   Serial1.println("Goodnight moon!");
-
-
 
   strip = new Board_WS2801((uint16_t)10, (uint16_t)70, WS2801_RGB, (boolean)true);
 
@@ -906,13 +896,13 @@ void setup() {
   fillScreen(65536);
   delay(3000);
 
-  Wire.begin();
+  //Wire.begin();
 
-  getBatteryAll();
+  //getBatteryAll();
 
-  batteryStats();
+  //batteryStats();
 
-  delay(3000);
+  //delay(3000);
 
   //clearScreen();
 
@@ -989,10 +979,8 @@ void loop() {
         batteryLow = false;
       }
       if (batteryLevel <= 10) {
-        limitBoardSpeed(true);
         batteryCritical = true;
       } else {
-        limitBoardSpeed(false);
         batteryCritical = false;
       }
     }
@@ -1024,7 +1012,7 @@ void loop() {
   cmdMessengerCons.feedinSerialData();
 
   
-  //loop_matrixfast();
+  loop_matrixfast();
 
    /*
    Serial1.print("Encoder sample ");
@@ -1051,16 +1039,6 @@ void loop() {
 
    
 
-}
-
-
-// Enable the speed pin -- true means make the board speed limited
-void limitBoardSpeed(bool limit) {
-    if (limit) {
-      digitalWrite(SPEED_PIN, LOW);
-    } else {
-      digitalWrite(SPEED_PIN, HIGH);
-    }
 }
 
 
