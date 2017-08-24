@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.util.Random;
+import android.support.v4.graphics.ColorUtils;
 
 /**
  * Created by rmc on 3/8/17.
@@ -68,7 +69,8 @@ public class BoardVisualization {
 
     BoardVisualization(Context context, BurnerBoard board) {
         mBurnerBoard = board;
-        if (new String(mBurnerBoard.boardType).equals(new String("Burner Board Classic"))) {
+        l("Starting BoardVisualization " + mBurnerBoard.boardType);
+        if (mBurnerBoard.boardType.contains(new String("Classic"))) {
             l("Starting Classic Visualization");
             mBoardWidth = 10;
             mBoardHeight = 70;
@@ -236,7 +238,7 @@ public class BoardVisualization {
 
                 default:
                     if (mBoardMode>=16) {
-                        sleepTime = 0;
+                        sleepTime = 10;
                         modeVideo(mBoardMode - 16);
                         break;
                     }
@@ -368,6 +370,7 @@ public class BoardVisualization {
 
     // Input a value 0 to 255 to get a color value.
     // The colours are a transition r - g -b - back to r
+    /*
     int wheel(int WheelPos) {
         if (WheelPos < 85) {
             return BurnerBoard.getRGB(255 - WheelPos * 3, 0, WheelPos * 3);
@@ -379,10 +382,19 @@ public class BoardVisualization {
             return BurnerBoard.getRGB(WheelPos * 3, 255 - WheelPos * 3, 0);
         }
     }
+    */
+
+    int wheel(int wheelPos) {
+        float[] hsl = new float[3];
+        hsl[0] = wheelPos * 1.0f;
+        hsl[1] = 1.0f;
+        hsl[2] = 0.5f;
+        return android.support.v4.graphics.ColorUtils.HSLToColor(hsl) & 0xFFFFFF;
+    }
 
     void wheelInc(int amount) {
         wheel_color = wheel_color + amount;
-        if (wheel_color > 255)
+        if (wheel_color > 360)
             wheel_color = 0;
     }
 
@@ -423,12 +435,20 @@ public class BoardVisualization {
         int x;
         int y;
         int sideLight;
+        int pixelSkip;
+
+        if (mBoardWidth > 10) {
+            pixelSkip = 3;
+        } else {
+            pixelSkip = 1;
+        }
+
 
         y = mBoardHeight- 1;
         sideLight = mBoardSideLights - 1;
 
 
-        for (x = 0; x < mBoardWidth / 3; x++) {
+        for (x = 0; x < mBoardWidth / pixelSkip; x++) {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixEsperanto:
@@ -439,12 +459,12 @@ public class BoardVisualization {
                         color = wheel(wheel_color);
                         wheelInc(1);
                     }
-                    mBurnerBoard.setPixel(3 * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
-                    mBurnerBoard.setPixel(3 * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
                 case kMatrixFire:
                     color = mRandom.nextInt(2) == 0 ?
@@ -453,17 +473,17 @@ public class BoardVisualization {
                                     mFireColors[fireColor][0],
                                     mFireColors[fireColor][1],
                                     mFireColors[fireColor][2]);
-                    mBurnerBoard.setPixel(3 * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
                 case kMatrixGoogle:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : googleColors[googleColor / 8];
-                    mBurnerBoard.setPixel(3 * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
                 case kMatrixIrukandji:
                     color = wheel(wheel_color);
                     if (x > 0 || x < mBoardWidth) {
-                        mBurnerBoard.setPixel(3 * x, y, BurnerBoard.getRGB(0, 0, 0));
+                        mBurnerBoard.setPixel(pixelSkip * x, y, BurnerBoard.getRGB(0, 0, 0));
                     }
                     wheelInc(1);
                     break;
@@ -472,7 +492,7 @@ public class BoardVisualization {
                             mFireColors[fireColor][0],
                             mFireColors[fireColor][1],
                             mFireColors[fireColor][2]);
-                    mBurnerBoard.setPixel(3 * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
 
 
@@ -1098,37 +1118,7 @@ public class BoardVisualization {
 
     */
 
-    /**
-     * Converts HSL components of a color to a set of RGB components.
-     *
-     * @param hsl a float array with length equal to
-     *            the number of HSL components
-     * @param rgb a float array with length of at least 3
-     *            that contains RGB components of a color
-     * @return a float array that contains RGB components
-     */
-    private static float[] HSLtoRGB(float[] hsl, float[] rgb) {
-        if (rgb == null) {
-            rgb = new float[3];
-        }
-        float hue = hsl[0];
-        float saturation = hsl[1];
-        float lightness = hsl[2];
 
-        if (saturation > 0.0f) {
-            hue = (hue < 1.0f) ? hue * 6.0f : 0.0f;
-            float q = lightness + saturation * ((lightness > 0.5f) ? 1.0f - lightness : lightness);
-            float p = 2.0f * lightness - q;
-            rgb[0] = normalize(q, p, (hue < 4.0f) ? (hue + 2.0f) : (hue - 4.0f));
-            rgb[1] = normalize(q, p, hue);
-            rgb[2] = normalize(q, p, (hue < 2.0f) ? (hue + 4.0f) : (hue - 2.0f));
-        } else {
-            rgb[0] = lightness;
-            rgb[1] = lightness;
-            rgb[2] = lightness;
-        }
-        return rgb;
-    }
 
     private static float normalize(float q, float p, float color) {
         if (color < 1.0f) {

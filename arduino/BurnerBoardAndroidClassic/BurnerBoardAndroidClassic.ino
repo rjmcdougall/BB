@@ -1073,12 +1073,14 @@ void loop() {
   }
 
   // Uh oh, battery is almost dead
+  /*
   if (batteryCritical) {
       fillScreen(rgbTo24BitColor(255,0,0));
       drawBattery();
       drawBatteryTop();
       strip->show();
   }
+  */
 
   // display battery if charging, currrent > 1000mah (10 divider)
   if (0 && batteryCurrent < 32000) {

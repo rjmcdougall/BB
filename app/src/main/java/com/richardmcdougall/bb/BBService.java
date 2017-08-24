@@ -73,7 +73,7 @@ public class BBService extends Service {
     private int userTimeOffset = 0;
     public UDPClientServer udpClientServer = null;
     public String boardId = Build.MODEL;
-    public String boardType = Build.BRAND;
+    public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 16; // Mode of the Ardunio/LEDs
@@ -136,6 +136,7 @@ public class BBService extends Service {
 
         super.onCreate();
         l("BBService: onCreate");
+        l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
 
         // Setup beep for blueooth remote connect
         btNotifier();
@@ -292,11 +293,16 @@ public class BBService extends Service {
     private BurnerBoard mBurnerBoard;
 
     private void startLights() {
-        //if (boardType.contains("Classic")) {
+
+        if (boardType.contains("Classic")) {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
-        //} else {
-        //    mBurnerBoard = new BurnerBoardAzul(this, mContext);
-        //}
+        } else {
+            mBurnerBoard = new BurnerBoardAzul(this, mContext);
+        }
+        if (mBurnerBoard == null) {
+            l("startLights: null burner board");
+            return;
+        }
         if (mBurnerBoard != null) {
             mBurnerBoard.attach(new BoardCallback());
         }
@@ -919,6 +925,7 @@ public class BBService extends Service {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                 if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                    voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
                     //the device is found
                     try {
                         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

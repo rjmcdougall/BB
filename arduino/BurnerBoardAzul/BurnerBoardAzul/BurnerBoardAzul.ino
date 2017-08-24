@@ -126,6 +126,8 @@ void OnUpdate() {
 
   if (batteryCritical) {
     fillScreen(rgbTo24BitColor(40,0,0));
+    drawBattery();
+    drawBatteryTop();
   }
   // skip if charging
   if (0 && batteryCurrent < 32000) {
@@ -639,7 +641,7 @@ void loop() {
   }
 
   // Uh oh, battery is almost dead
-  if (batteryCritical) {
+  if (0 & batteryCritical) {
       fillScreen(rgbTo24BitColor(40,0,0));
       drawBattery();
       drawBatteryTop();
@@ -690,7 +692,7 @@ struct TranslationMap {
                 };
 
 // Standard
-struct TranslationMap boardMapStd[] = {
+struct TranslationMap boardMap[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,
@@ -813,7 +815,7 @@ struct TranslationMap boardMapStd[] = {
 
 
 // Candy
-struct TranslationMap boardMap[] = {
+struct TranslationMap boardMapCandy[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,

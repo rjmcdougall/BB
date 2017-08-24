@@ -15,12 +15,11 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int mBoardWidth = 10;
     private int mBoardHeight = 70;
     private int mBoardSideLights = 79;
-    private int[] mBoardScreen;
+    //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
     public int mBatteryLevel = -1;
     private static final String TAG = "BurnerBoardClassic";
-    public String boardType = "Burner Board Classic";
 
 
 
@@ -144,8 +143,12 @@ public class BurnerBoardClassic extends BurnerBoard {
         if (mListener == null) {
             initUsb();
         }
+        // Disable now that the board doesn't have a selector switch
+        return true;
 
+        /*
         if (mListener == null)
+
             return false;
 
         synchronized (mSerialConn) {
@@ -159,6 +162,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
         }
         return true;
+        */
     }
 
     public int getBattery() {
@@ -433,7 +437,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         //System.out.println("setpixelotherlight pixel:" + pixel + " light:" + other);
 
         if (other < 0 || other >= 2 || pixel < 0 || pixel >= mBoardSideLights) {
-            l("setPixel out of range: " + other + "," + pixel);
+            System.out.println("setPixel out of range: " + other + "," + pixel);
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+                System.out.println(ste);
+            }
             return;
         }
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_RED)] = r;
@@ -501,8 +508,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
         //Sstem.out.println("setpixel r = " + r);
         if (x < 0 || x >= mBoardWidth || y < 0 || y >= mBoardHeight) {
-            l("setPixel out of range: " + x + "," + y);
-            return;
+            System.out.println("setPixel out of range: " + x + "," + y);
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+                System.out.println(ste);
+            }            return;
         }
         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
         mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
@@ -512,8 +521,10 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void setPixel(int pixel, int r, int g, int b) {
 
         if (pixel < 0 || pixel >= (mBoardWidth * mBoardHeight)) {
-            l("setPixel out of range: " + pixel);
-            return;
+            System.out.println("setPixel out of range: " + pixel + "," + (mBoardWidth * mBoardHeight));
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+                System.out.println(ste);
+            }            return;
         }
         mBoardScreen[pixel * 3] = r;
         mBoardScreen[pixel * 3 + 1] = g;
@@ -649,7 +660,9 @@ public class BurnerBoardClassic extends BurnerBoard {
     // encoded = ((original / 255) ^ (1 / gamma)) * 255
     // original = ((encoded / 255) ^ gamma) * 255
 
-    // TODO: make faster by using ints
+
+
+    /*
     private int pixelColorCorrectionRed(int red) {
         // convert signed byte to double
         return red;
@@ -664,6 +677,18 @@ public class BurnerBoardClassic extends BurnerBoard {
         double correctedBlue = blue & 0xff;
         correctedBlue = correctedBlue * .2;
         return (blue * 350) / 1000;
+    }
+*/
+    private int pixelColorCorrectionRed(int red) {
+        return gammaCorrect(red) ;
+    }
+
+    private int pixelColorCorrectionGreen(int green) {
+        return gammaCorrect(green);
+    }
+
+    private int pixelColorCorrectionBlue(int blue) {
+        return gammaCorrect(blue);
     }
 
 
@@ -712,7 +737,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
             setOtherlight(x, otherPixels);
         }
-
+        setOtherlightsAutomatically();
         update();
         flush2Board();
     }
