@@ -488,6 +488,8 @@ public class BoardVisualization {
         }
 
         mBurnerBoard.scrollPixels(true);
+        mBurnerBoard.scrollPixels(true);
+        mBurnerBoard.scrollPixels(true);
         switch (mode) {
             case kMatrixEsperanto:
                 int level = java.lang.Math.max(0, (getLevel() * 3) - 80);
