@@ -247,7 +247,7 @@ public class BurnerBoardClassic extends BurnerBoard {
 
 
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
-    public boolean showBattery() {
+    public void showBattery() {
 
         sendVisual(9);
         l("sendCommand: 9");
@@ -255,9 +255,9 @@ public class BurnerBoardClassic extends BurnerBoard {
             mListener.sendCmd(9);
             mListener.sendCmdEnd();
             flush2Board();
-            return true;
+            return;
         }
-        return false;
+        return;
     }
 
     //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3

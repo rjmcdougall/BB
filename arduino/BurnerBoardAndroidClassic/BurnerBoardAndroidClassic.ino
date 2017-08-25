@@ -180,6 +180,7 @@ void BBattachCommandCallbacks()
 // Show available commands
 void ShowCommands() 
 {
+  /*
   Serial1.println("\nAvailable commands");
   Serial1.println(" 1;                       - This command list");
   Serial1.println(" 2,<headlight state>;     - Set headlight.");
@@ -199,6 +200,7 @@ void ShowCommands()
   Serial1.println(" 16,row,binary;           - ping round trip test of row"); 
   Serial1.println(" 17,binary;               - Echo back row of pixels"); 
   Serial1.println(" 18,name;                 - Set name of board"); 
+  */
 }
 
 // Called when a received command has no attached function
@@ -221,7 +223,7 @@ void Onsetled()
 {
   // Read led state argument, interpret string as boolean
   ledsOn = cmdMessenger.readBoolArg();
-  cmdMessenger.sendCmd(BBacknowledge,ledsOn);
+  //cmdMessenger.sendCmd(BBacknowledge,ledsOn);
 }
 
 
@@ -243,8 +245,8 @@ void Onsetmode()
         board_mode = 0;
   if (board_mode > 20)
         board_mode = 0;
-  cmdMessenger.sendCmd(BBacknowledge);
-  cmdMessenger.sendCmd(BBsetmode,board_mode);
+  //cmdMessenger.sendCmd(BBacknowledge);
+  //cmdMessenger.sendCmd(BBsetmode,board_mode);
   Serial1.print("setmode: ");
   Serial1.print(mode);
   Serial1.print(":");
@@ -277,12 +279,23 @@ void OnFade() {
   fadeBoard(amount);
 }
 
+// For show battery on middle press
+int showingBattery = 0;
+
 void OnUpdate() {
 
   if (batteryCritical) {
     fillScreen(rgbTo24BitColor(255,0,0));
     fillSideLights(rgbTo24BitColor(255,0,0));
+    drawBattery();
+    drawBatteryTop();
   }
+
+  if (showingBattery > 0) {
+    drawBatteryTop();
+    showingBattery--;
+  }
+  
   // skip if charging
   if (0 && batteryCurrent < 32000) {
     return;
@@ -297,11 +310,12 @@ void OnUpdate() {
 
 
 void OnShowBattery() {
-  clearScreen();
-  drawBattery();
-  strip->show();
-  delay(3000);
-  batteryStats();
+  //clearScreen();
+  //drawBattery();
+  //strip->show();
+  //delay(3000);
+  //batteryStats();
+  showingBattery = 30;
 }
 
 void OnGetBatteryLevel() {

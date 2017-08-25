@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -45,6 +46,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     private int mDimmerLevel = 255;
     private static final String TAG = "BurnerBoardAzul";
     public int mBatteryLevel;
+    public String boardId = Build.MODEL;
 
 
     public BurnerBoardAzul(BBService service, Context context) {
@@ -383,7 +385,7 @@ public class BurnerBoardAzul extends BurnerBoard {
 
 
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 6
-    public boolean showBattery() {
+    public void showBattery() {
 
         sendVisual(9);
         l("sendCommand: 5");
@@ -391,9 +393,9 @@ public class BurnerBoardAzul extends BurnerBoard {
             mListener.sendCmd(5);
             mListener.sendCmdEnd();
             flush2Board();
-            return true;
+            return;
         }
-        return false;
+        return;
     }
 
     //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
@@ -521,9 +523,17 @@ public class BurnerBoardAzul extends BurnerBoard {
     static int kStrips = 8;
     static int [] pixelsPerStrip = new int[8];
     static int [][] pixelMap2BoardTable = new int[8][4096];
+    private TranslationMap[] boardMap;
 
     private void initpixelMap2Board() {
         int x, y;
+
+        // Sadly Candy is wired up and sealed with an error
+        if (boardId.contains(new String("candy"))) {
+            boardMap = boardMapCandy;
+        } else {
+            boardMap = boardMapStd;
+        }
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {
@@ -562,7 +572,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
     }
 
-    static TranslationMap[] boardMapOrig = {
+    static TranslationMap[] boardMapStd = {
 //Y,StartX,End X,Direction,Strip #,Offset in strip
             new TranslationMap(0,23,22,-1,8,452),
             new TranslationMap(1,20,25,1,8,446),
@@ -685,7 +695,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     };
 
 
-    static TranslationMap[] boardMap = {
+    static TranslationMap[] boardMapCandy = {
 //Y,StartX,End X,Direction,Strip #,Offset in strip
             new TranslationMap(0,23,22,-1,8,452),
             new TranslationMap(1,20,25,1,8,446),

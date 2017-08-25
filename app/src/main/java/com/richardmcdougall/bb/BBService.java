@@ -52,7 +52,7 @@ public class BBService extends Service {
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
     public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
     public int GetMaxLightModes() {
-        return dlManager.GetTotalVideo() + 16;
+        return dlManager.GetTotalVideo() + 10;
     }
 
     public BBDownloadManager dlManager;
@@ -76,7 +76,7 @@ public class BBService extends Service {
     public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int mBoardMode = 16; // Mode of the Ardunio/LEDs
+    private int mBoardMode =10; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
 
     private int statePeers = 0;
@@ -822,6 +822,9 @@ public class BBService extends Service {
             case 22:
                 onVolDown();
                 return false;
+            case 85: // Play button - show battery
+                onBatteryButton();
+                break;
             case 99:
                 setMode(99);
                 break;
@@ -915,6 +918,12 @@ public class BBService extends Service {
         try {
             Thread.sleep(60000);
         } catch (Throwable e) {
+        }
+    }
+
+    private void onBatteryButton() {
+        if (mBurnerBoard != null) {
+            mBurnerBoard.showBattery();
         }
     }
 

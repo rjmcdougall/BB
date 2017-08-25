@@ -79,6 +79,7 @@ void BBattachCommandCallbacks()
 // Show available commands
 void ShowCommands() 
 {
+  /*
   Serial.println("\nAvailable commands");
   Serial.println(" 1;                       - This command list");
   Serial.println(" 2,<headlight state>;     - Set headlight.");
@@ -91,6 +92,7 @@ void ShowCommands()
   Serial.println(" 9,row,binary;           - Fill row of pixels"); 
   Serial.println(" 10,row,binary;           - ping round trip test of row"); 
   Serial.println(" 11,binary;               - Echo back row of pixels"); 
+  */
 }
 
 // Called when a received command has no attached function
@@ -114,13 +116,16 @@ void Onsetled()
 {
   // Read led state argument, interpret string as boolean
   ledsOn = cmdMessenger.readBoolArg();
-  cmdMessenger.sendCmd(BBacknowledge,ledsOn);
+  //cmdMessenger.sendCmd(BBacknowledge,ledsOn);
 }
 
 void OnClearScreen()
 {
   clearScreen();
 }
+
+// For show battery on middle press
+int showingBattery = 0;
 
 void OnUpdate() {
 
@@ -129,6 +134,12 @@ void OnUpdate() {
     drawBattery();
     drawBatteryTop();
   }
+
+  if (showingBattery > 0) {
+    drawBatteryTop();
+    showingBattery--;
+  }
+  
   // skip if charging
   if (0 && batteryCurrent < 32000) {
     return;
@@ -155,11 +166,12 @@ void OnFillScreen() {
 }
 
 void OnShowBattery() {
-  clearScreen();
-  drawBattery();
-  leds.show();
-  delay(3000);
-  batteryStats();
+  showingBattery = 30;
+  //clearScreen();
+  //drawBattery();
+  //leds.show();
+  //delay(3000);
+  //batteryStats();
 }
 
 void OnGetBatteryLevel() {
@@ -692,7 +704,7 @@ struct TranslationMap {
                 };
 
 // Standard
-struct TranslationMap boardMap[] = {
+struct TranslationMap boardMapStd[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,
@@ -815,7 +827,7 @@ struct TranslationMap boardMap[] = {
 
 
 // Candy
-struct TranslationMap boardMapCandy[] = {
+struct TranslationMap boardMap[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,

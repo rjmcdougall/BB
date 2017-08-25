@@ -67,6 +67,10 @@ public class BurnerBoard {
         return (b * 65536 + g * 256 + r);
     }
 
+    public void showBattery() {
+
+    }
+
     public int[] getPixelBuffer() {
         return null;
     }

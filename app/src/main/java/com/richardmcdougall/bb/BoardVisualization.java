@@ -166,80 +166,50 @@ public class BoardVisualization {
 
                 case 2:
                     sleepTime = 5;
-                    modeMatrix(kMatrixFire);
+                    modeMatrix(kMatrixLunarian);
                     break;
 
                 case 3:
                     sleepTime = 5;
-                    modeMatrix(kMatrixLunarian);
-                    break;
-
-                case 4:
-                    sleepTime = 5;
                     modeAudioCenter();
                     break;
 
-                case 5:
+                case 4:
                     sleepTime = 5;
                     modeFire(kModeFireNormal);
                     break;
 
 
-                case 6:
+                case 5:
                     sleepTime = 5;
                     modeFire(kModeFireDistrikt);
                     break;
 
-                case 7:
+                case 6:
                     sleepTime = 5;
                     modeFire(kModeFireTheMan);
                     break;
 
-                case 8:
+                case 7:
                     sleepTime = 5;
                     modeAudioBarV();
                     break;
 
-                case 9:
-                    sleepTime = 5;
-                    modeMatrix(kMatrixGoogle);
-                    break;
-
-                case 10:
+                case 8:
                     sleepTime = 5;
                     modeMatrix(kMatrixEsperanto);
                     break;
 
-                case 11:
-                    sleepTime = 5;
-                    modeMatrix(kMatrixIrukandji);
-                    break;
-
-                case 12:
-                    sleepTime = 5;
-                    modeMatrix(kMatrixFireFull);
-                    break;
-
-                case 13:
-                    sleepTime = 5;
-                    modeAudioFront();
-                    break;
-
-                case 14:
+                case 9:
                     sleepTime = 5;
                     modeAudioTile();
                     break;
 
-                case 15:
-                    sleepTime = 1000;
-                    modeTestColors();
-                    break;
-
 
                 default:
-                    if (mBoardMode>=16) {
-                        sleepTime = 10;
-                        modeVideo(mBoardMode - 16);
+                    if (mBoardMode>=10) {
+                        sleepTime = 20;
+                        modeVideo(mBoardMode - 10);
                         break;
                     }
             }
