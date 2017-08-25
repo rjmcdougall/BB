@@ -522,6 +522,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Escape and print a string
      */
+    // TODO: Fix the re-write of encoded 1's
     void printEsc(byte[] str) {
         for (byte ch : str) {
             if (ch == field_separator || ch == command_separator || ch == escape_character) {
@@ -530,8 +531,9 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             if (ch == 0) {
                 sendBuffer.write((byte)1);
             } else if (ch == 1) {
-                sendBuffer.write(escape_character);
-                sendBuffer.write((byte)'1');
+                //sendBuffer.write(escape_character);
+                //sendBuffer.write((byte)'1');
+                sendBuffer.write((byte)2);
             } else {
                 sendBuffer.write(ch);
             }

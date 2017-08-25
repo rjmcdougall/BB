@@ -61,6 +61,7 @@ public class BoardVisualization {
     private int mFireHeight;
     private VideoDecoder mVideoDecoder = new VideoDecoder();
     private int lastVideoMode = -1;
+    private int mMultipler4Speed;
 
     int mBoardMode;
     Context mContext;
@@ -74,10 +75,12 @@ public class BoardVisualization {
             l("Starting Classic Visualization");
             mBoardWidth = 10;
             mBoardHeight = 70;
+            mMultipler4Speed = 1;
         } else {
             l("Starting Azul Visualization");
             mBoardWidth = 46;
             mBoardHeight = 118;
+            mMultipler4Speed = 3;
         }
         mContext = context;
         // Start Board Display
@@ -148,10 +151,12 @@ public class BoardVisualization {
     }
 
 
-    int sleepTime = 30;
 
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
+
+        long lastFrameTime = System.currentTimeMillis();
+        int frameRate = 11;
 
         l("Starting board display thread...");
 
@@ -160,64 +165,74 @@ public class BoardVisualization {
             switch (mBoardMode) {
 
                 case 1:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeMatrix(kMatrixBurnerColor);
                     break;
 
                 case 2:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeMatrix(kMatrixLunarian);
                     break;
 
                 case 3:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeAudioCenter();
                     break;
 
                 case 4:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeFire(kModeFireNormal);
                     break;
 
 
-                case 5:
-                    sleepTime = 5;
+                case 12:
+                    frameRate = 12;
                     modeFire(kModeFireDistrikt);
                     break;
 
                 case 6:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeFire(kModeFireTheMan);
                     break;
 
                 case 7:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeAudioBarV();
                     break;
 
                 case 8:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeMatrix(kMatrixEsperanto);
                     break;
 
                 case 9:
-                    sleepTime = 5;
+                    frameRate = 12;
                     modeAudioTile();
                     break;
 
 
                 default:
                     if (mBoardMode>=10) {
-                        sleepTime = 20;
+                        frameRate = 20;
                         modeVideo(mBoardMode - 10);
                         break;
                     }
             }
 
-            try {
-                Thread.sleep(sleepTime);
-            } catch (Throwable e) {
+            // limit output framerate to max of 11fps (90ms per frame)
+            if (frameRate > 12) {
+                frameRate = 12;
             }
+            long frameTime = 1000 / frameRate;
+            long curFrameTime = System.currentTimeMillis();
+            if (curFrameTime-lastFrameTime<frameTime) {
+                try {
+                    Thread.sleep(frameTime - (curFrameTime - lastFrameTime));
+                } catch (Throwable er) {
+                    er.printStackTrace();
+                }
+            }
+            lastFrameTime = curFrameTime;
 
             boardDisplayCnt++;
             if (boardDisplayCnt > 1000) {
@@ -487,9 +502,10 @@ public class BoardVisualization {
             googleColor = 0;
         }
 
-        mBurnerBoard.scrollPixels(true);
-        mBurnerBoard.scrollPixels(true);
-        mBurnerBoard.scrollPixels(true);
+        for (int i = 0; i < mMultipler4Speed; i++) {
+            mBurnerBoard.scrollPixels(true);
+        }
+
         switch (mode) {
             case kMatrixEsperanto:
                 int level = java.lang.Math.max(0, (getLevel() * 3) - 80);

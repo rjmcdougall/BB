@@ -619,7 +619,7 @@ uint8_t c = 0;
 #define WHITE  0x202020
 
 // Counter to see if we check battery level
-unsigned long lastBatteryCheck = 0;
+unsigned long lastBatteryCheck = micros() - (20 * 1000000);;
 
 void loop() {
 
@@ -704,7 +704,7 @@ struct TranslationMap {
                 };
 
 // Standard
-struct TranslationMap boardMapStd[] = {
+struct TranslationMap boardMap[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,
@@ -827,7 +827,7 @@ struct TranslationMap boardMapStd[] = {
 
 
 // Candy
-struct TranslationMap boardMap[] = {
+struct TranslationMap boardMapCandy[] = {
   0,23,22,-1,8,452,
   1,20,25,1,8,446,
   2,27,18,-1,8,436,

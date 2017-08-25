@@ -1051,7 +1051,7 @@ void loop_matrixfast()
 
 
 // Counter to see if we check battery level
-unsigned long lastBatteryCheck = micros();
+unsigned long lastBatteryCheck = micros() - (20 * 1000000);;
 
 
 void loop() {

@@ -179,8 +179,9 @@ public class VideoDecoder extends AndroidTestCase {
         int saveHeight = outHeight;
 
 
-        try {
-            while (!stopRequested) {
+        while (!stopRequested) {
+            try {
+
                 File inputFile = new File(sourceFilename);   // must be an absolute path
                 // The MediaExtractor error messages aren't very useful.  Check to see if the input
                 // file exists so we can throw a better one if it's not there.
@@ -215,24 +216,24 @@ public class VideoDecoder extends AndroidTestCase {
                 decoder.start();
 
                 doExtract(extractor, trackIndex, decoder, outputSurface, onFrameReady, this);
-            }
-
-        } finally {
-            // release everything we grabbed
-            if (outputSurface != null) {
-                outputSurface.release();
-                outputSurface = null;
-            }
-            if (decoder != null) {
-                decoder.stop();
-                decoder.release();
-                decoder = null;
-            }
-            if (extractor != null) {
-                extractor.release();
-                extractor = null;
+            } finally {
+                // release everything we grabbed
+                if (outputSurface != null) {
+                    outputSurface.release();
+                    outputSurface = null;
+                }
+                if (decoder != null) {
+                    decoder.stop();
+                    decoder.release();
+                    decoder = null;
+                }
+                if (extractor != null) {
+                    extractor.release();
+                    extractor = null;
+                }
             }
         }
+
         state = StateType.STOPPED;
     }
 

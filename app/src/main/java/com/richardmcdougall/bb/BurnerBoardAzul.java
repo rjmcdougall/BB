@@ -357,6 +357,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
         // Render on board
         update();
+        flush2Board();
     }
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
