@@ -96,8 +96,8 @@ void ShowCommands()
 // Called when a received command has no attached function
 void BBCmdOne()
 {
-  cmdMessenger.sendCmd(BBerror,"BB Error\n");
-  Serial.print("BB Error ");
+  //cmdMessenger.sendCmd(BBerror,"BB Error\n");
+  //Serial.print("BB Error ");
 
 }
 

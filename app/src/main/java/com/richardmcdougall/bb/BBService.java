@@ -294,6 +294,10 @@ public class BBService extends Service {
 
     private void startLights() {
 
+        if (boardType.contains("BLU")) {
+            return;
+        }
+
         if (boardType.contains("Classic")) {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else {
@@ -525,7 +529,6 @@ public class BBService extends Service {
         }
 
         dlManager.StartDownloads();
-
 
 
         // MediaSession ms = new MediaSession(mContext);

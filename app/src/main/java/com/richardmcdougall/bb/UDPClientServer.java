@@ -212,7 +212,7 @@ public class UDPClientServer {
 
     InetAddress GetServerAddress() {
         try {
-            return InetAddress.getByName("10.10.10.200");
+            return InetAddress.getByName("10.1.10.200");
         } catch (Exception e){
             return null;
         }
@@ -407,7 +407,7 @@ public class UDPClientServer {
 
     public static boolean amServer() {
         String addr = getIPAddress(true);
-        if (addr.equals("10.10.10.200")) {
+        if (addr.equals("10.1.10.200")) {
             return true;
         } else {
             return false;

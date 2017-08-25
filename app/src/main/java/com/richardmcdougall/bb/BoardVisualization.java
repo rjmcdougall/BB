@@ -1790,7 +1790,7 @@ public class BoardVisualization {
         //mBoardScreen.clear();
         for (row = 0; row < distrikt.length; row++) {
             for (x = 0; x < 10; x++) {
-                if ((distrikt[row] & (1 << x)) > 0) {
+                if ((distrikt[row] & (1 << (9-x))) > 0) {
                     mBurnerBoard.setPixel(x + (mBoardWidth / 2) - 5, row, color);
                 }
             }
