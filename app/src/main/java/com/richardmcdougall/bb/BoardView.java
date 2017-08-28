@@ -10,6 +10,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.media.audiofx.Visualizer;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -25,10 +26,10 @@ public class BoardView extends View {
     private static final String TAG = "BoardView";
     private byte[] mBoardScreen;
     private Rect mRect = new Rect();
-    private int mBoardWidth = 10;
-    private int mBoardHeight = 70;
-    //private int mBoardWidth = 46;
-    //private int mBoardHeight = 118;
+    //private int mBoardWidth = 10;
+    //private int mBoardHeight = 70;
+    private int mBoardWidth = 46;
+    private int mBoardHeight = 118;
     Bitmap mCanvasBitmap;
     Canvas mCanvas;
 

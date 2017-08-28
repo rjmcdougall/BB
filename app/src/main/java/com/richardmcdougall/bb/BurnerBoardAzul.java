@@ -391,7 +391,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         sendVisual(9);
         l("sendCommand: 5");
         if (mListener != null) {
-            mListener.sendCmd(5);
+            mListener.sendCmd(7);
             mListener.sendCmdEnd();
             flush2Board();
             return;
