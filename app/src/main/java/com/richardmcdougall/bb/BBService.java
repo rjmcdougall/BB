@@ -667,6 +667,7 @@ public class BBService extends Service {
         int nextRadioStream = currentRadioStream + 1;
         if (nextRadioStream > dlManager.GetTotalAudio())
             nextRadioStream = 0;
+        SetRadioStream(nextRadioStream);
 
     }
 

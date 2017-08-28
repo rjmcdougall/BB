@@ -6,6 +6,7 @@
 #include <CmdMessenger.h>
 #include <EEPROM.h>
 
+boolean do_lowbattery_actions = false;
 
 /*****************************************************************************
   Burner Board LED and Audio Code
@@ -1051,7 +1052,7 @@ void loop_matrixfast()
 
 
 // Counter to see if we check battery level
-unsigned long lastBatteryCheck = micros() - (20 * 1000000);;
+unsigned long lastBatteryCheck = micros();
 
 
 void loop() {
@@ -1074,9 +1075,9 @@ void loop() {
       } else {
         batteryLow = false;
       }
-      if (batteryLevel <= 15) {
-        limitBoardSpeed(true);
-        batteryCritical = true;
+      if (do_lowbattery_actions && batteryLevel <= 15) {
+        limitBoardSpeed(false);
+        batteryCritical = false;
       } else {
         limitBoardSpeed(false);
         batteryCritical = false;
