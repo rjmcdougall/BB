@@ -78,6 +78,7 @@ public class BBService extends Service {
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode =1; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
+    boolean mServerMode = false;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -135,6 +136,11 @@ public class BBService extends Service {
     public void onCreate() {
 
         super.onCreate();
+
+        if (boardType.contains("BLU")) {
+            mServerMode = true;
+        }
+
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
 
@@ -294,7 +300,7 @@ public class BBService extends Service {
 
     private void startLights() {
 
-        if (boardType.contains("BLU")) {
+        if (mServerMode == true) {
             return;
         }
 
@@ -528,6 +534,10 @@ public class BBService extends Service {
             l("Failed to associate wifi");
         }
 
+        if (mServerMode == true) {
+            return;
+        }
+
         dlManager.StartDownloads();
 
 
@@ -657,7 +667,7 @@ public class BBService extends Service {
         int nextRadioStream = currentRadioStream + 1;
         if (nextRadioStream > dlManager.GetTotalAudio())
             nextRadioStream = 0;
-        SetRadioStream(nextRadioStream);
+
     }
 
 
@@ -665,6 +675,9 @@ public class BBService extends Service {
     void SetRadioStream(int index) {
         l("SetRadioStream: " + index);
         currentRadioStream = index;
+        if (mServerMode == true) {
+            return;
+        }
         if (index == 0) {
             mediaPlayer.pause();
             l("Bluetooth Mode");
@@ -840,7 +853,7 @@ public class BBService extends Service {
     }
 
     public void setMode(int mode) {
-        boolean cansetMode = mBurnerBoard.setMode(50);
+        //boolean cansetMode = mBurnerBoard.setMode(50);
         //boolean cansetMode = mBurnerBoard.setMode(mode);
         //if (cansetMode == false) {
             // Likely not connected to physical burner board, fallback
@@ -858,8 +871,10 @@ public class BBService extends Service {
         else if (mBoardMode<1)
             mBoardMode = maxModes;
 
-        l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
-        mBoardVisualization.setMode(mBoardMode);
+        if (mBoardVisualization != null) {
+            l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
+            mBoardVisualization.setMode(mBoardMode);
+        }
         voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
     }
 
