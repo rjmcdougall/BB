@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.app.Activity;
-import android.app.DownloadManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,7 +10,6 @@ import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
-import android.media.ToneGenerator;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Environment;
@@ -24,9 +22,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -39,7 +35,6 @@ import android.media.AudioTrack;
 import android.media.AudioFormat;
 import android.os.Build;
 
-import org.json.JSONObject;
 import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
@@ -47,6 +42,9 @@ import android.media.Ringtone;
 public class BBService extends Service {
 
     private static final String TAG = "BB.BBService";
+
+    // Set to force classic mode when using Emulator
+    public static final boolean kEmulatingClassic = false;
 
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
@@ -139,6 +137,7 @@ public class BBService extends Service {
 
         if (boardType.contains("BLU")) {
             mServerMode = true;
+            l("I am the server");
         }
 
         l("BBService: onCreate");
@@ -304,7 +303,7 @@ public class BBService extends Service {
             return;
         }
 
-        if (boardType.contains("Classic")) {
+        if (kEmulatingClassic || boardType.contains("Classic")) {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else {
             mBurnerBoard = new BurnerBoardAzul(this, mContext);

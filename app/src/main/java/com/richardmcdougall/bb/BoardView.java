@@ -26,15 +26,21 @@ public class BoardView extends View {
     private static final String TAG = "BoardView";
     private byte[] mBoardScreen;
     private Rect mRect = new Rect();
-    //private int mBoardWidth = 10;
-    //private int mBoardHeight = 70;
-    private int mBoardWidth = 46;
-    private int mBoardHeight = 118;
+    private int mBoardWidth;
+    private int mBoardHeight;
     Bitmap mCanvasBitmap;
     Canvas mCanvas;
 
     public BoardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
+
+        if (BBService.kEmulatingClassic) {
+            mBoardWidth = 10;
+            mBoardHeight = 70;
+        } else {
+            mBoardWidth = 46;
+            mBoardHeight = 118;
+        }
 
         if (!isInEditMode()) {
             System.out.println("Starting BoardView");

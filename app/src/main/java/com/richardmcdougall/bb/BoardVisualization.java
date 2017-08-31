@@ -219,7 +219,7 @@ public class BoardVisualization {
                     }
             }
 
-            // limit output framerate to max of 11fps (90ms per frame)
+            // limit output framerate to max of 12fps
             if (frameRate > 12) {
                 frameRate = 12;
             }
@@ -629,10 +629,10 @@ public class BoardVisualization {
 
     // Pick classic VU meter colors based on volume
     int vuColor(int amount) {
-        if (amount < 11)
+        if (amount < mBoardHeight / 6)
             return BurnerBoard.getRGB(0, 255, 0);
-        if (amount < 21)
-            return BurnerBoard.getRGB(255, 165, 0);
+        if (amount < mBoardHeight / 3)
+            return BurnerBoard.getRGB(255, 255, 0);
         return BurnerBoard.getRGB(255, 0, 0);
     }
 
@@ -696,24 +696,30 @@ public class BoardVisualization {
         int[] dbLevels = getLevels();
         if (dbLevels == null)
             return;
-        mBurnerBoard.fadePixels(50);
+        mBurnerBoard.fadePixels(80);
         // Iterate through frequency bins: dbLevels[0] is lowest, [15] is highest
         int row = 0;
         for (int value = 3; value < 15; value += 2) {
             //System.out.println("level " + dbLevels[value]);
-            int level = java.lang.Math.min(dbLevels[value - 1] / 6, 35);
+            // Get level as # of pixels of half board height
+            int level = java.lang.Math.min(dbLevels[value - 1] /
+                    (255/(mBoardHeight/2)-1), mBoardHeight / 2);
             //l("level " + value + ":" + level + ":" + dbLevels[value]);
             for (int y = 0; y < level; y++) {
                 if (value == 3) {
+                    // Skip first frequency level
                     //mBurnerBoard.setSideLight(0, 39 + y, vuColor(y));
                     //mBurnerBoard.setSideLight(0, 38 - y, vuColor(y));
                     //mBurnerBoard.setSideLight(1, 39 + y, vuColor(y));
                     //mBurnerBoard.setSideLight(1, 38 - y, vuColor(y));
                 } else {
-                    mBurnerBoard.setPixel(((value / 2) - 2), 35 + y, vuColor(y));
-                    mBurnerBoard.setPixel(((value / 2) - 2), 34 - y, vuColor(y));
-                    mBurnerBoard.setPixel(9 - ((value / 2) - 2), 35 + y, vuColor(y));
-                    mBurnerBoard.setPixel(9 - ((value / 2) - 2), 34 - y, vuColor(y));
+                    int xOff = value / 2 * (mBoardWidth / 10);
+                    for (int i = 0; i < (mBoardWidth / 10); i++) {
+                        mBurnerBoard.setPixel((xOff - 2) + i, mBoardHeight / 2 + y, vuColor(y));
+                        mBurnerBoard.setPixel((xOff - 2) + i, mBoardHeight / 2 - 1 - y, vuColor(y));
+                        mBurnerBoard.setPixel(mBoardWidth - 1 - (xOff - 2) - i, mBoardHeight / 2 + y, vuColor(y));
+                        mBurnerBoard.setPixel(mBoardWidth - 1 - (xOff - 2) - i, mBoardHeight / 2 - 1 - y, vuColor(y));
+                    }
                 }
             }
         }

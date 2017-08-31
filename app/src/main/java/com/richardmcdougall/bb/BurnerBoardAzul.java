@@ -284,6 +284,36 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
     }
 
+    public void fadePixels(int amount) {
+
+        for (int x = 0; x < mBoardWidth; x++) {
+            for (int y = 0; y < mBoardHeight; y++) {
+                int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                //System.out.println("br = " + br);
+                if (r >= amount) {
+                    r -= amount;
+                } else {
+                    r = 0;
+                }
+                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
+                int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                if (g >= amount) {
+                    g -= amount;
+                } else {
+                    g = 0;
+                }
+                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
+                int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                if (b >= amount) {
+                    b -= amount;
+                } else {
+                    b = 0;
+                }
+                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
+            }
+        }
+    }
+
 
     public int [] getPixelBuffer() {
         return mBoardScreen;
