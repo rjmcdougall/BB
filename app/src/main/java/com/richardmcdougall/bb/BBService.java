@@ -77,6 +77,7 @@ public class BBService extends Service {
     private int mBoardMode =1; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
     boolean mServerMode = false;
+    IoTClient iotClient = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -215,9 +216,13 @@ public class BBService extends Service {
             l("music player already running");
         }
 
+        if (iotClient == null) {
+            iotClient = new IoTClient(mContext);
+        }
+
         if (batteryMonitor == null) {
-            l("starting music player thread");
-            // Start Music Player
+            l("starting battery monitor thread");
+            // Start Battery Monitor
             Thread batteryMonitor = new Thread(new Runnable() {
                 public void run() {
                     batteryThread();
@@ -619,15 +624,15 @@ public class BBService extends Service {
                             try {
                                 //l("SeekAndPlay: pause()");
                                 //mediaPlayer.pause();
-                                l("SeekAndPlay: setPlaybackParams()");
+                                //l("SeekAndPlay: setPlaybackParams()");
                                 mediaPlayer.getPlaybackParams().setSpeed(speed);
                                         //setPlaybackParams(params);
-                                l("SeekAndPlay: setPlaybackParams() Sucesss!!");
+                                //l("SeekAndPlay: setPlaybackParams() Sucesss!!");
                             } catch (Throwable err) {
-                                l("SeekAndPlay setPlaybackParams: " + err.getMessage());
+                                //l("SeekAndPlay setPlaybackParams: " + err.getMessage());
                                 err.printStackTrace();
                             }
-                            l("SeekAndPlay: start()");
+                            //l("SeekAndPlay: start()");
                             mediaPlayer.start();
                         }
                     }
@@ -903,36 +908,45 @@ public class BBService extends Service {
     private void batteryThread() {
 
         boolean announce = false;
-        if (mBurnerBoard != null) {
-            int level = mBurnerBoard.getBattery();
-            if (level < 0) {
-                if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
-                    lastUnknownStatement = System.currentTimeMillis();
-                    voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
+
+        while (true) {
+            if (mBurnerBoard != null) {
+                int level = mBurnerBoard.getBattery();
+
+                if (mBurnerBoard != null) {
+                    l("Sending MQTT update");
+                    iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                }
+
+                if (level < 0) {
+                    if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
+                        lastUnknownStatement = System.currentTimeMillis();
+                        voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
+                    }
+                }
+                if (level < 15) {
+                    voice.speak("Battery almost empty. Level is " +
+                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
+                } else if (level <= 25) {
+                    if (System.currentTimeMillis() - lastLowStatement > 300000) {
+                        lastLowStatement = System.currentTimeMillis();
+                        announce = true;
+                    }
+                } else if (false) {
+                    if (System.currentTimeMillis() - lastOkStatement > 1800000) {
+                        lastOkStatement = System.currentTimeMillis();
+                        announce = true;
+                    }
+                }
+                if (announce) {
+                    voice.speak("Battery Level is " +
+                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
                 }
             }
-            if (level < 15) {
-                voice.speak("Battery almost empty, back to camp. Level is " +
-                        level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
-            } else if (level <= 25) {
-                if (System.currentTimeMillis() - lastLowStatement > 300000) {
-                    lastLowStatement = System.currentTimeMillis();
-                    announce = true;
-                }
-            } else {
-                if (System.currentTimeMillis() - lastOkStatement > 1800000) {
-                    lastOkStatement = System.currentTimeMillis();
-                    announce = true;
-                }
+            try {
+                Thread.sleep(60000);
+            } catch (Throwable e) {
             }
-            if (announce) {
-                voice.speak("Battery almost empty, back to camp. Level is " +
-                        level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
-            }
-        }
-        try {
-            Thread.sleep(60000);
-        } catch (Throwable e) {
         }
     }
 

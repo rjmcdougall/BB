@@ -46,6 +46,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     private int mDimmerLevel = 255;
     private static final String TAG = "BurnerBoardAzul";
     public int mBatteryLevel;
+    public int [] mBatteryStats = new int[16];
     public String boardId = Build.MODEL;
 
 
@@ -130,13 +131,20 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
-            mBatteryLevel = mListener.readIntArg();
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            mBatteryLevel = mBatteryStats[1];
             l("getBatteryLevel: " + mBatteryLevel);
         }
     }
 
     public int getBattery() {
         return mBatteryLevel;
+    }
+
+    public String getBatteryStats() {
+        return Arrays.toString(mBatteryStats);
     }
 
     public void fuzzPixels(int amount) {
@@ -415,11 +423,11 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
 
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 6
+    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
         sendVisual(9);
-        l("sendCommand: 5");
+        l("sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();
