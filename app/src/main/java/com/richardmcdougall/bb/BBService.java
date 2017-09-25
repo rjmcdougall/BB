@@ -144,9 +144,6 @@ public class BBService extends Service {
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
 
-        // Setup beep for blueooth remote connect
-        btNotifier();
-
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -201,6 +198,8 @@ public class BBService extends Service {
         // Register to receive button messages
         IntentFilter filter = new IntentFilter(BBService.ACTION_BUTTONS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(btReceive, filter);
 
 
         if (musicPlayer == null) {
@@ -956,29 +955,30 @@ public class BBService extends Service {
         }
     }
 
-    private void btNotifier() {
-        //you can get notified when a new device is connected using Broadcast receiver
-        BroadcastReceiver btReceive=new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
+    //you can get notified when a new device is connected using Broadcast receiver
+    private final BroadcastReceiver btReceive = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
 
-                String action = intent.getAction();
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            l("Bluetooth connected");
 
-                if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                    voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
-                    //the device is found
-                    try {
-                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                        r.play();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            String action = intent.getAction();
+            //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
+                //the device is found
+                try {
+                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                    r.play();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-        };
-    }
+        }
+    };
+
 
 
 }

@@ -367,6 +367,25 @@ public class BurnerBoardAzul extends BurnerBoard {
             flushCnt = 0;
         }
 
+
+
+        // Here we calculate the total power percentage of the whole board
+        // We want to limit the board to no more than 50% of pixel output total
+        // This is because the board is setup to flip the breaker at 200 watts
+        // Output is percentage multiplier for the LEDs
+        // At full brightness we limit to 50% of their output
+        // Power is on-linear to pixel brightness: 15% = 50% power.
+        // powerPercent = 100: 15% multiplier
+        // powerPercent <= 15: 100% multiplier
+        int totalBrightnessSum = 0;
+        int powerLimitMultiplierPercent = 100;
+        for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
+            totalBrightnessSum += mBoardScreen[pixel];
+        }
+
+        final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
+        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
+
         int[] rowPixels = new int[mBoardWidth * 3];
         for (int y = 0; y < mBoardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
@@ -380,6 +399,8 @@ public class BurnerBoardAzul extends BurnerBoard {
             setRowVisual(y, rowPixels);
         }
 
+
+
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
@@ -389,7 +410,7 @@ public class BurnerBoardAzul extends BurnerBoard {
                 stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
             }
-            setStrip(s, stripPixels);
+            setStrip(s, stripPixels, powerLimitMultiplierPercent);
             // Send to board
             flush2Board();
         }
@@ -478,12 +499,13 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     // Send a strip of pixels to the board
-    private void setStrip(int strip, int[] pixels) {
+    private void setStrip(int strip, int[] pixels, int powerLimitMultiplierPercent) {
 
         int[] dimPixels = new int[pixels.length];
+
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 384;  // Half Brightness
+                    (mDimmerLevel * pixels[pixel]) / 256 * powerLimitMultiplierPercent / 100;
         }
 
         // Do color correction on burner board display pixels
@@ -853,7 +875,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             new TranslationMap(114,14,31,1,1,476),
             new TranslationMap(115,34,11,-1,1,494),
             new TranslationMap(116,14,31,1,1,518),
-            new TranslationMap(117,26,19,-1,1,536)
+            new TranslationMap(117,19,26,1,1,536) // trying to fix the back lights direction
     };
 }
 

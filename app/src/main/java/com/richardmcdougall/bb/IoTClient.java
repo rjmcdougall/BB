@@ -12,6 +12,7 @@ import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.util.Log;
 
+
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -24,11 +25,21 @@ import org.eclipse.paho.client.mqttv3.MqttSecurityException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 
+import io.jsonwebtoken.JwtBuilder;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.io.InputStream;
+
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import org.joda.time.DateTime;
+
 /**
  * Created by rmc on 9/16/17.
  */
 
-public class IoTClient {
+public class    IoTClient {
 
     private ConnectivityManager mConnMan;
     private static boolean hasWifi = false;
@@ -38,6 +49,7 @@ public class IoTClient {
     private Context mContext;
     private String deviceId;
     IMqttToken token = null;
+    byte[] keyBytes = new byte[16384];
 
     public IoTClient(Context context) {
         mContext = context;
@@ -46,11 +58,21 @@ public class IoTClient {
         intentf.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         mContext.registerReceiver(new MQTTBroadcastReceiver(), new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         mConnMan = (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
+
+        InputStream keyfile = context.getResources().openRawResource(context.getResources().getIdentifier("rsa_private_pkcs8", "raw", context.getPackageName()));
+        try {
+            keyfile.read(keyBytes);
+        } catch (Exception e) {
+            Log.d(TAG, "Unable to open keyfile");
+        }
     }
 
+
     public void sendUpdate(String topic, String content) {
-        int qos             = 2;
-        String broker       = "tcp://m11.cloudmqtt.com:15488";
+        //int qos             = 2;
+        //String broker       = "tcp://m11.cloudmqtt.com:15488";
+        int qos             = 1;
+        String broker = "tcp://mqtt.googleapis.com:8883";
         String clientId     = "BurnerBoardTest";
         MemoryPersistence persistence = new MemoryPersistence();
         Log.d(TAG, "sendUpdate()");
@@ -60,7 +82,7 @@ public class IoTClient {
         }
 
         try {
-            mqttClient.publish(topic, content.getBytes(), qos, false);
+            mqttClient.publish("/devices/bb-candy/events/" + topic, content.getBytes(), qos, false);
         } catch (Exception e) {
             Log.d(TAG, "Failed to send:"  + e.toString());
         }
@@ -144,17 +166,46 @@ public class IoTClient {
         if(deviceId == null){
             deviceId = MqttAsyncClient.generateClientId();
         }
+        deviceId = "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-test";
+    }
+
+    /** Create a Cloud IoT Core JWT for the given project id, signed with the given private key. */
+    private String createJwtRsa(String projectId) throws Exception {
+        DateTime now = new DateTime();
+        // Create a JWT to authenticate this device. The device will be disconnected after the token
+        // expires, and will have to reconnect with a new token. The audience field should always be set
+        // to the GCP project id.
+        JwtBuilder jwtBuilder =
+                Jwts.builder()
+                        .setIssuedAt(now.toDate())
+                        .setExpiration(now.plusMinutes(20).toDate())
+                        .setAudience(projectId);
+
+        //byte[] keyBytes = Files.readAllBytes(Paths.get(privateKeyFile));
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+
+        return jwtBuilder.signWith(SignatureAlgorithm.RS256, kf.generatePrivate(spec)).compact();
     }
 
     private void doConnect(){
+
+        String jwtKey = null;
         Log.d(TAG, "doConnect()");
         MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
+
         try {
-            mqttClient = new MqttAsyncClient("tcp://m11.cloudmqtt.com:15488", deviceId, new MemoryPersistence());
+            jwtKey = createJwtRsa("burner-board");
+            Log.d(TAG, "Created key " + jwtKey.toString());
+        } catch (Exception e) {
+            Log.d(TAG, "Error creating key");
+        }
+        try {
+            mqttClient = new MqttAsyncClient("ssl://mqtt.googleapis.com:8883", deviceId, new MemoryPersistence());
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setUserName("vokskcax");
-            connOpts.setPassword("Lni2rRwd8dzw".toCharArray());
+            connOpts.setPassword(jwtKey.toCharArray());
             token = mqttClient.connect(connOpts);
             token.waitForCompletion(5000);
             Log.d(TAG, "doConnect(): connected");
