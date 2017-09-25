@@ -377,6 +377,16 @@ public class BoardVisualization {
         return android.support.v4.graphics.ColorUtils.HSLToColor(hsl) & 0xFFFFFF;
     }
 
+
+    // Same but with brightness 0-1.0
+    int wheelDim(int wheelPos, float brightness) {
+        float[] hsl = new float[3];
+        hsl[0] = wheelPos * 1.0f;
+        hsl[1] = 1.0f;
+        hsl[2] = 0.5f * brightness;
+        return android.support.v4.graphics.ColorUtils.HSLToColor(hsl) & 0xFFFFFF;
+    }
+
     void wheelInc(int amount) {
         wheel_color = wheel_color + amount;
         if (wheel_color > 360)
@@ -391,6 +401,7 @@ public class BoardVisualization {
     public static final int kMatrixEsperanto = 5;
     public static final int kMatrixIrukandji = 6;
     public static final int kMatrixFireFull = 7;
+    public static final int kMatrix9 = 8;
 
     private static final int[] googleColors = {
             BurnerBoard.getRGB(60, 186, 84),
@@ -417,6 +428,7 @@ public class BoardVisualization {
         int[] pixels = new int[mBoardWidth * 3 + 6];
 
         int color;
+        int colorDim;
         int x;
         int y;
         int sideLight;
@@ -429,7 +441,7 @@ public class BoardVisualization {
         }
 
 
-        y = mBoardHeight- 1;
+        y = mBoardHeight - 1;
         sideLight = mBoardSideLights - 1;
 
 
@@ -438,6 +450,7 @@ public class BoardVisualization {
             switch (mode) {
                 case kMatrixEsperanto:
                 case kMatrixBurnerColor:
+
                     if (mRandom.nextInt(2) == 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
                     } else {
@@ -445,7 +458,50 @@ public class BoardVisualization {
                         wheelInc(1);
                     }
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
+
+                case kMatrix9:
+                    if (mRandom.nextInt(2) == 0) {
+                        color = BurnerBoard.getRGB(0, 0, 0);
+                        if (x > 0) {
+                            mBurnerBoard.setPixel(pixelSkip * x - 1, y, color);
+                            mBurnerBoard.setPixel(pixelSkip * x - 1, y - 1, color);
+                            mBurnerBoard.setPixel(pixelSkip * x - 1, y - 2, color);
+                        }
+                        mBurnerBoard.setPixel(pixelSkip * x, y, BurnerBoard.getRGB(0, 0, 0));
+                        if (x < mBoardWidth / pixelSkip) {
+                            mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                            mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
+                            mBurnerBoard.setPixel(pixelSkip * x + 1, y - 2, color);
+                        }
+
+                    } else {
+                        color = wheel(wheel_color);
+                        colorDim = wheelDim(wheel_color, 0.5f);
+                        wheelInc(1);
+                        if (pixelSkip >= 3) {
+                            if (x > 0) {
+                                mBurnerBoard.setPixel(pixelSkip * x - 1, y, BurnerBoard.getRGB(0, 0, 0));
+                                mBurnerBoard.setPixel(pixelSkip * x - 1, y - 1, colorDim);
+                                mBurnerBoard.setPixel(pixelSkip * x - 1, y - 2, BurnerBoard.getRGB(0, 0, 0));
+                            }
+                            if (x < mBoardWidth / pixelSkip) {
+                                mBurnerBoard.setPixel(pixelSkip * x + 1, y, BurnerBoard.getRGB(0, 0, 0));
+                                mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, colorDim);
+                                mBurnerBoard.setPixel(pixelSkip * x + 1, y - 2, BurnerBoard.getRGB(0, 0, 0));
+                            }
+                            mBurnerBoard.setPixel(pixelSkip * x, y, colorDim);
+                            mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                            mBurnerBoard.setPixel(pixelSkip * x, y - 2, colorDim);
+                        } else {
+                            mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                        }
+                    }
+                    break;
+
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
@@ -484,13 +540,7 @@ public class BoardVisualization {
                 default:
                     color = 0;
             }
-            // Ripple down the side lights with the same color as the edges
-            //if (x == 0) {
-            //    mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoardClassic.kLeftSightlight, color);
-            //}
-            //if (x == 9) {
-        //   mBurnerBoard.setPixelOtherlight(sideLight, BurnerBoardClassic.kRightSidelight, color);
-            //}
+
             fireColor += 1;
             if (fireColor > 180) {
                 fireColor = 40;
