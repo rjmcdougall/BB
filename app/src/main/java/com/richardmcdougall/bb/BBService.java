@@ -911,35 +911,46 @@ public class BBService extends Service {
         while (true) {
             if (mBurnerBoard != null) {
                 int level = mBurnerBoard.getBattery();
+                int current = mBurnerBoard.getBatteryCurrent();
+
+                l("Board Current is " + current);
 
                 if (mBurnerBoard != null) {
                     l("Sending MQTT update");
                     iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
                 }
 
-                if (level < 0) {
-                    if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
-                        lastUnknownStatement = System.currentTimeMillis();
-                        voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
+
+                if (current > 100) {
+                    mBoardVisualization.inhibit(true);
+                } else {
+                    mBoardVisualization.inhibit(false);
+
+                    if (level < 0) {
+                        if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
+                            lastUnknownStatement = System.currentTimeMillis();
+                            voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
+                        }
                     }
-                }
-                if (level < 15) {
-                    voice.speak("Battery almost empty. Level is " +
-                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
-                } else if (level <= 25) {
-                    if (System.currentTimeMillis() - lastLowStatement > 300000) {
-                        lastLowStatement = System.currentTimeMillis();
-                        announce = true;
+                    if (level < 15) {
+                        voice.speak("Battery empty. Level is " +
+                                level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
+                    } else if (level <= 25) {
+                        if (System.currentTimeMillis() - lastLowStatement > 300000) {
+                            lastLowStatement = System.currentTimeMillis();
+                            announce = true;
+                        }
+
+                    } else if (false) {
+                        if (System.currentTimeMillis() - lastOkStatement > 1800000) {
+                            lastOkStatement = System.currentTimeMillis();
+                            announce = true;
+                        }
                     }
-                } else if (false) {
-                    if (System.currentTimeMillis() - lastOkStatement > 1800000) {
-                        lastOkStatement = System.currentTimeMillis();
-                        announce = true;
+                    if (announce) {
+                        voice.speak("Battery Level is " +
+                                level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
                     }
-                }
-                if (announce) {
-                    voice.speak("Battery Level is " +
-                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
                 }
             }
             try {

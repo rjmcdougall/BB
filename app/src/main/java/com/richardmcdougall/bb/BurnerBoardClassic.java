@@ -18,8 +18,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
-    public int mBatteryLevel = -1;
-    private static final String TAG = "BurnerBoardClassic";
+    public int mBatteryLevel;
+    public int [] mBatteryStats = new int[16];    private static final String TAG = "BurnerBoardClassic";
 
 
 
@@ -111,14 +111,29 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
-            mBatteryLevel = mListener.readIntArg();
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            mBatteryLevel = mBatteryStats[1];
             l("getBatteryLevel: " + mBatteryLevel);
         }
     }
 
-    //    cmdMessenger.attach(BBGetVoltage, OnGetVoltage);      // 10
-    public float getVoltage() {
-        return (float) 0;
+    public int getBattery() {
+        return mBatteryLevel;
+    }
+
+    public String getBatteryStats() {
+        return Arrays.toString(mBatteryStats);
+    }
+
+    public int getBatteryCurrent() {
+        int codedLevel = mBatteryStats[6];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
     }
 
     //    cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
@@ -165,9 +180,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         */
     }
 
-    public int getBattery() {
-        return mBatteryLevel;
-    }
 
     //    cmdMessenger.attach(BBFade, OnFade);                  // 7
     public boolean fadeBoard(int amount) {

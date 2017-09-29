@@ -62,6 +62,7 @@ public class BoardVisualization {
     private VideoDecoder mVideoDecoder = new VideoDecoder();
     private int lastVideoMode = -1;
     private int mMultipler4Speed;
+    private boolean inhibitVisual = false;
 
     int mBoardMode;
     Context mContext;
@@ -101,6 +102,10 @@ public class BoardVisualization {
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
+    }
+
+    public void inhibit(boolean inhibit) {
+        inhibitVisual = inhibit;
     }
 
     private void sendLogMsg(String msg) {
@@ -161,7 +166,21 @@ public class BoardVisualization {
         l("Starting board display thread...");
 
 
+
         while (true) {
+
+            if (inhibitVisual) {
+                mBurnerBoard.clearPixels();
+                mBurnerBoard.showBattery();
+                mBurnerBoard.flush();
+                try {
+                    Thread.sleep(1000);
+                } catch (Throwable er) {
+                    er.printStackTrace();
+                }
+                continue;
+            }
+
             switch (mBoardMode) {
 
                 case 1:
@@ -506,6 +525,9 @@ public class BoardVisualization {
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
                 case kMatrixFire:
                     color = mRandom.nextInt(2) == 0 ?
@@ -520,6 +542,9 @@ public class BoardVisualization {
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : googleColors[googleColor / 8];
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
                 case kMatrixIrukandji:
                     color = wheel(wheel_color);

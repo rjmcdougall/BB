@@ -147,6 +147,15 @@ public class BurnerBoardAzul extends BurnerBoard {
         return Arrays.toString(mBatteryStats);
     }
 
+    public int getBatteryCurrent() {
+        int codedLevel = mBatteryStats[6];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
     public void fuzzPixels(int amount) {
 
         for (int x = 0; x < mBoardWidth; x++) {
@@ -373,14 +382,21 @@ public class BurnerBoardAzul extends BurnerBoard {
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
         // Output is percentage multiplier for the LEDs
-        // At full brightness we limit to 50% of their output
-        // Power is on-linear to pixel brightness: 15% = 50% power.
+        // At full brightness we limit to 30% of their output
+        // Power is on-linear to pixel brightness: 37% = 50% power.
         // powerPercent = 100: 15% multiplier
         // powerPercent <= 15: 100% multiplier
         int totalBrightnessSum = 0;
         int powerLimitMultiplierPercent = 100;
         for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
-            totalBrightnessSum += mBoardScreen[pixel];
+            // R
+            if (pixel % 3 == 0) {
+                totalBrightnessSum += mBoardScreen[pixel];
+            } else if (pixel % 3 == 1) {
+                totalBrightnessSum += mBoardScreen[pixel];
+            } else {
+                totalBrightnessSum += mBoardScreen[pixel] / 2;
+            }
         }
 
         final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;

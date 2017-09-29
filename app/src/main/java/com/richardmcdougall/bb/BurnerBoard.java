@@ -62,6 +62,10 @@ public class BurnerBoard {
         return -1;
     }
 
+    public int getBatteryCurrent() {
+        return 0;
+    }
+
     public String getBatteryStats() { return null;   }
 
     static public int getRGB(int r, int g, int b) {
