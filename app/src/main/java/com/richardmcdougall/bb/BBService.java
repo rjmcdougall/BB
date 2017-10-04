@@ -920,8 +920,9 @@ public class BBService extends Service {
                     iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
                 }
 
+/*
 
-                if (current > 100) {
+                if (false && current > 100) {
                     mBoardVisualization.inhibit(true);
                 } else {
                     mBoardVisualization.inhibit(false);
@@ -952,6 +953,7 @@ public class BBService extends Service {
                                 level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
                     }
                 }
+                */
             }
             try {
                 Thread.sleep(60000);

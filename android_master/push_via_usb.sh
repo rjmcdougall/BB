@@ -11,6 +11,16 @@ sleep 10
 sleep 10
 ~/Library/Android/sdk/platform-tools/adb push build.prop  /system/build.prop 
 ~/Library/Android/sdk/platform-tools/adb push audio_policy.conf  /system/etc/audio_policy.conf  
+
+# Set so no internet connection is required to bring up WIFI
+# https://github.com/LineageOS/android_frameworks_base/blob/cm-14.1/core/java/android/provider/Settings.java#L8273
+#
+#public static final int CAPTIVE_PORTAL_MODE_IGNORE = 0;
+#public static final int CAPTIVE_PORTAL_MODE_PROMPT = 1;
+#public static final int CAPTIVE_PORTAL_MODE_AVOID = 2;
+
+~/Library/Android/sdk/platform-tools/adb shell settings put global settings put global captive_portal_mode 0
+
 ~/Library/Android/sdk/platform-tools/adb reboot
 
 

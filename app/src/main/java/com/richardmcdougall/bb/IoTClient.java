@@ -72,9 +72,6 @@ public class    IoTClient {
         //int qos             = 2;
         //String broker       = "tcp://m11.cloudmqtt.com:15488";
         int qos             = 1;
-        String broker = "tcp://mqtt.googleapis.com:8883";
-        String clientId     = "BurnerBoardTest";
-        MemoryPersistence persistence = new MemoryPersistence();
         Log.d(TAG, "sendUpdate()");
 
         if (mqttClient == null || mqttClient.isConnected() == false) {
@@ -166,7 +163,7 @@ public class    IoTClient {
         if(deviceId == null){
             deviceId = MqttAsyncClient.generateClientId();
         }
-        deviceId = "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-test";
+        deviceId = "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-candy";
     }
 
     /** Create a Cloud IoT Core JWT for the given project id, signed with the given private key. */
@@ -207,11 +204,11 @@ public class    IoTClient {
             connOpts.setUserName("vokskcax");
             connOpts.setPassword(jwtKey.toCharArray());
             token = mqttClient.connect(connOpts);
-            token.waitForCompletion(5000);
+            token.waitForCompletion(15000);
             Log.d(TAG, "doConnect(): connected");
             mqttClient.setCallback(new MqttEventCallback());
             token = mqttClient.subscribe("bbcontrol", 0);
-            token.waitForCompletion(5000);
+            token.waitForCompletion(15000);
         } catch (MqttSecurityException e) {
             e.printStackTrace();
         } catch (MqttException e) {
