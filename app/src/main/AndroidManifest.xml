@@ -87,6 +87,11 @@
             android:name=".BBService"
             android:enabled="true"
             android:exported="true"/>
+
+        <!-- Mqtt Service -->
+        <service android:name="org.eclipse.paho.android.service.MqttService" >
+        </service>
+
     </application>
 
 </manifest>

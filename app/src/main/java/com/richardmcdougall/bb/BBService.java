@@ -956,7 +956,7 @@ public class BBService extends Service {
                 */
             }
             try {
-                Thread.sleep(60000);
+                Thread.sleep(15000);
             } catch (Throwable e) {
             }
         }
