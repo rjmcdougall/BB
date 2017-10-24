@@ -87,6 +87,7 @@ public class BoardVisualization {
         // Start Board Display
         Thread boardDisplay = new Thread(new Runnable() {
             public void run() {
+                Thread.currentThread().setName("BB Board Display");
                 boardDisplayThread();
             }
         });
@@ -170,6 +171,7 @@ public class BoardVisualization {
         while (true) {
 
             if (inhibitVisual) {
+                l("inhibit");
                 mBurnerBoard.clearPixels();
                 mBurnerBoard.showBattery();
                 mBurnerBoard.flush();
@@ -204,7 +206,7 @@ public class BoardVisualization {
                     break;
 
 
-                case 12:
+                case 5:
                     frameRate = 12;
                     modeFire(kModeFireDistrikt);
                     break;
@@ -1016,9 +1018,11 @@ public class BoardVisualization {
         for (int x = x1; x <= x2; x++) {
             for (int y = y1; y <= y2; y++) {
                 if (x == x1 || x == x2 || y == y1 || y == y2) {
-                    mBurnerBoard.setPixel(x, y, BurnerBoard.colorDim(100, color));
+                    mBurnerBoard.setPixel(x,
+                            java.lang.Math.min(y, mBoardHeight - 1), BurnerBoard.colorDim(100, color));
                 } else {
-                    mBurnerBoard.setPixel(x, y, color);
+                    mBurnerBoard.setPixel(x,
+                            java.lang.Math.min(y, mBoardHeight - 1), color);
                 }
             }
         }

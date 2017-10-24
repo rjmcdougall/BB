@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,11 +11,13 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.os.Build;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 
+import org.eclipse.paho.android.service.MqttTraceHandler;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
@@ -52,6 +55,7 @@ import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.joda.time.DateTime;
 
 import static android.R.id.message;
+import org.eclipse.paho.android.service.MqttTraceHandler;
 
 /**
  * Created by rmc on 9/16/17.
@@ -70,17 +74,14 @@ public class IoTClient {
     byte[] keyBytes = new byte[16384];
     String jwtKey = null;
     boolean haveConnected = false;
+    WifiManager mWiFiManager = null;
 
     public IoTClient(Context context) {
         mContext = context;
+
+        Log.d(TAG, "Creating MQTT Client");
         IntentFilter intentf = new IntentFilter();
         setClientID();
-        intentf.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        mContext.registerReceiver(new MQTTBroadcastReceiver(),
-                new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        mConnMan = (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
-
-
         InputStream keyfile = context.getResources().openRawResource(context.
                 getResources().getIdentifier("rsa_private_pkcs8", "raw", context.getPackageName()));
         try {
@@ -88,6 +89,8 @@ public class IoTClient {
         } catch (Exception e) {
             Log.d(TAG, "Unable to open keyfile");
         }
+
+        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         Log.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = mContext.getFilesDir().getAbsolutePath();
@@ -103,60 +106,103 @@ public class IoTClient {
         Thread connectThread = new Thread(new Runnable() {
             public void run() {
 
-                if (haveConnected == true) {
-                    return;
-                }
+                Thread.currentThread().setName("BB MQTT Monitor");
 
-                try {
-                    jwtKey = createJwtRsa("burner-board");
-                    Log.d(TAG, "Created key " + jwtKey.toString());
-                } catch (Exception e) {
-                    Log.d(TAG, "Error creating key");
-                }
+                while (true) {
 
-                while (haveConnected == false) {
-
-                    try {
-
-                        MqttConnectOptions options = new MqttConnectOptions();
-                        options.setCleanSession(false);
-                        options.setAutomaticReconnect(true);
-                        options.setUserName("burnerboard");
-                        options.setPassword(jwtKey.toCharArray());
-                        options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
-                        mqttClient.setCallback(new MqttEventCallback());
-                        mqttClient.setTraceEnabled(true);
-
-                        mqttClient.connect(options, null, new IMqttActionListener() {
-
-                            @Override
-                            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                                Log.d(TAG, "onFailure: " + exception.getMessage());
-                                exception.printStackTrace();
+                    if (haveConnected == false) {
+                        try {
+                            // Disconnect if we were connected
+                            // Required to recalculate jwtkey
+                            if (mqttClient != null) {
+                                Log.d(TAG, "Disconnecting MQTT Client");
+                                mqttClient.disconnect();
                             }
+                        } catch (Exception e) {
+                        }
+                        try {
 
-                            @Override
-                            public void onSuccess(IMqttToken iMqttToken) {
-                                Log.i(TAG, "onSuccess");
-                                haveConnected = true;
-                                DisconnectedBufferOptions disconnectedBufferOptions =
-                                        new DisconnectedBufferOptions();
-                                disconnectedBufferOptions.setBufferEnabled(true);
-                                disconnectedBufferOptions.setBufferSize(100000);
-                                disconnectedBufferOptions.setPersistBuffer(true);
-                                disconnectedBufferOptions.setDeleteOldestMessages(false);
-                                mqttClient.setBufferOpts(disconnectedBufferOptions);
+                            Log.d(TAG, "Connecting MQTT Client");
+
+                            jwtKey = createJwtRsa("burner-board");
+                            Log.d(TAG, "Created key " + jwtKey.toString());
+
+
+                            MqttConnectOptions options = new MqttConnectOptions();
+                            options.setCleanSession(false);
+                            options.setAutomaticReconnect(false);
+                            options.setUserName("burnerboard");
+                            options.setPassword(jwtKey.toCharArray());
+                            options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
+                            mqttClient.setCallback(new MqttEventCallback());
+                            mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
+                            mqttClient.setTraceEnabled(true);
+
+                            mqttClient.connect(options, null, new IMqttActionListener() {
+
+                                @Override
+                                public void onFailure(IMqttToken asyncActionToken,
+                                                      Throwable exception) {
+                                    Log.d(TAG, "onFailure: " + exception.getMessage());
+                                    exception.printStackTrace();
+                                }
+
+                                @Override
+                                public void onSuccess(IMqttToken iMqttToken) {
+                                    Log.i(TAG, "onSuccess");
+                                    haveConnected = true;
+                                    DisconnectedBufferOptions disconnectedBufferOptions =
+                                            new DisconnectedBufferOptions();
+                                    disconnectedBufferOptions.setBufferEnabled(true);
+                                    disconnectedBufferOptions.setBufferSize(100000);
+                                    disconnectedBufferOptions.setPersistBuffer(true);
+                                    disconnectedBufferOptions.setDeleteOldestMessages(false);
+                                    mqttClient.setBufferOpts(disconnectedBufferOptions);
+                                }
+                            });
+                        } catch (Exception e) {
+                            Log.i(TAG, "connect: " + e.getMessage());
+                        }
+                    } else {
+                        // We get failed reconnects because JWT key expires in Google IoT
+                        // Force a disconnect then reconnect
+                        android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
+                        NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
+                        if (state == NetworkInfo.DetailedState.CONNECTED) {
+                            if (mqttClient.isConnected() == false) {
+                                try {
+                                    Log.d(TAG, "MQTT disconnected but Wifi connected, forcing disconnect");
+                                    haveConnected = false;
+                                } catch (Exception e) {
+                                }
                             }
-                        });
-                    } catch (Exception e) {
-                        Log.i(TAG, "connect: " + e.getMessage());
+                        }
+
+                        // Sent fake wake-up event to android MQTT Client
+                        /*
+                        try {
+                            Intent in = new Intent(ConnectivityManager.CONNECTIVITY_ACTION);
+                            LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+                        } catch (Exception e) {
+                            Log.d(TAG, "could not send CONNECTIVITY_ACTION");
+                        }
+                        */
 
                     }
-
                     try {
-                        Thread.sleep(1000);
+                        Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
+                        mContext.sendBroadcast(intent);
+                    } catch (Exception e) {
+                        Log.d(TAG, "Cannot send force-time-sync");
+                    }
+
+
+                    // Every  minute
+                    try {
+                        Thread.sleep(60000);
                     } catch (Exception e) {
                     }
+
                 }
             }
         });
@@ -178,6 +224,12 @@ public class IoTClient {
         @Override
         public void connectionLost(Throwable arg0) {
             Log.i(TAG, "Connection Lost");
+            try {
+                //mqttClient.disconnect();
+                //mqttClient.close();
+            } catch (Exception e) {
+            }
+            haveConnected = false;
         }
 
         @Override
@@ -201,6 +253,24 @@ public class IoTClient {
             });
         }
 
+    }
+
+    private class MqttTraceHandlerCallback implements MqttTraceHandler {
+        @Override
+        public void traceDebug(String tag, String message) {
+            Log.d(TAG, "trace: " + tag + " : " + message);
+        }
+
+        @Override
+        public void traceError(String tag, String message) {
+            Log.d(TAG, "trace error: " + tag + " : " + message);
+
+        }
+
+        @Override
+        public void traceException(String tag, String message, Exception e) {
+            Log.d(TAG, "trace exception: " + tag + " : " + message);
+        }
     }
 
     public void sendUpdate(String topic, String content) {
@@ -246,49 +316,6 @@ public class IoTClient {
         }
     }
 
-
-    // TODO: this does nothing right now
-    class MQTTBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            IMqttToken token;
-            boolean hasConnectivity = false;
-            boolean hasChanged = false;
-            NetworkInfo infos[] = mConnMan.getAllNetworkInfo();
-
-            for (int i = 0; i < infos.length; i++) {
-                if (infos[i].getTypeName().equalsIgnoreCase("MOBILE")) {
-                    if ((infos[i].isConnected() != hasMmobile)) {
-                        hasChanged = true;
-                        hasMmobile = infos[i].isConnected();
-                    }
-                    Log.d(TAG, infos[i].getTypeName() + " is " + infos[i].isConnected());
-                } else if (infos[i].getTypeName().equalsIgnoreCase("WIFI")) {
-                    if ((infos[i].isConnected() != hasWifi)) {
-                        hasChanged = true;
-                        hasWifi = infos[i].isConnected();
-                    }
-                    Log.d(TAG, infos[i].getTypeName() + " is " + infos[i].isConnected());
-                }
-            }
-
-            hasConnectivity = hasMmobile || hasWifi;
-            Log.v(TAG, "hasConn: " + hasConnectivity + " hasChange: " + hasChanged + " - " + (mqttClient == null || !mqttClient.isConnected()));
-            if (hasConnectivity && hasChanged && (mqttClient == null || !mqttClient.isConnected())) {
-                //doConnect();
-            } else if (!hasConnectivity && mqttClient != null && mqttClient.isConnected()) {
-                Log.d(TAG, "doDisconnect()");
-                try {
-                    token = mqttClient.disconnect();
-                    token.waitForCompletion(1000);
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-
     private void setClientID() {
         WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         WifiInfo wInfo = wifiManager.getConnectionInfo();
@@ -312,6 +339,7 @@ public class IoTClient {
                 Jwts.builder()
                         .setIssuedAt(now.toDate())
                         .setExpiration(now.plusMinutes(20).toDate())
+                        //.setExpiration(now.plusSeconds(20).toDate())
                         .setAudience(projectId);
 
         //byte[] keyBytes = Files.readAllBytes(Paths.get(privateKeyFile));
@@ -322,4 +350,7 @@ public class IoTClient {
     }
 
 
+
 }
+
+

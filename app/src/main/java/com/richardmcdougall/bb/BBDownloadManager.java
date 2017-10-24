@@ -3,6 +3,7 @@ package com.richardmcdougall.bb;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -13,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,13 +27,21 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.R.attr.path;
+import static android.content.ContentValues.TAG;
+
+import eu.chainfire.libsuperuser.Shell;
+
 /**
  * Created by Jonathan on 8/6/2017.
  */
 
 public class BBDownloadManager {
+    private static final String TAG = "BB.BBDownloadManger";
     protected String mFilesDir;
     protected JSONObject dataDirectory;
+    int mVersion;
+
     JSONObject GetDataDirectory() { return dataDirectory; }
 
 
@@ -44,14 +54,16 @@ public class BBDownloadManager {
 
     public OnDownloadProgressType onProgressCallback = null;
 
-    BBDownloadManager(String filesDir) {
+    BBDownloadManager(String filesDir, int myVersion) {
+        mVersion = myVersion;
         mFilesDir = filesDir;
+        PackageInfo pinfo;
     }
 
     void StartDownloads() {
 
         BackgroundThread bThread = new BackgroundThread(this);
-        Thread th = new Thread(bThread, "DownloadManager background thread");
+        Thread th = new Thread(bThread, "BB DownloadManager background thread");
         th.start();
     }
 
@@ -310,6 +322,7 @@ public class BBDownloadManager {
                 }
             } catch (Throwable er) {
                 er.printStackTrace();
+                mDM.onProgressCallback.onVoiceCue("Error loading media error due to jason error");
             }
         }
 
@@ -343,6 +356,7 @@ public class BBDownloadManager {
                         for (int i = 0; i < dTypes.length; i++) {
                             JSONArray tList = dir.getJSONArray(dTypes[i]);
                             for (int j = 0; j < tList.length(); j++) {
+                                long appVersion = 0;
                                 JSONObject elm = tList.getJSONObject(j);
                                 String url = elm.getString("URL");
 
@@ -374,15 +388,21 @@ public class BBDownloadManager {
                                     }
                                 }
 
+                                File dstFile2;
                                 if (!upTodate) {
                                     DownloadURL(url, "tmp", localName);   // download to a "tmp" file
                                     tFiles++;
-
-                                    File dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
+                                    if (appVersion == 0) { // .tmp files for all media except app packages
+                                        dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
+                                    } else {
+                                        dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
+                                    }
                                     if (dstFile2.exists())
                                         dstFile2.delete();
                                     new File(dataDir, "tmp").renameTo(dstFile2);
+
                                 }
+
                             }
                         }
                         mDM.dataDirectory = dir;
@@ -399,7 +419,7 @@ public class BBDownloadManager {
                 }
 
             } catch (Throwable th) {
-                if (mDM.onProgressCallback!=null)
+                if (mDM.onProgressCallback != null)
                     mDM.onProgressCallback.onVoiceCue(th.getMessage());
                 try {
                     Thread.sleep(10000);   // wait 10 second if unexpected error
@@ -409,4 +429,8 @@ public class BBDownloadManager {
             }
         }
     }
+
+
 }
+
+

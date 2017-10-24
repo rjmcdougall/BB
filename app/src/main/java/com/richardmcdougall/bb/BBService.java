@@ -6,12 +6,20 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.location.Criteria;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -29,6 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.media.AudioTrack;
@@ -38,6 +47,11 @@ import android.os.Build;
 import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
+import android.widget.Toast;
+
+import static android.R.attr.versionCode;
+import static android.R.id.list;
+import static android.location.Criteria.NO_REQUIREMENT;
 
 public class BBService extends Service {
 
@@ -49,6 +63,7 @@ public class BBService extends Service {
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
     public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
+
     public int GetMaxLightModes() {
         return dlManager.GetTotalVideo() + 10;
     }
@@ -74,10 +89,12 @@ public class BBService extends Service {
     public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
-    private int mBoardMode =1; // Mode of the Ardunio/LEDs
+    private int mBoardMode = 1; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
     boolean mServerMode = false;
     IoTClient iotClient = null;
+    int mVersion = 0;
+    WifiManager mWiFiManager = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -85,6 +102,9 @@ public class BBService extends Service {
 
     int currentRadioStream = 1;
     long phoneModelAudioLatency = 0;
+
+    double mGPSlat, mGPSlong = 0;
+    locationTracker mGPS;
 
     TextToSpeech voice;
 
@@ -136,6 +156,17 @@ public class BBService extends Service {
 
         super.onCreate();
 
+        PackageInfo pinfo;
+        try {
+            pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            mVersion = pinfo.versionCode;
+            l("BurnerBoard Version " + mVersion);
+            //ET2.setText(versionNumber);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
         if (boardType.contains("BLU")) {
             mServerMode = true;
             l("I am the server");
@@ -143,6 +174,10 @@ public class BBService extends Service {
 
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
+
+        mContext = getApplicationContext();
+
+        //mGPS = new locationTracker(mContext);
 
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -152,7 +187,7 @@ public class BBService extends Service {
                     if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                         voice.setLanguage(Locale.US);
                     l("Text To Speech ready...");
-                    voice.setPitch((float)0.8);
+                    voice.setPitch((float) 0.8);
                     String utteranceId = UUID.randomUUID().toString();
                     System.out.println("Where do you want to go, " + boardId + "?");
                     voice.setSpeechRate((float) 0.9);
@@ -164,34 +199,35 @@ public class BBService extends Service {
             }
         });
 
-        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath());
+        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(), mVersion);
         dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
             public void onProgress(String file, long fileSize, long bytesDownloaded) {
-                if (fileSize<=0)
-                    return ;
+                if (fileSize <= 0)
+                    return;
 
                 long curTime = System.currentTimeMillis();
-                if (curTime-lastTextTime>30000) {
+                if (curTime - lastTextTime > 30000) {
                     lastTextTime = curTime;
-                    long percent = bytesDownloaded*100/fileSize;
+                    long percent = bytesDownloaded * 100 / fileSize;
 
                     voice.speak("Downloading " + file + ", " + String.valueOf(percent) + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
                     lastTextTime = curTime;
-                    l(String.format("Downloading %02x%% %s", bytesDownloaded*100/fileSize, file));
+                    l(String.format("Downloading %02x%% %s", bytesDownloaded * 100 / fileSize, file));
                 }
             }
+
             public void onVoiceCue(String msg) {
                 voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
             }
         };
 
-        mContext = getApplicationContext();
 
         HandlerThread mHandlerThread = null;
         mHandlerThread = new HandlerThread("BBServiceHandlerThread");
         mHandlerThread.start();
+
         mHandler = new Handler(mHandlerThread.getLooper());
 
 
@@ -207,6 +243,7 @@ public class BBService extends Service {
             // Start Music Player
             Thread musicPlayer = new Thread(new Runnable() {
                 public void run() {
+                    Thread.currentThread().setName("BB Music Player");
                     musicPlayerThread();
                 }
             });
@@ -224,6 +261,7 @@ public class BBService extends Service {
             // Start Battery Monitor
             Thread batteryMonitor = new Thread(new Runnable() {
                 public void run() {
+                    Thread.currentThread().setName("BB Battery Monitor");
                     batteryThread();
                 }
             });
@@ -309,6 +347,8 @@ public class BBService extends Service {
 
         if (kEmulatingClassic || boardType.contains("Classic")) {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
+        } else if (boardId.contains("Mast")) {
+            mBurnerBoard = new BurnerBoardMast(this, mContext);
         } else {
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         }
@@ -443,11 +483,10 @@ public class BBService extends Service {
         }
 
 
-
         //return (mContext.getExternalFilesDir(
-                //Environment.DIRECTORY_MUSIC).toString() + "/test.mp3");
+        //Environment.DIRECTORY_MUSIC).toString() + "/test.mp3");
 
-                // RMC get rid of this
+        // RMC get rid of this
         //String radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString() + "/test.mp3";
         //return radioFile;
 
@@ -474,12 +513,12 @@ public class BBService extends Service {
     }
 
     public int getCurrentBoardVol() {
-        return((int)(vol * (float)127.0));
+        return ((int) (vol * (float) 127.0));
     }
 
     public void setBoardVolume(int v) {
         l("Volume: " + vol + " -> " + v);
-        vol = (float)v / (float)127;
+        vol = (float) v / (float) 127;
         mediaPlayer.setVolume(vol, vol);
     }
 
@@ -487,7 +526,7 @@ public class BBService extends Service {
     long lastSeekTimestamp = 0;
 
     long GetCurrentStreamLengthInSeconds() {
-        return dlManager.GetAudioLength(currentRadioStream-1);
+        return dlManager.GetAudioLength(currentRadioStream - 1);
     }
 
     // Main thread to drive the music player
@@ -520,7 +559,7 @@ public class BBService extends Service {
 
         InitClock();
 
-        WifiManager mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         // RMC putback
 
@@ -554,7 +593,7 @@ public class BBService extends Service {
 
             switch (musicState) {
                 case 0:
-                    if (dlManager.GetTotalAudio()!=0) {
+                    if (dlManager.GetTotalAudio() != 0) {
                         musicState = 1;
                         l("Downloadd: Starting Radio Mode");
                         RadioMode();
@@ -596,65 +635,65 @@ public class BBService extends Service {
     }
 
     public void SeekAndPlay() {
-            if (mediaPlayer != null && dlManager.GetTotalAudio()!=0) {
-                synchronized (mediaPlayer) {
-                    long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
+        if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
+            synchronized (mediaPlayer) {
+                long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
-                    long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
+                long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
-                    long seekOff = ms % lenInMS;
-                    long curPos = mediaPlayer.getCurrentPosition();
-                    long seekErr = curPos - seekOff;
+                long seekOff = ms % lenInMS;
+                long curPos = mediaPlayer.getCurrentPosition();
+                long seekErr = curPos - seekOff;
 
 
-                    if (curPos == 0 || seekErr != 0) {
-                        if (curPos == 0 || Math.abs(seekErr) > 10) {
-                            l("SeekAndPlay: qqexplicit seek");
+                if (curPos == 0 || seekErr != 0) {
+                    if (curPos == 0 || Math.abs(seekErr) > 10) {
+                        l("SeekAndPlay: qqexplicit seek");
+                        //mediaPlayer.pause();
+                        // hack: I notice i taked 79ms on dragonboard to seekTo
+                        mediaPlayer.seekTo((int) seekOff + 79);
+                        mediaPlayer.start();
+                    } else {
+                        //PlaybackParams params = mediaPlayer.getPlaybackParams();
+                        PlaybackParams params = new PlaybackParams();
+                        Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
+                        //l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
+                        params.setSpeed(speed);
+                        try {
+                            //l("SeekAndPlay: pause()");
                             //mediaPlayer.pause();
-                            // hack: I notice i taked 79ms on dragonboard to seekTo
-                            mediaPlayer.seekTo((int) seekOff + 79);
-                            mediaPlayer.start();
-                        } else {
-                            //PlaybackParams params = mediaPlayer.getPlaybackParams();
-                            PlaybackParams params = new PlaybackParams();
-                            Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
-                            l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
-                            params.setSpeed(speed);
-                            try {
-                                //l("SeekAndPlay: pause()");
-                                //mediaPlayer.pause();
-                                //l("SeekAndPlay: setPlaybackParams()");
-                                mediaPlayer.getPlaybackParams().setSpeed(speed);
-                                        //setPlaybackParams(params);
-                                //l("SeekAndPlay: setPlaybackParams() Sucesss!!");
-                            } catch (Throwable err) {
-                                //l("SeekAndPlay setPlaybackParams: " + err.getMessage());
-                                err.printStackTrace();
-                            }
-                            //l("SeekAndPlay: start()");
-                            mediaPlayer.start();
+                            //l("SeekAndPlay: setPlaybackParams()");
+                            mediaPlayer.getPlaybackParams().setSpeed(speed);
+                            //setPlaybackParams(params);
+                            //l("SeekAndPlay: setPlaybackParams() Sucesss!!");
+                        } catch (Throwable err) {
+                            //l("SeekAndPlay setPlaybackParams: " + err.getMessage());
+                            err.printStackTrace();
                         }
+                        //l("SeekAndPlay: start()");
+                        mediaPlayer.start();
                     }
-
-                    String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
-                            " User " + userTimeOffset + "\nSeekOff " + seekOff +
-                            " RTT " + serverRTT + " Strm" + currentRadioStream;
-                    if (udpClientServer.tSentPackets != 0)
-                        msg += "\nSent " + udpClientServer.tSentPackets;
-                    l(msg);
-
-                    Intent in = new Intent(ACTION_STATS);
-                    in.putExtra("resultCode", Activity.RESULT_OK);
-                    in.putExtra("msgType", 1);
-                    // Put extras into the intent as usual
-                    in.putExtra("seekErr", seekErr);
-                    in.putExtra("currentRadioStream", currentRadioStream);
-                    in.putExtra("userTimeOffset", userTimeOffset);
-                    in.putExtra("serverTimeOffset", serverTimeOffset);
-                    in.putExtra("serverRTT", serverRTT);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(in);
                 }
+
+                String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
+                        " User " + userTimeOffset + "\nSeekOff " + seekOff +
+                        " RTT " + serverRTT + " Strm" + currentRadioStream;
+                if (udpClientServer.tSentPackets != 0)
+                    msg += "\nSent " + udpClientServer.tSentPackets;
+                //l(msg);
+
+                Intent in = new Intent(ACTION_STATS);
+                in.putExtra("resultCode", Activity.RESULT_OK);
+                in.putExtra("msgType", 1);
+                // Put extras into the intent as usual
+                in.putExtra("seekErr", seekErr);
+                in.putExtra("currentRadioStream", currentRadioStream);
+                in.putExtra("userTimeOffset", userTimeOffset);
+                in.putExtra("serverTimeOffset", serverTimeOffset);
+                in.putExtra("serverRTT", serverRTT);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(in);
             }
+        }
 
     }
 
@@ -697,7 +736,7 @@ public class BBService extends Service {
             voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             bluetoothModeDisable();
             try {
-                if (mediaPlayer != null  && dlManager.GetTotalAudio()!=0) {
+                if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
                     synchronized (mediaPlayer) {
                         lastSeekOffset = 0;
                         FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index));
@@ -729,7 +768,7 @@ public class BBService extends Service {
     private AudioRecord mAudioInStream;
     private AudioTrack mAudioOutStream;
     private AudioManager mAudioManager;
-    private byte [] mAudioBuffer;
+    private byte[] mAudioBuffer;
 
     public void bluetoothModeInit() {
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
@@ -739,7 +778,7 @@ public class BBService extends Service {
         }
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
         int buffersize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-        mAudioInStream = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat. CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize);
+        mAudioInStream = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize);
         mAudioOutStream = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize, AudioTrack.MODE_STREAM);
         mAudioBuffer = new byte[buffersize];
         try {
@@ -763,8 +802,7 @@ public class BBService extends Service {
         try {
             mAudioInStream.stop();
             mAudioOutStream.stop();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -796,6 +834,7 @@ public class BBService extends Service {
     }
 
     float recallVol = 0;
+
     public void onVolPause() {
         if (vol > 0) {
             recallVol = vol;
@@ -860,19 +899,19 @@ public class BBService extends Service {
         //boolean cansetMode = mBurnerBoard.setMode(50);
         //boolean cansetMode = mBurnerBoard.setMode(mode);
         //if (cansetMode == false) {
-            // Likely not connected to physical burner board, fallback
-            if (mode == 99) {
-                mBoardMode++;
-            } else if (mode == 98) {
-                mBoardMode--;
-            } else {
-                mBoardMode = mode;
-            }
+        // Likely not connected to physical burner board, fallback
+        if (mode == 99) {
+            mBoardMode++;
+        } else if (mode == 98) {
+            mBoardMode--;
+        } else {
+            mBoardMode = mode;
+        }
         //}
         int maxModes = GetMaxLightModes();
         if (mBoardMode > maxModes)
             mBoardMode = 1;
-        else if (mBoardMode<1)
+        else if (mBoardMode < 1)
             mBoardMode = maxModes;
 
         if (mBoardVisualization != null) {
@@ -915,46 +954,52 @@ public class BBService extends Service {
 
                 l("Board Current is " + current);
 
+
+                if (mWiFiManager.isWifiEnabled() == false) {
+                    mWiFiManager.setWifiEnabled(true);
+                }
+
                 if (mBurnerBoard != null) {
                     l("Sending MQTT update");
                     iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
                 }
 
-/*
-
-                if (false && current > 100) {
+                /*
+                if ((current > -500) && (current < 100)) {
                     mBoardVisualization.inhibit(true);
                 } else {
                     mBoardVisualization.inhibit(false);
+                }*/
 
-                    if (level < 0) {
-                        if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
-                            lastUnknownStatement = System.currentTimeMillis();
-                            voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
-                        }
-                    }
-                    if (level < 15) {
-                        voice.speak("Battery empty. Level is " +
-                                level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
-                    } else if (level <= 25) {
-                        if (System.currentTimeMillis() - lastLowStatement > 300000) {
-                            lastLowStatement = System.currentTimeMillis();
-                            announce = true;
-                        }
 
-                    } else if (false) {
-                        if (System.currentTimeMillis() - lastOkStatement > 1800000) {
-                            lastOkStatement = System.currentTimeMillis();
-                            announce = true;
-                        }
-                    }
-                    if (announce) {
-                        voice.speak("Battery Level is " +
-                                level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
+                if (level < 0) {
+                    if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
+                        lastUnknownStatement = System.currentTimeMillis();
+                        voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
                     }
                 }
-                */
+                if (level < 15) {
+                    voice.speak("Battery empty. Level is " +
+                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
+                } else if (level <= 25) {
+                    if (System.currentTimeMillis() - lastLowStatement > 300000) {
+                        lastLowStatement = System.currentTimeMillis();
+                        announce = true;
+                    }
+
+                } else if (false) {
+                    if (System.currentTimeMillis() - lastOkStatement > 1800000) {
+                        lastOkStatement = System.currentTimeMillis();
+                        announce = true;
+                    }
+                }
+                if (announce) {
+                    voice.speak("Battery Level is " +
+                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
+                }
             }
+
+
             try {
                 Thread.sleep(15000);
             } catch (Throwable e) {
@@ -992,6 +1037,94 @@ public class BBService extends Service {
         }
     };
 
+    private class locationTracker {
 
+        LocationManager locationManager;
+
+        public locationTracker(Context context) {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+            try {
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 10, new locationListener(), context.getMainLooper());
+                //GpsStatus status = LocationManager.getGpsStatus(null);
+                //int mSatellites = 0;
+                //Iterable<GpsSatellite> list = status.getSatellites();
+                //for (GpsSatellite satellite : list) {
+                //    l("GPS " + satellite.toString());
+                //}
+            } catch (SecurityException e) {
+                l("no GPS permission");
+            }
+        }
+    }
+
+
+    /**
+     * Listens to GPS status changes
+
+    private Listener mStatusListener = new GpsStatus.Listener()
+    {
+        public synchronized void onGpsStatusChanged(int event)
+        {
+            switch (event)
+            {
+                case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+                    if (mStatusMonitor)
+                    {
+                        GpsStatus status = mLocationManager.getGpsStatus(null);
+                        mSatellites = 0;
+                        Iterable<GpsSatellite> list = status.getSatellites();
+                        for (GpsSatellite satellite : list)
+                        {
+                            if (satellite.usedInFix())
+                            {
+                                mSatellites++;
+                            }
+                        }
+                        updateNotification();
+                    }
+                    break;
+                case GpsStatus.GPS_EVENT_STOPPED:
+                    break;
+                case GpsStatus.GPS_EVENT_STARTED:
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+     */
+
+    private class locationListener implements LocationListener {
+
+        @Override
+        public void onLocationChanged(Location location) {
+
+            mGPSlat = location.getLatitude();
+            mGPSlong = location.getLongitude();
+            String str = "GPS Latitude: " + mGPSlat + " Longitude:  " + mGPSlong;
+            l(str);
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            // TODO Auto-generated method stub
+            l("GPS Status Changed");
+
+        }
+    }
 
 }
+
+
+

@@ -96,6 +96,7 @@ public class UDPClientServer {
         Thread t = new Thread(new Runnable() {
             public void run()
             {
+                Thread.currentThread().setName("BB UDP Client/Server");
                 Start();
             }
         });
@@ -181,9 +182,9 @@ public class UDPClientServer {
                     socket.send(sendPacket);
                     tSentPackets++;
 
-                    l("UDP packet received from " + dp.getAddress().toString() + " drift=" + (clientTimestamp - curTimeStamp));
+                    //l("UDP packet received from " + dp.getAddress().toString() + " drift=" + (clientTimestamp - curTimeStamp));
                 } else {
-                    l("*malformed* UDP packet received from " + dp.getAddress().toString());
+                    //l("*malformed* UDP packet received from " + dp.getAddress().toString());
                 }
 
             } catch (SocketException e) {
@@ -290,7 +291,7 @@ public class UDPClientServer {
             if (amServer() == false) {
                 try {
 
-                    l("Client loop");
+                    //l("Client loop");
 
                     InetAddress addr = GetServerAddress();
                     if (addr != null) {
@@ -304,15 +305,15 @@ public class UDPClientServer {
                         longToBytes(mMain.GetCurrentClock(), d, 4);
                         DatagramPacket dp = new DatagramPacket(d, d.length, addr, UDP_SERVER_PORT);
 
-                        l("UDP send ");
+                        //l("UDP send ");
                         socket.send(dp);
-                        l("Sent from " + getIPAddress(true) + " to " + addr);
-                            l("UDP receive ");
+                        //l("Sent from " + getIPAddress(true) + " to " + addr);
+                            //l("UDP receive ");
                             socket.receive(recvPacket);
-                            l("UDP receive done ");
+                            //l("UDP receive done ");
 
                             if (recvPacket.getLength() >= 21) {
-                                l("UDP packet received from " + recvPacket.getAddress().toString());
+                                //l("UDP packet received from " + recvPacket.getAddress().toString());
                                 byte[] b = recvPacket.getData();
                                 if (b[0] == 'B' && b[1] == 'B' && b[2] == 'S' && b[3] == 'V') {
                                     long myTimeStamp = bytesToLong(b, 4);
@@ -346,7 +347,7 @@ public class UDPClientServer {
                                         } else
                                             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
-                                        l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+                                        //l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
                                         AddSample(adjDrift, roundTripTime);
 
@@ -371,7 +372,7 @@ public class UDPClientServer {
                                             editor.commit();
                                         }
 
-                                        l("Drift=" + s.drift + " RTT=" + s.roundTripTime);
+                                        //l("Drift=" + s.drift + " RTT=" + s.roundTripTime);
 
 
                                         mMain.SetServerClockOffset(s.drift, s.roundTripTime);
@@ -383,7 +384,7 @@ public class UDPClientServer {
                     }
 
                 } catch(Throwable e) {
-                    l("Client UDP failed");
+                    //l("Client UDP failed");
                 }
             } else{
                 //if (!MyWifiDirect.isP2PIpAddressAvailable()) {
