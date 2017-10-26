@@ -372,7 +372,6 @@ public class BBDownloadManager {
                                     long sz = elm.getLong("Size");
 
                                     if (dstFile.exists()) {
-                                        long curSze = dstFile.length();
                                         if (dstFile.length() == sz) {
                                             upTodate = true;
                                         }
@@ -380,7 +379,6 @@ public class BBDownloadManager {
                                 } else {
                                     if (dstFile.exists()) {
                                         long remoteSz = GetURLFileSize(url);
-                                        long curSze = dstFile.length();
 
                                         if (dstFile.length() == remoteSz) {
                                             upTodate = true;

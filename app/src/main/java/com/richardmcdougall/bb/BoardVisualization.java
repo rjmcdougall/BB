@@ -223,7 +223,7 @@ public class BoardVisualization {
 
                 case 8:
                     frameRate = 12;
-                    modeMatrix(kMatrixEsperanto);
+                    modeMatrix(kMatrix9);
                     break;
 
                 case 9:
@@ -460,7 +460,7 @@ public class BoardVisualization {
         } else {
             pixelSkip = 1;
         }
-
+        pixelSkip = 1;
 
         y = mBoardHeight - 1;
         sideLight = mBoardSideLights - 1;
@@ -469,22 +469,26 @@ public class BoardVisualization {
         for (x = 0; x < mBoardWidth / pixelSkip; x++) {
             //Chance of 1/3rd
             switch (mode) {
-                case kMatrixEsperanto:
                 case kMatrixBurnerColor:
 
-                    if (mRandom.nextInt(2) == 0) {
+                    if (mRandom.nextInt(3) != 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
                     } else {
                         color = wheel(wheel_color);
                         wheelInc(1);
                     }
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                    mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
-                    mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
-                    mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
 
+                case kMatrixEsperanto:
+
+
+
                 case kMatrix9:
+                    /*
                     if (mRandom.nextInt(2) == 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
                         if (x > 0) {
@@ -521,15 +525,16 @@ public class BoardVisualization {
                             mBurnerBoard.setPixel(pixelSkip * x, y, color);
                         }
                     }
+                    */
                     break;
 
                 case kMatrixLunarian:
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                    mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
-                    mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
-                    mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
                 case kMatrixFire:
                     color = mRandom.nextInt(2) == 0 ?
@@ -544,9 +549,9 @@ public class BoardVisualization {
                     color = mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : googleColors[googleColor / 8];
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                    mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
-                    mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
-                    mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
                 case kMatrixIrukandji:
                     color = wheel(wheel_color);
@@ -1358,6 +1363,7 @@ public class BoardVisualization {
     private static final int kModeFireNormal = 1;
     private static final int kModeFireDistrikt = 2;
     private static final int kModeFireTheMan = 3;
+    int fireCnt = 0;
 
     public void modeFire(int mode) {
         int j = mBoardWidth * 2 * (mFireHeight + 1);
@@ -1461,7 +1467,10 @@ public class BoardVisualization {
 
         }
         mBurnerBoard.setOtherlightsAutomatically();
-        mBurnerBoard.flush();
+        fireCnt++;
+        if (fireCnt % 3 == 0) {
+            mBurnerBoard.flush();
+        }
     }
 
     void drawTheMan(int color) {

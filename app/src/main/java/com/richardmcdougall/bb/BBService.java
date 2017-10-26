@@ -498,7 +498,6 @@ public class BBService extends Service {
             return radioFile;
         } */
 
-
         return mContext.getExternalFilesDir(
                 Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + (idx - 1) + ".mp3";
 
@@ -550,12 +549,10 @@ public class BBService extends Service {
             userTimeOffset = -4;
         }
 
-
         InitClock();
 
         udpClientServer = new UDPClientServer(this);
         udpClientServer.Run();
-
 
         InitClock();
 
@@ -582,6 +579,11 @@ public class BBService extends Service {
 
         dlManager.StartDownloads();
 
+        try {
+            Thread.sleep(5000);
+        } catch (Exception e) {
+
+        }
 
         // MediaSession ms = new MediaSession(mContext);
 
@@ -595,7 +597,7 @@ public class BBService extends Service {
                 case 0:
                     if (dlManager.GetTotalAudio() != 0) {
                         musicState = 1;
-                        l("Downloadd: Starting Radio Mode");
+                        l("Downloaded: Starting Radio Mode");
                         RadioMode();
                     } else {
                         l("Waiting for download");
@@ -714,7 +716,7 @@ public class BBService extends Service {
     }
 
 
-    // Set radio input mode
+    // Set radio input mode 0 = bluetooth, 1-n = tracks
     void SetRadioStream(int index) {
         l("SetRadioStream: " + index);
         currentRadioStream = index;
@@ -739,16 +741,18 @@ public class BBService extends Service {
                 if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
                     synchronized (mediaPlayer) {
                         lastSeekOffset = 0;
-                        FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index));
-                        l("playing file " + GetRadioStreamFile(index));
+                        FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index - 1));
+                        l("playing file " + dlManager.GetAudioFile(index - 1));
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(fds.getFD());
-                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                         fds.close();
 
                         mediaPlayer.setLooping(true);
                         mediaPlayer.setVolume(vol, vol);
                         mediaPlayer.prepare();
+                        SeekAndPlay();
+                        SeekAndPlay();
+                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     }
                 }
                 SeekAndPlay();
@@ -943,6 +947,9 @@ public class BBService extends Service {
     private long lastLowStatement = System.currentTimeMillis();
     private long lastUnknownStatement = System.currentTimeMillis();
 
+
+    private int loopCnt = 0;
+
     private void batteryThread() {
 
         boolean announce = false;
@@ -979,8 +986,10 @@ public class BBService extends Service {
                     }
                 }
                 if (level < 15) {
-                    voice.speak("Battery empty. Level is " +
-                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryEmpty");
+                    if (System.currentTimeMillis() - lastOkStatement > 60000) {
+                        lastOkStatement = System.currentTimeMillis();
+                        announce = true;
+                    }
                 } else if (level <= 25) {
                     if (System.currentTimeMillis() - lastLowStatement > 300000) {
                         lastLowStatement = System.currentTimeMillis();
@@ -1004,6 +1013,7 @@ public class BBService extends Service {
                 Thread.sleep(15000);
             } catch (Throwable e) {
             }
+            loopCnt++;
         }
     }
 
