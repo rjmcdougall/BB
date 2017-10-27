@@ -2,8 +2,9 @@
 
 #include <OctoWS2811.h>
 #include <CmdMessenger.h>
+#include <i2c_t3.h>
 
-boolean do_lowbattery_actions = true;
+boolean do_lowbattery_actions = false;
 
 //#define DEBUG_PIXELS 1
 
@@ -31,11 +32,18 @@ char escape_separator  = '\\';
 
 boolean batteryCritical = false;
 boolean batteryLow = false;
-int  batteryLevel = -1;
-int batteryCapacityRemaining = -1;
-int batteryCapacityMax = -1;
-int batteryVoltage = -1;
-int batteryCurrent = -1;
+
+uint32_t batteryControl = -1;        
+int  batteryStateOfCharge = -1;     // %
+int  batteryMaxError = -1;          // %
+int batteryRemainingCapacity = -1;  // mAh
+int batteryFullChargeCapacity = -1; // mAh
+int batteryVoltage = -1;            // mV
+int batteryAverageCurrent = -1;     // mA
+int batteryTemperature = -1;        // 0.1K
+int batteryFlags = -1;          
+int batteryCurrent = -1;            // mA
+int batteryFlagsB = -1;
 
 // Attach a new CmdMessenger object to the default SerialUSB port
 CmdMessenger cmdMessenger = CmdMessenger(Serial, field_separator, command_separator, escape_separator);
@@ -130,7 +138,7 @@ int showingBattery = 0;
 
 void OnUpdate() {
 
-  if (0 && batteryCritical) {
+  if (do_lowbattery_actions && batteryCritical) {
     fillScreen(rgbTo24BitColor(40,0,0));
     drawBattery();
     drawBatteryTop();
@@ -142,7 +150,7 @@ void OnUpdate() {
   }
   
   // skip if charging
-  if (0 && batteryCurrent < 32000) {
+  if (0 && batteryAverageCurrent < 32000) {
     return;
   }
   
@@ -177,12 +185,21 @@ void OnShowBattery() {
 
 void OnGetBatteryLevel() {
   cmdMessenger.sendCmdStart(BBGetBatteryLevel);
-  cmdMessenger.sendCmdArg(batteryLevel);
-  cmdMessenger.sendCmdArg(batteryCapacityRemaining);
-  cmdMessenger.sendCmdArg(batteryCapacityMax);
+  cmdMessenger.sendCmdArg(batteryControl);
+  cmdMessenger.sendCmdArg(batteryStateOfCharge);
+  cmdMessenger.sendCmdArg(batteryMaxError);
+  cmdMessenger.sendCmdArg(batteryRemainingCapacity);
+  cmdMessenger.sendCmdArg(batteryFullChargeCapacity);
   cmdMessenger.sendCmdArg(batteryVoltage);
+  cmdMessenger.sendCmdArg(batteryAverageCurrent);
+  cmdMessenger.sendCmdArg(batteryTemperature);
+  cmdMessenger.sendCmdArg(batteryFlags);
+  cmdMessenger.sendCmdArg(batteryCurrent);
+  cmdMessenger.sendCmdArg(batteryFlagsB);
   cmdMessenger.sendCmdEnd();
 }
+
+
 
 
 // row is sized larger because some chars might be escaped
@@ -309,57 +326,50 @@ void fillScreen(uint32_t color) {
 void batteryStats() {
   char batt[16];
   
-  clearScreen();
-  drawBattery();
-  leds.show();
-  delay(5000);
+  //clearScreen();a
+  //drawBattery();
+  //leds.show();
+  //delay(5000);
 
-  clearScreen();
+  //clearScreen();
   sprintf(batt, "%d v", batteryVoltage);
   //leds.print(batt, 12, 1, 1);
   //leds.show();
-  delay(5000);
+  Serial.println(batt);
+  //delay(5000);
 
-  clearScreen();
-  sprintf(batt, "%d C", batteryCapacityRemaining);
+  //clearScreen();
+  sprintf(batt, "%d C", batteryRemainingCapacity);
   //leds.print(batt, 12, 1, 1);
   //leds.show();
-  delay(5000);
+  Serial.println(batt);
+  //delay(5000);
 
-  clearScreen();
-  sprintf(batt, "%d F", batteryCapacityMax);
+  //clearScreen();
+  sprintf(batt, "%d F", batteryFullChargeCapacity);
   //leds.print(batt, 12, 1, 1);
   //leds.show();
-  delay(5000);
+  Serial.println(batt);
+  //delay(5000);
 
-  clearScreen();
-  sprintf(batt, "%d A", batteryCurrent);
+  //clearScreen();
+  sprintf(batt, "%d A", batteryAverageCurrent);
   //leds.print(batt, 12, 1, 1);
-  leds.show();
-  delay(5000);
+  //leds.show();
+  Serial.println(batt);
+  //delay(5000);
   
 }
 
-#include <Wire.h>  // Wire library for communicating over I2C
+//#include <Wire.h>  // Wire library for communicating over I2C
 #define BQ34Z100 0x55
-
-unsigned int nonBlockingRead() {
-  for (int i = 0; (i < 3) &&  (!Wire.available()); i++) {
-    delay(1);
-  }
-  if (Wire.available()) {
-    return(Wire.read());
-  } else {
-    return (-1);
-  }
-}
 
 int getBattery8(int reg) {
   Wire.beginTransmission(BQ34Z100);
   Wire.write(reg);
   Wire.endTransmission();
   Wire.requestFrom(BQ34Z100,1);
-  return (nonBlockingRead());
+  return (Wire.read());
 }
 
 int getBattery16(int register1, int register2) {
@@ -379,29 +389,58 @@ int getBattery16(int register1, int register2) {
   return(-1);
 }
 
+/* 
+uint32_t batteryControl = -1;        
+int  batteryStateOfCharge = -1;     // %
+int  batteryMaxError = -1;          // %
+int batteryRemainingCapacity = -1;  // mAh
+int batteryFullChargeCapacity = -1; // mAh
+int batteryVoltage = -1;            // mV
+int batteryAverageCurrent = -1;     // mA
+int batteryTemperature = -1;        // 0.1K
+int batteryFlags = -1;          
+int batteryCurrent = -1;            // mA
+int batteryFlagsB = -1;
+ */
 int getBatteryAll() {
 
   int value;
 
+  // batteryControl
+  getBattery16(0x00, 0x01);
+  value = getBattery16(0x00, 0x00);
+  if (value >= 0) {
+    batteryControl = value;
+  }
+  
   // Capacity in %age
   value = getBattery8(0x02);
   if (value > 100) {
     value = 100;
   }
   if (value >= 0) {
-    batteryLevel = value;
+    batteryStateOfCharge = value;
+  }
+
+  // Max Error %age
+  value = getBattery8(0x03);
+  if (value > 100) {
+    value = 100;
+  }
+  if (value >= 0) {
+    batteryMaxError = value;
   }
 
   // Capacity in mAH
   value = getBattery16(0x04, 0x05);
   if (value != -1) {
-    batteryCapacityRemaining = value;
+    batteryRemainingCapacity = value;
   }
   
   // Learned Capacity 
   value = getBattery16(0x06, 0x07);
   if (value != -1) {
-    batteryCapacityMax = value;
+    batteryFullChargeCapacity = value;
   }
 
   // Voltage
@@ -410,13 +449,37 @@ int getBatteryAll() {
     batteryVoltage = value;
   }
 
-  // Current
+  // Avg Current
   value = getBattery16(0xa, 0xb);
+  if (value != -1) {
+    batteryAverageCurrent = value;
+  }
+
+  // Temp
+  value = getBattery16(0xc, 0xd);
+  if (value != -1) {
+    batteryTemperature = value;
+  }
+
+  // batteryFlags
+  value = getBattery16(0xe, 0xf);
+  if (value != -1) {
+    batteryFlags = value;
+  }
+
+  // Instant Current
+  value = getBattery16(0x10, 0x11);
   if (value != -1) {
     batteryCurrent = value;
   }
-  
-  return(batteryLevel);
+
+  // batteryFlagsB
+  value = getBattery16(0x12, 0x13);
+  if (value != -1) {
+    batteryFlagsB = value;
+  }
+
+  return(batteryStateOfCharge);
 }
 
 int getBatteryLevel() {
@@ -430,10 +493,10 @@ int getBatteryLevel() {
     value = 100;
   }
   if (value >= 0) {
-    batteryLevel = value;
+    batteryStateOfCharge = value;
   }
   
-  return(batteryLevel);
+  return(batteryStateOfCharge);
 }
 
 
@@ -603,7 +666,15 @@ void setup() {
   cmdMessenger.sendCmd(BBacknowledge,"BB Ready\n");
   ShowCommands();
 
+  // Setup I2C for battery monitor
+  /*
+  // Default Wire library
+  Wire.setClock(10000);
   Wire.begin();
+  */
+  // Setup for Master mode, pins 18/19, internal pullups, 100kHz, 200ms default timeout
+  Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 100000);
+  Wire.setDefaultTimeout(200000); // 200ms
 
   leds.begin();
 
@@ -626,7 +697,7 @@ void loop() {
 
   int i;
   unsigned long ts;
-  int batteryLevel = -1;
+  int batteryStateOfCharge = -1;
   
   // Process incoming serial data, and perform callbacks
   ts = micros();
@@ -634,16 +705,18 @@ void loop() {
   // Every 10 seconds check batter level from battery computer
   if ((ts - lastBatteryCheck) > 10000000) {
     lastBatteryCheck = ts;
-    batteryLevel = getBatteryLevel();
-    if (batteryLevel >= 0) {
+    batteryStateOfCharge = getBatteryAll();
+    if (batteryStateOfCharge >= 0) {
       // valid reading
-      if (batteryLevel <= 25) {
+      if (batteryStateOfCharge <= 25) {
         batteryLow = true;
       } else {
         batteryLow = false;
       }
-      if (do_lowbattery_actions && batteryLevel <= 15) {
-        limitBoardSpeed(false); //disable
+      if (batteryStateOfCharge <= 15) {
+        if (do_lowbattery_actions) {
+          limitBoardSpeed(true);
+        }
         batteryCritical = true;
       } else {
         limitBoardSpeed(false);
@@ -662,7 +735,7 @@ void loop() {
   } else {
 
     // display battery if charging, currrent > 1000mah (10 divider)
-    if (0 && batteryCurrent < 32000) {
+    if (0 && batteryAverageCurrent < 32000) {
       clearScreen();
       drawBattery();
       leds.show();
@@ -675,7 +748,7 @@ void loop() {
     // Pulse the screen until connected to android
     if (inited == false) {
       fillScreen(rgbTo24BitColor(c,c + 10,40));
-      batteryLevel = getBatteryLevel();
+      batteryStateOfCharge = getBatteryLevel();
       drawBattery();
       c++;
       if (c > 25)
