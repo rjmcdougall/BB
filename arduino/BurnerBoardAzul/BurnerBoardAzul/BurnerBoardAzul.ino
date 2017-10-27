@@ -3,7 +3,7 @@
 #include <OctoWS2811.h>
 #include <CmdMessenger.h>
 
-boolean do_lowbattery_actions = false;
+boolean do_lowbattery_actions = true;
 
 //#define DEBUG_PIXELS 1
 
@@ -130,7 +130,7 @@ int showingBattery = 0;
 
 void OnUpdate() {
 
-  if (batteryCritical) {
+  if (0 && batteryCritical) {
     fillScreen(rgbTo24BitColor(40,0,0));
     drawBattery();
     drawBatteryTop();
@@ -643,7 +643,7 @@ void loop() {
         batteryLow = false;
       }
       if (do_lowbattery_actions && batteryLevel <= 15) {
-        limitBoardSpeed(true);
+        limitBoardSpeed(false); //disable
         batteryCritical = true;
       } else {
         limitBoardSpeed(false);

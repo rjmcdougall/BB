@@ -234,8 +234,7 @@ public class BBService extends Service {
         // Register to receive button messages
         IntentFilter filter = new IntentFilter(BBService.ACTION_BUTTONS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(btReceive, filter);
+        mContext.registerReceiver(btReceive, filter);
 
 
         if (musicPlayer == null) {

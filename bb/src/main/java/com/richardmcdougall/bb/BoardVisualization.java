@@ -201,18 +201,18 @@ public class BoardVisualization {
                     break;
 
                 case 4:
-                    frameRate = 12;
+                    frameRate = 36;
                     modeFire(kModeFireNormal);
                     break;
 
 
                 case 5:
-                    frameRate = 12;
+                    frameRate = 36;
                     modeFire(kModeFireDistrikt);
                     break;
 
                 case 6:
-                    frameRate = 12;
+                    frameRate = 36;
                     modeFire(kModeFireTheMan);
                     break;
 
