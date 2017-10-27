@@ -51,6 +51,7 @@ import android.widget.Toast;
 
 import static android.R.attr.versionCode;
 import static android.R.id.list;
+import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 import static android.location.Criteria.NO_REQUIREMENT;
 
 public class BBService extends Service {
@@ -179,6 +180,10 @@ public class BBService extends Service {
 
         //mGPS = new locationTracker(mContext);
 
+        try {
+            Thread.sleep(500);
+        } catch (Exception e) {
+        }
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -234,8 +239,9 @@ public class BBService extends Service {
         // Register to receive button messages
         IntentFilter filter = new IntentFilter(BBService.ACTION_BUTTONS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
-        mContext.registerReceiver(btReceive, filter);
 
+        // Register to know when bluetooth remote connects
+        mContext.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
         if (musicPlayer == null) {
             l("starting music player thread");
@@ -1032,8 +1038,8 @@ public class BBService extends Service {
             String action = intent.getAction();
             //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
+            if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                //voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
                 //the device is found
                 try {
                     Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

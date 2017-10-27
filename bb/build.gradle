@@ -15,8 +15,8 @@ android {
         applicationId "com.richardmcdougall.bb"
         minSdkVersion 23
         targetSdkVersion 23
-        versionCode 12
-        versionName "12.0"
+        versionCode 13
+        versionName "13.0"
         signingConfig signingConfigs.burnerboard
     }
     buildTypes {
