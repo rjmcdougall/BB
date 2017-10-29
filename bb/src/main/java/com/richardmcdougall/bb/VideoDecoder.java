@@ -62,7 +62,7 @@ package com.richardmcdougall.bb;
  * currently part of CTS.)
  */
 public class VideoDecoder extends AndroidTestCase {
-    private static final String TAG = "ExtractMpegFramesTest";
+    private static final String TAG = "BB.VideoDecoder";
     private static final boolean VERBOSE = false;           // lots of logging
 
     // where to find files (note: requires WRITE_EXTERNAL_STORAGE permission)
@@ -85,6 +85,7 @@ public class VideoDecoder extends AndroidTestCase {
     public Boolean IsRunning() {
         Thread dt = decodeThread;
         if (dt!=null && !dt.isAlive()) {
+            //Log.d(TAG, "IsRunning() found decode thread dead");
             stopRequested = true;
             state = StateType.STOPPED;
             return false;
@@ -94,6 +95,7 @@ public class VideoDecoder extends AndroidTestCase {
 
     /** test entry point */
     public void Start(String fname, int xRes, int yRes) throws Throwable {
+        //Log.d(TAG, "starting decodeThread");
         Stop();
         stopRequested = false;
         sourceFilename = fname;
@@ -101,9 +103,12 @@ public class VideoDecoder extends AndroidTestCase {
         outHeight = yRes;
         state = StateType.DECODING;
         wrapper = ExtractMpegFramesWrapper.Start(this);
+        //Log.d(TAG, "starteddecodeThread");
+
     }
 
     public void Stop() {
+        //Log.d(TAG, "stopping decodeThread");
         Thread waitThread = decodeThread;
         if (waitThread!=null) {
             stopRequested = true;
@@ -115,6 +120,7 @@ public class VideoDecoder extends AndroidTestCase {
                 }
             }
         }
+        //Log.d(TAG, "stopped decodeThread");
     }
 
 
@@ -145,8 +151,12 @@ public class VideoDecoder extends AndroidTestCase {
             try {
                 mTest.extractMpegFrames();
             } catch (Throwable th) {
+                Log.d(TAG, "extractMpegFrames failed");
                 mThrowable = th;
+                Log.d(TAG, "extractMpegFrames thread failed" + mThrowable.getMessage() + mThrowable.fillInStackTrace());
             }
+            //Log.d(TAG, "extractMpegFrames thread exiting");
+
         }
 
         /** Entry point. */
@@ -216,8 +226,10 @@ public class VideoDecoder extends AndroidTestCase {
                 decoder.start();
 
                 doExtract(extractor, trackIndex, decoder, outputSurface, onFrameReady, this);
+
             } finally {
                 // release everything we grabbed
+                //Log.d(TAG, "Exiting extractMpegFrames");
                 if (outputSurface != null) {
                     outputSurface.release();
                     outputSurface = null;
@@ -377,7 +389,6 @@ public class VideoDecoder extends AndroidTestCase {
                         }
                         lastFrameTime = curFrameTime;
 
-
 /*                        if (decodeCount < MAX_FRAMES) {
                             File outputFile = new File("/not/",
                                     String.format("frame-%02d.png", decodeCount));
@@ -385,7 +396,7 @@ public class VideoDecoder extends AndroidTestCase {
                             outputSurface.saveFrame(outputFile.toString());
                             frameSaveTime += System.nanoTime() - startWhen;
                         } */
-//                        Log.e(TAG, "Decoding frame " + decodeCount);
+                        //Log.e(TAG, "Decoding frame " + decodeCount);
                         decodeCount++;
                     }
                 }
@@ -393,8 +404,7 @@ public class VideoDecoder extends AndroidTestCase {
         }
 
         int numSaved = (MAX_FRAMES < decodeCount) ? MAX_FRAMES : decodeCount;
-        Log.d(TAG, "Saving " + numSaved + " frames took " +
-                (frameSaveTime / numSaved / 1000) + " us per frame");
+        //Log.d(TAG, "Saving " + numSaved);
     }
 
 

@@ -905,6 +905,7 @@ public class BoardVisualization {
         return;
     }
 
+    int frameCnt = 0;
     public SimpleImage currentVideoFrame = null;
     void modeVideo(int videoNumber) {
 
@@ -919,21 +920,22 @@ public class BoardVisualization {
 
         if (!mVideoDecoder.IsRunning()) {
 
-            if (curVidIndex!=lastVideoMode) {
-
-                mVideoDecoder.Stop();
-                mVideoDecoder.onFrameReady = new VideoDecoder.OnFrameReadyCallback() {
-                    public void callbackCall(SimpleImage img) {
-                        currentVideoFrame = img;
-                        currentVideoFrame = img.dup();
-                    }
-                };
-
-                try {
-                    mVideoDecoder.Start(mBurnerBoard.mBBService.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace();
+            mVideoDecoder.Stop();
+            mVideoDecoder.onFrameReady = new VideoDecoder.OnFrameReadyCallback() {
+                public void callbackCall(SimpleImage img) {
+                    frameCnt++;
+                    currentVideoFrame = img;
+                    currentVideoFrame = img.dup();
                 }
+            };
+
+            try {
+                mVideoDecoder.Start(mBurnerBoard.mBBService.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+            } catch (Throwable throwable) {
+                Log.d(TAG, "Unable to start decoder");
+                throwable.printStackTrace();
+            }
+            if (curVidIndex != lastVideoMode) {
                 lastVideoMode = curVidIndex;
             }
         }
@@ -958,6 +960,10 @@ public class BoardVisualization {
             } catch (Exception e) {
                 e.printStackTrace();;
             }
+        }
+        frameCnt++;
+        if (frameCnt % 100 == 0) {
+            l("Frames: " + frameCnt);
         }
         mBurnerBoard.flush();
         return;

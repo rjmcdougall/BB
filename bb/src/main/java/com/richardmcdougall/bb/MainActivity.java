@@ -434,9 +434,9 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     @Override
     protected void onResume() {
-        l("MainActivity: onResume()");
 
         super.onResume();
+        //l("MainActivity: onResume()");
 
 //        if (mWifi != null)
 //            mWifi.onResume();
@@ -457,9 +457,9 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     @Override
     protected void onPause() {
-        l("MainActivity: onPause()");
 
         super.onPause();
+        l("MainActivity: onPause()");
 
 
         //       if (mWifi != null)

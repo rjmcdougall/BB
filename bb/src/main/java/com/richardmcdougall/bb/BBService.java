@@ -296,7 +296,7 @@ public class BBService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         l("BBService: onStartCommand");
-        return mStartMode;
+        return super.onStartCommand(intent, flags, startId);
     }
 
     /**
