@@ -116,7 +116,10 @@ public class IoTClient {
                             // Required to recalculate jwtkey
                             if (mqttClient != null) {
                                 Log.d(TAG, "Disconnecting MQTT Client");
-                                mqttClient.disconnect();
+                                if (mqttClient.isConnected()) {
+                                    mqttClient.disconnect();
+                                }
+                                //mqttClient.close();
                             }
                         } catch (Exception e) {
                         }
@@ -199,7 +202,7 @@ public class IoTClient {
 
                     // Every  minute
                     try {
-                        Thread.sleep(60000);
+                        Thread.sleep(300000);
                     } catch (Exception e) {
                     }
 
@@ -274,8 +277,6 @@ public class IoTClient {
     }
 
     public void sendUpdate(String topic, String content) {
-        //int qos             = 2;
-        //String broker       = "tcp://m11.cloudmqtt.com:15488";
         int qos = 1;
         IMqttDeliveryToken deliveryToken;
 
@@ -317,14 +318,7 @@ public class IoTClient {
     }
 
     private void setClientID() {
-        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wInfo = wifiManager.getConnectionInfo();
-        deviceId = wInfo.getMacAddress();
-        if (deviceId == null) {
-            deviceId = MqttAsyncClient.generateClientId();
-        }
         deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" + Build.MODEL.replaceAll("\\s", ""));
-        //deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-test");
     }
 
     /**

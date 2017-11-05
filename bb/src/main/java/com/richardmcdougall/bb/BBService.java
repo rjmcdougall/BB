@@ -966,10 +966,12 @@ public class BBService extends Service {
 
                 l("Board Current is " + current);
 
-
+                /*
+                 * Now done in bb-installer
                 if (mWiFiManager.isWifiEnabled() == false) {
                     mWiFiManager.setWifiEnabled(true);
                 }
+                */
 
                 if (mBurnerBoard != null) {
                     l("Sending MQTT update");
@@ -984,6 +986,7 @@ public class BBService extends Service {
                 }*/
 
 
+                announce = false;
                 if (level < 0) {
                     if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
                         lastUnknownStatement = System.currentTimeMillis();
