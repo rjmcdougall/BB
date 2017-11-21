@@ -204,7 +204,7 @@ public class BBService extends Service {
             }
         });
 
-        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(), mVersion);
+        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(), mServerMode, mVersion);
         dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
@@ -578,11 +578,11 @@ public class BBService extends Service {
             l("Failed to associate wifi");
         }
 
+        dlManager.StartDownloads();
+
         if (mServerMode == true) {
             return;
         }
-
-        dlManager.StartDownloads();
 
         try {
             Thread.sleep(5000);

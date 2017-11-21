@@ -41,6 +41,7 @@ public class BBDownloadManager {
     protected String mFilesDir;
     protected JSONObject dataDirectory;
     int mVersion;
+    boolean mIsServer = false;
 
     JSONObject GetDataDirectory() { return dataDirectory; }
 
@@ -54,14 +55,16 @@ public class BBDownloadManager {
 
     public OnDownloadProgressType onProgressCallback = null;
 
-    BBDownloadManager(String filesDir, int myVersion) {
+    BBDownloadManager(String filesDir, boolean isServer, int myVersion) {
         mVersion = myVersion;
         mFilesDir = filesDir;
         PackageInfo pinfo;
+        mIsServer = isServer;
     }
 
     void StartDownloads() {
 
+        Log.d(TAG, "Starting download manager");
         BackgroundThread bThread = new BackgroundThread(this);
         Thread th = new Thread(bThread, "BB DownloadManager background thread");
         th.start();
@@ -92,6 +95,7 @@ public class BBDownloadManager {
             return 0;
         else {
             try {
+                Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " audio files");
                 return dataDirectory.getJSONArray("audio").length();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -105,6 +109,7 @@ public class BBDownloadManager {
             return 0;
         else {
             try {
+                Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " video files");
                 return dataDirectory.getJSONArray("video").length();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -156,7 +161,7 @@ public class BBDownloadManager {
 
 
 
-    private static class BackgroundThread implements Runnable {
+    private class BackgroundThread implements Runnable {
 
         BBDownloadManager mDM;
 
@@ -339,6 +344,8 @@ public class BBDownloadManager {
 
                     String dataDir = mDM.mFilesDir;
 
+                    Log.d(TAG, "Reading Directory from dropbox");
+
                     long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "tmp", "Directory");
                     //long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/dsm6hofocn6n4p1/DownloadDirectorySmall.json?dl=0", "tmp", "Directory");
                     if (ddsz < 0) {
@@ -386,19 +393,23 @@ public class BBDownloadManager {
                                     }
                                 }
 
-                                File dstFile2;
-                                if (!upTodate) {
-                                    DownloadURL(url, "tmp", localName);   // download to a "tmp" file
-                                    tFiles++;
-                                    if (appVersion == 0) { // .tmp files for all media except app packages
-                                        dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
-                                    } else {
-                                        dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
-                                    }
-                                    if (dstFile2.exists())
-                                        dstFile2.delete();
-                                    new File(dataDir, "tmp").renameTo(dstFile2);
+                                if (mIsServer) {
+                                    //downloadSuccess = true;
+                                } else {
+                                    File dstFile2;
+                                    if (!upTodate) {
+                                        DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+                                        tFiles++;
+                                        if (appVersion == 0) { // .tmp files for all media except app packages
+                                            dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
+                                        } else {
+                                            dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
+                                        }
+                                        if (dstFile2.exists())
+                                            dstFile2.delete();
+                                        new File(dataDir, "tmp").renameTo(dstFile2);
 
+                                    }
                                 }
 
                             }
