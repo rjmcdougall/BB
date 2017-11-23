@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
@@ -72,6 +73,32 @@ public class Installer extends Service {
         mContext = getApplicationContext();
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+
+        // Default
+        String networkSSID = "burnerboard";
+        String networkPass = "firetruck";
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.preSharedKey = "\""+ networkPass +"\"";
+        mWiFiManager.addNetwork(conf);
+
+        // We add networks here that are remote and that we won't need to sync with other boards.
+
+        // Dan
+        networkSSID = "ATT7Cd2QyD";
+        networkPass = "79cj+rbw%e96";
+        conf = new WifiConfiguration();
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.preSharedKey = "\""+ networkPass +"\"";
+        mWiFiManager.addNetwork(conf);
+
+        // L & E
+        networkSSID = "monkeynet";
+        networkPass = "215francisco";
+        conf = new WifiConfiguration();
+        conf.SSID = "\"" + networkSSID + "\"";
+        conf.preSharedKey = "\""+ networkPass +"\"";
+        mWiFiManager.addNetwork(conf);
 
         intentf.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         mContext.registerReceiver(new MQTTBroadcastReceiver(),
@@ -280,7 +307,7 @@ public class Installer extends Service {
 //                libs + "chmod 666 /data/local/tmp/bb.apk 2>&1 >>/data/local/tmp/bb.log",
 //                libs + "pm install -r /data/local/tmp/bb.apk",
                 libs + "chmod 666 " + path,
-                libs + "pm install -r " + path
+                libs + "pm install -rg " + path
         };
 
         execute_as_root(commands);
