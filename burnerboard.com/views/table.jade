@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1= title
+
+  table
+    tbody
+    thead
+      tr
+        th Board Name
+        th Last Seen
+        th Is Online?
+        th Battery Level
+      each row in Datarows
+        tr
+          td=row.board_name
+          td=row.last_seen
+          td=row.is_online	
+          td=row.battery_level	

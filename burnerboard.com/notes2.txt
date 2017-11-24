@@ -1,0 +1,6 @@
+
+//set auth to my credentials.
+gcloud auth application-default login
+
+//deploy to burnerboard.com
+gcloud app deploy
