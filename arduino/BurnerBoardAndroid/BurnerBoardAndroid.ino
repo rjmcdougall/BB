@@ -108,7 +108,8 @@ char *boards[] = {
   "JOON",
   "ARTEMIS",
   "BISCUIT",
-  "SQUEEZE"};
+  "SQUEEZE",
+  "AMISSA"};
   
 char *names[] = {
   "RICHARD",
@@ -120,7 +121,8 @@ char *names[] = {
   "JOON",
   "JAMES",
   "RICHARD",
-  "JONATHAN"};
+  "JONATHAN",
+  "LIAM"};
 
 
 char field_separator   = ',';
