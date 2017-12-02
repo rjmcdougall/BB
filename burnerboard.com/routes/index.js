@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+router.use('/media', require('./media'));
 
 /* GET home page. */
 router.get('/', function (req, res, next) {

@@ -11,3 +11,7 @@ resources:
 
 liveness_check:
   check_interval_sec: 200
+
+#env_variables:
+#  GCLOUD_STORAGE_BUCKET: 'burner-board'
+#  GCLOUD_PROJECT: "burner-board"
