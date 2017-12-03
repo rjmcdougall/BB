@@ -59,10 +59,37 @@ router.get('/genJSON', function (req, res, next) {
   // cb function for iterating bucket
   let cb=(err, files,next,apires) => {
     
-    listFileArrayForJSON(files);
+    //listFileArrayForJSON(files); 
+    var audioArray = [];
+    var videoArray = [];
+    var applicationArray = [];
+    var sectionArray = [];
 
-    //fileStream.write(JSON.stringify(files));
+    for (var i = 0, len = files.length; i < len; i++) {
+     if(files[i].name.endsWith("mp3")){
+        audioArray.push({URL:format(`https://storage.googleapis.com/${bucket.name}/${files[i].name}`),
+                          localName:files[i].name.substring(files[i].name.indexOf("/") + 1),
+                          Size:files[i].metadata.size,
+                          Length:1});
+     }
+     else if (files[i].name.endsWith("mp4")){
+      videoArray.push({URL:format(`https://storage.googleapis.com/${bucket.name}/${files[i].name}`),
+      localName:files[i].name.substring(files[i].name.indexOf("/") + 1),
+      SpeachCue:""});
+     }
+    }
+ 
+    applicationArray.push({URL:format(`https://storage.googleapis.com/${bucket.name}/bb-7.apk?dl=0`),
+    localName:"bb-7.apk?dl=0",
+    Version:"7"});
+
+    sectionArray.push({audio:audioArray});
+    sectionArray.push({video:videoArray});
+    sectionArray.push({application:applicationArray});
+
+    fileStream.write(JSON.stringify(sectionArray));
     fileStream.end();
+
     if(!!next)
     {
         bucket.getFiles(next,cb);
@@ -75,37 +102,35 @@ router.get('/genJSON', function (req, res, next) {
                     delimiter: '/',
                     prefix: MUSIC_PATH + '/'
                   }, cb);
-
-
-  //fileStream.write(JSON.stringify(stuff[0]));
-  //console.log(JSON.stringify(stuff));
-console.log('made it here')
+ 
 });
 
-function listFileArrayForJSON(files){
-  var filepath = MUSIC_PATH + '/' + MEDIA_CATALOG;
-  var mp3Length = require('mp3-length');
+// function listFileArrayForJSON(files){
+//   var filepath = MUSIC_PATH + '/' + MEDIA_CATALOG;
+//   const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
   
-    var newFileArray = [];
+//   var mp3Length = require('mp3-length');
+  
+//     var newFileArray = [];
 
-    for (var i = 0, len = files.length; i < len; i++) {
+//     for (var i = 0, len = files.length; i < len; i++) {
 
-      if(files[i].name.endsWith("mp3")){
-        newFileArray.push({'name' : files[i].name});
+//       if(files[i].name.endsWith("mp3")){
+//         newFileArray.push({'name' : files[i].name});
         
-              mp3Length(filepath + '/' + files[i].name, function (err, length) {
-                  if (err == null) {
-                    newFileArray.push({'length' : length});
-                  }
-              });
-      }
+//               mp3Length(filepath + '/' + files[i].name, function (err, length) {
+//                   if (err == null) {
+//                     newFileArray.push({'length' : length});
+//                   }
+//               });
+//       }
 
       
-    }
+//     }
     
     
-  files
-};
+//   files
+// };
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
