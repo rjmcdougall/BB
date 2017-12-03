@@ -104,34 +104,7 @@ router.get('/genJSON', function (req, res, next) {
                   }, cb);
  
 });
-
-// function listFileArrayForJSON(files){
-//   var filepath = MUSIC_PATH + '/' + MEDIA_CATALOG;
-//   const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
-  
-//   var mp3Length = require('mp3-length');
-  
-//     var newFileArray = [];
-
-//     for (var i = 0, len = files.length; i < len; i++) {
-
-//       if(files[i].name.endsWith("mp3")){
-//         newFileArray.push({'name' : files[i].name});
-        
-//               mp3Length(filepath + '/' + files[i].name, function (err, length) {
-//                   if (err == null) {
-//                     newFileArray.push({'length' : length});
-//                   }
-//               });
-//       }
-
-      
-//     }
-    
-    
-//   files
-// };
-
+   
 /* GET home page. */
 router.get('/', function (req, res, next) {
   listFiles(res);
