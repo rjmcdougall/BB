@@ -1,7 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var util = require('util')
- 
+var fs = require('fs');
+
 var format = require('util').format;
 var Multer = require('multer');
 var bodyParser = require('body-parser');
@@ -22,6 +23,7 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
 var TOKEN_PATH = TOKEN_DIR + 'media.json';
 
 const MUSIC_PATH = "BurnerBoardMusic";
+const MEDIA_CATALOG = "DownloadDirectory.json"
 
 // Multer is required to process file uploads and make them available via
 // req.files.
@@ -31,6 +33,79 @@ const upload = Multer({
     fileSize: 20 * 1024 * 1024 // no larger than 5mb, you can change as needed.
   }
 });
+
+/* test generating json */
+router.get('/genJSON', function (req, res, next) {
+
+  var filepath = MUSIC_PATH + '/' + MEDIA_CATALOG;
+  const file = bucket.file(filepath);
+
+  const fileStream = file.createWriteStream({
+    metadata:{
+      contentType: 'application/json'
+    }
+  });
+
+  fileStream.on('error', (err) => {
+    next(err);
+  });
+
+  fileStream.on('finish', () => {
+    // The public URL can be used to directly access the file via HTTP.
+    const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
+    res.status(200).send(publicUrl);
+  });
+
+  // cb function for iterating bucket
+  let cb=(err, files,next,apires) => {
+    
+    listFileArrayForJSON(files);
+
+    //fileStream.write(JSON.stringify(files));
+    fileStream.end();
+    if(!!next)
+    {
+        bucket.getFiles(next,cb);
+    }
+  }
+
+  // Lists files in the bucket, filtered by a prefix
+  bucket.getFiles({
+                    autoPaginate: false,
+                    delimiter: '/',
+                    prefix: MUSIC_PATH + '/'
+                  }, cb);
+
+
+  //fileStream.write(JSON.stringify(stuff[0]));
+  //console.log(JSON.stringify(stuff));
+console.log('made it here')
+});
+
+function listFileArrayForJSON(files){
+  var filepath = MUSIC_PATH + '/' + MEDIA_CATALOG;
+  var mp3Length = require('mp3-length');
+  
+    var newFileArray = [];
+
+    for (var i = 0, len = files.length; i < len; i++) {
+
+      if(files[i].name.endsWith("mp3")){
+        newFileArray.push({'name' : files[i].name});
+        
+              mp3Length(filepath + '/' + files[i].name, function (err, length) {
+                  if (err == null) {
+                    newFileArray.push({'length' : length});
+                  }
+              });
+      }
+
+      
+    }
+    
+    
+  files
+};
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
