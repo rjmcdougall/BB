@@ -23,7 +23,7 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
 var TOKEN_PATH = TOKEN_DIR + 'media.json';
 
 const MUSIC_PATH = "BurnerBoardMusic";
-const MEDIA_CATALOG = "DownloadDirectory.json"
+const MEDIA_CATALOG = "DownloadDirectory.json";
 
 // Multer is required to process file uploads and make them available via
 // req.files.
@@ -130,32 +130,39 @@ function listFiles(res) {
 
 }
 
-// [START form]
-// Display a form for uploading files.
-router.get('/upload', (req, res) => {
+router.get('/upload', (req, res, next) => {
     res.render('uploadForm', { title: 'burnerboard.com' });
   });
 
-// [START process]
-// Process the file upload and upload to Google Cloud Storage.
+
 router.post('/upload', upload.single('file'), (req, res, next) => {
   if (!req.file) {
     res.status(400).send('No file uploaded.');
     return;
   }
 
-  // Create a new blob in the bucket and upload the file data.
+
   var contenttype = '';
-  if(req.file.originalname.endsWith('mp3'))
+  var songDuration;
+
+  if (req.file.originalname.endsWith('mp3')) {
+
+    var mp3Duration = require('mp3-duration');
+    mp3Duration(req.file.buffer, function (err, duration) {
+      if (err) return console.log(err.message);
+      songDuration = duration;
+    });
     contenttype = 'audio/mpeg';
-  else if(req.file.originalname.endsWith('mp4'))
+
+  }
+  else if (req.file.originalname.endsWith('mp4'))
     contenttype = 'video/mp4';
 
   var filepath = MUSIC_PATH + '/' + req.file.originalname;
   const file = bucket.file(filepath);
 
   const fileStream = file.createWriteStream({
-    metadata:{
+    metadata: {
       contentType: contenttype
     }
   });
@@ -165,13 +172,19 @@ router.post('/upload', upload.single('file'), (req, res, next) => {
   });
 
   fileStream.on('finish', () => {
-    // The public URL can be used to directly access the file via HTTP.
-    const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${file.name}`);
-    res.status(200).send(publicUrl);
+
+    DownloadDirectory = require('./DownloadDirectory'); 
+    if (req.file.originalname.endsWith('mp3'))
+      DownloadDirectory.addAudio(file.name, file.Size, songDuration);
+    else if (req.file.originalname.endsWith('mp4'))
+      DownloadDirectory.addVideo(file.name, "");
+    res.status(200).send("OK");
+ 
   });
 
   fileStream.end(req.file.buffer);
+
 });
-// [END process]
+
 
 module.exports = router;
