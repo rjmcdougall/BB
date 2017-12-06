@@ -1,163 +1,73 @@
 {
-   "audio" : [
-       
-	{ "URL" : "https://dl.dropboxusercontent.com/s/mcm5ee441mzdm39/01-FunRide2.mp3?dl=0", 
-	     "localName" : "funride.mp3",
-	      "Size" : 122529253, 
-		  "Length" : 7658
-	},
-	{ "URL" : "https://dl.dropboxusercontent.com/s/morp9hs0ckxo8yq/AvenerMix.mp3?dl=0", 
-	     "localName" : "AvenerMix.mp3",
-	      "Size" : 48786286, 
-		  "Length" : 1220
-	},
-	{ "URL" : "https://dl.dropboxusercontent.com/s/2uyp8mz8o17px29/TheBoss.mp3?dl=0", 
-	     "localName" : "TheBoss.mp3",
-	      "Size" : 59435886, 
-		  "Length" : 1486
-	},
-      	{ "URL" : "https://dl.dropboxusercontent.com/s/j8y5fqdmwcdhx9q/03-RobotTemple2.mp3?dl=0", 
-	     "localName" : "robotTemple.mp3",
-	      "Size" : 122457782, 
-		  "Length" : 7653
-	},
-	{ "URL": "https://dl.dropboxusercontent.com/s/jvsv2fn5le0f6n0/02-BombingRun2.mp3?dl=0", 
-	     "localName" : "bombingRun.mp3",
-	      "Size" : 118796042, 
-		  "Length" : 7424
-	},
-	{ "URL" : "https://dl.dropboxusercontent.com/s/vm2movz8tkw5kgm/04-Morning2.mp3?dl=0", 
-	     "localName" : "morning2.mp3",
-	      "Size" : 122457782, 
-		  "Length" : 7653
-	},
-	{ "URL" : "https://dl.dropbox.com/s/k4rheg544j9zddt/Goldcap.mp3?dl=0",
-		 "localName" : "Goldcap.mp3",
-		 "Size" : 231840704,
-		 "Length" : 14490
-	},
-	{ "URL" : "https://dl.dropbox.com/s/jy43emjh4o9u0ih/DJFerreeNostalgic.mp3?dl=0",
-		 "localName" : "DJFerreeNostalgic.mp3",
-		 "Size" : 197648717,
-		 "Length" : 12353
-	},
-	{ "URL" : "https://dl.dropboxusercontent.com/s/6jcr41uk7kvyu64/Cafe%20del%20Mar%20Chillout%20Mix%2012%20%282017%29.mp3?dl=0",
-		 "localName" : "Cafe_Chill.mp3",
-		 "Size" : 49260094,
-		 "Length" : 3072
-	},	  
-	{ "URL" : "https://dl.dropboxusercontent.com/s/q3lnly4e00tr0y5/Kenny%20Dope-Jazz-Funk-45%20Breaks%20%27Saturday%20Basement%20Mix%202012%27.mp3?dl=0",
-		 "localName" : "Kenny_Dope.mp3",
-		 "Size" : 60078482,
-		 "Length" : 3750
-	},	  	  
-	{ "URL" : "https://dl.dropboxusercontent.com/s/52r558mdnz7ezfu/Classic%20Rock%20Ballads.mp3?dl=0",
-		 "localName" : "Classic_Rock.mp3",
-		 "Size" : 74096804,
-		 "Length" : 4628
-	},
-	{ "URL" : "https://dl.dropbox.com/s/uqklxmxroxaxf0e/Greg%20Wilson%20Live%20at%20Lost%20Village.mp3?dl=0",
-		 "localName" : "Greg Wilson Live at Lost Village.mp3",
-		 "Length" : 8352
-	},
-	{ "URL" : "https://dl.dropbox.com/s/0oqzycy8q91brlr/benchun-i-love-saxophones.mp3?dl=0",
-		 "localName" : "I love sax.mp3",
-		 "Size" : 95141261,
-		 "Length" : 2923
-	},
-	{ "URL" : "https://dl.dropbox.com/s/gj3fcgo638rqzdg/DJ%20Z-Trip%20%26%20DJ%20P%20-%20Uneasy%20Listening%2C%20Vol.1.mp3?dl=0",
-		 "localName" : "DJ Trip.mp3",
-		 "Size" : 70446386,
-		 "Length" : 4402
-	},
-	{ "URL" : "https://dl.dropbox.com/s/ccugwbn7k803p7m/Girl%20Talk%20-%20All%20Day.mp3?dl=0",
-		 "localName" : "Girl Talk.mp3",
-		 "Size" : 68277137,
-		 "Length" : 4264
-	},	  
-	{ "URL" : "https://dl.dropbox.com/s/mo7w8tdcx0hqqge/I%20LOVE%20the%2080%27s%20Mix.mp3?dl=0",
-		 "localName" : "I love the Mix.mp3",
-		 "Size" : 75605646,
-		 "Length" : 4723
-	},	 
-	{ "URL" : "https://dl.dropbox.com/s/j96vd4glmwklwb5/Safari%20Boogie%20Vol%201.mp3?dl=0",
-		 "localName" : "Safari Boogie.mp3",
-		 "Size" : 56270679,
-		 "Length" : 3511
-	},	 
-	{ "URL" : "https://dl.dropbox.com/s/u4wpd7evkhx0v74/Cuban%20Vinyl%20Mix.mp3?dl=0",
-		 "localName" : "Cuban Vinyl.mp3",
-		 "Size" : 45176472,
-		 "Length" : 2819
-	},	 
-	{ "URL" : "https://dl.dropbox.com/s/d0afq6n075nete8/Special%20Mix%20for%20SoundCloud.mp3?dl=0",
-		 "localName" : "Sound Cloud mix.mp3",
-		 "Size" : 9379171,
-		 "Length" : 586
-	},	 	  
-	{ "URL" : "https://dl.dropbox.com/s/t0nh0tr2b4efhpv/2%20Many%20DJ%27s%20-%20As%20Heard%20On%20Radio%20Soulwax%20-%20Part%201.mp3?dl=0",
-		 "localName" : "2 Many DJs.mp3",
-		 "Size" : 60656831,
-		 "Length" : 3787
-	}
+	"audio": [
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/AvenerMix.mp3",
+			"localName": "AvenerMix.mp3",
+			"Size": 48786286,
+			"Length": 1220
+		},
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/TheBoss.mp3",
+			"localName": "TheBoss.mp3",
+			"Size": 59435886,
+			"Length": 1486
+		}
 	],
-
-	"video" : [
-		{ "URL" : "https://dl.dropboxusercontent.com/s/icuufewruhn2gir/tunnels.mp4?dl=0",
-		  "localName" : "tunnels.mp4", "SpeachCue" : "Tunnels"},	
-		{ "URL" : "https://dl.dropboxusercontent.com/s/pja8psjfuj3vjhw/BouncingComets.mp4?dl=0",
-		  "localName" : "BouncingComets.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/sivxrz9p44jdxvd/RedDevil.mp4?dl=0",
-		  "localName" : "RedDevil.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/gazkxuuym25y7ti/beyonce.mp4?dl=0",
-		  "localName" : "beyonce.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/ben93l6j793lxy0/tease.mp4?dl=0",
-		  "localName" : "tease.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/x5emxxu0cjdwgti/DancingMan.mp4?dl=0",
-		   "localName" :"DancingMan.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/xz0oulcena768j1/lips.mp4?dl=0",
-		  "localName" : "lips.mp4"},
-		{ "URL" : "http://jonathanclark.com/video5.mp4", 
-		  "localName" : "fireball.mp4", "SpeachCue" : "Fire"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/mrv1qc1q5eb1lue/repeat_fire.mp4?dl=0",
-		   "localName" :"repeat_fire.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/8dqsreicvz0h3hh/sauron.mp4?dl=0",
-		  "localName" : "sauron.mp4"},					
-		{ "URL" : "https://dl.dropboxusercontent.com/s/3w1k1800jeuaioi/water.mp4?dl=0", 
-		  "localName" : "water.mp4", "SpeachCue" : "Water"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/jv90ksytyfyagwx/pacman.mp4?dl=0",
-		  "localName" : "pacman.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/2wn2whk8z22c6ku/jellyfish.mp4?dl=0",
-		  "localName" : "jellyfish.mp4"},
-	   	{ "URL" : "https://dl.dropboxusercontent.com/s/lzz2lotrzliduqo/lightrays.mp4?dl=0",
-		  "localName" : "lightrays.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/a2b89vhu1gmgwds/DancingLights.mp4?dl=0",
-		    "localName" :"DancingLights.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/mqdibqtduy3la5x/lightning.mp4?dl=0",
-		  "localName" : "lightning.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/gjocqem87nz77x4/flamethrower.mp4?dl=0",
-		  "localName" : "flamethrower.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/bw8mpxooku0vzkk/colored_dots.mp4?dl=0",
-		  "localName" : "colored_dots.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/wymfkb8gvksqg6k/disco_ball.mp4?dl=0",
-		  "localName" : "disco_ball.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/4sicyfsp7zccf5c/disco_lights.mp4?dl=0",
-		  "localName" : "disco_lights.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/l1per6ebslfmtdu/Bubbles.mp4?dl=0",
-		  "localName" :"bubbles.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/yis6d9a3df3ojmq/White%20Bubbles%20FINAL.mp4?dl=0",
-		  "localName" :"white_bubbles.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/6p7v3nqbr4gauov/fire2.mp4?dl=0",
-		  "localName" :"fire2.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/8ml6etcdw63khyx/police_lights.mp4?dl=0",
-		  "localName" :"police_lights.mp4"},
-		{ "URL" : "https://dl.dropboxusercontent.com/s/3zfba9cgmz10ugr/lighting_streaks.mp4?dl=0",
-		  "localName" :"lighting_streaks.mp4"}
+	"video": [
+		{
+			"Algorithm": "modeMatrix(kMatrixBurnerColor)"
+		},
+		{
+			"Algorithm": "modeMatrix(kMatrixLunarian)"
+		},
+		{
+			"Algorithm": "modeAudioCenter()"
+		},
+		{
+			"Algorithm": "modeFire(kModeFireNormal)"
+		},
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/tunnels.mp4",
+			"localName": "tunnels.mp4",
+			"SpeachCue": "Tunnels"
+		},
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/BouncingComets.mp4",
+			"localName": "BouncingComets.mp4"
+		},
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/RedDevil.mp4",
+			"localName": "RedDevil.mp4"
+		},
+		{
+			"Algorithm": "modeFire(kModeFireDistrikt)"
+		},
+		{
+			"Algorithm": "modeFire(kModeFireTheMan)"
+		},
+		{
+			"Algorithm": "modeAudioBarV()"
+		},
+		{
+			"Algorithm": "modeMatrix(kMatrix9)"
+		},
+		{
+			"Algorithm": "modeAudioTile()"
+		},
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/beyonce.mp4",
+			"localName": "beyonce.mp4"
+		},
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/lighting_streaks.mp4",
+			"localName": "lighting_streaks.mp4"
+		}
 	],
-	"application" : [	
-	{ "URL" : "https://dl.dropboxusercontent.com/s/d00tg63azrqjlh3/bb-7.apk?dl=0",
-		    "localName" :"bb.apk",
-  		  "Version" : 7}
+	"application": [
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/bb-7.apk",
+			"localName": "bb.apk",
+			"Version": 7
+		}
 	]
 }
-

@@ -9,19 +9,19 @@ router.get('/', function (req, res, next) {
 });
 
 /* GET battery results. */
-router.get('/AllBoards', function (req, res, next) {
+router.get('/allBoards', function (req, res, next) {
 
   queryBatteryData(req, res, next);
 
 });
 
-router.get('/:boardId/DirectoryJSONURL', function (req, res, next) {
+router.get('/boards/:boardID/directoryJSONURL', function (req, res, next) {
   DownloadDirectory = require('./media/DownloadDirectory')
-  res.status(200).send(DownloadDirectory.getDirectoryJSONPath(req.params.boardId));
+  res.status(200).send(DownloadDirectory.getDirectoryJSONPath(req.params.boardID));
 });
 
 /* GET battery results. */
-router.get('/boards/:boardId/batteryHistory', function (req, res, next) {
+router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
 
   queryBatteryHistory(req, res, next);
 
@@ -29,12 +29,12 @@ router.get('/boards/:boardId/batteryHistory', function (req, res, next) {
 
 function queryBatteryHistory(req, res, next) {
 
-  console.log(req.params.boardId);
+  console.log(req.params.boardID);
 
   BatteryQueries = require('./BatteryQueries');
 
    const options = {
-    query: BatteryQueries.sqlBatteryHistory.replace('?', req.params.boardId),
+    query: BatteryQueries.sqlBatteryHistory.replace('?', req.params.boardID),
     useLegacySql: false // Use standard SQL syntax for queries.
   };
 
