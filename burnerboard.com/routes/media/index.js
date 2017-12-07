@@ -10,7 +10,7 @@ const bucket = storage.bucket('burner-board');
 
 router.use(bodyParser.json());
  
-const MUSIC_PATH = "BurnerBoardMusic";
+const MUSIC_PATH = "BurnerBoardMedia";
 
 const upload = Multer({
   storage: Multer.memoryStorage(),
@@ -20,7 +20,7 @@ const upload = Multer({
 });
 
 /* warning: this will not maintain the length of mp3 files or other metadata */
-router.get('/genJSONFromFiles', function (req, res, next) {
+router.get('/:boardID/media/genJSONFromFiles', function (req, res, next) {
 
   DownloadDirectory = require('./DownloadDirectory'); 
   DownloadDirectory.generateNewDirectoryJSON();
@@ -53,11 +53,11 @@ function listFiles(res) {
 
 }
 
-router.get('/upload', (req, res, next) => {
-    res.render('uploadForm', { title: 'burnerboard.com' });
+router.get('/:boardID/upload', (req, res, next) => {
+    res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
   });
 
-router.post('/upload', upload.single('file'), (req, res, next) => {
+router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
   if (!req.file) {
     res.status(400).send('No file uploaded.');
     return;
@@ -79,9 +79,12 @@ router.post('/upload', upload.single('file'), (req, res, next) => {
   else if (req.file.originalname.endsWith('mp4'))
     contenttype = 'video/mp4';
 
-  var filepath = MUSIC_PATH + '/' + req.file.originalname;
+
+  var filepath = MUSIC_PATH + '/' + req.params.boardID + '/' + req.file.originalname;
+
   const file = bucket.file(filepath);
 
+ 
   const fileStream = file.createWriteStream({
     metadata: {
       contentType: contenttype
@@ -96,10 +99,10 @@ router.post('/upload', upload.single('file'), (req, res, next) => {
 
     DownloadDirectory = require('./DownloadDirectory'); 
     if (req.file.originalname.endsWith('mp3'))
-      DownloadDirectory.addAudio(file.name, file.Size, songDuration);
+      DownloadDirectory.addAudio(req.params.boardID, file.name, file.Size, songDuration);
     else if (req.file.originalname.endsWith('mp4'))
-      DownloadDirectory.addVideo(file.name, "");
-    res.status(200).send("OK");
+      DownloadDirectory.addVideo(req.params.boardID, file.name, "");
+     res.status(200).send("OK");
  
   });
 
