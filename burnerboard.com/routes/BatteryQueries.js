@@ -1,4 +1,5 @@
 
+
 // Imports the Google Cloud client library
 const BigQuery = require('@google-cloud/bigquery');
 const projectId = "burner-board";
@@ -7,9 +8,8 @@ const projectId = "burner-board";
 const bigquery = BigQuery({
 	projectId: projectId
 });
-
-
-exports.queryBatteryData = function(req, res, callback) {
+ 
+exports.queryBatteryData = function(callback) {
   
     BatteryQueries = require('./BatteryQueries');
   
@@ -23,15 +23,16 @@ exports.queryBatteryData = function(req, res, callback) {
     bigquery
       .query(options)
       .then((results) => {
-        const rows = results[0];
-        callback(null,rows);
+        callback(null,results[0]);
       })
       .catch((err) => {
-        callback(err,null)
+        callback(err,null);
       });
   }
 
-exports.queryBatteryHistory = function(boardID, callback) {
+exports.queryBatteryHistory = function(boardID,callback) {
+
+    BatteryQueries = require('./BatteryQueries');
   
     const options = {
       query: BatteryQueries.sqlBatteryHistory.replace('?', boardID),
@@ -42,15 +43,14 @@ exports.queryBatteryHistory = function(boardID, callback) {
     bigquery
       .query(options)
       .then((results) => {
-        const rows = results[0];
-        callback(null,rows);
+        callback(null,results[0]);
       })
       .catch((err) => {
-        callback(err,null)
+        callback(err, null);
       });
   }
 
-var sqlBatteryLevel = `SELECT 
+exports.sqlBatteryLevel = `SELECT 
 board_name,
 local_time as last_seen,
 is_online,
@@ -90,7 +90,7 @@ ORDER BY
 board_name ASC
 `;
 
-var sqlBatteryHistory = `#standardSQL
+exports.sqlBatteryHistory = `#standardSQL
 SELECT
 board_name,
 ROUND(AVG(battery_level)) AS BatteryLevel,

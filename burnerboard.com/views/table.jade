@@ -1,0 +1,25 @@
+extends layout
+
+block content
+  h1= title
+  table
+    tbody
+    thead
+      tr
+        td(align="center") Board Name
+        td(align="center") Last Seen
+        td(align="center") Is Online?
+        td(align="center") Battery Level
+        td(align="center") Battery History
+      each row in Datarows
+        tr
+          td(align="center").
+            #{row.board_name}
+          td(align="center").
+            #{row.last_seen}
+          td(align="center").
+            #{row.is_online}
+          td(align="center").
+            #{row.battery_level}
+          td(align="center")
+            a(href="/boards/#{row.board_name}/batteryHistory") Battery History
