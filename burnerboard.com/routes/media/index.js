@@ -69,6 +69,8 @@ router.get('/:boardID/upload', (req, res, next) => {
 function AddFile(boardID, uploadedFile, callback){
 	var contenttype = '';
 	var songDuration;
+	var fileSize = uploadedFile.size;
+	var localName = uploadedFile.originalname;
 
 	if (uploadedFile.originalname.endsWith('mp3')) {
 
@@ -111,7 +113,7 @@ function AddFile(boardID, uploadedFile, callback){
 							.file(filepath)
 							.makePublic()
 							.then(() => {
-								callback(null,{"localName":file.name, "Size":uploadedFile.Size, "Length":songDuration});
+								callback(null,{"localName":localName, "Size":fileSize, "Length":songDuration});
 							})
 							.catch(err => {
 								callback(err,null);
