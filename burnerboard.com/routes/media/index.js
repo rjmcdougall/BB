@@ -122,7 +122,16 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
         songDuration,
         function (err) {
           if (!err) {
-            res.status(200).send("OK");
+            bucket
+              .file(filepath)
+              .makePublic()
+              .then(() => {
+                res.status(200).send("OK");
+              })
+              .catch(err => {
+                res.status(500).send("ERROR");
+              });
+            
           }
           else {
             res.send(err);
