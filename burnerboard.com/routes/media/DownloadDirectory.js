@@ -178,7 +178,7 @@ exports.deleteFile = function (fileName) {
 	});
 }
 
-//warning: this cannot get the length of MP3 so they default to 1.
+//warning: needs fixed and tested. this cannot get the length of MP3 so they default to 1.
 exports.generateNewDirectoryJSON = function (boardID) {
 
 	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;

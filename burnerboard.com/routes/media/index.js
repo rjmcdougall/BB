@@ -140,7 +140,7 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 		else if (req.file.originalname.endsWith('mp4'))
 			DownloadDirectory.addVideo(req.params.boardID,
 				file.name,
-				"",
+				req.body.speechCue,
 				function (err) {
 					if (!err) {
 						res.status(200).send("OK");
