@@ -5,36 +5,53 @@ var format = require('util').format;
 var Multer = require('multer');
 var bodyParser = require('body-parser');
 const Storage = require('@google-cloud/storage');
-const storage = Storage(); 
+const storage = Storage();
 const bucket = storage.bucket('burner-board');
 
 router.use(bodyParser.json());
- 
+
 const MUSIC_PATH = "BurnerBoardMedia";
 
 const upload = Multer({
   storage: Multer.memoryStorage(),
   limits: {
-    fileSize: 20 * 1024 * 1024 
+    fileSize: 20 * 1024 * 1024
   }
 });
 
 /* warning: this will not maintain the length of mp3 files or other metadata */
-router.get('/:boardID/media/genJSONFromFiles', function (req, res, next) {
+router.get('/genJSONFromFiles', function (req, res, next) {
 
-  DownloadDirectory = require('./DownloadDirectory'); 
+  DownloadDirectory = require('./DownloadDirectory');
   DownloadDirectory.generateNewDirectoryJSON();
   res.status(200).send("OK");
-   
-});
-   
-/* GET home page. */
-router.get('/', function (req, res, next) {
-  listFiles(res);
+
 });
 
-function listFiles(res) {
-  var callback = function(err, files, nextQuery, apiResponse) {
+/* GET home page. */
+router.get('/:boardID/listFiles', function (req, res, next) {
+  listFiles(req, res);
+});
+
+/* GET home page. */
+router.get('/:boardID/DownloadDirectoryJSON', function (req, res, next) {
+  DownloadDirectory = require('./DownloadDirectory')
+
+  DownloadDirectory.DirectoryJSON(req.params.boardID
+    , function (err, data) {
+      if (!err) {
+        res.status(200).send(JSON.stringify(data));
+      }
+      else {
+        res.send(err);
+      }
+
+    }
+  );
+});
+
+function listFiles(req, res) {
+  var callback = function (err, files, nextQuery, apiResponse) {
     if (nextQuery) {
       // More results exist.
       bucket.getFiles(nextQuery, callback);
@@ -45,17 +62,17 @@ function listFiles(res) {
 
   // Lists files in the bucket, filtered by a prefix
   var stuff = bucket
-  .getFiles({
-    autoPaginate: false,
-    delimiter: '/',
-    prefix: MUSIC_PATH + '/'
-  }, callback);
+    .getFiles({
+      autoPaginate: false,
+      delimiter: '/',
+      prefix: MUSIC_PATH + '/' + req.params.boardID + '/'
+    }, callback);
 
 }
 
 router.get('/:boardID/upload', (req, res, next) => {
-    res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
-  });
+  res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
+});
 
 router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
   if (!req.file) {
@@ -84,7 +101,7 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 
   const file = bucket.file(filepath);
 
- 
+
   const fileStream = file.createWriteStream({
     metadata: {
       contentType: contenttype
@@ -97,13 +114,33 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 
   fileStream.on('finish', () => {
 
-    DownloadDirectory = require('./DownloadDirectory'); 
+    DownloadDirectory = require('./DownloadDirectory');
     if (req.file.originalname.endsWith('mp3'))
-      DownloadDirectory.addAudio(req.params.boardID, file.name, file.Size, songDuration);
+      DownloadDirectory.addAudio(req.params.boardID,
+        file.name,
+        file.Size,
+        songDuration,
+        function (err) {
+          if (!err) {
+            res.status(200).send("OK");
+          }
+          else {
+            res.send(err);
+          }
+        });
     else if (req.file.originalname.endsWith('mp4'))
-      DownloadDirectory.addVideo(req.params.boardID, file.name, "");
-     res.status(200).send("OK");
- 
+      DownloadDirectory.addVideo(req.params.boardID,
+        file.name,
+        "",
+        function (err) {
+          if (!err) {
+            res.status(200).send("OK");
+          }
+          else {
+            res.send(err);
+          }
+        });
+
   });
 
   fileStream.end(req.file.buffer);

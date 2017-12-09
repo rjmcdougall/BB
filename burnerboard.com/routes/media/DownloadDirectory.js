@@ -7,18 +7,38 @@ const MUSIC_PATH = "BurnerBoardMedia";
 const MEDIA_CATALOG = "DownloadDirectory.json";
 const GOOGLE_CLOUD_BASE_URL = "https://storage.googleapis.com";
 
-exports.getDirectoryJSONPath = function(boardID){
+exports.getDirectoryJSONPath = function (boardID) {
     return format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${MUSIC_PATH}/${boardID}/${MEDIA_CATALOG}`);
-    
+
 }
 
-exports.addVideo = function (boardID, fileName, speechCue) {
+exports.DirectoryJSON = function (boardID, callback) {
 
     var jsonContent;
 
     var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
     const file = bucket.file(filepath);
-    
+
+    file.download(function (err, contents) {
+
+        if (!err) {
+            jsonContent = JSON.parse(contents);
+            callback(null, jsonContent);
+        } else {
+            callback(error, null);
+        }
+
+    });
+}
+
+
+exports.addVideo = function (boardID, fileName, speechCue, callback) {
+
+    var jsonContent;
+
+    var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
+    const file = bucket.file(filepath);
+
     file.download(function (err, contents) {
 
         jsonContent = JSON.parse(contents);
@@ -30,17 +50,15 @@ exports.addVideo = function (boardID, fileName, speechCue) {
         });
 
         writeStream.on('error', (err) => {
-            next(err);
+            callback(err);
         });
 
         writeStream.on('finish', () => {
-            // The public URL can be used to directly access the file via HTTP.
-            //const publicUrl = format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${fileName}`);
         });
 
         for (var i = 0, len = jsonContent.video.length; i < len; i++) {
-            if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)){
-                jsonContent.video.splice(i,1);
+            if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
+                jsonContent.video.splice(i, 1);
                 break;
             }
 
@@ -55,16 +73,18 @@ exports.addVideo = function (boardID, fileName, speechCue) {
         writeStream.write(JSON.stringify(jsonContent));
         writeStream.end();
 
+        callback(null);
+
     });
 }
 
-exports.addAudio = function (boardID, fileName, fileSize, fileLength) {
+exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) {
 
     var jsonContent;
 
     var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
     const file = bucket.file(filepath);
-    
+
     file.download(function (err, contents) {
 
         jsonContent = JSON.parse(contents);
@@ -76,7 +96,7 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength) {
         });
 
         writeStream.on('error', (err) => {
-            next(err);
+            callback(err);
         });
 
         writeStream.on('finish', () => {
@@ -84,8 +104,8 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength) {
         });
 
         for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
-            if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)){
-                jsonContent.audio.splice(i,1);
+            if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
+                jsonContent.audio.splice(i, 1);
                 break;
             }
         }
@@ -100,6 +120,8 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength) {
         writeStream.write(JSON.stringify(jsonContent));
         writeStream.end();
 
+        callback(null);
+        
     });
 
 };
@@ -108,10 +130,10 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength) {
 exports.fileExists = function (boardID, fileName) {
     var jsonContent;
     var doesExist = false;
-    
+
     var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
     const file = bucket.file(filepath);
-   
+
     file.download(function (err, contents) {
 
         jsonContent = JSON.parse(contents);
@@ -137,19 +159,19 @@ exports.deleteFile = function (fileName) {
 
     var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
     const file = bucket.file(filepath);
-   
+
     file.download(function (err, contents) {
 
         jsonContent = JSON.parse(contents);
 
         for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
             if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1))
-                jsonContent.audio.splice(i,1);
+                jsonContent.audio.splice(i, 1);
         }
 
         for (var i = 0, len = jsonContent.video.length; i < len; i++) {
             if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1))
-                jsonContent.video.splice(i,1);
+                jsonContent.video.splice(i, 1);
         }
 
         return doesExist;
@@ -157,66 +179,71 @@ exports.deleteFile = function (fileName) {
 }
 
 //warning: this cannot get the length of MP3 so they default to 1.
-exports.generateNewDirectoryJSON = function(boardID) {
+exports.generateNewDirectoryJSON = function (boardID) {
 
     var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
     const file = bucket.file(filepath);
-   
+
     const fileStream = file.createWriteStream({
-      metadata:{
-        contentType: 'application/json'
-      }
+        metadata: {
+            contentType: 'application/json'
+        }
     });
-  
+
     fileStream.on('error', (err) => {
-      next(err);
+        next(err);
     });
-  
+
     fileStream.on('finish', () => {
     });
-  
+
     // cb function for iterating bucket
-    let cb=(err, files,next,apires) => {
-      
-      var audioArray = [];
-      var videoArray = [];
-      var applicationArray = [];
-      var sectionArray = [];
-  
-      for (var i = 0, len = files.length; i < len; i++) {
-       if(files[i].name.endsWith("mp3")){
-          audioArray.push({URL:format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/${files[i].name}`),
-                            localName:files[i].name.substring(files[i].name.indexOf("/") + 1),
-                            Size:files[i].metadata.size,
-                            Length:1});
-       }
-       else if (files[i].name.endsWith("mp4")){
-        videoArray.push({URL:format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/${files[i].name}`),
-        localName:files[i].name.substring(files[i].name.indexOf("/") + 1),
-        SpeachCue:""});
-       }
-      }
-   
-      applicationArray.push({URL:format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/bb-7.apk?dl=0`),
-      localName:"bb-7.apk?dl=0",
-      Version:"7"});
-  
-      sectionArray.push({audio:audioArray});
-      sectionArray.push({video:videoArray});
-      sectionArray.push({application:applicationArray});
-  
-      fileStream.write(JSON.stringify(sectionArray));
-      fileStream.end();
-  
-      if(!!next)
-      {
-          bucket.getFiles(next,cb);
-      }
+    let cb = (err, files, next, apires) => {
+
+        var audioArray = [];
+        var videoArray = [];
+        var applicationArray = [];
+        var sectionArray = [];
+
+        for (var i = 0, len = files.length; i < len; i++) {
+            if (files[i].name.endsWith("mp3")) {
+                audioArray.push({
+                    URL: format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/${files[i].name}`),
+                    localName: files[i].name.substring(files[i].name.indexOf("/") + 1),
+                    Size: files[i].metadata.size,
+                    Length: 1
+                });
+            }
+            else if (files[i].name.endsWith("mp4")) {
+                videoArray.push({
+                    URL: format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/${files[i].name}`),
+                    localName: files[i].name.substring(files[i].name.indexOf("/") + 1),
+                    SpeachCue: ""
+                });
+            }
+        }
+
+        applicationArray.push({
+            URL: format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/bb-7.apk?dl=0`),
+            localName: "bb-7.apk?dl=0",
+            Version: "7"
+        });
+
+        sectionArray.push({ audio: audioArray });
+        sectionArray.push({ video: videoArray });
+        sectionArray.push({ application: applicationArray });
+
+        fileStream.write(JSON.stringify(sectionArray));
+        fileStream.end();
+
+        if (!!next) {
+            bucket.getFiles(next, cb);
+        }
     }
-  
+
     bucket.getFiles({
-                      autoPaginate: false,
-                      delimiter: '/',
-                      prefix: MUSIC_PATH + '/'
-                    }, cb);
+        autoPaginate: false,
+        delimiter: '/',
+        prefix: MUSIC_PATH + '/'
+    }, cb);
 }
