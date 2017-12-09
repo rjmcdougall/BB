@@ -31,7 +31,7 @@ router.get('/genJSONFromFiles', function (req, res, next) {
 /* GET home page. */
 router.get('/:boardID/listFiles', function (req, res, next) {
 	FileSystem = require('./FileSystem');
-	
+
 	FileSystem.listFiles(req.params.boardID, function(err, fileList){
 		if(err){
 			res.status(500).send("ERROR");
@@ -66,34 +66,27 @@ router.get('/:boardID/upload', (req, res, next) => {
 	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
 });
 
-router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
-	if (!req.file) {
-		res.status(400).send('No file uploaded.');
-		return;
-	}
-
+function AddFile(boardID, uploadedFile, callback){
 	var contenttype = '';
 	var songDuration;
 
-	if (req.file.originalname.endsWith('mp3')) {
+	if (uploadedFile.originalname.endsWith('mp3')) {
 
 		var mp3Duration = require('mp3-duration');
-		mp3Duration(req.file.buffer, function (err, duration) {
-			if (err) return console.log(err.message);
+		mp3Duration(uploadedFile.buffer, function (err, duration) {
+			if (err){
+				callback(err);
+			}
 			songDuration = duration;
 		});
 		contenttype = 'audio/mpeg';
-
 	}
-	else if (req.file.originalname.endsWith('mp4'))
+	else if (uploadedFile.originalname.endsWith('mp4'))
 		contenttype = 'video/mp4';
 
-
-	var filepath = MUSIC_PATH + '/' + req.params.boardID + '/' + req.file.originalname;
+	var filepath = MUSIC_PATH + '/' + boardID + '/' + uploadedFile.originalname;
 
 	const file = bucket.file(filepath);
-
-
 	const fileStream = file.createWriteStream({
 		metadata: {
 			contentType: contenttype
@@ -101,14 +94,14 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 	});
 
 	fileStream.on('error', (err) => {
-		next(err);
+		callback(err);
 	});
 
 	fileStream.on('finish', () => {
 
 		DownloadDirectory = require('./DownloadDirectory');
-		if (req.file.originalname.endsWith('mp3'))
-			DownloadDirectory.addAudio(req.params.boardID,
+		if (uploadedFile.originalname.endsWith('mp3'))
+			DownloadDirectory.addAudio(boardID,
 				file.name,
 				file.Size,
 				songDuration,
@@ -118,15 +111,15 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 							.file(filepath)
 							.makePublic()
 							.then(() => {
-								res.status(200).send("OK");
+								callback(null,{"localName":file.name, "Size":uploadedFile.Size, "Length":songDuration});
 							})
 							.catch(err => {
-								res.status(500).send("ERROR");
+								callback(err,null);
 							});
 
 					}
 					else {
-						res.send(err);
+						callback(err,null);
 					}
 				});
 		else if (req.file.originalname.endsWith('mp4'))
@@ -144,7 +137,24 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 
 	});
 
-	fileStream.end(req.file.buffer);
+	fileStream.end(uploadedFile.buffer);
+}
+
+router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
+	if (!req.file) {
+		res.status(400).send('No file uploaded.');
+		return;
+	}
+
+	AddFile(req.params.boardID, req.file, function(err, savedFile){
+		if(!err){
+			res.status(200).json(savedFile);
+		}
+		else{
+			res.status(500).send("ERROR");
+		}
+	})
+
 
 });
 
