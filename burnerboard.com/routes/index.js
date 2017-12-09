@@ -41,20 +41,6 @@ router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
 		}
 	});
 });
-
-
-
-
-
-
-
-// Imports the Google Cloud client library
-const BigQuery = require('@google-cloud/bigquery');
-const projectId = "burner-board";
-
-// Instantiates a client
-const bigquery = BigQuery({
-	projectId: projectId
-});
+ 
  
 module.exports = router;

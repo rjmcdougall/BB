@@ -30,7 +30,17 @@ router.get('/genJSONFromFiles', function (req, res, next) {
 
 /* GET home page. */
 router.get('/:boardID/listFiles', function (req, res, next) {
-	listFiles(req, res);
+	FileSystem = require('./FileSystem');
+	
+	FileSystem.listFiles(req.params.boardID, function(err, fileList){
+		if(err){
+			res.status(500).send("ERROR");
+		}
+		else {
+			res.status(200).json(fileList);
+		}
+
+	});
 });
 
 /* GET home page. */
@@ -50,25 +60,7 @@ router.get('/:boardID/DownloadDirectoryJSON', function (req, res, next) {
 	);
 });
 
-function listFiles(req, res) {
-	var callback = function (err, files, nextQuery, apiResponse) {
-		if (nextQuery) {
-			// More results exist.
-			bucket.getFiles(nextQuery, callback);
-		}
 
-		res.render('tableMedia', { Datarows: files })
-	};
-
-	// Lists files in the bucket, filtered by a prefix
-	var stuff = bucket
-		.getFiles({
-			autoPaginate: false,
-			delimiter: '/',
-			prefix: MUSIC_PATH + '/' + req.params.boardID + '/'
-		}, callback);
-
-}
 
 router.get('/:boardID/upload', (req, res, next) => {
 	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
