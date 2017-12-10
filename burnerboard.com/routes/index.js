@@ -1,7 +1,18 @@
 var express = require('express');
 var router = express.Router();
+var util = require('util')
+var format = require('util').format;
+var Multer = require('multer');
+var bodyParser = require('body-parser');
+ 
+router.use(bodyParser.json());
 
-router.use('/media', require('./media'));
+const upload = Multer({
+	storage: Multer.memoryStorage(),
+	limits: {
+		fileSize: 20 * 1024 * 1024
+	}
+});
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -9,7 +20,7 @@ router.get('/', function (req, res, next) {
 });
 
 /* GET battery results. */
-router.get('/allBoards', function (req, res, next) {
+router.get('/boards', function (req, res, next) {
 
 	BatteryQueries = require('./BatteryQueries')
 	BatteryQueries.queryBatteryData(function(err, batteryData){
@@ -24,7 +35,7 @@ router.get('/allBoards', function (req, res, next) {
 });
 
 router.get('/boards/:boardID/directoryJSONURL', function (req, res, next) {
-	DownloadDirectory = require('./media/DownloadDirectory')
+	DownloadDirectory = require('./DownloadDirectory')
 	res.status(200).send(DownloadDirectory.getDirectoryJSONPath(req.params.boardID));
 });
 
@@ -41,6 +52,65 @@ router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
 		}
 	});
 });
+
+router.get('/boards/:boardID/upload', (req, res, next) => {
+	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
+});
+
+router.post('/boards/:boardID/upload', upload.single('file'), (req, res, next) => {
+	if (!req.file) {
+		res.status(400).send('No file uploaded.');
+		return;
+	}
+
+	FileSystem = require('./FileSystem');
+
+	FileSystem.addFile(req.params.boardID, req.file, req.body.speechCue, function (err, savedFile) {
+		if (!err) {
+			res.status(200).json(savedFile);
+		}
+		else {
+			res.status(500).send("ERROR");
+		}
+	})
+});
+
+router.get('/boards/:boardID/listFiles', function (req, res, next) {
+	FileSystem = require('./FileSystem');
+
+	FileSystem.listFiles(req.params.boardID, function (err, fileList) {
+		if (err) {
+			res.status(500).send("ERROR");
+		}
+		else {
+			res.status(200).json(fileList);
+		}
+	});
+});
+
+router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
+	DownloadDirectory = require('./DownloadDirectory')
+
+	DownloadDirectory.DirectoryJSON(req.params.boardID
+		, function (err, data) {
+			if (!err) {
+				res.status(200).send(JSON.stringify(data));
+			}
+			else {
+				res.send(err);
+			}
+		}
+	);
+});
  
- 
+/* warning: this will not maintain the length of mp3 files or other metadata 
+IT DOES NOT WORK!!!*/
+router.get('/boards/:boardID/genJSONFromFiles', function (req, res, next) {
+	
+		DownloadDirectory = require('./DownloadDirectory');
+		DownloadDirectory.generateNewDirectoryJSON();
+		res.status(200).send("OK");
+	
+	});
+
 module.exports = router;
