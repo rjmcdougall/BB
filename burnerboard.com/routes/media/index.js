@@ -32,8 +32,8 @@ router.get('/genJSONFromFiles', function (req, res, next) {
 router.get('/:boardID/listFiles', function (req, res, next) {
 	FileSystem = require('./FileSystem');
 
-	FileSystem.listFiles(req.params.boardID, function(err, fileList){
-		if(err){
+	FileSystem.listFiles(req.params.boardID, function (err, fileList) {
+		if (err) {
 			res.status(500).send("ERROR");
 		}
 		else {
@@ -60,87 +60,9 @@ router.get('/:boardID/DownloadDirectoryJSON', function (req, res, next) {
 	);
 });
 
-
-
 router.get('/:boardID/upload', (req, res, next) => {
 	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
 });
-
-function AddFile(boardID, uploadedFile, callback){
-	var contenttype = '';
-	var songDuration;
-	var fileSize = uploadedFile.size;
-	var localName = uploadedFile.originalname;
-
-	if (uploadedFile.originalname.endsWith('mp3')) {
-
-		var mp3Duration = require('mp3-duration');
-		mp3Duration(uploadedFile.buffer, function (err, duration) {
-			if (err){
-				callback(err);
-			}
-			songDuration = duration;
-		});
-		contenttype = 'audio/mpeg';
-	}
-	else if (uploadedFile.originalname.endsWith('mp4'))
-		contenttype = 'video/mp4';
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + uploadedFile.originalname;
-
-	const file = bucket.file(filepath);
-	const fileStream = file.createWriteStream({
-		metadata: {
-			contentType: contenttype
-		}
-	});
-
-	fileStream.on('error', (err) => {
-		callback(err);
-	});
-
-	fileStream.on('finish', () => {
-
-		DownloadDirectory = require('./DownloadDirectory');
-		if (uploadedFile.originalname.endsWith('mp3'))
-			DownloadDirectory.addAudio(boardID,
-				file.name,
-				file.Size,
-				songDuration,
-				function (err) {
-					if (!err) {
-						bucket
-							.file(filepath)
-							.makePublic()
-							.then(() => {
-								callback(null,{"localName":localName, "Size":fileSize, "Length":songDuration});
-							})
-							.catch(err => {
-								callback(err,null);
-							});
-
-					}
-					else {
-						callback(err,null);
-					}
-				});
-		else if (req.file.originalname.endsWith('mp4'))
-			DownloadDirectory.addVideo(req.params.boardID,
-				file.name,
-				req.body.speechCue,
-				function (err) {
-					if (!err) {
-						res.status(200).send("OK");
-					}
-					else {
-						res.send(err);
-					}
-				});
-
-	});
-
-	fileStream.end(uploadedFile.buffer);
-}
 
 router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 	if (!req.file) {
@@ -148,17 +70,18 @@ router.post('/:boardID/upload', upload.single('file'), (req, res, next) => {
 		return;
 	}
 
-	AddFile(req.params.boardID, req.file, function(err, savedFile){
-		if(!err){
+	FileSystem = require('./FileSystem');
+
+	FileSystem.addFile(req.params.boardID, req.file, req.body.speechCue, function (err, savedFile) {
+		if (!err) {
 			res.status(200).json(savedFile);
 		}
-		else{
+		else {
 			res.status(500).send("ERROR");
 		}
 	})
 
 
 });
-
 
 module.exports = router;
