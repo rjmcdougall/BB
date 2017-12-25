@@ -62,12 +62,5 @@
 			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/lighting_streaks.mp4",
 			"localName": "lighting_streaks.mp4"
 		}
-	],
-	"application": [
-		{
-			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/bb-7.apk",
-			"localName": "bb.apk",
-			"Version": 7
-		}
 	]
 }

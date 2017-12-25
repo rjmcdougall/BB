@@ -202,7 +202,6 @@ exports.generateNewDirectoryJSON = function (boardID) {
 
 		var audioArray = [];
 		var videoArray = [];
-		var applicationArray = [];
 		var sectionArray = [];
 
 		for (var i = 0, len = files.length; i < len; i++) {
@@ -223,15 +222,8 @@ exports.generateNewDirectoryJSON = function (boardID) {
 			}
 		}
 
-		applicationArray.push({
-			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/bb-7.apk?dl=0`),
-			localName: "bb-7.apk?dl=0",
-			Version: "7"
-		});
-
 		sectionArray.push({ audio: audioArray });
 		sectionArray.push({ video: videoArray });
-		sectionArray.push({ application: applicationArray });
 
 		fileStream.write(JSON.stringify(sectionArray));
 		fileStream.end();
