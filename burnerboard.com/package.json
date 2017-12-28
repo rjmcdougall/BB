@@ -25,6 +25,6 @@
     "concurrently": "^3.5.1"
   },
   "scripts": {
-    "debug": "concurrently \"cd server && node --inspect=7244 app.js\" \"cd client && npm start\""
+    "debug": "concurrently \"node app.js\" \"cd client && npm start\""
   }
 }
