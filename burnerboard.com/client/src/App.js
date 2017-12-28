@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+//import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-// fake data generator
-const getItems = count =>
-  Array.from({ length: count }, (v, k) => k).map(k => ({
-    id: `item-${k}`,
-    content: `item ${k}`,
+const getItems = count =>  
+  getDirectoryJSON.audio.map(item => ({
+    id: `${item.localName}`,
+    content: `${item.localName}`,
   }));
+
+// const getItems = count =>
+//   Array.from({ length: count }, (v, k) => k).map(k => ({
+//     id: `item-${k}`,
+//     content: `item ${k}`,
+//   }));
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -38,6 +43,73 @@ const getListStyle = isDraggingOver => ({
   width: 250,
 });
 
+const getDirectoryJSON = {
+  "audio": [
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/AvenerMix.mp3",
+      "localName": "AvenerMix.mp3",
+      "Size": 48786286,
+      "Length": 1220
+    },
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/TheBoss.mp3",
+      "localName": "TheBoss.mp3",
+      "Size": 59435886,
+      "Length": 1486
+    }
+  ],
+  "video": [
+    {
+      "Algorithm": "modeMatrix(kMatrixBurnerColor)"
+    },
+    {
+      "Algorithm": "modeMatrix(kMatrixLunarian)"
+    },
+    {
+      "Algorithm": "modeAudioCenter()"
+    },
+    {
+      "Algorithm": "modeFire(kModeFireNormal)"
+    },
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/tunnels.mp4",
+      "localName": "tunnels.mp4",
+      "SpeachCue": "Tunnels"
+    },
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/BouncingComets.mp4",
+      "localName": "BouncingComets.mp4"
+    },
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/RedDevil.mp4",
+      "localName": "RedDevil.mp4"
+    },
+    {
+      "Algorithm": "modeFire(kModeFireDistrikt)"
+    },
+    {
+      "Algorithm": "modeFire(kModeFireTheMan)"
+    },
+    {
+      "Algorithm": "modeAudioBarV()"
+    },
+    {
+      "Algorithm": "modeMatrix(kMatrix9)"
+    },
+    {
+      "Algorithm": "modeAudioTile()"
+    },
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/beyonce.mp4",
+      "localName": "beyonce.mp4"
+    },
+    {
+      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/lighting_streaks.mp4",
+      "localName": "lighting_streaks.mp4"
+    }
+  ]
+};
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -45,6 +117,9 @@ class App extends Component {
       items: getItems(10),
     };
     this.onDragEnd = this.onDragEnd.bind(this);
+
+//    alert(state.items.item[0].toString());
+
   }
 
   onDragEnd(result) {
