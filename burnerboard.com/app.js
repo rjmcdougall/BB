@@ -24,6 +24,11 @@ app.use(cookieParser());
 app.use(stylus.middleware(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.static('./client/build'));
+app.get('/', function (req, res) {
+    res.redirect('/index.html');
+});
+
 app.use('/', index);
 app.use('/users', users);
 
