@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 //import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-const getItems = count =>  
-  getDirectoryJSON.audio.map(item => ({
+const getItems = function() {
+  return getDirectoryJSON.audio.map(item => ({
     id: `${item.localName}`,
     content: `${item.localName}`,
-  }));
- 
+  }))
+};
+
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
@@ -78,15 +79,29 @@ const getDirectoryJSON = {
   ]
 };
 
+const API = '/boards/vega/DownloadDirectoryJSON';
+const DEFAULT_QUERY = 'redux';
+
 class MediaList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: getItems(10),
+      items: getItems(),
     };
     this.onDragEnd = this.onDragEnd.bind(this);
+  }
 
-//    alert(state.items.item[0].toString());
+  componentDidMount() {
+
+    fetch(API)
+      .then(response => response.json())
+      .then(data => this.setState({
+        items: data.audio.map(item => ({
+          id: `${item.localName}`,
+          content: `${item.localName}`,
+        }))
+      }))
+      .catch(error => this.setState({ error}));
 
   }
 
@@ -110,6 +125,7 @@ class MediaList extends Component {
   // Normally you would want to split things out into separate components.
   // But in this example everything is just done in one place for simplicity
   render() {
+
     return (
       <DragDropContext onDragEnd={this.onDragEnd}>
         <Droppable droppableId="droppable">
