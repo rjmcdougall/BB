@@ -19,4 +19,14 @@
             "program": "${workspaceFolder}/bin/www"
         }
     ]
+    ,
+    "compounds": [
+        {
+            "name": "Hybrid",
+            "configurations": [
+                "node",
+                "Chrome"
+            ]
+        }
+    ]
 }

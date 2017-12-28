@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-  "start": "node app.js"
+    "start": "node app.js"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.0.13",
@@ -20,5 +20,11 @@
     "node-ffprobe": "^1.2.2",
     "serve-favicon": "~2.4.5",
     "stylus": "0.54.5"
+  },
+  "devDependencies": {
+    "concurrently": "^3.5.1"
+  },
+  "scripts": {
+    "debug": "concurrently \"cd server && node --inspect=7244 app.js\" \"cd client && npm start\""
   }
 }

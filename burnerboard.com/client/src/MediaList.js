@@ -40,31 +40,25 @@ const getListStyle = isDraggingOver => ({
 const getDirectoryJSON = {
   "audio": [
     {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/AvenerMix.mp3",
-      "localName": "AvenerMix.mp3",
-      "Size": 48786286,
-      "Length": 1220
+      "URL": "None",
+      "localName": "Loading Song 1...",
+      "Size": 0,
+      "Length": 0
     },
     {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/TheBoss.mp3",
-      "localName": "TheBoss.mp3",
-      "Size": 59435886,
-      "Length": 1486
+      "URL": "None",
+      "localName": "Loading Song 2...",
+      "Size": 0,
+      "Length": 0
+    },
+    {
+      "URL": "None",
+      "localName": "Loading Song 3...",
+      "Size": 0,
+      "Length": 0
     }
   ],
   "video": [
-    {
-      "Algorithm": "modeMatrix(kMatrixBurnerColor)"
-    },
-    {
-      "Algorithm": "modeMatrix(kMatrixLunarian)"
-    },
-    {
-      "Algorithm": "modeAudioCenter()"
-    },
-    {
-      "Algorithm": "modeFire(kModeFireNormal)"
-    },
     {
       "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/tunnels.mp4",
       "localName": "tunnels.mp4",
@@ -80,26 +74,6 @@ const getDirectoryJSON = {
     },
     {
       "Algorithm": "modeFire(kModeFireDistrikt)"
-    },
-    {
-      "Algorithm": "modeFire(kModeFireTheMan)"
-    },
-    {
-      "Algorithm": "modeAudioBarV()"
-    },
-    {
-      "Algorithm": "modeMatrix(kMatrix9)"
-    },
-    {
-      "Algorithm": "modeAudioTile()"
-    },
-    {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/beyonce.mp4",
-      "localName": "beyonce.mp4"
-    },
-    {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/lighting_streaks.mp4",
-      "localName": "lighting_streaks.mp4"
     }
   ]
 };
