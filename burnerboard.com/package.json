@@ -25,6 +25,8 @@
     "concurrently": "^3.5.1"
   },
   "scripts": {
-    "debug": "concurrently \"node app.js\" \"cd client && npm start\""
-  }
+    "debug": "concurrently \"node app.js\" \"cd client && npm start\"",
+    "start": "node app.js",
+    "postinstall": "cd client && npm install && npm run build"
+  } 
 }
