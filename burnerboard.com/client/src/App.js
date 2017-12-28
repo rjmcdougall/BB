@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import MediaList from './MediaList';
+import GlobalMenu from './GlobalMenu';
 
 //import ReactDOM from 'react-dom';
 
@@ -13,10 +14,11 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <MediaList />
+        <GlobalMenu />
       </div>
     );
   }
 }
 
 export default App;
+

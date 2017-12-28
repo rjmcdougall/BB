@@ -80,7 +80,6 @@ const getDirectoryJSON = {
 };
 
 const API = '/boards/vega/DownloadDirectoryJSON';
-const DEFAULT_QUERY = 'redux';
 
 class MediaList extends Component {
   constructor(props) {
