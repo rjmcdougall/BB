@@ -88,6 +88,7 @@ class MediaList extends Component {
       currentBoard: props.currentBoard,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
+    
   }
 
   componentDidMount() {
@@ -105,7 +106,7 @@ class MediaList extends Component {
       .catch(error => this.setState({ error}));
 
   }
-
+ 
   onDragEnd(result) {
     // dropped outside the list
     if (!result.destination) {
@@ -121,6 +122,24 @@ class MediaList extends Component {
     this.setState({
       items,
     });
+
+    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSONAudio';
+
+    var audioArray  = this.state.items.map(item => (
+        item.id
+      ));
+
+    fetch(API, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({audioArray: audioArray})
+    }).then((res) => res.json())
+      .then((data) => console.log(data))
+      .catch((err) => console.log(err));
+
   }
 
   // Normally you would want to split things out into separate components.

@@ -102,7 +102,23 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
 		}
 	);
 });
+
+router.post('/boards/:boardID/DownloadDirectoryJSONAudio', function (req, res, next) {
+	DownloadDirectory = require('./DownloadDirectory')
  
+	var audioArray = req.body.audioArray;
+
+	DownloadDirectory.reorderAudio(req.params.boardID, audioArray, function (err, data) {
+		if (!err) {
+			res.status(200).send(JSON.stringify(data));
+		}
+		else {
+			res.send(err);
+		}
+	}
+	);
+});
+
 /* warning: this will not maintain the length of mp3 files or other metadata 
 IT DOES NOT WORK!!!*/
 router.get('/boards/:boardID/genJSONFromFiles', function (req, res, next) {

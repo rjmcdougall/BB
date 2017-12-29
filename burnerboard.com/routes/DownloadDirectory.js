@@ -78,6 +78,51 @@ exports.addVideo = function (boardID, fileName, speechCue, callback) {
 	});
 }
 
+exports.reorderAudio = function(boardID, audioArray, callback){
+
+	var jsonContent;
+	var newAudioArray = [];
+
+	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
+	const file = bucket.file(filepath);
+
+	file.download(function (err, contents) {
+
+		jsonContent = JSON.parse(contents);
+
+		const writeStream = file.createWriteStream({
+			metadata: {
+				contentType: 'application/json'
+			}
+		});
+
+		writeStream.on('error', (err) => {
+			callback(err);
+		});
+
+		writeStream.on('finish', () => {
+
+		});
+
+		for(var i = 0, len = audioArray.length; i < len; i++){
+			console.log(audioArray[i]);
+			var result = jsonContent.audio.filter(function (element) {
+				return element.localName === audioArray[i];
+				console.log("found" + audioArray[i])
+			});
+			newAudioArray.push(result[0]);
+		}
+
+		jsonContent["audio"] = newAudioArray;
+
+		writeStream.write(JSON.stringify(jsonContent));
+		writeStream.end();
+
+		callback(null, newAudioArray);
+
+	});
+}
+
 exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) {
 
 	var jsonContent;
