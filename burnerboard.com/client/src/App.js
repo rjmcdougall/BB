@@ -15,6 +15,7 @@ class App extends Component {
   render() {
     return (
       <div className="App" style={{ margin: 0 }}>
+        <GlobalMenu />
         <BoardGrid />
       </div>
     );

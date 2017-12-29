@@ -110,7 +110,7 @@ class GlobalMenu extends Component {
                             </MenuItem>))
                         }
                     </SubMenu>
-                    <SubMenu title={<span>Options</span>} key="4">
+                    <SubMenu title={<span>Global</span>} key="4">
                         <MenuItem key="2-1">Current Status</MenuItem>
                         <MenuItem key="2-2">Reorder Audio</MenuItem>
                         <MenuItem key="2-3">Reorder Video</MenuItem>
