@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import MediaList from './MediaList';
 import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
+import BatteryHistoryGrid from './BatteryHistoryGrid';
 
 //import ReactDOM from 'react-dom';
 
@@ -35,9 +36,9 @@ class App extends Component {
   render() {
 
     let appBody = null;
-console.log(this.state.currentAppBody);
+    console.log(this.state.currentAppBody);
 
-var myState = this.state.currentBoard;
+    var myState = this.state.currentBoard;
 
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
@@ -45,12 +46,13 @@ var myState = this.state.currentBoard;
         appBody = <BoardGrid />;
         break;
       case "AppBody-BatteryHistory":
-        appBody = <div>not implemented...</div>;
+        console.log("IN BatteryHistory SWITCH");
+        appBody = <BatteryHistoryGrid currentBoard={myState} />;
         break;
       case "AppBody-ReorderAudio":
-      console.log("IN reorder audio SWITCH");
-      appBody = <MediaList currentBoard={myState}/>;
-      break;
+        console.log("IN reorder audio SWITCH");
+        appBody = <MediaList currentBoard={myState} />;
+        break;
       case "AppBody-ReorderVideo":
         appBody = <div>not implemented...</div>;
         break;

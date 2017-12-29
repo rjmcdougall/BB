@@ -103,13 +103,6 @@ class GlobalMenu extends Component {
         console.log('onOpenChange', value);
     };
 
-    // handleSelect(info) {
-    //     console.log(info);
-    //     console.log(`selected ${info.key}`);
-    // }
-
-
-
     render() {
         console.log("rendering in menu " + this.state.currentBoard);
  
@@ -128,7 +121,7 @@ class GlobalMenu extends Component {
                         }
                     </SubMenu>
                     <SubMenu disabled={optionsDisabled} title={<span>Options</span>} key="2">
-                        <MenuItem disabled={true} key="AppBody-BatteryHistory">Battery History</MenuItem>
+                        <MenuItem key="AppBody-BatteryHistory">Battery History</MenuItem>
                         <MenuItem key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
                         <MenuItem disabled={true} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
                         <MenuItem disabled={true} key="AppBody-UploadFromDesktop">Upload From Desktop</MenuItem>
