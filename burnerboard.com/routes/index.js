@@ -137,6 +137,22 @@ router.post('/boards/:boardID/DownloadDirectoryJSONAudio', function (req, res, n
 	);
 });
 
+router.post('/boards/:boardID/DownloadDirectoryJSONVideo', function (req, res, next) {
+	DownloadDirectory = require('./DownloadDirectory')
+ 
+	var videoArray = req.body.videoArray;
+
+	DownloadDirectory.reorderVideo(req.params.boardID, videoArray, function (err, data) {
+		if (!err) {
+			res.status(200).send(JSON.stringify(data));
+		}
+		else {
+			res.send(err);
+		}
+	}
+	);
+});
+
 /* warning: this will not maintain the length of mp3 files or other metadata 
 IT DOES NOT WORK!!!*/
 router.get('/boards/:boardID/genJSONFromFiles', function (req, res, next) {

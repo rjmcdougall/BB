@@ -123,6 +123,51 @@ exports.reorderAudio = function(boardID, audioArray, callback){
 	});
 }
 
+exports.reorderVideo = function(boardID, videoArray, callback){
+
+	var jsonContent;
+	var newVideoArray = [];
+
+	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
+	const file = bucket.file(filepath);
+
+	file.download(function (err, contents) {
+
+		jsonContent = JSON.parse(contents);
+
+		const writeStream = file.createWriteStream({
+			metadata: {
+				contentType: 'application/json'
+			}
+		});
+
+		writeStream.on('error', (err) => {
+			callback(err);
+		});
+
+		writeStream.on('finish', () => {
+
+		});
+
+		for(var i = 0, len = videoArray.length; i < len; i++){
+			console.log(videoArray[i]);
+			var result = jsonContent.video.filter(function (element) {
+				return element.localName === videoArray[i] || element.Algorithm === videoArray[i];
+				console.log("found" + videoArray[i]);
+			});
+			newVideoArray.push(result[0]);
+		}
+
+		jsonContent["video"] = newVideoArray;
+
+		writeStream.write(JSON.stringify(jsonContent));
+		writeStream.end();
+
+		callback(null, newVideoArray);
+
+	});
+}
+
 exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) {
 
 	var jsonContent;

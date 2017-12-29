@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import MediaList from './MediaList';
+import AudioList from './AudioList';
+import VideoList from './VideoList';
 import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
@@ -48,28 +49,32 @@ class App extends Component {
         break;
       case "AppBody-ReorderAudio":
         console.log("IN reorder audio SWITCH");
-        appBody = <MediaList currentBoard={myState} />;
+        appBody = <AudioList currentBoard={myState} />;
+        break;
+      case "AppBody-ReorderVideo":
+        console.log("IN reorder audio SWITCH");
+        appBody = <VideoList currentBoard={myState} />;
         break;
       case "AppBody-LoadFromGDrive":
         console.log("IN load from g drive SWITCH");
         appBody = <GoogleDriveMediaPicker />;
-        break;      
+        break;
       default:
-      if(myState!="Select Board"){
-        appBody = <div style={{
-          'backgroundColor': 'lightblue', 
-          'margin': '1cm 1cm 1cm 1cm',
-          'padding':'10px 5px 15px 20px'
-        }}><p>You selected {myState}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
-      }
-      else{
-        appBody = <div style={{
-          'backgroundColor': 'lightblue', 
-          'margin': '1cm 1cm 1cm 1cm',
-          'padding':'10px 5px 15px 20px'
-        }}><p>Global options available.</p> <p>Please select a board for board-specific options.</p></div>;
-      }
-         break;
+        if (myState != "Select Board") {
+          appBody = <div style={{
+            'backgroundColor': 'lightblue',
+            'margin': '1cm 1cm 1cm 1cm',
+            'padding': '10px 5px 15px 20px'
+          }}><p>You selected {myState}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
+        }
+        else {
+          appBody = <div style={{
+            'backgroundColor': 'lightblue',
+            'margin': '1cm 1cm 1cm 1cm',
+            'padding': '10px 5px 15px 20px'
+          }}><p>Global options available.</p> <p>Please select a board for board-specific options.</p></div>;
+        }
+        break;
     };
 
     console.log("rendering in app " + appBody);

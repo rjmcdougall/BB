@@ -2,11 +2,23 @@ import React, { Component } from 'react';
 //import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-const getItems = function() {
-  return getDirectoryJSON.audio.map(item => ({
-    id: `${item.localName}`,
-    content: `${item.localName}`,
-  }))
+const getItems = function () {
+
+  console.log(getDirectoryJSON.video);
+
+  return getDirectoryJSON.video.map(function (item) {
+    if (item.localName != null)
+      return {
+        id: `${item.localName}`,
+        content: `${item.localName}`,
+      }
+    else {
+      return {
+        id: `${item.Algorithm}`,
+        content: `${item.Algorithm}`,
+      }
+    }
+  })
 };
 
 // a little function to help us with reordering the result
@@ -80,7 +92,7 @@ const getDirectoryJSON = {
 };
 
 
-class MediaList extends Component {
+class VideoList extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -88,22 +100,33 @@ class MediaList extends Component {
       currentBoard: props.currentBoard,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
-    
+
+    console.log("in constructor");
+   console.log(this.state.items);
   }
 
   componentDidMount() {
 
     var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSON';
-
+ 
     fetch(API)
       .then(response => response.json())
       .then(data => this.setState({
-        items: data.audio.map(item => ({
-          id: `${item.localName}`,
-          content: `${item.localName}`,
-        }))
+        items: data.video.map(function (item) {
+          if (item.localName != null)
+            return {
+              id: `${item.localName}`,
+              content: `${item.localName}`,
+            };
+          else {
+            return {
+              id: `${item.Algorithm}`,
+              content: `${item.Algorithm}`,
+            };
+          }
+        })
       }))
-      .catch(error => this.setState({ error}));
+      .catch(error => this.setState({ error }));
 
   }
  
@@ -123,9 +146,9 @@ class MediaList extends Component {
       items,
     });
 
-    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSONAudio';
+    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSONVideo';
 
-    var audioArray  = this.state.items.map(item => (
+    var videoArray  = this.state.items.map(item => (
         item.id
       ));
 
@@ -135,7 +158,7 @@ class MediaList extends Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({audioArray: audioArray})
+      body: JSON.stringify({videoArray: videoArray})
     }).then((res) => res.json())
       .then((data) => console.log(data))
       .catch((err) => console.log(err));
@@ -182,4 +205,4 @@ class MediaList extends Component {
   }
 }
 
-export default MediaList;
+export default VideoList;

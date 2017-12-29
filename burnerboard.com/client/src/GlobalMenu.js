@@ -78,9 +78,9 @@ class GlobalMenu extends Component {
                     <SubMenu disabled={optionsDisabled} title={<span>Options</span>} key="2">
                         <MenuItem key="AppBody-BatteryHistory">Battery History</MenuItem>
                         <MenuItem key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
-                        <MenuItem disabled={true} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
+                        <MenuItem key="AppBody-ReorderVideo">Reorder Video</MenuItem>
                         <MenuItem disabled={true} key="AppBody-UploadFromDesktop">Upload From Desktop</MenuItem>
-                        <MenuItem disabled={true}  key="AppBody-LoadFromGDrive">Load From G Drive</MenuItem>
+                        <MenuItem key="AppBody-LoadFromGDrive">Load From G Drive</MenuItem>
                         <MenuItem disabled={true} key="AppBody-LoadFromDropBox">Load From DropBox</MenuItem>
                     
                     </SubMenu>
