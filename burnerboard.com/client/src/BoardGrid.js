@@ -2,7 +2,7 @@
 //const exampleWrapper = require('../components/exampleWrapper');
 import React, { Component } from 'react';
 import ReactDataGrid from 'react-data-grid';
-
+import 'bootstrap/dist/css/bootstrap.css';
 import PropTypes from 'prop-types';
 
 // Custom Formatter component
