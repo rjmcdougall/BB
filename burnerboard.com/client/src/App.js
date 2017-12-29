@@ -13,7 +13,7 @@ class App extends Component {
   // But in this example everything is just done in one place for simplicity
   render() {
     return (
-      <div className="App">
+      <div className="App" style={{ margin: 0 }}>
         <GlobalMenu />
       </div>
     );
