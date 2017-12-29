@@ -47,7 +47,6 @@ const getItemStyle = (draggableStyle, isDragging) => ({
 const getListStyle = isDraggingOver => ({
   background: isDraggingOver ? 'lightblue' : 'lightgrey',
   padding: grid,
-  width: 250,
 });
 
 const getDirectoryJSON = {
