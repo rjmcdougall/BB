@@ -3,6 +3,7 @@ import MediaList from './MediaList';
 import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
+import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 
 //import ReactDOM from 'react-dom';
 
@@ -53,9 +54,10 @@ class App extends Component {
         console.log("IN reorder audio SWITCH");
         appBody = <MediaList currentBoard={myState} />;
         break;
-      case "AppBody-ReorderVideo":
-        appBody = <div>not implemented...</div>;
-        break;
+      case "AppBody-LoadFromGDrive":
+        console.log("IN load from g drive SWITCH");
+        appBody = <GoogleDriveMediaPicker />;
+        break;      
       default:
         appBody = <div>not implemented...</div>;
         break;
