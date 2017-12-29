@@ -89,6 +89,7 @@ class BoardGrid extends React.Component {
     };
 
     render() {
+        console.log("Rendering BoardGrid");
         return (
             <ReactDataGrid
                 columns={this._columns}
