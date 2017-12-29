@@ -37,6 +37,8 @@ class App extends Component {
     let appBody = null;
 console.log(this.state.currentAppBody);
 
+var myState = this.state.currentBoard;
+
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
         console.log("IN BOARDGRID SWITCH");
@@ -46,8 +48,9 @@ console.log(this.state.currentAppBody);
         appBody = <div>not implemented...</div>;
         break;
       case "AppBody-ReorderAudio":
-        appBody = <div>not implemented...</div>;
-        break;
+      console.log("IN reorder audio SWITCH");
+      appBody = <MediaList currentBoard={myState}/>;
+      break;
       case "AppBody-ReorderVideo":
         appBody = <div>not implemented...</div>;
         break;
@@ -58,7 +61,6 @@ console.log(this.state.currentAppBody);
 
     console.log("rendering in app " + appBody);
 
-    var myState = this.state.currentBoard;
 
     return (
       <div className="App" style={{ margin: 0 }}>

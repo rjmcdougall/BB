@@ -113,6 +113,11 @@ class GlobalMenu extends Component {
     render() {
         console.log("rendering in menu " + this.state.currentBoard);
  
+        var optionsDisabled=false;
+        if(this.state.currentBoard=="Select Board"){
+            optionsDisabled=true;
+        };
+
         return (
             <div style={{ margin: 0 }}>
                 <Menu mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="click" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
@@ -122,18 +127,18 @@ class GlobalMenu extends Component {
                             </MenuItem>))
                         }
                     </SubMenu>
-                    <SubMenu title={<span>Options</span>} key="2">
-                        <MenuItem disabled="true" key="AppBody-BatteryHistory">Battery History</MenuItem>
-                        <MenuItem disabled="true" key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
-                        <MenuItem disabled="true" key="AppBody-ReorderVideo">Reorder Video</MenuItem>
-                        <MenuItem disabled="true" key="AppBody-UploadFromDesktop">Upload From Desktop</MenuItem>
-                        <MenuItem disabled="true" key="AppBody-LoadFromGDrive">Load From G Drive</MenuItem>
-                        <MenuItem disabled="true" key="AppBody-LoadFromDropBox">Load From DropBox</MenuItem>
+                    <SubMenu disabled={optionsDisabled} title={<span>Options</span>} key="2">
+                        <MenuItem disabled={true} key="AppBody-BatteryHistory">Battery History</MenuItem>
+                        <MenuItem key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
+                        <MenuItem disabled={true} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
+                        <MenuItem disabled={true} key="AppBody-UploadFromDesktop">Upload From Desktop</MenuItem>
+                        <MenuItem disabled={true} key="AppBody-LoadFromGDrive">Load From G Drive</MenuItem>
+                        <MenuItem disabled={true} key="AppBody-LoadFromDropBox">Load From DropBox</MenuItem>
                     
                     </SubMenu>
                     <SubMenu title={<span>Global</span>} key="3">
                         <MenuItem key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
-                        <MenuItem disabled="true" key="AppBody-MapEm">Map 'Em</MenuItem>
+                        <MenuItem disabled={true} key="AppBody-MapEm">Map 'Em</MenuItem>
                         
                     </SubMenu>
                 </Menu>

@@ -79,18 +79,20 @@ const getDirectoryJSON = {
   ]
 };
 
-const API = '/boards/vega/DownloadDirectoryJSON';
 
 class MediaList extends Component {
   constructor(props) {
     super(props);
     this.state = {
       items: getItems(),
+      currentBoard: props.currentBoard,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
   }
 
   componentDidMount() {
+
+    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSON';
 
     fetch(API)
       .then(response => response.json())

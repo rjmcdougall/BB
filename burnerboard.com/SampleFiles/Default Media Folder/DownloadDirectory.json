@@ -1,0 +1,32 @@
+{
+	"audio": [],
+	"video": [
+		{
+			"Algorithm": "modeMatrix(kMatrixBurnerColor)"
+		},
+		{
+			"Algorithm": "modeMatrix(kMatrixLunarian)"
+		},
+		{
+			"Algorithm": "modeAudioCenter()"
+		},
+		{
+			"Algorithm": "modeFire(kModeFireNormal)"
+		},
+		{
+			"Algorithm": "modeFire(kModeFireDistrikt)"
+		},
+		{
+			"Algorithm": "modeFire(kModeFireTheMan)"
+		},
+		{
+			"Algorithm": "modeAudioBarV()"
+		},
+		{
+			"Algorithm": "modeMatrix(kMatrix9)"
+		},
+		{
+			"Algorithm": "modeAudioTile()"
+		}
+	]
+}
