@@ -75,7 +75,7 @@ class GlobalMenu extends Component {
         };
 
         this.onOpenChange = this.onOpenChange.bind(this);
-        this.handleSelect = this.handleSelect.bind(this);
+        this.handleSelect = this.props.handleSelect.bind(this);
     }
 
     componentDidMount() {
@@ -95,25 +95,28 @@ class GlobalMenu extends Component {
         console.log('onOpenChange', value);
     };
 
-    handleSelect(info) {
-        console.log(info);
-        console.log(`selected ${info.key}`);
-    }
+    // handleSelect(info) {
+    //     console.log(info);
+    //     console.log(`selected ${info.key}`);
+    // }
 
     render() {
         return (
             <div style={{ margin: 0 }}>
                 <Menu mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="click" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
-                    <SubMenu title={<span>Boards</span>} key="1">
+                    <SubMenu title={<span>Select Board</span>} key="1">
                         {this.state.boardNames.map(item => (
                             <MenuItem key={item.board_name}>{item.board_name}
                             </MenuItem>))
                         }
                     </SubMenu>
-                    <SubMenu title={<span>Global</span>} key="4">
-                        <MenuItem key="2-1">Current Status</MenuItem>
-                        <MenuItem key="2-2">Reorder Audio</MenuItem>
-                        <MenuItem key="2-3">Reorder Video</MenuItem>
+                    <SubMenu title={<span>Options</span>} key="2">
+                        <MenuItem key="BatteryHistory">Battery History</MenuItem>
+                        <MenuItem key="ReorderAudio">Reorder Audio</MenuItem>
+                        <MenuItem key="ReorderVideo">Reorder Video</MenuItem>
+                    </SubMenu>
+                    <SubMenu title={<span>Global</span>} key="3">
+                        <MenuItem key="CurrentStatuses">Current Statuses</MenuItem>
                     </SubMenu>
                 </Menu>
             </div>

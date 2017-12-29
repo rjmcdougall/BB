@@ -9,14 +9,50 @@ class App extends Component {
   // constructor(props) {
   //   super(props);
   // }
+  constructor(props) {
+    super(props);
 
-  // Normally you would want to split things out into separate components.
-  // But in this example everything is just done in one place for simplicity
+    this.state = {
+      currentAppBody: "none",
+  };
+
+    this.handleSelect = this.handleSelect.bind(this);
+    
+}
+
+  handleSelect(info) {
+
+    console.log(`selected ${info.key}`);
+    this.setState({currentAppBody: info.key});
+
+}
+  
   render() {
+
+    let appBody = null;
+
+    switch (this.state.currentAppBody) {
+      case "CurrentStatuses":
+        appBody = <BoardGrid />;
+        break;
+      case "BatteryHistory":
+        appBody = <div>not implemented...</div>;
+        break;
+      case "ReorderAudio":
+        appBody = <div>not implemented...</div>;
+        break;
+      case "ReorderVideo":
+        appBody = <div>not implemented...</div>;
+        break;
+      default:
+        appBody = <div>not implemented...</div>;
+        break;
+    };
+
     return (
       <div className="App" style={{ margin: 0 }}>
-        <GlobalMenu />
-        <BoardGrid />
+        <GlobalMenu handleSelect={this.handleSelect} />
+        {appBody}
       </div>
     );
   }

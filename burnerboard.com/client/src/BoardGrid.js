@@ -5,9 +5,9 @@ import PropTypes from 'prop-types';
 
 // Custom Formatter component
 class PercentCompleteFormatter extends React.Component {
-    static propTypes = {
-        value: PropTypes.number.isRequired
-    };
+    // static propTypes = {
+    //     value: PropTypes.number.isRequired
+    // };
 
     render() {
         const percentComplete = this.props.value + '%';
@@ -25,7 +25,7 @@ const boardsJSON = {
         {
             board_name: "loading boards...",
             last_seen: "",
-            is_online: false,
+            is_online: "false",
             battery_level: 0
         }
     ]
@@ -99,3 +99,4 @@ class BoardGrid extends React.Component {
 }
 
 export default BoardGrid;
+
