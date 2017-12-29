@@ -3,11 +3,7 @@ import ReactDataGrid from 'react-data-grid';
 import 'bootstrap/dist/css/bootstrap.css';
 import PropTypes from 'prop-types';
 
-// Custom Formatter component
 class PercentCompleteFormatter extends React.Component {
-    // static propTypes = {
-    //     value: PropTypes.number.isRequired
-    // };
 
     render() {
         const percentComplete = this.props.value + '%';
@@ -23,9 +19,9 @@ class PercentCompleteFormatter extends React.Component {
 const batteryHistoryJSON = {
     batteryHistory: [
         {
-            board_name: "loading boards...",
+            board_name: "loading...",
             BatteryLevel: 0,
-            TimeBucket: ""
+            TimeBucket: "loading..."
         }
     ]
 };
@@ -79,6 +75,8 @@ class BatteryHistoryGrid extends React.Component {
 
     render() {
         console.log("Rendering BoardGrid");
+        console.log(this.state.boardData);
+
         return (
             <ReactDataGrid
                 columns={this._columns}

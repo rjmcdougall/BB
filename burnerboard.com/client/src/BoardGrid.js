@@ -3,11 +3,7 @@ import ReactDataGrid from 'react-data-grid';
 import 'bootstrap/dist/css/bootstrap.css';
 import PropTypes from 'prop-types';
 
-// Custom Formatter component
 class PercentCompleteFormatter extends React.Component {
-    // static propTypes = {
-    //     value: PropTypes.number.isRequired
-    // };
 
     render() {
         const percentComplete = this.props.value + '%';
@@ -23,15 +19,15 @@ class PercentCompleteFormatter extends React.Component {
 const boardsJSON = {
     boards: [
         {
-            board_name: "loading boards...",
-            last_seen: "",
-            is_online: "false",
+            board_name: "loading...",
+            last_seen: "loading...",
+            is_online: "loading...",
             battery_level: 0
         }
     ]
 };
 
-const API = '/boards';
+const API = '/boards/currentStatuses';
 
 class BoardGrid extends React.Component {
     constructor(props, context) {

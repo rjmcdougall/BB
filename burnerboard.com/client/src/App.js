@@ -5,12 +5,8 @@ import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
 import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 
-//import ReactDOM from 'react-dom';
-
 class App extends Component {
-  // constructor(props) {
-  //   super(props);
-  // }
+
   constructor(props) {
     super(props);
 
@@ -59,8 +55,21 @@ class App extends Component {
         appBody = <GoogleDriveMediaPicker />;
         break;      
       default:
-        appBody = <div>not implemented...</div>;
-        break;
+      if(myState!="Select Board"){
+        appBody = <div style={{
+          'backgroundColor': 'lightblue', 
+          'margin': '1cm 1cm 1cm 1cm',
+          'padding':'10px 5px 15px 20px'
+        }}><p>You selected {myState}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
+      }
+      else{
+        appBody = <div style={{
+          'backgroundColor': 'lightblue', 
+          'margin': '1cm 1cm 1cm 1cm',
+          'padding':'10px 5px 15px 20px'
+        }}><p>Global options available.</p> <p>Please select a board for board-specific options.</p></div>;
+      }
+         break;
     };
 
     console.log("rendering in app " + appBody);

@@ -22,6 +22,24 @@ router.get('/', function (req, res, next) {
 /* GET battery results. */
 router.get('/boards', function (req, res, next) {
 
+	var boardNames = [
+		"akula",
+		"artemis",
+		"candy",
+		"monaco",
+		"pegasus",
+		"ratchet",
+		"squeeze",
+		"vega"
+	]
+
+	res.status(200).json(boardNames)
+
+});
+
+/* GET battery results. */
+router.get('/boards/currentStatuses', function (req, res, next) {
+
 	BatteryQueries = require('./BatteryQueries')
 	BatteryQueries.queryBatteryData(function(err, batteryData){
 		if(err){
