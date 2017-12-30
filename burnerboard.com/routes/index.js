@@ -137,6 +137,83 @@ router.post('/boards/:boardID/DownloadDirectoryJSONAudio', function (req, res, n
 	);
 });
 
+router.post('/boards/:boardID/AddFileFromGDrive', function (req, res, next) {
+
+	var tempFilePath = 'BurnerBoardMedia' + '/vega/' + 'tmpGDriveFileMetadata.json';
+
+	var fileId = req.body.fileId;
+	var oauthToken = req.body.oauthToken;
+
+	const Storage = require('@google-cloud/storage');
+	const storage = Storage();
+	const bucket = storage.bucket('burner-board');
+
+	var google = require('googleapis');
+	var drive = google.drive('v2');
+
+	const file = bucket.file(tempFilePath);
+	const fileStream = file.createWriteStream();
+
+	var jsonMetaata;
+	
+	drive.files.get({
+		fileId: fileId,
+		'access_token': oauthToken,
+		//	alt: 'media'
+	})
+		.on('end', function (dest) {
+			console.log('Done');
+			var jsonContent;
+			var fileSize;
+			var mimeType;
+			var title;
+
+			var file2 = bucket.file(tempFilePath);
+			file2.download(function (err, contents) {
+
+				if (!err) {
+					jsonContent = JSON.parse(contents);
+					fileSize = jsonContent.fileSize;
+					mimeType = jsonContent.mimeType;
+					title = jsonContent.title;
+
+					// now get the real file and save it.
+					var tempFilePath = 'BurnerBoardMedia' + '/vega/' + title;
+					var file3 = bucket.file(tempFilePath);
+					var fileStream3 = file3.createWriteStream({
+						metadata: {
+							contentType: mimeType
+						}
+					});
+				
+					drive.files.get({
+						fileId: fileId,
+						'access_token': oauthToken,
+						alt: 'media'
+					})
+					.on('end', function (dest) {
+						console.log("writing file");
+
+						res.status(200).send("OK");
+					})
+					.on('error', function (err) {
+						console.log('Error during download', err);
+					})
+					.pipe(fileStream3);
+
+					//callback(null, jsonContent);
+				} else {
+					//callback(error, null);
+				}
+			});
+		})
+		.on('error', function (err) {
+			console.log('Error during download', err);
+		})
+		.pipe(fileStream);
+
+});
+
 router.post('/boards/:boardID/DownloadDirectoryJSONVideo', function (req, res, next) {
 	DownloadDirectory = require('./DownloadDirectory')
  
