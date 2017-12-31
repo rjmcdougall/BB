@@ -2,6 +2,7 @@
 const Storage = require('@google-cloud/storage');
 const storage = Storage();
 const bucket = storage.bucket('burner-board');
+const BUCKET_NAME = 'burner-board';
 var format = require('util').format;
 const MUSIC_PATH = "BurnerBoardMedia";
 const MEDIA_CATALOG = "DownloadDirectory.json";
@@ -65,7 +66,7 @@ exports.addVideo = function (boardID, fileName, speechCue, callback) {
 		}
 
 		jsonContent.video.push({
-			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${fileName}`),
+			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
 			localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
 			SpeachCue: speechCue
 		});
@@ -201,7 +202,7 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) 
 		}
 
 		jsonContent.audio.push({
-			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${fileName}`),
+			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
 			localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
 			Size: fileSize,
 			Length: fileLength
