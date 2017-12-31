@@ -139,24 +139,22 @@ router.post('/boards/:boardID/DownloadDirectoryJSONAudio', function (req, res, n
 
 router.get('/boards/:boardID/AddFileFromGDrive', function (req, res, next) {
 
-	var oAuthToken = 'ya29.Glw0BTObngm3UV7mtX7HWmtHhaw1tsHiEWtUlesBg--PxjGX4WFL-VeA-6VZg4xtM_LerlLomvbmJlTmAytvJCdGLe8kYtlt7WxS7xxRKY2PYChyfntRwNOUdGUKQA';
+	var oAuthToken = 'ya29.Glw0BTczgRoygNAePtuBdxMqUMYgzwMCy6yr2LvZ4VQfHV8vlgd_nYB6HvXkXvC-QpLvdLdEAKFF9fMEkFHLzumj0clizXBsOpAQT7dTKqEV1kodOo0RKlRK_4IrPA';
 //var oAuthToken = req.body.oauthToken;
 
-	var fileId = '1QeWTJrL-LXYzHqrtuhPs_jdBH2N458_s';
+	var fileId = '1aSXoRfidHo33nlVRDha9xdrKaPKeQJCS';
 //	var fileId = req.body.fileId;
 
 	FileSystem = require('./FileSystem');
 
-	FileSystem.addGDriveFile('vega', fileId, oAuthToken, "", res);
-	
-	// function (err, savedFile) {
-	// 	if (!err) {
-	// 		res.status(200).json(savedFile);
-	// 	}
-	// 	else {
-	// 		res.status(500).send("ERROR");
-	// 	}
-	// }) ;
+	FileSystem.addGDriveFile('vega', fileId, oAuthToken, "", function (err, savedFile) {
+		if (!err) {
+			res.status(200).json(savedFile);
+		}
+		else {
+			res.status(500).send("ERROR");
+		}
+	}) ;
  
 
 

@@ -51,10 +51,11 @@ exports.addVideo = function (boardID, fileName, speechCue, callback) {
 		});
 
 		writeStream.on('error', (err) => {
-			callback(err);
+			callback(err,null);
 		});
 
 		writeStream.on('finish', () => {
+			file.makePublic();
 		});
 
 		for (var i = 0, len = jsonContent.video.length; i < len; i++) {
@@ -65,16 +66,19 @@ exports.addVideo = function (boardID, fileName, speechCue, callback) {
 
 		}
 
-		jsonContent.video.push({
+		var newElement = {
 			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
 			localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
 			SpeachCue: speechCue
-		});
+		};
+
+		jsonContent.video.push(newElement);
 
 		writeStream.write(JSON.stringify(jsonContent));
 		writeStream.end();
 
-		callback(null);
+		callback(null,{newElement: newElement,
+						DirectoryJSON: jsonContent});
 
 	});
 }
@@ -187,11 +191,11 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) 
 		});
 
 		writeStream.on('error', (err) => {
-			callback(err);
+			callback(err, null);
 		});
 
 		writeStream.on('finish', () => {
-
+			file.makePublic();
 		});
 
 		for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
@@ -200,19 +204,21 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) 
 				break;
 			}
 		}
-
-		jsonContent.audio.push({
+		
+		var newElement = {
 			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
 			localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
 			Size: fileSize,
 			Length: fileLength
-		});
+		};
+
+		jsonContent.audio.push(newElement);
 
 		writeStream.write(JSON.stringify(jsonContent));
 		writeStream.end();
 
-		callback(null);
-
+		callback(null,{newElement: newElement,
+			DirectoryJSON: jsonContent});
 	});
 
 };

@@ -6,149 +6,81 @@ const drive = google.drive('v2');
 const bucket = storage.bucket('burner-board');
 
 const MUSIC_PATH = "BurnerBoardMedia";
- 
+
 var fileAttributes = {
 	fileSize: 0,
 	mimeType: "",
 	title: "",
+	songDuration: 0,
+	speechCue: 0,
 };
 
-var tempFilePath;
- 
-exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, res) {
+exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callback) {
 
 	var tempFileName = "";
-	
-	const getMetadata = new Promise((function (resolve, reject) {
 
-		drive.files.get({
-			fileId: fileId,
-			'access_token': oauthToken,
-			//	alt: 'media'
-		}, function(err, jsonContent){
+	drive.files.get({
+		fileId: fileId,
+		'access_token': oauthToken,
+		//	alt: 'media'
+	}, function (err, jsonContent) {
 
-			if(err)
-				Promise.reject(err);
-			else{
-				fileAttributes = {
-					fileSize: jsonContent.fileSize,
-					mimeType: jsonContent.mimeType,
-					title: jsonContent.title,
+		if (err)
+			callback(err, null);
+		else {
+			fileAttributes = {
+				fileSize: jsonContent.fileSize,
+				mimeType: jsonContent.mimeType,
+				title: jsonContent.title,
+				songDuration: 0,
+				speechCue: "",
+			};
+
+			drive.files.get({
+				fileId: fileId,
+				'access_token': oauthToken,
+				alt: 'media'
+			}, function (err, content) {
+
+				if (err)
+					callback(err, null);
+				else {
+					// now get the real file and save it.
+					var filePath = 'BurnerBoardMedia' + '/' + boardID + '/' + fileAttributes.title;
+					var file3 = bucket.file(filePath);
+					var fileStream3 = file3.createWriteStream({
+						metadata: {
+							contentType: fileAttributes.mimeType,
+						}
+					});
+
+					fileStream3.on('error', (err) => {
+						callback(err, null);
+					});
+
+					fileStream3.on('finish', () => {
+						file3.makePublic();
+
+						// now we need to add a record to directory json
+						DownloadDirectory = require('./DownloadDirectory');
+						if (filePath.endsWith('mp3'))
+							DownloadDirectory.addAudio(boardID,
+								filePath,
+								fileAttributes.fileSize,
+								fileAttributes.songDuration,
+								callback);
+						else if (filePath.endsWith('mp4'))
+							DownloadDirectory.addVideo(boardID,
+								filePath,
+								fileAttributes.speechCue,
+								callback);
+					});
+					fileStream3.end(content);
 				};
+			});
+		}
+	});
 
-				Promise.resolve(fileAttributes);
-			};
-
-		  })
-	}));
-
-	const getGDriveFile = new Promise((function (resolve, reject) {
-
-		drive.files.get({
-			fileId: fileId,
-			'access_token': oauthToken,
-			alt: 'media'
-		}, function (err, content) {
-
-			if (err)
-				Promise.reject(err);
-			else {
-				// now get the real file and save it.
-				var filePath = 'BurnerBoardMedia' + '/' + boardID + '/' + fileAttributes.title;
-				var file3 = bucket.file(filePath);
-				var fileStream3 = file3.createWriteStream({
-					metadata: {
-						contentType: fileAttributes.mimeType,
-					}
-				});
-
-				fileStream3.on('error', (err) => {
-					Promise.reject(err);
-				});
-
-				fileStream3.on('finish', () => {
-				//	file3.makePublic();
-					res.status("OK");
-				//	Promise.resolve(filePath);
-				});
-
-				fileStream3.end(content);
-
-				//
-			};
-
-		})
-	}));
-
-	// const return200OK = new Promise((function (resolve, reject) {
-	// 		res.status(200);
-	// 		Promise.resolve();
-	// 	}));
-
-	const runPromises = function () {
-		getMetadata
-			.then(getGDriveFile);
-	};
-
-	runPromises();	
-
-	res.status("OK");
-
- 
-
-	//var songDuration = 0; // FIX ME!!!!
-	
-
-	// 				// now we need to add a record to directory json
-	// 				DownloadDirectory = require('./DownloadDirectory');
-	// 				if (filePath.endsWith('mp3'))
-	// 					DownloadDirectory.addAudio(boardID,
-	// 						filePath,
-	// 						fileSize,
-	// 						songDuration,
-	// 						function (err) {
-	// 							if (!err) {
-	// 								bucket
-	// 									.file(filePath)
-	// 									.makePublic()
-	// 									.then(() => {
-	// 										callback(null, { "localName": title, "Size": fileSize, "Length": songDuration });
-	// 									})
-	// 									.catch(err => {
-	// 										callback(err, null);
-	// 									});
-
-	// 							}
-	// 							else {
-	// 								callback(err, null);
-	// 							}
-	// 						});
-	// 				else if (filePath.endsWith('mp4'))
-	// 					DownloadDirectory.addVideo(boardID,
-	// 						filePath,
-	// 						speechCue,
-	// 						function (err) {
-	// 							if (!err) {
-	// 								bucket
-	// 									.file(filePath)
-	// 									.makePublic()
-	// 									.then(() => {
-	// 										callback(null, { "localName": title, "speachCue": speechCue });
-	// 									})
-	// 									.catch(err => {
-	// 										callback(err, null);
-	// 									});
-	// 							}
-	// 							else {
-	// 								callback(err, null);
-	// 							}
-	// 						});
-
-
-	// 	} else {
-	// 		callback(err, null);
-	// 	}
-	// });
 }
 
 exports.addFile = function (boardID, uploadedFile, speechCue, callback) {
