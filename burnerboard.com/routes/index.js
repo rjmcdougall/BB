@@ -154,7 +154,7 @@ var oAuthToken = req.body.oauthToken;
 			res.status(200).json(savedFile);
 		}
 		else {
-			res.status(500).send("ERROR");
+			res.status(500).json(err);
 		}
 	}) ;
  

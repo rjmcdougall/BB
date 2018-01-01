@@ -26,7 +26,7 @@ exports.DirectoryJSON = function (boardID, callback) {
 			jsonContent = JSON.parse(contents);
 			callback(null, jsonContent);
 		} else {
-			callback(error, null);
+			callback(err, null);
 		}
 
 	});
@@ -42,48 +42,52 @@ exports.addVideo = function (boardID, fileName, speechCue, callback) {
 
 	file.download(function (err, contents) {
 
-		jsonContent = JSON.parse(contents);
+		if (err)
+			callback(err, null);
+		else {
+			jsonContent = JSON.parse(contents);
 
-		const writeStream = file.createWriteStream({
-			metadata: {
-				contentType: 'application/json'
+			const writeStream = file.createWriteStream({
+				metadata: {
+					contentType: 'application/json'
+				}
+			});
+
+			writeStream.on('error', (err) => {
+				callback(err, null);
+			});
+
+			writeStream.on('finish', () => {
+				file.makePublic();
+				callback(null, {
+					newElement: newElement,
+					DirectoryJSON: jsonContent
+				});
+			});
+
+			for (var i = 0, len = jsonContent.video.length; i < len; i++) {
+				if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
+					jsonContent.video.splice(i, 1);
+					break;
+				}
+
 			}
-		});
 
-		writeStream.on('error', (err) => {
-			callback(err,null);
-		});
+			var newElement = {
+				URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
+				localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
+				SpeachCue: speechCue
+			};
 
-		writeStream.on('finish', () => {
-			file.makePublic();
-		});
+			jsonContent.video.push(newElement);
 
-		for (var i = 0, len = jsonContent.video.length; i < len; i++) {
-			if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
-				jsonContent.video.splice(i, 1);
-				break;
-			}
-
+			writeStream.write(JSON.stringify(jsonContent));
+			writeStream.end();
 		}
-
-		var newElement = {
-			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
-			localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
-			SpeachCue: speechCue
-		};
-
-		jsonContent.video.push(newElement);
-
-		writeStream.write(JSON.stringify(jsonContent));
-		writeStream.end();
-
-		callback(null,{newElement: newElement,
-						DirectoryJSON: jsonContent});
-
 	});
 }
 
-exports.reorderAudio = function(boardID, audioArray, callback){
+exports.reorderAudio = function (boardID, audioArray, callback) {
 
 	var jsonContent;
 	var newAudioArray = [];
@@ -93,42 +97,47 @@ exports.reorderAudio = function(boardID, audioArray, callback){
 
 	file.download(function (err, contents) {
 
-		jsonContent = JSON.parse(contents);
-
-		const writeStream = file.createWriteStream({
-			metadata: {
-				contentType: 'application/json'
-			}
-		});
-
-		writeStream.on('error', (err) => {
-			callback(err);
-		});
-
-		writeStream.on('finish', () => {
-
-		});
-
-		for(var i = 0, len = audioArray.length; i < len; i++){
-			console.log(audioArray[i]);
-			var result = jsonContent.audio.filter(function (element) {
-				return element.localName === audioArray[i];
-				console.log("found" + audioArray[i])
-			});
-			newAudioArray.push(result[0]);
+		if (err) {
+			callback(err, null);
 		}
 
-		jsonContent["audio"] = newAudioArray;
+		else {
+			jsonContent = JSON.parse(contents);
 
-		writeStream.write(JSON.stringify(jsonContent));
-		writeStream.end();
+			const writeStream = file.createWriteStream({
+				metadata: {
+					contentType: 'application/json'
+				}
+			});
 
-		callback(null, newAudioArray);
+			writeStream.on('error', (err) => {
+				callback(err);
+			});
+
+			writeStream.on('finish', () => {
+				callback(null, newAudioArray);
+			});
+
+			for (var i = 0, len = audioArray.length; i < len; i++) {
+				console.log(audioArray[i]);
+				var result = jsonContent.audio.filter(function (element) {
+					return element.localName === audioArray[i];
+					console.log("found" + audioArray[i])
+				});
+				newAudioArray.push(result[0]);
+			}
+
+			jsonContent["audio"] = newAudioArray;
+
+			writeStream.write(JSON.stringify(jsonContent));
+			writeStream.end();
+		}
+
 
 	});
 }
 
-exports.reorderVideo = function(boardID, videoArray, callback){
+exports.reorderVideo = function (boardID, videoArray, callback) {
 
 	var jsonContent;
 	var newVideoArray = [];
@@ -138,37 +147,40 @@ exports.reorderVideo = function(boardID, videoArray, callback){
 
 	file.download(function (err, contents) {
 
-		jsonContent = JSON.parse(contents);
-
-		const writeStream = file.createWriteStream({
-			metadata: {
-				contentType: 'application/json'
-			}
-		});
-
-		writeStream.on('error', (err) => {
-			callback(err);
-		});
-
-		writeStream.on('finish', () => {
-
-		});
-
-		for(var i = 0, len = videoArray.length; i < len; i++){
-			console.log(videoArray[i]);
-			var result = jsonContent.video.filter(function (element) {
-				return element.localName === videoArray[i] || element.Algorithm === videoArray[i];
-				console.log("found" + videoArray[i]);
-			});
-			newVideoArray.push(result[0]);
+		if (err) {
+			callback(err, null);
 		}
+		else {
+			jsonContent = JSON.parse(contents);
 
-		jsonContent["video"] = newVideoArray;
+			const writeStream = file.createWriteStream({
+				metadata: {
+					contentType: 'application/json'
+				}
+			});
 
-		writeStream.write(JSON.stringify(jsonContent));
-		writeStream.end();
+			writeStream.on('error', (err) => {
+				callback(err);
+			});
 
-		callback(null, newVideoArray);
+			writeStream.on('finish', () => {
+				callback(null, newVideoArray);
+			});
+
+			for (var i = 0, len = videoArray.length; i < len; i++) {
+				console.log(videoArray[i]);
+				var result = jsonContent.video.filter(function (element) {
+					return element.localName === videoArray[i] || element.Algorithm === videoArray[i];
+					console.log("found" + videoArray[i]);
+				});
+				newVideoArray.push(result[0]);
+			}
+
+			jsonContent["video"] = newVideoArray;
+
+			writeStream.write(JSON.stringify(jsonContent));
+			writeStream.end();
+		}
 
 	});
 }
@@ -182,45 +194,50 @@ exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) 
 
 	file.download(function (err, contents) {
 
-		jsonContent = JSON.parse(contents);
-
-		const writeStream = file.createWriteStream({
-			metadata: {
-				contentType: 'application/json'
-			}
-		});
-
-		writeStream.on('error', (err) => {
+		if (err)
 			callback(err, null);
-		});
+		else {
+			jsonContent = JSON.parse(contents);
 
-		writeStream.on('finish', () => {
-			file.makePublic();
-		});
+			const writeStream = file.createWriteStream({
+				metadata: {
+					contentType: 'application/json'
+				}
+			});
 
-		for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
-			if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
-				jsonContent.audio.splice(i, 1);
-				break;
+			writeStream.on('error', (err) => {
+				callback(err, null);
+			});
+
+			writeStream.on('finish', () => {
+				file.makePublic();
+
+				callback(null, {
+					newElement: newElement,
+					DirectoryJSON: jsonContent
+				});
+			});
+
+			for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
+				if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
+					jsonContent.audio.splice(i, 1);
+					break;
+				}
 			}
+
+			var newElement = {
+				URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
+				localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
+				Size: fileSize,
+				Length: fileLength
+			};
+
+			jsonContent.audio.push(newElement);
+
+			writeStream.write(JSON.stringify(jsonContent));
+			writeStream.end();
 		}
-		
-		var newElement = {
-			URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
-			localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
-			Size: fileSize,
-			Length: fileLength
-		};
-
-		jsonContent.audio.push(newElement);
-
-		writeStream.write(JSON.stringify(jsonContent));
-		writeStream.end();
-
-		callback(null,{newElement: newElement,
-			DirectoryJSON: jsonContent});
 	});
-
 };
 
 // currently unused.  needs tested.

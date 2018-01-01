@@ -15,6 +15,7 @@ class GoogleDriveMediaPicker extends Component {
         this.state = {
             currentBoard: props.currentBoard,
             jsonResults: "",
+            //code: "",
         };
 
     }
@@ -23,13 +24,21 @@ class GoogleDriveMediaPicker extends Component {
 
         let successMessage = "";
 
-        if(this.state.jsonResults==""){
-             successMessage = "Click to Open a Picker";    
+        console.log(this.state);
+
+        if (this.state.jsonResults == "") {
+            successMessage = "Click to Open a Picker";
         }
         else {
-             successMessage = "You successfully loaded " + this.state.jsonResults + ' onto ' + this.state.currentBoard + '. Load Another?';    
-        }
+            if (this.state.jsonResults == "INTERNAL SERVER ERROR") {
+                successMessage = "Server Error.  Please reload app." ;
 
+            }
+            else {
+                successMessage = "You successfully loaded " + this.state.jsonResults + ' onto ' + this.state.currentBoard + '. Load Another?';
+            }
+        }
+    
         return (
             <div className="container">
                 <GooglePicker clientId={CLIENT_ID}
@@ -87,10 +96,22 @@ class GoogleDriveMediaPicker extends Component {
                                             currentBoard: this.state.currentBoard,
                                             
                                         })
-                                    }).then((res) => res.json())
-                                        .then((data) => {this.setState({jsonResults: data.newElement.localName});
-                                                         console.log(data);})
-                                        .catch((err) => console.log(err));
+                                    }).then(res => {
+                                        if (!res.ok) {
+                                          throw Error(res);
+                                        }
+                                        return res;
+                                     })
+                                        .then((res) => res.json())
+                                        .then((data) => {
+                                            this.setState({ jsonResults: data.newElement.localName });
+                                        })
+                                        .catch((err) => {
+                                            console.log("in catch block");
+                                            console.log(err);
+                                            
+                                            this.setState({ jsonResults: "INTERNAL SERVER ERROR" });
+                                        });
                                 }
                             });
 
