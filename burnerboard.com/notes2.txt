@@ -8,6 +8,8 @@ gcloud app deploy
 //backlog
 https://docs.google.com/spreadsheets/d/1nmcX9UCCsBYD3ZrqjoOENo60PON87yQOyqJhMPakI38/edit#gid=0
 
-// starting react app.  navigate to /client first
-npm start
+// debugging.
+start vs debugging
+npm run debug
 
+git push origin master --verbose
