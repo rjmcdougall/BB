@@ -137,17 +137,19 @@ router.post('/boards/:boardID/DownloadDirectoryJSONAudio', function (req, res, n
 	);
 });
 
-router.get('/boards/:boardID/AddFileFromGDrive', function (req, res, next) {
+router.post('/boards/:boardID/AddFileFromGDrive', function (req, res, next) {
 
-	var oAuthToken = 'ya29.Glw0BTczgRoygNAePtuBdxMqUMYgzwMCy6yr2LvZ4VQfHV8vlgd_nYB6HvXkXvC-QpLvdLdEAKFF9fMEkFHLzumj0clizXBsOpAQT7dTKqEV1kodOo0RKlRK_4IrPA';
-//var oAuthToken = req.body.oauthToken;
+//	var oAuthToken = 'ya29.Glw0BTczgRoygNAePtuBdxMqUMYgzwMCy6yr2LvZ4VQfHV8vlgd_nYB6HvXkXvC-QpLvdLdEAKFF9fMEkFHLzumj0clizXBsOpAQT7dTKqEV1kodOo0RKlRK_4IrPA';
+var oAuthToken = req.body.oauthToken;
 
-	var fileId = '1aSXoRfidHo33nlVRDha9xdrKaPKeQJCS';
-//	var fileId = req.body.fileId;
+//	var fileId = '1aSXoRfidHo33nlVRDha9xdrKaPKeQJCS';
+	var fileId = req.body.fileId;
+	var currentBoard = req.body.currentBoard;
+//	var currentBoard = 'vega';
 
 	FileSystem = require('./FileSystem');
 
-	FileSystem.addGDriveFile('vega', fileId, oAuthToken, "", function (err, savedFile) {
+	FileSystem.addGDriveFile(currentBoard, fileId, oAuthToken, "", function (err, savedFile) {
 		if (!err) {
 			res.status(200).json(savedFile);
 		}

@@ -57,7 +57,7 @@ class App extends Component {
         break;
       case "AppBody-LoadFromGDrive":
         console.log("IN load from g drive SWITCH");
-        appBody = <GoogleDriveMediaPicker />;
+        appBody = <GoogleDriveMediaPicker currentBoard={myState} />;
         break;
       default:
         if (myState != "Select Board") {

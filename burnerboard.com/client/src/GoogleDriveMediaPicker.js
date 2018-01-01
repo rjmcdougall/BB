@@ -7,7 +7,29 @@ const SCOPE = ['https://www.googleapis.com/auth/drive.readonly'];
 
 class GoogleDriveMediaPicker extends Component {
 
+    constructor(props) {
+
+        console.log("  in constructor " + props.currentBoard);
+
+        super(props);
+        this.state = {
+            currentBoard: props.currentBoard,
+            jsonResults: "",
+        };
+
+    }
+
     render() {
+
+        let successMessage = "";
+
+        if(this.state.jsonResults==""){
+             successMessage = "Click to Open a Picker";    
+        }
+        else {
+             successMessage = "You successfully loaded " + this.state.jsonResults + ' onto ' + this.state.currentBoard + '. Load Another?';    
+        }
+
         return (
             <div className="container">
                 <GooglePicker clientId={CLIENT_ID}
@@ -44,9 +66,14 @@ class GoogleDriveMediaPicker extends Component {
                                     console.log(message);
                                     message = 'oauthToken: ' + oauthToken;
                                     console.log(message);
+                                    message = 'current board: ' + this.state.currentBoard;
+                                    
+                                    console.log(message);
 
                                     var API = '/boards/' + 'vega' + '/AddFileFromGDrive';
 
+                                    var postResults = "";
+                                    
                                     fetch(API, {
                                         method: 'POST',
                                         headers: {
@@ -56,10 +83,13 @@ class GoogleDriveMediaPicker extends Component {
                                         body: JSON.stringify({
                                             GDriveURL: url,
                                             oauthToken: oauthToken,
-                                            fileId: data.docs[0].id
+                                            fileId: data.docs[0].id,
+                                            currentBoard: this.state.currentBoard,
+                                            
                                         })
                                     }).then((res) => res.json())
-                                        .then((data) => console.log(data))
+                                        .then((data) => {this.setState({jsonResults: data.newElement.localName});
+                                                         console.log(data);})
                                         .catch((err) => console.log(err));
                                 }
                             });
@@ -67,10 +97,14 @@ class GoogleDriveMediaPicker extends Component {
                         picker.build().setVisible(true);
                     }}
                 >
-                    <span>Click to build a picker which shows folders and you can select folders</span>
-                    <div className="google"></div>
+                    
+                    <div style={{
+                        'backgroundColor': 'lightblue',
+                        'margin': '1cm 1cm 1cm 1cm',
+                        'padding': '10px 5px 15px 20px'
+                    }}>{successMessage}</div>
                 </GooglePicker>
-
+                
             </div>
         )
     }
