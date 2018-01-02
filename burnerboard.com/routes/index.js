@@ -106,6 +106,25 @@ router.get('/boards/:boardID/listFiles', function (req, res, next) {
 	});
 });
 
+router.get('/boards/TestDatastore', function (req, res, next) {
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+
+	// var boardID = 'vega';
+	// var fileName = 'BurnerBoardMedia/vega/AvenerMix.mp3';
+	// var fileSize = 48786286;
+	// var fileLength = 1220;
+	// var SpeechCue = "";
+	//DownloadDirectoryDS.addAudio(boardID, fileName, fileSize, fileLength);
+
+	// var boardID = 'vega';
+	// var fileName = 'BurnerBoardMedia/vega/tunnels.mp4';
+	// var speechCue = "Tunnels";
+
+	// 	DownloadDirectoryDS.addVideo(boardID, fileName, speechCue);
+
+		DownloadDirectoryDS.getMaxAudioOrdinal();
+});
+
 router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
 	DownloadDirectory = require('./DownloadDirectory')
 
