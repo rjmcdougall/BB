@@ -15,7 +15,7 @@ class GoogleDriveMediaPicker extends Component {
         this.state = {
             currentBoard: props.currentBoard,
             jsonResults: "",
-            //code: "",
+            errorInfo: "",
         };
 
     }
@@ -26,16 +26,15 @@ class GoogleDriveMediaPicker extends Component {
 
         console.log(this.state);
 
-        if (this.state.jsonResults == "") {
+        if (this.state.jsonResults == "" && this.state.errorInfo=="") {
             successMessage = "Click to Open a Picker";
         }
         else {
-            if (this.state.jsonResults == "INTERNAL SERVER ERROR") {
-                successMessage = "Server Error.  Please reload app." ;
-
+            if (this.state.errorInfo.length>0){
+                successMessage = this.state.errorInfo + ' Click to select another' ;
             }
             else {
-                successMessage = "You successfully loaded " + this.state.jsonResults + ' onto ' + this.state.currentBoard + '. Load Another?';
+                successMessage = this.state.jsonResults + ' Click to select another';
             }
         }
     
@@ -82,7 +81,9 @@ class GoogleDriveMediaPicker extends Component {
                                     var API = '/boards/' + 'vega' + '/AddFileFromGDrive';
 
                                     var postResults = "";
-                                    
+                                    var myErrorInfo = "";
+                                    var myJsonResults = "";
+                               
                                     fetch(API, {
                                         method: 'POST',
                                         headers: {
@@ -96,22 +97,49 @@ class GoogleDriveMediaPicker extends Component {
                                             currentBoard: this.state.currentBoard,
                                             
                                         })
-                                    }).then(res => {
-                                        if (!res.ok) {
-                                          throw Error(res);
+                                    })
+                                    .then(res => {
+                                        console.log('res ok? ' + res.ok);
+                                        console.log('res status:' + res.status);
+                                        console.log('res status text:' + res.statusText);
+
+
+                                         if (!res.ok){
+                                            res.text().then(function (text) {
+                                                console.log('res text: ' + text);
+                                                myErrorInfo = text;
+                                                
+                                            });
                                         }
-                                        return res;
-                                     })
-                                        .then((res) => res.json())
-                                        .then((data) => {
-                                            this.setState({ jsonResults: data.newElement.localName });
+                                        else {
+                                             
+                                                res.text().then(function (text) {
+                                                    console.log('res : ' + text);
+                                                    myJsonResults = text;
+                                                });
+                                            }
                                         })
-                                        .catch((err) => {
-                                            console.log("in catch block");
-                                            console.log(err);
-                                            
-                                            this.setState({ jsonResults: "INTERNAL SERVER ERROR" });
+                                    .then(res => {
+
+                                        console.log("about to set the state: " + JSON.stringify(this.state));
+
+                                        this.setState({ errorInfo: myErrorInfo,
+                                            jsonResults: myJsonResults });
+
+                                       
+                                    })
+                                    .catch((err) => {
+                                        console.log("in catch block");
+                                        var myErrorInfo = "";
+                                        err.text().then(function (text) {
+                                            console.log('res text: ' + text);
+                                            myErrorInfo = text;
                                         });
+                                        this.setState({ errorInfo: myErrorInfo });
+                                    });
+
+                                    
+
                                 }
                             });
 

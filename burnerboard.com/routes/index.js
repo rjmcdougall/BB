@@ -19,7 +19,6 @@ router.get('/', function (req, res, next) {
 	res.render('index', { title: 'burnerboard.com' });
 });
 
-/* GET battery results. */
 router.get('/boards', function (req, res, next) {
 
 	var boardNames = [
@@ -51,12 +50,7 @@ router.get('/boards/currentStatuses', function (req, res, next) {
 	});
 
 });
-
-router.get('/boards/:boardID/directoryJSONURL', function (req, res, next) {
-	DownloadDirectory = require('./DownloadDirectory')
-	res.status(200).send(DownloadDirectory.getDirectoryJSONPath(req.params.boardID));
-});
-
+ 
 /* GET battery results. */
 router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
 
@@ -71,39 +65,39 @@ router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
 	});
 });
 
-router.get('/boards/:boardID/upload', (req, res, next) => {
-	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
-});
+// router.get('/boards/:boardID/upload', (req, res, next) => {
+// 	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
+// });
 
-router.post('/boards/:boardID/upload', upload.single('file'), (req, res, next) => {
-	if (!req.file) {
-		res.status(400).send('No file uploaded.');
-		return;
-	}
+// router.post('/boards/:boardID/upload', upload.single('file'), (req, res, next) => {
+// 	if (!req.file) {
+// 		res.status(400).send('No file uploaded.');
+// 		return;
+// 	}
 
-	FileSystem = require('./FileSystem');
+// 	FileSystem = require('./FileSystem');
 
-	FileSystem.addFile(req.params.boardID, req.file, req.body.speechCue, function (err, savedFile) {
-		if (!err) {
-			res.status(200).json(savedFile);
-		}
-		else {
-			res.status(500).send("ERROR");
-		}
-	})
-});
+// 	FileSystem.addFile(req.params.boardID, req.file, req.body.speechCue, function (err, savedFile) {
+// 		if (!err) {
+// 			res.status(200).json(savedFile);
+// 		}
+// 		else {
+// 			res.status(500).send("ERROR");
+// 		}
+// 	})
+// });
 
 router.get('/boards/:boardID/listFiles', function (req, res, next) {
+
 	FileSystem = require('./FileSystem');
 
-	FileSystem.listFiles(req.params.boardID, function (err, fileList) {
-		if (err) {
-			res.status(500).send("ERROR");
-		}
-		else {
-			res.status(200).json(fileList);
-		}
-	});
+	FileSystem.listFiles(req.params.boardID)
+		.then(result => {
+			res.status(200).json(result);
+		})
+		.catch(function (err) {
+			res.status(500).json(err);
+		});
 });
 
 router.get('/boards/TestDatastore', function (req, res, next) {
@@ -144,7 +138,6 @@ router.get('/boards/TestDatastore', function (req, res, next) {
 	var mediaType = 'video';
 	var mediaArray = [
 		
-		
 		'AvenerMix2551.mp3',
 		'AvenerMix251.mp3',
 		'AvenerMix21.mp3'
@@ -159,34 +152,33 @@ router.get('/boards/TestDatastore', function (req, res, next) {
 });
 
 router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
-	DownloadDirectory = require('./DownloadDirectory')
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 
-	DownloadDirectory.DirectoryJSON(req.params.boardID
-		, function (err, data) {
-			if (!err) {
-				res.status(200).send(JSON.stringify(data));
-			}
-			else {
-				res.send(err);
-			}
-		}
-	);
-});
-
-router.post('/boards/:boardID/DownloadDirectoryJSONAudio', function (req, res, next) {
-	DownloadDirectory = require('./DownloadDirectory')
+	DownloadDirectoryDS.DirectoryJSON (req.params.boardID) 
+		.then(result => {
+			res.status(200).json(result);
+		})
+		.catch(function (err) {
+			res.status(500).json(err);
+		});
  
-	var audioArray = req.body.audioArray;
+});
+ 
+router.post('/boards/:boardID/ReorderMedia', function (req, res, next) {
 
-	DownloadDirectory.reorderAudio(req.params.boardID, audioArray, function (err, data) {
-		if (!err) {
-			res.status(200).send(JSON.stringify(data));
-		}
-		else {
-			res.send(err);
-		}
-	}
-	);
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+ 
+	var mediaArray = req.body.mediaArray;
+	var mediaType = req.body.mediaType;
+
+	DownloadDirectoryDS.reorderMedia(req.params.boardID, mediaType, mediaArray) 
+	.then(result => {
+		res.status(200).json(result);
+	})
+	.catch(function (err) {
+		res.status(500).json(err);
+	});
+ 
 });
 
 router.post('/boards/:boardID/AddFileFromGDrive', function (req, res, next) {
@@ -201,43 +193,30 @@ var oAuthToken = req.body.oauthToken;
 
 	FileSystem = require('./FileSystem');
 
-	FileSystem.addGDriveFile(currentBoard, fileId, oAuthToken, "", function (err, savedFile) {
-		if (!err) {
-			res.status(200).json(savedFile);
-		}
-		else {
-			res.status(500).json(err);
-		}
-	}) ;
+	FileSystem.addGDriveFile(currentBoard, fileId, oAuthToken, "")
+		.then(result => {
+			res.status(200).json(result);
+		})
+		.catch(function (err) {
+			if(err.message.indexOf("already exists for board") > -1)  
+				res.status(409).send(err.message)
+			else
+				res.status(500).json(err.message);
+		});
  
 
 
 });
 
-router.post('/boards/:boardID/DownloadDirectoryJSONVideo', function (req, res, next) {
-	DownloadDirectory = require('./DownloadDirectory')
- 
-	var videoArray = req.body.videoArray;
-
-	DownloadDirectory.reorderVideo(req.params.boardID, videoArray, function (err, data) {
-		if (!err) {
-			res.status(200).send(JSON.stringify(data));
-		}
-		else {
-			res.send(err);
-		}
-	}
-	);
-});
 
 /* warning: this will not maintain the length of mp3 files or other metadata 
 IT DOES NOT WORK!!!*/
-router.get('/boards/:boardID/genJSONFromFiles', function (req, res, next) {
+// router.get('/boards/:boardID/genJSONFromFiles', function (req, res, next) {
 	
-		DownloadDirectory = require('./DownloadDirectory');
-		DownloadDirectory.generateNewDirectoryJSON();
-		res.status(200).send("OK");
+// 		DownloadDirectoryDS = require('./DownloadDirectory');
+// 		DownloadDirectory.generateNewDirectoryJSON();
+// 		res.status(200).send("OK");
 	
-	});
+// 	});
 
 module.exports = router;

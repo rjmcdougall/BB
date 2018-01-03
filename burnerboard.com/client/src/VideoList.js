@@ -145,7 +145,7 @@ class VideoList extends Component {
       items,
     });
 
-    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSONVideo';
+    var API = '/boards/' + this.state.currentBoard + '/ReorderMedia';
 
     var videoArray  = this.state.items.map(item => (
         item.id
@@ -157,7 +157,8 @@ class VideoList extends Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({videoArray: videoArray})
+      body: JSON.stringify({mediaArray: videoArray,
+                            mediaType: 'video'})
     }).then((res) => res.json())
       .then((data) => console.log(data))
       .catch((err) => console.log(err));

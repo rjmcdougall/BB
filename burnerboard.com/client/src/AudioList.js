@@ -122,7 +122,7 @@ class AudioList extends Component {
       items,
     });
 
-    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSONAudio';
+    var API = '/boards/' + this.state.currentBoard + '/ReorderMedia';
 
     var audioArray  = this.state.items.map(item => (
         item.id
@@ -134,7 +134,8 @@ class AudioList extends Component {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({audioArray: audioArray})
+      body: JSON.stringify({mediaArray: audioArray,
+                            mediaType: 'audio'})
     }).then((res) => res.json())
       .then((data) => console.log(data))
       .catch((err) => console.log(err));
