@@ -1,355 +1,187 @@
-
-const Storage = require('@google-cloud/storage');
-const storage = Storage();
-const bucket = storage.bucket('burner-board');
-const BUCKET_NAME = 'burner-board';
+//import { Key } from '@google-cloud/datastore/src/entity';
 var format = require('util').format;
+
+// Imports the Google Cloud client library
+const Datastore = require('@google-cloud/datastore');
+
 const MUSIC_PATH = "BurnerBoardMedia";
 const MEDIA_CATALOG = "DownloadDirectory.json";
 const GOOGLE_CLOUD_BASE_URL = "https://storage.googleapis.com";
+const BUCKET_NAME = 'burner-board';
 
-exports.getDirectoryJSONPath = function (boardID) {
-	return format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${MUSIC_PATH}/${boardID}/${MEDIA_CATALOG}`);
+// Your Google Cloud Platform project ID
+const projectId = 'burner-board';
 
+// Creates a client
+const datastore = new Datastore({
+  projectId: projectId,
+});
+ 
+
+/* add either media type w/ optional parameters
+TODO: right now you could get duplicate ordinals with rapid succession of calls.
+this should not affect overall app */
+exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength, speechCue) {
+
+  return new Promise((resolve, reject) => {
+
+    const localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1);
+    const audioKey = datastore.key([mediaType]);
+    var newAttributes = "";
+
+    if (mediaType == 'audio') {
+      newAttributes = {
+        board: boardID,
+        URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
+        localName: localName,
+        Size: fileSize,
+        Length: fileLength,
+        ordinal: null //set later
+      };
+    }
+    else { /* video */
+      newAttributes = {
+        board: boardID,
+        URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
+        localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
+        SpeachCue: speechCue,
+        ordinal: null //set later
+      };
+    }
+
+    const entity = {
+      key: datastore.key(mediaType),
+      data: newAttributes,
+    };
+
+    const existenceQuery = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+      .filter('localName', '=', localName)
+      .limit(1);
+
+    const maxOrdinalQuery = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+      .order('ordinal', {
+        descending: true
+      })
+      .limit(1);
+
+    datastore.runQuery(existenceQuery)
+      .then(results => {
+        if (results[0].length > 0)
+          throw new Error("the file " + localName + " already exists for board " + boardID);
+        else {
+          datastore.runQuery(maxOrdinalQuery)
+            .then(results => {
+
+              var maxOrdinal = 0
+              if (results[0].length > 0)
+                maxOrdinal = results[0][0].ordinal;
+              return maxOrdinal;
+
+            })
+            .then(function (maxOrdinal) {
+
+              newAttributes.ordinal = maxOrdinal + 1;
+
+              datastore
+                .save(entity)
+                .then(() => {
+                  resolve(mediaType + ` ${localName} created successfully with ordinal ` + newAttributes.ordinal);
+                  // console.log(`Video ${localName} created successfully with ordinal ` + newAttributes.ordinal);
+                })
+                .catch(err => {
+                  return reject(err);
+                  //console.error('ERROR:', err);
+                });
+            })
+            .catch(err => {
+              //console.error('ERROR:', err);
+              return reject(err);
+            });
+        }
+      })
+      .catch(err => {
+        return reject(err);
+        //console.error('ERROR:', err);
+      });
+  });
 }
 
-exports.DirectoryJSON = function (boardID, callback) {
+exports.listMedia = function (boardID, mediaType) {
 
-	var jsonContent;
+  return new Promise((resolve, reject) => {
 
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
+    const mediaList = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+      .order('ordinal', {
+        descending: false
+      })
 
-	file.download(function (err, contents) {
+    datastore
+      .runQuery(mediaList)
+      .then(results => {
+        const mediaList = results[0];
 
-		if (!err) {
-			jsonContent = JSON.parse(contents);
-			callback(null, jsonContent);
-		} else {
-			callback(err, null);
-		}
+        return resolve(mediaList);
 
-	});
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
 }
 
+exports.DirectoryJSON = function (boardID) {
 
-exports.addVideo = function (boardID, fileName, speechCue, callback) {
+  return new Promise((resolve, reject) => {
 
-	var jsonContent;
+    var DirectoryJSON = {
+      audio: null,
+      video: null,
+    };
 
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	file.download(function (err, contents) {
-
-		if (err)
-			callback(err, null);
-		else {
-			jsonContent = JSON.parse(contents);
-
-			const writeStream = file.createWriteStream({
-				metadata: {
-					contentType: 'application/json'
-				}
-			});
-
-			writeStream.on('error', (err) => {
-				callback(err, null);
-			});
-
-			writeStream.on('finish', () => {
-				file.makePublic();
-				callback(null, {
-					newElement: newElement,
-					DirectoryJSON: jsonContent
-				});
-			});
-
-			for (var i = 0, len = jsonContent.video.length; i < len; i++) {
-				if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
-					jsonContent.video.splice(i, 1);
-					break;
-				}
-
-			}
-
-			var newElement = {
-				URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
-				localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
-				SpeachCue: speechCue
-			};
-
-			jsonContent.video.push(newElement);
-
-			writeStream.write(JSON.stringify(jsonContent));
-			writeStream.end();
-		}
-	});
+    this.listMedia(boardID, 'audio')
+      .then(results => {
+        DirectoryJSON.audio = results;
+        this.listMedia(boardID, 'video')
+          .then(results => {
+            DirectoryJSON.video = results;
+            return resolve(DirectoryJSON);
+          })
+       }
+    )
+    .catch(err => {
+      reject(err);
+    });
+  });
+ 
 }
-
-exports.reorderAudio = function (boardID, audioArray, callback) {
-
-	var jsonContent;
-	var newAudioArray = [];
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	file.download(function (err, contents) {
-
-		if (err) {
-			callback(err, null);
-		}
-
-		else {
-			jsonContent = JSON.parse(contents);
-
-			const writeStream = file.createWriteStream({
-				metadata: {
-					contentType: 'application/json'
-				}
-			});
-
-			writeStream.on('error', (err) => {
-				callback(err);
-			});
-
-			writeStream.on('finish', () => {
-				callback(null, newAudioArray);
-			});
-
-			for (var i = 0, len = audioArray.length; i < len; i++) {
-				console.log(audioArray[i]);
-				var result = jsonContent.audio.filter(function (element) {
-					return element.localName === audioArray[i];
-					console.log("found" + audioArray[i])
-				});
-				newAudioArray.push(result[0]);
-			}
-
-			jsonContent["audio"] = newAudioArray;
-
-			writeStream.write(JSON.stringify(jsonContent));
-			writeStream.end();
-		}
-
-
-	});
-}
-
-exports.reorderVideo = function (boardID, videoArray, callback) {
-
-	var jsonContent;
-	var newVideoArray = [];
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	file.download(function (err, contents) {
-
-		if (err) {
-			callback(err, null);
-		}
-		else {
-			jsonContent = JSON.parse(contents);
-
-			const writeStream = file.createWriteStream({
-				metadata: {
-					contentType: 'application/json'
-				}
-			});
-
-			writeStream.on('error', (err) => {
-				callback(err);
-			});
-
-			writeStream.on('finish', () => {
-				callback(null, newVideoArray);
-			});
-
-			for (var i = 0, len = videoArray.length; i < len; i++) {
-				console.log(videoArray[i]);
-				var result = jsonContent.video.filter(function (element) {
-					return element.localName === videoArray[i] || element.Algorithm === videoArray[i];
-					console.log("found" + videoArray[i]);
-				});
-				newVideoArray.push(result[0]);
-			}
-
-			jsonContent["video"] = newVideoArray;
-
-			writeStream.write(JSON.stringify(jsonContent));
-			writeStream.end();
-		}
-
-	});
-}
-
-exports.addAudio = function (boardID, fileName, fileSize, fileLength, callback) {
-
-	var jsonContent;
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	file.download(function (err, contents) {
-
-		if (err)
-			callback(err, null);
-		else {
-			jsonContent = JSON.parse(contents);
-
-			const writeStream = file.createWriteStream({
-				metadata: {
-					contentType: 'application/json'
-				}
-			});
-
-			writeStream.on('error', (err) => {
-				callback(err, null);
-			});
-
-			writeStream.on('finish', () => {
-				file.makePublic();
-
-				callback(null, {
-					newElement: newElement,
-					DirectoryJSON: jsonContent
-				});
-			});
-
-			for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
-				if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1)) {
-					jsonContent.audio.splice(i, 1);
-					break;
-				}
-			}
-
-			var newElement = {
-				URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
-				localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
-				Size: fileSize,
-				Length: fileLength
-			};
-
-			jsonContent.audio.push(newElement);
-
-			writeStream.write(JSON.stringify(jsonContent));
-			writeStream.end();
-		}
-	});
-};
-
-// currently unused.  needs tested.
-exports.fileExists = function (boardID, fileName) {
-	var jsonContent;
-	var doesExist = false;
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	file.download(function (err, contents) {
-
-		jsonContent = JSON.parse(contents);
-
-		for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
-			if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1))
-				doesExist = true;
-		}
-
-		for (var i = 0, len = jsonContent.video.length; i < len; i++) {
-			if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1))
-				doesExist = true;
-		}
-
-		return doesExist;
-	});
-}
-
-// currently unused.  needs tested.
-exports.deleteFile = function (fileName) {
-	var jsonContent;
-	var doesExist = false;
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	file.download(function (err, contents) {
-
-		jsonContent = JSON.parse(contents);
-
-		for (var i = 0, len = jsonContent.audio.length; i < len; i++) {
-			if (jsonContent.audio[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1))
-				jsonContent.audio.splice(i, 1);
-		}
-
-		for (var i = 0, len = jsonContent.video.length; i < len; i++) {
-			if (jsonContent.video[i].localName == fileName.substring(fileName.indexOf(boardID) + boardID.length + 1))
-				jsonContent.video.splice(i, 1);
-		}
-
-		return doesExist;
-	});
-}
-
-//warning: needs fixed and tested. this cannot get the length of MP3 so they default to 1.
-exports.generateNewDirectoryJSON = function (boardID) {
-
-	var filepath = MUSIC_PATH + '/' + boardID + '/' + MEDIA_CATALOG;
-	const file = bucket.file(filepath);
-
-	const fileStream = file.createWriteStream({
-		metadata: {
-			contentType: 'application/json'
-		}
-	});
-
-	fileStream.on('error', (err) => {
-		next(err);
-	});
-
-	fileStream.on('finish', () => {
-	});
-
-	// cb function for iterating bucket
-	let cb = (err, files, next, apires) => {
-
-		var audioArray = [];
-		var videoArray = [];
-		var sectionArray = [];
-
-		for (var i = 0, len = files.length; i < len; i++) {
-			if (files[i].name.endsWith("mp3")) {
-				audioArray.push({
-					URL: format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/${files[i].name}`),
-					localName: files[i].name.substring(files[i].name.indexOf("/") + 1),
-					Size: files[i].metadata.size,
-					Length: 1
-				});
-			}
-			else if (files[i].name.endsWith("mp4")) {
-				videoArray.push({
-					URL: format(`${GOOGLE_CLOUD_BASE_URL}/${bucket.name}/${boardID}/${files[i].name}`),
-					localName: files[i].name.substring(files[i].name.indexOf("/") + 1),
-					SpeachCue: ""
-				});
-			}
-		}
-
-		sectionArray.push({ audio: audioArray });
-		sectionArray.push({ video: videoArray });
-
-		fileStream.write(JSON.stringify(sectionArray));
-		fileStream.end();
-
-		if (!!next) {
-			bucket.getFiles(next, cb);
-		}
-	}
-
-	bucket.getFiles({
-		autoPaginate: false,
-		delimiter: '/',
-		prefix: MUSIC_PATH + '/'
-	}, cb);
+exports.reorderMedia = function (boardID, mediaType, mediaArray) {
+
+  return new Promise((resolve, reject) => {
+    this.listMedia(boardID, mediaType)
+    .then(results => {
+      for (var i = 0; i < mediaArray.length; i++) {
+
+				var result = results.filter(function (element) {
+					return element.localName === mediaArray[i];
+					console.log("found" + mediaArray[i])
+        });
+        
+        result[0].ordinal = i;
+      }
+
+      datastore.save(results)
+        .then(() => {
+          resolve(this.listMedia(boardID, mediaType));
+        })
+        .catch(err => {
+          reject(err);
+        });
+      
+    })
+   });
+
+ 
 }

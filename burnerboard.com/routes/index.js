@@ -132,15 +132,30 @@ router.get('/boards/TestDatastore', function (req, res, next) {
 	// 		res.status(500).json(err);
 	// 	});
 
-	var mediaType = 'audio';
-	DownloadDirectoryDS.DirectoryJSON(boardID)
+	//var mediaType = 'audio';
+	// DownloadDirectoryDS.DirectoryJSON(boardID)
+	// 	.then(result => {
+	// 		res.status(200).json(result);
+	// 	})
+	// 	.catch(function (err) {
+	// 		res.status(500).json(err);
+	// 	});
+	
+	var mediaType = 'video';
+	var mediaArray = [
+		
+		
+		'AvenerMix2551.mp3',
+		'AvenerMix251.mp3',
+		'AvenerMix21.mp3'
+	]
+	DownloadDirectoryDS.reorderMedia(boardID, mediaType, mediaArray)
 		.then(result => {
 			res.status(200).json(result);
 		})
 		.catch(function (err) {
 			res.status(500).json(err);
 		});
-	
 });
 
 router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
