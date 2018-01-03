@@ -18,115 +18,145 @@ const datastore = new Datastore({
 });
  
 
-exports.addAudio = function(boardID, fileName, fileSize, fileLength)  {
- 
+/* add either media type w/ optional parameters
+TODO: right now you could get duplicate ordinals with rapid succession of calls.
+this should not affect overall app */
+exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength, speechCue) {
+
+  return new Promise((resolve, reject) => {
+
     const localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1);
+    const audioKey = datastore.key([mediaType]);
+    var newAttributes = "";
 
-    const audioKey = datastore.key(['board', 'vega', 'audio', localName]);
-
-    var newAttributes = {
+    if (mediaType == 'audio') {
+      newAttributes = {
+        board: boardID,
         URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
         localName: localName,
         Size: fileSize,
-        Length: fileLength
-    };
- 
-    const entity = {
-      key: audioKey,
-      data: newAttributes,
-    };
-  
-    datastore
-      .save(entity)
-      .then(() => {
-        console.log(`Audio ${localName} created successfully.`);
-      })
-      .catch(err => {
-        console.error('ERROR:', err);
-      });
-  }
-
-
-  exports.addVideo = function (boardID, fileName, speechCue, callback) {
- 
-    const localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1);
-
-    const videoKey = datastore.key(['board', 'vega', 'video', localName]);
-
-    max_x = db.GqlQuery("SELECT * FROM MyModel ORDER BY x DESC").get().x
-
-    max_x = MyModel.all().order('-x').get().x
-
-    const videoOrdinal = 1;
-
-    var newAttributes = {
+        Length: fileLength,
+        ordinal: null //set later
+      };
+    }
+    else { /* video */
+      newAttributes = {
+        board: boardID,
         URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
         localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
         SpeachCue: speechCue,
-        ordinal: videoOrdinal
-    };
- 
+        ordinal: null //set later
+      };
+    }
+
     const entity = {
-      key: videoKey,
+      key: datastore.key(mediaType),
       data: newAttributes,
     };
-  
-    datastore
-      .save(entity)
-      .then(() => {
-        console.log(`Video ${localName} created successfully.`);
-      })
-      .catch(err => {
-        console.error('ERROR:', err);
-      });
-  }
-  
-exports.getMaxAudioOrdinal = function(){
-    const ancestorKey = datastore.key(['board', 'vega']);
 
-    const query = datastore.createQuery('audio')
-                            .hasAncestor(ancestorKey)
-                            .order('ordinal DESC')
-                            ;
-  
-    datastore
-      .runQuery(query)
+    const existenceQuery = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+      .filter('localName', '=', localName)
+      .limit(1);
+
+    const maxOrdinalQuery = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+      .order('ordinal', {
+        descending: true
+      })
+      .limit(1);
+
+    datastore.runQuery(existenceQuery)
       .then(results => {
-        const audioResults = results[0];
-  
-        console.log('audio:');
-        audioResults.forEach(audio => {
-          const taskKey = audio[datastore.KEY];
-          console.log(audio);
-        });
+        if (results[0].length > 0)
+          throw new Error("the file " + localName + " already exists for board " + boardID);
+        else {
+          datastore.runQuery(maxOrdinalQuery)
+            .then(results => {
+
+              var maxOrdinal = 0
+              if (results[0].length > 0)
+                maxOrdinal = results[0][0].ordinal;
+              return maxOrdinal;
+
+            })
+            .then(function (maxOrdinal) {
+
+              newAttributes.ordinal = maxOrdinal + 1;
+
+              datastore
+                .save(entity)
+                .then(() => {
+                  resolve(mediaType + ` ${localName} created successfully with ordinal ` + newAttributes.ordinal);
+                  // console.log(`Video ${localName} created successfully with ordinal ` + newAttributes.ordinal);
+                })
+                .catch(err => {
+                  return reject(err);
+                  //console.error('ERROR:', err);
+                });
+            })
+            .catch(err => {
+              //console.error('ERROR:', err);
+              return reject(err);
+            });
+        }
       })
       .catch(err => {
-        console.error('ERROR:', err);
+        return reject(err);
+        //console.error('ERROR:', err);
       });
+  });
 }
 
-exports.listAudio = function() {
-    
-  //  const datastore = new Datastore(); const key = datastore.key({ namespace: 'ns', path: ['Company', 123] });
+exports.listMedia = function (boardID, mediaType) {
 
-  const ancestorKey = datastore.key(['board', 'vega']);
+  return new Promise((resolve, reject) => {
 
-    const query = datastore.createQuery('audio')
-                            .hasAncestor(ancestorKey);
-  
+    const mediaList = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+      .order('ordinal', {
+        descending: false
+      })
+
     datastore
-      .runQuery(query)
+      .runQuery(mediaList)
       .then(results => {
-        const audioResults = results[0];
-  
-        console.log('audio:');
-        audioResults.forEach(audio => {
-          const taskKey = audio[datastore.KEY];
-          console.log(audio);
-        });
+        const mediaList = results[0];
+
+        return resolve(mediaList);
+
       })
       .catch(err => {
-        console.error('ERROR:', err);
+        reject(err);
       });
-  }
+  });
+}
+
+exports.DirectoryJSON = function (boardID) {
+
+  return new Promise((resolve, reject) => {
+
+    var DirectoryJSON = {
+      audio: null,
+      video: null,
+    };
+
+    this.listMedia(boardID, 'audio')
+      .then(results => {
+        DirectoryJSON.audio = results;
+        this.listMedia(boardID, 'video')
+          .then(results => {
+            DirectoryJSON.video = results;
+            return resolve(DirectoryJSON);
+          })
+       }
+    )
+    .catch(err => {
+      reject(err);
+    });
  
+     
+
+  });
+ 
+}

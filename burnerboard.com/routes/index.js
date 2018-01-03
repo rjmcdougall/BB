@@ -109,20 +109,38 @@ router.get('/boards/:boardID/listFiles', function (req, res, next) {
 router.get('/boards/TestDatastore', function (req, res, next) {
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 
-	// var boardID = 'vega';
-	// var fileName = 'BurnerBoardMedia/vega/AvenerMix.mp3';
+	var boardID = 'vega';
+	// var fileName = 'BurnerBoardMedia/vega/AvenerMix2551.mp3';
 	// var fileSize = 48786286;
 	// var fileLength = 1220;
-	// var SpeechCue = "";
-	//DownloadDirectoryDS.addAudio(boardID, fileName, fileSize, fileLength);
-
-	// var boardID = 'vega';
-	// var fileName = 'BurnerBoardMedia/vega/tunnels.mp4';
 	// var speechCue = "Tunnels";
 
-	// 	DownloadDirectoryDS.addVideo(boardID, fileName, speechCue);
+	// DownloadDirectoryDS.addMedia(boardID, 'video', fileName, fileSize, fileLength, speechCue)
+	// 	.then(result => {
+	// 		res.status(200).send(result);
+	// 	})
+	// 	.catch(function(err){
+	// 		res.status(500).send(err.message);
+	// 	})
 
-		DownloadDirectoryDS.getMaxAudioOrdinal();
+	// var mediaType = 'audio';
+	// DownloadDirectoryDS.listMedia (boardID, mediaType)
+	// 	.then(result => {
+	// 		res.status(200).json(result);
+	// 	})
+	// 	.catch(function(err){
+	// 		res.status(500).json(err);
+	// 	});
+
+	var mediaType = 'audio';
+	DownloadDirectoryDS.DirectoryJSON(boardID)
+		.then(result => {
+			res.status(200).json(result);
+		})
+		.catch(function (err) {
+			res.status(500).json(err);
+		});
+	
 });
 
 router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {

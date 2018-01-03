@@ -1,7 +1,23 @@
 indexes:
 
 - kind: audio
-  ancestor: yes
   properties:
-  - name: -ordinal 
- 
+  - name: board
+  - name: ordinal
+    direction: desc
+
+- kind: video
+  properties:
+  - name: board
+  - name: ordinal
+    direction: desc
+
+- kind: video
+  properties:
+  - name: board
+  - name: ordinal
+
+- kind: audio
+  properties:
+  - name: board
+  - name: ordinal

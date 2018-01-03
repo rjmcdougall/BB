@@ -14,4 +14,4 @@ npm run debug
 
 git push origin master --verbose
 
-gcloud datastore create-indexes ~/myapp/index.yaml
+gcloud datastore create-indexes index.yaml
