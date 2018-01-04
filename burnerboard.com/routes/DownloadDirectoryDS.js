@@ -108,6 +108,53 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
   });
 }
 
+// NEED TO FIX THE PROMISES HERE.
+exports.createNewBoard = function (boardID) {
+
+  return new Promise((resolve, reject) => {
+    this.listMedia('template', 'video')
+      .then(results => {
+
+        var resultsPromise = new Promise((resolve, reject) => {
+          var mediaArray = results[0];
+          var entityArray = [];
+
+          for (var i = 0; i < mediaArray.length; i++) {
+
+            var entity = {
+              key: datastore.key('video'),
+              data: {
+                board: boardID,
+                algorithm: result[0].algorithm,
+                ordinal: result[0].ordinal,
+              },
+            };
+
+            entityArray.push(entity);
+          }
+          return resolve(entityArray);
+        })
+          .then(entityArray => {
+
+            return datastore
+              .save(entityArray)
+              .then(() => {
+                resolve(mediaType + ` ${localName} created successfully with ordinal ` + newAttributes.ordinal);
+                // console.log(`Video ${localName} created successfully with ordinal ` + newAttributes.ordinal);
+              })
+              .catch(err => {
+                return reject(err);
+                //console.error('ERROR:', err);
+              });
+
+          });
+
+      });
+    });
+  }
+   
+
+
 exports.listMedia = function (boardID, mediaType) {
 
   return new Promise((resolve, reject) => {

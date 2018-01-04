@@ -163,6 +163,31 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
 		});
  
 });
+
+router.get('/boards/AddBoard/:boardID', function (req, res, next) {
+
+	var newBoardID = req.params.boardID;
+
+	// FileSystem = require('./FileSystem');
+
+	// FileSystem.createRootBoardFolder(newBoardID)
+	// 	.then(result => {
+	// 		res.status(200).json(result);
+	// 	})
+	// 	.catch(function (err) {
+	// 		res.status(500).json(err);
+	// 	});
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	DownloadDirectoryDS.createNewBoard(newBoardID)
+		.then(result => {
+			res.status(200).json(result);
+		})
+		.catch(function (err) {
+			res.status(500).json(err);
+		});
+ 
+});
  
 router.post('/boards/:boardID/ReorderMedia', function (req, res, next) {
 
@@ -207,16 +232,5 @@ var oAuthToken = req.body.oauthToken;
 
 
 });
-
-
-/* warning: this will not maintain the length of mp3 files or other metadata 
-IT DOES NOT WORK!!!*/
-// router.get('/boards/:boardID/genJSONFromFiles', function (req, res, next) {
-	
-// 		DownloadDirectoryDS = require('./DownloadDirectory');
-// 		DownloadDirectory.generateNewDirectoryJSON();
-// 		res.status(200).send("OK");
-	
-// 	});
-
+ 
 module.exports = router;
