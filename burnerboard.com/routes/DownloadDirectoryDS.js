@@ -108,14 +108,72 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
   });
 }
 
-// NEED TO FIX THE PROMISES HERE.
-exports.createNewBoard = function (boardID) {
+
+exports.createNewBoardMedia = async function (boardID, mediaType) {
+
+  var entityArray1 = [];
 
   return new Promise((resolve, reject) => {
-    var entityArray1 = [];
-    var entityArray2 = [];
 
-    this.listMedia('template', 'video')
+    this.listMedia('template', mediaType)
+      .then(results => {
+
+        var resultsPromise = new Promise((resolve, reject) => {
+          var mediaArray = results;
+
+          resolve(mediaArray.map((item) => {
+
+            var newElement;
+
+            if (mediaType == 'audio') {
+              newElement = {
+                key: datastore.key(mediaType),
+                data: {
+                  board: boardID,
+                  URL: item.URL.replace('/template/', '/' + boardID + '/'),
+                  localName: item.localName,
+                  Size: item.Size,
+                  Length: item.Length,
+                  ordinal: item.ordinal,
+                },
+              };
+            }
+            else { /* video */
+              newElement = {
+                key: datastore.key(mediaType),
+                data: {
+                  board: boardID,
+                  algorithm: item.algorithm,
+                  ordinal: item.ordinal,
+                },
+              };
+            }
+
+            entityArray1.push(newElement);
+          }))
+        })
+          .then(() => {
+            datastore
+              .save(entityArray1)
+              .then(() => {
+                resolve("template copied with " + entityArray1.length + " " + mediaType +  " elements");
+              })
+              .catch(err => {
+                return reject(err);
+              });
+          })
+      });
+  });
+}
+
+
+exports.createNewBoardAudio = async function (boardID) {
+
+  var entityArray1 = [];
+
+  return new Promise((resolve, reject) => {
+
+    this.listMedia('template', 'audio')
       .then(results => {
 
         var resultsPromise = new Promise((resolve, reject) => {
@@ -123,7 +181,7 @@ exports.createNewBoard = function (boardID) {
 
           resolve(mediaArray.map((item) => {
             entityArray1.push({
-              key: datastore.key('video'),
+              key: datastore.key('audio'),
               data: {
                 board: boardID,
                 algorithm: item.algorithm,
@@ -133,68 +191,77 @@ exports.createNewBoard = function (boardID) {
           }))
         })
           .then(() => {
-
             datastore
               .save(entityArray1)
               .then(() => {
-                console.log("template copied with " + entityArray1.length + "items");
+                resolve("template copied with " + entityArray1.length + " audio elements");
               })
               .catch(err => {
                 return reject(err);
-                //console.error('ERROR:', err);
               });
-
           })
-          .then(() => {
-
-            var resultsPromise = new Promise((resolve, reject) => {
-
-              this.listMedia('template', 'audio')
-                .then(results => {
-
-                  var mediaArray = results;
-                  entityArray2 = [];
-
-                  resolve(mediaArray.map((item) => {
-                    entityArray2.push({
-                      key: datastore.key('audio'),
-                      data: {
-                        board: boardID,
-                        algorithm: item.algorithm,
-                        ordinal: item.ordinal,
-                      },
-                    })
-                  }))
-
-                })
-                .then(() => {
-
-                  datastore
-                    .save(entityArray2)
-                    .then(() => {
-                      console.log("template copied with " + entityArray2.length + "items");
-                      return resolve(["audio template copied with " + entityArray2.length + "items",
-                                    "template copied with " + entityArray1.length + "items"]);
-                    })
-                    .catch(err => {
-                      return reject(err);
-                      //console.error('ERROR:', err);
-                    });
-
-                });
-
-            });
-            resolve(["audio template copied with " + entityArray2.length + "items",
-            "template copied with " + entityArray1.length + "items"])
-
-          });
       });
-    });
-  }
+  });
+}
+
+
+// exports.createNewBoard = async function (boardID) {
+
+//       return new Promise((resolve, reject) => {
+//        
+//         var entityArray2 = [];
+
+   
+//           .then(() => {
+
+//           var resultsPromise = new Promise((resolve, reject) => {
+
+//             this.listMedia('template', 'audio')
+//               .then(results => {
+
+//                 var mediaArray = results;
+//                 entityArray2 = [];
+
+//                 resolve(mediaArray.map((item) => {
+//                   entityArray2.push({
+//                     key: datastore.key('audio'),
+//                     data: {
+//                       board: boardID,
+//                       algorithm: item.algorithm,
+//                       ordinal: item.ordinal,
+//                     },
+//                   })
+//                 }))
+
+//               })
+//               .then(() => {
+
+//                 datastore
+//                   .save(entityArray2)
+//                   .then(() => {
+//                     console.log("template copied with " + entityArray2.length + "items");
+//                     return resolve(["audio template copied with " + entityArray2.length + "items",
+//                     "template copied with " + entityArray1.length + "items"]);
+//                   })
+//                   .catch(err => {
+//                     return reject(err);
+//                     //console.error('ERROR:', err);
+//                   });
+
+//               });
+
+//           });
+//           resolve(["audio template copied with " + entityArray2.length + "items",
+//           "template copied with " + entityArray1.length + "items"])
+
+//         });
+//       });
+//     });
+// }
 
 
 
-exports.listMedia = function (boardID, mediaType) {
+exports.listMedia = async function (boardID, mediaType) {
 
   return new Promise((resolve, reject) => {
 

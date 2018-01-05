@@ -164,24 +164,23 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
  
 });
 
-router.get('/boards/AddBoard/:boardID', function (req, res, next) {
+router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 
 	var newBoardID = req.params.boardID;
 
 	FileSystem = require('./FileSystem');
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 
-	DownloadDirectoryDS.createNewBoard(newBoardID)
-		.then(FileSystem.createRootBoardFolder(newBoardID))
-		.then(result => {
-			res.status(200).json(result);
-		})
-		.catch(function (err) {
-			res.status(500).json(err);
-		});
-
-	 
- 
+	try{
+		var results = [];
+		results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'video'));
+		results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'audio'));
+		results.push(await FileSystem.createRootBoardFolder(newBoardID));
+		res.status(200).json(results);		
+	}
+	catch(err){
+		res.status(500).json(err);
+	}
 });
  
 router.post('/boards/:boardID/ReorderMedia', function (req, res, next) {

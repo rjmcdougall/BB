@@ -221,30 +221,33 @@ exports.listFiles = function (boardID) {
 	});
 }
 
-exports.createRootBoardFolder = function (boardID) {
+exports.createRootBoardFolder = async function (boardID) {
 
 	return new Promise((resolve, reject) => {
-		bucket.getFiles({
-			autoPaginate: false,
-			delimiter: '/',
-			prefix: MUSIC_PATH + '/template/'
-		})
-			.then(result => {
 
+		try {
+
+			var result = bucket.getFiles({
+				autoPaginate: false,
+				delimiter: '/',
+				prefix: MUSIC_PATH + '/template/'
+			}).then(result => {
 				for (var i = 0; i < result[0].length; i++) {
 					result[0][i].copy(result[0][i].name.replace('template', boardID),
 						function (err, copiedFile, apiResponse) {
 							copiedFile.makePublic();
 						});
-				}
-				return resolve("OK");
+				}			
+				return true;
 			})
-			.catch(function (err) {
-				return reject(err);
-			});
-
+			.then((worked)=> {
+				return resolve("Root Folder " + boardID + " created");
+			})
+		}
+		catch (err) {
+			return reject(err);
+		}
 	});
-
 }
 
 checkForFileExists = function (boardID, fileName) {
