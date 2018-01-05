@@ -221,7 +221,7 @@ exports.listFiles = function (boardID) {
 	});
 }
 
-exports.createRootBoardFolder = function(boardID) {
+exports.createRootBoardFolder = function (boardID) {
 
 	return new Promise((resolve, reject) => {
 		bucket.getFiles({
@@ -229,16 +229,19 @@ exports.createRootBoardFolder = function(boardID) {
 			delimiter: '/',
 			prefix: MUSIC_PATH + '/template/'
 		})
-		.then(result => {
+			.then(result => {
 
-			for(var i=0;i<result[0].length;i++){
-				result[0][i].copy(result[0][i].name.replace('template',boardID));
-			}
-			return resolve("OK");
-		})
-		.catch(function (err) {
-			return reject(err);
-		});
+				for (var i = 0; i < result[0].length; i++) {
+					result[0][i].copy(result[0][i].name.replace('template', boardID),
+						function (err, copiedFile, apiResponse) {
+							copiedFile.makePublic();
+						});
+				}
+				return resolve("OK");
+			})
+			.catch(function (err) {
+				return reject(err);
+			});
 
 	});
 

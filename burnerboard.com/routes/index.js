@@ -168,24 +168,19 @@ router.get('/boards/AddBoard/:boardID', function (req, res, next) {
 
 	var newBoardID = req.params.boardID;
 
-	// FileSystem = require('./FileSystem');
-
-	// FileSystem.createRootBoardFolder(newBoardID)
-	// 	.then(result => {
-	// 		res.status(200).json(result);
-	// 	})
-	// 	.catch(function (err) {
-	// 		res.status(500).json(err);
-	// 	});
-
+	FileSystem = require('./FileSystem');
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+
 	DownloadDirectoryDS.createNewBoard(newBoardID)
+		.then(FileSystem.createRootBoardFolder(newBoardID))
 		.then(result => {
 			res.status(200).json(result);
 		})
 		.catch(function (err) {
 			res.status(500).json(err);
 		});
+
+	 
  
 });
  
