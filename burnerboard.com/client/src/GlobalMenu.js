@@ -47,7 +47,7 @@ class GlobalMenu extends Component {
           .then(response => response.json())
           .then(data => this.setState({
             boardNames: data.map(item => ({
-                board_name: `${item}`,
+                board_name: `${item.name}`,
             }))
           }))
           .catch(error => this.setState({ error}));

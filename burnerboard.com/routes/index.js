@@ -19,20 +19,17 @@ router.get('/', function (req, res, next) {
 	res.render('index', { title: 'burnerboard.com' });
 });
 
-router.get('/boards', function (req, res, next) {
+router.get('/boards', async function (req, res, next) {
 
-	var boardNames = [
-		"akula",
-		"artemis",
-		"candy",
-		"monaco",
-		"pegasus",
-		"ratchet",
-		"squeeze",
-		"vega"
-	]
-
-	res.status(200).json(boardNames)
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try{
+		var i = await DownloadDirectoryDS.listBoards();
+		res.status(200).json(i);
+	}
+	catch(err){
+		res.status(500).json(err.message);
+	}
+ 
 
 });
 

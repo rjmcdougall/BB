@@ -40,40 +40,12 @@ const getListStyle = isDraggingOver => ({
 const getDirectoryJSON = {
   "audio": [
     {
-      "URL": "None",
-      "localName": "Loading Song 1...",
-      "Size": 0,
-      "Length": 0
-    },
-    {
-      "URL": "None",
-      "localName": "Loading Song 2...",
-      "Size": 0,
-      "Length": 0
-    },
-    {
-      "URL": "None",
-      "localName": "Loading Song 3...",
-      "Size": 0,
-      "Length": 0
+      "localName": "loading audio..."
     }
   ],
   "video": [
     {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/tunnels.mp4",
-      "localName": "tunnels.mp4",
-      "SpeachCue": "Tunnels"
-    },
-    {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/BouncingComets.mp4",
-      "localName": "BouncingComets.mp4"
-    },
-    {
-      "URL": "https://storage.googleapis.com/burner-board/BurnerBoardMedia/vega/RedDevil.mp4",
-      "localName": "RedDevil.mp4"
-    },
-    {
-      "Algorithm": "modeFire(kModeFireDistrikt)"
+      "localName": "loading videos..."
     }
   ]
 };

@@ -130,6 +130,24 @@ exports.createNewBoard = async function (boardID) {
 
 }
 
+exports.listBoards = async function (){
+  return new Promise((resolve, reject) => {
+
+    const boardExists = datastore.createQuery('board')
+      .order("name")
+
+    datastore
+      .runQuery(boardExists)
+      .then(results => {
+        return resolve((results[0]));
+
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
+
 exports.boardExists = async function (boardID){
   return new Promise((resolve, reject) => {
 
@@ -336,10 +354,16 @@ exports.DirectoryJSON = function (boardID) {
 
     this.listMedia(boardID, 'audio')
       .then(results => {
-        DirectoryJSON.audio = results;
+        DirectoryJSON.audio = results.map(function(item){
+          delete item["board"];
+          return item
+        });
         this.listMedia(boardID, 'video')
           .then(results => {
-            DirectoryJSON.video = results;
+            DirectoryJSON.video = results.map(function(item){
+              delete item["board"];
+              return item
+            });
             return resolve(DirectoryJSON);
           })
        }
@@ -358,7 +382,10 @@ exports.reorderMedia = function (boardID, mediaType, mediaArray) {
       for (var i = 0; i < mediaArray.length; i++) {
 
 				var result = results.filter(function (element) {
-					return element.localName === mediaArray[i];
+          if(element.algorithm != null)
+            return element.algorithm === mediaArray[i];
+          else
+					  return element.localName === mediaArray[i];
 					console.log("found" + mediaArray[i])
         });
         
