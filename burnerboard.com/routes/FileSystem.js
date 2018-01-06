@@ -72,18 +72,37 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 										// now we need to add a record to directory json
 										DownloadDirectoryDS = require('./DownloadDirectoryDS');
 										if (filePath.endsWith('mp3')) {
-											DownloadDirectoryDS.addMedia(boardID,
-												'audio',
-												filePath,
-												fileAttributes.fileSize,
-												fileAttributes.songDuratio,
-												"")
-												.then(result => {
-													return resolve(result);
-												})
-												.catch(function (err) {
-													return reject(err);
+
+											var streamToBuffer = require('stream-to-buffer');
+											
+	
+											var stream3 = file3.createReadStream();
+											
+											streamToBuffer(stream3, function (err, buffer) {
+												var i = buffer.length;
+												var mp3Duration = require('mp3-duration');
+												mp3Duration(buffer, function (err, duration) {
+													if (err)  
+														callback(err);
+													songDuration = duration;
+
+													DownloadDirectoryDS.addMedia(boardID,
+														'audio',
+														filePath,
+														fileAttributes.fileSize,
+														fileAttributes.songDuratio,
+														"")
+														.then(result => {
+															return resolve(result);
+														})
+														.catch(function (err) {
+															return reject(err);
+														});
+
 												});
+											});
+
+
 										}
 
 
