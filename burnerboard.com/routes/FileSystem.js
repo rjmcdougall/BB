@@ -217,7 +217,6 @@ exports.listFiles = function (boardID) {
 		.catch(function (err) {
 			return reject(err);
 		});
-
 	});
 }
 
@@ -226,7 +225,6 @@ exports.createRootBoardFolder = async function (boardID) {
 	return new Promise((resolve, reject) => {
 
 		try {
-
 			var result = bucket.getFiles({
 				autoPaginate: false,
 				delimiter: '/',
@@ -252,7 +250,6 @@ exports.createRootBoardFolder = async function (boardID) {
 
 checkForFileExists = function (boardID, fileName) {
 
-	
 	return new Promise((resolve, reject) => {
 		bucket.getFiles({
 			autoPaginate: false,

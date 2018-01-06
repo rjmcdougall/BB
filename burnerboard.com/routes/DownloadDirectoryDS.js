@@ -1,26 +1,15 @@
-//import { Key } from '@google-cloud/datastore/src/entity';
 var format = require('util').format;
-
-// Imports the Google Cloud client library
 const Datastore = require('@google-cloud/datastore');
-
 const MUSIC_PATH = "BurnerBoardMedia";
 const MEDIA_CATALOG = "DownloadDirectory.json";
 const GOOGLE_CLOUD_BASE_URL = "https://storage.googleapis.com";
 const BUCKET_NAME = 'burner-board';
-
-// Your Google Cloud Platform project ID
 const projectId = 'burner-board';
 
-// Creates a client
 const datastore = new Datastore({
   projectId: projectId,
 });
- 
 
-/* add either media type w/ optional parameters
-TODO: right now you could get duplicate ordinals with rapid succession of calls.
-this should not affect overall app */
 exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength, speechCue) {
 
   return new Promise((resolve, reject) => {
@@ -88,22 +77,18 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
                 .save(entity)
                 .then(() => {
                   resolve(mediaType + ` ${localName} created successfully with ordinal ` + newAttributes.ordinal);
-                  // console.log(`Video ${localName} created successfully with ordinal ` + newAttributes.ordinal);
                 })
                 .catch(err => {
                   return reject(err);
-                  //console.error('ERROR:', err);
                 });
             })
             .catch(err => {
-              //console.error('ERROR:', err);
               return reject(err);
             });
         }
       })
       .catch(err => {
         return reject(err);
-        //console.error('ERROR:', err);
       });
   });
 }
@@ -126,11 +111,9 @@ exports.createNewBoard = async function (boardID) {
         return reject(err);
       });
   });
-
-
 }
 
-exports.listBoards = async function (){
+exports.listBoards = async function () {
   return new Promise((resolve, reject) => {
 
     const boardExists = datastore.createQuery('board')
@@ -139,8 +122,14 @@ exports.listBoards = async function (){
     datastore
       .runQuery(boardExists)
       .then(results => {
-        return resolve((results[0]));
 
+        results[0].splice(results[0].findIndex(matchesBoard), 1);
+
+        function matchesBoard(board) {
+            return board.name === 'template';
+        }
+
+        return resolve((results[0]));
       })
       .catch(err => {
         reject(err);
@@ -148,7 +137,7 @@ exports.listBoards = async function (){
   });
 }
 
-exports.boardExists = async function (boardID){
+exports.boardExists = async function (boardID) {
   return new Promise((resolve, reject) => {
 
     const boardExists = datastore.createQuery('board')
@@ -157,8 +146,7 @@ exports.boardExists = async function (boardID){
     datastore
       .runQuery(boardExists)
       .then(results => {
-        return resolve((results[0].length>0));
-
+        return resolve((results[0].length > 0));
       })
       .catch(err => {
         reject(err);
@@ -167,7 +155,6 @@ exports.boardExists = async function (boardID){
 }
 
 exports.createNewBoardMedia = async function (boardID, mediaType) {
-
 
   return new Promise((resolve, reject) => {
 
@@ -214,7 +201,7 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
             datastore
               .save(entityArray1)
               .then(() => {
-                resolve("template copied with " + entityArray1.length + " " + mediaType +  " elements");
+                resolve("template copied with " + entityArray1.length + " " + mediaType + " elements");
               })
               .catch(err => {
                 return reject(err);
@@ -269,7 +256,7 @@ exports.createNewBoardAudio = async function (boardID) {
 //        
 //         var entityArray2 = [];
 
-   
+
 //           .then(() => {
 
 //           var resultsPromise = new Promise((resolve, reject) => {
@@ -354,54 +341,50 @@ exports.DirectoryJSON = function (boardID) {
 
     this.listMedia(boardID, 'audio')
       .then(results => {
-        DirectoryJSON.audio = results.map(function(item){
+        DirectoryJSON.audio = results.map(function (item) {
           delete item["board"];
           return item
         });
         this.listMedia(boardID, 'video')
           .then(results => {
-            DirectoryJSON.video = results.map(function(item){
+            DirectoryJSON.video = results.map(function (item) {
               delete item["board"];
               return item
             });
             return resolve(DirectoryJSON);
           })
-       }
-    )
-    .catch(err => {
-      reject(err);
-    });
+      }
+      )
+      .catch(err => {
+        reject(err);
+      });
   });
- 
 }
 exports.reorderMedia = function (boardID, mediaType, mediaArray) {
 
   return new Promise((resolve, reject) => {
     this.listMedia(boardID, mediaType)
-    .then(results => {
-      for (var i = 0; i < mediaArray.length; i++) {
+      .then(results => {
+        for (var i = 0; i < mediaArray.length; i++) {
 
-				var result = results.filter(function (element) {
-          if(element.algorithm != null)
-            return element.algorithm === mediaArray[i];
-          else
-					  return element.localName === mediaArray[i];
-					console.log("found" + mediaArray[i])
-        });
-        
-        result[0].ordinal = i;
-      }
+          var result = results.filter(function (element) {
+            if (element.algorithm != null)
+              return element.algorithm === mediaArray[i];
+            else
+              return element.localName === mediaArray[i];
+            console.log("found" + mediaArray[i])
+          });
 
-      datastore.save(results)
-        .then(() => {
-          resolve(this.listMedia(boardID, mediaType));
-        })
-        .catch(err => {
-          reject(err);
-        });
-      
-    })
-   });
+          result[0].ordinal = i;
+        }
 
- 
+        datastore.save(results)
+          .then(() => {
+            resolve(this.listMedia(boardID, mediaType));
+          })
+          .catch(err => {
+            reject(err);
+          });
+      })
+  });
 }
