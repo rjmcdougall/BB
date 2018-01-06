@@ -108,12 +108,52 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
   });
 }
 
+exports.createNewBoard = async function (boardID) {
+
+  return new Promise((resolve, reject) => {
+    var i = 2;
+    datastore
+      .save(newElement = {
+        key: datastore.key(['board', boardID]),
+        data: {
+          name: boardID,
+        },
+      })
+      .then(() => {
+        return resolve("board " + boardID + " created ");
+      })
+      .catch(err => {
+        return reject(err);
+      });
+  });
+
+
+}
+
+exports.boardExists = async function (boardID){
+  return new Promise((resolve, reject) => {
+
+    const boardExists = datastore.createQuery('board')
+      .filter('name', '=', boardID)
+
+    datastore
+      .runQuery(boardExists)
+      .then(results => {
+        return resolve((results[0].length>0));
+
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
 
 exports.createNewBoardMedia = async function (boardID, mediaType) {
 
-  var entityArray1 = [];
 
   return new Promise((resolve, reject) => {
+
+    var entityArray1 = [];
 
     this.listMedia('template', mediaType)
       .then(results => {

@@ -173,13 +173,18 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 
 	try{
 		var results = [];
-		results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'video'));
-		results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'audio'));
-		results.push(await FileSystem.createRootBoardFolder(newBoardID));
-		res.status(200).json(results);		
+		var boardExists = await DownloadDirectoryDS.boardExists(newBoardID);
+		if(!boardExists){
+			results.push(await DownloadDirectoryDS.createNewBoard(newBoardID));
+			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'video'));
+			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'audio'));
+			results.push(await FileSystem.createRootBoardFolder(newBoardID));
+			res.status(200).json(results);				}
+		else
+			throw new Error("Board named " + newBoardID + " already exists");
 	}
 	catch(err){
-		res.status(500).json(err);
+		res.status(500).json(err.message);
 	}
 });
  
