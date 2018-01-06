@@ -58,8 +58,10 @@ class GoogleDriveMediaPicker extends Component {
                             .setSelectFolderEnabled(true);
 
                         const picker = new window.google.picker.PickerBuilder()
+                            .setSize(600,800)
                             .addView(docsView)
                             .setOAuthToken(oauthToken)
+                            .setOrigin(window.location.protocol + '//' + window.location.host)
                             //.setSelectableMimeTypes('application/vnd.google-apps.audio','application/vnd.google-apps.video','application/vnd.google-apps.folder')
                             .setDeveloperKey(DEVELOPER_KEY)
                             .setCallback((data) => {
@@ -152,6 +154,7 @@ class GoogleDriveMediaPicker extends Component {
                         'margin': '1cm 1cm 1cm 1cm',
                         'padding': '10px 5px 15px 20px'
                     }}>{successMessage}</div>
+                    
                 </GooglePicker>
                 
             </div>
