@@ -80,8 +80,7 @@ class App extends Component {
     console.log("rendering in app " + appBody);
 
 
-    return (
-        
+    return ( 
           <div className="App" style={{ margin: 0 }}>
             <GlobalMenu handleSelect={this.handleSelect} currentBoard={myState} />
             {appBody}
