@@ -4,7 +4,7 @@ import VideoList from './VideoList';
 import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
-import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
+import GoogleDriveFileLoader from './GoogleDriveFileLoader';
 import HttpsRedirect from 'react-https-redirect';
 
 class App extends Component {
@@ -58,7 +58,7 @@ class App extends Component {
         break;
       case "AppBody-LoadFromGDrive":
         console.log("IN load from g drive SWITCH");
-        appBody = <GoogleDriveMediaPicker currentBoard={myState} />;
+        appBody = <GoogleDriveFileLoader currentBoard={myState} />;
         break;
       default:
         if (myState != "Select Board") {

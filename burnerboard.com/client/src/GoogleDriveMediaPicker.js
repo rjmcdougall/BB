@@ -7,6 +7,7 @@ const SCOPE = ['https://www.googleapis.com/auth/drive.readonly'];
 
 class GoogleDriveMediaPicker extends Component {
 
+
     constructor(props) {
 
         console.log("  in constructor " + props.currentBoard);
@@ -17,13 +18,13 @@ class GoogleDriveMediaPicker extends Component {
             jsonResults: "",
             errorInfo: "",
         };
-
-    }
+  
+     }
  
     render() {
 
         let successMessage = "";
-
+ 
         console.log(this.state);
 
         if (this.state.jsonResults == "" && this.state.errorInfo=="") {
@@ -88,6 +89,8 @@ class GoogleDriveMediaPicker extends Component {
                                
 
                                     const googleDriveMediaPicker = this;
+                                     
+                                    googleDriveMediaPicker.props.setSpinnerActive(true);
 
                                     fetch(API, {
                                         method: 'POST',
@@ -106,7 +109,8 @@ class GoogleDriveMediaPicker extends Component {
                                     .then(res => {
                                         console.log('res ok? ' + res.ok);
                                         console.log('res status:' + res.status);
-                                        console.log('res status text:' + res.statusText);
+
+                                        googleDriveMediaPicker.props.setSpinnerActive(false);
 
                                         if (!res.ok) {
                                             res.text().then(function (text) {
@@ -146,9 +150,7 @@ class GoogleDriveMediaPicker extends Component {
                                             myErrorInfo = text;
                                         });
                                         this.setState({ errorInfo: myErrorInfo });
-                                    });
-
-                                    
+                                    }); 
 
                                 }
                             });
@@ -156,15 +158,14 @@ class GoogleDriveMediaPicker extends Component {
                         picker.build().setVisible(true);
                     }}
                 >
-                    
-                    <div style={{
-                        'backgroundColor': 'lightblue',
-                        'margin': '1cm 1cm 1cm 1cm',
-                        'padding': '10px 5px 15px 20px'
-                    }}>{successMessage}</div>
-                    
+                <div style={{
+                    'backgroundColor': 'lightblue',
+                    'margin': '1cm 1cm 1cm 1cm',
+                    'padding': '10px 5px 15px 20px'
+                }}>{successMessage}
+
+                </div>
                 </GooglePicker>
-                
             </div>
         )
     }
