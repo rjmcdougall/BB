@@ -38,7 +38,8 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 					speechCue: "",
 				};
 
-				checkForFileExists(boardID, jsonContent.title)
+				if(jsonContent.title.endsWith("mp3") || jsonContent.title.endsWith("mp4") ){
+					checkForFileExists(boardID, jsonContent.title)
 					.then(result => {
 						if (result == true)
 							throw new Error("the file " + fileAttributes.title + " already exists for board " + boardID);
@@ -131,6 +132,11 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 					.catch(function (err) {
 						return reject(err);
 					});
+				}
+				else {
+					return reject(new Error("The file must have an mp3 or mp4 extension."))
+				}
+
 			}
 		});
 	});
