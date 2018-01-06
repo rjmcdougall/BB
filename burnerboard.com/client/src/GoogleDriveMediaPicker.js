@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import GooglePicker from 'react-google-picker';
+import GoogleDriveSpinner from './GoogleDriveSpinner';
 
 const CLIENT_ID = '845419422405-4e826kofd0al1npjaq6tijn1f3imk43p.apps.googleusercontent.com';
 const DEVELOPER_KEY = 'AIzaSyD2LV75zLhuSnHOblyAYz6sUZ-o94dSARQ';
@@ -17,10 +18,15 @@ class GoogleDriveMediaPicker extends Component {
             currentBoard: props.currentBoard,
             jsonResults: "",
             errorInfo: "",
+            spinnerActive: false,
         };
   
      }
  
+     setSpinnerActive = (spinnerActive) => {
+        this.setState({spinnerActive: spinnerActive});
+    }
+
     render() {
 
         let successMessage = "";
@@ -90,7 +96,8 @@ class GoogleDriveMediaPicker extends Component {
 
                                     const googleDriveMediaPicker = this;
                                      
-                                    googleDriveMediaPicker.props.setSpinnerActive(true);
+                                    googleDriveMediaPicker.setSpinnerActive(true);
+                                    successMessage = "";
 
                                     fetch(API, {
                                         method: 'POST',
@@ -110,7 +117,7 @@ class GoogleDriveMediaPicker extends Component {
                                         console.log('res ok? ' + res.ok);
                                         console.log('res status:' + res.status);
 
-                                        googleDriveMediaPicker.props.setSpinnerActive(false);
+                                        googleDriveMediaPicker.setSpinnerActive(false);
 
                                         if (!res.ok) {
                                             res.text().then(function (text) {
@@ -158,14 +165,16 @@ class GoogleDriveMediaPicker extends Component {
                         picker.build().setVisible(true);
                     }}
                 >
-                <div style={{
-                    'backgroundColor': 'lightblue',
-                    'margin': '1cm 1cm 1cm 1cm',
-                    'padding': '10px 5px 15px 20px'
-                }}>{successMessage}
 
-                </div>
+                    <div style={{
+                        'backgroundColor': 'lightblue',
+                        'margin': '1cm 1cm 1cm 1cm',
+                        'padding': '10px 5px 15px 20px'
+                    }}><GoogleDriveSpinner loading={this.state.spinnerActive} />{successMessage}
+
+                    </div>
                 </GooglePicker>
+                
             </div>
         )
     }
