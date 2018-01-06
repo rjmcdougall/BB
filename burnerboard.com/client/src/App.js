@@ -5,6 +5,7 @@ import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
 import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
+import HttpsRedirect from 'react-https-redirect';
 
 class App extends Component {
 
@@ -81,10 +82,12 @@ class App extends Component {
 
 
     return (
-      <div className="App" style={{ margin: 0 }}>
-        <GlobalMenu handleSelect={this.handleSelect} currentBoard={myState} />
-        {appBody}
-      </div>
+        <HttpsRedirect>
+          <div className="App" style={{ margin: 0 }}>
+            <GlobalMenu handleSelect={this.handleSelect} currentBoard={myState} />
+            {appBody}
+          </div>
+        </HttpsRedirect>
     );
   }
 }
