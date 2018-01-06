@@ -68,7 +68,7 @@ class GlobalMenu extends Component {
 
         return (
             <div style={{ margin: 0 }}>
-                <Menu mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="click" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
+                <Menu mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="hover" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
                     <SubMenu title={this.state.currentBoard} key="1">
                         {this.state.boardNames.map(item => (
                             <MenuItem key={item.board_name}>{item.board_name}
