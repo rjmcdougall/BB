@@ -24,7 +24,6 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 		drive.files.get({
 			fileId: fileId,
 			'access_token': oauthToken,
-			//	alt: 'media'
 		}, function (err, jsonContent) {
 
 			if (err)
@@ -49,6 +48,8 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 								fileId: fileId,
 								'access_token': oauthToken,
 								alt: 'media'
+							}, {
+								encoding: null // Make sure we get the binary data
 							}, function (err, content) {
 
 								if (err)
@@ -74,18 +75,16 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 										DownloadDirectoryDS = require('./DownloadDirectoryDS');
 										if (filePath.endsWith('mp3')) {
 
-											// var streamToBuffer = require('stream-to-buffer');
+											var streamToBuffer = require('stream-to-buffer');
+											var stream3 = file3.createReadStream();
 											
-	
-											// var stream3 = file3.createReadStream();
-											
-											// streamToBuffer(stream3, function (err, buffer) {
-											// 	var i = buffer.length;
-											// 	var mp3Duration = require('mp3-duration');
-											// 	mp3Duration(buffer, function (err, duration) {
-											// 		if (err)  
-											// 			callback(err);
-											// 		songDuration = duration;
+											streamToBuffer(stream3, function (err, buffer) {
+												var i = buffer.length;
+												var mp3Duration = require('mp3-duration');
+												mp3Duration(buffer, function (err, duration) {
+													if (err)  
+														callback(err);
+													fileAttributes.songDuration = duration;
 
 													DownloadDirectoryDS.addMedia(boardID,
 														'audio',
@@ -99,14 +98,9 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 														.catch(function (err) {
 															return reject(err);
 														});
-
-											// 	});
-											// });
-
-
+												});
+											});
 										}
-
-
 										else if (filePath.endsWith('mp4')) {
 
 											DownloadDirectoryDS.addMedia(boardID,
@@ -122,7 +116,6 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 													return reject(err);
 												});
 										}
-
 									});
 									fileStream3.end(content);
 								};
@@ -136,7 +129,6 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 				else {
 					return reject(new Error("The file must have an mp3 or mp4 extension."))
 				}
-
 			}
 		});
 	});
