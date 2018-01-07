@@ -30,7 +30,7 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 				return reject(err);
 			else {
 				fileAttributes = {
-					fileSize: jsonContent.fileSize,
+					fileSize: parseInt(jsonContent.fileSize),
 					mimeType: jsonContent.mimeType,
 					title: jsonContent.title,
 					songDuration: 0,
@@ -84,13 +84,13 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 												mp3Duration(buffer, function (err, duration) {
 													if (err)  
 														callback(err);
-													fileAttributes.songDuration = duration;
+													fileAttributes.songDuration = Math.floor(duration);
 
 													DownloadDirectoryDS.addMedia(boardID,
 														'audio',
 														filePath,
 														fileAttributes.fileSize,
-														fileAttributes.songDuratio,
+														fileAttributes.songDuration,
 														"")
 														.then(result => {
 															return resolve(result);

@@ -12,7 +12,7 @@ RESPONSE
 "template copied with 9 video elements",
 "template copied with 1 audio elements",
 "Root Folder vega created"
-]
+]you
 
 2)
 https://BurnerBoard.com (HTTPS REQUIRED!!)
