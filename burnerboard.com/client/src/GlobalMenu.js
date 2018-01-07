@@ -66,6 +66,10 @@ class GlobalMenu extends Component {
             optionsDisabled=true;
         };
 
+        //                        <MenuItem disabled={true} key="AppBody-LoadFromDropBox">Load From DropBox</MenuItem>
+        //<MenuItem disabled={true} key="AppBody-MapEm">Map 'Em</MenuItem>
+       // <MenuItem disabled={true} key="AppBody-UploadFromDesktop">Upload From Desktop</MenuItem>
+
         return (
             <div style={{ margin: 0 }}>
                 <Menu mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="hover" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
@@ -79,14 +83,11 @@ class GlobalMenu extends Component {
                         <MenuItem key="AppBody-BatteryHistory">Battery History</MenuItem>
                         <MenuItem key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
                         <MenuItem key="AppBody-ReorderVideo">Reorder Video</MenuItem>
-                        <MenuItem disabled={true} key="AppBody-UploadFromDesktop">Upload From Desktop</MenuItem>
                         <MenuItem key="AppBody-LoadFromGDrive">Load From G Drive</MenuItem>
-                        <MenuItem disabled={true} key="AppBody-LoadFromDropBox">Load From DropBox</MenuItem>
-                    
+                   
                     </SubMenu>
                     <SubMenu title={<span>Global</span>} key="3">
                         <MenuItem key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
-                        <MenuItem disabled={true} key="AppBody-MapEm">Map 'Em</MenuItem>
                         
                     </SubMenu>
                 </Menu>
