@@ -5,13 +5,15 @@ class GoogleDriveSpinner extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            loading: props.loading
+            loading: props.loading,
+            message: props.message,
         }
     }
 
     componentWillReceiveProps(nextProps){
         this.setState({
             loading: nextProps.loading,
+            message: nextProps.message,
         });
     }
 
@@ -30,7 +32,7 @@ class GoogleDriveSpinner extends React.Component {
         }
         else {
             return (
-                <div />
+                <div>{this.state.message}</div>
             )
         }
 

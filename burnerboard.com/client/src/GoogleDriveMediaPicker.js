@@ -19,12 +19,23 @@ class GoogleDriveMediaPicker extends Component {
             jsonResults: "",
             errorInfo: "",
             spinnerActive: false,
+            successMessage: "",
         };
   
      }
  
      setSpinnerActive = (spinnerActive) => {
-        this.setState({spinnerActive: spinnerActive});
+         if(spinnerActive==true){
+            var success = this.state.jsonResults + ' Click to select another';
+            this.setState({spinnerActive: spinnerActive,
+                            successMessage: ""});
+         }
+         else{
+            var success = this.state.jsonResults + ' Click to select another';
+            this.setState({spinnerActive: spinnerActive,
+                            successMessage: success});
+         }
+
     }
 
     render() {
@@ -34,14 +45,14 @@ class GoogleDriveMediaPicker extends Component {
         console.log(this.state);
 
         if (this.state.jsonResults == "" && this.state.errorInfo=="") {
-            successMessage = "Click to Open a Picker";
+            this.state.successMessage = "Click to Open a Picker";
         }
         else {
             if (this.state.errorInfo.length>0){
-                successMessage = this.state.errorInfo + ' Click to select another' ;
+                this.state.successMessage = this.state.errorInfo + ' Click to select another' ;
             }
             else {
-                successMessage = this.state.jsonResults + ' Click to select another';
+                this.state.successMessage = this.state.jsonResults + ' Click to select another';
             }
         }
 
@@ -117,8 +128,6 @@ class GoogleDriveMediaPicker extends Component {
                                         console.log('res ok? ' + res.ok);
                                         console.log('res status:' + res.status);
 
-                                        googleDriveMediaPicker.setSpinnerActive(false);
-
                                         if (!res.ok) {
                                             res.text().then(function (text) {
                                                 console.log('res text: ' + text);
@@ -130,6 +139,7 @@ class GoogleDriveMediaPicker extends Component {
                                                     errorInfo: myErrorInfo,
                                                     jsonResults: myJsonResults
                                                 });
+                                                googleDriveMediaPicker.setSpinnerActive(false);
 
 
                                             });
@@ -146,6 +156,9 @@ class GoogleDriveMediaPicker extends Component {
                                                     errorInfo: myErrorInfo,
                                                     jsonResults: myJsonResults
                                                 });
+
+                                                googleDriveMediaPicker.setSpinnerActive(false);
+
                                             });
                                         }
                                         })
@@ -170,7 +183,7 @@ class GoogleDriveMediaPicker extends Component {
                         'backgroundColor': 'lightblue',
                         'margin': '1cm 1cm 1cm 1cm',
                         'padding': '10px 5px 15px 20px'
-                    }}><GoogleDriveSpinner loading={this.state.spinnerActive} />{successMessage}
+                    }}><GoogleDriveSpinner loading={this.state.spinnerActive} message={this.state.successMessage} />
 
                     </div>
                 </GooglePicker>
