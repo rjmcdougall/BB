@@ -1,10 +1,6 @@
 import React, { Component } from 'react';
-import AudioList from './AudioList';
-import VideoList from './VideoList';
-import GlobalMenu from './GlobalMenu';
-import BoardGrid from './BoardGrid';
-import BatteryHistoryGrid from './BatteryHistoryGrid';
-import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
+import BBApp from './BBApp';
+import GoogleLoginPage from './GoogleLoginPage';
 
 class App extends Component {
 
@@ -12,79 +8,47 @@ class App extends Component {
     super(props);
 
     this.state = {
-      currentAppBody: "none",
-      currentBoard: "Select Board",
+      JWT: "",
+      buttonText: "Login with Google",
     };
 
-    this.handleSelect = this.handleSelect.bind(this);
+    this.responseGoogle = this.responseGoogle.bind(this);
   }
 
-  handleSelect(info) {
+  responseGoogle = (response) => {
+    console.log(response);
+    if (response.error != null && response.error != "")
+      this.setState({ buttonText: "Error: " + response.error + " Please try again." });
 
-    console.log(`selected ${info.key}`);
+    else {
+      var id_token = response.getAuthResponse().id_token;
+      window.localStorage.setItem("JWT", id_token)
+      console.log("JWT stored in localStorage: " + id_token);
 
-    if (info.key.startsWith("AppBody-")) {
-      this.setState({ currentAppBody: info.key });
+      this.setState({ JWT: window.localStorage.JWT });
     }
-    else /*it is a board name*/ {
-      this.setState({ currentBoard: info.key });
-    };
+
+
   }
 
   render() {
 
-    let appBody = null;
-    console.log(this.state.currentAppBody);
+    console.log("JWT: " + window.localStorage.JWT);
+    var JWT = "";
+    var appBody = "";
 
-    var myState = this.state.currentBoard;
+    if (window.localStorage.JWT != null)
+      JWT = window.localStorage.JWT;
 
-    switch (this.state.currentAppBody) {
-      case "AppBody-CurrentStatuses":
-        console.log("IN BOARDGRID SWITCH");
-        appBody = <BoardGrid />;
-        break;
-      case "AppBody-BatteryHistory":
-        console.log("IN BatteryHistory SWITCH");
-        appBody = <BatteryHistoryGrid currentBoard={myState} />;
-        break;
-      case "AppBody-ReorderAudio":
-        console.log("IN reorder audio SWITCH");
-        appBody = <AudioList currentBoard={myState} />;
-        break;
-      case "AppBody-ReorderVideo":
-        console.log("IN reorder audio SWITCH");
-        appBody = <VideoList currentBoard={myState} />;
-        break;
-      case "AppBody-LoadFromGDrive":
-        console.log("IN load from g drive SWITCH");
-        appBody = <GoogleDriveMediaPicker currentBoard={myState} />;
-        break;
-      default:
-        if (myState != "Select Board") {
-          appBody = <div style={{
-            'backgroundColor': 'lightblue',
-            'margin': '1cm 1cm 1cm 1cm',
-            'padding': '10px 5px 15px 20px'
-          }}><p>You selected {myState}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
-        }
-        else {
-          appBody = <div style={{
-            'backgroundColor': 'lightblue',
-            'margin': '1cm 1cm 1cm 1cm',
-            'padding': '10px 5px 15px 20px'
-          }}><p>Global options available.</p> <p>Please select a board for board-specific options.</p></div>;
-        }
-        break;
-    };
+    if (JWT == "")
+      appBody = <GoogleLoginPage buttonText={this.state.buttonText} responseGoogle={this.responseGoogle} />;
+    else
+      appBody = <BBApp />;
 
-    console.log("rendering in app " + appBody);
-
-
-    return ( 
-          <div className="App" style={{ margin: 0 }}>
-            <GlobalMenu handleSelect={this.handleSelect} currentBoard={myState} />
-            {appBody}
-          </div> 
+    return (
+      <div className="App" style={{ margin: 0 }}>
+        {appBody}
+      </div>
     );
   }
 }
