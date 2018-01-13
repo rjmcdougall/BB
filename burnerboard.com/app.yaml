@@ -12,6 +12,7 @@ resources:
 liveness_check:
   check_interval_sec: 200
 
-#env_variables:
+env_variables:
+  client_id: "845419422405-4e826kofd0al1npjaq6tijn1f3imk43p.apps.googleusercontent.com",
 #  GCLOUD_STORAGE_BUCKET: 'burner-board'
 #  GCLOUD_PROJECT: "burner-board"

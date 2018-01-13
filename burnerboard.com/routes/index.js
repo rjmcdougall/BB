@@ -7,6 +7,39 @@ var bodyParser = require('body-parser');
  
 router.use(bodyParser.json());
 
+// route middleware to verify a token
+router.use(function (req, res, next) {
+
+	var JWT = req.headers['x-access-token'];
+
+	if (JWT) {
+		var GoogleAuth = require('google-auth-library');
+		var auth = new GoogleAuth;
+		var client = new auth.OAuth2(process.env.CLIENT_ID, '', '');
+		client.verifyIdToken(
+			JWT,
+			process.env.CLIENT_ID,
+			function (e, login) {
+				if (e) {
+					res.status(403).send(e.message.substr(0, 30) + "... Please Try Again.");
+				}
+				else {
+					var payload = login.getPayload();
+					var userid = payload['sub'];
+					// If request specified a G Suite domain:
+					//var domain = payload['hd'];
+					var i = 1;
+					next();
+				}
+			});
+	}
+	else res.status(403).json({
+		success: false,
+		message: 'No token provided.'
+	});
+
+});
+
 const upload = Multer({
 	storage: Multer.memoryStorage(),
 	limits: {
@@ -183,24 +216,6 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 	catch(err){
 		res.status(500).json(err.message);
 	}
-});
-
-router.post('/TestAuth', function (req, res, next) {
-
-	var GoogleAuth = require('google-auth-library');
-	var auth = new GoogleAuth;
-	var client = new auth.OAuth2(CLIENT_ID, '', '');
-	client.verifyIdToken(
-		token,
-		CLIENT_ID,
-		// Or, if multiple clients access the backend:
-		//[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3],
-		function (e, login) {
-			var payload = login.getPayload();
-			var userid = payload['sub'];
-			// If request specified a G Suite domain:
-			//var domain = payload['hd'];
-		});
 });
 
 router.post('/boards/:boardID/ReorderMedia', function (req, res, next) {

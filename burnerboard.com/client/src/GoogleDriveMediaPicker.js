@@ -114,7 +114,8 @@ class GoogleDriveMediaPicker extends Component {
                                         method: 'POST',
                                         headers: {
                                             'Accept': 'application/json',
-                                            'Content-Type': 'application/json'
+                                            'Content-Type': 'application/json',
+                                            'x-access-token': window.localStorage.JWT,
                                         },
                                         body: JSON.stringify({
                                             GDriveURL: url,

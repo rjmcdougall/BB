@@ -21,11 +21,64 @@ class App extends Component {
       this.setState({ buttonText: "Error: " + response.error + " Please try again." });
 
     else {
-      var id_token = response.getAuthResponse().id_token;
-      window.localStorage.setItem("JWT", id_token)
-      console.log("JWT stored in localStorage: " + id_token);
 
-      this.setState({ JWT: window.localStorage.JWT });
+      var id_token = response.getAuthResponse().id_token;
+
+      const app = this;
+
+      var API = '/users/Auth';
+
+      fetch(API, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'x-access-token': id_token,
+          }
+        })
+        .then(res => {
+          console.log('res ok? ' + res.ok);
+          console.log('res status:' + res.status);
+
+          if (!res.ok) {
+            res.text().then(function (text) {
+
+              app.setState({
+                JWT: "",
+                buttonText: text,
+              });
+
+              console.log('res not ok json: ' + text);
+            });
+          }
+          else {
+
+            window.localStorage.setItem("JWT", id_token)
+            console.log("JWT stored in localStorage: " + id_token);
+
+            app.setState({
+              JWT: window.localStorage.JWT,
+              buttonText: "",
+            });
+
+            res.text().then(function (text) {
+              console.log('OK res : ' + text);
+
+            });
+          }
+        })
+        .catch((err) => {
+          console.log("in catch block");
+
+          err.text().then(function (text) {
+            app.setState({
+              JWT: "",
+              buttonText: text,
+            });
+          });
+
+        });
+
     }
 
 

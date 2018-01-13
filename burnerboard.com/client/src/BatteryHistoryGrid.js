@@ -56,7 +56,13 @@ class BatteryHistoryGrid extends React.Component {
 
         const API = '/boards/' + this.state.currentBoard +'/BatteryHistory';
 
-        fetch(API)
+        fetch(API, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'x-access-token': window.localStorage.JWT,
+            }
+        })
             .then(response => response.json())
             .then(data => this.setState({
                 boardData: data.map(item => ({

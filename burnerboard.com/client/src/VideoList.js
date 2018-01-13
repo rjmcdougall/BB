@@ -80,7 +80,13 @@ class VideoList extends Component {
 
     var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSON';
  
-    fetch(API)
+    fetch(API, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-access-token': window.localStorage.JWT,
+      }
+    })
       .then(response => response.json())
       .then(data => this.setState({
         items: data.video.map(function (item) {
@@ -127,7 +133,8 @@ class VideoList extends Component {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-access-token': window.localStorage.JWT,
       },
       body: JSON.stringify({mediaArray: videoArray,
                             mediaType: 'video'})

@@ -61,7 +61,13 @@ class BoardGrid extends React.Component {
 
     componentDidMount() {
 
-        fetch(API)
+        fetch(API, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'x-access-token': window.localStorage.JWT,
+            }
+        })
             .then(response => response.json())
             .then(data => this.setState({
                 boardData: data.map(item => ({

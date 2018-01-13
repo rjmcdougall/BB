@@ -43,15 +43,21 @@ class GlobalMenu extends Component {
 
     componentDidMount() {
 
-        fetch(API)
-          .then(response => response.json())
-          .then(data => this.setState({
-            boardNames: data.map(item => ({
-                board_name: `${item.name}`,
+        fetch(API, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'x-access-token': window.localStorage.JWT,
+            }
+        })
+            .then(response => response.json())
+            .then(data => this.setState({
+                boardNames: data.map(item => ({
+                    board_name: `${item.name}`,
+                }))
             }))
-          }))
-          .catch(error => this.setState({ error}));
-    
+            .catch(error => this.setState({ error }));
+
       }
 
     onOpenChange(value) {

@@ -66,7 +66,13 @@ class AudioList extends Component {
 
     var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSON';
 
-    fetch(API)
+    fetch(API, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-access-token': window.localStorage.JWT,
+        }
+      })
       .then(response => response.json())
       .then(data => this.setState({
         items: data.audio.map(item => ({
@@ -104,10 +110,13 @@ class AudioList extends Component {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-access-token': window.localStorage.JWT,
       },
-      body: JSON.stringify({mediaArray: audioArray,
-                            mediaType: 'audio'})
+      body: JSON.stringify({
+        mediaArray: audioArray,
+        mediaType: 'audio'
+      })
     }).then((res) => res.json())
       .then((data) => console.log(data))
       .catch((err) => console.log(err));
