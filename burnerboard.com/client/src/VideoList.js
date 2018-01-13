@@ -84,7 +84,7 @@ class VideoList extends Component {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'x-access-token': window.localStorage.JWT,
+        'x-access-token': window.sessionStorage.JWT,
       }
     })
       .then(response => response.json())
@@ -134,7 +134,7 @@ class VideoList extends Component {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'x-access-token': window.localStorage.JWT,
+        'x-access-token': window.sessionStorage.JWT,
       },
       body: JSON.stringify({mediaArray: videoArray,
                             mediaType: 'video'})

@@ -1,13 +1,7 @@
-var format = require('util').format;
-const Datastore = require('@google-cloud/datastore');
-const MUSIC_PATH = "BurnerBoardMedia";
-const MEDIA_CATALOG = "DownloadDirectory.json";
-const GOOGLE_CLOUD_BASE_URL = "https://storage.googleapis.com";
-const BUCKET_NAME = 'burner-board';
-const projectId = 'burner-board';
-
+const format = require('util').format;
+const Datastore = require('@google-cloud/datastore');  
 const datastore = new Datastore({
-  projectId: projectId,
+  projectId: process.env.PROJECT_ID,
 });
 
 exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength, speechCue) {
@@ -21,7 +15,7 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
     if (mediaType == 'audio') {
       newAttributes = {
         board: boardID,
-        URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
+        URL: format(`${process.env.GOOGLE_CLOUD_BASE_URL}/${process.env.BUCKET_NAME}/${fileName}`),
         localName: localName,
         Size: fileSize,
         Length: fileLength,
@@ -31,7 +25,7 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
     else { /* video */
       newAttributes = {
         board: boardID,
-        URL: format(`${GOOGLE_CLOUD_BASE_URL}/${BUCKET_NAME}/${fileName}`),
+        URL: format(`${process.env.GOOGLE_CLOUD_BASE_URL}/${process.env.BUCKET_NAME}/${fileName}`),
         localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
         SpeachCue: speechCue,
         ordinal: null //set later

@@ -1,11 +1,8 @@
 const Storage = require('@google-cloud/storage');
 const storage = Storage();
-const bucketName = 'burner-board';
 const google = require('googleapis');
 const drive = google.drive('v2');
 const bucket = storage.bucket('burner-board');
-
-const MUSIC_PATH = "BurnerBoardMedia";
 
 var fileAttributes = {
 	fileSize: 0,
@@ -155,8 +152,7 @@ exports.addFile = function (boardID, uploadedFile, speechCue, callback) {
 	// else if (uploadedFile.originalname.endsWith('mp4'))
 	// 	contenttype = 'video/mp4';
 
-	// var filepath = MUSIC_PATH + '/' + boardID + '/' + uploadedFile.originalname;
-
+ 
 	// const file = bucket.file(filepath);
 	// const fileStream = file.createWriteStream({
 	// 	metadata: {
@@ -226,7 +222,7 @@ exports.listFiles = function (boardID) {
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: MUSIC_PATH + '/' + boardID + '/'
+			prefix: process.env.MUSIC_PATH + '/' + boardID + '/'
 		})
 		.then(result => {
 			return resolve(result);
@@ -245,7 +241,7 @@ exports.createRootBoardFolder = async function (boardID) {
 			var result = bucket.getFiles({
 				autoPaginate: false,
 				delimiter: '/',
-				prefix: MUSIC_PATH + '/template/'
+				prefix: process.env.MUSIC_PATH + '/template/'
 			}).then(result => {
 				for (var i = 0; i < result[0].length; i++) {
 					result[0][i].copy(result[0][i].name.replace('template', boardID),
@@ -271,7 +267,7 @@ checkForFileExists = function (boardID, fileName) {
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: MUSIC_PATH + '/' + boardID + '/' + fileName
+			prefix: process.env.MUSIC_PATH + '/' + boardID + '/' + fileName
 		})
 		.then(result => {
 			if(result[0].length>0)

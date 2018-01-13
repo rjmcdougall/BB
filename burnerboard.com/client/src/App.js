@@ -53,11 +53,11 @@ class App extends Component {
           }
           else {
 
-            window.localStorage.setItem("JWT", id_token)
-            console.log("JWT stored in localStorage: " + id_token);
+            window.sessionStorage.setItem("JWT", id_token)
+            console.log("JWT stored in sessionStorage: " + id_token);
 
             app.setState({
-              JWT: window.localStorage.JWT,
+              JWT: window.sessionStorage.JWT,
               buttonText: "",
             });
 
@@ -86,12 +86,12 @@ class App extends Component {
 
   render() {
 
-    console.log("JWT: " + window.localStorage.JWT);
+    console.log("JWT: " + window.sessionStorage.JWT);
     var JWT = "";
     var appBody = "";
 
-    if (window.localStorage.JWT != null)
-      JWT = window.localStorage.JWT;
+    if (window.sessionStorage.JWT != null)
+      JWT = window.sessionStorage.JWT;
 
     if (JWT == "")
       appBody = <GoogleLoginPage buttonText={this.state.buttonText} responseGoogle={this.responseGoogle} />;

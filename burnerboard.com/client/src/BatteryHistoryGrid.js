@@ -60,7 +60,7 @@ class BatteryHistoryGrid extends React.Component {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'x-access-token': window.localStorage.JWT,
+                'x-access-token': window.sessionStorage.JWT,
             }
         })
             .then(response => response.json())

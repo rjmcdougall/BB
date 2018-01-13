@@ -2,21 +2,19 @@
 
 // Imports the Google Cloud client library
 const BigQuery = require('@google-cloud/bigquery');
-const projectId = "burner-board";
-
+ 
 // Instantiates a client
 const bigquery = BigQuery({
-	projectId: projectId
+	projectId: process.env.PROJECT_ID
 });
  
 exports.queryBatteryData = function(callback) {
   
     BatteryQueries = require('./BatteryQueries');
-  
-    // Query options list: https://cloud.google.com/bigquery/docs/reference/v2/jobs/query
+   
     const options = {
       query: BatteryQueries.sqlBatteryLevel,
-      useLegacySql: false // Use standard SQL syntax for queries.
+      useLegacySql: false  
     };
   
     // Runs the query
