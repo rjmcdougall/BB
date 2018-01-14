@@ -6,28 +6,20 @@ router.get('/', function (req, res, next) {
 	res.send('respond with a resource');
 });
 
-router.post('/Auth', function (req, res, next) {
+router.post('/Auth', async function (req, res, next) {
 
 	var JWT = req.headers['x-access-token'];
+	var results = [];
 
-	var GoogleAuth = require('google-auth-library');
-	var auth = new GoogleAuth;
-	var client = new auth.OAuth2(process.env.CLIENT_ID, '', '');
-	client.verifyIdToken(
-		JWT,
-		process.env.CLIENT_ID,
-		function (e, login) {
-			if(e){
-				res.status(401).send(e.message.substr(0,30) + "... Please Try Again.");
-			}
-			else {
-				var payload = login.getPayload();
-				var userid = payload['sub'];
-				// If request specified a G Suite domain:
-				//var domain = payload['hd'];
-				var i = 1;
-				res.status(200).send(JWT);
-			}
-		});
+	UserStore = require('./UserStore');
+	try{
+		results.push(await UserStore.verifyJWT(JWT));
+		res.status(200).send(results);
+	}
+	catch(err){
+		res.status(401).send(err.message.substr(0,30) + "... Please Try Again.");
+	}
+
 });
+
 module.exports = router;

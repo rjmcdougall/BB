@@ -4,40 +4,28 @@ var util = require('util')
 var format = require('util').format;
 var Multer = require('multer');
 var bodyParser = require('body-parser');
- 
+var UserStore = require('./UserStore');
+
 router.use(bodyParser.json());
 
 // route middleware to verify a token
-router.use(function (req, res, next) {
+router.use(async function (req, res, next) {
 
 	var JWT = req.headers['x-access-token'];
 
 	if (JWT) {
-		var GoogleAuth = require('google-auth-library');
-		var auth = new GoogleAuth;
-		var client = new auth.OAuth2(process.env.CLIENT_ID, '', '');
-		client.verifyIdToken(
-			JWT,
-			process.env.CLIENT_ID,
-			function (e, login) {
-				if (e) {
-					res.status(403).send(e.message.substr(0, 30) + "... Please Try Again.");
-				}
-				else {
-					var payload = login.getPayload();
-					var userid = payload['sub'];
-					// If request specified a G Suite domain:
-					//var domain = payload['hd'];
-					var i = 1;
-					next();
-				}
-			});
+		try {
+			var i = await UserStore.verifyJWT(JWT);
+			next();
+		}
+		catch (err) {
+			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
+		}
 	}
 	else res.status(403).json({
 		success: false,
 		message: 'No token provided.'
 	});
-
 });
 
 const upload = Multer({
