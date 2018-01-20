@@ -89,7 +89,8 @@ class GlobalMenu extends Component {
                         <MenuItem key="AppBody-BatteryHistory">Battery History</MenuItem>
                         <MenuItem key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
                         <MenuItem key="AppBody-ReorderVideo">Reorder Video</MenuItem>
-                        <MenuItem key="AppBody-LoadFromGDrive">Load From G Drive</MenuItem>
+                        <MenuItem key="AppBody-ManageMedia">Remove Media</MenuItem>
+                        <MenuItem key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
                    
                     </SubMenu>
                     <SubMenu title={<span>Global</span>} key="3">

@@ -6,6 +6,7 @@ import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
 import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 import GoogleLoginPage from './GoogleLoginPage';
+import ManageMediaGrid from './ManageMediaGrid';
 
 class BBApp extends Component {
 
@@ -59,6 +60,10 @@ class BBApp extends Component {
       case "AppBody-LoadFromGDrive":
         console.log("IN load from g drive SWITCH");
         appBody = <GoogleDriveMediaPicker currentBoard={myState} />;
+        break;
+      case "AppBody-ManageMedia":
+        console.log("IN ManageMedia SWITCH");
+        appBody = <ManageMediaGrid currentBoard={myState} />;
         break;
       default:
         if (myState != "Select Board") {
