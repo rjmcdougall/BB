@@ -1,4 +1,4 @@
-const constants = require("./constants");
+const constants = require("./Constants");
 const GoogleAuth = require('google-auth-library');
 const Datastore = require('@google-cloud/datastore');
 const datastore = new Datastore({
