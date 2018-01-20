@@ -1,9 +1,0 @@
-extends layout
-
-block content
-  h1= "Upload MP3 or MP4 files"
-
-  form(method="POST", action="/boards/" + boardID + "/upload", enctype="multipart/form-data")
-      input(type="file", name="file")
-      input(type="textbox", name="speechCue")
-      input(type="submit")
