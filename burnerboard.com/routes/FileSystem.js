@@ -1,4 +1,4 @@
-const constants = require('./constants.js');
+const constants = require('./Constants');
 const Storage = require('@google-cloud/storage');
 const storage = Storage();
 const google = require('googleapis');

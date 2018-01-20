@@ -1,4 +1,4 @@
-const constants = require('./constants.js');
+const constants = require('./Constants');
 
 
 // Imports the Google Cloud client library
