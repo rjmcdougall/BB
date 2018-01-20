@@ -1,17 +1,18 @@
+const constants = require("./Constants.js");
 const GoogleAuth = require('google-auth-library');
 const Datastore = require('@google-cloud/datastore');
 const datastore = new Datastore({
-    projectId: process.env.PROJECT_ID,
+    projectId: constants.PROJECT_ID,
 });
 
 exports.verifyJWT = async function (JWT) {
     return new Promise((resolve, reject) => {
 
         var auth = new GoogleAuth;
-        var client = new auth.OAuth2(process.env.CLIENT_ID, '', '');
+        var client = new auth.OAuth2(constants.CLIENT_ID, '', '');
         client.verifyIdToken(
             JWT,
-            process.env.CLIENT_ID,
+            constants.CLIENT_ID,
             function (e, login) {
                 if (e) {
                     return reject(e);

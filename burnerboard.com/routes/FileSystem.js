@@ -1,3 +1,4 @@
+const constants = require('./constants.js');
 const Storage = require('@google-cloud/storage');
 const storage = Storage();
 const google = require('googleapis');
@@ -53,7 +54,7 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 									return reject(err);
 								else {
 									// now get the real file and save it.
-									var filePath = 'BurnerBoardMedia' + '/' + boardID + '/' + fileAttributes.title;
+									var filePath = constants.MUSIC_PATH + '/' + boardID + '/' + fileAttributes.title;
 									var file3 = bucket.file(filePath);
 									var fileStream3 = file3.createWriteStream({
 										metadata: {
@@ -222,7 +223,7 @@ exports.listFiles = function (boardID) {
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: process.env.MUSIC_PATH + '/' + boardID + '/'
+			prefix: constants.MUSIC_PATH + '/' + boardID + '/'
 		})
 		.then(result => {
 			return resolve(result);
@@ -241,7 +242,7 @@ exports.createRootBoardFolder = async function (boardID) {
 			var result = bucket.getFiles({
 				autoPaginate: false,
 				delimiter: '/',
-				prefix: process.env.MUSIC_PATH + '/template/'
+				prefix: constants.MUSIC_PATH + '/template/'
 			}).then(result => {
 				for (var i = 0; i < result[0].length; i++) {
 					result[0][i].copy(result[0][i].name.replace('template', boardID),
@@ -267,7 +268,7 @@ checkForFileExists = function (boardID, fileName) {
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: process.env.MUSIC_PATH + '/' + boardID + '/' + fileName
+			prefix: constants.MUSIC_PATH + '/' + boardID + '/' + fileName
 		})
 		.then(result => {
 			if(result[0].length>0)
@@ -279,5 +280,21 @@ checkForFileExists = function (boardID, fileName) {
 			return reject(err);
 		});
 
+	});
+}
+
+exports.deleteMedia= function (boardID, fileName) {
+
+	return new Promise((resolve, reject) => {
+
+		bucket
+			.file(constants.MUSIC_PATH + '/' + boardID + '/' + fileName)
+			.delete()
+			.then(() => {
+				return resolve(constants.MUSIC_PATH + '/' + boardID + '/' + fileName + " deleted.");
+			})
+			.catch(err => {
+				return reject(err);
+			});
 	});
 }

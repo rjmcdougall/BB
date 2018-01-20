@@ -1,3 +1,4 @@
+const constants = require('./constants.js');
 
 
 // Imports the Google Cloud client library
@@ -5,7 +6,7 @@ const BigQuery = require('@google-cloud/bigquery');
  
 // Instantiates a client
 const bigquery = BigQuery({
-	projectId: process.env.PROJECT_ID
+	projectId: constants.PROJECT_ID
 });
  
 exports.queryBatteryData = function(callback) {

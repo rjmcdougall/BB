@@ -8,7 +8,6 @@ var UserStore = require('./UserStore');
 
 router.use(bodyParser.json());
 
-// route middleware to verify a token
 router.use(async function (req, res, next) {
 
 	var JWT = req.headers['x-access-token'];
@@ -176,6 +175,35 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
 			res.status(500).json(err);
 		});
  
+});
+
+router.delete('/boards/:boardID/:mediaType/:mediaLocalName', async function (req, res, next) {
+
+	var boardID = req.params.boardID;
+	var mediaType = req.params.mediaType;	
+	var mediaLocalName = req.params.mediaLocalName;
+
+	FileSystem = require('./FileSystem');
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+
+	try{
+		var results = [];
+		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
+		if(boardExists){
+			var mediaExists = await(DownloadDirectoryDS.mediaExists(boardID, mediaType, mediaLocalName)) 
+			if(mediaExists){
+				results.push(await DownloadDirectoryDS.deleteMedia(boardID, mediaType, mediaLocalName));  
+				results.push(await FileSystem.deleteMedia(boardID, mediaLocalName)); // implement me
+			}
+			else
+				throw new Error(mediaType + " named " + mediaLocalName + " does not exist");
+			res.status(200).json(results);				}
+		else
+			throw new Error("Board named " + boardID + " does not exist");
+	}
+	catch(err){
+		res.status(500).json(err.message);
+	}
 });
 
 router.get('/boards/AddBoard/:boardID', async function (req, res, next) {

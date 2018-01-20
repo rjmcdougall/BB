@@ -13,11 +13,6 @@ liveness_check:
   check_interval_sec: 200
 
 env_variables:
-  CLIENT_ID: "845419422405-4e826kofd0al1npjaq6tijn1f3imk43p.apps.googleusercontent.com"
-  PROJECT_ID: "burner-board"
-  MUSIC_PATH: = "BurnerBoardMedia"
-  GOOGLE_CLOUD_BASE_URL: "https://storage.googleapis.com"
-  BUCKET_NAME: "burner-board"
 
 #  GCLOUD_STORAGE_BUCKET: 'burner-board'
 #  GCLOUD_PROJECT: "burner-board"
