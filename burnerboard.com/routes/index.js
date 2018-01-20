@@ -37,7 +37,7 @@ const upload = Multer({
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
-	res.render('index', { title: 'burnerboard.com' });
+	res.status(400).send("Not Found");
 });
 
 router.get('/boards', async function (req, res, next) {
@@ -82,11 +82,7 @@ router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
 		}
 	});
 });
-
-// router.get('/boards/:boardID/upload', (req, res, next) => {
-// 	res.render('uploadForm', { title: 'burnerboard.com', boardID: req.params.boardID });
-// });
-
+ 
 // router.post('/boards/:boardID/upload', upload.single('file'), (req, res, next) => {
 // 	if (!req.file) {
 // 		res.status(400).send('No file uploaded.');
