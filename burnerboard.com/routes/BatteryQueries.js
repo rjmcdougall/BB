@@ -1,53 +1,47 @@
 const constants = require('./Constants');
-
-
-// Imports the Google Cloud client library
 const BigQuery = require('@google-cloud/bigquery');
- 
-// Instantiates a client
 const bigquery = BigQuery({
-	projectId: constants.PROJECT_ID
+  projectId: constants.PROJECT_ID
 });
- 
-exports.queryBatteryData = function(callback) {
-  
-    BatteryQueries = require('./BatteryQueries');
-   
-    const options = {
-      query: BatteryQueries.sqlBatteryLevel,
-      useLegacySql: false  
-    };
-  
-    // Runs the query
-    bigquery
-      .query(options)
-      .then((results) => {
-        callback(null,results[0]);
-      })
-      .catch((err) => {
-        callback(err,null);
-      });
-  }
 
-exports.queryBatteryHistory = function(boardID,callback) {
+exports.queryBatteryData = function (callback) {
 
-    BatteryQueries = require('./BatteryQueries');
-  
-    const options = {
-      query: BatteryQueries.sqlBatteryHistory.replace('?', boardID),
-      useLegacySql: false // Use standard SQL syntax for queries.
-    };
-  
-    // Runs the query
-    bigquery
-      .query(options)
-      .then((results) => {
-        callback(null,results[0]);
-      })
-      .catch((err) => {
-        callback(err, null);
-      });
-  }
+  BatteryQueries = require('./BatteryQueries');
+
+  const options = {
+    query: BatteryQueries.sqlBatteryLevel,
+    useLegacySql: false
+  };
+
+  bigquery
+    .query(options)
+    .then((results) => {
+      callback(null, results[0]);
+    })
+    .catch((err) => {
+      callback(err, null);
+    });
+}
+
+exports.queryBatteryHistory = function (boardID, callback) {
+
+  BatteryQueries = require('./BatteryQueries');
+
+  const options = {
+    query: BatteryQueries.sqlBatteryHistory.replace('?', boardID),
+    useLegacySql: false // Use standard SQL syntax for queries.
+  };
+
+  // Runs the query
+  bigquery
+    .query(options)
+    .then((results) => {
+      callback(null, results[0]);
+    })
+    .catch((err) => {
+      callback(err, null);
+    });
+}
 
 exports.sqlBatteryLevel = `SELECT 
 board_name,

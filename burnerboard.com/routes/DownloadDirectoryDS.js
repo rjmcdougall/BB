@@ -1,6 +1,6 @@
 const constants = require('./Constants');
 const format = require('util').format;
-const Datastore = require('@google-cloud/datastore');  
+const Datastore = require('@google-cloud/datastore');
 const datastore = new Datastore({
   projectId: process.env.PROJECT_ID,
 });
@@ -121,7 +121,7 @@ exports.listBoards = async function () {
         results[0].splice(results[0].findIndex(matchesBoard), 1);
 
         function matchesBoard(board) {
-            return board.name === 'template';
+          return board.name === 'template';
         }
 
         return resolve((results[0]));
@@ -178,21 +178,21 @@ exports.deleteMedia = async function (boardID, mediaType, localName) {
   return new Promise((resolve, reject) => {
 
     const deleteQuery = datastore.createQuery(mediaType)
-     // .select('__key__')
+      // .select('__key__')
       .filter('board', '=', boardID)
       .filter('localName', '=', localName)
       .limit(1);
 
     datastore.runQuery(deleteQuery)
       .then(results => {
-        if (results[0].length > 0){
+        if (results[0].length > 0) {
           datastore.delete(results[0][0][datastore.KEY])
-          .then(() => {
-            resolve("Deleted " + boardID + ":" + mediaType + ":" + localName );
-          })
-          .catch(err => {
-            return reject(err);
-          });
+            .then(() => {
+              resolve("Deleted " + boardID + ":" + mediaType + ":" + localName);
+            })
+            .catch(err => {
+              return reject(err);
+            });
         }
         else {
           return reject(new Error(boardID + ":" + mediaType + ":" + localName + " did not exist"));
@@ -260,64 +260,6 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
       });
   });
 }
-
-
-
-// exports.createNewBoard = async function (boardID) {
-
-//       return new Promise((resolve, reject) => {
-//        
-//         var entityArray2 = [];
-
-
-//           .then(() => {
-
-//           var resultsPromise = new Promise((resolve, reject) => {
-
-//             this.listMedia('template', 'audio')
-//               .then(results => {
-
-//                 var mediaArray = results;
-//                 entityArray2 = [];
-
-//                 resolve(mediaArray.map((item) => {
-//                   entityArray2.push({
-//                     key: datastore.key('audio'),
-//                     data: {
-//                       board: boardID,
-//                       algorithm: item.algorithm,
-//                       ordinal: item.ordinal,
-//                     },
-//                   })
-//                 }))
-
-//               })
-//               .then(() => {
-
-//                 datastore
-//                   .save(entityArray2)
-//                   .then(() => {
-//                     console.log("template copied with " + entityArray2.length + "items");
-//                     return resolve(["audio template copied with " + entityArray2.length + "items",
-//                     "template copied with " + entityArray1.length + "items"]);
-//                   })
-//                   .catch(err => {
-//                     return reject(err);
-//                     //console.error('ERROR:', err);
-//                   });
-
-//               });
-
-//           });
-//           resolve(["audio template copied with " + entityArray2.length + "items",
-//           "template copied with " + entityArray1.length + "items"])
-
-//         });
-//       });
-//     });
-// }
-
-
 
 exports.listMedia = async function (boardID, mediaType) {
 
