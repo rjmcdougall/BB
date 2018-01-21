@@ -33,7 +33,7 @@ class App extends Component {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'x-access-token': id_token,
+          'authorization': id_token,
           }
         })
         .then(res => {

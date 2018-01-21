@@ -7,7 +7,7 @@ router.get('/', function (req, res, next) {
 
 router.post('/Auth', async function (req, res, next) {
 
-	var JWT = req.headers['x-access-token'];
+	var JWT = req.headers['authorization'].replace("Bearer ","");
 	var results = [];
 
 	UserStore = require('./UserStore');

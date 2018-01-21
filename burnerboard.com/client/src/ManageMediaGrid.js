@@ -59,7 +59,7 @@ class ManageMediaGrid extends React.Component {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'x-access-token': window.sessionStorage.JWT,
+                'authorization': window.sessionStorage.JWT,
             }
         })
             .then(response => response.json())
@@ -134,7 +134,7 @@ class ManageMediaGrid extends React.Component {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'x-access-token': window.sessionStorage.JWT,
+                'Authorization': window.sessionStorage.JWT,
             }
         }
         )
