@@ -47,7 +47,7 @@ class ResponsiveDialog extends React.Component {
           onClose={this.handleClose}
           aria-labelledby="responsive-dialog-title"
         >
-          <DialogTitle id="responsive-dialog-title">{"Are you sure?"}</DialogTitle>
+          <DialogTitle id="responsive-dialog-title">{"Warning"}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               Deleting a file cannot be undone. 
