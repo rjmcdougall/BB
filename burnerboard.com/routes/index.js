@@ -7,24 +7,24 @@ var UserStore = require('./UserStore');
 
 router.use(bodyParser.json());
 
-router.use(async function (req, res, next) {
+// router.use(async function (req, res, next) {
 
-	var JWT = req.headers['x-access-token'];
+// 	var JWT = req.headers['x-access-token'];
 
-	if (JWT) {
-		try {
-			var i = await UserStore.verifyJWT(JWT);
-			next();
-		}
-		catch (err) {
-			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
-		}
-	}
-	else res.status(403).json({
-		success: false,
-		message: 'No token provided.'
-	});
-});
+// 	if (JWT) {
+// 		try {
+// 			var i = await UserStore.verifyJWT(JWT);
+// 			next();
+// 		}
+// 		catch (err) {
+// 			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
+// 		}
+// 	}
+// 	else res.status(403).json({
+// 		success: false,
+// 		message: 'No token provided.'
+// 	});
+// });
 
 router.get('/', function (req, res, next) {
 	res.status(400).send("Not Found");
@@ -117,6 +117,31 @@ router.delete('/boards/:boardID/:mediaType/:mediaLocalName', async function (req
 			}
 			else
 				throw new Error(mediaType + " named " + mediaLocalName + " does not exist");
+			res.status(200).json(results);
+		}
+		else
+			throw new Error("Board named " + boardID + " does not exist");
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.delete('/boards/:boardID', async function (req, res, next) {
+
+	var boardID = req.params.boardID;
+
+	FileSystem = require('./FileSystem');
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+
+	try {
+		var results = [];
+		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
+		if (boardExists) {
+			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID,"audio"));	
+			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID,"video"));	
+			results.push(await DownloadDirectoryDS.deleteBoard(boardID));
+			results.push(await FileSystem.deleteBoard(boardID));
 			res.status(200).json(results);
 		}
 		else

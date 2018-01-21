@@ -149,6 +149,62 @@ exports.boardExists = async function (boardID) {
   });
 }
 
+exports.deleteBoard = async function (boardID) {
+
+  return new Promise((resolve, reject) => {
+
+    const deleteBoardQuery = datastore.createQuery('board')
+    .filter('name', '=', boardID)
+
+    datastore.runQuery(deleteBoardQuery)
+      .then(results => {
+
+        datastore.delete(results[0].map((item) => {
+          return item[datastore.KEY];
+        }))
+        .then(() => {
+          resolve("Deleted " + boardID);
+        })
+        .catch(err => {
+          return reject(err);
+        });
+      });
+    })
+    .catch(err => {
+      return reject(err);
+    });
+
+}
+
+
+exports.deleteAllBoardMedia = async function (boardID, mediaType) {
+
+  return new Promise((resolve, reject) => {
+
+    const deleteMediaQuery = datastore.createQuery(mediaType)
+      .filter('board', '=', boardID)
+
+    datastore.runQuery(deleteMediaQuery)
+      .then(results => {
+
+        datastore.delete(results[0].map((item) => {
+          return item[datastore.KEY];
+        }))
+        .then(() => {
+          resolve("Deleted " + results[0].length + " " + mediaType + " from " + boardID);
+        })
+        .catch(err => {
+          return reject(err);
+        });
+      });
+    })
+    .catch(err => {
+      return reject(err);
+    });
+
+}
+
+
 exports.mediaExists = async function (boardID, mediaType, localName) {
 
   return new Promise((resolve, reject) => {

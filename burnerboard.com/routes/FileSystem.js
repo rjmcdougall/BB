@@ -212,3 +212,18 @@ exports.deleteMedia = function (boardID, fileName) {
 			});
 	});
 }
+
+exports.deleteBoard = function (boardID) {
+
+	return new Promise((resolve, reject) => {
+
+		bucket
+			.deleteFiles({ prefix: constants.MUSIC_PATH + "/" + boardID })
+			.then(() => {
+				return resolve(constants.MUSIC_PATH + "/" + boardID + "* deleted");
+			})
+			.catch(err => {
+				return reject(err);
+			});
+	});
+}
