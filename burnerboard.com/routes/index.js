@@ -7,24 +7,24 @@ var UserStore = require('./UserStore');
 
 router.use(bodyParser.json());
 
-// router.use(async function (req, res, next) {
+router.use(async function (req, res, next) {
 
-// 	var JWT = req.headers['authorization'].replace("Bearer ","");
+	var JWT = req.headers['authorization'].replace("Bearer ", "");
 
-// 	if (JWT) {
-// 		try {
-// 			var i = await UserStore.verifyJWT(JWT);
-// 			next();
-// 		}
-// 		catch (err) {
-// 			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
-// 		}
-// 	}
-// 	else res.status(403).json({
-// 		success: false,
-// 		message: 'No token provided.'
-// 	});
-// });
+	if (JWT) {
+		try {
+			var i = await UserStore.verifyJWT(JWT);
+			next();
+		}
+		catch (err) {
+			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
+		}
+	}
+	else res.status(403).json({
+		success: false,
+		message: 'No token provided.'
+	});
+});
 
 router.get('/', function (req, res, next) {
 	res.status(400).send("Not Found");
@@ -47,11 +47,11 @@ router.get('/boards/currentStatuses', async function (req, res, next) {
 	BatteryQueries = require('./BatteryQueries')
 	var results = [];
 
-	try{
+	try {
 		results = await BatteryQueries.queryBatteryData();
 		res.status(200).json(results);
 	}
-	catch (err){
+	catch (err) {
 		res.status(500).json(err);
 	}
 });
@@ -61,11 +61,11 @@ router.get('/boards/:boardID/batteryHistory', async function (req, res, next) {
 	BatteryQueries = require('./BatteryQueries')
 	var results = [];
 
-	try{
+	try {
 		results = await BatteryQueries.queryBatteryHistory(req.params.boardID);
 		res.status(200).json(results);
 	}
-	catch (err){
+	catch (err) {
 		res.status(500).json(err);
 	}
 });
@@ -78,11 +78,11 @@ router.get('/boards/:boardID/profiles/:profileID/listFiles', async function (req
 	var profileID = req.params.profileID;
 	var results = [];
 
-	try{
+	try {
 		results.push(await FileSystem.listProfileFiles(boardID, profileID));
 		res.status(200).json(results);
 	}
-	catch (err){
+	catch (err) {
 		res.status(500).json(err);
 	}
 
@@ -104,7 +104,7 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', async function (req, res, n
 			throw new Error("Board named " + boardID + " does not exist");
 		}
 	}
-	catch(err){
+	catch (err) {
 		res.status(500).json(err);
 	}
 
@@ -127,7 +127,7 @@ router.delete('/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName',
 			var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName))
 			if (mediaExists) {
 				results.push(await DownloadDirectoryDS.deleteMedia(boardID, profileID, mediaType, mediaLocalName));
-				results.push(await FileSystem.deleteMedia(boardID, profileID, mediaLocalName));  
+				results.push(await FileSystem.deleteMedia(boardID, profileID, mediaLocalName));
 			}
 			else
 				throw new Error(mediaType + " named " + mediaLocalName + " does not exist");
@@ -139,7 +139,7 @@ router.delete('/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName',
 	catch (err) {
 		res.status(500).json(err.message);
 	}
-}); 
+});
 
 router.delete('/boards/:boardID', async function (req, res, next) {
 
@@ -152,8 +152,8 @@ router.delete('/boards/:boardID', async function (req, res, next) {
 		var results = [];
 		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
 		if (boardExists) {
-			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID,"audio"));	
-			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID,"video"));	
+			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID, "audio"));
+			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID, "video"));
 			results.push(await DownloadDirectoryDS.deleteBoard(boardID));
 			results.push(await FileSystem.deleteBoard(boardID));
 			res.status(200).json(results);
@@ -205,7 +205,7 @@ router.post('/boards/:boardID/profiles/:profileID/:mediaType/ReorderMedia', asyn
 		results = await DownloadDirectoryDS.reorderMedia(boardID, profileID, mediaType, mediaArray);
 		res.status(200).json(results);
 	}
-	catch(err){
+	catch (err) {
 		res.status(500).json(err);
 	}
 
@@ -228,9 +228,9 @@ router.post('/boards/:boardID/profiles/:profileID/AddFileFromGDrive', async func
 	}
 	catch (err) {
 		if (err.message.indexOf("already exists for board") > -1)
-		res.status(409).send(err.message)
-	else
-		res.status(500).json(err.message);
+			res.status(409).send(err.message)
+		else
+			res.status(500).json(err.message);
 	}
 });
 
