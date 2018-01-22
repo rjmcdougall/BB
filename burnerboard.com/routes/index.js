@@ -9,7 +9,7 @@ router.use(bodyParser.json());
 
 // router.use(async function (req, res, next) {
 
-// 	var JWT = req.headers['x-access-token'];
+// 	var JWT = req.headers['authorization'].replace("Bearer ","");
 
 // 	if (JWT) {
 // 		try {
@@ -40,66 +40,80 @@ router.get('/boards', async function (req, res, next) {
 	catch (err) {
 		res.status(500).json(err.message);
 	}
-
-
 });
 
-router.get('/boards/currentStatuses', function (req, res, next) {
+router.get('/boards/currentStatuses', async function (req, res, next) {
 
 	BatteryQueries = require('./BatteryQueries')
-	BatteryQueries.queryBatteryData(function (err, batteryData) {
-		if (err) {
-			res.status(500).send("Error");
-		}
-		else {
-			res.status(200).json(batteryData)
-		}
-	});
+	var results = [];
 
+	try{
+		results = await BatteryQueries.queryBatteryData();
+		res.status(200).json(results);
+	}
+	catch (err){
+		res.status(500).json(err);
+	}
 });
 
-router.get('/boards/:boardID/batteryHistory', function (req, res, next) {
+router.get('/boards/:boardID/batteryHistory', async function (req, res, next) {
 
 	BatteryQueries = require('./BatteryQueries')
-	BatteryQueries.queryBatteryHistory(req.params.boardID, function (err, batteryHistory) {
-		if (err) {
-			res.status(500).send("Error");
-		}
-		else {
-			res.status(200).json(batteryHistory)
-		}
-	});
+	var results = [];
+
+	try{
+		results = await BatteryQueries.queryBatteryHistory(req.params.boardID);
+		res.status(200).json(results);
+	}
+	catch (err){
+		res.status(500).json(err);
+	}
 });
 
-router.get('/boards/:boardID/listFiles', function (req, res, next) {
+router.get('/boards/:boardID/profiles/:profileID/listFiles', async function (req, res, next) {
 
 	FileSystem = require('./FileSystem');
 
-	FileSystem.listFiles(req.params.boardID)
-		.then(result => {
-			res.status(200).json(result);
-		})
-		.catch(function (err) {
-			res.status(500).json(err);
-		});
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+	var results = [];
+
+	try{
+		results.push(await FileSystem.listProfileFiles(boardID, profileID));
+		res.status(200).json(results);
+	}
+	catch (err){
+		res.status(500).json(err);
+	}
+
 });
 
-router.get('/boards/:boardID/DownloadDirectoryJSON', function (req, res, next) {
+router.get('/boards/:boardID/DownloadDirectoryJSON', async function (req, res, next) {
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	var boardID = req.params.boardID;
+	var result = [];
+	try {
+		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
+		if (boardExists) {
+			var profileID = await DownloadDirectoryDS.getBoardProfile(boardID);
 
-	DownloadDirectoryDS.DirectoryJSON(req.params.boardID)
-		.then(result => {
+			result.push(await DownloadDirectoryDS.DirectoryJSON(boardID, profileID));
 			res.status(200).json(result);
-		})
-		.catch(function (err) {
-			res.status(500).json(err);
-		});
+		}
+		else {
+			throw new Error("Board named " + boardID + " does not exist");
+		}
+	}
+	catch(err){
+		res.status(500).json(err);
+	}
 
 });
 
-router.delete('/boards/:boardID/:mediaType/:mediaLocalName', async function (req, res, next) {
+router.delete('/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName', async function (req, res, next) {
 
 	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
 	var mediaType = req.params.mediaType;
 	var mediaLocalName = req.params.mediaLocalName;
 
@@ -110,10 +124,10 @@ router.delete('/boards/:boardID/:mediaType/:mediaLocalName', async function (req
 		var results = [];
 		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
 		if (boardExists) {
-			var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, mediaType, mediaLocalName))
+			var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName))
 			if (mediaExists) {
-				results.push(await DownloadDirectoryDS.deleteMedia(boardID, mediaType, mediaLocalName));
-				results.push(await FileSystem.deleteMedia(boardID, mediaLocalName)); // implement me
+				results.push(await DownloadDirectoryDS.deleteMedia(boardID, profileID, mediaType, mediaLocalName));
+				results.push(await FileSystem.deleteMedia(boardID, profileID, mediaLocalName));  
 			}
 			else
 				throw new Error(mediaType + " named " + mediaLocalName + " does not exist");
@@ -125,7 +139,7 @@ router.delete('/boards/:boardID/:mediaType/:mediaLocalName', async function (req
 	catch (err) {
 		res.status(500).json(err.message);
 	}
-});
+}); 
 
 router.delete('/boards/:boardID', async function (req, res, next) {
 
@@ -164,7 +178,7 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 		var boardExists = await DownloadDirectoryDS.boardExists(newBoardID);
 		if (!boardExists) {
 			results.push(await DownloadDirectoryDS.createNewBoard(newBoardID));
-			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'video'));
+			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, "video"));
 			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'audio'));
 			results.push(await FileSystem.createRootBoardFolder(newBoardID));
 			res.status(200).json(results);
@@ -177,44 +191,47 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 	}
 });
 
-router.post('/boards/:boardID/ReorderMedia', function (req, res, next) {
+router.post('/boards/:boardID/profiles/:profileID/:mediaType/ReorderMedia', async function (req, res, next) {
 
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 
 	var mediaArray = req.body.mediaArray;
-	var mediaType = req.body.mediaType;
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+	var mediaType = req.params.mediaType;
+	var results = [];
 
-	DownloadDirectoryDS.reorderMedia(req.params.boardID, mediaType, mediaArray)
-		.then(result => {
-			res.status(200).json(result);
-		})
-		.catch(function (err) {
-			res.status(500).json(err);
-		});
+	try {
+		results = await DownloadDirectoryDS.reorderMedia(boardID, profileID, mediaType, mediaArray);
+		res.status(200).json(results);
+	}
+	catch(err){
+		res.status(500).json(err);
+	}
+
 });
 
-router.post('/boards/:boardID/AddFileFromGDrive', function (req, res, next) {
+router.post('/boards/:boardID/profiles/:profileID/AddFileFromGDrive', async function (req, res, next) {
 
-	//	var oAuthToken = 'ya29.Glw0BTczgRoygNAePtuBdxMqUMYgzwMCy6yr2LvZ4VQfHV8vlgd_nYB6HvXkXvC-QpLvdLdEAKFF9fMEkFHLzumj0clizXBsOpAQT7dTKqEV1kodOo0RKlRK_4IrPA';
 	var oAuthToken = req.body.oauthToken;
 
-	//	var fileId = '1aSXoRfidHo33nlVRDha9xdrKaPKeQJCS';
 	var fileId = req.body.fileId;
-	var currentBoard = req.body.currentBoard;
-	//	var currentBoard = 'vega';
+	var currentBoard = req.params.boardID;
+	var profileID = req.params.profileID;
+	var results = [];
 
 	FileSystem = require('./FileSystem');
 
-	FileSystem.addGDriveFile(currentBoard, fileId, oAuthToken, "")
-		.then(result => {
-			res.status(200).json(result);
-		})
-		.catch(function (err) {
-			if (err.message.indexOf("already exists for board") > -1)
-				res.status(409).send(err.message)
-			else
-				res.status(500).json(err.message);
-		});
+	try {
+		results = await FileSystem.addGDriveFile(currentBoard, profileID, fileId, oAuthToken, "");
+		res.status(200).json(results);
+	}
+	catch (err) {
+		if (err.message.indexOf("already exists for board") > -1)
+		res.status(409).send(err.message)
+	else
+		res.status(500).json(err.message);
+	}
 });
 
 module.exports = router;

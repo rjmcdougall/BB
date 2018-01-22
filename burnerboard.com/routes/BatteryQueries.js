@@ -4,43 +4,42 @@ const bigquery = BigQuery({
   projectId: constants.PROJECT_ID
 });
 
-exports.queryBatteryData = function (callback) {
-
-  BatteryQueries = require('./BatteryQueries');
+exports.queryBatteryData = async function () {
 
   const options = {
     query: BatteryQueries.sqlBatteryLevel,
     useLegacySql: false
   };
 
-  bigquery
-    .query(options)
-    .then((results) => {
-      callback(null, results[0]);
-    })
-    .catch((err) => {
-      callback(err, null);
-    });
+  return new Promise((resolve, reject) => {
+    bigquery
+      .query(options)
+      .then((results) => {
+        resolve(results[0]);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 }
 
-exports.queryBatteryHistory = function (boardID, callback) {
-
-  BatteryQueries = require('./BatteryQueries');
+exports.queryBatteryHistory = async function (boardID) {
 
   const options = {
     query: BatteryQueries.sqlBatteryHistory.replace('?', boardID),
     useLegacySql: false // Use standard SQL syntax for queries.
   };
 
-  // Runs the query
-  bigquery
-    .query(options)
-    .then((results) => {
-      callback(null, results[0]);
-    })
-    .catch((err) => {
-      callback(err, null);
-    });
+  return new Promise((resolve, reject) => {
+    bigquery
+      .query(options)
+      .then((results) => {
+        resolve(results[0]);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 }
 
 exports.sqlBatteryLevel = `SELECT 

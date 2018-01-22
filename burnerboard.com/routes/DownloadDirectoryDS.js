@@ -5,11 +5,11 @@ const datastore = new Datastore({
   projectId: process.env.PROJECT_ID,
 });
 
-exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength, speechCue) {
+exports.addMedia = function (boardID, profileID, mediaType, fileName, fileSize, fileLength, speechCue) {
 
   return new Promise((resolve, reject) => {
 
-    const localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1);
+    const localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1 + profileID.length + 1);
     const audioKey = datastore.key([mediaType]);
     var newAttributes = "";
 
@@ -20,6 +20,7 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
         localName: localName,
         Size: fileSize,
         Length: fileLength,
+        profile: profileID,
         ordinal: null //set later
       };
     }
@@ -29,6 +30,7 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
         URL: format(`${process.env.GOOGLE_CLOUD_BASE_URL}/${process.env.BUCKET_NAME}/${fileName}`),
         localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
         SpeachCue: speechCue,
+        profile: profileID,
         ordinal: null //set later
       };
     }
@@ -40,11 +42,13 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
 
     const existenceQuery = datastore.createQuery(mediaType)
       .filter('board', '=', boardID)
+      .filter('profile', '=', profileID)
       .filter('localName', '=', localName)
       .limit(1);
 
     const maxOrdinalQuery = datastore.createQuery(mediaType)
       .filter('board', '=', boardID)
+      .filter('profile', '=', profileID)
       .order('ordinal', {
         descending: true
       })
@@ -53,7 +57,7 @@ exports.addMedia = function (boardID, mediaType, fileName, fileSize, fileLength,
     datastore.runQuery(existenceQuery)
       .then(results => {
         if (results[0].length > 0)
-          throw new Error("the file " + localName + " already exists for board " + boardID);
+          throw new Error("the file " + localName + " already exists for board " + boardID + " in profile " + profileID);
         else {
           datastore.runQuery(maxOrdinalQuery)
             .then(results => {
@@ -97,6 +101,7 @@ exports.createNewBoard = async function (boardID) {
         key: datastore.key(['board', boardID]),
         data: {
           name: boardID,
+          profile: "default",
         },
       })
       .then(() => {
@@ -142,6 +147,23 @@ exports.boardExists = async function (boardID) {
       .runQuery(boardExists)
       .then(results => {
         return resolve((results[0].length > 0));
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
+
+exports.getBoardProfile = async function (boardID) {
+  return new Promise((resolve, reject) => {
+
+    const boardExists = datastore.createQuery('board')
+      .filter('name', '=', boardID)
+
+    datastore
+      .runQuery(boardExists)
+      .then(results => {
+        return resolve((results[0][0].profile));
       })
       .catch(err => {
         reject(err);
@@ -205,13 +227,14 @@ exports.deleteAllBoardMedia = async function (boardID, mediaType) {
 }
 
 
-exports.mediaExists = async function (boardID, mediaType, localName) {
+exports.mediaExists = async function (boardID, profileID, mediaType, localName) {
 
   return new Promise((resolve, reject) => {
 
     const existenceQuery = datastore.createQuery(mediaType)
       .select('__key__')
       .filter('board', '=', boardID)
+      .filter('profile', '=', profileID)      
       .filter('localName', '=', localName)
       .limit(1);
 
@@ -229,7 +252,7 @@ exports.mediaExists = async function (boardID, mediaType, localName) {
   });
 }
 
-exports.deleteMedia = async function (boardID, mediaType, localName) {
+exports.deleteMedia = async function (boardID, profileID, mediaType, localName) {
 
   return new Promise((resolve, reject) => {
 
@@ -237,6 +260,7 @@ exports.deleteMedia = async function (boardID, mediaType, localName) {
       // .select('__key__')
       .filter('board', '=', boardID)
       .filter('localName', '=', localName)
+      .filter('profile', '=', profileID)     
       .limit(1);
 
     datastore.runQuery(deleteQuery)
@@ -244,14 +268,14 @@ exports.deleteMedia = async function (boardID, mediaType, localName) {
         if (results[0].length > 0) {
           datastore.delete(results[0][0][datastore.KEY])
             .then(() => {
-              resolve("Deleted " + boardID + ":" + mediaType + ":" + localName);
+              resolve("Metadata " + boardID + ":" + profileID + ":" + mediaType + ":" + localName + " deleted.");
             })
             .catch(err => {
               return reject(err);
             });
         }
         else {
-          return reject(new Error(boardID + ":" + mediaType + ":" + localName + " did not exist"));
+          return reject(new Error("Metadata " + boardID  + ":" + profileID + ":" + mediaType + ":" + localName + " did not exist"));
         }
       })
       .catch(err => {
@@ -266,7 +290,7 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
 
     var entityArray1 = [];
 
-    this.listMedia('template', mediaType)
+    this.listMedia('template', "default", mediaType)
       .then(results => {
 
         var resultsPromise = new Promise((resolve, reject) => {
@@ -286,6 +310,7 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
                   Size: item.Size,
                   Length: item.Length,
                   ordinal: item.ordinal,
+                  profile: item.profile,
                 },
               };
             }
@@ -296,6 +321,7 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
                   board: boardID,
                   algorithm: item.algorithm,
                   ordinal: item.ordinal,
+                  profile: item.profile,
                 },
               };
             }
@@ -317,15 +343,16 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
   });
 }
 
-exports.listMedia = async function (boardID, mediaType) {
+exports.listMedia = async function (boardID, profileID, mediaType) {
 
   return new Promise((resolve, reject) => {
 
     const mediaList = datastore.createQuery(mediaType)
       .filter('board', '=', boardID)
+      .filter('profile', '=', profileID)
       .order('ordinal', {
         descending: false
-      })
+      });
 
     datastore
       .runQuery(mediaList)
@@ -341,40 +368,54 @@ exports.listMedia = async function (boardID, mediaType) {
   });
 }
 
-exports.DirectoryJSON = function (boardID) {
+exports.DirectoryJSON = async function (boardID, profileID) {
 
   return new Promise((resolve, reject) => {
 
-    var DirectoryJSON = {
-      audio: null,
-      video: null,
-    };
+    try {
 
-    this.listMedia(boardID, 'audio')
-      .then(results => {
-        DirectoryJSON.audio = results.map(function (item) {
-          delete item["board"];
-          return item
+      var DirectoryJSON = {
+        audio: null,
+        video: null,
+      };
+
+      this.listMedia(boardID, profileID, 'audio')
+        .then(results => {
+          DirectoryJSON.audio = results.map(function (item) {
+            delete item["board"];
+            delete item["profile"];
+            return item
+          });
+          this.listMedia(boardID, profileID, 'video')
+            .then(results => {
+              DirectoryJSON.video = results.map(function (item) {
+                delete item["board"];
+                delete item["profile"];
+                return item
+              });
+              return resolve(DirectoryJSON);
+            })
+        })
+        .catch(err => {
+          return reject(err);
         });
-        this.listMedia(boardID, 'video')
-          .then(results => {
-            DirectoryJSON.video = results.map(function (item) {
-              delete item["board"];
-              return item
-            });
-            return resolve(DirectoryJSON);
-          })
-      }
-      )
-      .catch(err => {
-        reject(err);
-      });
+
+    }
+    catch (err) {
+      reject(err);
+    }
+
   });
+
+
+
+
 }
-exports.reorderMedia = function (boardID, mediaType, mediaArray) {
+
+exports.reorderMedia = async function (boardID, profileID, mediaType, mediaArray) {
 
   return new Promise((resolve, reject) => {
-    this.listMedia(boardID, mediaType)
+    this.listMedia(boardID, profileID, mediaType)
       .then(results => {
         for (var i = 0; i < mediaArray.length; i++) {
 
@@ -391,7 +432,7 @@ exports.reorderMedia = function (boardID, mediaType, mediaArray) {
 
         datastore.save(results)
           .then(() => {
-            resolve(this.listMedia(boardID, mediaType));
+            resolve(this.listMedia(boardID, profileID, mediaType));
           })
           .catch(err => {
             reject(err);

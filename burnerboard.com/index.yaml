@@ -21,3 +21,31 @@ indexes:
   properties:
   - name: board
   - name: ordinal
+
+
+- kind: audio
+  properties:
+  - name: board
+  - name: profile
+  - name: ordinal
+    direction: desc
+
+- kind: video
+  properties:
+  - name: board
+  - name: profile
+  - name: ordinal
+    direction: desc
+
+- kind: video
+  properties:
+  - name: board
+  - name: profile
+  - name: ordinal
+
+- kind: audio
+  properties:
+  - name: board
+  - name: profile
+  - name: ordinal
+ 

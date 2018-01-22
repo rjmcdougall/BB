@@ -13,7 +13,7 @@ var fileAttributes = {
 	speechCue: 0,
 };
 
-exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callback) {
+exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, speechCue, callback) {
 
 	return new Promise((resolve, reject) => {
 
@@ -36,10 +36,10 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 				};
 
 				if (jsonContent.title.endsWith("mp3") || jsonContent.title.endsWith("mp4")) {
-					checkForFileExists(boardID, jsonContent.title)
+					checkForFileExists(boardID, profileID, jsonContent.title)
 						.then(result => {
 							if (result == true)
-								throw new Error("the file " + fileAttributes.title + " already exists for board " + boardID);
+								throw new Error("the file " + fileAttributes.title + " already exists for board " + boardID + " in profile " + profileID);
 							else {
 
 								drive.files.get({
@@ -54,7 +54,7 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 											return reject(err);
 										else {
 											// now get the real file and save it.
-											var filePath = constants.MUSIC_PATH + '/' + boardID + '/' + fileAttributes.title;
+											var filePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileAttributes.title;
 											var file3 = bucket.file(filePath);
 											var fileStream3 = file3.createWriteStream({
 												metadata: {
@@ -69,7 +69,6 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 											fileStream3.on('finish', () => {
 												file3.makePublic();
 
-												// now we need to add a record to directory json
 												DownloadDirectoryDS = require('./DownloadDirectoryDS');
 												if (filePath.endsWith('mp3')) {
 
@@ -85,6 +84,7 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 															fileAttributes.songDuration = Math.floor(duration);
 
 															DownloadDirectoryDS.addMedia(boardID,
+																profileID,
 																'audio',
 																filePath,
 																fileAttributes.fileSize,
@@ -102,6 +102,7 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 												else if (filePath.endsWith('mp4')) {
 
 													DownloadDirectoryDS.addMedia(boardID,
+														profileID,
 														'video',
 														filePath,
 														0,
@@ -132,16 +133,18 @@ exports.addGDriveFile = function (boardID, fileId, oauthToken, speechCue, callba
 	});
 }
 
-exports.listFiles = function (boardID) {
+exports.listProfileFiles = async function (boardID, profileID) {
 
 	return new Promise((resolve, reject) => {
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: constants.MUSIC_PATH + '/' + boardID + '/'
+			prefix: constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/'
 		})
 			.then(result => {
-				return resolve(result);
+				return resolve(result[0].map(item => {
+					return item.name;
+				}));
 			})
 			.catch(function (err) {
 				return reject(err);
@@ -157,7 +160,7 @@ exports.createRootBoardFolder = async function (boardID) {
 			var result = bucket.getFiles({
 				autoPaginate: false,
 				delimiter: '/',
-				prefix: constants.MUSIC_PATH + '/template/'
+				prefix: constants.MUSIC_PATH + '/template/default/'
 			}).then(result => {
 				for (var i = 0; i < result[0].length; i++) {
 					result[0][i].copy(result[0][i].name.replace('template', boardID),
@@ -177,13 +180,13 @@ exports.createRootBoardFolder = async function (boardID) {
 	});
 }
 
-checkForFileExists = function (boardID, fileName) {
+checkForFileExists = function (boardID, profileID, fileName) {
 
 	return new Promise((resolve, reject) => {
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: constants.MUSIC_PATH + '/' + boardID + '/' + fileName
+			prefix: constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileName
 		})
 			.then(result => {
 				if (result[0].length > 0)
@@ -197,15 +200,15 @@ checkForFileExists = function (boardID, fileName) {
 	});
 }
 
-exports.deleteMedia = function (boardID, fileName) {
+exports.deleteMedia = async function (boardID, profileID, fileName) {
 
 	return new Promise((resolve, reject) => {
 
 		bucket
-			.file(constants.MUSIC_PATH + '/' + boardID + '/' + fileName)
+			.file(constants.MUSIC_PATH + '/' + boardID + '/' + profileID + "/" + fileName)
 			.delete()
 			.then(() => {
-				return resolve(constants.MUSIC_PATH + '/' + boardID + '/' + fileName + " deleted.");
+				return resolve("File " + constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileName + " deleted.");
 			})
 			.catch(err => {
 				return reject(err);
@@ -213,7 +216,7 @@ exports.deleteMedia = function (boardID, fileName) {
 	});
 }
 
-exports.deleteBoard = function (boardID) {
+exports.deleteBoard = async function (boardID) {
 
 	return new Promise((resolve, reject) => {
 
