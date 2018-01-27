@@ -102,6 +102,7 @@ exports.createNewBoard = async function (boardID) {
         data: {
           name: boardID,
           profile: "default",
+          isProfileGlobal: false,
         },
       })
       .then(() => {
