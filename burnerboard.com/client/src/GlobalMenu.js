@@ -102,11 +102,11 @@ class GlobalMenu extends Component {
 
         var optionsDisabled = false;
         var profileDisabled = false;
-        if (this.state.currentBoard == "Select Board") {
+        if (this.state.currentBoard === "Select Board") {
             optionsDisabled = true;
         };
         console.log("im about to render and this is my profle " + this.state.currentProfile)
-        if (this.state.currentProfile == "Select Profile") {
+        if (this.state.currentProfile === "Select Profile") {
             profileDisabled = true;
         };
         return (

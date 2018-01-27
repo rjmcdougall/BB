@@ -5,7 +5,6 @@ import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
 import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
-import GoogleLoginPage from './GoogleLoginPage';
 import ManageMediaGrid from './ManageMediaGrid';
 import ProfileGrid from './ProfileGrid';
 import AddProfile from './AddProfile';
@@ -70,7 +69,7 @@ class BBApp extends Component {
         appBody = <AddProfile/>;
         break;
       default:
-        if (this.state.currentBoard != "Select Board") {
+        if (this.state.currentBoard !== "Select Board") {
           appBody = <div style={{
             'backgroundColor': 'lightblue',
             'margin': '1cm 1cm 1cm 1cm',

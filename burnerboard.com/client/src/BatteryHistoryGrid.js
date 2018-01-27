@@ -1,21 +1,7 @@
 import React, { Component } from 'react';
 import ReactDataGrid from 'react-data-grid';
-import 'bootstrap/dist/css/bootstrap.css';
-import PropTypes from 'prop-types';
-
-class PercentCompleteFormatter extends React.Component {
-
-    render() {
-        const percentComplete = this.props.value + '%';
-        return (
-            <div className="progress" style={{ marginTop: '20px' }}>
-                <div className="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style={{ width: percentComplete }}>
-                    {percentComplete}
-                </div>
-            </div>);
-    }
-}
-
+import 'bootstrap/dist/css/bootstrap.css'; 
+ 
 const batteryHistoryJSON = {
     batteryHistory: [
         {
@@ -26,7 +12,7 @@ const batteryHistoryJSON = {
     ]
 };
 
-class BatteryHistoryGrid extends React.Component {
+class BatteryHistoryGrid extends Component {
     constructor(props, context) {
         super(props, context);
 

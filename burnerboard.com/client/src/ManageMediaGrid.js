@@ -1,11 +1,8 @@
 import React, { Component } from 'react';
 import ReactDataGrid from 'react-data-grid';
 import 'bootstrap/dist/css/bootstrap.css';
-import PropTypes from 'prop-types';
 
-import Dialog, { DialogActions, DialogContent, DialogTitle } from 'material-ui/Dialog';
-
-import ConfirmationDialogDemo from './ConfirmDeleteDialog'
+import ConfirmDeleteDialog from './ConfirmDeleteDialog'
  
 const mediaArray = [
     {
@@ -14,7 +11,7 @@ const mediaArray = [
     }
 ]
 
-class ManageMediaGrid extends React.Component {
+class ManageMediaGrid extends Component {
     constructor(props, context) {
         super(props, context);
 
@@ -168,7 +165,7 @@ class ManageMediaGrid extends React.Component {
                     
                     midWidth={300}/>
 
-                <ConfirmationDialogDemo handleConfirm={this.handleConfirm} />
+                <ConfirmDeleteDialog handleConfirm={this.handleConfirm} />
             </div>);
     }
 }

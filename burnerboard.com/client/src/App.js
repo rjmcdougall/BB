@@ -17,7 +17,7 @@ class App extends Component {
 
   responseGoogle = (response) => {
     console.log(response);
-    if (response.error != null && response.error != "")
+    if (response.error !== null && response.error !== "")
       this.setState({ buttonText: "Error: " + response.error + " Please try again." });
 
     else {
@@ -93,7 +93,7 @@ class App extends Component {
     if (window.sessionStorage.JWT != null)
       JWT = window.sessionStorage.JWT;
 
-    if (JWT == "")
+    if (JWT === "")
       appBody = <GoogleLoginPage buttonText={this.state.buttonText} responseGoogle={this.responseGoogle} />;
     else
       appBody = <BBApp />;

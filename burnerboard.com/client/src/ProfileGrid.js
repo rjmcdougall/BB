@@ -29,7 +29,7 @@ class EnhancedTableHead extends React.Component {
     };
 
     render() {
-        const { order, orderBy, numSelected, rowCount } = this.props;
+        const { order, orderBy} = this.props;
 
         return (
             <TableHead>
@@ -73,6 +73,7 @@ const toolbarStyles = theme => ({
         paddingRight: theme.spacing.unit,
         width: '100%',
         overflowX: 'auto',
+        
     },
     highlight:
         theme.palette.type === 'light'
@@ -253,11 +254,11 @@ class ProfileGrid extends React.Component {
         var boardID = selectProfile.slice(0, selectProfile.indexOf('-'));
 
         console.log("delete clicked : " + profileID + ' : ' + boardID);
-
-        if (boardID != "null")
-            var API = '/boards/' + boardID + '/profiles/' + profileID
+        var API = "";
+        if (boardID !== "null")
+            API = '/boards/' + boardID + '/profiles/' + profileID
         else
-            var API = '/profiles/' + profileID
+            API = '/profiles/' + profileID
 
         fetch(API, {
             method: 'DELETE',

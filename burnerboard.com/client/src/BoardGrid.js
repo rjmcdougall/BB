@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import ReactDataGrid from 'react-data-grid';
 import 'bootstrap/dist/css/bootstrap.css';
-import PropTypes from 'prop-types';
 
-class PercentCompleteFormatter extends React.Component {
+class PercentCompleteFormatter extends Component {
 
     render() {
         const percentComplete = this.props.value + '%';

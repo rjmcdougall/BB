@@ -78,12 +78,13 @@ class AddProfile extends React.Component {
 
         var boardID = this.state.board.trim();
         var profileID = this.state.profile.trim();
+        var API = "";
 
         console.log("boardID : " + boardID + " profileID : " + profileID);
-        if (boardID != "GLOBAL")
-            var API = '/boards/' + boardID + '/profiles/' + profileID;
+        if (boardID !== "GLOBAL")
+            API = '/boards/' + boardID + '/profiles/' + profileID;
         else
-            var API = '/profiles/' + profileID;
+            API = '/profiles/' + profileID;
 
         fetch(API, {
             method: 'POST',

@@ -25,13 +25,14 @@ class GoogleDriveMediaPicker extends Component {
      }
  
      setSpinnerActive = (spinnerActive) => {
-         if(spinnerActive==true){
-            var success = this.state.jsonResults + ' Click to select another';
+        var success
+         if(spinnerActive===true){
+            success = this.state.jsonResults + ' Click to select another';
             this.setState({spinnerActive: spinnerActive,
                             successMessage: ""});
          }
          else{
-            var success = this.state.jsonResults + ' Click to select another';
+            success = this.state.jsonResults + ' Click to select another';
             this.setState({spinnerActive: spinnerActive,
                             successMessage: success});
          }
@@ -40,21 +41,21 @@ class GoogleDriveMediaPicker extends Component {
 
     render() {
 
-        let successMessage = "";
- 
         console.log(this.state);
 
-        if (this.state.jsonResults == "" && this.state.errorInfo=="") {
-            this.state.successMessage = "Click to Open a Picker";
+        /*eslint-disable */
+        if (this.state.jsonResults === "" && this.state.errorInfo==="") {
+            this.state.successMessage = "Click to Open a Picker";  
         }
         else {
             if (this.state.errorInfo.length>0){
-                this.state.successMessage = this.state.errorInfo + ' Click to select another' ;
+                this.state.successMessage = this.state.errorInfo + ' Click to select another' ;  
             }
             else {
-                this.state.successMessage = this.state.jsonResults + ' Click to select another';
+                this.state.successMessage = this.state.jsonResults + ' Click to select another';  
             }
         }
+        /*eslint-enable */
 
         return (
             <div className="container">
@@ -84,7 +85,7 @@ class GoogleDriveMediaPicker extends Component {
                             .setDeveloperKey(DEVELOPER_KEY)
                             .setCallback((data) => {
                                 var url = 'nothing';
-                                if (data[google.picker.Response.ACTION] == google.picker.Action.PICKED) {
+                                if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
                                     var doc = data[google.picker.Response.DOCUMENTS][0];
                                     url = doc[google.picker.Document.URL];
 
@@ -98,17 +99,12 @@ class GoogleDriveMediaPicker extends Component {
                                     
                                     console.log(message);
 
-                                    var API = '/boards/' + 'vega' + '/AddFileFromGDrive';
-
-                                    var postResults = "";
+                                    var API = '/boards/' + this.state.currentBoard + '/AddFileFromGDrive';
                                     var myErrorInfo = "";
                                     var myJsonResults = "";
-                               
-
                                     const googleDriveMediaPicker = this;
                                      
                                     googleDriveMediaPicker.setSpinnerActive(true);
-                                    successMessage = "";
 
                                     fetch(API, {
                                         method: 'POST',

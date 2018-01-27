@@ -29,9 +29,9 @@ class GoogleLoginPage extends Component {
                     'text-align': 'center'
 
                 }}>
-                    <p><img rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} />
+                    <p><img alt="" rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} />
                     Welcome to BurnerBoard.com!
-                    <img rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} /></p>
+                    <img alt="" rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} /></p>
                 </div>
                 <div style={{
                     'backgroundColor': 'lightblue',
@@ -40,7 +40,7 @@ class GoogleLoginPage extends Component {
                     'text-align': 'center'
                 }}>
 
-                    <img rel="bb" height="24" width="24" src={require('./images/google logo 64.png')} />
+                    <img alt="" rel="bb" height="24" width="24" src={require('./images/google logo 64.png')} />
                     <GoogleLogin
                         clientId="845419422405-4e826kofd0al1npjaq6tijn1f3imk43p.apps.googleusercontent.com"
                         buttonText={this.state.buttonText}
@@ -52,7 +52,7 @@ class GoogleLoginPage extends Component {
                             'font-family': 'sans-serif'
                         }}
                     />
-                    <img rel="bb" height="24" width="24" src={require('./images/google logo 64.png')} />
+                    <img alt="" rel="bb" height="24" width="24" src={require('./images/google logo 64.png')} />
                 </div>
             </div>
         )

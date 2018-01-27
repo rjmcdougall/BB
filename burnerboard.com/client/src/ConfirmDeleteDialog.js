@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import Button from 'material-ui/Button';
 import Dialog, {
   DialogActions,
@@ -34,15 +33,13 @@ class ResponsiveDialog extends React.Component {
  
 
   render() {
-    const { fullScreen } = this.props;
 
     return (
       <div>
 
-    <img onClick={this.handleClickOpen} height="48" width="48" src={require('./images/trash-200.png')} />  
+    <img alt="" onClick={this.handleClickOpen} height="48" width="48" src={require('./images/trash-200.png')} />  
 
         <Dialog
-          //fullScreen={fullScreen}
           open={this.state.open}
           onClose={this.handleClose}
           aria-labelledby="responsive-dialog-title"
@@ -67,8 +64,5 @@ class ResponsiveDialog extends React.Component {
   }
 }
 
-ResponsiveDialog.propTypes = {
-  fullScreen: PropTypes.bool.isRequired,
-};
 
 export default withMobileDialog()(ResponsiveDialog);
