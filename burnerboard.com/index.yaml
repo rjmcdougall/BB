@@ -48,4 +48,9 @@ indexes:
   - name: board
   - name: profile
   - name: ordinal
+
+- kind: profile
+  properties:
+  - name: board
+  - name: name
  

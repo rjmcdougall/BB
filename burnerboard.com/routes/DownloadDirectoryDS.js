@@ -113,6 +113,31 @@ exports.createNewBoard = async function (boardID) {
   });
 }
 
+exports.createProfile = async function (boardID, profileID, isGlobal) {
+
+  return new Promise((resolve, reject) => {
+    var i = 2;
+    datastore
+      .save(newElement = {
+        key: datastore.key(["profile"]),
+        data: {
+          name: profileID,
+          board: boardID,
+          isGlobal: isGlobal,
+        },
+      })
+      .then(() => {
+        if(isGlobal)
+          return resolve("global profile " + profileID + " created");
+        else
+          return resolve("profile " + profileID + " created for board " + boardID);
+      })
+      .catch(err => {
+        return reject(err);
+      });
+  });
+}
+
 exports.listBoards = async function () {
   return new Promise((resolve, reject) => {
 
@@ -137,6 +162,34 @@ exports.listBoards = async function () {
   });
 }
 
+exports.listProfiles = async function (boardID) {
+  return new Promise((resolve, reject) => {
+
+    var profiles;
+
+    if(boardID == null)
+      profiles = datastore.createQuery('profile')
+        .order("board")
+        .order("name")
+    else
+      profiles = datastore.createQuery('profile')
+        .filter("board")
+        .order("name")
+
+    datastore
+      .runQuery(profiles)
+      .then(results => {
+        return results[0].filter(item => {
+          if (item.boardID != 'template')
+            return item
+        })
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
+
 exports.boardExists = async function (boardID) {
   return new Promise((resolve, reject) => {
 
@@ -154,22 +207,41 @@ exports.boardExists = async function (boardID) {
   });
 }
 
-exports.getBoardProfile = async function (boardID) {
+exports.profileExists = async function (boardID, profileID, isGlobal) {
   return new Promise((resolve, reject) => {
 
-    const boardExists = datastore.createQuery('board')
-      .filter('name', '=', boardID)
+    const profileExists = datastore.createQuery('profile')
+      .filter('name', '=', profileID)
+      .filter('board', '=', boardID)
+      .filter('isGlobal', '=', isGlobal)
 
     datastore
-      .runQuery(boardExists)
+      .runQuery(profileExists)
       .then(results => {
-        return resolve((results[0][0].profile));
+        return resolve((results[0].length > 0));
       })
       .catch(err => {
         reject(err);
       });
   });
 }
+
+// exports.getBoardProfile = async function (boardID) {
+//   return new Promise((resolve, reject) => {
+
+//     const boardExists = datastore.createQuery('board')
+//       .filter('name', '=', boardID)
+
+//     datastore
+//       .runQuery(boardExists)
+//       .then(results => {
+//         return resolve((results[0][0].profile));
+//       })
+//       .catch(err => {
+//         reject(err);
+//       });
+//   });
+// }
 
 exports.deleteBoard = async function (boardID) {
 
@@ -196,6 +268,52 @@ exports.deleteBoard = async function (boardID) {
       return reject(err);
     });
 
+}
+
+
+exports.deleteProfile = async function (boardID, profileID, isGlobal) {
+
+  return new Promise((resolve, reject) => {
+
+    var deleteProfileQuery;
+    var countOfItems;
+
+    if (profileID == null)
+      deleteProfileQuery = datastore.createQuery('profile')
+        .filter('board', '=', boardID)
+        .filter("isGlobal", "=", isGlobal)
+    else
+      deleteProfileQuery = datastore.createQuery('profile')
+        .filter('name', '=', profileID)
+        .filter('board', '=', boardID)
+        .filter("isGlobal", "=", isGlobal)
+
+    datastore.runQuery(deleteProfileQuery)
+      .then(results => {
+
+        countOfItems = results[0].length;
+
+        datastore.delete(results[0].map((item) => {
+          return item[datastore.KEY];
+        }))
+          .then(() => {
+            if (isGlobal)
+              resolve("Deleted " + countOfItems + " profile(s) from " + profileID);
+            else {
+              if (profileID == null)
+                resolve("Deleted " + countOfItems + " profile(s) for board " + boardID);
+              else
+                resolve("Deleted " + countOfItems + " profile(s) from " + profileID + " for board " + boardID);
+            }
+          })
+          .catch(err => {
+            return reject(err);
+          });
+      });
+  })
+    .catch(err => {
+      return reject(err);
+    });
 }
 
 

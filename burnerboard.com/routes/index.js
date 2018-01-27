@@ -7,24 +7,24 @@ var UserStore = require('./UserStore');
 
 router.use(bodyParser.json());
 
-router.use(async function (req, res, next) {
+// router.use(async function (req, res, next) {
 
-	var JWT = req.headers['authorization'].replace("Bearer ", "");
+// 	var JWT = req.headers['authorization'].replace("Bearer ", "");
 
-	if (JWT) {
-		try {
-			var i = await UserStore.verifyJWT(JWT);
-			next();
-		}
-		catch (err) {
-			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
-		}
-	}
-	else res.status(403).json({
-		success: false,
-		message: 'No token provided.'
-	});
-});
+// 	if (JWT) {
+// 		try {
+// 			var i = await UserStore.verifyJWT(JWT);
+// 			next();
+// 		}
+// 		catch (err) {
+// 			res.status(403).send(err.message.substr(0, 30) + "... Please Try Again.");
+// 		}
+// 	}
+// 	else res.status(403).json({
+// 		success: false,
+// 		message: 'No token provided.'
+// 	});
+// });
 
 router.get('/', function (req, res, next) {
 	res.status(400).send("Not Found");
@@ -35,6 +35,106 @@ router.get('/boards', async function (req, res, next) {
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 	try {
 		var i = await DownloadDirectoryDS.listBoards();
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.get('/boards/:boardID/profiles/', async function (req, res, next) {
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var i = await DownloadDirectoryDS.listBoards(boardID);
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.post('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
+
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var profileExists = await DownloadDirectoryDS.profileExists(boardID, profileID, null);
+		if(!profileExists){
+			var i = await DownloadDirectoryDS.createProfile(boardID, profileID, false);	
+		}
+		else {
+			throw new Error("the profile already exists");
+		}
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.post('/profiles/:profileID', async function (req, res, next) {
+
+	var profileID = req.params.profileID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var profileExists = await DownloadDirectoryDS.profileExists(null, profileID, true);
+		if (!profileExists)
+			var i = await DownloadDirectoryDS.createProfile(null, profileID, true);
+		else
+			throw new Error ("the profile already exists");
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.delete('/profiles/:profileID', async function (req, res, next) {
+
+	var profileID = req.params.profileID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var profileExists = await DownloadDirectoryDS.profileExists(null, profileID, true);
+		if (profileExists)
+			var i = await DownloadDirectoryDS.deleteProfile(null, profileID, true);
+		else
+			throw new Error("the profile " + profileID + " does not exist");
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.delete('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
+
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var profileExists = await DownloadDirectoryDS.profileExists(boardID, profileID, false);
+		if (profileExists)
+			var i = await DownloadDirectoryDS.deleteProfile(boardID, profileID, false);
+		else
+			throw new Error("the profile " + profileID + " does not exist");
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.get('/profiles', async function (req, res, next) {
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var i = await DownloadDirectoryDS.listProfiles(null);
 		res.status(200).json(i);
 	}
 	catch (err) {
@@ -154,6 +254,7 @@ router.delete('/boards/:boardID', async function (req, res, next) {
 		if (boardExists) {
 			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID, "audio"));
 			results.push(await DownloadDirectoryDS.deleteAllBoardMedia(boardID, "video"));
+			results.push(await DownloadDirectoryDS.deleteProfile(boardID,null,false));			
 			results.push(await DownloadDirectoryDS.deleteBoard(boardID));
 			results.push(await FileSystem.deleteBoard(boardID));
 			res.status(200).json(results);
@@ -180,6 +281,7 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 			results.push(await DownloadDirectoryDS.createNewBoard(newBoardID));
 			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, "video"));
 			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'audio'));
+			results.push(await DownloadDirectoryDS.createProfile(newBoardID, "default", false))
 			results.push(await FileSystem.createRootBoardFolder(newBoardID));
 			res.status(200).json(results);
 		}
