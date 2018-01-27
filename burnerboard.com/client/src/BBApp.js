@@ -7,6 +7,8 @@ import BatteryHistoryGrid from './BatteryHistoryGrid';
 import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 import GoogleLoginPage from './GoogleLoginPage';
 import ManageMediaGrid from './ManageMediaGrid';
+import ProfileGrid from './ProfileGrid';
+import AddProfile from './AddProfile';
 
 class BBApp extends Component {
 
@@ -42,32 +44,30 @@ class BBApp extends Component {
     let appBody = null;
     console.log(this.state.currentAppBody);
 
-    
-
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
-        console.log("IN BOARDGRID SWITCH");
-        appBody = <BoardGrid />;
+       appBody = <BoardGrid />;
         break;
       case "AppBody-BatteryHistory":
-        console.log("IN BatteryHistory SWITCH");
         appBody = <BatteryHistoryGrid currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ReorderAudio":
-        console.log("IN reorder audio SWITCH");
         appBody = <AudioList currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ReorderVideo":
-        console.log("IN reorder audio SWITCH");
-        appBody = <VideoList currentBoard={this.state.currentBoard} />;
+       appBody = <VideoList currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-LoadFromGDrive":
-        console.log("IN load from g drive SWITCH");
-        appBody = <GoogleDriveMediaPicker currentBoard={this.state.currentBoard} />;
+       appBody = <GoogleDriveMediaPicker currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ManageMedia":
-        console.log("IN ManageMedia SWITCH");
-        appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} />;
+       appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} />;
+        break;
+      case "AppBody-ManageProfiles":
+        appBody = <ProfileGrid/>;
+        break;
+      case "AppBody-AddProfile":
+        appBody = <AddProfile/>;
         break;
       default:
         if (this.state.currentBoard != "Select Board") {

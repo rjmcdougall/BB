@@ -5,6 +5,7 @@
   "dependencies": {
     "bootstrap": "^3.3.7",
     "material-ui": "^1.0.0-beta.29",
+    "material-ui-icons": "^1.0.0-beta.17",
     "rc-menu": "^6.2.5",
     "react": "^16.2.0",
     "react-beautiful-dnd": "^3.0.0",

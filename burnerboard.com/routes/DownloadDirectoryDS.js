@@ -282,12 +282,12 @@ exports.deleteProfile = async function (boardID, profileID, isGlobal) {
         }))
           .then(() => {
             if (isGlobal)
-              resolve("Deleted " + countOfItems + " profile(s) from " + profileID);
+              resolve("Deleted " + profileID + " global profile(s) ");
             else {
               if (profileID == null)
                 resolve("Deleted " + countOfItems + " profile(s) for board " + boardID);
               else
-                resolve("Deleted " + countOfItems + " profile(s) from " + profileID + " for board " + boardID);
+                resolve("Deleted " + profileID + " for board " + boardID);
             }
           })
           .catch(err => {

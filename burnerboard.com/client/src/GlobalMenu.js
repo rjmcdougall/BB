@@ -134,7 +134,8 @@ class GlobalMenu extends Component {
                     </SubMenu>
                     <SubMenu title={<span>Global</span>} key="3">
                         <MenuItem key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
-
+                        <MenuItem key="AppBody-AddProfile">Create Profile</MenuItem>
+                        <MenuItem key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
                     </SubMenu>
                 </Menu>
             </div>
