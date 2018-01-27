@@ -16,6 +16,7 @@ class BBApp extends Component {
     this.state = {
       currentAppBody: "none",
       currentBoard: "Select Board",
+      currentProfile: "Select Profile"
     };
 
     this.handleSelect = this.handleSelect.bind(this);
@@ -28,8 +29,11 @@ class BBApp extends Component {
     if (info.key.startsWith("AppBody-")) {
       this.setState({ currentAppBody: info.key });
     }
-    else /*it is a board name*/ {
-      this.setState({ currentBoard: info.key });
+    else if (info.key.startsWith("board-")) {
+      this.setState({ currentBoard: info.key.slice(6) });
+    }
+    else if (info.key.startsWith("profile-")) {
+      this.setState({ currentProfile: info.key.slice(8) });
     };
   }
 
@@ -38,7 +42,7 @@ class BBApp extends Component {
     let appBody = null;
     console.log(this.state.currentAppBody);
 
-    var myState = this.state.currentBoard;
+    
 
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
@@ -47,31 +51,31 @@ class BBApp extends Component {
         break;
       case "AppBody-BatteryHistory":
         console.log("IN BatteryHistory SWITCH");
-        appBody = <BatteryHistoryGrid currentBoard={myState} />;
+        appBody = <BatteryHistoryGrid currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ReorderAudio":
         console.log("IN reorder audio SWITCH");
-        appBody = <AudioList currentBoard={myState} />;
+        appBody = <AudioList currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ReorderVideo":
         console.log("IN reorder audio SWITCH");
-        appBody = <VideoList currentBoard={myState} />;
+        appBody = <VideoList currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-LoadFromGDrive":
         console.log("IN load from g drive SWITCH");
-        appBody = <GoogleDriveMediaPicker currentBoard={myState} />;
+        appBody = <GoogleDriveMediaPicker currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ManageMedia":
         console.log("IN ManageMedia SWITCH");
-        appBody = <ManageMediaGrid currentBoard={myState} />;
+        appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} />;
         break;
       default:
-        if (myState != "Select Board") {
+        if (this.state.currentBoard != "Select Board") {
           appBody = <div style={{
             'backgroundColor': 'lightblue',
             'margin': '1cm 1cm 1cm 1cm',
             'padding': '10px 5px 15px 20px'
-          }}><p>You selected {myState}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
+          }}><p>You selected {this.state.currentBoard}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
         }
         else {
           appBody = <div style={{
@@ -88,7 +92,7 @@ class BBApp extends Component {
 
     return (
       <div className="BBApp" style={{ margin: 0 }}>
-        <GlobalMenu handleSelect={this.handleSelect} currentBoard={myState} />
+        <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />
         {appBody}
       </div>
     );

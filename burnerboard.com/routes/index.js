@@ -41,19 +41,7 @@ router.get('/boards', async function (req, res, next) {
 		res.status(500).json(err.message);
 	}
 });
-
-router.get('/boards/:boardID/profiles/', async function (req, res, next) {
-
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
-	try {
-		var i = await DownloadDirectoryDS.listBoards(boardID);
-		res.status(200).json(i);
-	}
-	catch (err) {
-		res.status(500).json(err.message);
-	}
-});
-
+ 
 router.post('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
 
 	var boardID = req.params.boardID;
@@ -135,6 +123,20 @@ router.get('/profiles', async function (req, res, next) {
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 	try {
 		var i = await DownloadDirectoryDS.listProfiles(null);
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.get('/boards/:boardID/profiles', async function (req, res, next) {
+
+	var boardID = req.params.boardID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var i = await DownloadDirectoryDS.listProfiles(boardID);
 		res.status(200).json(i);
 	}
 	catch (err) {

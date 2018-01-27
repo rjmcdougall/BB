@@ -173,16 +173,16 @@ exports.listProfiles = async function (boardID) {
         .order("name")
     else
       profiles = datastore.createQuery('profile')
-        .filter("board")
+        .filter("board","=", boardID)
         .order("name")
 
     datastore
       .runQuery(profiles)
       .then(results => {
-        return results[0].filter(item => {
+        return resolve(results[0].filter(item => {
           if (item.boardID != 'template')
             return item
-        })
+        }))
       })
       .catch(err => {
         reject(err);
@@ -225,23 +225,6 @@ exports.profileExists = async function (boardID, profileID, isGlobal) {
       });
   });
 }
-
-// exports.getBoardProfile = async function (boardID) {
-//   return new Promise((resolve, reject) => {
-
-//     const boardExists = datastore.createQuery('board')
-//       .filter('name', '=', boardID)
-
-//     datastore
-//       .runQuery(boardExists)
-//       .then(results => {
-//         return resolve((results[0][0].profile));
-//       })
-//       .catch(err => {
-//         reject(err);
-//       });
-//   });
-// }
 
 exports.deleteBoard = async function (boardID) {
 
