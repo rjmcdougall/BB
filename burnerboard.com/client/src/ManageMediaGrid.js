@@ -6,28 +6,13 @@ import PropTypes from 'prop-types';
 import Dialog, { DialogActions, DialogContent, DialogTitle } from 'material-ui/Dialog';
 
 import ConfirmationDialogDemo from './ConfirmDeleteDialog'
-
-// class PercentCompleteFormatter extends React.Component {
-
-//     render() {
-//         const percentComplete = this.props.value + '%';
-//         return (
-//             <div className="progress" style={{ marginTop: '20px' }}>
-//                 <div className="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style={{ width: percentComplete }}>
-//                     {percentComplete}
-//                 </div>
-//             </div>);
-//     }
-// }
-
+ 
 const mediaArray = [
     {
         localName: "loading...",
         ordinal: ""
     }
 ]
-
-
 
 class ManageMediaGrid extends React.Component {
     constructor(props, context) {
