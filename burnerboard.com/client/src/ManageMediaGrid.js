@@ -17,7 +17,6 @@ import IconButton from 'material-ui/IconButton';
 import DeleteIcon from 'material-ui-icons/Delete';
 import { lighten } from 'material-ui/styles/colorManipulator';
 import Snackbar from 'material-ui/Snackbar';
-import ConfirmDeleteDialog from './ConfirmDeleteDialog'
 
 const columnData = [
     { id: 'localName', numeric: false, disablePadding: true, label: 'File Name' }
@@ -241,8 +240,8 @@ class ManageMediaGrid extends React.Component {
     }
 
     handleClick = (event, id) => {
-        const { selected } = this.state;
-        const selectedIndex = selected.indexOf(id);
+       // const { selected } = this.state;
+       // const selectedIndex = selected.indexOf(id);
         let newSelected = [id];
 
         // console.log("selectedIndex : " + selected.indexOf(id));
