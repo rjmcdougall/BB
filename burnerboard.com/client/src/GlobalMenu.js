@@ -148,7 +148,7 @@ class GlobalMenu extends Component {
             console.log(JSON.stringify(item));
 
             if (inGlobalBlock) {
-                if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal == inGlobalBlock)
+                if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
                         <MenuItem key={"globalProfile-" + item.profile_name}>
                             {"* " + item.profile_name}
@@ -162,7 +162,7 @@ class GlobalMenu extends Component {
                     );
             }
             else {
-                if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal == inGlobalBlock)
+                if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
                         <MenuItem key={"profile-" + item.profile_name}>
                             {"* " + item.profile_name}
@@ -178,10 +178,10 @@ class GlobalMenu extends Component {
         }
 
         var renderTitle = () => {
-            if (this.state.activeProfile == this.state.currentProfile)
+            if (this.state.activeProfile === this.state.currentProfile)
                 return "* " + this.state.currentProfile;
             else
-                return this.state.currentProfile;
+                return this.state.currentProfile; 
         }
 
         var optionsDisabled = false;

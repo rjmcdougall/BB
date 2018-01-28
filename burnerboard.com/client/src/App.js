@@ -17,12 +17,16 @@ class App extends Component {
 
   responseGoogle = (response) => {
     console.log(response);
-    if (response.error !== null && response.error !== "")
-      this.setState({ buttonText: "Error: " + response.error + " Please try again." });
+ 
+    if (response.error != null && response.error !== ""){
 
+      this.setState({ buttonText: "Error: " + response.error + " Please try again." });
+  }
     else {
 
       var id_token = response.getAuthResponse().id_token;
+
+      console.log("id token : " + id_token);
 
       const app = this;
 
@@ -86,7 +90,6 @@ class App extends Component {
 
   render() {
 
-    console.log("JWT: " + window.sessionStorage.JWT);
     var JWT = "";
     var appBody = "";
 
