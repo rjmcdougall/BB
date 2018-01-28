@@ -5,18 +5,51 @@ const datastore = new Datastore({
   projectId: process.env.PROJECT_ID,
 });
 
+exports.activateBoardProfile = async function (boardID, profileID, isProfileGlobal) {
+
+  return new Promise((resolve, reject) => {
+
+    const boardQuery = datastore.createQuery('board')
+      .filter("name", "=", boardID)
+
+    datastore
+      .runQuery(boardQuery)
+      .then(results => {
+
+        results[0][0].profile = profileID;
+        results[0][0].isProfileGlobal = isProfileGlobal;
+
+        datastore.update(results[0]);
+
+        return resolve((results[0]));
+      })
+      .catch(err => {
+        reject(err);
+      });
+
+  });
+
+}
+
 exports.addMedia = function (boardID, profileID, mediaType, fileName, fileSize, fileLength, speechCue) {
 
   return new Promise((resolve, reject) => {
 
-    const localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1 + profileID.length + 1);
+    var globalFolder = "global";
+    var localName = "";
+
+    if (boardID != null)
+      localName = fileName.substring(fileName.indexOf(boardID) + boardID.length + 1 + profileID.length + 1);
+    else
+      localName = fileName.substring(fileName.indexOf(globalFolder) + globalFolder.length + 1 + profileID.length + 1);
+
     const audioKey = datastore.key([mediaType]);
     var newAttributes = "";
 
     if (mediaType == 'audio') {
       newAttributes = {
         board: boardID,
-        URL: format(`${process.env.GOOGLE_CLOUD_BASE_URL}/${process.env.BUCKET_NAME}/${fileName}`),
+        URL: format(`${constants.GOOGLE_CLOUD_BASE_URL}/${constants.BUCKET_NAME}/${fileName}`),
         localName: localName,
         Size: fileSize,
         Length: fileLength,
@@ -27,8 +60,8 @@ exports.addMedia = function (boardID, profileID, mediaType, fileName, fileSize, 
     else { /* video */
       newAttributes = {
         board: boardID,
-        URL: format(`${process.env.GOOGLE_CLOUD_BASE_URL}/${process.env.BUCKET_NAME}/${fileName}`),
-        localName: fileName.substring(fileName.indexOf(boardID) + boardID.length + 1),
+        URL: format(`${constants.GOOGLE_CLOUD_BASE_URL}/${constants.BUCKET_NAME}/${fileName}`),
+        localName: localName,
         SpeachCue: speechCue,
         profile: profileID,
         ordinal: null //set later
@@ -128,7 +161,7 @@ exports.createProfile = async function (boardID, profileID, isGlobal) {
         },
       })
       .then(() => {
-        if(isGlobal)
+        if (isGlobal)
           return resolve("global profile " + profileID + " created");
         else
           return resolve("profile " + profileID + " created for board " + boardID);
@@ -139,21 +172,26 @@ exports.createProfile = async function (boardID, profileID, isGlobal) {
   });
 }
 
-exports.listBoards = async function () {
+exports.listBoards = async function (boardID) {
   return new Promise((resolve, reject) => {
 
-    const boardExists = datastore.createQuery('board')
-      .order("name")
+    var boardQuery;
+
+    if (boardID != null)
+      boardQuery = datastore.createQuery('board')
+        .filter("name", "=", boardID);
+    else
+      boardQuery = datastore.createQuery('board')
+        .order("name");
 
     datastore
-      .runQuery(boardExists)
+      .runQuery(boardQuery)
       .then(results => {
 
-        results[0].splice(results[0].findIndex(matchesBoard), 1);
-
-        function matchesBoard(board) {
-          return board.name === 'template';
-        }
+        if (boardID == null)
+          results[0].splice(results[0].findIndex(board => {
+            return board.name == 'template';
+          }), 1);
 
         return resolve((results[0]));
       })
@@ -168,20 +206,44 @@ exports.listProfiles = async function (boardID) {
 
     var profiles;
 
-    if(boardID == null)
+    if (boardID == null)
       profiles = datastore.createQuery('profile')
         .order("board")
         .order("name")
     else
       profiles = datastore.createQuery('profile')
-        .filter("board","=", boardID)
+        .filter("board", "=", boardID)
         .order("name")
 
     datastore
       .runQuery(profiles)
       .then(results => {
         return resolve(results[0].filter(item => {
-          if (item.boardID != 'template')
+          if (item.board != 'template')
+            return item
+        }))
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
+}
+
+exports.listGlobalProfiles = async function () {
+  return new Promise((resolve, reject) => {
+
+    var profiles;
+
+    profiles = datastore.createQuery('profile')
+      .filter("isGlobal", "=", true)
+      .order("board")
+      .order("name")
+
+    datastore
+      .runQuery(profiles)
+      .then(results => {
+        return resolve(results[0].filter(item => {
+          if (item.board != 'template')
             return item
         }))
       })
@@ -208,13 +270,20 @@ exports.boardExists = async function (boardID) {
   });
 }
 
-exports.profileExists = async function (boardID, profileID, isGlobal) {
+exports.profileExists = async function (boardID, profileID) {
   return new Promise((resolve, reject) => {
 
-    const profileExists = datastore.createQuery('profile')
-      .filter('name', '=', profileID)
-      .filter('board', '=', boardID)
-      .filter('isGlobal', '=', isGlobal)
+    var profileExists;
+    if (boardID != null)
+      profileExists = datastore.createQuery('profile')
+        .filter('name', '=', profileID)
+        .filter('board', '=', boardID)
+        .filter('isGlobal', '=', false)
+    else
+      profileExists = datastore.createQuery('profile')
+        .filter('name', '=', profileID)
+        .filter('board', '=', boardID)
+        .filter('isGlobal', '=', true)
 
     datastore
       .runQuery(profileExists)
@@ -232,7 +301,7 @@ exports.deleteBoard = async function (boardID) {
   return new Promise((resolve, reject) => {
 
     const deleteBoardQuery = datastore.createQuery('board')
-    .filter('name', '=', boardID)
+      .filter('name', '=', boardID)
 
     datastore.runQuery(deleteBoardQuery)
       .then(results => {
@@ -240,14 +309,14 @@ exports.deleteBoard = async function (boardID) {
         datastore.delete(results[0].map((item) => {
           return item[datastore.KEY];
         }))
-        .then(() => {
-          resolve("Deleted " + boardID);
-        })
-        .catch(err => {
-          return reject(err);
-        });
+          .then(() => {
+            resolve("Deleted " + boardID);
+          })
+          .catch(err => {
+            return reject(err);
+          });
       });
-    })
+  })
     .catch(err => {
       return reject(err);
     });
@@ -255,22 +324,27 @@ exports.deleteBoard = async function (boardID) {
 }
 
 
-exports.deleteProfile = async function (boardID, profileID, isGlobal) {
+exports.deleteProfile = async function (boardID, profileID) {
 
   return new Promise((resolve, reject) => {
 
     var deleteProfileQuery;
     var countOfItems;
 
-    if (profileID == null)
-      deleteProfileQuery = datastore.createQuery('profile')
-        .filter('board', '=', boardID)
-        .filter("isGlobal", "=", isGlobal)
-    else
+    if (boardID != null && profileID != null) {
       deleteProfileQuery = datastore.createQuery('profile')
         .filter('name', '=', profileID)
         .filter('board', '=', boardID)
-        .filter("isGlobal", "=", isGlobal)
+    }
+    else if (boardID != null && profileID == null) {
+      deleteProfileQuery = datastore.createQuery('profile')
+        .filter('board', '=', boardID)
+    }
+    else if (boardID == null && profileID != null) {
+      deleteProfileQuery = datastore.createQuery('profile')
+        .filter('name', '=', profileID)
+        .filter("isGlobal", "=", true)
+    }
 
     datastore.runQuery(deleteProfileQuery)
       .then(results => {
@@ -281,14 +355,13 @@ exports.deleteProfile = async function (boardID, profileID, isGlobal) {
           return item[datastore.KEY];
         }))
           .then(() => {
-            if (isGlobal)
+            if (boardID != null && profileID != null)
+              resolve("Deleted " + profileID + " for board " + boardID);
+            else if (boardID != null && profileID == null)
+              resolve("Deleted " + countOfItems + " profile(s) for board " + boardID);
+            else if (boardID == null && profileID != null)
               resolve("Deleted " + profileID + " global profile(s) ");
-            else {
-              if (profileID == null)
-                resolve("Deleted " + countOfItems + " profile(s) for board " + boardID);
-              else
-                resolve("Deleted " + profileID + " for board " + boardID);
-            }
+
           })
           .catch(err => {
             return reject(err);
@@ -314,14 +387,14 @@ exports.deleteAllBoardMedia = async function (boardID, mediaType) {
         datastore.delete(results[0].map((item) => {
           return item[datastore.KEY];
         }))
-        .then(() => {
-          resolve("Deleted " + results[0].length + " " + mediaType + " from " + boardID);
-        })
-        .catch(err => {
-          return reject(err);
-        });
+          .then(() => {
+            resolve("Deleted " + results[0].length + " " + mediaType + " from " + boardID);
+          })
+          .catch(err => {
+            return reject(err);
+          });
       });
-    })
+  })
     .catch(err => {
       return reject(err);
     });
@@ -333,12 +406,21 @@ exports.mediaExists = async function (boardID, profileID, mediaType, localName) 
 
   return new Promise((resolve, reject) => {
 
-    const existenceQuery = datastore.createQuery(mediaType)
-      .select('__key__')
-      .filter('board', '=', boardID)
-      .filter('profile', '=', profileID)      
-      .filter('localName', '=', localName)
-      .limit(1);
+    var existenceQuery;
+
+    if (boardID != null)
+      existenceQuery = datastore.createQuery(mediaType)
+        .select('__key__')
+        .filter('board', '=', boardID)
+        .filter('profile', '=', profileID)
+        .filter('localName', '=', localName)
+        .limit(1);
+    else
+      existenceQuery = datastore.createQuery(mediaType)
+        .select('__key__')
+        .filter('profile', '=', profileID)
+        .filter('localName', '=', localName)
+        .limit(1);
 
     datastore.runQuery(existenceQuery)
       .then(results => {
@@ -358,27 +440,48 @@ exports.deleteMedia = async function (boardID, profileID, mediaType, localName) 
 
   return new Promise((resolve, reject) => {
 
-    const deleteQuery = datastore.createQuery(mediaType)
-      // .select('__key__')
-      .filter('board', '=', boardID)
-      .filter('localName', '=', localName)
-      .filter('profile', '=', profileID)     
-      .limit(1);
+    var deleteQuery
+
+    if (localName != null && profileID != null && boardID != null)
+      deleteQuery = datastore.createQuery(mediaType)
+        .filter('board', '=', boardID)
+        .filter('localName', '=', localName)
+        .filter('profile', '=', profileID);
+    else if (localName == null && profileID != null && boardID != null)
+      deleteQuery = datastore.createQuery(mediaType)
+        .filter('board', '=', boardID)
+        .filter('profile', '=', profileID);
+    else if (localName == null && profileID != null && boardID == null)
+      deleteQuery = datastore.createQuery(mediaType)
+        .filter('profile', '=', profileID);
+    else if (localName != null && profileID != null && boardID == null)
+      deleteQuery = datastore.createQuery(mediaType)
+        .filter('localName', '=', localName)
+        .filter('profile', '=', profileID);
 
     datastore.runQuery(deleteQuery)
       .then(results => {
-        if (results[0].length > 0) {
-          datastore.delete(results[0][0][datastore.KEY])
-            .then(() => {
-              resolve("Metadata " + boardID + ":" + profileID + ":" + mediaType + ":" + localName + " deleted.");
-            })
-            .catch(err => {
-              return reject(err);
-            });
-        }
-        else {
-          return reject(new Error("Metadata " + boardID  + ":" + profileID + ":" + mediaType + ":" + localName + " did not exist"));
-        }
+
+        datastore.delete(results[0].map((item => {
+          return item[datastore.KEY]
+        })))
+          .then(() => {
+
+            if (localName != null && profileID != null && boardID != null)
+              resolve("Deleted one file " + boardID + ":" + profileID + ":" + mediaType + ":" + localName + "");
+            else if (localName == null && profileID != null && boardID != null)
+              resolve("Deleted " + results[0].length + " " + mediaType + " for " + boardID + ":" + profileID);
+            else if (localName == null && profileID != null && boardID == null)
+              resolve("Deleted " + results[0].length + " " + mediaType + " for global profile " + profileID);
+            else if (localName != null && profileID != null && boardID == null)
+              resolve("Deleted one file for global profile " + profileID);
+
+          })
+          .catch(err => {
+            return reject(err);
+          });
+
+
       })
       .catch(err => {
         return reject(err);
@@ -449,12 +552,23 @@ exports.listMedia = async function (boardID, profileID, mediaType) {
 
   return new Promise((resolve, reject) => {
 
-    const mediaList = datastore.createQuery(mediaType)
-      .filter('board', '=', boardID)
-      .filter('profile', '=', profileID)
-      .order('ordinal', {
-        descending: false
-      });
+    var mediaList;
+
+    if (boardID == null) {
+      mediaList = datastore.createQuery(mediaType)
+        .filter('profile', '=', profileID)
+        .order('ordinal', {
+          descending: false
+        });
+    }
+    else {
+      mediaList = datastore.createQuery(mediaType)
+        .filter('board', '=', boardID)
+        .filter('profile', '=', profileID)
+        .order('ordinal', {
+          descending: false
+        });
+    }
 
     datastore
       .runQuery(mediaList)

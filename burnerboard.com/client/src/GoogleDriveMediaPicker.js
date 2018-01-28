@@ -16,26 +16,31 @@ class GoogleDriveMediaPicker extends Component {
         super(props);
         this.state = {
             currentBoard: props.currentBoard,
+            currentProfile: props.currentProfile,
             jsonResults: "",
             errorInfo: "",
             spinnerActive: false,
             successMessage: "",
         };
-  
-     }
- 
-     setSpinnerActive = (spinnerActive) => {
+
+    }
+
+    setSpinnerActive = (spinnerActive) => {
         var success
-         if(spinnerActive===true){
+        if (spinnerActive === true) {
             success = this.state.jsonResults + ' Click to select another';
-            this.setState({spinnerActive: spinnerActive,
-                            successMessage: ""});
-         }
-         else{
+            this.setState({
+                spinnerActive: spinnerActive,
+                successMessage: ""
+            });
+        }
+        else {
             success = this.state.jsonResults + ' Click to select another';
-            this.setState({spinnerActive: spinnerActive,
-                            successMessage: success});
-         }
+            this.setState({
+                spinnerActive: spinnerActive,
+                successMessage: success
+            });
+        }
 
     }
 
@@ -44,15 +49,15 @@ class GoogleDriveMediaPicker extends Component {
         console.log(this.state);
 
         /*eslint-disable */
-        if (this.state.jsonResults === "" && this.state.errorInfo==="") {
-            this.state.successMessage = "Click to Open a Picker";  
+        if (this.state.jsonResults === "" && this.state.errorInfo === "") {
+            this.state.successMessage = "Click to Open a Picker";
         }
         else {
-            if (this.state.errorInfo.length>0){
-                this.state.successMessage = this.state.errorInfo + ' Click to select another' ;  
+            if (this.state.errorInfo.length > 0) {
+                this.state.successMessage = this.state.errorInfo + ' Click to select another';
             }
             else {
-                this.state.successMessage = this.state.jsonResults + ' Click to select another';  
+                this.state.successMessage = this.state.jsonResults + ' Click to select another';
             }
         }
         /*eslint-enable */
@@ -77,7 +82,7 @@ class GoogleDriveMediaPicker extends Component {
                             .setSelectFolderEnabled(true);
 
                         const picker = new window.google.picker.PickerBuilder()
-                            .setSize(600,800)
+                            .setSize(600, 800)
                             .addView(docsView)
                             .setOAuthToken(oauthToken)
                             .setOrigin(window.location.protocol + '//' + window.location.host)
@@ -96,14 +101,19 @@ class GoogleDriveMediaPicker extends Component {
                                     message = 'oauthToken: ' + oauthToken;
                                     console.log(message);
                                     message = 'current board: ' + this.state.currentBoard;
-                                    
+
                                     console.log(message);
 
-                                    var API = '/boards/' + this.state.currentBoard + '/AddFileFromGDrive';
+                                    var API;
+                                    if (this.state.currentBoard != null)
+                                        API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/AddFileFromGDrive';
+                                    else
+                                        API = '/profiles/' + this.state.currentProfile + '/AddFileFromGDrive';
+
                                     var myErrorInfo = "";
                                     var myJsonResults = "";
                                     const googleDriveMediaPicker = this;
-                                     
+
                                     googleDriveMediaPicker.setSpinnerActive(true);
 
                                     fetch(API, {
@@ -118,56 +128,56 @@ class GoogleDriveMediaPicker extends Component {
                                             oauthToken: oauthToken,
                                             fileId: data.docs[0].id,
                                             currentBoard: this.state.currentBoard,
-                                            
+
                                         })
                                     })
-                                    .then(res => {
-                                        console.log('res ok? ' + res.ok);
-                                        console.log('res status:' + res.status);
+                                        .then(res => {
+                                            console.log('res ok? ' + res.ok);
+                                            console.log('res status:' + res.status);
 
-                                        if (!res.ok) {
-                                            res.text().then(function (text) {
+                                            if (!res.ok) {
+                                                res.text().then(function (text) {
+                                                    console.log('res text: ' + text);
+                                                    myErrorInfo = text;
+
+                                                    console.log("about to set the state: " + JSON.stringify(googleDriveMediaPicker.state));
+
+                                                    googleDriveMediaPicker.setState({
+                                                        errorInfo: myErrorInfo,
+                                                        jsonResults: myJsonResults
+                                                    });
+                                                    googleDriveMediaPicker.setSpinnerActive(false);
+
+
+                                                });
+                                            }
+                                            else {
+
+                                                res.text().then(function (text) {
+                                                    console.log('res : ' + text);
+                                                    myJsonResults = text;
+
+                                                    console.log("about to set the state: " + JSON.stringify(googleDriveMediaPicker.state));
+
+                                                    googleDriveMediaPicker.setState({
+                                                        errorInfo: myErrorInfo,
+                                                        jsonResults: myJsonResults
+                                                    });
+
+                                                    googleDriveMediaPicker.setSpinnerActive(false);
+
+                                                });
+                                            }
+                                        })
+                                        .catch((err) => {
+                                            console.log("in catch block");
+                                            var myErrorInfo = "";
+                                            err.text().then(function (text) {
                                                 console.log('res text: ' + text);
                                                 myErrorInfo = text;
-
-                                                console.log("about to set the state: " + JSON.stringify(googleDriveMediaPicker.state));
-
-                                                googleDriveMediaPicker.setState({
-                                                    errorInfo: myErrorInfo,
-                                                    jsonResults: myJsonResults
-                                                });
-                                                googleDriveMediaPicker.setSpinnerActive(false);
-
-
                                             });
-                                        }
-                                        else {
-
-                                            res.text().then(function (text) {
-                                                console.log('res : ' + text);
-                                                myJsonResults = text;
-
-                                                console.log("about to set the state: " + JSON.stringify(googleDriveMediaPicker.state));
-
-                                                googleDriveMediaPicker.setState({
-                                                    errorInfo: myErrorInfo,
-                                                    jsonResults: myJsonResults
-                                                });
-
-                                                googleDriveMediaPicker.setSpinnerActive(false);
-
-                                            });
-                                        }
-                                        })
-                                    .catch((err) => {
-                                        console.log("in catch block");
-                                        var myErrorInfo = "";
-                                        err.text().then(function (text) {
-                                            console.log('res text: ' + text);
-                                            myErrorInfo = text;
+                                            this.setState({ errorInfo: myErrorInfo });
                                         });
-                                        this.setState({ errorInfo: myErrorInfo });
-                                    }); 
 
                                 }
                             });
@@ -184,7 +194,7 @@ class GoogleDriveMediaPicker extends Component {
 
                     </div>
                 </GooglePicker>
-                
+
             </div>
         )
     }

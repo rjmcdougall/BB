@@ -54,3 +54,18 @@ indexes:
   - name: board
   - name: name
  
+- kind: profile
+  properties:
+  - name: isGlobal
+  - name: board
+  - name: name
+
+- kind: audio
+  properties:
+  - name: profile
+  - name: ordinal
+
+- kind: video
+  properties:
+  - name: profile
+  - name: ordinal

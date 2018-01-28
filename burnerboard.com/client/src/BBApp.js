@@ -17,7 +17,10 @@ class BBApp extends Component {
     this.state = {
       currentAppBody: "none",
       currentBoard: "Select Board",
-      currentProfile: "Select Profile"
+      currentProfile: "Select Profile",
+      currentProfileIsGlobal: false,
+      activeProfileIsGlobal: false,
+      activeProfile: "",
     };
 
     this.handleSelect = this.handleSelect.bind(this);
@@ -25,18 +28,79 @@ class BBApp extends Component {
 
   handleSelect(info) {
 
+    var API;
+
     console.log(`selected ${info.key}`);
 
     if (info.key.startsWith("AppBody-")) {
       this.setState({ currentAppBody: info.key });
     }
+    else if (info.key === "ActivateProfile") {
+
+      API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
+      console.log(API)
+      fetch(API, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': window.sessionStorage.JWT,
+        },
+      }).then((res) => res.json())
+        .then((data) => {
+          console.log(data)
+          this.setState({
+            activeProfile: this.state.currentProfile,
+            activeProfileIsGlobal: this.state.currentProfileIsGlobal,
+          });
+
+        })
+        .catch((err) => console.log(err));
+
+    }
     else if (info.key.startsWith("board-")) {
-      this.setState({ currentBoard: info.key.slice(6) });
+
+      var selectedBoard = info.key.slice(6);
+
+      API = '/boards/' + selectedBoard;
+      console.log(API)
+      fetch(API, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': window.sessionStorage.JWT,
+        },
+      }).then((res) => res.json())
+        .then((data) => {
+          console.log(data)
+          var activeProfile = data[0].profile;
+          var activeProfileIsGlobal = data[0].isGlobal;
+          console.log("active profile " + activeProfile);
+          this.setState({
+            activeProfile: activeProfile,
+            activeProfileIsGlobal: activeProfileIsGlobal,
+            currentBoard: selectedBoard
+          });
+        })
+        .catch((err) => console.log(err));
+
     }
     else if (info.key.startsWith("profile-")) {
-      this.setState({ currentProfile: info.key.slice(8) });
-    };
+      this.setState({
+        currentProfile: info.key.slice(8),
+        currentProfileIsGlobal: false
+      });
+    }
+    else if (info.key.startsWith("globalProfile-")) {
+      this.setState({
+        currentProfile: info.key.slice(14),
+        currentProfileIsGlobal: true
+      });
+    }
+    ;
   }
+
 
   render() {
 
@@ -45,30 +109,40 @@ class BBApp extends Component {
 
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
-       appBody = <BoardGrid />;
+        appBody = <BoardGrid />;
         break;
       case "AppBody-BatteryHistory":
         appBody = <BatteryHistoryGrid currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ReorderAudio":
-        appBody = <AudioList currentBoard={this.state.currentBoard} />;
+        if (this.state.currentProfileIsGlobal)
+          appBody = <AudioList currentProfile={this.state.currentProfile} />;
+        else
+          appBody = <AudioList currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ReorderVideo":
-       appBody = <VideoList currentBoard={this.state.currentBoard} />;
+        if (this.state.currentProfileIsGlobal)
+          appBody = <VideoList currentProfile={this.state.currentProfile} />;
+        else
+          appBody = <VideoList currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-LoadFromGDrive":
-       appBody = <GoogleDriveMediaPicker currentBoard={this.state.currentBoard} />;
+        if (this.state.currentProfileIsGlobal)
+          appBody = <GoogleDriveMediaPicker currentProfile={this.state.currentProfile} />;
+        else
+          appBody = <GoogleDriveMediaPicker currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ManageMedia":
-      console.log("profile " + this.state.currentProfile);
-
-       appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+        if (this.state.currentProfileIsGlobal)
+          appBody = <ManageMediaGrid currentProfile={this.state.currentProfile} />;
+        else
+          appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ManageProfiles":
-        appBody = <ProfileGrid/>;
+        appBody = <ProfileGrid />;
         break;
       case "AppBody-AddProfile":
-        appBody = <AddProfile/>;
+        appBody = <AddProfile />;
         break;
       default:
         if (this.state.currentBoard !== "Select Board") {
@@ -93,7 +167,7 @@ class BBApp extends Component {
 
     return (
       <div className="BBApp" style={{ margin: 0 }}>
-        <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />
+        <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} currentProfile={this.state.currentProfile} />
         {appBody}
       </div>
     );

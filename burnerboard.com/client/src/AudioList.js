@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 //import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-const getItems = function() {
+const getItems = function () {
   return getDirectoryJSON.audio.map(item => ({
     id: `${item.localName}`,
     content: `${item.localName}`,
@@ -57,22 +57,27 @@ class AudioList extends Component {
     this.state = {
       items: getItems(),
       currentBoard: props.currentBoard,
+      currentProfile: props.currentProfile,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
-    
+
   }
 
   componentDidMount() {
 
-    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSON';
+    var API;
+    if (this.state.currentBoard != null)
+      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+    else
+      API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
 
     fetch(API, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'authorization': window.sessionStorage.JWT,
-        }
-      })
+      }
+    })
       .then(response => response.json())
       .then(data => this.setState({
         items: data.audio.map(item => ({
@@ -80,10 +85,10 @@ class AudioList extends Component {
           content: `${item.localName}`,
         }))
       }))
-      .catch(error => this.setState({ error}));
+      .catch(error => this.setState({ error }));
 
   }
- 
+
   onDragEnd(result) {
     // dropped outside the list
     if (!result.destination) {
@@ -100,11 +105,16 @@ class AudioList extends Component {
       items,
     });
 
-    var API = '/boards/' + this.state.currentBoard + '/ReorderMedia';
+    var API;
 
-    var audioArray  = this.state.items.map(item => (
-        item.id
-      ));
+    if (this.state.currentBoard != null)
+      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/audio/ReorderMedia';
+    else
+      API = '/profiles/' + this.state.currentProfile + '/audio/ReorderMedia';
+
+    var audioArray = this.state.items.map(item => (
+      item.id
+    ));
 
     fetch(API, {
       method: 'POST',

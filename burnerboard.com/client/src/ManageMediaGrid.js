@@ -37,12 +37,12 @@ class EnhancedTableHead extends React.Component {
                     </TableCell>
                     {columnData.map(column => {
                         return (
-                            <TableCell
+                            <TableCell  style={{fontSize: 12}} 
                                 key={column.id}
                                 numeric={column.numeric}
                                 sortDirection={orderBy === column.id ? order : false}
                             >
-                                <TableSortLabel
+                                <TableSortLabel style={{fontSize: 12}} 
                                     active={orderBy === column.id}
                                     direction={order}
                                     onClick={this.createSortHandler(column.id)}
@@ -92,11 +92,15 @@ const toolbarStyles = theme => ({
     },
     title: {
         flex: '0 0 auto',
+        fontSize: 12,
     },
     table: {
         minWidth: 400,
+        fontSize: 12,
     },
-
+    tableCell: {
+        fontSize: 12,
+    },
 });
 
 let EnhancedTableToolbar = props => {
@@ -112,7 +116,7 @@ let EnhancedTableToolbar = props => {
                 {numSelected > 0 ? (
                     <Typography type="subheading">{numSelected} selected</Typography>
                 ) : (
-                        <Typography type="title">File Name</Typography>
+                        <Typography type="title">Media</Typography>
                     )}
             </div>
             <div className={classes.spacer} />
@@ -147,6 +151,9 @@ const styles = theme => ({
     tableWrapper: {
         overflowX: 'auto',
     },
+    tableCell: {
+        fontSize: 12,
+    }
 });
 
 class ManageMediaGrid extends React.Component {
@@ -191,7 +198,12 @@ class ManageMediaGrid extends React.Component {
 
     componentDidMount() {
 
-        const API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+        var API;
+
+        if(this.state.currentBoard != null)
+            API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+        else
+            API = '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
 
         fetch(API, {
             headers: {
@@ -275,7 +287,7 @@ class ManageMediaGrid extends React.Component {
 
         console.log("delete clicked : " + selectedMediaType + ' : ' + selectLocalName + ' : ' + profileID + ' : ' + boardID);
         var API = "";
-        if (boardID !== "null")
+        if (boardID != null)
             API = '/boards/' + boardID + '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
         else
             API = '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
@@ -307,6 +319,7 @@ class ManageMediaGrid extends React.Component {
                             resultsMessage: JSON.stringify(json),
                             selected: [],
                             mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
+                                console.log(item.id + ' - ' + selectedItem);
                                 return item.id !== selectedItem;
                             })
                         });
@@ -354,7 +367,7 @@ class ManageMediaGrid extends React.Component {
                                         <TableCell padding="checkbox">
                                             <Checkbox checked={isSelected} />
                                         </TableCell>
-                                        <TableCell >{n.localName}</TableCell>
+                                        <TableCell  className={classes.tableCell} >{n.localName}</TableCell>
                                     </TableRow>
                                 );
                             })}

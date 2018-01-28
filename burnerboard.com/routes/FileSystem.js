@@ -13,7 +13,7 @@ var fileAttributes = {
 	speechCue: 0,
 };
 
-exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, speechCue, callback) {
+exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, speechCue) {
 
 	return new Promise((resolve, reject) => {
 
@@ -54,7 +54,12 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 											return reject(err);
 										else {
 											// now get the real file and save it.
-											var filePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileAttributes.title;
+											var filePath = "";
+											if (boardID != null)
+												filePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileAttributes.title;
+											else
+												filePath = constants.MUSIC_PATH + '/global/' + profileID + '/' + fileAttributes.title;
+
 											var file3 = bucket.file(filePath);
 											var fileStream3 = file3.createWriteStream({
 												metadata: {
@@ -183,10 +188,17 @@ exports.createRootBoardFolder = async function (boardID) {
 checkForFileExists = function (boardID, profileID, fileName) {
 
 	return new Promise((resolve, reject) => {
+
+		var profilePath = "";
+		if (boardID != null)
+			profilePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileName
+		else
+			profilePath = constants.MUSIC_PATH + '/global/' + profileID + '/' + fileName
+
 		bucket.getFiles({
 			autoPaginate: false,
 			delimiter: '/',
-			prefix: constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileName
+			prefix: profilePath
 		})
 			.then(result => {
 				if (result[0].length > 0)
@@ -204,11 +216,39 @@ exports.deleteMedia = async function (boardID, profileID, fileName) {
 
 	return new Promise((resolve, reject) => {
 
+		var filePath = ""
+		if (boardID != null)
+			filePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + "/" + fileName;
+		else
+			filePath = constants.MUSIC_PATH + '/global/' + profileID + "/" + fileName;
+
 		bucket
-			.file(constants.MUSIC_PATH + '/' + boardID + '/' + profileID + "/" + fileName)
+			.file(filePath)
 			.delete()
 			.then(() => {
-				return resolve("File " + constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileName + " deleted.");
+				return resolve("File " + filePath + " deleted.");
+			})
+			.catch(err => {
+				return reject(err);
+			});
+	});
+}
+
+exports.deleteProfile = async function (boardID, profileID) {
+
+	return new Promise((resolve, reject) => {
+
+		var filePath = "";
+
+		if (boardID != null)
+			filePath = constants.MUSIC_PATH + "/" + boardID + '/' + profileID;
+		else
+			filePath = constants.MUSIC_PATH + "/global/" + profileID;
+
+		bucket
+			.deleteFiles({ prefix: filePath })
+			.then(() => {
+				return resolve(filePath + "* deleted");
 			})
 			.catch(err => {
 				return reject(err);

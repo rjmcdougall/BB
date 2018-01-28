@@ -69,6 +69,7 @@ class VideoList extends Component {
     this.state = {
       items: getItems(),
       currentBoard: props.currentBoard,
+      currentProfile: props.currentProfile,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
 
@@ -77,9 +78,16 @@ class VideoList extends Component {
   }
 
   componentDidMount() {
-
-    var API = '/boards/' + this.state.currentBoard + '/DownloadDirectoryJSON';
  
+    var API;
+    if(this.state.currentBoard != null)
+      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
+    else
+      API = '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
+   
+      console.log("URL: " + API);
+   
+   
     fetch(API, {
       headers: {
         'Accept': 'application/json',
@@ -123,12 +131,18 @@ class VideoList extends Component {
       items,
     });
 
-    var API = '/boards/' + this.state.currentBoard + '/ReorderMedia';
+    var API;
+
+    if(this.state.currentBoard != null)
+      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/video/ReorderMedia';
+    else
+      API = '/profiles/' + this.state.currentProfile+ '/video/ReorderMedia';
 
     var videoArray  = this.state.items.map(item => (
         item.id
       ));
 
+      console.log("videoarray: " + JSON.stringify(videoArray));
     fetch(API, {
       method: 'POST',
       headers: {

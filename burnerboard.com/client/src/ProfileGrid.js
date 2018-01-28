@@ -10,7 +10,6 @@ import Table, {
     TableSortLabel,
 } from 'material-ui/Table';
 import Toolbar from 'material-ui/Toolbar';
-import Typography from 'material-ui/Typography';
 import Paper from 'material-ui/Paper';
 import Checkbox from 'material-ui/Checkbox';
 import IconButton from 'material-ui/IconButton';
@@ -197,7 +196,7 @@ class ProfileGrid extends React.Component {
 
     componentDidMount() {
 
-        const API = '/profiles';
+        const API = '/allProfiles/';
 
         fetch(API, {
             headers: {
