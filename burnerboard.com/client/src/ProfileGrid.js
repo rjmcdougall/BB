@@ -38,12 +38,12 @@ class EnhancedTableHead extends React.Component {
                     </TableCell>
                     {columnData.map(column => {
                         return (
-                            <TableCell
+                            <TableCell style={{fontSize: 12}} 
                                 key={column.id}
                                 numeric={column.numeric}
                                 sortDirection={orderBy === column.id ? order : false}
                             >
-                                <TableSortLabel
+                                <TableSortLabel style={{fontSize: 12}} 
                                     active={orderBy === column.id}
                                     direction={order}
                                     onClick={this.createSortHandler(column.id)}
@@ -73,7 +73,7 @@ const toolbarStyles = theme => ({
         paddingRight: theme.spacing.unit,
         width: '100%',
         overflowX: 'auto',
-        
+        fontSize: 12,
     },
     highlight:
         theme.palette.type === 'light'
@@ -93,11 +93,18 @@ const toolbarStyles = theme => ({
     },
     title: {
         flex: '0 0 auto',
+        fontSize: 12,
     },
     table: {
         minWidth: 400,
+        fontSize: 12,
       },
-
+      subheading: {
+        fontSize: 12,
+      },
+      tableCell:{
+        fontSize: 12,
+      }
 });
 
 let EnhancedTableToolbar = props => {
@@ -111,9 +118,9 @@ let EnhancedTableToolbar = props => {
         >
             <div className={classes.title}>
                 {numSelected > 0 ? (
-                    <Typography type="subheading">{numSelected} selected</Typography>
+                    <div className={classes.title}>{numSelected} selected</div>
                 ) : (
-                        <Typography type="title">Profiles</Typography>
+                    <div className={classes.title}>Profiles</div>
                     )}
             </div>
             <div className={classes.spacer} />
@@ -144,6 +151,9 @@ const styles = theme => ({
     },
     table: {
         minWidth: 375,
+    },
+    tableCell: {
+        fontSize: 12,
     },
     tableWrapper: {
         overflowX: 'auto',
@@ -321,11 +331,11 @@ class ProfileGrid extends React.Component {
                             onRequestSort={this.handleRequestSort}
                             rowCount={profileArray.length}
                         />
-                        <TableBody>
+                        <TableBody className={classes.table}>
                             {profileArray.map(n => {
                                 const isSelected = this.isSelected(n.id);
                                 return (
-                                    <TableRow
+                                    <TableRow  
                                         hover
                                         onClick={event => this.handleClick(event, n.id)}
                                         role="checkbox"
@@ -337,8 +347,8 @@ class ProfileGrid extends React.Component {
                                         <TableCell padding="checkbox">
                                             <Checkbox checked={isSelected} />
                                         </TableCell>
-                                        <TableCell >{n.board}</TableCell>
-                                        <TableCell >{n.profile}</TableCell>
+                                        <TableCell className={classes.tableCell}>{n.board}</TableCell>
+                                        <TableCell className={classes.tableCell}>{n.profile}</TableCell>
                                     </TableRow>
                                 );
                             })}
@@ -351,6 +361,7 @@ class ProfileGrid extends React.Component {
                         vertical: 'bottom',
                         horizontal: 'center',
                     }}
+                    style={{fontSize: 12}}
                     open={this.state.open}
                     onClose={this.handleClose}
                     SnackbarContentProps={{

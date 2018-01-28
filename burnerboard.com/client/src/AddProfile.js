@@ -9,21 +9,25 @@ import TextField from 'material-ui/TextField';
 import Save from 'material-ui-icons/Save';
 import Button from 'material-ui/Button';
 import Snackbar from 'material-ui/Snackbar';
+import Center from 'react-center';
 
 const styles = theme => ({
     container: {
         display: 'flex',
         flexWrap: 'wrap',
+        fontSize: 12,
     },
     formControl: {
         margin: theme.spacing.unit,
         minWidth: 120,
+        fontSize: 12,
     },
     selectEmpty: {
         marginTop: theme.spacing.unit * 2,
     },
     button: {
         margin: theme.spacing.unit,
+        fontSize: 12,
     },
     leftIcon: {
         marginRight: theme.spacing.unit,
@@ -130,26 +134,30 @@ class AddProfile extends React.Component {
         const { classes } = this.props;
 
         return (
+            <Center>
+                
             <div>
+
                 <form className={classes.container} autoComplete="off">
                     <FormControl className={classes.formControl}>
-                        <InputLabel htmlFor="board-picker">Board</InputLabel>
-                        <Select
+                        <InputLabel style={{fontSize: 12}} htmlFor="board-picker">Board</InputLabel>
+                        <Select style={{fontSize: 12}}
                             value={this.state.board}
                             onChange={this.handleChange}
                             input={<Input name="board" id="board-picker" />}
                         >
-                            <MenuItem key="GLOBAL" value="GLOBAL">
+                            <MenuItem style={{fontSize: 12}} key="GLOBAL" value="GLOBAL">
                                 GLOBAL
                         </MenuItem>
                             {this.state.boardNames.map(item => (
-                                <MenuItem key={item.board_name} value={item.board_name}>{item.board_name}
+                                <MenuItem style={{fontSize: 12}} key={item.board_name} value={item.board_name}>{item.board_name}
                                 </MenuItem>))
                             }
                         </Select>
                         <TextField
                             id="profileName"
                             name="profile"
+                            style={{fontSize: 12}}
                             label="Profile Name"
                             input={<Input name="profile" id="profile-text" />}
                             margin="normal"
@@ -167,6 +175,7 @@ class AddProfile extends React.Component {
                         vertical: 'bottom',
                         horizontal: 'center',
                     }}
+                    style={{fontSize: 12}}
                     open={this.state.open}
                     onClose={this.handleClose}
                     SnackbarContentProps={{
@@ -175,6 +184,7 @@ class AddProfile extends React.Component {
                     message={this.state.resultsMessage}
                 />
             </div>
+            </Center>
         );
     }
 }

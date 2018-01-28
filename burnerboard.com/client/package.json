@@ -9,6 +9,7 @@
     "rc-menu": "^6.2.5",
     "react": "^16.2.0",
     "react-beautiful-dnd": "^3.0.0",
+    "react-center": "^1.1.1",
     "react-data-grid": "^2.0.78",
     "react-dom": "^16.2.0",
     "react-google-login": "^3.0.4",
