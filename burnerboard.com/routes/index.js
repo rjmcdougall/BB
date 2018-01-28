@@ -199,7 +199,28 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', async function (req, res, n
 		if (boardExists) {
 			var profileID = await DownloadDirectoryDS.getBoardProfile(boardID);
 
-			result.push(await DownloadDirectoryDS.DirectoryJSON(boardID, profileID));
+			result = await DownloadDirectoryDS.DirectoryJSON(boardID, profileID);
+			res.status(200).json(result);
+		}
+		else {
+			throw new Error("Board named " + boardID + " does not exist");
+		}
+	}
+	catch (err) {
+		res.status(500).json(err);
+	}
+
+});
+
+router.get('/boards/:boardID/profiles/:profileID/DownloadDirectoryJSON', async function (req, res, next) {
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+	var result = [];
+	try {
+		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
+		if (boardExists) {
+			result = await DownloadDirectoryDS.DirectoryJSON(boardID, profileID);
 			res.status(200).json(result);
 		}
 		else {
@@ -228,8 +249,8 @@ router.delete('/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName',
 		if (boardExists) {
 			var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName))
 			if (mediaExists) {
-				results.push(await DownloadDirectoryDS.deleteMedia(boardID, profileID, mediaType, mediaLocalName));
-				results.push(await FileSystem.deleteMedia(boardID, profileID, mediaLocalName));
+				results = await DownloadDirectoryDS.deleteMedia(boardID, profileID, mediaType, mediaLocalName);
+				results = await FileSystem.deleteMedia(boardID, profileID, mediaLocalName);
 			}
 			else
 				throw new Error(mediaType + " named " + mediaLocalName + " does not exist");

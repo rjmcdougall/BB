@@ -60,7 +60,9 @@ class BBApp extends Component {
        appBody = <GoogleDriveMediaPicker currentBoard={this.state.currentBoard} />;
         break;
       case "AppBody-ManageMedia":
-       appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} />;
+      console.log("profile " + this.state.currentProfile);
+
+       appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ManageProfiles":
         appBody = <ProfileGrid/>;
