@@ -150,7 +150,7 @@ class BBApp extends Component {
             'backgroundColor': 'lightblue',
             'margin': '1cm 1cm 1cm 1cm',
             'padding': '10px 5px 15px 20px'
-          }}><p>You selected {this.state.currentBoard}.</p><p>Global options available.</p> <p>Board-specific options available.</p></div>;
+          }}><p>You selected {this.state.currentBoard}.</p><p>Board-specific options available.</p><p>Select a profile to manage media. The * indicates the active profile on {this.state.currentBoard}.</p></div>;
         }
         else {
           appBody = <div style={{
