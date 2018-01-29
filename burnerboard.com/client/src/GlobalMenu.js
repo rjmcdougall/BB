@@ -140,6 +140,10 @@ class GlobalMenu extends Component {
         console.log("global profiles: " + JSON.stringify(this.state.globalProfileNames));
         console.log("board profiles: " + JSON.stringify(this.state.profileNames));
 
+        var menuSpacing = {
+            fontSize: 12,
+        };
+
         var renderProfiles = (inGlobalBlock, item) => {
 
             console.log("active profie: " + this.state.activeProfile);
@@ -150,13 +154,13 @@ class GlobalMenu extends Component {
             if (inGlobalBlock) {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
-                        <MenuItem key={"globalProfile-" + item.profile_name}>
+                        <MenuItem style={menuSpacing} key={"globalProfile-" + item.profile_name}>
                             {"* " + item.profile_name}
                         </MenuItem>
                     );
                 else
                     return (
-                        <MenuItem key={"globalProfile-" + item.profile_name}>
+                        <MenuItem style={menuSpacing} key={"globalProfile-" + item.profile_name}>
                             {item.profile_name}
                         </MenuItem>
                     );
@@ -164,13 +168,13 @@ class GlobalMenu extends Component {
             else {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
-                        <MenuItem key={"profile-" + item.profile_name}>
+                        <MenuItem style={menuSpacing} key={"profile-" + item.profile_name}>
                             {"* " + item.profile_name}
                         </MenuItem>
                     );
                 else
                     return (
-                        <MenuItem key={"profile-" + item.profile_name}>
+                        <MenuItem style={menuSpacing} key={"profile-" + item.profile_name}>
                             {item.profile_name}
                         </MenuItem>
                     );
@@ -195,14 +199,14 @@ class GlobalMenu extends Component {
         };
         return (
             <div style={{ margin: 0 }}>
-                <Menu mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="hover" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
-                    <SubMenu title={this.state.currentBoard} key="1">
+                <Menu style={menuSpacing} mode="horizontal" openAnimation="slide-up" triggerSubMenuAction="hover" onSelect={this.handleSelect} onOpenChange={this.onOpenChange}>
+                    <SubMenu style={menuSpacing} title={this.state.currentBoard} key="1">
                         {this.state.boardNames.map(item => (
-                            <MenuItem key={"board-" + item.board_name}> {item.board_name}
+                            <MenuItem style={menuSpacing} key={"board-" + item.board_name}> {item.board_name}
                             </MenuItem>))
                         }
                     </SubMenu>
-                    <SubMenu disabled={optionsDisabled} title={renderTitle()} key="4">
+                    <SubMenu style={menuSpacing} disabled={optionsDisabled} title={renderTitle()} key="4">
                         {this.state.profileNames.map(item => {
                             return renderProfiles(false, item);
                         })}
@@ -211,19 +215,18 @@ class GlobalMenu extends Component {
                             return renderProfiles(true, item);
                         })}
                     </SubMenu>
-                    <SubMenu disabled={optionsDisabled} title={<span>Options</span>} key="2">
-                        <MenuItem disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
-                        <MenuItem disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
-                        <MenuItem disabled={optionsDisabled || profileDisabled} key="AppBody-ManageMedia">Remove Media</MenuItem>
-                        <MenuItem disabled={optionsDisabled || profileDisabled} key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
-                        <MenuItem disabled={optionsDisabled || profileDisabled} key="ActivateProfile">Activate This Profile</MenuItem>
+                    <SubMenu style={menuSpacing} disabled={optionsDisabled} title={<span>Options</span>} key="2">
+                        <MenuItem style={menuSpacing} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
+                        <MenuItem style={menuSpacing} disabled={optionsDisabled || profileDisabled} key="AppBody-ManageMedia">Remove Media</MenuItem>
+                        <MenuItem style={menuSpacing} disabled={optionsDisabled || profileDisabled} key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
+                        <MenuItem style={menuSpacing} disabled={optionsDisabled || profileDisabled} key="ActivateProfile">Activate This Profile</MenuItem>
                         <Divider />
-                        <MenuItem key="AppBody-BatteryHistory">Battery History</MenuItem>
+                        <MenuItem style={menuSpacing} key="AppBody-BatteryHistory">Battery History</MenuItem>
                     </SubMenu>
-                    <SubMenu title={<span>Global</span>} key="3">
-                        <MenuItem key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
-                        <MenuItem key="AppBody-AddProfile">Create Profile</MenuItem>
-                        <MenuItem key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
+                    <SubMenu style={menuSpacing} title={<span>Global</span>} key="3">
+                        <MenuItem style={menuSpacing} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
+                        <MenuItem style={menuSpacing} key="AppBody-AddProfile">Create Profile</MenuItem>
+                        <MenuItem style={menuSpacing} key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
                     </SubMenu>
                 </Menu>
             </div>
