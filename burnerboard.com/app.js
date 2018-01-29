@@ -1,3 +1,4 @@
+const yes = require('yes-https');
 var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
@@ -16,6 +17,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(yes());
 
 app.use(express.static('./client/build'));
 app.get('/', function (req, res) {

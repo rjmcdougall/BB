@@ -26,7 +26,7 @@ const boardsJSON = {
     ]
 };
 
-const API = '/boards/currentStatuses';
+const API = '/currentStatuses';
 
 class BoardGrid extends React.Component {
     constructor(props, context) {
