@@ -11,7 +11,7 @@ import Table, {
 } from 'material-ui/Table';
 import Toolbar from 'material-ui/Toolbar';
 import Paper from 'material-ui/Paper';
-import Checkbox from 'material-ui/Checkbox';
+import Checkbox from 'material-ui/Checkbox'; 
 import IconButton from 'material-ui/IconButton';
 import DeleteIcon from 'material-ui-icons/Delete';
 import { lighten } from 'material-ui/styles/colorManipulator';
