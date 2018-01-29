@@ -94,9 +94,6 @@ const toolbarStyles = theme => ({
     title: {
         flex: '0 0 auto',
     },
-    table: {
-        minWidth: 400,
-      },
 });
 
 let EnhancedTableToolbar = props => {
@@ -141,9 +138,6 @@ const styles = theme => ({
     root: {
         width: '100%',
         marginTop: 0,
-    },
-    table: {
-        minWidth: 375,
     },
     tableWrapper: {
         overflowX: 'auto',
