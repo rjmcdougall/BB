@@ -15,19 +15,17 @@ const styles = theme => ({
     container: {
         display: 'flex',
         flexWrap: 'wrap',
-        fontSize: 12,
     },
     formControl: {
-        margin: theme.spacing.unit,
-        minWidth: 120,
-        fontSize: 12,
+       // margin: theme.spacing.unit,
+        margin: 50
+        
     },
     selectEmpty: {
         marginTop: theme.spacing.unit * 2,
     },
     button: {
         margin: theme.spacing.unit,
-        fontSize: 12,
     },
     leftIcon: {
         marginRight: theme.spacing.unit,
@@ -135,55 +133,52 @@ class AddProfile extends React.Component {
 
         return (
             <Center>
-                
-            <div>
 
-                <form className={classes.container} autoComplete="off">
-                    <FormControl className={classes.formControl}>
-                        <InputLabel style={{fontSize: 12}} htmlFor="board-picker">Board</InputLabel>
-                        <Select style={{fontSize: 12}}
-                            value={this.state.board}
-                            onChange={this.handleChange}
-                            input={<Input name="board" id="board-picker" />}
-                        >
-                            <MenuItem style={{fontSize: 12}} key="GLOBAL" value="GLOBAL">
-                                GLOBAL
-                        </MenuItem>
-                            {this.state.boardNames.map(item => (
-                                <MenuItem style={{fontSize: 12}} key={item.board_name} value={item.board_name}>{item.board_name}
-                                </MenuItem>))
-                            }
-                        </Select>
-                        <TextField
-                            id="profileName"
-                            name="profile"
-                            style={{fontSize: 12}}
-                            label="Profile Name"
-                            input={<Input name="profile" id="profile-text" />}
-                            margin="normal"
-                            onChange={this.handleChange}
-                        />
-                        <Button onClick={this.handleClick} className={classes.button} raised dense>
-                            <Save className={classes.leftIcon} />
-                            Save
+                <div>
+
+                    <form className={classes.container} autoComplete="off">
+                    
+                        <FormControl className={classes.formControl}>
+                            <InputLabel htmlFor="board-picker">Board</InputLabel>
+                            <Select
+                                value={this.state.board}
+                                onChange={this.handleChange}
+                                input={<Input name="board" id="board-picker" />}>
+                                <MenuItem key="GLOBAL" value="GLOBAL">
+                                    GLOBAL
+                                </MenuItem>
+                                {this.state.boardNames.map(item => (
+                                    <MenuItem key={item.board_name} value={item.board_name}>{item.board_name}
+                                    </MenuItem>))
+                                }
+                            </Select>
+                            <TextField
+                                id="profileName"
+                                name="profile"
+                                label="Profile Name"
+                                input={<Input name="profile" id="profile-text" />}
+                                margin="normal"
+                                onChange={this.handleChange} />
+                            <Button onClick={this.handleClick} className={classes.button} raised dense>
+                                <Save className={classes.leftIcon} />
+                                Save
                      </Button>
-                    </FormControl>
-                </form>
+                        </FormControl>
+                    </form>
 
-                <Snackbar
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'center',
-                    }}
-                    style={{fontSize: 12}}
-                    open={this.state.open}
-                    onClose={this.handleClose}
-                    SnackbarContentProps={{
-                        'aria-describedby': 'message-id',
-                    }}
-                    message={this.state.resultsMessage}
-                />
-            </div>
+                    <Snackbar
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'center',
+                        }}
+                        open={this.state.open}
+                        onClose={this.handleClose}
+                        SnackbarContentProps={{
+                            'aria-describedby': 'message-id',
+                        }}
+                        message={this.state.resultsMessage}
+                    />
+                </div>
             </Center>
         );
     }

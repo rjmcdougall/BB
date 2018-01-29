@@ -8,6 +8,8 @@ import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 import ManageMediaGrid from './ManageMediaGrid';
 import ProfileGrid from './ProfileGrid';
 import AddProfile from './AddProfile';
+import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
+import Typography from 'material-ui/Typography';
 
 class BBApp extends Component {
 
@@ -107,6 +109,13 @@ class BBApp extends Component {
     let appBody = null;
     console.log(this.state.currentAppBody);
 
+
+    const readableText = createMuiTheme({
+      typography: {
+          htmlFontSize: 10,
+      },
+  }); 
+  
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
         appBody = <BoardGrid />;
@@ -168,7 +177,12 @@ class BBApp extends Component {
     return (
       <div className="BBApp" style={{ margin: 0 }}>
         <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} currentProfile={this.state.currentProfile} />
-        {appBody}
+        <MuiThemeProvider theme={readableText}>
+          <Typography>
+            {appBody}
+          </Typography>
+        </MuiThemeProvider>
+
       </div>
     );
   }

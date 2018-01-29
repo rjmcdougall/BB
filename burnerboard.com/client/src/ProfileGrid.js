@@ -16,6 +16,8 @@ import IconButton from 'material-ui/IconButton';
 import DeleteIcon from 'material-ui-icons/Delete';
 import { lighten } from 'material-ui/styles/colorManipulator';
 import Snackbar from 'material-ui/Snackbar';
+import Typography from 'material-ui/Typography';
+
 
 const columnData = [
     { id: 'board', numeric: false, disablePadding: true, label: 'Board' },
@@ -37,12 +39,12 @@ class EnhancedTableHead extends React.Component {
                     </TableCell>
                     {columnData.map(column => {
                         return (
-                            <TableCell style={{fontSize: 12}} 
+                            <TableCell 
                                 key={column.id}
                                 numeric={column.numeric}
                                 sortDirection={orderBy === column.id ? order : false}
                             >
-                                <TableSortLabel style={{fontSize: 12}} 
+                                <TableSortLabel 
                                     active={orderBy === column.id}
                                     direction={order}
                                     onClick={this.createSortHandler(column.id)}
@@ -72,7 +74,6 @@ const toolbarStyles = theme => ({
         paddingRight: theme.spacing.unit,
         width: '100%',
         overflowX: 'auto',
-        fontSize: 12,
     },
     highlight:
         theme.palette.type === 'light'
@@ -92,18 +93,10 @@ const toolbarStyles = theme => ({
     },
     title: {
         flex: '0 0 auto',
-        fontSize: 12,
     },
     table: {
         minWidth: 400,
-        fontSize: 12,
       },
-      subheading: {
-        fontSize: 12,
-      },
-      tableCell:{
-        fontSize: 12,
-      }
 });
 
 let EnhancedTableToolbar = props => {
@@ -115,11 +108,12 @@ let EnhancedTableToolbar = props => {
                 [classes.highlight]: numSelected > 0,
             })}
         >
+            
             <div className={classes.title}>
                 {numSelected > 0 ? (
-                    <div className={classes.title}>{numSelected} selected</div>
+                    <Typography type="subheading">{numSelected} selected</Typography>
                 ) : (
-                    <div className={classes.title}>Profiles</div>
+                        <Typography type="title">Profiles</Typography>
                     )}
             </div>
             <div className={classes.spacer} />
@@ -150,9 +144,6 @@ const styles = theme => ({
     },
     table: {
         minWidth: 375,
-    },
-    tableCell: {
-        fontSize: 12,
     },
     tableWrapper: {
         overflowX: 'auto',
@@ -314,9 +305,12 @@ class ProfileGrid extends React.Component {
 
     }
 
+
+
     render() {
         const { classes } = this.props;
         const { profileArray, order, orderBy, selected } = this.state;
+
 
         return (
             <Paper className={classes.root}>
@@ -346,8 +340,8 @@ class ProfileGrid extends React.Component {
                                         <TableCell padding="checkbox">
                                             <Checkbox checked={isSelected} />
                                         </TableCell>
-                                        <TableCell className={classes.tableCell}>{n.board}</TableCell>
-                                        <TableCell className={classes.tableCell}>{n.profile}</TableCell>
+                                        <TableCell >{n.board}</TableCell>
+                                        <TableCell >{n.profile}</TableCell>
                                     </TableRow>
                                 );
                             })}
@@ -355,19 +349,22 @@ class ProfileGrid extends React.Component {
                     </Table>
                 </div>
 
-                <Snackbar
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'center',
-                    }}
-                    style={{fontSize: 12}}
-                    open={this.state.open}
-                    onClose={this.handleClose}
-                    SnackbarContentProps={{
-                        'aria-describedby': 'message-id',
-                    }}
-                    message={this.state.resultsMessage}
-                />
+
+                        <Snackbar
+                            anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'center',
+                            }}
+                            style={{ fontSize: 12 }}
+                            open={this.state.open}
+                            onClose={this.handleClose}
+                            SnackbarContentProps={{
+                                'aria-describedby': 'message-id',
+                            }}
+                            message={this.state.resultsMessage}
+                        />
+
+                
             </Paper>
         );
     }

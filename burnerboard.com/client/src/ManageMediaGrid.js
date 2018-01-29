@@ -37,12 +37,12 @@ class EnhancedTableHead extends React.Component {
                     </TableCell>
                     {columnData.map(column => {
                         return (
-                            <TableCell  style={{fontSize: 12}} 
+                            <TableCell
                                 key={column.id}
                                 numeric={column.numeric}
                                 sortDirection={orderBy === column.id ? order : false}
                             >
-                                <TableSortLabel style={{fontSize: 12}} 
+                                <TableSortLabel
                                     active={orderBy === column.id}
                                     direction={order}
                                     onClick={this.createSortHandler(column.id)}
@@ -92,14 +92,6 @@ const toolbarStyles = theme => ({
     },
     title: {
         flex: '0 0 auto',
-        fontSize: 12,
-    },
-    table: {
-        minWidth: 400,
-        fontSize: 12,
-    },
-    tableCell: {
-        fontSize: 12,
     },
 });
 
@@ -145,15 +137,9 @@ const styles = theme => ({
         width: '100%',
         marginTop: 0,
     },
-    table: {
-        minWidth: 375,
-    },
     tableWrapper: {
         overflowX: 'auto',
     },
-    tableCell: {
-        fontSize: 12,
-    }
 });
 
 class ManageMediaGrid extends React.Component {
@@ -367,7 +353,7 @@ class ManageMediaGrid extends React.Component {
                                         <TableCell padding="checkbox">
                                             <Checkbox checked={isSelected} />
                                         </TableCell>
-                                        <TableCell  className={classes.tableCell} >{n.localName}</TableCell>
+                                        <TableCell >{n.localName}</TableCell>
                                     </TableRow>
                                 );
                             })}
