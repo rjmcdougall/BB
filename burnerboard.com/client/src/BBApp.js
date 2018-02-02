@@ -10,6 +10,7 @@ import ProfileGrid from './ProfileGrid';
 import AddProfile from './AddProfile';
 import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 import Typography from 'material-ui/Typography';
+import purple from 'material-ui/colors/purple';
 
 class BBApp extends Component {
 
@@ -28,16 +29,16 @@ class BBApp extends Component {
     this.handleSelect = this.handleSelect.bind(this);
   }
 
-  handleSelect(info) {
+  handleSelect(event, key) {
 
     var API;
 
-    console.log(`selected ${info.key}`);
+    console.log(`selected ${key}`);
 
-    if (info.key.startsWith("AppBody-")) {
-      this.setState({ currentAppBody: info.key });
+    if (key.startsWith("AppBody-")) {
+      this.setState({ currentAppBody: key });
     }
-    else if (info.key === "ActivateProfile") {
+    else if (key === "ActivateProfile") {
 
       API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
       console.log(API)
@@ -60,9 +61,9 @@ class BBApp extends Component {
         .catch((err) => console.log(err));
 
     }
-    else if (info.key.startsWith("board-")) {
+    else if (key.startsWith("board-")) {
 
-      var selectedBoard = info.key.slice(6);
+      var selectedBoard = key.slice(6);
 
       API = '/boards/' + selectedBoard;
       console.log(API)
@@ -88,15 +89,15 @@ class BBApp extends Component {
         .catch((err) => console.log(err));
 
     }
-    else if (info.key.startsWith("profile-")) {
+    else if (key.startsWith("profile-")) {
       this.setState({
-        currentProfile: info.key.slice(8),
+        currentProfile: key.slice(8),
         currentProfileIsGlobal: false
       });
     }
-    else if (info.key.startsWith("globalProfile-")) {
+    else if (key.startsWith("globalProfile-")) {
       this.setState({
-        currentProfile: info.key.slice(14),
+        currentProfile: key.slice(14),
         currentProfileIsGlobal: true
       });
     }
@@ -107,7 +108,7 @@ class BBApp extends Component {
   render() {
 
     let appBody = null;
-    console.log(this.state.currentAppBody);
+    console.log("current app key : " + this.state.currentAppBody);
 
 
     const readableText = createMuiTheme({
@@ -176,10 +177,12 @@ class BBApp extends Component {
 
     return (
       <div className="BBApp" style={{ margin: 0 }}>
-        <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} currentProfile={this.state.currentProfile} />
         <MuiThemeProvider theme={readableText}>
           <Typography>
-            {appBody}
+          <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} 
+                      drawerIsOpen={false}
+                      currentProfile={this.state.currentProfile} />
+          {appBody}
           </Typography>
         </MuiThemeProvider>
 
