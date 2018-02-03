@@ -29,9 +29,9 @@ class GoogleLoginPage extends Component {
                     'text-align': 'center'
 
                 }}>
-                    <p><img alt="" rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} />
+                    <div><img alt="" rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} />
                     Welcome to BurnerBoard.com!
-                    <img alt="" rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} /></p>
+                    <img alt="" rel="bb" height="32" width="32" src={require('./images/BurnerBoardIcon.png')} /></div>
                 </div>
                 <div style={{
                     'backgroundColor': 'lightblue',

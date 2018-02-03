@@ -6,12 +6,10 @@ import Toolbar from 'material-ui/Toolbar';
 import Typography from 'material-ui/Typography';
 import IconButton from 'material-ui/IconButton';
 import MenuIcon from 'material-ui-icons/Menu';
-import AccountCircle from 'material-ui-icons/AccountCircle';
+import MenuGlobal from 'material-ui-icons/Language';
 import Drawer from 'material-ui/Drawer';
-import List from 'material-ui/List';
 import Divider from 'material-ui/Divider';
 import ListSubheader from 'material-ui/List/ListSubheader';
-import purple from 'material-ui/colors/purple';
 
 import { MenuList, MenuItem } from 'material-ui/Menu';
 
@@ -29,6 +27,10 @@ const menuStyles = {
     list: {
         width: 250,
     },
+    listSubheader: {
+        backgroundColor: '#3f50b5',//'#757ce8',
+        color: 'white',
+    },
     listFull: {
         width: 'auto',
     },
@@ -41,16 +43,17 @@ class GlobalMenu extends React.Component {
 
         this.state = {
             drawerIsOpen: props.drawerIsOpen,
+            globalDrawerIsOpen: props.globalDrawerIsOpen,
             boardNames: [{ board_name: "loading boards..." }],
             profileNames: ["select Board"],
             globalProfileNames: ["select Board"],
             currentProfile: "Select Profile",
             activeProfile: props.activeProfile,
             currentBoard: props.currentBoard,
+            currentAppBody: props.currentAppBody,
         };
 
         this.handleSelect = this.props.handleSelect.bind(this);
-        //this.handleSelect = this.handleSelect.bind(this);
 
     }
 
@@ -59,14 +62,16 @@ class GlobalMenu extends React.Component {
             drawerIsOpen: open,
         });
 
+
     };
 
-    handleSelect = (event, key) => {
+    toggleGlobalDrawer = (open) => () => {
+        console.log("Toggle Drawer:" + open);
+        this.setState({
+            globalDrawerIsOpen: open,
+        });
+    };
 
-        this.setState({ currentBoard: key });
-
-        console.log(key);
-    }
 
     componentDidMount() {
 
@@ -93,6 +98,9 @@ class GlobalMenu extends React.Component {
         console.log("got props current board: " + nextProps.currentBoard);
         console.log("got props current profile: " + nextProps.currentProfile);
         console.log("got props for active profile: " + nextProps.activeProfile);
+        console.log("got props for app body: " + nextProps.currentAppBody);
+        
+        
         var API = '/boards/' + nextProps.currentBoard + '/profiles/';
 
         var profiles;
@@ -148,6 +156,7 @@ class GlobalMenu extends React.Component {
                                     currentProfile: nextProps.currentProfile,
                                     activeProfile: data3[0].profile,
                                     activeProfileIsGlobal: data3[0].isProfileGlobal,
+                                    currentAppBody: nextProps.currentAppBody,
                                 });
                             })
                             .catch(error => this.setState({ error }));
@@ -159,8 +168,8 @@ class GlobalMenu extends React.Component {
 
     render() {
         const { classes } = this.props;
-        const { auth, anchorEl } = this.state;
-        const open = Boolean(anchorEl);
+
+        console.log("current app body: " + this.state.currentAppBody);
 
         var optionsDisabled = false;
         var profileDisabled = false;
@@ -182,8 +191,9 @@ class GlobalMenu extends React.Component {
         var renderProfiles = (inGlobalBlock, item) => {
 
             console.log("active profie: " + this.state.activeProfile);
-            console.log("activeProfileIsGlobal: " + this.state.activeProfileIsGlobal)
+            console.log("activeProfileIsGlobal: " + this.state.activeProfileIsGlobal);
             console.log("in global block: " + inGlobalBlock);
+
             console.log(JSON.stringify(item));
 
             if (inGlobalBlock) {
@@ -232,20 +242,13 @@ class GlobalMenu extends React.Component {
                             <MenuIcon />
                         </IconButton>
                         <Typography color="inherit" className={classes.flex}>
-                            {this.state.currentBoard} {this.state.currentProfile != "Select Profile" ? " - " + renderProfileTitle() : ""}
+                            {this.state.currentBoard} {this.state.currentProfile !== "Select Profile" ? " - " + renderProfileTitle() : ""}
                         </Typography>
-                        {auth && (
-                            <div>
-                                <IconButton
-                                    aria-owns={open ? 'menu-appbar' : null}
-                                    aria-haspopup="true"
-                                    onClick={this.handleMenu}
-                                    color="inherit"
-                                >
-                                    <AccountCircle />
-                                </IconButton>
-                            </div>
-                        )}
+
+                        <IconButton onClick={this.toggleGlobalDrawer(true)} className={classes.menuButton} color="inherit" aria-label="Global" >
+                            <MenuGlobal />
+                        </IconButton>
+
                     </Toolbar>
                 </AppBar>
                 <Drawer open={this.state.drawerIsOpen} onClose={this.toggleDrawer(false)}>
@@ -255,7 +258,7 @@ class GlobalMenu extends React.Component {
 
                         onKeyDown={this.toggleDrawer(false)}
                     >
-                        <MenuList subheader={<ListSubheader >Boards</ListSubheader>} className={classes.list} >
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Boards</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.map(item => (
                                 <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
                                     key={"board-" + item.board_name}
@@ -265,8 +268,8 @@ class GlobalMenu extends React.Component {
                             }
                         </MenuList>
 
-                        {this.state.currentBoard != "Select Board" ? (
-                            <MenuList subheader={<ListSubheader>Profiles</ListSubheader>} className={classes.list} >
+                        {this.state.currentBoard !== "Select Board" ? (
+                            <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Profiles</ListSubheader>} className={classes.list} >
                                 {this.state.profileNames.map(item => {
                                     return renderProfiles(false, item);
                                 })}
@@ -275,20 +278,35 @@ class GlobalMenu extends React.Component {
                                     return renderProfiles(true, item);
                                 })}
                             </MenuList>
-                        ) : ""}
-                        <MenuList subheader={<ListSubheader>Board Options</ListSubheader>} className={classes.list} >
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-ReorderAudio")} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-ReorderVideo")} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-ManageMedia")} disabled={optionsDisabled || profileDisabled} key="AppBody-ManageMedia">Remove Media</MenuItem>
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-LoadFromGDrive")} disabled={optionsDisabled || profileDisabled} key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
-                            <MenuItem onClick={event => this.handleSelect(event, "ActivateProfile")} disabled={optionsDisabled || profileDisabled} key="ActivateProfile">Activate This Profile</MenuItem>
-                            <Divider />
+                        ) :
+                            <MenuList disabled={true} subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Profiles</ListSubheader>} className={classes.list} >
+                                {/* {this.state.globalProfileNames.map(item => {
+                                    return renderProfiles(true, item);
+                                })} */}
+                            </MenuList>
+                        }
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Media</ListSubheader>} className={classes.list} >
+                            <MenuItem selected={"AppBody-ReorderAudio" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ReorderAudio")} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
+                            <MenuItem selected={"AppBody-ReorderVideo" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ReorderVideo")} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
+                            <MenuItem selected={"AppBody-ManageMedia" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ManageMedia")} disabled={optionsDisabled || profileDisabled} key="AppBody-ManageMedia">Remove Media</MenuItem>
+                            <MenuItem selected={"AppBody-LoadFromGDrive" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-LoadFromGDrive")} disabled={optionsDisabled || profileDisabled} key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
+                            <MenuItem selected={"ActivateProfile" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "ActivateProfile")} disabled={optionsDisabled || profileDisabled} key="ActivateProfile">Activate This Profile</MenuItem>
+                        </MenuList>
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Other</ListSubheader>} className={classes.list} >
                             <MenuItem disabled={optionsDisabled} onClick={event => this.handleSelect(event, "AppBody-BatteryHistory")} key="AppBody-BatteryHistory">Battery History</MenuItem>
                         </MenuList>
-                        <MenuList subheader={<ListSubheader>Global Options</ListSubheader>} className={classes.list} >
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-CurrentStatuses")} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-AddProfile")} key="AppBody-AddProfile">Create Profile</MenuItem>
-                            <MenuItem onClick={event => this.handleSelect(event, "AppBody-ManageProfiles")} key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
+                    </div>
+                </Drawer>
+                <Drawer anchor="right" open={this.state.globalDrawerIsOpen} onClose={this.toggleGlobalDrawer(false)}>
+                    <div
+                        tabIndex={0}
+                        role="button"
+                        onKeyDown={this.toggleGlobalDrawer(false)}
+                    >
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Global Options</ListSubheader>} className={classes.list} >
+                            <MenuItem selected={"AppBody-CurrentStatuses" === this.state.currentAppBody} onClick={event => {this.toggleGlobalDrawer(false); this.handleSelect(event, "AppBody-CurrentStatuses")}} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
+                            <MenuItem selected={"AppBody-AddProfile" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-AddProfile")} key="AppBody-AddProfile">Create Profile</MenuItem>
+                            <MenuItem selected={"AppBody-ManageProfiles" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ManageProfiles")} key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
                         </MenuList>
                     </div>
                 </Drawer>

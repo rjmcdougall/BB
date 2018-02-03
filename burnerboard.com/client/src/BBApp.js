@@ -10,7 +10,6 @@ import ProfileGrid from './ProfileGrid';
 import AddProfile from './AddProfile';
 import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 import Typography from 'material-ui/Typography';
-import purple from 'material-ui/colors/purple';
 
 class BBApp extends Component {
 
@@ -24,6 +23,9 @@ class BBApp extends Component {
       currentProfileIsGlobal: false,
       activeProfileIsGlobal: false,
       activeProfile: "",
+      currentSelection: "",
+      drawerIsOpen: false,
+      globalDrawerIsOpen: false,
     };
 
     this.handleSelect = this.handleSelect.bind(this);
@@ -33,10 +35,13 @@ class BBApp extends Component {
 
     var API;
 
-    console.log(`selected ${key}`);
 
     if (key.startsWith("AppBody-")) {
-      this.setState({ currentAppBody: key });
+      console.log(`SELECTED!!!!!! ${key}`);
+      this.setState({ currentAppBody: key,
+        drawerIsOpen : false,
+        globalDrawerIsOpen : false,
+       });
     }
     else if (key === "ActivateProfile") {
 
@@ -115,6 +120,20 @@ class BBApp extends Component {
       typography: {
           htmlFontSize: 10,
       },
+      palette: {
+        primary: {
+          light: '#757ce8',
+          main: '#3f50b5',
+          dark: '#002884',
+          contrastText: '#fff',
+        },
+        secondary: {
+          light: '#ff7961',
+          main: '#f44336',
+          dark: '#ba000d',
+          contrastText: '#000',
+        },
+     },
   }); 
   
     switch (this.state.currentAppBody) {
@@ -160,14 +179,14 @@ class BBApp extends Component {
             'backgroundColor': 'lightblue',
             'margin': '1cm 1cm 1cm 1cm',
             'padding': '10px 5px 15px 20px'
-          }}><p>You selected {this.state.currentBoard}.</p><p>Board-specific options available.</p><p>Select a profile to manage media. The * indicates the active profile on {this.state.currentBoard}.</p></div>;
+          }}><div>You selected {this.state.currentBoard}.</div><div>Board-specific options available.</div><div>Select a profile to manage media. The * indicates the active profile on {this.state.currentBoard}.</div></div>;
         }
         else {
           appBody = <div style={{
             'backgroundColor': 'lightblue',
             'margin': '1cm 1cm 1cm 1cm',
             'padding': '10px 5px 15px 20px'
-          }}><p>Global options available.</p> <p>Please select a board for board-specific options.</p></div>;
+          }}><div>Global options available.</div> <div>Please select a board for board-specific options.</div></div>;
         }
         break;
     };
@@ -178,14 +197,16 @@ class BBApp extends Component {
     return (
       <div className="BBApp" style={{ margin: 0 }}>
         <MuiThemeProvider theme={readableText}>
-          <Typography>
+         
           <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} 
-                      drawerIsOpen={false}
+                      drawerIsOpen={this.state.drawerIsOpen}
+                      globalDrawerIsOpen={this.state.globalDrawerIsOpen}
+                      currentAppBody={this.state.currentAppBody}
                       currentProfile={this.state.currentProfile} />
-          {appBody}
+          <Typography>
+             {appBody}
           </Typography>
         </MuiThemeProvider>
-
       </div>
     );
   }
