@@ -12,6 +12,10 @@ const styles = theme => ({
     tableWrapper: {
         overflowX: 'auto',
     },
+    menuButton: {
+        marginLeft: 0,
+        marginRight: 50,
+    }, 
 });
 
 class BoardGrid extends React.Component {

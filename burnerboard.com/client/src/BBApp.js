@@ -8,6 +8,7 @@ import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 import ManageMediaGrid from './ManageMediaGrid';
 import ProfileGrid from './ProfileGrid';
 import AddProfile from './AddProfile';
+import SetActiveProfile from './SetActiveProfile';
 //import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 //import Typography from 'material-ui/Typography';
 
@@ -29,42 +30,22 @@ class BBApp extends Component {
     };
 
     this.handleSelect = this.handleSelect.bind(this);
+
   }
 
-  handleSelect(event, key) {
+
+  handleSelect = (event, key) => {
 
     var API;
 
 
     if (key.startsWith("AppBody-")) {
       console.log(`SELECTED!!!!!! ${key}`);
-      this.setState({ currentAppBody: key,
-        drawerIsOpen : false,
-        globalDrawerIsOpen : false,
-       });
-    }
-    else if (key === "ActivateProfile") {
-
-      API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
-      console.log(API)
-      fetch(API, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': window.sessionStorage.JWT,
-        },
-      }).then((res) => res.json())
-        .then((data) => {
-          console.log(data)
-          this.setState({
-            activeProfile: this.state.currentProfile,
-            activeProfileIsGlobal: this.state.currentProfileIsGlobal,
-          });
-
-        })
-        .catch((err) => console.log(err));
-
+      this.setState({
+        currentAppBody: key,
+        drawerIsOpen: false,
+        globalDrawerIsOpen: false,
+      });
     }
     else if (key.startsWith("board-")) {
 
@@ -116,26 +97,26 @@ class BBApp extends Component {
     console.log("current app key : " + this.state.currentAppBody);
 
 
-  //   const readableText = createMuiTheme({
-  //     typography: {
-  //         htmlFontSize: 10,
-  //     },
-  //     palette: {
-  //       primary: {
-  //         light: '#757ce8',
-  //         main: '#3f50b5',
-  //         dark: '#002884',
-  //         contrastText: '#fff',
-  //       },
-  //       secondary: {
-  //         light: '#ff7961',
-  //         main: '#f44336',
-  //         dark: '#ba000d',
-  //         contrastText: '#000',
-  //       },
-  //    },
-  // }); 
-  
+    //   const readableText = createMuiTheme({
+    //     typography: {
+    //         htmlFontSize: 10,
+    //     },
+    //     palette: {
+    //       primary: {
+    //         light: '#757ce8',
+    //         main: '#3f50b5',
+    //         dark: '#002884',
+    //         contrastText: '#fff',
+    //       },
+    //       secondary: {
+    //         light: '#ff7961',
+    //         main: '#f44336',
+    //         dark: '#ba000d',
+    //         contrastText: '#000',
+    //       },
+    //    },
+    // }); 
+
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
         appBody = <BoardGrid />;
@@ -173,6 +154,11 @@ class BBApp extends Component {
       case "AppBody-AddProfile":
         appBody = <AddProfile />;
         break;
+      case "AppBody-ActivateProfile":
+        appBody = <SetActiveProfile  currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} currentProfileIsGlobal={this.state.currentProfileIsGlobal} />;
+        break;
+
+
       default:
         if (this.state.currentBoard !== "Select Board") {
           appBody = <div style={{
@@ -196,17 +182,17 @@ class BBApp extends Component {
 
     return (
       <div className="BBApp" style={{ margin: 0 }}>
-      
-         
-          <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} 
-                      drawerIsOpen={this.state.drawerIsOpen}
-                      globalDrawerIsOpen={this.state.globalDrawerIsOpen}
-                      currentAppBody={this.state.currentAppBody}
-                      currentProfile={this.state.currentProfile} />
-         {/* <MuiThemeProvider theme={readableText}>
+
+
+        <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal}
+          drawerIsOpen={this.state.drawerIsOpen}
+          globalDrawerIsOpen={this.state.globalDrawerIsOpen}
+          currentAppBody={this.state.currentAppBody}
+          currentProfile={this.state.currentProfile} />
+        {/* <MuiThemeProvider theme={readableText}>
             <Typography>*/}
-             {appBody}
-         {/*  </Typography>
+        {appBody}
+        {/*  </Typography>
         </MuiThemeProvider> */}
       </div>
     );

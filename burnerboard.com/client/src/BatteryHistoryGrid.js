@@ -12,6 +12,10 @@ const styles = theme => ({
     tableWrapper: {
         overflowX: 'auto',
     },
+    menuButton: {
+        marginLeft: -12,
+        marginRight: 20,
+    },
 });
 
 class BatteryHistoryGrid extends React.Component {
