@@ -8,8 +8,8 @@ import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
 import ManageMediaGrid from './ManageMediaGrid';
 import ProfileGrid from './ProfileGrid';
 import AddProfile from './AddProfile';
-import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
-import Typography from 'material-ui/Typography';
+//import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
+//import Typography from 'material-ui/Typography';
 
 class BBApp extends Component {
 
@@ -116,25 +116,25 @@ class BBApp extends Component {
     console.log("current app key : " + this.state.currentAppBody);
 
 
-    const readableText = createMuiTheme({
-      typography: {
-          htmlFontSize: 10,
-      },
-      palette: {
-        primary: {
-          light: '#757ce8',
-          main: '#3f50b5',
-          dark: '#002884',
-          contrastText: '#fff',
-        },
-        secondary: {
-          light: '#ff7961',
-          main: '#f44336',
-          dark: '#ba000d',
-          contrastText: '#000',
-        },
-     },
-  }); 
+  //   const readableText = createMuiTheme({
+  //     typography: {
+  //         htmlFontSize: 10,
+  //     },
+  //     palette: {
+  //       primary: {
+  //         light: '#757ce8',
+  //         main: '#3f50b5',
+  //         dark: '#002884',
+  //         contrastText: '#fff',
+  //       },
+  //       secondary: {
+  //         light: '#ff7961',
+  //         main: '#f44336',
+  //         dark: '#ba000d',
+  //         contrastText: '#000',
+  //       },
+  //    },
+  // }); 
   
     switch (this.state.currentAppBody) {
       case "AppBody-CurrentStatuses":
@@ -196,17 +196,18 @@ class BBApp extends Component {
 
     return (
       <div className="BBApp" style={{ margin: 0 }}>
-        <MuiThemeProvider theme={readableText}>
+      
          
           <GlobalMenu handleSelect={this.handleSelect} currentBoard={this.state.currentBoard} activeProfile={this.state.activeProfile} activeProfileIsGlobal={this.state.activeProfileIsGlobal} 
                       drawerIsOpen={this.state.drawerIsOpen}
                       globalDrawerIsOpen={this.state.globalDrawerIsOpen}
                       currentAppBody={this.state.currentAppBody}
                       currentProfile={this.state.currentProfile} />
-          <Typography>
+         {/* <MuiThemeProvider theme={readableText}>
+            <Typography>*/}
              {appBody}
-          </Typography>
-        </MuiThemeProvider>
+         {/*  </Typography>
+        </MuiThemeProvider> */}
       </div>
     );
   }

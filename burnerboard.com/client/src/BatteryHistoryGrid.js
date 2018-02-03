@@ -1,38 +1,33 @@
-import React, { Component } from 'react';
-import ReactDataGrid from 'react-data-grid';
-import 'bootstrap/dist/css/bootstrap.css'; 
- 
-const batteryHistoryJSON = {
-    batteryHistory: [
-        {
-            board_name: "loading...",
-            BatteryLevel: 0,
-            TimeBucket: "loading..."
-        }
-    ]
-};
+import React from 'react';
+import { withStyles } from 'material-ui/styles';
+import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
+import Paper from 'material-ui/Paper';
+import Typography from 'material-ui/Typography';
 
-class BatteryHistoryGrid extends Component {
+const styles = theme => ({
+    root: {
+        width: '100%',
+        marginTop: 0,
+    },
+    tableWrapper: {
+        overflowX: 'auto',
+    },
+});
+
+class BatteryHistoryGrid extends React.Component {
+
     constructor(props, context) {
         super(props, context);
 
-        this._columns = [
-            {
-                key: 'board_name',
-                name: 'Board Name'
-            },
-            {
-                key: 'BatteryLevel',
-                name: 'Battery Level'
-            },
-            {
-                key: 'TimeBucket',
-                name: 'Time Bucket'
-            }
-        ];
 
         this.state = {
-            boardData: batteryHistoryJSON.batteryHistory,
+            boardData: [
+                {
+                    board_name: "loading...",
+                    BatteryLevel: 0,
+                    TimeBucket: "loading..."
+                }
+            ],
             currentBoard: props.currentBoard,
         };
 
@@ -40,7 +35,7 @@ class BatteryHistoryGrid extends Component {
 
     componentDidMount() {
 
-        const API = '/boards/' + this.state.currentBoard +'/BatteryHistory';
+        const API = '/boards/' + this.state.currentBoard + '/BatteryHistory';
 
         fetch(API, {
             headers: {
@@ -60,23 +55,40 @@ class BatteryHistoryGrid extends Component {
             .catch(error => this.setState({ error }));
 
     }
- 
-    rowGetter = (i) => {
-        return this.state.boardData[i];
-    };
 
     render() {
-        console.log("Rendering BoardGrid");
-        console.log(this.state.boardData);
+        const { classes } = this.props;
 
         return (
-            <ReactDataGrid
-                columns={this._columns}
-                rowGetter={this.rowGetter}
-                rowsCount={this.state.boardData.length}
-                minHeight={500} />);
+            <Paper className={classes.root}>
+                <Table className={classes.table}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>
+                                <Typography type="title">Battery History</Typography>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>Name</TableCell>
+                            <TableCell>Battery Level</TableCell>
+                            <TableCell>Time Bucket</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {this.state.boardData.map(item => {
+                            return (
+                                <TableRow key={item.board_name + "-" + item.TimeBucket}>
+                                    <TableCell>{item.board_name}</TableCell>
+                                    <TableCell>{item.BatteryLevel}</TableCell>
+                                    <TableCell>{item.TimeBucket}</TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </Paper>
+        );
     }
 }
 
-export default BatteryHistoryGrid;
-
+export default withStyles(styles)(BatteryHistoryGrid);

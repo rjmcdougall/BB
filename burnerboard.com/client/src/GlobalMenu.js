@@ -20,10 +20,14 @@ const menuStyles = {
     flex: {
         flex: 1,
     },
-    menuButton: {
+    menuButtonLeft: {
         marginLeft: -12,
         marginRight: 20,
     },
+    menuButtonRight: {
+        marginLeft: 1,
+        marginRight: 1,
+    },    
     list: {
         width: 250,
     },
@@ -238,14 +242,14 @@ class GlobalMenu extends React.Component {
             <div className={classes.root}>
                 <AppBar position="static">
                     <Toolbar>
-                        <IconButton onClick={this.toggleDrawer(true)} className={classes.menuButton} color="inherit" aria-label="Menu">
+                        <IconButton onClick={this.toggleDrawer(true)} className={classes.menuButtonLeft} color="inherit" aria-label="Menu">
                             <MenuIcon />
                         </IconButton>
                         <Typography color="inherit" className={classes.flex}>
                             {this.state.currentBoard} {this.state.currentProfile !== "Select Profile" ? " - " + renderProfileTitle() : ""}
                         </Typography>
 
-                        <IconButton onClick={this.toggleGlobalDrawer(true)} className={classes.menuButton} color="inherit" aria-label="Global" >
+                        <IconButton onClick={this.toggleGlobalDrawer(true)} className={classes.menuButtonRight} color="inherit" aria-label="Global" >
                             <MenuGlobal />
                         </IconButton>
 

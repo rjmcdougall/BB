@@ -1,64 +1,39 @@
-import React, { Component } from 'react';
-import ReactDataGrid from 'react-data-grid';
-import 'bootstrap/dist/css/bootstrap.css';
+import React from 'react';
+import { withStyles } from 'material-ui/styles';
+import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
+import Paper from 'material-ui/Paper';
+import Typography from 'material-ui/Typography';
 
-class PercentCompleteFormatter extends Component {
-
-    render() {
-        const percentComplete = this.props.value + '%';
-        return (
-            <div className="progress" style={{ marginTop: '20px' }}>
-                <div className="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style={{ width: percentComplete }}>
-                    {percentComplete}
-                </div>
-            </div>);
-    }
-}
-
-const boardsJSON = {
-    boards: [
-        {
-            board_name: "loading...",
-            last_seen: "loading...",
-            is_online: "loading...",
-            battery_level: 0
-        }
-    ]
-};
-
-const API = '/currentStatuses';
+const styles = theme => ({
+    root: {
+        width: '100%',
+        marginTop: 0,
+    },
+    tableWrapper: {
+        overflowX: 'auto',
+    },
+});
 
 class BoardGrid extends React.Component {
+
     constructor(props, context) {
         super(props, context);
 
-        this._columns = [
-            {
-                key: 'board_name',
-                name: 'Board Name'
-            },
-            {
-                key: 'last_seen',
-                name: 'Last Seen'
-            },
-            {
-                key: 'is_online',
-                name: 'Is Online'
-            },
-            {
-                key: 'battery_level',
-                name: 'Battery Level',
-                formatter: PercentCompleteFormatter
-            }
-        ];
-
         this.state = {
-            boardData: boardsJSON.boards,
+            boardData: [
+                {
+                    board_name: "loading...",
+                    last_seen: "loading...",
+                    is_online: "loading...",
+                    battery_level: 0
+                }
+            ],
         };
-
     }
 
     componentDidMount() {
+
+        const API = '/currentStatuses';
 
         fetch(API, {
             headers: {
@@ -80,25 +55,39 @@ class BoardGrid extends React.Component {
 
     }
 
-    getRandomDate = (start, end) => {
-        return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toLocaleDateString();
-    };
-
-
-    rowGetter = (i) => {
-        return this.state.boardData[i];
-    };
-
     render() {
-        console.log("Rendering BoardGrid");
+        const { classes } = this.props;
+
         return (
-            <ReactDataGrid
-                columns={this._columns}
-                rowGetter={this.rowGetter}
-                rowsCount={this.state.boardData.length}
-                minHeight={500} />);
+            <Paper className={classes.root}>
+                <Table className={classes.table}>
+                    <TableHead>
+                        <TableRow><TableCell>
+                            <Typography type="title">Status</Typography>
+                        </TableCell></TableRow>
+                        <TableRow>
+                            <TableCell>Name</TableCell>
+                            <TableCell>Last Seen</TableCell>
+                            <TableCell>Is Online</TableCell>
+                            <TableCell>Battery Level</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {this.state.boardData.map(item => {
+                            return (
+                                <TableRow key={item.board_name}>
+                                    <TableCell>{item.board_name}</TableCell>
+                                    <TableCell>{item.last_seen}</TableCell>
+                                    <TableCell>{item.is_online}</TableCell>
+                                    <TableCell>{item.battery_level}</TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </Paper>
+        );
     }
 }
 
-export default BoardGrid;
-
+export default withStyles(styles)(BoardGrid);

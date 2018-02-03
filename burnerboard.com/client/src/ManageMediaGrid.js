@@ -93,6 +93,10 @@ const toolbarStyles = theme => ({
     title: {
         flex: '0 0 auto',
     },
+    menuButton: {
+        marginLeft: 0,
+        marginRight: 50,
+    },    
 });
 
 let EnhancedTableToolbar = props => {
@@ -114,7 +118,7 @@ let EnhancedTableToolbar = props => {
             <div className={classes.spacer} />
             <div className={classes.actions}>
                 {numSelected > 0 ? (
-                    <IconButton aria-label="Delete" onClick={props.onDelete}>
+                    <IconButton aria-label="Delete" onClick={props.onDelete}  className={classes.menuButton}>
                         <DeleteIcon />
                     </IconButton>
                 ) : (
