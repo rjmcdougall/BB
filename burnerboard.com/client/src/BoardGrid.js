@@ -68,22 +68,23 @@ class BoardGrid extends React.Component {
                     <TableHead>
                         <TableRow><TableCell>
                             <Typography type="title">Status</Typography>
-                        </TableCell></TableRow>
+                        </TableCell>
+                        <TableCell /><TableCell /><TableCell /></TableRow>
                         <TableRow>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Last Seen</TableCell>
-                            <TableCell>Is Online</TableCell>
-                            <TableCell>Battery Level</TableCell>
+                            <TableCell padding="dense">Name</TableCell>
+                            <TableCell padding="dense">Last Seen</TableCell>
+                            <TableCell padding="dense">Is Online</TableCell>
+                            <TableCell padding="dense">Battery Level</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {this.state.boardData.map(item => {
                             return (
                                 <TableRow key={item.board_name}>
-                                    <TableCell>{item.board_name}</TableCell>
-                                    <TableCell>{item.last_seen}</TableCell>
-                                    <TableCell>{item.is_online}</TableCell>
-                                    <TableCell>{item.battery_level}</TableCell>
+                                    <TableCell padding="dense">{item.board_name}</TableCell>
+                                    <TableCell padding="dense">{item.last_seen}</TableCell>
+                                    <TableCell padding="dense">{item.is_online}</TableCell>
+                                    <TableCell padding="dense">{item.battery_level}</TableCell>
                                 </TableRow>
                             );
                         })}

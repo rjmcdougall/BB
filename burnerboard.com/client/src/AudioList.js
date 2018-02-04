@@ -27,13 +27,14 @@ const getItemStyle = (draggableStyle, isDragging) => ({
   margin: `0 0 ${grid}px 0`,
 
   // change background colour if dragging
-  background: isDragging ? 'lightgreen' : 'grey',
+  background: isDragging ? '#002884' : '#757ce8',
+  color: isDragging ? 'white' : 'black',
 
   // styles we need to apply on draggables
   ...draggableStyle,
 });
 const getListStyle = isDraggingOver => ({
-  background: isDraggingOver ? 'lightblue' : 'lightgrey',
+  background: isDraggingOver ? 'lightgrey' : 'lightgrey',
   padding: grid,
 });
 
