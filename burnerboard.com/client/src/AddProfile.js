@@ -83,11 +83,6 @@ class AddProfile extends React.Component {
             .catch(error => this.setState({ error }));
     }
 
-    handleClose = () => {
-        this.setState({ createProfileOpenSnackbar: false });
-    };
-
-
     render() {
         const { classes } = this.props;
 

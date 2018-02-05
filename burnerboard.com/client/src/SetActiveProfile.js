@@ -46,6 +46,7 @@ class SetActiveProfile extends React.Component {
         }
 
         this.handleActivateProfile = this.props.handleActivateProfile.bind(this);
+        this.handleActivateProfileClose = this.props.handleActivateProfileClose.bind(this);
     }
 
     componentWillReceiveProps(nextProps){
@@ -57,10 +58,6 @@ class SetActiveProfile extends React.Component {
             activateResultsMessage: nextProps.activateResultsMessage,
             activateOpenSnackbar: nextProps.activateOpenSnackbar,
         });
-    }
-
-    componentDidMount(){
-        var i = 1;
     }
 
     render() {
@@ -92,7 +89,8 @@ class SetActiveProfile extends React.Component {
                             horizontal: 'center',
                         }}
                         open={this.state.activateOpenSnackbar}
-                        onClose={this.handleClose}
+                        autoHideDuration={3000}
+                        onClose={this.handleActivateProfileClose}
                         SnackbarContentProps={{
                             'aria-describedby': 'message-id',
                         }}

@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-import AudioList from './AudioList';
-import VideoList from './VideoList';
+import MediaList from './MediaList';
 import GlobalMenu from './GlobalMenu';
 import BoardGrid from './BoardGrid';
 import BatteryHistoryGrid from './BatteryHistoryGrid';
@@ -49,6 +48,11 @@ class BBApp extends Component {
 handleProfileAddClose = () => {
   this.setState({createProfileOpenSnackbar: false});
 }
+
+handleActivateProfileClose = () => {
+  this.setState({activateOpenSnackbar: false});
+}
+ 
 
   handleCreateProfile = event => {
 
@@ -281,15 +285,15 @@ handleProfileAddClose = () => {
         break;
       case "AppBody-ReorderAudio":
         if (this.state.currentProfileIsGlobal)
-          appBody = <AudioList currentProfile={this.state.currentProfile} />;
+          appBody = <MediaList mediaType="audio" currentProfile={this.state.currentProfile} />;
         else
-          appBody = <AudioList currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+          appBody = <MediaList mediaType="audio" currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ReorderVideo":
         if (this.state.currentProfileIsGlobal)
-          appBody = <VideoList currentProfile={this.state.currentProfile} />;
+          appBody = <MediaList mediaType="video" currentProfile={this.state.currentProfile} />;
         else
-          appBody = <VideoList currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+          appBody = <MediaList mediaType="video"  currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-LoadFromGDrive":
         if (this.state.currentProfileIsGlobal)
@@ -310,7 +314,7 @@ handleProfileAddClose = () => {
         appBody = <AddProfile handleProfileAddClose={this.handleProfileAddClose}  createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
         break;
       case "AppBody-ActivateProfile":
-        appBody = <SetActiveProfile handleActivateProfile={this.handleActivateProfile} activateResultsMessage={this.state.activateResultsMessage} activateOpenSnackbar={this.state.activateOpenSnackbar} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} currentProfileIsGlobal={this.state.currentProfileIsGlobal} />;
+        appBody = <SetActiveProfile handleActivateProfileClose={this.handleActivateProfileClose} handleActivateProfile={this.handleActivateProfile} activateResultsMessage={this.state.activateResultsMessage} activateOpenSnackbar={this.state.activateOpenSnackbar} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} currentProfileIsGlobal={this.state.currentProfileIsGlobal} />;
         break;
 
       default:

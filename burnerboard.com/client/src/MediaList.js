@@ -2,23 +2,6 @@ import React, { Component } from 'react';
 //import ReactDOM from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-const getItems = function () {
-
-  return getDirectoryJSON.video.map(function (item) {
-    if (item.localName != null)
-      return {
-        id: `${item.localName}`,
-        content: `${item.localName}`,
-      }
-    else {
-      return {
-        id: `${item.algorithm}`,
-        content: `${item.algorithm}`,
-      }
-    }
-  })
-};
-
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
   const result = Array.from(list);
@@ -48,27 +31,14 @@ const getListStyle = isDraggingOver => ({
   padding: grid,
 });
 
-const getDirectoryJSON = {
-  "audio": [
-    {
-      "localName": "loading audio..."
-    }
-  ],
-  "video": [
-    {
-      "localName": "loading videos..."
-    }
-  ]
-};
-
-
-class VideoList extends Component {
+class MediaList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: getItems(),
+      items: [{"localName": "loading audio..."}],
       currentBoard: props.currentBoard,
       currentProfile: props.currentProfile,
+      mediaType: props.mediaType,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
     this.loadDD = this.loadDD.bind(this);
@@ -80,6 +50,7 @@ class VideoList extends Component {
     this.setState({
       currentBoard: nextProps.currentBoard,
       currentProfile: nextProps.currentProfile,
+      mediaType: nextProps.mediaType,
     }, this.loadDD);
 
   }
@@ -108,21 +79,33 @@ class VideoList extends Component {
       }
     })
       .then(response => response.json())
-      .then(data => this.setState({
-        items: data.video.map(function (item) {
-          if (item.localName != null)
-            return {
+      .then(data => {
+        
+        if(this.state.mediaType==="audio"){
+          this.setState({
+            items: data.audio.map(item => ({
               id: `${item.localName}`,
               content: `${item.localName}`,
-            };
-          else {
-            return {
-              id: `${item.algorithm}`,
-              content: `${item.algorithm}`,
-            };
-          }
-        })
-      }))
+            }))
+          });
+        }
+        else{
+          this.setState({
+            items: data.video.map(function (item) {
+              if (item.localName != null)
+                return {
+                  id: `${item.localName}`,
+                  content: `${item.localName}`,
+                };
+              else {
+                return {
+                  id: `${item.algorithm}`,
+                  content: `${item.algorithm}`,
+                };
+              }
+            })
+        });
+      }})
       .catch(error => this.setState({ error }));
 
   }
@@ -146,13 +129,13 @@ class VideoList extends Component {
     var API;
 
     if (this.state.currentBoard != null)
-      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/video/ReorderMedia';
+      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/' + this.state.mediaType + '/ReorderMedia';
     else
-      API = '/profiles/' + this.state.currentProfile + '/video/ReorderMedia';
+      API = '/profiles/' + this.state.currentProfile + '/' + this.state.mediaType + '/ReorderMedia';
 
     console.log("URL UPDATE MEDIA: " + API);
 
-    var videoArray = this.state.items.map(item => (
+    var mediaArray = this.state.items.map(item => (
       item.id
     ));
 
@@ -164,8 +147,8 @@ class VideoList extends Component {
         'Authorization': window.sessionStorage.JWT,
       },
       body: JSON.stringify({
-        mediaArray: videoArray,
-        mediaType: 'video'
+        mediaArray: mediaArray,
+        mediaType: this.state.mediaType,
       })
     }).then((res) => res.json())
       .catch((err) => console.log(err));
@@ -210,4 +193,4 @@ class VideoList extends Component {
   }
 }
 
-export default VideoList;
+export default MediaList;

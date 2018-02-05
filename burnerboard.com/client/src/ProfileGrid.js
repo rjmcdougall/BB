@@ -287,7 +287,6 @@ class ProfileGrid extends React.Component {
                                 vertical: 'bottom',
                                 horizontal: 'center',
                             }}
-                            style={{ fontSize: 12 }}
                             open={this.state.profileDeleteSnackbarOpen}
                             onClose={this.handleProfileDeleteClose}
                             autoHideDuration={3000}
