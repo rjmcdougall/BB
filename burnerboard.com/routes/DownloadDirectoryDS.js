@@ -640,7 +640,6 @@ exports.reorderMedia = async function (boardID, profileID, mediaType, mediaArray
               return element.algorithm === mediaArray[i];
             else
               return element.localName === mediaArray[i];
-            console.log("found" + mediaArray[i])
           });
 
           result[0].ordinal = i;

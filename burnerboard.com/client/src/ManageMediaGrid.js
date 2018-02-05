@@ -271,7 +271,7 @@ class ManageMediaGrid extends React.Component {
          //         selected.slice(selectedIndex + 1),
          //     );
          // }
-         console.log("new selected :" + newSelected);
+
          this.setState({ selected: newSelected });
      };
  
@@ -286,13 +286,14 @@ class ManageMediaGrid extends React.Component {
          var profileID = this.state.currentProfile;
          var boardID = this.state.currentBoard;
  
-         console.log("delete clicked : " + selectedMediaType + ' : ' + selectLocalName + ' : ' + profileID + ' : ' + boardID);
-         var API = "";
+        var API = "";
          if (boardID != null)
              API = '/boards/' + boardID + '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
          else
              API = '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
  
+             console.log("DELETE MEDIA API: " + API);
+
          fetch(API, {
              method: 'DELETE',
              headers: {
@@ -305,7 +306,6 @@ class ManageMediaGrid extends React.Component {
  
                  if (!res.ok) {
                      res.json().then(function (json) {
-                         console.log('error : ' + JSON.stringify(json));
                          mediaGrid.setState({
                              open: true,
                              resultsMessage: JSON.stringify(json),
@@ -314,13 +314,11 @@ class ManageMediaGrid extends React.Component {
                  }
                  else {
                      res.json().then(function (json) {
-                         console.log('success : ' + JSON.stringify(json));
                          mediaGrid.setState({
                              open: true,
                              resultsMessage: JSON.stringify(json),
                              selected: [],
                              mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
-                                 console.log(item.id + ' - ' + selectedItem);
                                  return item.id !== selectedItem;
                              })
                          });

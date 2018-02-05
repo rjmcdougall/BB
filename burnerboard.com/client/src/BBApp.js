@@ -46,6 +46,10 @@ class BBApp extends Component {
     this.setState({profileDeleteSnackbarOpen: false});
 }
 
+handleProfileAddClose = () => {
+  this.setState({createProfileOpenSnackbar: false});
+}
+
   handleCreateProfile = event => {
 
     var comp = this;
@@ -303,7 +307,7 @@ class BBApp extends Component {
         appBody = <ProfileGrid handleProfileDeleteClose={this.handleProfileDeleteClose} profileSelected={this.state.profileSelected} handleProfileClick={this.handleProfileClick} onProfileDelete={this.onProfileDelete} profileDeleteSnackbarOpen={this.state.profileDeleteSnackbarOpen} profileDeleteResultsMessage={this.state.profileDeleteResultsMessage} />;
         break;
       case "AppBody-AddProfile":
-        appBody = <AddProfile createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
+        appBody = <AddProfile handleProfileAddClose={this.handleProfileAddClose}  createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
         break;
       case "AppBody-ActivateProfile":
         appBody = <SetActiveProfile handleActivateProfile={this.handleActivateProfile} activateResultsMessage={this.state.activateResultsMessage} activateOpenSnackbar={this.state.activateOpenSnackbar} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} currentProfileIsGlobal={this.state.currentProfileIsGlobal} />;

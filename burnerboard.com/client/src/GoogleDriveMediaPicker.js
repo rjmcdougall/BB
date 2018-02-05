@@ -134,16 +134,10 @@ class GoogleDriveMediaPicker extends Component {
                                         })
                                     })
                                         .then(res => {
-                                            console.log('res ok? ' + res.ok);
-                                            console.log('res status:' + res.status);
-
                                             if (!res.ok) {
                                                 res.text().then(function (text) {
-                                                    console.log('res text: ' + text);
+                                                    
                                                     myErrorInfo = text;
-
-                                                    console.log("about to set the state: " + JSON.stringify(googleDriveMediaPicker.state));
-
                                                     googleDriveMediaPicker.setState({
                                                         errorInfo: myErrorInfo,
                                                         jsonResults: myJsonResults
@@ -156,7 +150,7 @@ class GoogleDriveMediaPicker extends Component {
                                             else {
 
                                                 res.text().then(function (text) {
-                                                    console.log('res : ' + text);
+                                                    
                                                     myJsonResults = text;
 
                                                     googleDriveMediaPicker.setState({
@@ -170,10 +164,10 @@ class GoogleDriveMediaPicker extends Component {
                                             }
                                         })
                                         .catch((err) => {
-                                            console.log("in catch block");
+                                            
                                             var myErrorInfo = "";
                                             err.text().then(function (text) {
-                                                console.log('res text: ' + text);
+                                                
                                                 myErrorInfo = text;
                                             });
                                             this.setState({ errorInfo: myErrorInfo });

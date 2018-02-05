@@ -16,7 +16,7 @@ class App extends Component {
   }
 
   responseGoogle = (response) => {
-    console.log(response);
+    console.log("google response: " + response);
  
     if (response.error != null && response.error !== ""){
 
@@ -41,9 +41,6 @@ class App extends Component {
           }
         })
         .then(res => {
-          console.log('res ok? ' + res.ok);
-          console.log('res status:' + res.status);
-
           if (!res.ok) {
             res.text().then(function (text) {
 
@@ -51,9 +48,7 @@ class App extends Component {
                 JWT: "",
                 buttonText: text,
               });
-
-              console.log('res not ok json: ' + text);
-            });
+           });
           }
           else {
 
@@ -72,7 +67,6 @@ class App extends Component {
           }
         })
         .catch((err) => {
-          console.log("in catch block");
 
           err.text().then(function (text) {
             app.setState({

@@ -104,7 +104,7 @@ class GlobalMenu extends React.Component {
         var profiles;
         var globalProfiles;
 
-        console.log("GET ALL PROFILES FOR BOARD: " + API);
+        console.log("GET ALL PROFILES FOR BOARD API: " + API);
         fetch(API, {
             headers: {
                 'Accept': 'application/json',
@@ -115,7 +115,7 @@ class GlobalMenu extends React.Component {
             .then(response => response.json())
             .then(data => {
 
-                console.log("Queried these profiles: " + JSON.stringify(data));
+                console.log("returned these profiles: " + JSON.stringify(data));
 
                 profiles = data.map(item => ({
                     profile_name: `${item.name}`,

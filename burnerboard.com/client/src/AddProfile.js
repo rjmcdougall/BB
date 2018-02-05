@@ -51,6 +51,7 @@ class AddProfile extends React.Component {
 
         this.handleCreateProfile = this.props.handleCreateProfile.bind(this);
         this.handleChange = this.props.handleChange.bind(this);
+        this.handleProfileAddClose = this.props.handleProfileAddClose.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -89,8 +90,6 @@ class AddProfile extends React.Component {
 
     render() {
         const { classes } = this.props;
-
-        console.log(this.state.createProfileBoardName + " : " + JSON.stringify(this.state.boardNames))
 
         return (
             <Center>
@@ -133,8 +132,9 @@ class AddProfile extends React.Component {
                             vertical: 'bottom',
                             horizontal: 'center',
                         }}
+                        autoHideDuration={3000}
                         open={this.state.createProfileOpenSnackbar}
-                        onClose={this.handleClose}
+                        onClose={this.handleProfileAddClose}
                         SnackbarContentProps={{
                             'aria-describedby': 'message-id',
                         }}
