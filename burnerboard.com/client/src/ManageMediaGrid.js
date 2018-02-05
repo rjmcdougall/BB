@@ -150,8 +150,6 @@ class ManageMediaGrid extends React.Component {
     constructor(props, context) {
         super(props, context);
 
-        console.log("props board:" + this.props.currentBoard);
-        console.log("props profile: " + this.props.currentProfile);
         this.state = {
             order: 'asc',
             orderBy: 'localName',
@@ -166,9 +164,11 @@ class ManageMediaGrid extends React.Component {
                     mediaType: 'loading...',
                     localName: 'loading...',
                     ordinal: 0,
-                }].sort((a, b) => (a.localName < b.localName ? -1 : 1))
-        };
-    }
+                }].sort((a, b) => (a.localName < b.localName ? -1 : 1)),
+       };
+
+        this.loadGrid = this.loadGrid.bind(this);
+     }
 
     handleRequestSort = (event, property) => {
         const orderBy = property;
@@ -187,13 +187,25 @@ class ManageMediaGrid extends React.Component {
     };
 
     componentDidMount() {
+        this.loadGrid();
+    }
 
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            currentBoard: nextProps.currentBoard,
+            currentProfile: nextProps.currentProfile,
+        }, this.loadGrid);
+    }
+
+    loadGrid()  {
         var API;
 
         if(this.state.currentBoard != null)
             API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
         else
             API = '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
+
+            console.log("API CALL TO LOAD MEDIA GRID: " + API);
 
         fetch(API, {
             headers: {
@@ -205,11 +217,8 @@ class ManageMediaGrid extends React.Component {
             .then(response => response.json())
             .then(data => {
 
-                console.log("RESULTS FROM GET" + JSON.stringify(data));
-
                 var mediaArray = data.video
                     .filter(function (item) {
-                        console.log(item);
                         return item.localName != null;
                     });
 
@@ -232,99 +241,97 @@ class ManageMediaGrid extends React.Component {
                     }
                 }));
 
-                console.log("mediaArray LOADED:" + mediaArray.length);
                 this.setState({ "mediaArray": mediaArray });
             })
             .catch(error => {
                 console.log(error.message);
             });
-
-    }
+    } 
 
     handleClick = (event, id) => {
-       // const { selected } = this.state;
-       // const selectedIndex = selected.indexOf(id);
-        let newSelected = [id];
-
-        // console.log("selectedIndex : " + selected.indexOf(id));
-        
-        // if (selectedIndex === -1) {
-        //     newSelected = newSelected.concat(selected, id);
-        // } else if (selectedIndex === 0) {
-        //     newSelected = newSelected.concat(selected.slice(1));
-        // } else if (selectedIndex === selected.length - 1) {
-        //     newSelected = newSelected.concat(selected.slice(0, -1));
-        // } else if (selectedIndex > 0) {
-        //     newSelected = newSelected.concat(
-        //         selected.slice(0, selectedIndex),
-        //         selected.slice(selectedIndex + 1),
-        //     );
-        // }
-        console.log("new selected :" + newSelected);
-        this.setState({ selected: newSelected });
-    };
-
-    isSelected = id => this.state.selected.indexOf(id) !== -1;
-
-    onDelete = () => {
-
-        var mediaGrid = this;
-        var selectedItem = this.state.selected[0].toString();
-        var selectLocalName = selectedItem.slice(selectedItem.indexOf('-') + 1)
-        var selectedMediaType = selectedItem.slice(0, selectedItem.indexOf('-'));
-        var profileID = this.state.currentProfile;
-        var boardID = this.state.currentBoard;
-
-        console.log("delete clicked : " + selectedMediaType + ' : ' + selectLocalName + ' : ' + profileID + ' : ' + boardID);
-        var API = "";
-        if (boardID != null)
-            API = '/boards/' + boardID + '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
-        else
-            API = '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
-
-        fetch(API, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': window.sessionStorage.JWT,
-            }
-        })
-            .then((res) => {
-
-                if (!res.ok) {
-                    res.json().then(function (json) {
-                        console.log('error : ' + JSON.stringify(json));
-                        mediaGrid.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json),
-                        });
-                    });
-                }
-                else {
-                    res.json().then(function (json) {
-                        console.log('success : ' + JSON.stringify(json));
-                        mediaGrid.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json),
-                            selected: [],
-                            mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
-                                console.log(item.id + ' - ' + selectedItem);
-                                return item.id !== selectedItem;
-                            })
-                        });
-                    });
-                }
-            })
-            .catch((err) => {
-                console.log('error : ' + err);
-                mediaGrid.setState({
-                    open: true,
-                    resultsMessage: err.message
-                });
-            });
-    }
-
+        // const { selected } = this.state;
+        // const selectedIndex = selected.indexOf(id);
+         let newSelected = [id];
+ 
+         // console.log("selectedIndex : " + selected.indexOf(id));
+         
+         // if (selectedIndex === -1) {
+         //     newSelected = newSelected.concat(selected, id);
+         // } else if (selectedIndex === 0) {
+         //     newSelected = newSelected.concat(selected.slice(1));
+         // } else if (selectedIndex === selected.length - 1) {
+         //     newSelected = newSelected.concat(selected.slice(0, -1));
+         // } else if (selectedIndex > 0) {
+         //     newSelected = newSelected.concat(
+         //         selected.slice(0, selectedIndex),
+         //         selected.slice(selectedIndex + 1),
+         //     );
+         // }
+         console.log("new selected :" + newSelected);
+         this.setState({ selected: newSelected });
+     };
+ 
+     isSelected = id => this.state.selected.indexOf(id) !== -1;
+ 
+     onDelete = () => {
+ 
+         var mediaGrid = this;
+         var selectedItem = this.state.selected[0].toString();
+         var selectLocalName = selectedItem.slice(selectedItem.indexOf('-') + 1)
+         var selectedMediaType = selectedItem.slice(0, selectedItem.indexOf('-'));
+         var profileID = this.state.currentProfile;
+         var boardID = this.state.currentBoard;
+ 
+         console.log("delete clicked : " + selectedMediaType + ' : ' + selectLocalName + ' : ' + profileID + ' : ' + boardID);
+         var API = "";
+         if (boardID != null)
+             API = '/boards/' + boardID + '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
+         else
+             API = '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
+ 
+         fetch(API, {
+             method: 'DELETE',
+             headers: {
+                 'Accept': 'application/json',
+                 'Content-Type': 'application/json',
+                 'Authorization': window.sessionStorage.JWT,
+             }
+         })
+             .then((res) => {
+ 
+                 if (!res.ok) {
+                     res.json().then(function (json) {
+                         console.log('error : ' + JSON.stringify(json));
+                         mediaGrid.setState({
+                             open: true,
+                             resultsMessage: JSON.stringify(json),
+                         });
+                     });
+                 }
+                 else {
+                     res.json().then(function (json) {
+                         console.log('success : ' + JSON.stringify(json));
+                         mediaGrid.setState({
+                             open: true,
+                             resultsMessage: JSON.stringify(json),
+                             selected: [],
+                             mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
+                                 console.log(item.id + ' - ' + selectedItem);
+                                 return item.id !== selectedItem;
+                             })
+                         });
+                     });
+                 }
+             })
+             .catch((err) => {
+                 console.log('error : ' + err);
+                 mediaGrid.setState({
+                     open: true,
+                     resultsMessage: err.message
+                 });
+             });
+     }
+ 
     render() {
         const { classes } = this.props;
         const { mediaArray, order, orderBy, selected } = this.state;

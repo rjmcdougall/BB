@@ -23,7 +23,6 @@ class BatteryHistoryGrid extends React.Component {
     constructor(props, context) {
         super(props, context);
 
-
         this.state = {
             boardData: [
                 {
@@ -35,11 +34,15 @@ class BatteryHistoryGrid extends React.Component {
             currentBoard: props.currentBoard,
         };
 
+        this.loadBoardData = this.loadBoardData.bind(this);
+
     }
 
-    componentDidMount() {
+    loadBoardData() {
 
         const API = '/boards/' + this.state.currentBoard + '/BatteryHistory';
+
+        console.log("API TO GET BATTERY DATA: " + API);
 
         fetch(API, {
             headers: {
@@ -58,6 +61,15 @@ class BatteryHistoryGrid extends React.Component {
             }))
             .catch(error => this.setState({ error }));
 
+    }
+    componentDidMount() {
+        this.loadBoardData();
+    }
+
+    componentWillReceiveProps(nextProps){
+        this.setState({
+            currentBoard: nextProps.currentBoard,
+        }, this.loadBoardData);
     }
 
     render() {

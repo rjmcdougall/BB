@@ -107,7 +107,7 @@ exports.addMedia = function (boardID, profileID, mediaType, fileName, fileSize, 
 
               datastore
                 .save(entity)
-                .then(() => {
+                .then((results) => {
                   resolve(mediaType + ` ${localName} created successfully with ordinal ` + newAttributes.ordinal);
                 })
                 .catch(err => {
@@ -138,7 +138,7 @@ exports.createNewBoard = async function (boardID) {
           isProfileGlobal: false,
         },
       })
-      .then(() => {
+      .then((results) => {
         return resolve("board " + boardID + " created ");
       })
       .catch(err => {
@@ -160,7 +160,7 @@ exports.createProfile = async function (boardID, profileID, isGlobal) {
           isGlobal: isGlobal,
         },
       })
-      .then(() => {
+      .then((results) => {
         if (isGlobal)
           return resolve("global profile " + profileID + " created");
         else
@@ -309,7 +309,7 @@ exports.deleteBoard = async function (boardID) {
         datastore.delete(results[0].map((item) => {
           return item[datastore.KEY];
         }))
-          .then(() => {
+          .then((results) => {
             resolve("Deleted " + boardID);
           })
           .catch(err => {
@@ -354,7 +354,7 @@ exports.deleteProfile = async function (boardID, profileID) {
         datastore.delete(results[0].map((item) => {
           return item[datastore.KEY];
         }))
-          .then(() => {
+          .then((results) => {
             if (boardID != null && profileID != null)
               resolve("Deleted " + profileID + " for board " + boardID);
             else if (boardID != null && profileID == null)
@@ -387,7 +387,7 @@ exports.deleteAllBoardMedia = async function (boardID, mediaType) {
         datastore.delete(results[0].map((item) => {
           return item[datastore.KEY];
         }))
-          .then(() => {
+          .then((results) => {
             resolve("Deleted " + results[0].length + " " + mediaType + " from " + boardID);
           })
           .catch(err => {
@@ -537,7 +537,7 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
           .then(() => {
             datastore
               .save(entityArray1)
-              .then(() => {
+              .then((results) => {
                 resolve("template copied with " + entityArray1.length + " " + mediaType + " elements");
               })
               .catch(err => {
@@ -647,7 +647,7 @@ exports.reorderMedia = async function (boardID, profileID, mediaType, mediaArray
         }
 
         datastore.save(results)
-          .then(() => {
+          .then((results) => {
             resolve(this.listMedia(boardID, profileID, mediaType));
           })
           .catch(err => {

@@ -61,16 +61,33 @@ class AudioList extends Component {
       currentProfile: props.currentProfile,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
+    this.loadDD = this.loadDD.bind(this);
 
   }
 
+  componentWillReceiveProps(nextProps) {
+
+    this.setState({
+      currentBoard: nextProps.currentBoard,
+      currentProfile: nextProps.currentProfile,
+    }, this.loadDD);
+
+  }
   componentDidMount() {
 
+    this.loadDD();
+
+  }
+
+  loadDD() {
     var API;
     if (this.state.currentBoard != null)
       API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
     else
       API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+
+    console.log("URL GATHER MEDIA LIST: " + API);
+
 
     fetch(API, {
       headers: {

@@ -4,8 +4,6 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const getItems = function () {
 
-  console.log(getDirectoryJSON.video);
-
   return getDirectoryJSON.video.map(function (item) {
     if (item.localName != null)
       return {
@@ -41,7 +39,7 @@ const getItemStyle = (draggableStyle, isDragging) => ({
   // change background colour if dragging
   background: isDragging ? '#002884' : '#757ce8',
   color: isDragging ? 'white' : 'black',
-  
+
   // styles we need to apply on draggables
   ...draggableStyle,
 });
@@ -73,22 +71,35 @@ class VideoList extends Component {
       currentProfile: props.currentProfile,
     };
     this.onDragEnd = this.onDragEnd.bind(this);
+    this.loadDD = this.loadDD.bind(this);
 
-    console.log("in constructor");
-   console.log(this.state.items);
+  }
+
+  componentWillReceiveProps(nextProps) {
+
+    this.setState({
+      currentBoard: nextProps.currentBoard,
+      currentProfile: nextProps.currentProfile,
+    }, this.loadDD);
+
   }
 
   componentDidMount() {
- 
+
+    this.loadDD();
+
+  }
+
+  loadDD() {
     var API;
-    if(this.state.currentBoard != null)
-      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
+    if (this.state.currentBoard != null)
+      API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
     else
-      API = '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
-   
-      console.log("URL: " + API);
-   
-   
+      API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+
+    console.log("URL FOR MEDIA LIST: " + API);
+
+
     fetch(API, {
       headers: {
         'Accept': 'application/json',
@@ -115,7 +126,7 @@ class VideoList extends Component {
       .catch(error => this.setState({ error }));
 
   }
- 
+
   onDragEnd(result) {
     // dropped outside the list
     if (!result.destination) {
@@ -134,16 +145,17 @@ class VideoList extends Component {
 
     var API;
 
-    if(this.state.currentBoard != null)
+    if (this.state.currentBoard != null)
       API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/video/ReorderMedia';
     else
-      API = '/profiles/' + this.state.currentProfile+ '/video/ReorderMedia';
+      API = '/profiles/' + this.state.currentProfile + '/video/ReorderMedia';
 
-    var videoArray  = this.state.items.map(item => (
-        item.id
-      ));
+    console.log("URL UPDATE MEDIA: " + API);
 
-      console.log("videoarray: " + JSON.stringify(videoArray));
+    var videoArray = this.state.items.map(item => (
+      item.id
+    ));
+
     fetch(API, {
       method: 'POST',
       headers: {
@@ -151,16 +163,15 @@ class VideoList extends Component {
         'Content-Type': 'application/json',
         'Authorization': window.sessionStorage.JWT,
       },
-      body: JSON.stringify({mediaArray: videoArray,
-                            mediaType: 'video'})
+      body: JSON.stringify({
+        mediaArray: videoArray,
+        mediaType: 'video'
+      })
     }).then((res) => res.json())
-      .then((data) => console.log(data))
       .catch((err) => console.log(err));
 
   }
 
-  // Normally you would want to split things out into separate components.
-  // But in this example everything is just done in one place for simplicity
   render() {
 
     return (

@@ -8,10 +8,7 @@ const SCOPE = ['https://www.googleapis.com/auth/drive.readonly'];
 
 class GoogleDriveMediaPicker extends Component {
 
-
     constructor(props) {
-
-        console.log("  in constructor " + props.currentBoard);
 
         super(props);
         this.state = {
@@ -23,6 +20,17 @@ class GoogleDriveMediaPicker extends Component {
             successMessage: "",
         };
 
+    }
+
+    componentWillReceiveProps(nextProps){
+        this.setState( {
+            currentBoard: nextProps.currentBoard,
+            currentProfile: nextProps.currentProfile,
+            jsonResults: "",
+            errorInfo: "",
+            spinnerActive: false,
+            successMessage: "",
+        });
     }
 
     setSpinnerActive = (spinnerActive) => {
@@ -45,8 +53,6 @@ class GoogleDriveMediaPicker extends Component {
     }
 
     render() {
-
-        console.log(this.state);
 
         /*eslint-disable */
         if (this.state.jsonResults === "" && this.state.errorInfo === "") {
@@ -77,7 +83,6 @@ class GoogleDriveMediaPicker extends Component {
                         const googleViewId = google.picker.ViewId.FOLDERS;
                         const docsView = new google.picker.DocsView(googleViewId)
                             .setIncludeFolders(true)
-                            //.setQuery("*.mp4")
                             .setMimeTypes('application/vnd.google-apps.audio', 'application/vnd.google-apps.video')
                             .setSelectFolderEnabled(true);
 
@@ -86,7 +91,6 @@ class GoogleDriveMediaPicker extends Component {
                             .addView(docsView)
                             .setOAuthToken(oauthToken)
                             .setOrigin(window.location.protocol + '//' + window.location.host)
-                            //.setSelectableMimeTypes('application/vnd.google-apps.audio','application/vnd.google-apps.video','application/vnd.google-apps.folder')
                             .setDeveloperKey(DEVELOPER_KEY)
                             .setCallback((data) => {
                                 var url = 'nothing';
@@ -94,21 +98,19 @@ class GoogleDriveMediaPicker extends Component {
                                     var doc = data[google.picker.Response.DOCUMENTS][0];
                                     url = doc[google.picker.Document.URL];
 
-                                    var message = 'URL: ' + url;
-                                    console.log(message);
-                                    message = 'file ID: ' + data.docs[0].id;
-                                    console.log(message);
-                                    message = 'oauthToken: ' + oauthToken;
-                                    console.log(message);
-                                    message = 'current board: ' + this.state.currentBoard;
-
-                                    console.log(message);
-
                                     var API;
                                     if (this.state.currentBoard != null)
                                         API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/AddFileFromGDrive';
                                     else
                                         API = '/profiles/' + this.state.currentProfile + '/AddFileFromGDrive';
+
+                                    console.log("API FOR UPLOADING MEDIA: " + API);
+                                    console.log('BODY FOR UPLOAD: ' + JSON.stringify({
+                                        GDriveURL: url,
+                                        oauthToken: oauthToken,
+                                        fileId: data.docs[0].id,
+                                        currentBoard: this.state.currentBoard,
+                                    }));
 
                                     var myErrorInfo = "";
                                     var myJsonResults = "";
@@ -156,8 +158,6 @@ class GoogleDriveMediaPicker extends Component {
                                                 res.text().then(function (text) {
                                                     console.log('res : ' + text);
                                                     myJsonResults = text;
-
-                                                    console.log("about to set the state: " + JSON.stringify(googleDriveMediaPicker.state));
 
                                                     googleDriveMediaPicker.setState({
                                                         errorInfo: myErrorInfo,

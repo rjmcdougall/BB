@@ -156,15 +156,19 @@ class ProfileGrid extends React.Component {
             order: 'asc',
             orderBy: 'profile',
             selected: [],
-            open: false,
-            resultsMessage: "",
+            profileDeleteSnackbarOpen: false,
+            profileDeleteResultsMessage: "",
+            profileSelected: "",
             profileArray: [
                 {
                     id: 1,
                     profile: 'loading...',
                     board: 'loading...'
                 }].sort((a, b) => (a.profile < b.profile ? -1 : 1))
-        };
+        };   
+
+        this.onProfileDelete = props.onProfileDelete.bind(this);
+        this.handleProfileClick = props.handleProfileClick.bind(this);
     }
 
     handleRequestSort = (event, property) => {
@@ -184,8 +188,22 @@ class ProfileGrid extends React.Component {
     };
 
     componentDidMount() {
+        this.loadProfileGrid();
+    }
 
+    componentWillReceiveProps(nextProps){
+
+        this.setState({profileDeleteSnackbarOpen: nextProps.profileDeleteSnackbarOpen,
+        profileDeleteResultsMessage: nextProps.profileDeleteResultsMessage,
+        profileSelected: nextProps.profileSelected,
+        
+    },this.loadProfileGrid)
+    }
+
+    loadProfileGrid() {
         const API = '/allProfiles/';
+
+        console.log("API CALL TO LOAD PROFILES: " + API);
 
         fetch(API, {
             headers: {
@@ -196,8 +214,6 @@ class ProfileGrid extends React.Component {
         })
             .then(response => response.json())
             .then(data => {
-
-                console.log(JSON.stringify(data));
 
                 var profileArray = data
                     .map(function (item) {
@@ -220,103 +236,20 @@ class ProfileGrid extends React.Component {
             .catch(error => this.setState({ error }));
     }
 
-    handleClick = (event, id) => {
- //       const { selected } = this.state;
- //       const selectedIndex = selected.indexOf(id);
-        let newSelected = [id];
-        // if (selectedIndex === -1) {
-        //     newSelected = newSelected.concat(selected, id);
-        // } else if (selectedIndex === 0) {
-        //     newSelected = newSelected.concat(selected.slice(1));
-        // } else if (selectedIndex === selected.length - 1) {
-        //     newSelected = newSelected.concat(selected.slice(0, -1));
-        // } else if (selectedIndex > 0) {
-        //     newSelected = newSelected.concat(
-        //         selected.slice(0, selectedIndex),
-        //         selected.slice(selectedIndex + 1),
-        //     );
-        // }
-
-        this.setState({ selected: newSelected });
-    };
-
-    isSelected = id => this.state.selected.indexOf(id) !== -1;
-
-    onDelete = () => {
-
-        var profileGrid = this;
-
-        var selectProfile = this.state.selected[0].toString();
-        var profileID = selectProfile.slice(selectProfile.indexOf('-') + 1)
-        var boardID = selectProfile.slice(0, selectProfile.indexOf('-'));
-
-        console.log("delete clicked : " + profileID + ' : ' + boardID);
-        var API = "";
-        if (boardID !== "null")
-            API = '/boards/' + boardID + '/profiles/' + profileID
-        else
-            API = '/profiles/' + profileID
-
-        fetch(API, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': window.sessionStorage.JWT,
-            }
-        }
-        )
-            .then((res) => {
-
-                if (!res.ok) {
-                    res.json().then(function (json) {
-                        console.log('error : ' + JSON.stringify(json));
-                        profileGrid.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json),
-                        });
-                    });
-                }
-                else {
-                    res.json().then(function (json) {
-                        console.log('success : ' + JSON.stringify(json));
-                        profileGrid.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json),
-                            selected: [],
-                            profileArray: profileGrid.state.profileArray.filter(function (item) {
-                                console.log(item.id + ' : ' + selectProfile);
-                                return item.id !== selectProfile;
-                            })
-                        });
-                    });
-                }
-            })
-            .catch((err) => {
-                console.log('error : ' + err);
-                profileGrid.setState({
-                    open: true,
-                    resultsMessage: err.message
-                });
-
-            });
-
-    }
-
-
+    isSelected = id => this.state.profileSelected.indexOf(id) !== -1;
 
     render() {
         const { classes } = this.props;
-        const { profileArray, order, orderBy, selected } = this.state;
+        const { profileArray, order, orderBy, profileSelected } = this.state;
 
 
         return (
             <Paper className={classes.root}>
-                <EnhancedTableToolbar numSelected={selected.length} onDelete={this.onDelete} />
+                <EnhancedTableToolbar numSelected={profileSelected.length} onDelete={this.onProfileDelete} />
                 <div className={classes.tableWrapper}>
                     <Table className={classes.table}>
                         <EnhancedTableHead
-                            numSelected={selected.length}
+                            numSelected={profileSelected.length}
                             order={order}
                             orderBy={orderBy}
                             onRequestSort={this.handleRequestSort}
@@ -328,7 +261,7 @@ class ProfileGrid extends React.Component {
                                 return (
                                     <TableRow  
                                         hover
-                                        onClick={event => this.handleClick(event, n.id)}
+                                        onClick={event => this.handleProfileClick(event, n.id)}
                                         role="checkbox"
                                         aria-checked={isSelected}
                                         tabIndex={-1}
@@ -354,12 +287,12 @@ class ProfileGrid extends React.Component {
                                 horizontal: 'center',
                             }}
                             style={{ fontSize: 12 }}
-                            open={this.state.open}
+                            open={this.state.profileDeleteSnackbarOpen}
                             onClose={this.handleClose}
                             SnackbarContentProps={{
                                 'aria-describedby': 'message-id',
                             }}
-                            message={this.state.resultsMessage}
+                            message={this.state.profileDeleteResultsMessage}
                         />
 
                 

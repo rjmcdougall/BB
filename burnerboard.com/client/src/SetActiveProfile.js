@@ -34,7 +34,6 @@ const styles = theme => ({
 
 class SetActiveProfile extends React.Component {
 
-
     constructor(props, context) {
         super(props, context);
 
@@ -42,47 +41,26 @@ class SetActiveProfile extends React.Component {
             currentProfile: props.currentProfile,
             currentProfileIsGlobal: props.currentProfileIsGlobal,
             currentBoard: props.currentBoard,
+            activateResultsMessage: "",
+            activateOpenSnackbar: false,
         }
 
+        this.handleActivateProfile = this.props.handleActivateProfile.bind(this);
     }
 
-    handleActivate = event => {
+    componentWillReceiveProps(nextProps){
 
-        var setActiveProfile = this;
+        this.setState( {
+            currentProfile: nextProps.currentProfile,
+            currentProfileIsGlobal: nextProps.currentProfileIsGlobal,
+            currentBoard: nextProps.currentBoard,
+            activateResultsMessage: nextProps.activateResultsMessage,
+            activateOpenSnackbar: nextProps.activateOpenSnackbar,
+        });
+    }
 
-        var API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
-        console.log(API)
-        fetch(API, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': window.sessionStorage.JWT,
-            },
-        }).then((res) => res.json())
-            .then((data) => {
-                console.log(data)
-                this.setState({
-                    activeProfile: this.state.currentProfile,
-                    activeProfileIsGlobal: this.state.currentProfileIsGlobal,
-                    open: true,
-                    resultsMessage: this.state.currentProfile + " activated",
-                });
-
-
-            })
-            .catch((err) => {
-                console.log('error : ' + err);
-                setActiveProfile.setState({
-                    open: true,
-                    resultsMessage: err.message
-                });
-
-            });
-
-
-
-
+    componentDidMount(){
+        var i = 1;
     }
 
     render() {
@@ -100,7 +78,7 @@ class SetActiveProfile extends React.Component {
                     <form className={classes.container} autoComplete="off">
 
                         <FormControl className={classes.formControl}>
-                            <Button onClick={this.handleActivate} className={classes.button} raised dense>
+                            <Button onClick={this.handleActivateProfile} className={classes.button} raised dense>
                                 <SystemUpdate className={classes.leftIcon} />
                                 ActivateProfile
                                 <SystemUpdate className={classes.rightIcon} />
@@ -113,12 +91,12 @@ class SetActiveProfile extends React.Component {
                             vertical: 'bottom',
                             horizontal: 'center',
                         }}
-                        open={this.state.open}
+                        open={this.state.activateOpenSnackbar}
                         onClose={this.handleClose}
                         SnackbarContentProps={{
                             'aria-describedby': 'message-id',
                         }}
-                        message={this.state.resultsMessage}
+                        message={this.state.activateResultsMessage}
                     />
                 </div>
             </Center>

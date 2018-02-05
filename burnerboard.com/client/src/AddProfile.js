@@ -17,9 +17,9 @@ const styles = theme => ({
         flexWrap: 'wrap',
     },
     formControl: {
-       // margin: theme.spacing.unit,
+        // margin: theme.spacing.unit,
         margin: 50
-        
+
     },
     selectEmpty: {
         marginTop: theme.spacing.unit * 2,
@@ -36,15 +36,31 @@ const styles = theme => ({
 });
 
 class AddProfile extends React.Component {
-    state = {
-        age: '',
-        name: 'hai',
-        board: "GLOBAL",
-        profile: "",
-        open: false,
-        resultsMessage: "",
-        boardNames: [{ board_name: "loading..." }]
-    };
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            board: "GLOBAL",
+            profile: "",
+            createProfileOpenSnackbar: this.props.createProfileOpenSnackbar,
+            createProfileResultsMessage: this.props.createProfileResultsMessage,
+            boardNames: [{ board_name: "loading..." }],
+            createProfileBoardName: "GLOBAL",
+        };
+
+        this.handleCreateProfile = this.props.handleCreateProfile.bind(this);
+        this.handleChange = this.props.handleChange.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.setState({
+            createProfileOpenSnackbar: nextProps.createProfileOpenSnackbar,
+            createProfileResultsMessage: nextProps.createProfileResultsMessage,
+            createProfileBoardName: nextProps.createProfileBoardName,
+        });
+ 
+    }
 
     componentDidMount() {
 
@@ -66,70 +82,15 @@ class AddProfile extends React.Component {
             .catch(error => this.setState({ error }));
     }
 
-    handleChange = event => {
-        this.setState({ [event.target.name]: event.target.value });
-    };
-
     handleClose = () => {
-        this.setState({ open: false });
+        this.setState({ createProfileOpenSnackbar: false });
     };
 
-    handleClick = event => {
-
-        var addProfile = this;
-
-        var boardID = this.state.board.trim();
-        var profileID = this.state.profile.trim();
-        var API = "";
-
-        console.log("boardID : " + boardID + " profileID : " + profileID);
-        if (boardID !== "GLOBAL")
-            API = '/boards/' + boardID + '/profiles/' + profileID;
-        else
-            API = '/profiles/' + profileID;
-
-        fetch(API, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': window.sessionStorage.JWT,
-            }
-        }
-        )
-            .then((res) => {
-
-                if (!res.ok) {
-                    res.json().then(function (json) {
-                        console.log('error : ' + JSON.stringify(json));
-                        addProfile.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json)
-                        });
-                    });
-                }
-                else {
-                    res.json().then(function (json) {
-                        console.log('success : ' + JSON.stringify(json));
-                        addProfile.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json)
-                        });
-                    });
-                }
-            })
-            .catch((err) => {
-                console.log('error : ' + err);
-                addProfile.setState({
-                    open: true,
-                    resultsMessage: err.message
-                });
-
-            });
-    }
 
     render() {
         const { classes } = this.props;
+
+        console.log(this.state.createProfileBoardName + " : " + JSON.stringify(this.state.boardNames))
 
         return (
             <Center>
@@ -137,29 +98,30 @@ class AddProfile extends React.Component {
                 <div>
 
                     <form className={classes.container} autoComplete="off">
-                    
+
                         <FormControl className={classes.formControl}>
                             <InputLabel htmlFor="board-picker">Board</InputLabel>
                             <Select
-                                value={this.state.board}
+                                value={this.state.createProfileBoardName}
                                 onChange={this.handleChange}
-                                input={<Input name="board" id="board-picker" />}>
-                                <MenuItem key="GLOBAL" value="GLOBAL">
+                                input={<Input name="createProfileBoardName" id="board-picker" />}>
+                                <MenuItem selected={this.state.createProfileBoardName === "GLOBAL"} value="GLOBAL">
                                     GLOBAL
                                 </MenuItem>
-                                {this.state.boardNames.map(item => (
-                                    <MenuItem key={item.board_name} value={item.board_name}>{item.board_name}
-                                    </MenuItem>))
+                                {this.state.boardNames.map(item =>
+                                    (
+                                        <MenuItem selected={this.state.createProfileBoardName === item.board_name} key={item.board_name} value={item.board_name}>{item.board_name}
+                                        </MenuItem>))
                                 }
                             </Select>
                             <TextField
                                 id="profileName"
-                                name="profile"
+                                name="createProfileName"
                                 label="Profile Name"
-                                input={<Input name="profile" id="profile-text" />}
+                                input={<Input name="createProfileName" id="profile-text" />}
                                 margin="normal"
                                 onChange={this.handleChange} />
-                            <Button onClick={this.handleClick} className={classes.button} raised dense>
+                            <Button onClick={this.handleCreateProfile} className={classes.button} raised dense>
                                 <Save className={classes.leftIcon} />
                                 Save
                      </Button>
@@ -171,12 +133,12 @@ class AddProfile extends React.Component {
                             vertical: 'bottom',
                             horizontal: 'center',
                         }}
-                        open={this.state.open}
+                        open={this.state.createProfileOpenSnackbar}
                         onClose={this.handleClose}
                         SnackbarContentProps={{
                             'aria-describedby': 'message-id',
                         }}
-                        message={this.state.resultsMessage}
+                        message={this.state.createProfileResultsMessage}
                     />
                 </div>
             </Center>

@@ -27,7 +27,7 @@ const menuStyles = {
     menuButtonRight: {
         marginLeft: 1,
         marginRight: 1,
-    },    
+    },
     list: {
         width: 250,
     },
@@ -70,7 +70,6 @@ class GlobalMenu extends React.Component {
     };
 
     toggleGlobalDrawer = (open) => () => {
-        console.log("Toggle Drawer:" + open);
         this.setState({
             globalDrawerIsOpen: open,
         });
@@ -99,17 +98,13 @@ class GlobalMenu extends React.Component {
 
     componentWillReceiveProps(nextProps) {
 
-        console.log("got props current board: " + nextProps.currentBoard);
-        console.log("got props current profile: " + nextProps.currentProfile);
-        console.log("got props for active profile: " + nextProps.activeProfile);
-        console.log("got props for app body: " + nextProps.currentAppBody);
-        
-        
+        console.log("FORCE RENDER: " + nextProps.forceRender)
         var API = '/boards/' + nextProps.currentBoard + '/profiles/';
 
         var profiles;
         var globalProfiles;
 
+        console.log("GET ALL PROFILES FOR BOARD: " + API);
         fetch(API, {
             headers: {
                 'Accept': 'application/json',
@@ -119,6 +114,8 @@ class GlobalMenu extends React.Component {
         })
             .then(response => response.json())
             .then(data => {
+
+                console.log("Queried these profiles: " + JSON.stringify(data));
 
                 profiles = data.map(item => ({
                     profile_name: `${item.name}`,
@@ -150,8 +147,6 @@ class GlobalMenu extends React.Component {
                         })
                             .then(response => response.json())
                             .then(data3 => {
-                                console.log(data3[0]);
-                                console.log("IVE GOTTEN RESULTS FOR BOARD QUERY: " + data3[0].isProfileGlobal);
 
                                 this.setState({
                                     currentBoard: nextProps.currentBoard,
@@ -173,8 +168,6 @@ class GlobalMenu extends React.Component {
     render() {
         const { classes } = this.props;
 
-        console.log("current app body: " + this.state.currentAppBody);
-
         var optionsDisabled = false;
         var profileDisabled = false;
         if (this.state.currentBoard === "Select Board") {
@@ -193,12 +186,6 @@ class GlobalMenu extends React.Component {
         }
 
         var renderProfiles = (inGlobalBlock, item) => {
-
-            console.log("active profie: " + this.state.activeProfile);
-            console.log("activeProfileIsGlobal: " + this.state.activeProfileIsGlobal);
-            console.log("in global block: " + inGlobalBlock);
-
-            console.log(JSON.stringify(item));
 
             if (inGlobalBlock) {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
@@ -308,7 +295,7 @@ class GlobalMenu extends React.Component {
                         onKeyDown={this.toggleGlobalDrawer(false)}
                     >
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Global Options</ListSubheader>} className={classes.list} >
-                            <MenuItem selected={"AppBody-CurrentStatuses" === this.state.currentAppBody} onClick={event => {this.toggleGlobalDrawer(false); this.handleSelect(event, "AppBody-CurrentStatuses")}} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
+                            <MenuItem selected={"AppBody-CurrentStatuses" === this.state.currentAppBody} onClick={event => { this.toggleGlobalDrawer(false); this.handleSelect(event, "AppBody-CurrentStatuses") }} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
                             <MenuItem selected={"AppBody-AddProfile" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-AddProfile")} key="AppBody-AddProfile">Create Profile</MenuItem>
                             <MenuItem selected={"AppBody-ManageProfiles" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ManageProfiles")} key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
                         </MenuList>
