@@ -169,6 +169,7 @@ class ProfileGrid extends React.Component {
 
         this.onProfileDelete = props.onProfileDelete.bind(this);
         this.handleProfileClick = props.handleProfileClick.bind(this);
+        this.handleProfileDeleteClose = props.handleProfileDeleteClose.bind(this);
     }
 
     handleRequestSort = (event, property) => {
@@ -237,7 +238,7 @@ class ProfileGrid extends React.Component {
     }
 
     isSelected = id => this.state.profileSelected.indexOf(id) !== -1;
-
+ 
     render() {
         const { classes } = this.props;
         const { profileArray, order, orderBy, profileSelected } = this.state;
@@ -288,7 +289,8 @@ class ProfileGrid extends React.Component {
                             }}
                             style={{ fontSize: 12 }}
                             open={this.state.profileDeleteSnackbarOpen}
-                            onClose={this.handleClose}
+                            onClose={this.handleProfileDeleteClose}
+                            autoHideDuration={3000}
                             SnackbarContentProps={{
                                 'aria-describedby': 'message-id',
                             }}

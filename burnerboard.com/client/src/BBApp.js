@@ -42,6 +42,10 @@ class BBApp extends Component {
 
   }
 
+  handleProfileDeleteClose = () => {
+    this.setState({profileDeleteSnackbarOpen: false});
+}
+
   handleCreateProfile = event => {
 
     var comp = this;
@@ -296,7 +300,7 @@ class BBApp extends Component {
           appBody = <ManageMediaGrid  currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ManageProfiles":
-        appBody = <ProfileGrid profileSelected={this.state.profileSelected} handleProfileClick={this.handleProfileClick} onProfileDelete={this.onProfileDelete} profileDeleteSnackbarOpen={this.state.profileDeleteSnackbarOpen} profileDeleteResultsMessage={this.state.profileDeleteResultsMessage} />;
+        appBody = <ProfileGrid handleProfileDeleteClose={this.handleProfileDeleteClose} profileSelected={this.state.profileSelected} handleProfileClick={this.handleProfileClick} onProfileDelete={this.onProfileDelete} profileDeleteSnackbarOpen={this.state.profileDeleteSnackbarOpen} profileDeleteResultsMessage={this.state.profileDeleteResultsMessage} />;
         break;
       case "AppBody-AddProfile":
         appBody = <AddProfile createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;

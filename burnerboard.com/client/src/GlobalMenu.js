@@ -98,7 +98,7 @@ class GlobalMenu extends React.Component {
 
     componentWillReceiveProps(nextProps) {
 
-        console.log("FORCE RENDER: " + nextProps.forceRender)
+        console.log("FORCE RENDER: " + nextProps.forceRerendder)
         var API = '/boards/' + nextProps.currentBoard + '/profiles/';
 
         var profiles;

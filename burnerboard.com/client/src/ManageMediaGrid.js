@@ -170,6 +170,10 @@ class ManageMediaGrid extends React.Component {
         this.loadGrid = this.loadGrid.bind(this);
      }
 
+    handleMediaDeleteClose = () => {
+        this.setState({open: false});
+    }
+
     handleRequestSort = (event, property) => {
         const orderBy = property;
         let order = 'desc';
@@ -378,7 +382,8 @@ class ManageMediaGrid extends React.Component {
                         horizontal: 'center',
                     }}
                     open={this.state.open}
-                    onClose={this.handleClose}
+                    onClose={this.handleMediaDeleteClose}
+                    autoHideDuration={3000}
                     SnackbarContentProps={{
                         'aria-describedby': 'message-id',
                     }}
