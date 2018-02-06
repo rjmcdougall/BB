@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 import java.util.Arrays;
 
@@ -19,12 +20,14 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
     public int mBatteryLevel;
-    public int [] mBatteryStats = new int[16];    private static final String TAG = "BurnerBoardClassic";
+    public int [] mBatteryStats = new int[16];
+    private static final String TAG = "BurnerBoardClassic";
 
 
 
     public BurnerBoardClassic(BBService service, Context context) {
         super(service, context);
+        boardId = Build.MODEL;
         boardType = "Burner Board Classic";
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
@@ -114,7 +117,11 @@ public class BurnerBoardClassic extends BurnerBoard {
             for (int i = 0; i < mBatteryStats.length; i++) {
                 mBatteryStats[i] = mListener.readIntArg();
             }
-            mBatteryLevel = mBatteryStats[1];
+            if (mBatteryStats[1] != -1) {
+                mBatteryLevel = mBatteryStats[1];
+            } else {
+                mBatteryLevel = 100;
+            }
             l("getBatteryLevel: " + mBatteryLevel);
         }
     }

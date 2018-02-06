@@ -204,7 +204,8 @@ public class BBService extends Service {
             }
         });
 
-        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(), mServerMode, mVersion);
+        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
+                boardId, mServerMode, mVersion);
         dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
@@ -353,6 +354,8 @@ public class BBService extends Service {
         if (kEmulatingClassic || boardType.contains("Classic")) {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else if (boardId.contains("Mast")) {
+            mBurnerBoard = new BurnerBoardMast(this, mContext);
+        } else if (boardId.contains("test")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
         } else {
             mBurnerBoard = new BurnerBoardAzul(this, mContext);

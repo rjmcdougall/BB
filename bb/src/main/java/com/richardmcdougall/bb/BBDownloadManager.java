@@ -42,6 +42,7 @@ public class BBDownloadManager {
     protected JSONObject dataDirectory;
     int mVersion;
     boolean mIsServer = false;
+    String mBoardId;
 
     JSONObject GetDataDirectory() { return dataDirectory; }
 
@@ -55,11 +56,12 @@ public class BBDownloadManager {
 
     public OnDownloadProgressType onProgressCallback = null;
 
-    BBDownloadManager(String filesDir, boolean isServer, int myVersion) {
+    BBDownloadManager(String filesDir, String boardId, boolean isServer, int myVersion) {
         mVersion = myVersion;
         mFilesDir = filesDir;
         PackageInfo pinfo;
         mIsServer = isServer;
+        mBoardId = boardId;
     }
 
     void StartDownloads() {
@@ -95,7 +97,7 @@ public class BBDownloadManager {
             return 0;
         else {
             try {
-                Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " audio files");
+                //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " audio files");
                 return dataDirectory.getJSONArray("audio").length();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -109,7 +111,7 @@ public class BBDownloadManager {
             return 0;
         else {
             try {
-                Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " video files");
+                //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " video files");
                 return dataDirectory.getJSONArray("video").length();
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -205,8 +207,8 @@ public class BBDownloadManager {
             try {
                 URL url = new URL(URLString);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.setDoOutput(true);
+                //urlConnection.setRequestMethod("GET");
+                //urlConnection.setDoOutput(true);
                 urlConnection.connect();
 
                 File file = new File(mDM.mFilesDir, filename);
@@ -334,7 +336,7 @@ public class BBDownloadManager {
 
         @Override
         public void run() {
-            LoadInitialDataDirectory();  // get started rught away using the data we have on the board already (if any)
+            LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
             // keep trying to connect to the Internet to look for updates until we are able to connect
             try {
@@ -343,15 +345,20 @@ public class BBDownloadManager {
                 while (!downloadSuccess) {
 
                     String dataDir = mDM.mFilesDir;
+                    String DirectoryURL =
+                            "https://storage.googleapis.com/burner-board/BurnerBoardMedia/" +
+                                    mBoardId +  "/DownloadDirectory.json";
 
-                    Log.d(TAG, "Reading Directory from dropbox");
+                    Log.d(TAG, "Reading Directory from " + DirectoryURL);
 
-                    long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "tmp", "Directory");
+                    long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
+                    //long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/1gh7pupx6ygm3wu/DownloadDirectory.json?dl=0", "tmp", "Directory");
                     //long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/dsm6hofocn6n4p1/DownloadDirectorySmall.json?dl=0", "tmp", "Directory");
                     if (ddsz < 0) {
                         Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
                     } else {
-                        new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
+                        new File(dataDir, "tmp").renameTo(new File(dataDir,
+                                "directory.json.tmp"));
 
                         String dirTxt = LoadTextFile("directory.json.tmp");
                         JSONObject dir = new JSONObject(dirTxt);

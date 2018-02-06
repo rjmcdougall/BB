@@ -71,12 +71,22 @@ public class BoardVisualization {
 
     BoardVisualization(Context context, BurnerBoard board) {
         mBurnerBoard = board;
-        l("Starting BoardVisualization " + mBurnerBoard.boardType);
+        l("Starting Board Visualization " + mBurnerBoard.boardType + " on " + mBurnerBoard.boardId);
         if (mBurnerBoard.boardType.contains(new String("Classic"))) {
             l("Starting Classic Visualization");
             mBoardWidth = 10;
             mBoardHeight = 70;
             mMultipler4Speed = 1;
+        } else if (mBurnerBoard.boardId.contains(new String("Mast"))) {
+            l("Starting Mast Visualization");
+            mBoardWidth = 24;
+            mBoardHeight = 159;
+            mMultipler4Speed = 3;
+        } else if (mBurnerBoard.boardId.contains(new String("test"))) {
+            l("Starting Mast Visualization");
+            mBoardWidth = 24;
+            mBoardHeight = 159;
+            mMultipler4Speed = 3;
         } else {
             l("Starting Azul Visualization");
             mBoardWidth = 46;

@@ -50,11 +50,12 @@ public class BurnerBoardMast extends BurnerBoard {
     private static final String TAG = "BurnerBoardMast";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
-    public String boardId = Build.MODEL;
+    //public String boardId = Build.MODEL;
 
 
     public BurnerBoardMast(BBService service, Context context) {
         super(service, context);
+        boardId = Build.MODEL;
         boardType = "Burner Board Mast";
         l("Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
@@ -137,7 +138,11 @@ public class BurnerBoardMast extends BurnerBoard {
             for (int i = 0; i < mBatteryStats.length; i++) {
                 mBatteryStats[i] = mListener.readIntArg();
             }
-            mBatteryLevel = mBatteryStats[1];
+            if (mBatteryStats[1] != -1) {
+                mBatteryLevel = mBatteryStats[1];
+            } else {
+                mBatteryLevel = 100;
+            }
             l("getBatteryLevel: " + mBatteryLevel);
         }
     }

@@ -47,11 +47,11 @@ public class BurnerBoardAzul extends BurnerBoard {
     private static final String TAG = "BurnerBoardAzul";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
-    public String boardId = Build.MODEL;
 
 
     public BurnerBoardAzul(BBService service, Context context) {
         super(service, context);
+        boardId = Build.MODEL;
         boardType = "Burner Board Azul";
         l("Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
@@ -134,7 +134,11 @@ public class BurnerBoardAzul extends BurnerBoard {
             for (int i = 0; i < mBatteryStats.length; i++) {
                 mBatteryStats[i] = mListener.readIntArg();
             }
-            mBatteryLevel = mBatteryStats[1];
+            if (mBatteryStats[1] != -1) {
+                mBatteryLevel = mBatteryStats[1];
+            } else {
+                mBatteryLevel = 100;
+            }
             l("getBatteryLevel: " + mBatteryLevel);
         }
     }
