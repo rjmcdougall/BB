@@ -70,6 +70,8 @@ public class Installer extends Service {
 
         super.onCreate();
 
+        l("Starting BB Installer");
+
         mContext = getApplicationContext();
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);

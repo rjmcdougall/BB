@@ -337,6 +337,9 @@ public class BBDownloadManager {
 
         @Override
         public void run() {
+
+            int downloadTimeout = 1;
+
             LoadInitialDataDirectory();  // get started rught away using the data we have on the board already (if any)
 
             // keep trying to connect to the Internet to look for updates until we are able to connect
@@ -350,9 +353,13 @@ public class BBDownloadManager {
                     l("Downloading app index");
                     long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/n8qa6h4y19gs0s7/DownloadApp.json?dl=0", "tmp", "Directory");
                     if (ddsz < 0) {
-                        l("Error ownloading app index");
-                        Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
+                        l("Error ownloading app index, retrying in " + downloadTimeout + " seconds");
+                        Thread.sleep(downloadTimeout * 1000);   // no internet, wait 5 seconds before we try again
+                        if (downloadTimeout < 256) {
+                            downloadTimeout = downloadTimeout * 2;
+                        }
                     } else {
+                        downloadTimeout = 1;
                         new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
 
                         String dirTxt = LoadTextFile("directory.json.tmp");
