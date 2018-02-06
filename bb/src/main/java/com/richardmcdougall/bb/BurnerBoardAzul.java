@@ -44,7 +44,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     private int mBoardHeight = 118;
     //public int[] mBoardScreen;
     private int mDimmerLevel = 255;
-    private static final String TAG = "BurnerBoardAzul";
+    private static final String TAG = "BB.BurnerBoardAzul";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
 

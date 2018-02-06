@@ -12,6 +12,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.os.ResultReceiver;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -94,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             BatteryManager.BATTERY_PLUGGED_AC |
                     BatteryManager.BATTERY_PLUGGED_USB |
                     BatteryManager.BATTERY_PLUGGED_WIRELESS);
+
+    private usbReceiver mUsbReceiver = new usbReceiver();
 
     private boolean preventDialogs = true;
 
@@ -353,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         //mUsbManager.requestPermission(accessory, mPermissionIntent);
 
 
+
         // Connect the remote control
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
         remoteControl.registerInputDeviceListener(this, null);
@@ -436,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     protected void onResume() {
 
         super.onResume();
-        //l("MainActivity: onResume()");
+        l("MainActivity: onResume()");
 
 //        if (mWifi != null)
 //            mWifi.onResume();
@@ -444,6 +448,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 //        loadPrefs();
 
 //        initUsb();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("android.hardware.usb.action.USB_STATE");
+        this.registerReceiver(mUsbReceiver, filter);
 
         // Register for the particular broadcast based on Stats Action
         IntentFilter statFilter = new IntentFilter(BBService.ACTION_STATS);
@@ -473,6 +481,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         // Unregister the listener when the application is paused
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBstatsReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBgraphicsReceiver);
+        this.unregisterReceiver(mUsbReceiver);
 
     }
 
@@ -721,8 +730,38 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     };
 
+    public static class usbReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //l("usbReceiver");
+            if (intent != null)
+            {
+                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED))
+                {
+                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
+                    // Create a new intent and put the usb device in as an extra
+                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_ATTACHED);
+                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
+                    // Broadcast this event so we can receive it
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                }
+                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED))
+                {
+                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                    // Create a new intent and put the usb device in as an extra
+                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_DETACHED);
+                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
+
+                    // Broadcast this event so we can receive it
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                }
+            }
+        }
+
+    }
 
 }
 

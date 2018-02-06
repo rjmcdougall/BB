@@ -21,7 +21,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int mDimmerLevel = 255;
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
-    private static final String TAG = "BurnerBoardClassic";
+    private static final String TAG = "BB.BurnerBoardClassic";
 
 
 

@@ -52,7 +52,11 @@ extern "C" {
 
 // **** Initialization **** 
 
+#if defined (CORE_TEENSY)
 DMAMEM char streamBufferMem[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
+#else
+char streamBufferMem[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
+#endif
 //char streamBufferMem[MAXSTREAMBUFFERSIZE]; // Buffer that holds the data
 
 /**

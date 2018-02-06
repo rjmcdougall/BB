@@ -28,7 +28,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     static final int MESSENGERBUFFERSIZE = 64;   // The length of the commandBufferTmpIn  (default: 64)
     static final int DEFAULT_TIMEOUT = 5000; // Time out on unanswered messages. (default: 5s)
-    public final static String TAG = "CmdListener";
+    public final static String TAG = "BB.CmdListener";
 
     boolean startCommand;          // Indicates if sending of a command is underway
     int lastCommandId;                // ID of last received command

@@ -23,7 +23,7 @@ import java.util.Set;
  */
 
 public class BoardView extends View {
-    private static final String TAG = "BoardView";
+    private static final String TAG = "BB.BoardView";
     private byte[] mBoardScreen;
     private Rect mRect = new Rect();
     private int mBoardWidth;

@@ -20,4 +20,8 @@
     
     <!-- 0x1a86 / 0x7523: Qinheng CH340 -->
     <usb-device vendor-id="6790" product-id="29987" />
+
+    <!-- 0x239A / 0x800B: Adafruit M0 -->
+    <usb-device vendor-id="9114" product-id="32779" />
 </resources>
+

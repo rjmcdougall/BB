@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,8 +39,9 @@ public class BurnerBoard {
     protected final Object mSerialConn = new Object();
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
+    private UsbDevice mUsbDevice = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
-    private static final String TAG = "BurnerBoard";
+    private static final String TAG = "BB.BurnerBoard";
     public Context mContext = null;
     public String boardId;
     public BBService mBBService = null;
@@ -50,6 +52,11 @@ public class BurnerBoard {
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
         mContext = context;
+        // Register to receive attach/detached messages that are proxied from MainActivity
+        IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+        mBBService.registerReceiver(mUsbReceiver, filter);
+        filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
+        mBBService.registerReceiver(mUsbReceiver, filter);
     }
 
     public interface BoardEvents {
@@ -187,19 +194,30 @@ public class BurnerBoard {
         l("BurnerBoard: onDeviceStateChange()");
 
         stopIoManager();
-        startIoManager();
+        if (sPort != null) {
+            startIoManager();
+        }
+    }
+
+    private boolean checkUsbDevice(UsbDevice device) {
+        int vid = device.getVendorId();
+        int pid = device.getProductId();
+        l("checking device pid:" + pid + ", vid: " + vid);
+        if ((pid == 1155) && (vid == 5824)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void initUsb() {
         l("BurnerBoard: initUsb()");
 
-        stopIoManager();
-
-        try {
-            Thread.sleep(100);
-        } catch (Exception e) {
-
+        if (mUsbDevice != null) {
+            l("initUsb: already have a device");
+            return;
         }
+
         UsbManager manager = (UsbManager) mBBService.getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
@@ -215,22 +233,36 @@ public class BurnerBoard {
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);
 
-        // Open a connection to the first available driver.
-        UsbSerialDriver mDriver = availableDrivers.get(0);
+        // Find the Radio device by pid/vid
+        mUsbDevice = null;
+        for (int i = 0; i < availableDrivers.size(); i++) {
+            mDriver = availableDrivers.get(i);
 
-        //are we allowed to access?
-        UsbDevice device = mDriver.getDevice();
+            // See if we can find the adafruit M0 which is the Radio
+            mUsbDevice = mDriver.getDevice();
 
-        if (!manager.hasPermission(device)) {
+            if (checkUsbDevice(mUsbDevice)) {
+                l("found Burnerboard");
+                break;
+            } else {
+                mUsbDevice = null;
+            }
+        }
+
+        if (mUsbDevice == null) {
+            l("No BB device found");
+            return;
+        }
+
+        if (!manager.hasPermission(mUsbDevice)) {
             //ask for permission
-            //PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(GET_USB_PERMISSION), 0);
-            //mContext.registerReceiver(mPermissionReceiver, new IntentFilter(GET_USB_PERMISSION));
-            //manager.requestPermission(device, pi);
+            PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
+            mContext.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
+            manager.requestPermission(mUsbDevice, pi);
             l("USB: No Permission");
             updateUsbStatus(("No USB Permission"));
             return;
         }
-
 
         UsbDeviceConnection connection = manager.openDevice(mDriver.getDevice());
         if (connection == null) {
@@ -257,6 +289,27 @@ public class BurnerBoard {
         updateUsbStatus(("Connected to BB"));
         sendLogMsg("USB: Connected");
         startIoManager();
+    }
+
+    private class PermissionReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mContext.unregisterReceiver(this);
+            if (intent.getAction().equals(GET_USB_PERMISSION)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    l("USB we got permission");
+                    if (device != null) {
+                        initUsb();
+                    } else {
+                        l("USB perm receive device==null");
+                    }
+
+                } else {
+                    l("USB no permission");
+                }
+            }
+        }
     }
 
     public void stopIoManager() {
@@ -376,31 +429,6 @@ public class BurnerBoard {
         return false;
     }
 
-    public BurnerBoard.PermissionReceiver mPermissionReceiver = new BurnerBoard.PermissionReceiver();
-
-
-    private class PermissionReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mContext.unregisterReceiver(this);
-            if (intent.getAction().equals(GET_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    l("USB we got permission");
-                    if (device != null) {
-                        initUsb();
-                    } else {
-                        l("USB perm receive device==null");
-                    }
-
-                } else {
-                    l("USB no permission");
-                }
-            }
-        }
-
-    }
 
     // We use this to catch the USB accessory detached message
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
@@ -412,10 +440,23 @@ public class BurnerBoard {
             if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                l("USB Accessory detached");
-                mBBService.unregisterReceiver(mUsbReceiver);
+                l("A USB Accessory was detached (" + device + ")");
                 if (device != null) {
-                    stopIoManager();
+                    if (mUsbDevice == device) {
+                        l("It's this device");
+                        mUsbDevice = null;
+                        stopIoManager();
+                    }
+                }
+            }
+            if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                l("USB Accessory attached (" + device + ")");
+                if (mUsbDevice == null) {
+                    l("Calling initUsb to check if we should add this device");
+                    initUsb();
+                } else {
+                    l("this USB already attached");
                 }
             }
             l("onReceive exited");

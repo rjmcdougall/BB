@@ -348,8 +348,12 @@ public class Cp21xxSerialDriver implements UsbSerialDriver {
             UsbId.SILABS_CP2102,
             UsbId.SILABS_CP2105,
             UsbId.SILABS_CP2108,
-            UsbId.SILABS_CP2110
+            UsbId.SILABS_CP2110,
         });
+        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_ADAFUIT),
+                new int[] {
+                        UsbId.ADAFRUIT_FEATHER
+                });
         return supportedDevices;
     }
 

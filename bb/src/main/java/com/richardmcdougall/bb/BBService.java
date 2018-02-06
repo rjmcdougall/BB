@@ -64,6 +64,8 @@ public class BBService extends Service {
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
     public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
+    public static final String ACTION_USB_DEVICE_ATTACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_ATTACHED";
+    public static final String ACTION_USB_DEVICE_DETACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_DETACHED";
 
     public int GetMaxLightModes() {
         return dlManager.GetTotalVideo() + 10;
@@ -96,6 +98,7 @@ public class BBService extends Service {
     IoTClient iotClient = null;
     int mVersion = 0;
     WifiManager mWiFiManager = null;
+    public BBRadio mRadio = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -173,10 +176,15 @@ public class BBService extends Service {
             l("I am the server");
         }
 
+
+
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
 
         mContext = getApplicationContext();
+
+        // Start the RF Radio and GPS
+        startRadio();
 
         //mGPS = new locationTracker(mContext);
 
@@ -372,6 +380,21 @@ public class BBService extends Service {
             mBoardVisualization = new BoardVisualization(this, mBurnerBoard);
         }
         mBoardVisualization.setMode(mBoardMode);
+    }
+
+    private void startRadio() {
+
+        l("StartRadio");
+
+        if (mServerMode == true) {
+            return;
+        }
+        mRadio = new BBRadio(this, mContext);
+
+        if (mRadio == null) {
+            l("startRadio: null radio object");
+            return;
+        }
     }
 
     long startElapsedTime, startClock;
@@ -950,6 +973,7 @@ public class BBService extends Service {
             //modeStatus.setText(String.format("%d", mBoardMode));
         }
     }
+
 
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();

@@ -47,7 +47,7 @@ public class BurnerBoardMast extends BurnerBoard {
     private int mBoardHeight = 159;
     //public int[] mBoardScreen;
     private int mDimmerLevel = 255;
-    private static final String TAG = "BurnerBoardMast";
+    private static final String TAG = "BB.BurnerBoardMast";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
     //public String boardId = Build.MODEL;
