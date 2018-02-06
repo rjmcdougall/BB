@@ -4,3 +4,14 @@ gcloud auth application-default login
 
 //deploy to burnerboard.com
 gcloud app deploy
+
+//backlog
+https://docs.google.com/spreadsheets/d/1nmcX9UCCsBYD3ZrqjoOENo60PON87yQOyqJhMPakI38/edit#gid=0
+
+// debugging.
+start vs debugging
+npm run debug
+
+git push origin master --verbose
+
+gcloud datastore create-indexes index.yaml
