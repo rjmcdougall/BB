@@ -99,6 +99,8 @@ public class BBService extends Service {
     int mVersion = 0;
     WifiManager mWiFiManager = null;
     public BBRadio mRadio = null;
+    public BBGps mGps = null;
+    public BBFindMyFriends mFindMyFriends = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -108,7 +110,7 @@ public class BBService extends Service {
     long phoneModelAudioLatency = 0;
 
     double mGPSlat, mGPSlong = 0;
-    locationTracker mGPS;
+    //locationTracker mGPS;
 
     TextToSpeech voice;
 
@@ -185,6 +187,7 @@ public class BBService extends Service {
 
         // Start the RF Radio and GPS
         startRadio();
+
 
         //mGPS = new locationTracker(mContext);
 
@@ -395,6 +398,16 @@ public class BBService extends Service {
             l("startRadio: null radio object");
             return;
         }
+
+        mGps = mRadio.getGps();
+
+        if (mGps == null) {
+            l("startGps: null gps object");
+            return;
+        }
+
+        mFindMyFriends = new BBFindMyFriends(mContext, mRadio, mGps);
+
     }
 
     long startElapsedTime, startClock;

@@ -217,7 +217,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         //}
         if (commandBuffer != null && commandBuffer.available() > 0) {
             currentArg = getArg(field_separator);
-            System.out.println("cmdMessenger:  next: Current arg: " + new String(currentArg));
+            //System.out.println("cmdMessenger:  next: Current arg: " + new String(currentArg));
             return true;
         }
         return false;
@@ -649,7 +649,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     public void onNewData(byte[] data) {
         if (data.length > 0) {
 
-            System.out.println("cmdMessenger: Received " + data.length + "bytes: " + new String(data));
+            //System.out.println("cmdMessenger: Received " + data.length + "bytes: " + new String(data));
 
             synchronized (mPipedInputStream) {
                 for (int i = 0; i < data.length; i++) {
@@ -710,7 +710,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 while (streamBuffer.available() > 0) {
                     if (processLine() == kEndOfMessage) {
                         byte[] tmp = commandBufferTmp.toByteArray();
-                        System.out.println("cmdMessenger: run() commandBuffer= " + new String(tmp));
+                        //System.out.println("cmdMessenger: run() commandBuffer= " + new String(tmp));
                         commandBuffer = new ByteArrayInputStream(tmp);
                         handleMessage();
                         commandBufferTmp.reset();
@@ -779,7 +779,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     void handleMessage() {
         CmdEvents callback;
 
-        System.out.println("cmdMessenger: Handling: ");
+        //System.out.println("cmdMessenger: Handling: ");
 
         lastCommandId = readIntArg();
         // if command attached, we will call it

@@ -100,6 +100,7 @@
     <orderEntry type="library" name="com.android.support:support-v4-23.1.1" level="project" />
     <orderEntry type="library" scope="TEST" name="junit:junit:4.12@jar" level="project" />
     <orderEntry type="library" name="org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0@jar" level="project" />
+    <orderEntry type="library" name="net.sf.marineapi:marineapi:0.10.0@jar" level="project" />
     <orderEntry type="library" name="com.android.support:appcompat-v7-23.1.1" level="project" />
     <orderEntry type="library" name="com.android.support:support-annotations:23.1.1@jar" level="project" />
     <orderEntry type="library" name="joda-time:joda-time:2.1@jar" level="project" />

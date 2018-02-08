@@ -17,7 +17,15 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
+
+import net.sf.marineapi.nmea.io.SentenceReader;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,6 +56,9 @@ public class BBRadio {
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.BBRadio";
     public BBService mBBService = null;
+    public BBGps mGps = null;
+    public BBRadio.radioEvents mRadioCallback = null;
+
 
     public BBRadio(BBService service, Context context) {
         mBBService = service;
@@ -58,11 +69,45 @@ public class BBRadio {
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);
         initUsb();
+        mGps = new BBGps(mContext);
+        mGps.attach( new BBGps.GpsEvents() {
+            public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
+                l("Radio Time: " + time.toString());
+                if (mRadioCallback != null) {
+                    mRadioCallback.timeEvent(time);
+                }
+            };
+            public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
+                l("Radio Position: " + gps.toString());
+                if (mRadioCallback != null) {
+                    mRadioCallback.GPSevent(gps);
+                }
+            };
+        });
     }
 
     public interface radioEvents {
-        void Receive(Byte [] bytes);
-        void GPS(String gps);
+        void receivePacket(byte [] bytes);
+        void GPSevent(net.sf.marineapi.provider.event.PositionEvent gps);
+        void timeEvent(net.sf.marineapi.nmea.util.Time time);
+    }
+
+    public void attach(radioEvents newfunction) {
+        mRadioCallback = newfunction;
+    }
+
+    public BBGps getGps() {
+        return mGps;
+    }
+
+    public void broadcast(byte[] packet) {
+        if (mListener != null) {
+            mListener.sendCmdStart(5);
+            for (int i = 0; i < packet.length; i++) {
+                mListener.sendCmdArg((int)packet[i]);
+            }
+            mListener.sendCmdEnd();
+        }
     }
 
     private void sendLogMsg(String msg) {
@@ -234,7 +279,7 @@ public class BBRadio {
                 // attach Radio Receive cmdMessenger callback
                 BBRadio.BBRadioCallbackReceive radioReceiveCallback =
                         new BBRadio.BBRadioCallbackReceive();
-                mListener.attach(3, radioReceiveCallback);
+                mListener.attach(4, radioReceiveCallback);
 
                 // attach Mode cmdMessenger callback
                 BBRadio.BBRadioCallbackGPS gpsCallback =
@@ -257,16 +302,30 @@ public class BBRadio {
     public class BBRadioCallbackReceive implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
 
-            l("radio callback:" + str);
+            int len = mListener.readIntArg();
+            l("radio callback: " + len + " bytes");
+            ByteArrayOutputStream recvBytes =  new ByteArrayOutputStream();
+            for (int i = 0; i < len; i++) {
+                recvBytes.write(Math.max(mListener.readIntArg(), 255));
+            }
+            if (mRadioCallback != null) {
+                mRadioCallback.receivePacket(recvBytes.toByteArray());
+            }
         }
     }
 
     public class BBRadioCallbackGPS implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
 
-            l("GPS callback:" + str);
-            String gpsStr = mListener.readStringArg();
-            l("GPS: " + gpsStr);
+            //l("GPS callback:" + str);
+            String gpsStr = mListener.readStringArg().replaceAll("_", ",");
+            //l("GPS: " + gpsStr);
+            // TODO: strip string
+            try {
+                mGps.addStr(gpsStr);
+            } catch (Exception e) {
+
+            }
         }
     }
 
