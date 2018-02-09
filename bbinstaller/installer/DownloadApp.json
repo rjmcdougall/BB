@@ -1,0 +1,26 @@
+{
+	"application" : [	
+		{
+		 	"URL" : "https://dl.dropboxusercontent.com/s/17lt95qov1szsbj/bb-18.apk?dl=0",
+		    	"localName" :"bb-18.apk",
+  		  	"Version" : 18
+		},
+		{
+		 	"URL" : "https://dl.dropboxusercontent.com/s/d8inrbixtpw4btc/bb-21.apk?dl=0",
+		    	"localName" :"bb-21.apk",
+  		  	"Version" : 21
+		},
+		{
+		 	"URL" : "https://dl.dropboxusercontent.com/s/k3izal1wl4mwqu6/bb-24.apk?dl=0",
+		    	"localName" :"bb-24.apk",
+  		  	"Version" : 24
+		},
+		{
+		 	"URL" : "https://dl.dropboxusercontent.com/s/u81tbhhff6u0d7x/bb-26.apk?dl=0",
+		    	"localName" :"bb-26.apk",
+  		  	"Version" : 26
+		}
+	]
+}
+
+

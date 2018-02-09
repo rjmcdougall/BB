@@ -1,0 +1,10 @@
+{
+	"commands" : [
+		{
+			"command" : "upgrade",
+			"version" : 9,
+			"reboot" : true
+		}
+	]
+}
+				
