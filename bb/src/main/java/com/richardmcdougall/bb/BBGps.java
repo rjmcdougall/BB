@@ -100,8 +100,7 @@ public class BBGps {
                 @Override
                 public void sentenceRead(SentenceEvent event) {
                     // here we receive each sentence read from the port
-                    l("sentenceRead");
-                    l(event.getSentence().toString());
+                    //l(event.getSentence().toString());
                     GGASentence s = (GGASentence) event.getSentence();
                     if (s.isValid()) {
                         l("Sat Time: " + s.getTime().toString());

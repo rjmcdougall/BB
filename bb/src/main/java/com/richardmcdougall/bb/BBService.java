@@ -185,9 +185,12 @@ public class BBService extends Service {
 
         mContext = getApplicationContext();
 
+        if (iotClient == null) {
+            iotClient = new IoTClient(mContext);
+        }
+
         // Start the RF Radio and GPS
         startRadio();
-
 
         //mGPS = new locationTracker(mContext);
 
@@ -269,9 +272,7 @@ public class BBService extends Service {
             l("music player already running");
         }
 
-        if (iotClient == null) {
-            iotClient = new IoTClient(mContext);
-        }
+
 
         if (batteryMonitor == null) {
             l("starting battery monitor thread");
@@ -406,7 +407,7 @@ public class BBService extends Service {
             return;
         }
 
-        mFindMyFriends = new BBFindMyFriends(mContext, mRadio, mGps);
+        mFindMyFriends = new BBFindMyFriends(mContext, mRadio, mGps, iotClient);
 
     }
 

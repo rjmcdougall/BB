@@ -10,6 +10,7 @@ import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -22,20 +23,26 @@ public class BBFindMyFriends {
     Context mContext;
     BBRadio mRadio;
     BBGps mGps;
+    IoTClient mIotClient;
     findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
     static final int kMaxFixAge = 5000;
     static final int kMagicNumberLen = 2;
-    static final byte [] kMagicNumber = new byte[] {(byte)0x02, (byte)0xcb};
+    static final int [] kMagicNumber = new int[] {0x02, 0xcb};
     int mLat;
     int mLon;
     int mAmIAccurate;
+    double mTheirLat;
+    double mTheirLon;
+    int mThereAccurate;
     long mLastSend = 0;
+    long mLastRecv = 0;
 
-    public BBFindMyFriends(Context context, final BBRadio radio, BBGps gps) {
+    public BBFindMyFriends(Context context, final BBRadio radio, BBGps gps, IoTClient iotclient) {
         mContext = context;
         mRadio = radio;
         mGps = gps;
+        mIotClient = iotclient;
         l("Starting FindMyFriends");
 
         if (mRadio == null) {
@@ -45,8 +52,13 @@ public class BBFindMyFriends {
 
         mRadio.attach(new BBRadio.radioEvents() {
             @Override
-            public void receivePacket(byte[] bytes) {
-                l("FMF Packet: " + bytesToHex(bytes));
+            public void receivePacket(byte[] bytes, int sigStrength) {
+                l("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
+                if (processReceive(bytes)) {
+                    l("theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
+                    mIotClient.sendUpdate("bbevent", "[" +
+                            "remote," + sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
+                }
             }
 
             @Override
@@ -58,8 +70,10 @@ public class BBFindMyFriends {
                 long sinceLastFix = System.currentTimeMillis() - mLastFix;
 
                 if (sinceLastFix < kMaxFixAge) {
-                    // Check GPS data is not stale
+                    mIotClient.sendUpdate("bbevent", "[" +
+                                "local," + 0 + "," + mTheirLat + "," + mTheirLon + "]");
 
+                    // Check GPS data is not stale
                     int len = 2 * 4 + 1 + kMagicNumberLen + 1;
                     ByteArrayOutputStream radioPacket = new ByteArrayOutputStream();
 
@@ -123,6 +137,28 @@ public class BBFindMyFriends {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+    boolean processReceive(byte [] packet) {
+        ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
+        for (int i = 0; i < kMagicNumberLen; i++) {
+            int b = bytes.read() & 0xff;
+            if (kMagicNumber[i] != b) {
+                l("rogue packet not for us!");
+                return false;
+            }
+        }
+        mTheirLat = (double) ((bytes.read() & 0xff) +
+                ((bytes.read() & 0xff) << 8) +
+                ((bytes.read() & 0xff) << 16) +
+                ((bytes.read() & 0xff) << 24)) / 1000000.0;
+        mTheirLon = (double)((bytes.read() & 0xff) +
+                ((bytes.read() & 0xff) << 8) +
+                ((bytes.read() & 0xff) << 16) +
+                ((bytes.read() & 0xff) << 24)) / 1000000.0;
+        mThereAccurate = bytes.read();
+        mLastRecv = System.currentTimeMillis();
+        return true;
     }
 
 }

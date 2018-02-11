@@ -649,7 +649,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     public void onNewData(byte[] data) {
         if (data.length > 0) {
 
-            //System.out.println("cmdMessenger: Received " + data.length + "bytes: " + new String(data));
+            //System.out.println("BB.cmdMessenger: Received " + data.length + "bytes: " + new String(data));
 
             synchronized (mPipedInputStream) {
                 for (int i = 0; i < data.length; i++) {

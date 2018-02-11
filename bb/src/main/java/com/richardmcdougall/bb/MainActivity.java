@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         Log.v(TAG, msg);
 
-        if (kEmbeddedMode == true)
+        if (kEmbeddedMode == false)
             return;
 
         // append the new string

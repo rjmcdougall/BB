@@ -53,6 +53,7 @@ public class BBRadio {
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
     private UsbDevice mUsbDevice = null;
+    private UsbManager mUsbManager = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.BBRadio";
     public BBService mBBService = null;
@@ -87,7 +88,7 @@ public class BBRadio {
     }
 
     public interface radioEvents {
-        void receivePacket(byte [] bytes);
+        void receivePacket(byte [] bytes, int sigStrength);
         void GPSevent(net.sf.marineapi.provider.event.PositionEvent gps);
         void timeEvent(net.sf.marineapi.nmea.util.Time time);
     }
@@ -103,6 +104,7 @@ public class BBRadio {
     public void broadcast(byte[] packet) {
         if (mListener != null) {
             mListener.sendCmdStart(5);
+            mListener.sendCmdArg(packet.length);
             for (int i = 0; i < packet.length; i++) {
                 mListener.sendCmdArg((int)packet[i]);
             }
@@ -152,11 +154,11 @@ public class BBRadio {
             return;
         }
 
-        UsbManager manager = (UsbManager) mBBService.getSystemService(Context.USB_SERVICE);
+        mUsbManager = (UsbManager) mBBService.getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers =
-                UsbSerialProber.getDefaultProber().findAllDrivers(manager);
+                UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
         if (availableDrivers.isEmpty()) {
             l("USB: No USB Devices");
             return;
@@ -184,16 +186,28 @@ public class BBRadio {
             return;
         }
 
-        if (!manager.hasPermission(mUsbDevice)) {
+        if (!mUsbManager.hasPermission(mUsbDevice)) {
             //ask for permission
             PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
             mContext.registerReceiver(new BBRadio.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
-            manager.requestPermission(mUsbDevice, pi);
+            mUsbManager.requestPermission(mUsbDevice, pi);
             l("USB: No Permission");
+            return;
+        } else {
+            usbConnect(mUsbDevice);
+        }
+    }
+
+    private void usbConnect(UsbDevice device) {
+
+        if (checkUsbDevice(mUsbDevice)) {
+            l("found BBRadio");
+        } else {
+            l("not BBRadio");
             return;
         }
 
-        UsbDeviceConnection connection = manager.openDevice(mDriver.getDevice());
+        UsbDeviceConnection connection = mUsbManager.openDevice(mDriver.getDevice());
         if (connection == null) {
             l("open device failed");
             return;
@@ -218,26 +232,6 @@ public class BBRadio {
         startIoManager();
     }
 
-    private class PermissionReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            mContext.unregisterReceiver(this);
-            if (intent.getAction().equals(GET_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    l("USB we got permission");
-                    if (device != null) {
-                        initUsb();
-                    } else {
-                        l("USB perm receive device==null");
-                    }
-
-                } else {
-                    l("USB no permission");
-                }
-            }
-        }
-    }
 
     public void stopIoManager() {
         synchronized (mSerialConn) {
@@ -291,7 +285,6 @@ public class BBRadio {
         }
     }
 
-
     public class BBRadioCallbackDefault implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
 
@@ -302,14 +295,15 @@ public class BBRadio {
     public class BBRadioCallbackReceive implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
 
+            int sigStrength = mListener.readIntArg();
             int len = mListener.readIntArg();
-            l("radio callback: " + len + " bytes");
+            l("radio receive callback: sigstrength" + sigStrength + ", " + len + " bytes");
             ByteArrayOutputStream recvBytes =  new ByteArrayOutputStream();
             for (int i = 0; i < len; i++) {
-                recvBytes.write(Math.max(mListener.readIntArg(), 255));
+                recvBytes.write(Math.min(mListener.readIntArg(), 255));
             }
             if (mRadioCallback != null) {
-                mRadioCallback.receivePacket(recvBytes.toByteArray());
+                mRadioCallback.receivePacket(recvBytes.toByteArray(), sigStrength);
             }
         }
     }
@@ -342,7 +336,7 @@ public class BBRadio {
                 l("A USB Accessory was detached (" + device + ")");
                 if (device != null) {
                     if (mUsbDevice == device) {
-                        l("It's this device");
+                        l("It's this device, shutting down");
                         mUsbDevice = null;
                         stopIoManager();
                     }
@@ -353,13 +347,35 @@ public class BBRadio {
                 l("USB Accessory attached (" + device + ")");
                 if (mUsbDevice == null) {
                     l("Calling initUsb to check if we should add this device");
-                    initUsb();
+                    usbConnect(device);;
                 } else {
-                    l("this USB already attached");
+                    l("USB already attached");
                 }
             }
             l("onReceive exited");
         }
     };
+
+    // Receive permission if it's being asked for (typically for the first time)
+    private class PermissionReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mContext.unregisterReceiver(this);
+            if (intent.getAction().equals(GET_USB_PERMISSION)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    l("USB we got permission");
+                    if (device != null) {
+                        usbConnect(device);;
+                    } else {
+                        l("USB perm receive device==null");
+                    }
+
+                } else {
+                    l("USB no permission");
+                }
+            }
+        }
+    }
 
 }
