@@ -92,9 +92,10 @@ void OnReceive() {
 
 void EmitReceive(uint32_t signalStrength, uint8_t *bytes, int len) {
   cmdMessenger.sendCmdStart(BBRReceive);
-  cmdMessenger.sendCmdArg(signalStrength);
+  cmdMessenger.sendCmdArg((int32_t)signalStrength);
+  cmdMessenger.sendCmdArg(len);
   for (int i = 0; i < len; i++) {
-    cmdMessenger.sendCmdArg(bytes[i]);
+    cmdMessenger.sendCmdArg((int32_t)bytes[i]);
   }
   cmdMessenger.sendCmdEnd();  
 }
@@ -120,6 +121,7 @@ void setup() {
   digitalWrite(RFM95_RST, HIGH);
 
   pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
 
 
   // manual reset
