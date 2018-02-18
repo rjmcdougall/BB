@@ -17,7 +17,12 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(yes());
+
+app.use(yes({
+  ignoreFilter: (req) => {
+    return (!(req.path.endsWith('/DownloadDirectoryJSON') && req.path.startsWith('/boards/')));
+  }
+}));
 
 app.use(express.static('./client/build'));
 app.get('/', function (req, res) {
