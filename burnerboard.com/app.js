@@ -20,7 +20,7 @@ app.use(cookieParser());
 
 app.use(yes({
   ignoreFilter: (req) => {
-    return (!(req.path.endsWith('/DownloadDirectoryJSON') && req.path.startsWith('/boards/')));
+    return ((req.path.endsWith('/DownloadDirectoryJSON') && req.path.startsWith('/boards/')));
   }
 }));
 
