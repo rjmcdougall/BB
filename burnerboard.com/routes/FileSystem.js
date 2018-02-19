@@ -110,7 +110,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 														profileID,
 														'video',
 														filePath,
-														0,
+														fileAttributes.fileSize,
 														0,
 														"speechCue")
 														.then(result => {

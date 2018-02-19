@@ -62,6 +62,7 @@ exports.addMedia = function (boardID, profileID, mediaType, fileName, fileSize, 
         board: boardID,
         URL: format(`${constants.GOOGLE_CLOUD_BASE_URL}/${constants.BUCKET_NAME}/${fileName}`),
         localName: localName,
+        Size: fileSize,
         SpeachCue: speechCue,
         profile: profileID,
         ordinal: null //set later
