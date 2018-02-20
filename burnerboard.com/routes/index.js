@@ -65,23 +65,39 @@ router.get('/boards/:boardID', async function (req, res, next) {
 
 router.post('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
 
-	var boardID = req.params.boardID;
+	var boardID = req.params.boardID; 
 	var profileID = req.params.profileID;
+	var cloneFromBoardID = null;
+
+	if(req.body.cloneFromBoardID !== "GLOBAL")
+		cloneFromBoardID = req.body.cloneFromBoardID;
+
+	cloneFromProfileID = req.body.cloneFromProfileID;
 
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	FileSystem = require('./FileSystem');
+
+	var results = [];
+
 	try {
 		var profileExists = await DownloadDirectoryDS.profileExists(boardID, profileID);
 		if (!profileExists) {
-			var i = await DownloadDirectoryDS.createProfile(boardID, profileID, false);
+			results.push(await DownloadDirectoryDS.createProfile(boardID, profileID, false));
+			
+			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
+ 				results.push(await FileSystem.copyProfileFiles(boardID, profileID, cloneFromBoardID, cloneFromProfileID));
+			}
+			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, 'audio'));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, 'video'));
 		}
-		else {
+		else
 			throw new Error("the profile already exists");
-		}
-		res.status(200).json(i);
+		res.status(200).json(results[0]);
 	}
 	catch (err) {
 		res.status(500).json(err.message);
 	}
+
 });
 
 router.post('/profiles/:profileID', async function (req, res, next) {
@@ -102,7 +118,7 @@ router.post('/profiles/:profileID', async function (req, res, next) {
 	try {
 		var profileExists = await DownloadDirectoryDS.profileExists(null, profileID);
 		if (!profileExists) {
-			results.push(await DownloadDirectoryDS.createProfile(null, profileID, true, cloneFromBoardID, cloneFromProfileID));
+			results.push(await DownloadDirectoryDS.createProfile(null, profileID, true));
 			
 			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
  				results.push(await FileSystem.copyProfileFiles(null, profileID, cloneFromBoardID, cloneFromProfileID));
@@ -112,7 +128,7 @@ router.post('/profiles/:profileID', async function (req, res, next) {
 		}
 		else
 			throw new Error("the profile already exists");
-		res.status(200).json(results);
+		res.status(200).json(results[0]);
 	}
 	catch (err) {
 		res.status(500).json(err.message);
