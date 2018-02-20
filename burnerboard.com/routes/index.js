@@ -107,10 +107,8 @@ router.post('/profiles/:profileID', async function (req, res, next) {
 			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
  				results.push(await FileSystem.copyProfileFiles(null, profileID, cloneFromBoardID, cloneFromProfileID));
 			}
-
 			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, 'audio'));
 			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, 'video'));
-
 		}
 		else
 			throw new Error("the profile already exists");
@@ -290,10 +288,14 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', async function (req, res, n
 	try {
 		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
 		if (boardExists) {
+			// get the default profile
 			var profileID = await DownloadDirectoryDS.listBoards(boardID);
-			profileID = profileID[0].profile;
 
-			result = await DownloadDirectoryDS.DirectoryJSON(boardID, profileID);
+			// is the deault profile global? if so, null it out!
+			if(profileID[0].isProfileGlobal)
+				boardID = null;
+
+			result = await DownloadDirectoryDS.DirectoryJSON(boardID, profileID[0].profile);
 			res.status(200).json(result);
 		}
 		else {
