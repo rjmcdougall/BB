@@ -157,6 +157,40 @@ exports.listProfileFiles = async function (boardID, profileID) {
 	});
 }
 
+exports.copyProfileFiles = async function (boardID, profileID, cloneFromBoardID, cloneFromProfileID) {
+
+	return new Promise((resolve, reject) => {
+
+		var replacementPath = "";
+		var profilePath = "";
+	
+		if (boardID != null)
+			replacementPath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' ;
+		else 
+			replacementPath = constants.MUSIC_PATH + '/global/' + profileID + '/' ;
+		
+		if(cloneFromBoardID != null)
+			profilePath = constants.MUSIC_PATH + '/' + cloneFromBoardID + '/' + cloneFromProfileID + '/'
+		else
+			profilePath = constants.MUSIC_PATH + '/global/' + cloneFromProfileID + '/'
+		
+		bucket.getFiles({
+			autoPaginate: false,
+			delimiter: '/',
+			prefix: profilePath,
+		})
+			.then(result => {
+				return resolve(result[0].map(item => {
+					item.copy(item.name.replace(profilePath, replacementPath));
+					return item.name;
+				}));
+			})
+			.catch(function (err) {
+				return reject(err);
+			});
+	});
+}
+
 exports.createRootBoardFolder = async function (boardID) {
 
 	return new Promise((resolve, reject) => {

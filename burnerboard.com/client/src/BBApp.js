@@ -35,6 +35,7 @@ class BBApp extends Component {
       profileDeleteResultsMessage: "",
       profileSelected: "",
       forceRerendder: false,
+      createProfileBoardCloneProfileName: "NONE - NONE",
     };
 
     this.handleSelect = this.handleSelect.bind(this);
@@ -69,11 +70,14 @@ handleActivateProfileClose = () => {
     var profileID = this.state.createProfileName.trim();
     var API = "";
 
+    var cloneFromBoardID = this.state.createProfileBoardCloneProfileName.substring(0,this.state.createProfileBoardCloneProfileName.indexOf(" - "));
+    var cloneFromProfileID = this.state.createProfileBoardCloneProfileName.substring(this.state.createProfileBoardCloneProfileName.indexOf(" - ") + 3);
+
     if (boardID !== "GLOBAL")
       API = '/boards/' + boardID + '/profiles/' + profileID;
     else
       API = '/profiles/' + profileID;
-
+ 
     console.log("API TO CREATE PROFILE : " + API);
 
     fetch(API, {
@@ -82,7 +86,11 @@ handleActivateProfileClose = () => {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': window.sessionStorage.JWT,
-      }
+      },
+      body: JSON.stringify({
+        cloneFromBoardID: cloneFromBoardID,
+        cloneFromProfileID: cloneFromProfileID,
+      })
     })
       .then((res) => {
 
@@ -311,7 +319,7 @@ handleActivateProfileClose = () => {
         appBody = <ProfileGrid handleProfileDeleteClose={this.handleProfileDeleteClose} profileSelected={this.state.profileSelected} handleProfileClick={this.handleProfileClick} onProfileDelete={this.onProfileDelete} profileDeleteSnackbarOpen={this.state.profileDeleteSnackbarOpen} profileDeleteResultsMessage={this.state.profileDeleteResultsMessage} />;
         break;
       case "AppBody-AddProfile":
-        appBody = <AddProfile handleProfileAddClose={this.handleProfileAddClose}  createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
+        appBody = <AddProfile createProfileBoardCloneProfileName={this.state.createProfileBoardCloneProfileName} handleProfileAddClose={this.handleProfileAddClose}  createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
         break;
       case "AppBody-ActivateProfile":
         appBody = <SetActiveProfile handleActivateProfileClose={this.handleActivateProfileClose} handleActivateProfile={this.handleActivateProfile} activateResultsMessage={this.state.activateResultsMessage} activateOpenSnackbar={this.state.activateOpenSnackbar} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} currentProfileIsGlobal={this.state.currentProfileIsGlobal} />;

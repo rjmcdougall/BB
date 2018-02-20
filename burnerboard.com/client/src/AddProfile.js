@@ -16,7 +16,7 @@ const styles = theme => ({
         display: 'flex',
         flexWrap: 'wrap',
     },
-    formControl: {
+    formControlTop: {
         // margin: theme.spacing.unit,
         margin: 50
 
@@ -46,7 +46,9 @@ class AddProfile extends React.Component {
             createProfileOpenSnackbar: this.props.createProfileOpenSnackbar,
             createProfileResultsMessage: this.props.createProfileResultsMessage,
             boardNames: [{ board_name: "loading..." }],
+            profileArray: [{ board_name: "loading..." }],
             createProfileBoardName: "GLOBAL",
+            createProfileBoardCloneProfileName: "NONE - NONE",
         };
 
         this.handleCreateProfile = this.props.handleCreateProfile.bind(this);
@@ -59,8 +61,9 @@ class AddProfile extends React.Component {
             createProfileOpenSnackbar: nextProps.createProfileOpenSnackbar,
             createProfileResultsMessage: nextProps.createProfileResultsMessage,
             createProfileBoardName: nextProps.createProfileBoardName,
+            createProfileBoardCloneProfileName: nextProps.createProfileBoardCloneProfileName
         });
- 
+
     }
 
     componentDidMount() {
@@ -75,11 +78,50 @@ class AddProfile extends React.Component {
             }
         })
             .then(response => response.json())
-            .then(data => this.setState({
-                boardNames: data.map(item => ({
-                    board_name: `${item.name}`,
-                }))
-            }))
+            .then(data => {
+                this.setState({
+                    boardNames: data.map(item => ({
+                        board_name: `${item.name}`,
+                    }))
+                });
+                this.loadProfileGrid();
+            })
+            .catch(error => this.setState({ error }));
+    }
+
+    loadProfileGrid() {
+        const API = '/allProfiles/';
+
+        console.log("API CALL TO LOAD PROFILES: " + API);
+
+        fetch(API, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'authorization': window.sessionStorage.JWT,
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+
+                var profileArray = data
+                    .map(function (item) {
+                        if (item.isGlobal)
+                            return {
+                                id: item.board + "-" + item.name,
+                                board: "GLOBAL",
+                                profile: item.name
+                            }
+                        else
+                            return {
+                                id: item.board + "-" + item.name,
+                                board: item.board,
+                                profile: item.name
+                            };
+                    });
+
+                this.setState({ "profileArray": profileArray });
+            })
             .catch(error => this.setState({ error }));
     }
 
@@ -92,33 +134,54 @@ class AddProfile extends React.Component {
                 <div>
 
                     <form className={classes.container} autoComplete="off">
-
-                        <FormControl className={classes.formControl}>
-                            <InputLabel htmlFor="board-picker">Board</InputLabel>
-                            <Select
-                                value={this.state.createProfileBoardName}
-                                onChange={this.handleChange}
-                                input={<Input name="createProfileBoardName" id="board-picker" />}>
-                                <MenuItem selected={this.state.createProfileBoardName === "GLOBAL"} value="GLOBAL">
-                                    GLOBAL
+                        <FormControl className={classes.formControlTop}>
+                            <FormControl >
+                                <InputLabel htmlFor="board-picker">Board</InputLabel>
+                                <Select
+                                    value={this.state.createProfileBoardName}
+                                    onChange={this.handleChange}
+                                    input={<Input name="createProfileBoardName" id="board-picker" />}>
+                                    <MenuItem selected={this.state.createProfileBoardName === "GLOBAL"} value="GLOBAL">
+                                        GLOBAL
                                 </MenuItem>
-                                {this.state.boardNames.map(item =>
-                                    (
-                                        <MenuItem selected={this.state.createProfileBoardName === item.board_name} key={item.board_name} value={item.board_name}>{item.board_name}
-                                        </MenuItem>))
-                                }
-                            </Select>
-                            <TextField
-                                id="profileName"
-                                name="createProfileName"
-                                label="Profile Name"
-                                input={<Input name="createProfileName" id="profile-text" />}
-                                margin="normal"
-                                onChange={this.handleChange} />
-                            <Button onClick={this.handleCreateProfile} className={classes.button} raised dense>
-                                <Save className={classes.leftIcon} />
-                                Save
+                                    {this.state.boardNames.map(item =>
+                                        (
+                                            <MenuItem selected={this.state.createProfileBoardName === item.board_name} key={item.board_name} value={item.board_name}>{item.board_name}
+                                            </MenuItem>))
+                                    }
+                                </Select>
+                            </FormControl>
+                            <FormControl  >
+                                <TextField
+                                    id="profileName"
+                                    name="createProfileName"
+                                    label="Profile Name"
+                                    input={<Input name="createProfileName" id="profile-text" />}
+                                    margin="normal"
+                                    onChange={this.handleChange} />
+                            </FormControl>
+                            <FormControl  >
+                                <InputLabel htmlFor="clone-picker">Clone From</InputLabel>
+                                <Select
+                                    value={this.state.createProfileBoardCloneProfileName}
+                                    onChange={this.handleChange}
+                                    input={<Input name="createProfileBoardCloneProfileName" id="clone-picker" />}>
+                                    <MenuItem selected={this.state.createProfileBoardCloneProfileName === "NONE - NONE"} value="NONE - NONE">
+                                        NONE - NONE
+                                    </MenuItem>
+                                    {this.state.profileArray.map(item =>
+                                        (
+                                            <MenuItem selected={this.state.createProfileBoardCloneProfileName === item.board + " - " + item.profile} key={item.board + " - " + item.profile} value={item.board + " - " + item.profile}>{item.board + " - " + item.profile}
+                                            </MenuItem>))
+                                    }
+                                </Select>
+                            </FormControl>
+                            <FormControl  >
+                                <Button onClick={this.handleCreateProfile} className={classes.button} raised dense>
+                                    <Save className={classes.leftIcon} />
+                                    Save
                      </Button>
+                            </FormControl>
                         </FormControl>
                     </form>
 

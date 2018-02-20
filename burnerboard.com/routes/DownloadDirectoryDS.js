@@ -549,6 +549,89 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
   });
 }
 
+
+exports.cloneBoardMedia = async function (boardID, profileID, cloneFromBoardID, cloneFromProfileID, mediaType) {
+
+  return new Promise((resolve, reject) => {
+
+    var entityArray1 = [];
+
+    if(cloneFromBoardID == null)
+      var sourcePath =  '/global/' + cloneFromProfileID + '/';
+    else
+      var sourcePath =  '/' + cloneFromBoardID + '/' + cloneFromProfileID + '/';
+
+    if(boardID == null)
+      var targetPath =  '/global/' + profileID + '/';
+    else
+      var targetPath =  '/' + boardID + '/' + profileID + '/';
+
+    this.listMedia(cloneFromBoardID, cloneFromProfileID, mediaType)
+      .then(results => {
+
+        var resultsPromise = new Promise((resolve, reject) => {
+          var mediaArray = results;
+
+          resolve(mediaArray.map((item) => {
+
+            var newElement;
+
+            if (mediaType == 'audio') {
+              newElement = {
+                key: datastore.key(mediaType),
+                data: {
+                  board: boardID,
+                  URL: item.URL.replace(sourcePath, targetPath),
+                  localName: item.localName,
+                  Size: item.Size,
+                  Length: item.Length,
+                  ordinal: item.ordinal,
+                  profile: profileID,
+                },
+              };
+            }
+            else if (item.algorithm != null) {
+              newElement = {
+                key: datastore.key(mediaType),
+                data: {
+                  board: boardID,
+                  algorithm: item.algorithm,
+                  ordinal: item.ordinal,
+                  profile: profileID,
+                },
+              };
+            }
+            else {
+              newElement = {
+                key: datastore.key(mediaType),
+                data: {
+                  board: boardID,
+                  URL: item.URL.replace(sourcePath, targetPath),
+                  localName: item.localName,
+                  Size: item.Size,
+                  ordinal: item.ordinal,
+                  profile: profileID,
+                },
+              };
+            }
+ 
+            entityArray1.push(newElement);
+          }))
+        })
+          .then(() => {
+            datastore
+              .save(entityArray1)
+              .then((results) => {
+                resolve("profile copied with " + entityArray1.length + " " + mediaType + " elements");
+              })
+              .catch(err => {
+                return reject(err);
+              });
+          })
+      });
+  });
+}
+
 exports.listMedia = async function (boardID, profileID, mediaType) {
 
   return new Promise((resolve, reject) => {
