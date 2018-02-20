@@ -194,7 +194,7 @@ class GlobalMenu extends React.Component {
                         <MenuItem onClick={event => this.handleSelect(event, "globalProfile-" + item.profile_name)}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
-                        >  <CheckCircle /> &nbsp; {item.profile_name} &nbsp; <MenuGlobal />
+                        >  <CheckCircle /> &nbsp; {item.profile_name} &nbsp;<MenuGlobal />
                         </MenuItem>
                     );
                 else
