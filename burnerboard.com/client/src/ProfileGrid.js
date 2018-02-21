@@ -163,7 +163,8 @@ class ProfileGrid extends React.Component {
                 {
                     id: 1,
                     profile: 'loading...',
-                    board: 'loading...'
+                    board: 'loading...',
+                    readOnly: false,
                 }].sort((a, b) => (a.profile < b.profile ? -1 : 1))
         };   
 
@@ -222,13 +223,15 @@ class ProfileGrid extends React.Component {
                             return {
                                 id: item.board + "-" + item.name,
                                 board: "GLOBAL",
-                                profile: item.name
+                                profile: item.name,
+                                readOnly: item.readOnly,
                             }
                         else
                             return {
                                 id: item.board + "-" + item.name,
                                 board: item.board,
-                                profile: item.name
+                                profile: item.name,
+                                readOnly: item.readOnly,
                             };
                     });
 
@@ -262,15 +265,19 @@ class ProfileGrid extends React.Component {
                                 return (
                                     <TableRow  
                                         hover
-                                        onClick={event => this.handleProfileClick(event, n.id)}
+                                        onClick={event => {
+                                            if(!n.readOnly)
+                                                this.handleProfileClick(event, n.id);
+                                        }}
                                         role="checkbox"
                                         aria-checked={isSelected}
                                         tabIndex={-1}
                                         key={n.id}
                                         selected={isSelected}
+                                        disabled={n.readOnly}
                                     >
                                         <TableCell padding="checkbox">
-                                            <Checkbox checked={isSelected} />
+                                            <Checkbox disabled={n.readOnly} checked={isSelected} />
                                         </TableCell>
                                         <TableCell >{n.board}</TableCell>
                                         <TableCell >{n.profile}</TableCell>
