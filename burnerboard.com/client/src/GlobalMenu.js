@@ -6,6 +6,7 @@ import Toolbar from 'material-ui/Toolbar';
 import Typography from 'material-ui/Typography';
 import IconButton from 'material-ui/IconButton';
 import MenuIcon from 'material-ui-icons/Menu';
+import CheckCircle from 'material-ui-icons/CheckCircle';
 import MenuGlobal from 'material-ui-icons/Language';
 import Drawer from 'material-ui/Drawer';
 import Divider from 'material-ui/Divider';
@@ -193,7 +194,7 @@ class GlobalMenu extends React.Component {
                         <MenuItem onClick={event => this.handleSelect(event, "globalProfile-" + item.profile_name)}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
-                        > {"* " + item.profile_name}
+                        >  <CheckCircle /> &nbsp; {item.profile_name} &nbsp;<MenuGlobal />
                         </MenuItem>
                     );
                 else
@@ -201,7 +202,7 @@ class GlobalMenu extends React.Component {
                         <MenuItem onClick={event => this.handleSelect(event, "globalProfile-" + item.profile_name)}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
-                        > {item.profile_name}
+                        > {item.profile_name} &nbsp; <MenuGlobal />
                         </MenuItem>
                     );
             }
@@ -211,7 +212,7 @@ class GlobalMenu extends React.Component {
                         <MenuItem onClick={event => this.handleSelect(event, "profile-" + item.profile_name)}
                             key={"profile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
-                        > {"* " + item.profile_name}
+                        > <CheckCircle /> &nbsp; {item.profile_name}
                         </MenuItem>
                     );
                 else

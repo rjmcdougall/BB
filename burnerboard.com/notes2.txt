@@ -15,3 +15,5 @@ npm run debug
 git push origin master --verbose
 
 gcloud datastore create-indexes index.yaml
+
+~/Library/Android/sdk/platform-tools/adb logcat |grep BB
