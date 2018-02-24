@@ -15,8 +15,10 @@ import Paper from 'material-ui/Paper';
 import Checkbox from 'material-ui/Checkbox';
 import IconButton from 'material-ui/IconButton';
 import DeleteIcon from 'material-ui-icons/Delete';
+import PlayIcon from 'material-ui-icons/PlayCircleOutline';
 import { lighten } from 'material-ui/styles/colorManipulator';
 import Snackbar from 'material-ui/Snackbar';
+import Button from 'material-ui/Button';
 
 const columnData = [
     { id: 'localName', numeric: false, disablePadding: true, label: 'File Name' }
@@ -96,7 +98,7 @@ const toolbarStyles = theme => ({
     menuButton: {
         marginLeft: 0,
         marginRight: 50,
-    },    
+    },
 });
 
 let EnhancedTableToolbar = props => {
@@ -118,7 +120,7 @@ let EnhancedTableToolbar = props => {
             <div className={classes.spacer} />
             <div className={classes.actions}>
                 {numSelected > 0 ? (
-                    <IconButton aria-label="Delete" onClick={props.onDelete}  className={classes.menuButton}>
+                    <IconButton aria-label="Delete" onClick={props.onDelete} className={classes.menuButton}>
                         <DeleteIcon />
                     </IconButton>
                 ) : (
@@ -163,15 +165,16 @@ class ManageMediaGrid extends React.Component {
                     id: 1,
                     mediaType: 'loading...',
                     localName: 'loading...',
+                    URL: "",
                     ordinal: 0,
                 }].sort((a, b) => (a.localName < b.localName ? -1 : 1)),
-       };
+        };
 
         this.loadGrid = this.loadGrid.bind(this);
-     }
+    }
 
     handleMediaDeleteClose = () => {
-        this.setState({open: false});
+        this.setState({ open: false });
     }
 
     handleRequestSort = (event, property) => {
@@ -201,15 +204,15 @@ class ManageMediaGrid extends React.Component {
         }, this.loadGrid);
     }
 
-    loadGrid()  {
+    loadGrid() {
         var API;
 
-        if(this.state.currentBoard != null)
+        if (this.state.currentBoard != null)
             API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
         else
-            API = '/profiles/' + this.state.currentProfile+ '/DownloadDirectoryJSON';
+            API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
 
-            console.log("API CALL TO LOAD MEDIA GRID: " + API);
+        console.log("API CALL TO LOAD MEDIA GRID: " + API);
 
         fetch(API, {
             headers: {
@@ -232,6 +235,7 @@ class ManageMediaGrid extends React.Component {
                             id: "video-" + item.localName,
                             mediaType: "video",
                             localName: `${item.localName}`,
+                            URL: `${item.URL}`,
                             ordinal: `${item.ordinal}`,
                         };
                     });
@@ -240,6 +244,7 @@ class ManageMediaGrid extends React.Component {
                     return {
                         id: "audio-" + item.localName,
                         mediaType: "audio",
+                        URL: `${item.URL}`,
                         localName: `${item.localName}`,
                         ordinal: `${item.ordinal}`,
                     }
@@ -250,90 +255,96 @@ class ManageMediaGrid extends React.Component {
             .catch(error => {
                 console.log(error.message);
             });
-    } 
+    }
 
     handleClick = (event, id) => {
         // const { selected } = this.state;
         // const selectedIndex = selected.indexOf(id);
-         let newSelected = [id];
- 
-         // console.log("selectedIndex : " + selected.indexOf(id));
-         
-         // if (selectedIndex === -1) {
-         //     newSelected = newSelected.concat(selected, id);
-         // } else if (selectedIndex === 0) {
-         //     newSelected = newSelected.concat(selected.slice(1));
-         // } else if (selectedIndex === selected.length - 1) {
-         //     newSelected = newSelected.concat(selected.slice(0, -1));
-         // } else if (selectedIndex > 0) {
-         //     newSelected = newSelected.concat(
-         //         selected.slice(0, selectedIndex),
-         //         selected.slice(selectedIndex + 1),
-         //     );
-         // }
+        let newSelected = [id];
 
-         this.setState({ selected: newSelected });
-     };
- 
-     isSelected = id => this.state.selected.indexOf(id) !== -1;
- 
-     onDelete = () => {
- 
-         var mediaGrid = this;
-         var selectedItem = this.state.selected[0].toString();
-         var selectLocalName = selectedItem.slice(selectedItem.indexOf('-') + 1)
-         var selectedMediaType = selectedItem.slice(0, selectedItem.indexOf('-'));
-         var profileID = this.state.currentProfile;
-         var boardID = this.state.currentBoard;
- 
+        // console.log("selectedIndex : " + selected.indexOf(id));
+
+        // if (selectedIndex === -1) {
+        //     newSelected = newSelected.concat(selected, id);
+        // } else if (selectedIndex === 0) {
+        //     newSelected = newSelected.concat(selected.slice(1));
+        // } else if (selectedIndex === selected.length - 1) {
+        //     newSelected = newSelected.concat(selected.slice(0, -1));
+        // } else if (selectedIndex > 0) {
+        //     newSelected = newSelected.concat(
+        //         selected.slice(0, selectedIndex),
+        //         selected.slice(selectedIndex + 1),
+        //     );
+        // }
+
+        this.setState({ selected: newSelected });
+    };
+
+    handlePreview = event => {
+        // eslint-disable-next-line no-console
+        console.log(event.currentTarget.getAttribute('dataurl'));
+        window.open(event.currentTarget.getAttribute('dataurl'));
+    }
+
+    isSelected = id => this.state.selected.indexOf(id) !== -1;
+
+    onDelete = () => {
+
+        var mediaGrid = this;
+        var selectedItem = this.state.selected[0].toString();
+        var selectLocalName = selectedItem.slice(selectedItem.indexOf('-') + 1)
+        var selectedMediaType = selectedItem.slice(0, selectedItem.indexOf('-'));
+        var profileID = this.state.currentProfile;
+        var boardID = this.state.currentBoard;
+
         var API = "";
-         if (boardID != null)
-             API = '/boards/' + boardID + '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
-         else
-             API = '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
- 
-             console.log("DELETE MEDIA API: " + API);
+        if (boardID != null)
+            API = '/boards/' + boardID + '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
+        else
+            API = '/profiles/' + profileID + '/' + selectedMediaType + '/' + selectLocalName;
 
-         fetch(API, {
-             method: 'DELETE',
-             headers: {
-                 'Accept': 'application/json',
-                 'Content-Type': 'application/json',
-                 'Authorization': window.sessionStorage.JWT,
-             }
-         })
-             .then((res) => {
- 
-                 if (!res.ok) {
-                     res.json().then(function (json) {
-                         mediaGrid.setState({
-                             open: true,
-                             resultsMessage: JSON.stringify(json),
-                         });
-                     });
-                 }
-                 else {
-                     res.json().then(function (json) {
-                         mediaGrid.setState({
-                             open: true,
-                             resultsMessage: JSON.stringify(json),
-                             selected: [],
-                             mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
-                                 return item.id !== selectedItem;
-                             })
-                         });
-                     });
-                 }
-             })
-             .catch((err) => {
-                 console.log('error : ' + err);
-                 mediaGrid.setState({
-                     open: true,
-                     resultsMessage: err.message
-                 });
-             });
-     }
- 
+        console.log("DELETE MEDIA API: " + API);
+
+        fetch(API, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': window.sessionStorage.JWT,
+            }
+        })
+            .then((res) => {
+
+                if (!res.ok) {
+                    res.json().then(function (json) {
+                        mediaGrid.setState({
+                            open: true,
+                            resultsMessage: JSON.stringify(json),
+                        });
+                    });
+                }
+                else {
+                    res.json().then(function (json) {
+                        mediaGrid.setState({
+                            open: true,
+                            resultsMessage: JSON.stringify(json),
+                            selected: [],
+                            mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
+                                return item.id !== selectedItem;
+                            })
+                        });
+                    });
+                }
+            })
+            .catch((err) => {
+                console.log('error : ' + err);
+                mediaGrid.setState({
+                    open: true,
+                    resultsMessage: err.message
+                });
+            });
+    }
+
     render() {
         const { classes } = this.props;
         const { mediaArray, order, orderBy, selected } = this.state;
@@ -356,17 +367,22 @@ class ManageMediaGrid extends React.Component {
                                 return (
                                     <TableRow
                                         hover
-                                        onClick={event => this.handleClick(event, n.id)}
+
                                         role="checkbox"
                                         aria-checked={isSelected}
                                         tabIndex={-1}
                                         key={n.id}
                                         selected={isSelected}
                                     >
-                                        <TableCell padding="checkbox">
+                                        <TableCell onClick={event => this.handleClick(event, n.id)} padding="checkbox">
                                             <Checkbox checked={isSelected} />
                                         </TableCell>
-                                        <TableCell >{n.localName}</TableCell>
+                                        <TableCell onClick={event => this.handleClick(event, n.id)} >{n.localName}</TableCell>
+                                        <TableCell>
+                                            <IconButton onClick={event => this.handlePreview(event, n.id)} dataurl={n.URL} className={classes.button}>
+                                                <PlayIcon />
+                                            </IconButton>
+                                        </TableCell>
                                     </TableRow>
                                 );
                             })}
