@@ -166,7 +166,59 @@ public class BoardVisualization {
         l("Enabled visualizer with " + vSize + " bytes");
     }
 
+    public int displayAlgorithm(String mBoardMode) {
+        int frameRate = 0;
 
+        switch (mBoardMode) {
+
+            case "modeMatrix(kMatrixBurnerColor)":
+                frameRate = 12;
+                modeMatrix(kMatrixBurnerColor);
+                break;
+
+            case "modeMatrix(kMatrixLunarian)":
+                frameRate = 12;
+                modeMatrix(kMatrixLunarian);
+                break;
+
+            case "modeAudioCenter()":
+                frameRate = 12;
+                modeAudioCenter();
+                break;
+
+            case "modeFire(kModeFireNormal)":
+                frameRate = 36;
+                modeFire(kModeFireNormal);
+                break;
+
+            case "modeFire(kModeFireDistrikt)":
+                frameRate = 36;
+                modeFire(kModeFireDistrikt);
+                break;
+
+            case "modeFire(kModeFireTheMan)":
+                frameRate = 36;
+                modeFire(kModeFireTheMan);
+                break;
+
+            case "modeAudioBarV()":
+                frameRate = 12;
+                modeAudioBarV();
+                break;
+
+            case "modeMatrix(kMatrix9)":
+                frameRate = 12;
+                modeMatrix(kMatrix9);
+                break;
+
+            case "modeAudioTile()":
+                frameRate = 12;
+                modeAudioTile();
+                break;
+
+        }
+        return frameRate;
+    }
 
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
@@ -176,7 +228,7 @@ public class BoardVisualization {
 
         l("Starting board display thread...");
 
-
+        int nVideos = mBurnerBoard.mBBService.dlManager.GetTotalVideo();
 
         while (true) {
 
@@ -193,62 +245,7 @@ public class BoardVisualization {
                 continue;
             }
 
-            switch (mBoardMode) {
-
-                case 1:
-                    frameRate = 12;
-                    modeMatrix(kMatrixBurnerColor);
-                    break;
-
-                case 2:
-                    frameRate = 12;
-                    modeMatrix(kMatrixLunarian);
-                    break;
-
-                case 3:
-                    frameRate = 12;
-                    modeAudioCenter();
-                    break;
-
-                case 4:
-                    frameRate = 36;
-                    modeFire(kModeFireNormal);
-                    break;
-
-
-                case 5:
-                    frameRate = 36;
-                    modeFire(kModeFireDistrikt);
-                    break;
-
-                case 6:
-                    frameRate = 36;
-                    modeFire(kModeFireTheMan);
-                    break;
-
-                case 7:
-                    frameRate = 12;
-                    modeAudioBarV();
-                    break;
-
-                case 8:
-                    frameRate = 12;
-                    modeMatrix(kMatrix9);
-                    break;
-
-                case 9:
-                    frameRate = 12;
-                    modeAudioTile();
-                    break;
-
-
-                default:
-                    if (mBoardMode>=10) {
-                        frameRate = 20;
-                        modeVideo(mBoardMode - 10);
-                        break;
-                    }
-            }
+            frameRate = modeVideo(mBoardMode);
 
             // limit output framerate to max of 12fps
             if (frameRate > 12) {
@@ -273,7 +270,7 @@ public class BoardVisualization {
 
     }
 
-    /*
+  /*
     void modeTestRow() {
         int [] testRow = new int[36];
 
@@ -326,7 +323,7 @@ public class BoardVisualization {
     }
     */
 
-    int testColor = 0;
+   int testColor = 0;
 
     void modeTest() {
 
@@ -850,7 +847,7 @@ public class BoardVisualization {
         return;
     }
 
-    /*
+        /*
     private void drawRectCenter(int size, int [] color) {
         if (size == 0)
             return;
@@ -893,7 +890,6 @@ public class BoardVisualization {
         }
     }
 
-
     void modeAudioCenter() {
 
         int level;
@@ -917,68 +913,80 @@ public class BoardVisualization {
 
     int frameCnt = 0;
     public SimpleImage currentVideoFrame = null;
-    void modeVideo(int videoNumber) {
+
+    int modeVideo(int videoNumber) {
+
+        videoNumber += -1;
 
         int nVideos = mBurnerBoard.mBBService.dlManager.GetTotalVideo();
         if (nVideos==0)
-            return ;
+            return 12;
 
         int curVidIndex = videoNumber % nVideos;
-        if (curVidIndex!=lastVideoMode && mVideoDecoder.IsRunning()) {
-            mVideoDecoder.Stop();
+
+        if(mBurnerBoard.mBBService.dlManager.GetVideo(videoNumber).has("algorithm")){
+
+            String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(videoNumber);
+
+            return displayAlgorithm(algorithm);
+
         }
+        else {
+            if (curVidIndex!=lastVideoMode && mVideoDecoder.IsRunning()) {
+                mVideoDecoder.Stop();
+            }
 
-        if (!mVideoDecoder.IsRunning()) {
+            if (!mVideoDecoder.IsRunning()) {
 
-            mVideoDecoder.Stop();
-            mVideoDecoder.onFrameReady = new VideoDecoder.OnFrameReadyCallback() {
-                public void callbackCall(SimpleImage img) {
-                    frameCnt++;
-                    currentVideoFrame = img;
-                    currentVideoFrame = img.dup();
+                mVideoDecoder.Stop();
+                mVideoDecoder.onFrameReady = new VideoDecoder.OnFrameReadyCallback() {
+                    public void callbackCall(SimpleImage img) {
+                        frameCnt++;
+                        currentVideoFrame = img;
+                        currentVideoFrame = img.dup();
+                    }
+                };
+
+                try {
+                    mVideoDecoder.Start(mBurnerBoard.mBBService.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+                } catch (Throwable throwable) {
+                    Log.d(TAG, "Unable to start decoder");
+                    throwable.printStackTrace();
                 }
-            };
-
-            try {
-                mVideoDecoder.Start(mBurnerBoard.mBBService.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
-            } catch (Throwable throwable) {
-                Log.d(TAG, "Unable to start decoder");
-                throwable.printStackTrace();
-            }
-            if (curVidIndex != lastVideoMode) {
-                lastVideoMode = curVidIndex;
-            }
-        }
-        if (currentVideoFrame!=null) {
-            SimpleImage curVideo = currentVideoFrame;  // save pointer to current video frame, it might change in another thread
-            int totalPixels = curVideo.width * curVideo.height;
-            BurnerBoard ba = (BurnerBoard)mBurnerBoard;
-
-            try {
-                int srcOff = 0, dstOff = 0;
-                int[] dst = ba.mBoardScreen;
-                byte[] src = curVideo.mPixelBuf.array();
-
-                // convert from 32 bit RGBA byte pixels to 96 bit RGB int pixels
-                while (totalPixels !=0) {
-                    dst[dstOff++] = src[srcOff+0] & 0xff;
-                    dst[dstOff++] = src[srcOff+1] & 0xff;
-                    dst[dstOff++] = src[srcOff+2] & 0xff;
-                    srcOff+=4;                         // skip alpha channel, this isn't used
-                    totalPixels--;
+                if (curVidIndex != lastVideoMode) {
+                    lastVideoMode = curVidIndex;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();;
             }
+            if (currentVideoFrame!=null) {
+                SimpleImage curVideo = currentVideoFrame;  // save pointer to current video frame, it might change in another thread
+                int totalPixels = curVideo.width * curVideo.height;
+                BurnerBoard ba = (BurnerBoard)mBurnerBoard;
+
+                try {
+                    int srcOff = 0, dstOff = 0;
+                    int[] dst = ba.mBoardScreen;
+                    byte[] src = curVideo.mPixelBuf.array();
+
+                    // convert from 32 bit RGBA byte pixels to 96 bit RGB int pixels
+                    while (totalPixels !=0) {
+                        dst[dstOff++] = src[srcOff+0] & 0xff;
+                        dst[dstOff++] = src[srcOff+1] & 0xff;
+                        dst[dstOff++] = src[srcOff+2] & 0xff;
+                        srcOff+=4;                         // skip alpha channel, this isn't used
+                        totalPixels--;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();;
+                }
+            }
+            frameCnt++;
+            if (frameCnt % 100 == 0) {
+                l("Frames: " + frameCnt);
+            }
+            mBurnerBoard.flush();
+            return 20; // framerate
         }
-        frameCnt++;
-        if (frameCnt % 100 == 0) {
-            l("Frames: " + frameCnt);
-        }
-        mBurnerBoard.flush();
-        return;
     }
-
 
     private void drawRectFront(int size, int color) {
         if (size == 0)
@@ -1048,7 +1056,6 @@ public class BoardVisualization {
             }
         }
     }
-
 
     void modeAudioTile() {
 
@@ -1807,7 +1814,6 @@ public class BoardVisualization {
                 0b00000000000};
 
     }
-
 
     void drawDistrikt(int color) {
         int x;

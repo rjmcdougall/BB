@@ -68,7 +68,7 @@ public class BBService extends Service {
     public static final String ACTION_USB_DEVICE_DETACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_DETACHED";
 
     public int GetMaxLightModes() {
-        return dlManager.GetTotalVideo() + 10;
+        return dlManager.GetTotalVideo();
     }
 
     public BBDownloadManager dlManager;
