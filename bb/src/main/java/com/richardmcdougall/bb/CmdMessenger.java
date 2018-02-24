@@ -113,7 +113,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
 
 
     public void flushWrites() {
-        //System.out.println("flushWrites: " + sendBuffer.size() + "," + bytesToHex(sendBuffer.toByteArray()));
+        //System.out.println("BB.CmdMessenger flushWrites: " + sendBuffer.size() + "," + bytesToHex(sendBuffer.toByteArray()));
         if (sendBuffer.size() > 0) {
             try {
                 Serial.write(sendBuffer.toByteArray(), 500);

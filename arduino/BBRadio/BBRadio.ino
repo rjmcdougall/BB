@@ -7,10 +7,19 @@
 
 #define LED 13
 
-/* for feather m0 */
+/* for feather m0 
+*/
 #define RFM95_CS 8
 #define RFM95_RST 4
 #define RFM95_INT 3
+
+
+/* for teensy 
+#define RFM95_CS 10
+#define RFM95_RST 4
+#define RFM95_INT 3
+*/
+
 
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
@@ -150,6 +159,9 @@ void setup() {
 
   Serial.begin(9600);
   Serial1.begin(9600);
+
+  BBattachCommandCallbacks();
+
 }
 
 //String timeStr = "";
@@ -164,9 +176,9 @@ char *gpsBlurbPtr = &gpsBlurb[0];
 void processGps(char c) {
     if (c == 13) { // CR at end of emission
       *gpsBlurbPtr = 13;
-      *gpsBlurbPtr++;
+      gpsBlurbPtr++;
       *gpsBlurbPtr = 10;
-      *gpsBlurbPtr++;
+      gpsBlurbPtr++;
       *gpsBlurbPtr = 0;
       EmitGps(gpsBlurb);
       gpsBlurbPtr = &gpsBlurb[0]; 
@@ -199,6 +211,8 @@ void loop() {
       digitalWrite(LED, LOW);
     }
   }
+  cmdMessenger.feedinSerialData();
+
 }
 
 

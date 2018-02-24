@@ -72,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     TextView modeStatus;
     private android.widget.Switch switchHeadlight;
 
+    protected static final String GET_USB_PERMISSION = "GetUsbPermission";
+
     private BoardView mBoardView;
     private String stateMsgAudio = "";
     private String stateMsgConn = "";
@@ -206,6 +208,14 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             return;
 
         Log.v(TAG, msg);
+        logToScreen(msg);
+    }
+
+    // function to append a string to a TextView as a new line
+    // and scroll to the bottom if needed
+    private void logToScreen(String msg) {
+        if (log == null)
+            return;
 
         if (kEmbeddedMode == false)
             return;
@@ -284,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                         break;
                     case 4:
                         String logMsg = intent.getStringExtra("logMsg");
-                        l(logMsg);
+                        logToScreen(logMsg);
                         break;
 
                     default:
@@ -450,7 +460,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 //        initUsb();
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction("android.hardware.usb.action.USB_STATE");
+        filter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
+        filter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
         this.registerReceiver(mUsbReceiver, filter);
 
         // Register for the particular broadcast based on Stats Action
@@ -484,6 +495,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         this.unregisterReceiver(mUsbReceiver);
 
     }
+
 
 
     public void onModeDown(View v) {
@@ -738,6 +750,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             {
                 if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED))
                 {
+                    Log.v(TAG, "ACTION_USB_DEVICE_ATTACHED");
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     // Create a new intent and put the usb device in as an extra
@@ -749,6 +762,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                 }
                 if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED))
                 {
+                    Log.v(TAG,"ACTION_USB_DEVICE_DETACHED");
+
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     // Create a new intent and put the usb device in as an extra
@@ -761,6 +776,64 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             }
         }
 
+    }
+
+    public void onSetupUsb(View v) {
+
+        l("MainActivity: initUsb()");
+
+
+        UsbManager mUsbManager = (UsbManager) this.getSystemService(Context.USB_SERVICE);
+
+        // Find all available drivers from attached devices.
+        List<UsbSerialDriver> availableDrivers =
+                UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
+        if (availableDrivers.isEmpty()) {
+            l("USB: No USB Devices");
+            return;
+        }
+
+        // Find the Radio device by pid/vid
+        UsbDevice mUsbDevice = null;
+        l("There are " + availableDrivers.size() + " drivers");
+        for (int i = 0; i < availableDrivers.size(); i++) {
+            UsbSerialDriver mDriver = availableDrivers.get(i);
+
+            // See if we can find the adafruit M0 which is the Radio
+            mUsbDevice = mDriver.getDevice();
+
+            if (!mUsbManager.hasPermission(mUsbDevice)) {
+                //ask for permission
+                PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(GET_USB_PERMISSION), 0);
+                this.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
+                mUsbManager.requestPermission(mUsbDevice, pi);
+            }
+        }
+
+    }
+
+    // Receive permission if it's being asked for (typically for the first time)
+    private class PermissionReceiver extends BroadcastReceiver {
+        protected static final String GET_USB_PERMISSION = "GetUsbPermission";
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            context.unregisterReceiver(this);
+            if (intent.getAction().equals(GET_USB_PERMISSION)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    l("USB we got permission");
+                    if (device != null) {
+                        l("Got USB perm receive device==" + device);
+                    } else {
+                        l("USB perm receive device==null");
+                    }
+
+                } else {
+                    l("USB no permission");
+                }
+            }
+        }
     }
 
 }
