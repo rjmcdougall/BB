@@ -18,6 +18,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 
+import net.sf.marineapi.nmea.io.ExceptionListener;
 import net.sf.marineapi.nmea.io.SentenceReader;
 
 import java.io.ByteArrayOutputStream;
@@ -26,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,6 +88,19 @@ public class BBRadio {
                 }
             };
         });
+
+    }
+
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(byte[] bytes) {
+
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
     }
 
     public interface radioEvents {
@@ -102,6 +118,7 @@ public class BBRadio {
     }
 
     public void broadcast(byte[] packet) {
+        l("Radio Sending Packet: len(" + packet.length + "), data: " + bytesToHex(packet));
         if (mListener != null) {
             mListener.sendCmdStart(5);
             mListener.sendCmdArg(packet.length);
@@ -109,6 +126,7 @@ public class BBRadio {
                 mListener.sendCmdArg((int)packet[i]);
             }
             mListener.sendCmdEnd();
+            mListener.flushWrites();
         }
     }
 
@@ -138,12 +156,16 @@ public class BBRadio {
     private boolean checkUsbDevice(UsbDevice device) {
         int vid = device.getVendorId();
         int pid = device.getProductId();
-        l("checking device pid:" + pid + ", vid: " + vid);
+        l("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
         if ((pid == 0x800B) && (vid == 0x239A)) {
+            l("Found Adafruit RADIO module");
             return true;
-        } else {
-            return false;
         }
+        if ((pid == 1155) && (vid == 5824)) {
+            l("Found Teensy RADIO module");
+            return true;
+        }
+        return false;
     }
 
     public void initUsb() {

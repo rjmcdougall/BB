@@ -200,14 +200,17 @@ public class BurnerBoard {
     }
 
     private boolean checkUsbDevice(UsbDevice device) {
+        return false;
+        /*
         int vid = device.getVendorId();
         int pid = device.getProductId();
-        l("checking device pid:" + pid + ", vid: " + vid);
+        l("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
         if ((pid == 1155) && (vid == 5824)) {
             return true;
         } else {
             return false;
         }
+        */
     }
 
     public void initUsb() {
@@ -254,7 +257,7 @@ public class BurnerBoard {
             return;
         }
 
-        if (!manager.hasPermission(mUsbDevice)) {
+        if (false && !manager.hasPermission(mUsbDevice)) {
             //ask for permission
             PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
             mContext.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));

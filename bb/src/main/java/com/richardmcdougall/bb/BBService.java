@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.hardware.usb.UsbManager;
 import android.location.Criteria;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
@@ -24,6 +25,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
@@ -101,6 +103,7 @@ public class BBService extends Service {
     public BBRadio mRadio = null;
     public BBGps mGps = null;
     public BBFindMyFriends mFindMyFriends = null;
+    public BBBluetoothLEServer mBLEServer = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -114,6 +117,8 @@ public class BBService extends Service {
 
     TextToSpeech voice;
 
+    private BBService.usbReceiver mUsbReceiver = new BBService.usbReceiver();
+
     int work = 0;
 
     public BBService() {
@@ -122,6 +127,10 @@ public class BBService extends Service {
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
+    }
+
+    public String getBoardId() {
+        return boardId;
     }
 
     /**
@@ -161,6 +170,12 @@ public class BBService extends Service {
     public void onCreate() {
 
         super.onCreate();
+
+        IntentFilter ufilter = new IntentFilter();
+        ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
+        ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
+        this.registerReceiver(mUsbReceiver, ufilter);
+
 
         PackageInfo pinfo;
         try {
@@ -393,6 +408,14 @@ public class BBService extends Service {
         if (mServerMode == true) {
             return;
         }
+
+        mBLEServer = new BBBluetoothLEServer(this, mContext);
+
+        if (mBLEServer == null) {
+            l("startBLE: null BLE object");
+            return;
+        }
+
         mRadio = new BBRadio(this, mContext);
 
         if (mRadio == null) {
@@ -407,8 +430,12 @@ public class BBService extends Service {
             return;
         }
 
-        mFindMyFriends = new BBFindMyFriends(mContext, mRadio, mGps, iotClient);
+        mFindMyFriends = new BBFindMyFriends(mContext, this, mRadio, mGps, iotClient);
 
+    }
+
+    public BBFindMyFriends getFindMyFriends() {
+        return mFindMyFriends;
     }
 
     long startElapsedTime, startClock;
@@ -1181,6 +1208,44 @@ public class BBService extends Service {
             l("GPS Status Changed");
 
         }
+    }
+
+
+
+    public static class usbReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //l("usbReceiver");
+            if (intent != null)
+            {
+                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED))
+                {
+                    Log.v(TAG, "ACTION_USB_DEVICE_ATTACHED");
+                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                    // Create a new intent and put the usb device in as an extra
+                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_ATTACHED);
+                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
+
+                    // Broadcast this event so we can receive it
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                }
+                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED))
+                {
+                    Log.v(TAG,"ACTION_USB_DEVICE_DETACHED");
+
+                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                    // Create a new intent and put the usb device in as an extra
+                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_DETACHED);
+                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
+
+                    // Broadcast this event so we can receive it
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                }
+            }
+        }
+
     }
 
 }
