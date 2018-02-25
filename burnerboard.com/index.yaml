@@ -69,3 +69,9 @@ indexes:
   properties:
   - name: profile
   - name: ordinal
+
+- kind: profile
+  properties:
+  - name: isGlobal
+  - name: name
+  - name: board

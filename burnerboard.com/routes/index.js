@@ -190,7 +190,7 @@ router.get('/allProfiles/', async function (req, res, next) {
 
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 	try {
-		var i = await DownloadDirectoryDS.listProfiles(null);
+		var i = await DownloadDirectoryDS.listProfiles(null, null);
 		res.status(200).json(i);
 	}
 	catch (err) {
@@ -202,7 +202,21 @@ router.get('/profiles/', async function (req, res, next) {
 
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 	try {
-		var i = await DownloadDirectoryDS.listGlobalProfiles();
+		var i = await DownloadDirectoryDS.listGlobalProfiles(null);
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.get('/profiles/:profileID', async function (req, res, next) {
+
+	var profileID = req.params.profileID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var i = await DownloadDirectoryDS.listGlobalProfiles(profileID);
 		res.status(200).json(i);
 	}
 	catch (err) {
@@ -216,7 +230,22 @@ router.get('/boards/:boardID/profiles', async function (req, res, next) {
 
 	DownloadDirectoryDS = require('./DownloadDirectoryDS');
 	try {
-		var i = await DownloadDirectoryDS.listProfiles(boardID);
+		var i = await DownloadDirectoryDS.listProfiles(boardID, null);
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.get('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
+
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+
+	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	try {
+		var i = await DownloadDirectoryDS.listProfiles(boardID, profileID);
 		res.status(200).json(i);
 	}
 	catch (err) {
