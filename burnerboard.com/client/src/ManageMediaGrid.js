@@ -18,8 +18,7 @@ import DeleteIcon from 'material-ui-icons/Delete';
 import PlayIcon from 'material-ui-icons/PlayCircleOutline';
 import { lighten } from 'material-ui/styles/colorManipulator';
 import Snackbar from 'material-ui/Snackbar';
-import Button from 'material-ui/Button';
-
+ 
 const columnData = [
     { id: 'localName', numeric: false, disablePadding: true, label: 'File Name' }
 ];
@@ -145,6 +144,10 @@ const styles = theme => ({
     },
     tableWrapper: {
         overflowX: 'auto',
+    },
+    table: {
+        width: '100%',
+
     },
 });
 
@@ -397,10 +400,10 @@ class ManageMediaGrid extends React.Component {
                                         selected={isSelected}
                                         disabled={this.state.currentProfileIsReadOnly}
                                     >
-                                        <TableCell onClick={event => this.handleClick(event, n.id)} padding="checkbox">
+                                       <TableCell onClick={event => this.handleClick(event, n.id)} padding="none">
                                             <Checkbox disabled={this.state.currentProfileIsReadOnly} checked={isSelected} />
                                         </TableCell>
-                                        <TableCell onClick={event => this.handleClick(event, n.id)} >{n.localName}</TableCell>
+                                        <TableCell padding="none" onClick={event => this.handleClick(event, n.id)} >{n.localName}</TableCell>
                                         <TableCell>
                                             <IconButton onClick={event => this.handlePreview(event, n.id)} dataurl={n.URL} className={classes.button}>
                                                 <PlayIcon />
