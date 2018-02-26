@@ -104,5 +104,5 @@ GROUP BY
 board_name,
 TimeBucket
 ORDER BY
-TimeBucket DESC
+TimeBucket ASC
 `

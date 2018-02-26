@@ -20,8 +20,8 @@ import Typography from 'material-ui/Typography';
 
 
 const columnData = [
-    { id: 'board', numeric: false, disablePadding: true, label: 'Board' },
-    { id: 'profile', numeric: false, disablePadding: true, label: 'Profile' },
+    { id: 'board', numeric: false,  label: 'Board' },
+    { id: 'profile', numeric: false,  label: 'Profile' },
 ];
 
 class EnhancedTableHead extends React.Component {
@@ -39,7 +39,7 @@ class EnhancedTableHead extends React.Component {
                     </TableCell>
                     {columnData.map(column => {
                         return (
-                            <TableCell 
+                            <TableCell padding="none"
                                 key={column.id}
                                 numeric={column.numeric}
                                 sortDirection={orderBy === column.id ? order : false}
@@ -71,7 +71,6 @@ EnhancedTableHead.propTypes = {
 
 const toolbarStyles = theme => ({
     root: {
-        paddingRight: theme.spacing.unit,
         width: '100%',
         overflowX: 'auto',
     },
@@ -276,11 +275,11 @@ class ProfileGrid extends React.Component {
                                         selected={isSelected}
                                         disabled={n.readOnly}
                                     >
-                                        <TableCell padding="checkbox">
+                                        <TableCell padding="none">
                                             <Checkbox disabled={n.readOnly} checked={isSelected} />
                                         </TableCell>
-                                        <TableCell >{n.board}</TableCell>
-                                        <TableCell >{n.profile}</TableCell>
+                                        <TableCell padding="none">{n.board}</TableCell>
+                                        <TableCell padding="none">{n.profile}</TableCell>
                                     </TableRow>
                                 );
                             })}
