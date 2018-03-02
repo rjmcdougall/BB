@@ -351,7 +351,7 @@ public class BBDownloadManager {
                     String dataDir = mDM.mFilesDir;
 
                     l("Downloading app index");
-                    long ddsz = DownloadURL("https://dl.dropboxusercontent.com/s/n8qa6h4y19gs0s7/DownloadApp.json?dl=0", "tmp", "Directory");
+                    long ddsz = DownloadURL("https://storage.googleapis.com/burner-board/BurnerBoardApps/DownloadApp.json", "tmp", "Directory");
                     if (ddsz < 0) {
                         l("Error ownloading app index, retrying in " + downloadTimeout + " seconds");
                         Thread.sleep(downloadTimeout * 1000);   // no internet, wait 5 seconds before we try again
