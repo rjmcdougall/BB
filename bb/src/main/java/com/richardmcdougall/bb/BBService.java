@@ -70,7 +70,12 @@ public class BBService extends Service {
     public static final String ACTION_USB_DEVICE_DETACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_DETACHED";
 
     public int GetMaxLightModes() {
+
         return dlManager.GetTotalVideo() + 10;
+    }
+    public int GetMaxAudioModes() {
+
+        return dlManager.GetTotalAudio() + 10;
     }
 
     public BBDownloadManager dlManager;
@@ -787,9 +792,18 @@ public class BBService extends Service {
 
     }
 
+    public String getRadioChannelInfo(int index) {
+        return dlManager.GetAudioFileLocalName(index - 1);
+    }
+
+    public int getRadioStream() {
+
+        l("GetRadioStream: ");
+        return currentRadioStream;
+    }
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
-    void SetRadioStream(int index) {
+    public void SetRadioStream(int index) {
         l("SetRadioStream: " + index);
         currentRadioStream = index;
         if (mServerMode == true) {
@@ -1016,10 +1030,13 @@ public class BBService extends Service {
     }
 
 
+    public int getBatteryLevel() {
+        return mBurnerBoard.getBattery();
+    }
+
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
     private long lastUnknownStatement = System.currentTimeMillis();
-
 
     private int loopCnt = 0;
 

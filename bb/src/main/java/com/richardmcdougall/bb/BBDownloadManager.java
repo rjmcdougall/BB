@@ -46,13 +46,10 @@ public class BBDownloadManager {
 
     JSONObject GetDataDirectory() { return dataDirectory; }
 
-
     interface OnDownloadProgressType {
         public void onProgress(String file, long fileSize, long bytesDownloaded);
         public void onVoiceCue(String err);
     }
-
-
 
     public OnDownloadProgressType onProgressCallback = null;
 
@@ -75,6 +72,16 @@ public class BBDownloadManager {
     String GetAudioFile(int index) {
         try {
             String fn = mFilesDir + "/" + GetAudio(index).getString("localName");
+            return fn;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    String GetAudioFileLocalName(int index) {
+        try {
+            String fn = GetAudio(index).getString("localName");
             return fn;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -199,8 +206,6 @@ public class BBDownloadManager {
                 return null;
             }
         }
-
-
 
 
         public long DownloadURL(String URLString, String filename, String progressName) {
@@ -445,7 +450,6 @@ public class BBDownloadManager {
             }
         }
     }
-
 
 }
 

@@ -170,7 +170,7 @@ public class BBBluetoothLEServer {
     };
 
     /**
-     * Send a time service notification to any devices that are subscribed
+     * Send a location service notification to any devices that are subscribed
      * to the characteristic.
      */
     private void notifyRegisteredDevices(long timestamp, byte adjustReason) {
@@ -183,7 +183,7 @@ public class BBBluetoothLEServer {
         l("Sending update to " + mRegisteredDevices.size() + " subscribers");
         for (BluetoothDevice device : mRegisteredDevices) {
             BluetoothGattCharacteristic locationCharacteristic = mBluetoothGattServer
-                    .getService(BBBluetoothProfile.BB_SERVICE)
+                    .getService(BBBluetoothProfile.BB_LOCATION_SERVICE)
                     .getCharacteristic(BBBluetoothProfile.BB_LOCATION_CHARACTERISTIC);
             locationCharacteristic.setValue(bbLocation);
             mBluetoothGattServer.notifyCharacteristicChanged(device, locationCharacteristic, false);
@@ -276,8 +276,8 @@ public class BBBluetoothLEServer {
         @Override
         public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
                                             BluetoothGattDescriptor descriptor) {
-            if (BBBluetoothProfile.BB_CONFIG.equals(descriptor.getUuid())) {
-                Log.d(TAG, "Config descriptor read");
+            if (BBBluetoothProfile.BB_AUDIO_DESCRIPTOR.equals(descriptor.getUuid())) {
+                Log.d(TAG, "Audio Config descriptor read");
                 byte[] returnValue;
                 if (mRegisteredDevices.contains(device)) {
                     returnValue = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE;
@@ -304,7 +304,7 @@ public class BBBluetoothLEServer {
                                              BluetoothGattDescriptor descriptor,
                                              boolean preparedWrite, boolean responseNeeded,
                                              int offset, byte[] value) {
-            if (BBBluetoothProfile.BB_CONFIG.equals(descriptor.getUuid())) {
+            if (BBBluetoothProfile.BB_AUDIO_DESCRIPTOR.equals(descriptor.getUuid())) {
                 if (Arrays.equals(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, value)) {
                     Log.d(TAG, "Subscribe device to notifications: " + device);
                     mRegisteredDevices.add(device);
