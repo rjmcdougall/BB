@@ -2,19 +2,17 @@ import React from 'react';
 import { withStyles } from 'material-ui/styles';
 import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
 import Paper from 'material-ui/Paper';
-import Typography from 'material-ui/Typography';
+import { Charts, BarChart, Resizable, ChartContainer, ChartRow, YAxis} from "react-timeseries-charts";
+import { TimeSeries, Index } from "pondjs";
 
 const styles = theme => ({
     root: {
         width: '100%',
         marginTop: 0,
-    },
-    tableWrapper: {
         overflowX: 'auto',
     },
-    menuButton: {
-        marginLeft: -12,
-        marginRight: 20,
+    table: {
+        width: '100%',
     },
 });
 
@@ -31,9 +29,11 @@ class BatteryHistoryGrid extends React.Component {
                     TimeBucket: "loading..."
                 }
             ],
+            timeSeriesData: [
+                ["2017-01-24 00:00", 50],
+            ],
             currentBoard: props.currentBoard,
         };
-
         this.loadBoardData = this.loadBoardData.bind(this);
 
     }
@@ -52,21 +52,48 @@ class BatteryHistoryGrid extends React.Component {
             }
         })
             .then(response => response.json())
-            .then(data => this.setState({
-                boardData: data.map(item => ({
-                    board_name: `${item.board_name}`,
-                    BatteryLevel: `${item.BatteryLevel}`,
-                    TimeBucket: `${item.TimeBucket}`,
-                }))
-            }))
-            .catch(error => this.setState({ error }));
+            .then(data => {
+
+                if (data.length > 0) {
+                    this.setState({
+                        boardData: data.map(item => ({
+                            board_name: `${item.board_name}`,
+                            BatteryLevel: `${item.BatteryLevel}`,
+                            TimeBucket: `${item.TimeBucket}`,
+                        })),
+                        timeSeriesData: data.map(item => {
+                            var BatteryLevel = item.BatteryLevel;
+                            if (BatteryLevel < 0)
+                                BatteryLevel = 0;
+                            return [new Date(item.TimeBucket),
+                                BatteryLevel]
+                        })
+                    });
+                }
+                else {
+                    this.setState({
+                        boardData: data.map(item => ({
+                            board_name: `${item.board_name}`,
+                            BatteryLevel: `${item.BatteryLevel}`,
+                            TimeBucket: `${item.TimeBucket}`,
+                        })),
+                        timeSeriesData: [
+                            ["2017-01-24 00:00", 0],
+                        ],
+                    });
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                this.setState({ error })
+            });
 
     }
     componentDidMount() {
         this.loadBoardData();
     }
 
-    componentWillReceiveProps(nextProps){
+    componentWillReceiveProps(nextProps) {
         this.setState({
             currentBoard: nextProps.currentBoard,
         }, this.loadBoardData);
@@ -75,34 +102,82 @@ class BatteryHistoryGrid extends React.Component {
     render() {
         const { classes } = this.props;
 
+        var timeSeriesData = this.state.timeSeriesData.map(([d, value]) => [
+            Index.getIndexString("15m", new Date(d)),
+            value
+        ])
+
+        console.log("time series: " + JSON.stringify(timeSeriesData));
+
+        const series = new TimeSeries({
+            name: "hilo_rainfall",
+            columns: ["index", "precip"],
+            points: timeSeriesData,
+        });
+
+        console.log("time series: " + JSON.stringify(series));
+
         return (
-            <Paper className={classes.root}>
-                <Table className={classes.table}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>
-                                <Typography type="title">Battery History</Typography>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Name</TableCell>
-                            <TableCell>Battery Level</TableCell>
-                            <TableCell>Time Bucket</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {this.state.boardData.map(item => {
-                            return (
-                                <TableRow key={item.board_name + "-" + item.TimeBucket}>
-                                    <TableCell>{item.board_name}</TableCell>
-                                    <TableCell>{item.BatteryLevel}</TableCell>
-                                    <TableCell>{item.TimeBucket}</TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
-            </Paper>
+            <div>
+                <div>
+                    {/* <div className="row">
+                    <div className="col-md-12">
+                        <b>BarChart</b>
+                    </div>
+                </div> */}
+                    <hr />
+                    <div className="row">
+                        <div className="col-md-12">
+                            <Resizable>
+                                <ChartContainer timeRange={series.range()} >
+                                    <ChartRow height="150">
+                                        <YAxis
+                                            id="rain"
+                                            label="Battery"
+                                            min={0}
+                                            max={100}
+                                            // format=".2f"
+                                            width="70"
+                                            type="linear"
+                                        />
+                                        <Charts>
+                                            <BarChart
+                                                axis="rain"
+                                                //   style={style}
+                                                spacing={1}
+                                                columns={["precip"]}
+                                                series={series}
+                                            />
+                                        </Charts>
+                                    </ChartRow>
+                                </ChartContainer>
+                            </Resizable>
+                        </div>
+                    </div>
+                </div>
+                <Paper className={classes.root}>
+                    <Table className={classes.table}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell padding="dense">Battery Level</TableCell>
+                                <TableCell padding="dense">Time Bucket</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {this.state.boardData.map(item => {
+                                return (
+                                    <TableRow key={item.board_name.trim() + "-" + item.TimeBucket.trim()}>
+
+                                        <TableCell padding="dense">{item.BatteryLevel}</TableCell>
+                                        <TableCell padding="dense">{item.TimeBucket.trim()}</TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </Paper>
+
+            </div>
         );
     }
 }

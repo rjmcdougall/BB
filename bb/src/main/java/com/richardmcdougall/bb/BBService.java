@@ -71,11 +71,12 @@ public class BBService extends Service {
 
     public int GetMaxLightModes() {
 
-        return dlManager.GetTotalVideo() + 10;
+        return dlManager.GetTotalVideo();
     }
+
     public int GetMaxAudioModes() {
 
-        return dlManager.GetTotalAudio() + 10;
+        return dlManager.GetTotalAudio();
     }
 
     public BBDownloadManager dlManager;

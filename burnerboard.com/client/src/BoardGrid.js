@@ -2,8 +2,7 @@ import React from 'react';
 import { withStyles } from 'material-ui/styles';
 import Table, { TableBody, TableCell, TableHead, TableRow } from 'material-ui/Table';
 import Paper from 'material-ui/Paper';
-import Typography from 'material-ui/Typography';
-
+ 
 const styles = theme => ({
     root: {
         width: '100%',
@@ -16,6 +15,7 @@ const styles = theme => ({
         marginLeft: 0,
         marginRight: 50,
     }, 
+ 
 });
 
 class BoardGrid extends React.Component {
@@ -62,29 +62,45 @@ class BoardGrid extends React.Component {
     render() {
         const { classes } = this.props;
 
+        var formatAMPM = date => { // This is to display 12 hour format like you asked
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            var strTime = hours + ':' + minutes + ' ' + ampm;
+            return strTime;
+          }
+           
+        var displayDate = dateString => {
+            if(dateString === "loading...")
+                return "loading..."
+            else {
+                var myDate = new Date(dateString)
+                return (myDate.getMonth() + 1) + '/' + myDate.getDate()+ '/' + myDate.getFullYear()+ ' ' + formatAMPM(myDate);   
+            }   
+        }
+ 
         return (
             <Paper className={classes.root}>
                 <Table className={classes.table}>
                     <TableHead>
-                        <TableRow><TableCell>
-                            <Typography type="title">Status</Typography>
-                        </TableCell>
-                        <TableCell /><TableCell /><TableCell /></TableRow>
-                        <TableRow>
-                            <TableCell padding="dense">Name</TableCell>
-                            <TableCell padding="dense">Last Seen</TableCell>
-                            <TableCell padding="dense">Is Online</TableCell>
-                            <TableCell padding="dense">Battery Level</TableCell>
+                         <TableRow>
+                            <TableCell padding="none">&nbsp;&nbsp;&nbsp;Name</TableCell>
+                            <TableCell padding="none">Last Seen</TableCell>
+                            <TableCell padding="none">Is Online</TableCell>
+                            <TableCell padding="none">Battery Level</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {this.state.boardData.map(item => {
                             return (
                                 <TableRow key={item.board_name}>
-                                    <TableCell padding="dense">{item.board_name}</TableCell>
-                                    <TableCell padding="dense">{item.last_seen}</TableCell>
-                                    <TableCell padding="dense">{item.is_online}</TableCell>
-                                    <TableCell padding="dense">{item.battery_level}</TableCell>
+                                    <TableCell padding="none">&nbsp;&nbsp;&nbsp;{item.board_name.trim()}</TableCell>
+                                    <TableCell padding="none">{displayDate(item.last_seen)}</TableCell>
+                                    <TableCell padding="none">{item.is_online}</TableCell>
+                                    <TableCell padding="none"> <meter min="0" max="100" low="25" high="75" optimum="100" value={item.battery_level}></meter> {item.battery_level}</TableCell>
                                 </TableRow>
                             );
                         })}

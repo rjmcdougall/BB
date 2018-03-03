@@ -202,19 +202,29 @@ exports.listBoards = async function (boardID) {
   });
 }
 
-exports.listProfiles = async function (boardID) {
+exports.listProfiles = async function (boardID, profileID) {
   return new Promise((resolve, reject) => {
 
     var profiles;
 
     if (boardID == null)
-      profiles = datastore.createQuery('profile')
-        .order("board")
-        .order("name")
+      if(profileID == null)
+        profiles = datastore.createQuery('profile')
+          .order("board")
+          .order("name")
+      else
+        profiles = datastore.createQuery('profile')
+          .filter("name", "=", profileID)
+          .order("board")
     else
-      profiles = datastore.createQuery('profile')
-        .filter("board", "=", boardID)
-        .order("name")
+      if(profileID == null)
+        profiles = datastore.createQuery('profile')
+          .filter("board", "=", boardID)
+          .order("name")
+      else
+        profiles = datastore.createQuery('profile')
+          .filter("board", "=", boardID)
+          .filter("name", "=", profileID)
 
     datastore
       .runQuery(profiles)
@@ -230,15 +240,21 @@ exports.listProfiles = async function (boardID) {
   });
 }
 
-exports.listGlobalProfiles = async function () {
+exports.listGlobalProfiles = async function (profileID) {
   return new Promise((resolve, reject) => {
 
     var profiles;
 
-    profiles = datastore.createQuery('profile')
-      .filter("isGlobal", "=", true)
-      .order("board")
-      .order("name")
+    if(profileID == null)
+      profiles = datastore.createQuery('profile')
+        .filter("isGlobal", "=", true)
+        .order("board")
+        .order("name");
+    else
+      profiles = datastore.createQuery('profile')
+        .filter("isGlobal", "=", true)
+        .filter("name","=",profileID)
+        .order("board");    
 
     datastore
       .runQuery(profiles)
