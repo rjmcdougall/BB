@@ -30,7 +30,7 @@ class BatteryHistoryGrid extends React.Component {
                 }
             ],
             timeSeriesData: [
-                ["2017-01-24 00:00", 50],
+                ["Sat Mar 03 2018 13:15:00", 50],
             ],
             currentBoard: props.currentBoard,
         };
@@ -100,85 +100,94 @@ class BatteryHistoryGrid extends React.Component {
     }
 
     render() {
-        const { classes } = this.props;
 
-        var timeSeriesData = this.state.timeSeriesData.map(([d, value]) => [
-            Index.getIndexString("15m", new Date(d)),
-            value
-        ])
+        try {
+            const { classes } = this.props;
 
-        console.log("time series: " + JSON.stringify(timeSeriesData));
+            console.log("time series loaded from DB: " + this.state.timeSeriesData);
 
-        const series = new TimeSeries({
-            name: "hilo_rainfall",
-            columns: ["index", "precip"],
-            points: timeSeriesData,
-        });
-
-        console.log("time series: " + JSON.stringify(series));
-
-        return (
-            <div>
+            var timeSeriesData = this.state.timeSeriesData.map(([d, value]) => [
+                Index.getIndexString("15m", new Date(d)),
+                value
+            ])
+    
+            console.log("time series mapped : " + JSON.stringify(timeSeriesData));
+    
+            const series = new TimeSeries({
+                name: "hilo_rainfall",
+                columns: ["index", "precip"],
+                points: timeSeriesData,
+            });
+    
+            console.log("time series object: " + JSON.stringify(series));
+    
+            return (
                 <div>
-                    {/* <div className="row">
-                    <div className="col-md-12">
-                        <b>BarChart</b>
-                    </div>
-                </div> */}
-                    <hr />
-                    <div className="row">
+                    <div>
+                        {/* <div className="row">
                         <div className="col-md-12">
-                            <Resizable>
-                                <ChartContainer timeRange={series.range()} >
-                                    <ChartRow height="150">
-                                        <YAxis
-                                            id="rain"
-                                            label="Battery"
-                                            min={0}
-                                            max={100}
-                                            // format=".2f"
-                                            width="70"
-                                            type="linear"
-                                        />
-                                        <Charts>
-                                            <BarChart
-                                                axis="rain"
-                                                //   style={style}
-                                                spacing={1}
-                                                columns={["precip"]}
-                                                series={series}
+                            <b>BarChart</b>
+                        </div>
+                    </div> */}
+                        <hr />
+                        <div className="row">
+                            <div className="col-md-12">
+                                <Resizable>
+                                    <ChartContainer timeRange={series.range()} >
+                                        <ChartRow height="150">
+                                            <YAxis
+                                                id="rain"
+                                                label="Battery"
+                                                min={0}
+                                                max={100}
+                                                // format=".2f"
+                                                width="70"
+                                                type="linear"
                                             />
-                                        </Charts>
-                                    </ChartRow>
-                                </ChartContainer>
-                            </Resizable>
+                                            <Charts>
+                                                <BarChart
+                                                    axis="rain"
+                                                    //   style={style}
+                                                    spacing={1}
+                                                    columns={["precip"]}
+                                                    series={series}
+                                                />
+                                            </Charts>
+                                        </ChartRow>
+                                    </ChartContainer>
+                                </Resizable>
+                            </div>
                         </div>
                     </div>
+                    <Paper className={classes.root}>
+                        <Table className={classes.table}>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell padding="dense">Battery Level</TableCell>
+                                    <TableCell padding="dense">Time Bucket</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {this.state.boardData.map(item => {
+                                    return (
+                                        <TableRow key={item.board_name.trim() + "-" + item.TimeBucket.trim()}>
+    
+                                            <TableCell padding="dense">{item.BatteryLevel}</TableCell>
+                                            <TableCell padding="dense">{item.TimeBucket.trim()}</TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </Paper>
+    
                 </div>
-                <Paper className={classes.root}>
-                    <Table className={classes.table}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell padding="dense">Battery Level</TableCell>
-                                <TableCell padding="dense">Time Bucket</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {this.state.boardData.map(item => {
-                                return (
-                                    <TableRow key={item.board_name.trim() + "-" + item.TimeBucket.trim()}>
-
-                                        <TableCell padding="dense">{item.BatteryLevel}</TableCell>
-                                        <TableCell padding="dense">{item.TimeBucket.trim()}</TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </Paper>
-
-            </div>
-        );
+            );
+        }
+        catch(error) {
+            console.log(error);
+        }
+ 
     }
 }
 
