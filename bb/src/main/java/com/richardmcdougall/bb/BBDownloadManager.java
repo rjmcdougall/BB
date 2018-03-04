@@ -148,6 +148,21 @@ public class BBDownloadManager {
             return null;
     }
 
+    String GetAlgorithm(int index) {
+        if (dataDirectory==null)
+            return null;
+        if (dataDirectory.has("video")) {
+            try {
+                return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        else
+            return null;
+    }
+
     JSONObject GetAudio(int index) {
         if (dataDirectory==null)
             return null;

@@ -778,7 +778,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     }
 
-    public void onSetupUsb(View v) {
+    public void OnSetupUsb(View v) {
 
         l("MainActivity: initUsb()");
 

@@ -200,8 +200,7 @@ public class BurnerBoard {
     }
 
     private boolean checkUsbDevice(UsbDevice device) {
-        return false;
-        /*
+
         int vid = device.getVendorId();
         int pid = device.getProductId();
         l("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
@@ -210,7 +209,7 @@ public class BurnerBoard {
         } else {
             return false;
         }
-        */
+
     }
 
     public void initUsb() {
@@ -257,11 +256,14 @@ public class BurnerBoard {
             return;
         }
 
-        if (false && !manager.hasPermission(mUsbDevice)) {
+        if (!manager.hasPermission(mUsbDevice)) {
             //ask for permission
+
             PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
             mContext.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
-            manager.requestPermission(mUsbDevice, pi);
+            //manager.requestPermission(mUsbDevice, pi);
+            //return;
+
             l("USB: No Permission");
             updateUsbStatus(("No USB Permission"));
             return;
@@ -290,7 +292,7 @@ public class BurnerBoard {
         }
 
         updateUsbStatus(("Connected to BB"));
-        sendLogMsg("USB: Connected");
+        l("USB: Connected");
         startIoManager();
     }
 
@@ -351,11 +353,11 @@ public class BurnerBoard {
                 start();
 
                 updateUsbStatus(("Connected to ") + boardId);
-                sendLogMsg("USB Connected to " + boardId);
+                l("USB Connected to " + boardId);
                 // Perf Tests thare are useful during debugging
                 //setMode(50);
-                //testTeensy();
-                //testPerf();
+                testTeensy();
+                testPerf();
             }
         }
     }

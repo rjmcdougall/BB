@@ -161,10 +161,12 @@ public class BBRadio {
             l("Found Adafruit RADIO module");
             return true;
         }
+        /*
         if ((pid == 1155) && (vid == 5824)) {
             l("Found Teensy RADIO module");
             return true;
         }
+        */
         return false;
     }
 
@@ -210,10 +212,12 @@ public class BBRadio {
 
         if (!mUsbManager.hasPermission(mUsbDevice)) {
             //ask for permission
+            /*
             PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
             mContext.registerReceiver(new BBRadio.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
             mUsbManager.requestPermission(mUsbDevice, pi);
             l("USB: No Permission");
+            */
             return;
         } else {
             usbConnect(mUsbDevice);
