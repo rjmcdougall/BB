@@ -20,7 +20,7 @@ class App extends Component {
  
     if (response.error != null && response.error !== ""){
 
-      this.setState({ buttonText: "Error: " + response.error + " Please try again." });
+      this.setState({ buttonText: "Error: " + response.error + " " + response.details +  " Please try again." });
   }
     else {
 
@@ -54,6 +54,8 @@ class App extends Component {
 
             window.sessionStorage.setItem("JWT", id_token)
             console.log("JWT stored in sessionStorage: " + id_token);
+            console.log(window.sessionStorage.getItem("JWT"));
+            
 
             app.setState({
               JWT: window.sessionStorage.JWT,
