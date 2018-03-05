@@ -19,6 +19,11 @@
 		 	"URL" : "https://dl.dropboxusercontent.com/s/u81tbhhff6u0d7x/bb-26.apk?dl=0",
 		    	"localName" :"bb-26.apk",
   		  	"Version" : 26
+		},
+		{
+		 	"URL" : "https://dl.dropboxusercontent.com/s/u81tbhhff6u0d7x/bb-26.apk?dl=0",
+		    	"localName" :"bb-30.apk",
+  		  	"Version" : 30
 		}
 	]
 }

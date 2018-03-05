@@ -239,7 +239,7 @@ public class Installer extends Service {
                         }
                     }
                 } else if (mUpgradeToVersion > 0){
-                    if (mUpgradeToVersion != currentBBVersion) {
+                    if (mUpgradeToVersion > currentBBVersion) {
                         l("IoT says upgrade to version " + mUpgradeToVersion);
                         String apkFile = null;
                         int thisBFileId = 0;

@@ -209,8 +209,10 @@ public class BBDownloadManager {
             try {
                 URL url = new URL(URLString);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("User-Agent","Mozilla/5.0 ( compatible ) ");
+                urlConnection.setRequestProperty("Accept","*/*");
                 urlConnection.setRequestMethod("GET");
-                urlConnection.setDoOutput(true);
+                //urlConnection.setDoOutput(true);
                 urlConnection.connect();
 
                 File file = new File(mDM.mFilesDir, filename);
@@ -274,6 +276,34 @@ public class BBDownloadManager {
                 e.printStackTrace();
                 return -1;
             }
+        }
+
+        public long GetURLFileSizeFromGCS(String URLString) {
+
+            Log.d(TAG, "Getting Length via Google REST Size API: " + URLString);
+
+            try {
+                StringBuilder result = new StringBuilder();
+                URL url = new URL(URLString);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        urlConnection.getInputStream()));
+                String inputLine;
+                while ((inputLine = in.readLine()) != null)
+                    result.append(inputLine);
+                in.close();
+
+                JSONObject jsonObj = new JSONObject(result.toString());
+                if (jsonObj.has("size"))
+                    return jsonObj.getLong("size");
+                else
+                    return -1;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return -1;
+
         }
 
         public void CleanupOldFiles() {
@@ -399,8 +429,9 @@ public class BBDownloadManager {
                                     }
                                 } else {
                                     if (dstFile.exists()) {
-                                        long remoteSz = GetURLFileSize(url);
+                                        long remoteSz = GetURLFileSizeFromGCS(url);
                                         long curSze = dstFile.length();
+                                        l("Checking Downloaded file: " + localName + " remote URL size " + remoteSz + " == " + dstFile.length());
 
                                         if (dstFile.length() == remoteSz) {
                                             upTodate = true;
