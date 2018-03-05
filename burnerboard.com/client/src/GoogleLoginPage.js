@@ -12,12 +12,15 @@ class GoogleLoginPage extends Component {
         }
         this.responseGoogle = this.props.responseGoogle.bind(this);
 
+        console.log("Clear the JWT from SessionStorage.")
+        window.sessionStorage.removeItem("JWT");
     }
 
     componentWillReceiveProps(nextProps) {
         this.setState({
             buttonText: nextProps.buttonText,
         });
+
     }
 
     render() {

@@ -6,6 +6,7 @@ import Toolbar from 'material-ui/Toolbar';
 import Typography from 'material-ui/Typography';
 import IconButton from 'material-ui/IconButton';
 import MenuIcon from 'material-ui-icons/Menu';
+import HelpIcon from 'material-ui-icons/Help';
 import CheckCircle from 'material-ui-icons/CheckCircle';
 import MenuGlobal from 'material-ui-icons/Language';
 import Drawer from 'material-ui/Drawer';
@@ -76,6 +77,11 @@ class GlobalMenu extends React.Component {
         });
     };
 
+    handleInstructions = event => {
+        // eslint-disable-next-line no-console
+        console.log(event.currentTarget.getAttribute('dataurl'));
+        window.open(event.currentTarget.getAttribute('dataurl'));
+    }
 
     componentDidMount() {
 
@@ -236,14 +242,15 @@ class GlobalMenu extends React.Component {
                         <Typography color="inherit" className={classes.flex}>
                             {this.state.currentBoard} {this.state.currentProfile !== "Select Profile" ? " - " + renderProfileTitle() : ""}
                         </Typography>
-
                         <IconButton onClick={this.toggleGlobalDrawer(true)} className={classes.menuButtonRight} color="inherit" aria-label="Global" >
                             <MenuGlobal />
                         </IconButton>
-
+                        <IconButton onClick={event => this.handleInstructions(event)} dataurl={"https://docs.google.com/document/d/1rbPOly_-OwgPFjdC9Gr13xeY-RzDLHVyPivl0Hv7Ss4/edit?usp=sharing"}  className={classes.menuButtonRight} color="inherit" aria-label="Help">
+                            <HelpIcon />
+                        </IconButton>
                     </Toolbar>
                 </AppBar>
-                <Drawer open={this.state.drawerIsOpen} onClose={this.toggleDrawer(false)}>
+                <Drawer open={this.state.drawerIsOpen} onClose={this.toggleDrawer(false)} >
                     <div
                         tabIndex={0}
                         role="button"
