@@ -36,6 +36,8 @@ public class BBDownloadManager {
     protected JSONObject dataDirectory;
     int mVersion;
     Thread bThread = null;
+    String mLastDirectoryMd5 = "";
+
 
     public static void l(String s) {
         Log.v(TAG, s);
@@ -169,6 +171,7 @@ public class BBDownloadManager {
     private static class BackgroundThread implements Runnable {
 
         BBDownloadManager mDM;
+
 
         private BackgroundThread(BBDownloadManager dm) {
             mDM = dm;
@@ -306,6 +309,34 @@ public class BBDownloadManager {
 
         }
 
+        public String GetURLMD5FromGCS(String URLString) {
+
+            Log.d(TAG, "Getting MD5 via Google REST Size API: " + URLString);
+
+            try {
+                StringBuilder result = new StringBuilder();
+                URL url = new URL(URLString);
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        urlConnection.getInputStream()));
+                String inputLine;
+                while ((inputLine = in.readLine()) != null)
+                    result.append(inputLine);
+                in.close();
+
+                JSONObject jsonObj = new JSONObject(result.toString());
+                if (jsonObj.has("md5Hash"))
+                    return jsonObj.getString("md5Hash");
+                else
+                    return "";
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return "";
+
+        }
+
         public void CleanupOldFiles() {
             try {
                 ArrayList<String> refrerencedFiles = new ArrayList<String>();
@@ -370,6 +401,7 @@ public class BBDownloadManager {
 
             int downloadTimeout = 1;
 
+
             LoadInitialDataDirectory();  // get started rught away using the data we have on the board already (if any)
 
             // keep trying to connect to the Internet to look for updates until we are able to connect
@@ -379,6 +411,16 @@ public class BBDownloadManager {
                 while (!downloadSuccess) {
 
                     String dataDir = mDM.mFilesDir;
+
+                    // Check if the directory has changed
+                    String currentMD5 = GetURLMD5FromGCS("https://www.googleapis.com/storage/v1/b/burner-board/o/BurnerBoardApps%2FDownloadApp.json");
+                    l("current md5 " + currentMD5 + " == " + mDM.mLastDirectoryMd5 + "?");
+                    if (currentMD5.equals(mDM.mLastDirectoryMd5)) {
+                        l("No Download directory changes");
+                        downloadSuccess = true;
+                        continue;
+                    }
+                    mDM.mLastDirectoryMd5 = currentMD5;
 
                     l("Downloading app index");
                     long ddsz = DownloadURL("https://storage.googleapis.com/burner-board/BurnerBoardApps/DownloadApp.json", "tmp", "Directory");
@@ -429,7 +471,7 @@ public class BBDownloadManager {
                                     }
                                 } else {
                                     if (dstFile.exists()) {
-                                        long remoteSz = GetURLFileSizeFromGCS(url);
+                                        long remoteSz = GetURLFileSize(url);
                                         long curSze = dstFile.length();
                                         l("Checking Downloaded file: " + localName + " remote URL size " + remoteSz + " == " + dstFile.length());
 
