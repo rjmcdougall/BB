@@ -1,3 +1,11 @@
 .idea/libraries/*
 .idea/*
-
+.gradle/4.1/*
+.gradle/buildOutputCleanup/*
+build/android-profile/*
+build/intermediates/*
+.idea/libraries/*
+bb/bb.iml
+bbandroid/bbandroid.iml
+bbinstaller/bbinstaller.iml
+local.properties
