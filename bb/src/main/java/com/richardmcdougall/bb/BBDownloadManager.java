@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.net.URLEncoder;
 
+
 import static android.R.attr.path;
 import static android.content.ContentValues.TAG;
 
@@ -361,114 +362,124 @@ public class BBDownloadManager {
 
         @Override
         public void run() {
+
             LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
             // keep trying to connect to the Internet to look for updates until we are able to connect
             try {
-                boolean downloadSuccess = false;
 
-                while (!downloadSuccess) {
+                while(true) {
 
-                    String dataDir = mDM.mFilesDir;
+                    boolean downloadSuccess = false;
 
-                    String DirectoryURL =
-                            "https://burnerboard.com/boards/" +
-                                    mBoardId +  "/DownloadDirectoryJSON";
+                    while (!downloadSuccess) {
 
-                    Log.d(TAG, "Reading Directory from " + DirectoryURL);
+                        String dataDir = mDM.mFilesDir;
 
-                    long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
+                        String DirectoryURL =
+                                "https://burnerboard.com/boards/" +
+                                        URLEncoder.encode(mBoardId, "UTF-8").replaceAll("\\+", "%20") + "/DownloadDirectoryJSON";
 
-                    if (ddsz < 0) {
-                        Log.d(TAG, "Sleeping for 5 seconds. ");
-                        Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
-                    } else {
-                        new File(dataDir, "tmp").renameTo(new File(dataDir,
-                                "directory.json.tmp"));
+                        Log.d(TAG, "Reading Directory from " + DirectoryURL);
 
-                        String dirTxt = LoadTextFile("directory.json.tmp");
-                        JSONObject dir = new JSONObject(dirTxt);
+                        long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
 
-                        int tFiles = 0;
 
-                        String[] dTypes = new String[]{"audio", "video"};
-                        String[] extTypes = new String[]{"mp3", "mp4"};
-                        for (int i = 0; i < dTypes.length; i++) {
-                            JSONArray tList = dir.getJSONArray(dTypes[i]);
-                            for (int j = 0; j < tList.length(); j++) {
-                                long appVersion = 0;
-                                JSONObject elm = tList.getJSONObject(j);
+                        if (ddsz < 0) {
+                            Log.d(TAG, "Sleeping for 5 seconds. ");
+                            Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
+                        } else {
+                            new File(dataDir, "tmp").renameTo(new File(dataDir,
+                                    "directory.json.tmp"));
 
-                                // if there is no URL, it is an algorithm and should be skipped for download.
-                                if(elm.has("URL")) {
+                            String dirTxt = LoadTextFile("directory.json.tmp");
+                            JSONObject dir = new JSONObject(dirTxt);
 
-                                    String localName;
-                                    if (elm.has("localName"))
-                                        localName = elm.getString("localName");
-                                    else
-                                        localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
+                                int tFiles = 0;
 
-                                    String url = elm.getString("URL");
-                                    // Spaces were breaking the download
-                                    String[] urlArray = url.split("/");
-                                    urlArray[urlArray.length-1] = URLEncoder.encode(urlArray[urlArray.length-1], "UTF-8").replaceAll("\\+", "%20");
-                                    urlArray[urlArray.length-2] = URLEncoder.encode(urlArray[urlArray.length-2], "UTF-8").replaceAll("\\+", "%20");
-                                    url = TextUtils.join("/", urlArray);
+                                String[] dTypes = new String[]{"audio", "video"};
+                                String[] extTypes = new String[]{"mp3", "mp4"};
+                                for (int i = 0; i < dTypes.length; i++) {
+                                    JSONArray tList = dir.getJSONArray(dTypes[i]);
+                                    for (int j = 0; j < tList.length(); j++) {
+                                       // long appVersion = 0;
+                                        JSONObject elm = tList.getJSONObject(j);
 
-                                    Boolean upTodate = false;
-                                    File dstFile = new File(dataDir, localName);
-                                    if (elm.has("Size")) {
-                                        long sz = elm.getLong("Size");
+                                        // if there is no URL, it is an algorithm and should be skipped for download.
+                                        if (elm.has("URL")) {
 
-                                        if (dstFile.exists()) {
-                                            if (dstFile.length() == sz) {
-                                                upTodate = true;
-                                            }
-                                        }
-                                    } else {
-                                        if (dstFile.exists()) {
-                                            long remoteSz = GetURLFileSize(url);
+                                            String localName;
+                                            if (elm.has("localName"))
+                                                localName = elm.getString("localName");
+                                            else
+                                                localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
 
-                                            if (dstFile.length() == remoteSz) {
-                                                upTodate = true;
-                                            }
-                                        }
-                                    }
+                                            String url = elm.getString("URL");
+                                            // Spaces were breaking the download
+                                            String[] urlArray = url.split("/");
+                                            urlArray[urlArray.length - 1] = URLEncoder.encode(urlArray[urlArray.length - 1], "UTF-8").replaceAll("\\+", "%20");
+                                            urlArray[urlArray.length - 2] = URLEncoder.encode(urlArray[urlArray.length - 2], "UTF-8").replaceAll("\\+", "%20");
+                                            urlArray[urlArray.length - 3] = URLEncoder.encode(urlArray[urlArray.length - 3], "UTF-8").replaceAll("\\+", "%20");
+                                            url = TextUtils.join("/", urlArray);
 
-                                    if (mIsServer) {
-                                        //downloadSuccess = true;
-                                    } else {
-                                        File dstFile2;
-                                        if (!upTodate) {
-                                            DownloadURL(url, "tmp", localName);   // download to a "tmp" file
-                                            tFiles++;
-                                            if (appVersion == 0) { // .tmp files for all media except app packages
-                                                dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
+                                            Boolean upTodate = false;
+                                            File dstFile = new File(dataDir, localName);
+                                            if (elm.has("Size")) {
+                                                long sz = elm.getLong("Size");
+
+                                                if (dstFile.exists()) {
+                                                    if (dstFile.length() == sz) {
+                                                        upTodate = true;
+                                                    }
+                                                }
                                             } else {
-                                                dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
-                                            }
-                                            if (dstFile2.exists())
-                                                dstFile2.delete();
-                                            new File(dataDir, "tmp").renameTo(dstFile2);
+                                                if (dstFile.exists()) {
+                                                    long remoteSz = GetURLFileSize(url);
 
+                                                    if (dstFile.length() == remoteSz) {
+                                                        upTodate = true;
+                                                    }
+                                                }
+                                            }
+
+                                            if (mIsServer) {
+                                                //downloadSuccess = true;
+                                            } else {
+                                                File dstFile2;
+                                                if (!upTodate) {
+                                                    DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+                                                    tFiles++;
+                                                    dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
+
+                                                    if (dstFile2.exists())
+                                                        dstFile2.delete();
+                                                    new File(dataDir, "tmp").renameTo(dstFile2);
+
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                                mDM.dataDirectory = dir;
 
-
+                                if (mDM.onProgressCallback != null) {
+                                    if (tFiles != 0)  {
+                                        new File(dataDir, "directory.json.tmp").renameTo(new File(dataDir,
+                                                "directory.json"));
+                                        mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
+                                        mDM.onProgressCallback.onVoiceCue("Media Ready");
+                                        Log.d(TAG, "Finished downloading " + String.valueOf(tFiles) + " files");
+                                    }
+                                }
                             }
-                        }
-                        mDM.dataDirectory = dir;
 
-                        if (mDM.onProgressCallback != null) {
-                            if (tFiles == 0)
-                                mDM.onProgressCallback.onVoiceCue("Media ready");
-                            else
-                                mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
-                        }
-                        downloadSuccess = true;
 
-                    }
+                            downloadSuccess = true;
+
+                        }
+
+
+                    Thread.sleep(120000);
                 }
 
             } catch (Throwable th) {
