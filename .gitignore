@@ -9,3 +9,5 @@ bb/bb.iml
 bbandroid/bbandroid.iml
 bbinstaller/bbinstaller.iml
 local.properties
+.idea/misc.xml
+.idea/modules.xml
