@@ -271,8 +271,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                     case 1:
                         long seekErr = intent.getLongExtra("seekErr", 0);
                         syncAdjust.setText(String.format("%1$d", seekErr));
-                        int currentRadioStream = intent.getIntExtra("currentRadioStream", 0);
-                        syncTrack.setText(String.format("%1$d", currentRadioStream));
+                        int currentRadioChannel = intent.getIntExtra("currentRadioChannel", 0);
+                        syncTrack.setText(String.format("%1$d", currentRadioChannel));
                         int userTimeOffset = intent.getIntExtra("userTimeOffset", 0);
                         syncUsroff.setText(String.format("%1$d", userTimeOffset));
                         long serverTimeOffset = intent.getLongExtra("serverTimeOffset", 0);

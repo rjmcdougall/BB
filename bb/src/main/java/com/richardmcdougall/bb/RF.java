@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,17 +17,8 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 
-import net.sf.marineapi.nmea.io.ExceptionListener;
-import net.sf.marineapi.nmea.io.SentenceReader;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,10 +35,10 @@ PID: 800B
 SN: 0000000A0026
  */
 
-public class BBRadio {
+public class RF {
 
     public Context mContext = null;
-    public BBRadio.radioEvents radioCallback = null;
+    public RF.radioEvents radioCallback = null;
     public CmdMessenger mListener = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -58,13 +48,13 @@ public class BBRadio {
     private UsbDevice mUsbDevice = null;
     private UsbManager mUsbManager = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
-    private static final String TAG = "BB.BBRadio";
+    private static final String TAG = "BB.RF";
     public BBService mBBService = null;
-    public BBGps mGps = null;
-    public BBRadio.radioEvents mRadioCallback = null;
+    public Gps mGps = null;
+    public RF.radioEvents mRadioCallback = null;
 
 
-    public BBRadio(BBService service, Context context) {
+    public RF(BBService service, Context context) {
         mBBService = service;
         mContext = context;
         // Register to receive attach/detached messages that are proxied from MainActivity
@@ -73,8 +63,8 @@ public class BBRadio {
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);
         initUsb();
-        mGps = new BBGps(mContext);
-        mGps.attach( new BBGps.GpsEvents() {
+        mGps = new Gps(mContext);
+        mGps.attach( new Gps.GpsEvents() {
             public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
                 l("Radio Time: " + time.toString());
                 if (mRadioCallback != null) {
@@ -113,7 +103,7 @@ public class BBRadio {
         mRadioCallback = newfunction;
     }
 
-    public BBGps getGps() {
+    public Gps getGps() {
         return mGps;
     }
 
@@ -146,7 +136,7 @@ public class BBRadio {
 
 
     private void onDeviceStateChange() {
-        l("BBRadio: onDeviceStateChange()");
+        l("RF: onDeviceStateChange()");
         stopIoManager();
         if (sPort != null) {
             startIoManager();
@@ -171,7 +161,7 @@ public class BBRadio {
     }
 
     public void initUsb() {
-        l("BBRadio: initUsb()");
+        l("RF: initUsb()");
 
         if (mUsbDevice != null) {
             l("initUsb: already have a device");
@@ -198,7 +188,7 @@ public class BBRadio {
             mUsbDevice = mDriver.getDevice();
 
             if (checkUsbDevice(mUsbDevice)) {
-                l("found BBRadio");
+                l("found RF");
                 break;
             } else {
                 mUsbDevice = null;
@@ -214,7 +204,7 @@ public class BBRadio {
             //ask for permission
             /*
             PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
-            mContext.registerReceiver(new BBRadio.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
+            mContext.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
             mUsbManager.requestPermission(mUsbDevice, pi);
             l("USB: No Permission");
             */
@@ -227,9 +217,9 @@ public class BBRadio {
     private void usbConnect(UsbDevice device) {
 
         if (checkUsbDevice(mUsbDevice)) {
-            l("found BBRadio");
+            l("found RF");
         } else {
-            l("not BBRadio");
+            l("not RF");
             return;
         }
 
@@ -292,18 +282,18 @@ public class BBRadio {
                 mExecutor.submit(mSerialIoManager);
 
                 // attach default cmdMessenger callback
-                BBRadio.BBRadioCallbackDefault defaultCallback =
-                        new BBRadio.BBRadioCallbackDefault();
+                RF.BBRadioCallbackDefault defaultCallback =
+                        new RF.BBRadioCallbackDefault();
                 mListener.attach(defaultCallback);
 
                 // attach Radio Receive cmdMessenger callback
-                BBRadio.BBRadioCallbackReceive radioReceiveCallback =
-                        new BBRadio.BBRadioCallbackReceive();
+                RF.BBRadioCallbackReceive radioReceiveCallback =
+                        new RF.BBRadioCallbackReceive();
                 mListener.attach(4, radioReceiveCallback);
 
                 // attach Mode cmdMessenger callback
-                BBRadio.BBRadioCallbackGPS gpsCallback =
-                        new BBRadio.BBRadioCallbackGPS();
+                RF.BBRadioCallbackGPS gpsCallback =
+                        new RF.BBRadioCallbackGPS();
                 mListener.attach(2, gpsCallback);
 
                 sendLogMsg("USB Connected to radio");

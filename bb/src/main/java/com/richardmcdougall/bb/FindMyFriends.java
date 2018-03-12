@@ -19,12 +19,12 @@ import java.security.MessageDigest;
  * Created by rmc on 2/7/18.
  */
 
-public class BBFindMyFriends {
+public class FindMyFriends {
 
     private static final String TAG = "BB.Gps";
     Context mContext;
-    BBRadio mRadio;
-    BBGps mGps;
+    RF mRadio;
+    Gps mGps;
     IoTClient mIotClient;
     findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
@@ -52,8 +52,8 @@ public class BBFindMyFriends {
     String mBoardId;
     byte[] mLastHeardLocation;
 
-    public BBFindMyFriends(Context context, BBService service,
-                           final BBRadio radio, BBGps gps, IoTClient iotclient) {
+    public FindMyFriends(Context context, BBService service,
+                         final RF radio, Gps gps, IoTClient iotclient) {
         mContext = context;
         mRadio = radio;
         mGps = gps;
@@ -65,7 +65,7 @@ public class BBFindMyFriends {
             return;
         }
 
-        mRadio.attach(new BBRadio.radioEvents() {
+        mRadio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
                 l("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
@@ -279,7 +279,7 @@ public class BBFindMyFriends {
 
     }
 
-    public void attach(BBFindMyFriends.findMyFriendsCallback newfunction) {
+    public void attach(FindMyFriends.findMyFriendsCallback newfunction) {
 
         mFindMyFriendsCallback = newfunction;
     }

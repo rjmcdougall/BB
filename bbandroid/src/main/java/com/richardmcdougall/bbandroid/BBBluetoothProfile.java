@@ -18,28 +18,13 @@ public class BBBluetoothProfile {
     public static UUID BB_LOCATION_DESCRIPTOR = UUID.fromString("03c21a90-159a-11e8-b642-0ed5f89f718b");
     public static UUID BB_CONFIG = UUID.fromString("03c21db0-159a-11e8-b642-0ed5f89f718b");
 
-    /**
-     * Return a configured {@link BluetoothGattService} instance for the
-     * Current Time Service.
-     */
-    public static BluetoothGattService createBBLocationService() {
-        BluetoothGattService service = new BluetoothGattService(BB_LOCATION_SERVICE,
-                BluetoothGattService.SERVICE_TYPE_PRIMARY);
+    public static UUID BB_AUDIO_SERVICE = UUID.fromString("89239614-1937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_AUDIO_INFO_CHARACTERISTIC = UUID.fromString("892398a8-1937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC = UUID.fromString("892399e8-1937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_AUDIO_VOLUME_CHARACTERISTIC = UUID.fromString("59629212-1938-11e8-accf-0ed5f89f718b");
+    public static UUID BB_AUDIO_DESCRIPTOR = UUID.fromString("89239b0a-1937-11e8-accf-0ed5f89f718b");
 
-        // Current Time characteristic
-        BluetoothGattCharacteristic bbLocation = new BluetoothGattCharacteristic(BB_LOCATION_CHARACTERISTIC,
-                //Read-only characteristic, supports notifications
-                BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_READ);
+    public static UUID BB_BATTERY_SERVICE = UUID.fromString("4dfc5ef6-22a9-11e8-b467-0ed5f89f718b");
+    public static UUID BB_BATTERY_CHARACTERISTIC = UUID.fromString("4dfc6194-22a9-11e8-b467-0ed5f89f718b");
 
-        BluetoothGattDescriptor configDescriptor = new BluetoothGattDescriptor(BB_LOCATION_DESCRIPTOR,
-                //Read/write descriptor
-                BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
-
-        bbLocation.addDescriptor(configDescriptor);
-
-        service.addCharacteristic(bbLocation);
-
-        return service;
-    }
 }

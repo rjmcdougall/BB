@@ -33,6 +33,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -75,26 +76,44 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     BluetoothManager btManager;
     BluetoothAdapter btAdapter;
     BluetoothLeScanner btScanner;
-    TextView peripheralTextView;
+
+    private TextView peripheralTextView;
+    private TextView mBatteryTextView;
     private Spinner mBoardspinner;
+    private Spinner mAudioTrackSpinner;
+    private Spinner mVideoTrackSpinner;
+    private SeekBar mVolumeSeekbar;
+
+    private int mAudioTrack;
+    private int mVideoTrack;
+
     private final static int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
-
 
     private GoogleMap mGoogleMap = null;
     private MarkerOptions options = new MarkerOptions();
     private HashMap<String, Marker> mMarkers = new HashMap<>();
+    private HashMap<String, Integer> mAudioTracks = new HashMap<>();
+    private HashMap<String, Integer> mVideoTracks = new HashMap<>();
+    private int mAudioTrackCount = 0;
 
     Boolean btScanning = false;
     int deviceIndex = 0;
     //ArrayList<BluetoothDevice> devicesDiscovered = new ArrayList<BluetoothDevice>();
     private HashMap<String, BluetoothDevice> devicesDiscovered = new HashMap<>();
-    EditText deviceIndexInput;
     BluetoothGatt bluetoothGatt = null;
     String mDeviceSelected = null;
 
-    BluetoothGattService mLocationService;
-    BluetoothGattCharacteristic mLocationCharacteristic;
+    BluetoothGattService mLocationService = null;
+    BluetoothGattCharacteristic mLocationCharacteristic = null;
+
+    BluetoothGattService mAudioService = null;
+    BluetoothGattCharacteristic mAudioVolumeCharacteristic = null;
+    BluetoothGattCharacteristic mAudioChannelCharacteristic = null;
+    BluetoothGattCharacteristic mAudioInfoCharacteristic = null;
+
+    BluetoothGattService mBatteryService = null;
+    BluetoothGattCharacteristic mBatteryCharacteristic = null;
 
     public final static UUID kBurnerBoardUUID =
             UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
@@ -152,6 +171,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mBatteryTextView = (TextView) findViewById(R.id.textViewBatteryLevel);
+
+
         mBoardspinner = (Spinner) findViewById(R.id.spinner);
         String [] array_spinner = new String[] {"Searching..."};
         // Populate dropdown
@@ -178,8 +200,76 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         peripheralTextView = (TextView) findViewById(R.id.PeripheralTextView);
         peripheralTextView.setMovementMethod(new ScrollingMovementMethod());
-        deviceIndexInput = (EditText) findViewById(R.id.InputIndex);
-        deviceIndexInput.setText("0");
+
+        mAudioTrackSpinner = (Spinner)findViewById(R.id.audioTrack);
+        String [] audioArraySpinner = new String[] {"Audio..."};
+        // Populate dropdown
+        ArrayAdapter<String> audioAdapter =
+                new ArrayAdapter<String> (MainActivity.this,
+                        android.R.layout.simple_spinner_item,audioArraySpinner);
+        mAudioTrackSpinner.setAdapter(audioAdapter);
+        mAudioTrackSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int pos, long id) {
+                // An item was selected. You can retrieve the selected item using
+                if (parent.getItemAtPosition(pos).equals("Audio...")) {
+                    return;
+                }
+                l("audio selected: " + parent.getItemAtPosition(pos));
+                mAudioTrack = mAudioTracks.get(parent.getItemAtPosition(pos));
+                l("audio selected: " + mAudioTrack + ": " + parent.getItemAtPosition(pos));
+                setAudioTrack(mAudioTrack);
+            }
+
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+                l("No board selected");
+            }
+        });
+
+        mVideoTrackSpinner= (Spinner)findViewById(R.id.videoTrack);
+        String [] videoArraySpinner = new String[] {"Video..."};
+        // Populate dropdown
+        final ArrayAdapter<String> videoAdapter =
+                new ArrayAdapter<String> (MainActivity.this,
+                        android.R.layout.simple_spinner_item,videoArraySpinner);
+        mVideoTrackSpinner.setAdapter(videoAdapter);
+        mVideoTrackSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int pos, long id) {
+                // An item was selected. You can retrieve the selected item using
+                l("board selected: " + parent.getItemAtPosition(pos));
+                if (parent.getItemAtPosition(pos).equals("Video...")) {
+                    return;
+                }
+            }
+
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+                l("No board selected");
+            }
+        });
+
+        mVolumeSeekbar = (SeekBar)findViewById(R.id.seekBarVolume);
+        // mVolumeSeekbar.setMin(0);
+        mVolumeSeekbar.setMax(100);
+        mVolumeSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                l("Volume slider set to " + i);
+                setVolume(i);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         btManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         btAdapter = btManager.getAdapter();
@@ -206,12 +296,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         //client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
     }
 
     // Device scan callback.
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
+            l("scancallback()");
             List<ParcelUuid> suids = result.getScanRecord().getServiceUuids();
             if ((suids != null) && (kBurnerBoardUUID.compareTo(suids.get(0).getUuid()) == 0)) {
                 //peripheralTextView.append("addr: " + result.getDevice().getAddress() + ", Device Name: " + result.getDevice().getName() + " " + result.getDevice() + " rssi: " + result.getRssi() + "\n");
@@ -286,6 +378,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     });
 
                     // discover services and characteristics for this device
+                    bluetoothGatt = gatt;
                     bluetoothGatt.discoverServices();
 
                     break;
@@ -310,7 +403,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
             extractGattServices(bluetoothGatt.getServices());
-
+            getAllChannels();
         }
 
         @Override
@@ -327,10 +420,89 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+
+    public void getAllChannels() {
+
+        for (int i = 1; i < 32; i++) {
+
+            try {
+                Thread.sleep(50);
+            } catch (Exception e) {
+
+            }
+            /*
+            byte [] value = new byte[] { (byte) i};
+            if (mAudioInfoCharacteristic.setValue(value) == false) {
+                l("getallchannels: Could not set value");
+                continue;
+            }
+
+            try {
+                Thread.sleep(10);
+            } catch (Exception e) {
+
+            }
+
+            bluetoothGatt.beginReliableWrite();
+            if (bluetoothGatt.writeCharacteristic(mAudioInfoCharacteristic) == false) {
+                l("getallchannels: Could not write audioinfo characteristic");
+                bluetoothGatt.abortReliableWrite();
+                //continue;
+            }
+
+            try {
+                Thread.sleep(10);
+            } catch (Exception e) {
+
+            }
+            bluetoothGatt.executeReliableWrite();
+            */
+
+            if (bluetoothGatt.readCharacteristic(mAudioInfoCharacteristic) == false) {
+                l("getallchannels: Could not read audioinfo characteristic");
+            }
+        }
+    }
+
+    public void setVolume(int volume) {
+        if (mAudioVolumeCharacteristic == null) {
+            l("setvolume: null characteristic");
+            return;
+        }
+        byte [] value = new byte[] { (byte) volume, 0};
+        if (mAudioVolumeCharacteristic.setValue(value) == false) {
+            l("setvolume: Could not set value");
+            return;
+        }
+        bluetoothGatt.beginReliableWrite();
+        if (bluetoothGatt.writeCharacteristic(mAudioVolumeCharacteristic) == false) {
+            l("setvolume: Could not write characteristic");
+            return;
+        }
+        bluetoothGatt.executeReliableWrite();
+    }
+
+    public void setAudioTrack(int audiotrack) {
+        if (mAudioChannelCharacteristic == null) {
+            l("setAudioTrack: null characteristic");
+            return;
+        }
+        byte [] value = new byte[] { (byte) audiotrack, 0};
+        if (mAudioChannelCharacteristic.setValue(value) == false) {
+            l("setAudioTrack: Could not set value");
+            return;
+        }
+        bluetoothGatt.beginReliableWrite();
+        if (bluetoothGatt.writeCharacteristic(mAudioChannelCharacteristic) == false) {
+            l("setAudioTrack: Could not write characteristic");
+            return;
+        }
+        bluetoothGatt.executeReliableWrite();
+    }
+
+
     private void broadcastUpdate(final String action,
                                  final BluetoothGattCharacteristic characteristic) {
-
-
 
         l("broadcast update: " + characteristic.getUuid().toString());
         if (BBBluetoothProfile.BB_LOCATION_CHARACTERISTIC.equals(characteristic.getUuid())) {
@@ -347,6 +519,58 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             setMarker(mGPSlocation.mTheirAddress, mGPSlocation.mTheirLat, mGPSlocation.mTheirLon,
                     String.valueOf(mGPSlocation.mTheirAddress), "bb", 1);
 
+        } else if (BBBluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
+            l("read succeeded BB_AUDIO_VOLUME_CHARACTERISTIC!!!");
+            final int volume = (int)characteristic.getValue()[0];
+
+            MainActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    mVolumeSeekbar.setProgress(volume);
+                }
+            });
+
+            l("LAT = " + mGPSlocation.mTheirLat + " , LON = " + mGPSlocation.mTheirLon);
+            setMarker(mGPSlocation.mTheirAddress, mGPSlocation.mTheirLat, mGPSlocation.mTheirLon,
+                    String.valueOf(mGPSlocation.mTheirAddress), "bb", 1);
+        } else if (BBBluetoothProfile.BB_BATTERY_CHARACTERISTIC.equals(characteristic.getUuid())) {
+            l("read succeeded BB_BATTERY_CHARACTERISTIC!!!");
+            final int batterylevel = (int)characteristic.getValue()[0];
+            l("battery level is " + batterylevel);
+
+            MainActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    mBatteryTextView.setText(batterylevel);
+                }
+            });
+        } else if (BBBluetoothProfile.BB_AUDIO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+            l("read succeeded BB_AUDIO_INFO_CHARACTERISTIC!!!");
+            byte[] value = characteristic.getValue();
+            final int channel = (int) value[0] & 0xFF;
+
+            if (channel == 0) {
+                mAudioTrackCount = (int) value[1] & 0xFF;
+            } else {
+                byte[] infoarray = new byte[value.length];
+                System.arraycopy(value, 1, infoarray, 0, value.length - 1);
+                String info = new String(infoarray);
+                l("audio channel " + channel + " = " + info);
+
+                if (!mAudioTracks.containsKey(channel)) {
+                    mAudioTracks.put(info, channel);
+                }
+
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    public void run() {
+                        String[] audioArraySpinner = mAudioTracks.keySet().toArray(new String[mAudioTracks.size()]);
+                        // Populate dropdown
+                        ArrayAdapter<String> audioAdapter =
+                                new ArrayAdapter<String>(MainActivity.this,
+                                        android.R.layout.simple_spinner_item, audioArraySpinner);
+                        mAudioTrackSpinner.setAdapter(audioAdapter);
+                        mAudioTrackSpinner.setSelection(mAudioTrack);
+                    }
+                });
+            }
         }
     }
 
@@ -391,6 +615,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 List<ScanFilter> filters = new ArrayList<>();
                 filters.add(new ScanFilter.Builder().setServiceUuid(new ParcelUuid(kBurnerBoardUUID)).build());
                 btScanner.startScan(filters, new ScanSettings.Builder().build(), leScanCallback);
+                //btScanner.startScan(leScanCallback);
+
             }
         });
 
@@ -414,18 +640,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+
     public void connectToDeviceSelected(String deviceSelected) {
-        peripheralTextView.append("Trying to connect to device at index: " + deviceIndexInput.getText() + "\n");
-        l("Trying to connect to device at index: " + deviceIndexInput.getText() + "\n");
-        Integer.parseInt(deviceIndexInput.getText().toString());
+        peripheralTextView.append("Trying to connect to device" + deviceSelected + "\n");
+        //Integer.parseInt(deviceIndexInput.getText().toString());
         try {
-            bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(this, false, btleGattCallback);
+            bluetoothGatt = devicesDiscovered.get(deviceSelected).connectGatt(this,
+                    false, btleGattCallback);
             mDeviceSelected = deviceSelected;
         } catch (Exception e) {
             bluetoothGatt = null;
             l("Connect failed");
         }
     }
+
 
     public void disconnectDeviceSelected() {
         peripheralTextView.append("Disconnecting from device\n");
@@ -434,6 +662,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void extractGattServices(List<BluetoothGattService> gattServices) {
+        l("Extracing discovered services");
         if (gattServices == null) return;
 
         // Loops through available GATT Services.
@@ -467,9 +696,51 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     }
 
                 }
+            } else if (BBBluetoothProfile.BB_AUDIO_SERVICE.equals(gattService.getUuid())) {
+                l("Found BB_AUDIO_SERVICE)!!!");
+                mAudioService = gattService;
+                new ArrayList<HashMap<String, String>>();
+                List<BluetoothGattCharacteristic> gattCharacteristics =
+                        gattService.getCharacteristics();
+
+                // Loops through available Characteristics.
+                for (BluetoothGattCharacteristic gattCharacteristic :
+                        gattCharacteristics) {
+
+                    final String charUuid = gattCharacteristic.getUuid().toString();
+                    l("Characteristic discovered for service: " + charUuid);
+                    if (BBBluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(gattCharacteristic.getUuid())) {
+                        mAudioVolumeCharacteristic = gattCharacteristic;
+                        l("Found BB_AUDIO_VOLUME_CHARACTERISTIC!!!" + mAudioVolumeCharacteristic);
+                    } else if (BBBluetoothProfile.BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC.equals(gattCharacteristic.getUuid())) {
+                        mAudioChannelCharacteristic = gattCharacteristic;
+                        l("Found BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC!!! " + mAudioChannelCharacteristic );
+                    } else if (BBBluetoothProfile.BB_AUDIO_INFO_CHARACTERISTIC.equals(gattCharacteristic.getUuid())) {
+                        mAudioInfoCharacteristic = gattCharacteristic;
+                        l("Found BB_AUDIO_INFO_CHARACTERISTIC!!!" + mAudioInfoCharacteristic);
+                    }
+
+                }
+            } else if (BBBluetoothProfile.BB_BATTERY_SERVICE.equals(gattService.getUuid())) {
+                l("Found BB_BATTERY_SERVICE)!!!");
+                mBatteryService = gattService;
+                new ArrayList<HashMap<String, String>>();
+                List<BluetoothGattCharacteristic> gattCharacteristics =
+                        gattService.getCharacteristics();
+
+                // Loops through available Characteristics.
+                for (BluetoothGattCharacteristic gattCharacteristic :
+                        gattCharacteristics) {
+
+                    final String charUuid = gattCharacteristic.getUuid().toString();
+                    l("Characteristic discovered for service: " + charUuid);
+                    if (BBBluetoothProfile.BB_BATTERY_CHARACTERISTIC.equals(gattCharacteristic.getUuid())) {
+                        l("Found BB_BATTERY_CHARACTERISTIC!!!");
+                        mBatteryCharacteristic = gattCharacteristic;
+                    }
+
+                }
             }
-
-
         }
     }
 
@@ -536,10 +807,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         l("Reconnecting to device " + mDeviceSelected);
                         connectToDeviceSelected(mDeviceSelected);
                     }
-                    if (mLocationCharacteristic != null) {
-                        l("characteristic.readCharacteristic()...");
-                        bluetoothGatt.readCharacteristic(mLocationCharacteristic);
+                    if (mAudioVolumeCharacteristic != null) {
+                        l("mAudioVolumeCharacteristic.readCharacteristic()...");
+                        if (bluetoothGatt.readCharacteristic(mAudioVolumeCharacteristic) == false) {
+                            l("mAudioVolumeCharacteristic.readCharacteristic() failed");
+                        }
                     }
+                    Thread.sleep(50);
+                    if (mBatteryCharacteristic != null) {
+                        l("mBatteryCharacteristic.readCharacteristic()...");
+                        if (bluetoothGatt.readCharacteristic(mBatteryCharacteristic) == false) {
+                            l("mBatteryCharacteristic.readCharacteristic() failed");
+                        }
+                    }
+                    Thread.sleep(50);
+                    if (mLocationCharacteristic != null) {
+                        l("mLocationCharacteristic.readCharacteristic()...");
+                        if (bluetoothGatt.readCharacteristic(mLocationCharacteristic) == false) {
+                            l("mLocationCharacteristic.readCharacteristic() failed");
+                        }
+                    }
+                    Thread.sleep(50);
+
+                    getAllChannels();
 
                     Thread.sleep(5000);
                 } catch (Exception e) {
@@ -619,6 +909,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
 
 
 

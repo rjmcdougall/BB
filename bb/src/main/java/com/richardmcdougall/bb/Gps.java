@@ -34,7 +34,7 @@ import java.util.logging.SimpleFormatter;
  * Created by rmc on 2/6/18.
  */
 
-public class BBGps {
+public class Gps {
 
     private static final String TAG = "BB.Gps";
     public GpsEvents mGpsCallback = null;
@@ -55,7 +55,7 @@ public class BBGps {
     }
 
 
-    public BBGps(Context context) {
+    public Gps(Context context) {
         mContext = context;
         l("Gps starting");
 

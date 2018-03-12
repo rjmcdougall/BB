@@ -1,12 +1,7 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.text.TextUtils;
-import android.os.Environment;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 
@@ -15,12 +10,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -29,16 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.net.URLEncoder;
 
-import static android.R.attr.path;
-import static android.content.ContentValues.TAG;
-
-import eu.chainfire.libsuperuser.Shell;
-
 /**
  * Created by Jonathan on 8/6/2017.
  */
 
-public class BBDownloadManager {
+public class DownloadManager {
     private static final String TAG = "BB.BBDownloadManger";
     protected String mFilesDir;
     protected JSONObject dataDirectory;
@@ -58,7 +46,7 @@ public class BBDownloadManager {
 
     public OnDownloadProgressType onProgressCallback = null;
 
-    BBDownloadManager(String filesDir, String boardId, boolean isServer, int myVersion) {
+    DownloadManager(String filesDir, String boardId, boolean isServer, int myVersion) {
         mVersion = myVersion;
         mFilesDir = filesDir;
         PackageInfo pinfo;
@@ -85,11 +73,15 @@ public class BBDownloadManager {
     }
 
     String GetAudioFileLocalName(int index) {
-        try {
-            String fn = GetAudio(index).getString("localName");
-            return fn;
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if (index >= 0 && index < GetTotalAudio()) {
+            try {
+                String fn = GetAudio(index).getString("localName");
+                return fn;
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return null;
+            }
+        } else {
             return null;
         }
     }
@@ -192,9 +184,9 @@ public class BBDownloadManager {
 
     private class BackgroundThread implements Runnable {
 
-        BBDownloadManager mDM;
+        DownloadManager mDM;
 
-        private BackgroundThread(BBDownloadManager dm) {
+        private BackgroundThread(DownloadManager dm) {
             mDM = dm;
         }
 

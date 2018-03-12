@@ -1,19 +1,30 @@
 package com.richardmcdougall.bb;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.content.Context;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
-import java.util.Calendar;
+import java.io.ByteArrayOutputStream;
 import java.util.UUID;
 
 /**
  * Created by rmc on 2/19/18.
  */
 
-public class BBBluetoothProfile {
+public class BluetoothProfile {
+
+    private static final String TAG = "BB.BluetoothProfile";
 
     int mCurrentAudioChannel = 0;
+
+    public static void l(String s) {
+        Log.v(TAG, s);
+    }
 
     /* Current Time Service UUID */
     public static UUID BB_LOCATION_SERVICE = UUID.fromString("03c21568-159a-11e8-b642-0ed5f89f718b");
@@ -30,16 +41,11 @@ public class BBBluetoothProfile {
 
         // Current Time characteristic
         BluetoothGattCharacteristic bbLocation = new BluetoothGattCharacteristic(BB_LOCATION_CHARACTERISTIC,
-                //Read-only characteristic, supports notifications
+                // Read-only characteristic, supports notifications
                 BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ);
 
-        BluetoothGattDescriptor configDescriptor = new BluetoothGattDescriptor(BB_LOCATION_DESCRIPTOR,
-                //Read/write descriptor
-                BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
-
-        bbLocation.addDescriptor(configDescriptor);
-
+        //bbLocation.addDescriptor(configDescriptor);
         service.addCharacteristic(bbLocation);
 
         return service;
@@ -49,10 +55,9 @@ public class BBBluetoothProfile {
      * Construct the field values for a BB Locationcharacteristic
      * from the given epoch timestamp and adjustment reason.
      */
-    public static byte[] getLocation(BBFindMyFriends fmf) {
+    public static byte[] getLocation(FindMyFriends fmf) {
 
         byte[] field = fmf.getRecentLocation();
-
         return field;
     }
 
@@ -65,34 +70,57 @@ public class BBBluetoothProfile {
      * Return a configured {@link BluetoothGattService} instance for the
      * Current Time Service.
      */
-    public static BluetoothGattService createBBAudioService() {
+    public BluetoothGattService createBBAudioService() {
+
 
         BluetoothGattService service = new BluetoothGattService(BB_AUDIO_SERVICE,
                 BluetoothGattService.SERVICE_TYPE_PRIMARY);
 
-        // Current Time characteristic
+        // Audio Channel Info
         BluetoothGattCharacteristic bbAudioInfo = new BluetoothGattCharacteristic(BB_AUDIO_INFO_CHARACTERISTIC,
                 //Read-only characteristic, supports notifications
-                BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_READ);
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
 
-        // Current Time characteristic
+        BluetoothGattDescriptor bbAudioInfoconfigDescriptor = new BluetoothGattDescriptor(BB_AUDIO_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+        bbAudioInfo.addDescriptor(bbAudioInfoconfigDescriptor);
+
+        // Audio Channel Select
         BluetoothGattCharacteristic bbAudioChannelSelect = new BluetoothGattCharacteristic(BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC,
                 //Read-only characteristic, supports notifications
-                BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_READ);
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
 
-        // Current Time characteristic
+        BluetoothGattDescriptor bbAudioChannelSelectconfigDescriptor = new BluetoothGattDescriptor(BB_AUDIO_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+
+        bbAudioChannelSelect.addDescriptor(bbAudioChannelSelectconfigDescriptor);
+
+        // Volume
         BluetoothGattCharacteristic bbAudioVolume = new BluetoothGattCharacteristic(BB_AUDIO_VOLUME_CHARACTERISTIC,
                 //Read-only characteristic, supports notifications
-                BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_READ);
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
 
-        BluetoothGattDescriptor configDescriptor = new BluetoothGattDescriptor(BB_AUDIO_DESCRIPTOR,
+        BluetoothGattDescriptor bbAudioVolumeconfigDescriptor = new BluetoothGattDescriptor(BB_AUDIO_DESCRIPTOR,
                 //Read/write descriptor
-                BluetoothGattDescriptor.PERMISSION_READ | BluetoothGattDescriptor.PERMISSION_WRITE);
-
-        bbAudioInfo.addDescriptor(configDescriptor);
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+        bbAudioVolume.addDescriptor(bbAudioVolumeconfigDescriptor);
 
         service.addCharacteristic(bbAudioInfo);
         service.addCharacteristic(bbAudioChannelSelect);
@@ -117,18 +145,33 @@ public class BBBluetoothProfile {
     public static byte[] getAudioDescriptor(BBService service) {
 
         byte[] field = {(byte)service.GetMaxAudioModes()};
-
         return field;
     }
 
     /**
      * Construct the field values for a BB_AUDIO_DESCRIPTOR
      */
-    public static byte[] getAudioInfo(BBService service) {
+    public static byte[] getAudioInfo(BBService service, int channel) {
 
-        byte[] field = service.getRadioChannelInfo(0).getBytes();
 
-        return field;
+        // If 0, then return the count of slots
+        if (channel == 0) {
+            return new byte[] {0, (byte)service.getRadioChannelMax()};
+        }
+
+        String name = service.getRadioChannelInfo(channel);
+
+        // Else return the slot name
+        if (name != null) {
+            byte[] field = name.getBytes();
+            int fieldlength = java.lang.Math.min(18, field.length);
+            byte[] response = new byte[fieldlength + 1];
+            response[0] = (byte)channel;
+            System.arraycopy(field, 0, response, 1, fieldlength);
+            return response;
+        } else {
+            return new byte[] {0};
+        }
     }
 
 
@@ -137,8 +180,7 @@ public class BBBluetoothProfile {
      */
     public static byte[] getAudioChannel(BBService service) {
 
-        byte[] field = {(byte)service.getRadioStream()};
-
+        byte[] field = {(byte)service.getRadioChannel()};
         return field;
     }
 
@@ -147,17 +189,18 @@ public class BBBluetoothProfile {
      */
     public void setAudioChannel(BBService service, byte[] value) {
 
-        service.SetRadioStream(value[0] & 0xff);
+        service.SetRadioChannel(value[0] & 0xff);
     }
 
-    public static UUID BB_BATTERY_SERVICE = UUID.fromString("89239614-1937-11e8-accf-0ed5f89f718b");
-    public static UUID BB_BATTERY_CHARACTERISTIC = UUID.fromString("892398a8-1937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_BATTERY_SERVICE = UUID.fromString("4dfc5ef6-22a9-11e8-b467-0ed5f89f718b");
+    public static UUID BB_BATTERY_CHARACTERISTIC = UUID.fromString("4dfc6194-22a9-11e8-b467-0ed5f89f718b");
+    public static UUID BB_BATTERY_DESCRIPTOR = UUID.fromString("4dfc6194-22a9-1ae8-b467-0ed5f89f718b");
 
     /**
      * Return a configured {@link BluetoothGattService} instance for the
      * Battery Service.
      */
-    public static BluetoothGattService createBBBatteryService() {
+        public BluetoothGattService createBBBatteryService() {
 
         BluetoothGattService service = new BluetoothGattService(BB_BATTERY_SERVICE,
                 BluetoothGattService.SERVICE_TYPE_PRIMARY);
@@ -168,6 +211,12 @@ public class BBBluetoothProfile {
                 BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ);
 
+        BluetoothGattDescriptor   configDescriptor = new BluetoothGattDescriptor(BB_BATTERY_DESCRIPTOR,
+                    //Read/write descriptor
+                    BluetoothGattDescriptor.PERMISSION_READ |
+                            BluetoothGattDescriptor.PERMISSION_WRITE);
+
+        bbBatteryInfo.addDescriptor(configDescriptor);
         service.addCharacteristic(bbBatteryInfo);
 
         return service;

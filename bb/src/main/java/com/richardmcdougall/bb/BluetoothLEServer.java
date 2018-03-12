@@ -9,7 +9,6 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
@@ -24,6 +23,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -33,11 +33,13 @@ import java.util.UUID;
  * Created by rmc on 2/19/18.
  */
 
-public class BBBluetoothLEServer {
+public class BluetoothLEServer {
     private static final String TAG = "BB.BluetoothLEServer";
     public Context mContext = null;
     public BBService mBBService = null;
     String mBoardId;
+
+    private HashMap<BluetoothDevice, Integer> mAudioInfoSelect = new HashMap<>();
 
 
     /* Bluetooth API */
@@ -50,7 +52,7 @@ public class BBBluetoothLEServer {
     public final static UUID kBurnerBoardUUID =
             UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
 
-    public BBBluetoothLEServer(BBService service, Context context) {
+    public BluetoothLEServer(BBService service, Context context) {
 
         mBBService = service;
         mContext = context;
@@ -150,7 +152,21 @@ public class BBBluetoothLEServer {
             return;
         }
 
-        mBluetoothGattServer.addService(BBBluetoothProfile.createBBLocationService());
+        BluetoothProfile profile = new BluetoothProfile();
+
+        mBluetoothGattServer.addService(BluetoothProfile.createBBLocationService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
+        mBluetoothGattServer.addService(profile.createBBBatteryService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
+        mBluetoothGattServer.addService(profile.createBBAudioService());
     }
 
     /**
@@ -178,13 +194,13 @@ public class BBBluetoothLEServer {
             l("No subscribers registered");
             return;
         }
-        byte[] bbLocation = BBBluetoothProfile.getLocation(mBBService.getFindMyFriends());
+        byte[] bbLocation = BluetoothProfile.getLocation(mBBService.getFindMyFriends());
 
         l("Sending update to " + mRegisteredDevices.size() + " subscribers");
         for (BluetoothDevice device : mRegisteredDevices) {
             BluetoothGattCharacteristic locationCharacteristic = mBluetoothGattServer
-                    .getService(BBBluetoothProfile.BB_LOCATION_SERVICE)
-                    .getCharacteristic(BBBluetoothProfile.BB_LOCATION_CHARACTERISTIC);
+                    .getService(BluetoothProfile.BB_LOCATION_SERVICE)
+                    .getCharacteristic(BluetoothProfile.BB_LOCATION_CHARACTERISTIC);
             locationCharacteristic.setValue(bbLocation);
             mBluetoothGattServer.notifyCharacteristicChanged(device, locationCharacteristic, false);
         }
@@ -194,11 +210,12 @@ public class BBBluetoothLEServer {
      * Shut down the GATT server.
      */
     private void stopServer() {
-        if (mBluetoothGattServer == null) return;
+
+        if (mBluetoothGattServer == null)
+            return;
 
         mBluetoothGattServer.close();
     }
-
 
     /**
      * Listens for Bluetooth adapter events to enable/disable
@@ -221,7 +238,6 @@ public class BBBluetoothLEServer {
                 default:
                     // Do nothing
             }
-
         }
     };
 
@@ -233,9 +249,9 @@ public class BBBluetoothLEServer {
 
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
+            if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
                 l("BluetoothDevice CONNECTED: " + device);
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            } else if (newState == android.bluetooth.BluetoothProfile.STATE_DISCONNECTED) {
                 l("BluetoothDevice DISCONNECTED: " + device);
                 //Remove device from any active subscriptions
                 mRegisteredDevices.remove(device);
@@ -246,9 +262,9 @@ public class BBBluetoothLEServer {
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
                                                 BluetoothGattCharacteristic characteristic) {
             long now = System.currentTimeMillis();
-            if (BBBluetoothProfile.BB_LOCATION_CHARACTERISTIC.equals(characteristic.getUuid())) {
+            if (BluetoothProfile.BB_LOCATION_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read location characteristic");
-                byte[] loc = BBBluetoothProfile.getLocation(mBBService.getFindMyFriends());
+                byte[] loc = BluetoothProfile.getLocation(mBBService.getFindMyFriends());
                 if (loc != null) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,
@@ -261,7 +277,56 @@ public class BBBluetoothLEServer {
                             requestId,
                             BluetoothGatt.GATT_FAILURE,
                             0,
-                            null);                }
+                            null);
+                }
+            } else if (BluetoothProfile.BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read audio channel characteristic");
+                byte[] audioChannel = new byte[] {0, 0};
+                audioChannel[0] = (byte) mBBService.getRadioChannelMax();
+                audioChannel[1] = (byte) mBBService.getRadioChannel();
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        audioChannel);
+            } else if (BluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read audio volume characteristic");
+                byte[] audioChannel = new byte[]{0, 0};
+                audioChannel[0] = (byte) mBBService.getBoardVolumePercent();
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        audioChannel);
+            } else if (BluetoothProfile.BB_AUDIO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read audio info characteristic");
+                int infoselect = 1;
+                if (mAudioInfoSelect.containsKey(device)) {
+                    infoselect = mAudioInfoSelect.get(device).intValue();
+                } else {
+                    l("audioinfo select key was missing");
+                }
+                byte[] audioInfo = BluetoothProfile.getAudioInfo(mBBService, infoselect);
+                if (audioInfo[0] == 0) {
+                    infoselect = 1;
+                    audioInfo = BluetoothProfile.getAudioInfo(mBBService, infoselect);
+                }
+                l("Read audio info characteristic: " + infoselect);
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        audioInfo);
+                infoselect++;
+                mAudioInfoSelect.put(device, infoselect);
+            } else if (BluetoothProfile.BB_BATTERY_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read battery characteristic");
+                byte[] battery = BluetoothProfile.getBatteryInfo(mBBService);
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        battery);
             } else {
                 // Invalid characteristic
                 l("Invalid Characteristic Read: " + characteristic.getUuid());
@@ -273,11 +338,70 @@ public class BBBluetoothLEServer {
             }
         }
 
+
+        @Override
+        public void onCharacteristicWriteRequest (BluetoothDevice device,
+                                           int requestId,
+                                           BluetoothGattCharacteristic characteristic,
+                                           boolean preparedWrite,
+                                           boolean responseNeeded,
+                                           int offset,
+                                           byte[] value) {
+
+
+            long now = System.currentTimeMillis();
+            l("Write characteristic...");
+            if (BluetoothProfile.BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                int channel = (int) (value[0] & 0xFF);
+                l("Write audio track characteristic: " + channel);
+                mBBService.SetRadioChannel(channel);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            } else if (BluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                int volume = (int) (value[0] & 0xFF);
+                l("Write audio volume characteristic: " + volume);
+                mBBService.setRadioVolumePercent(volume);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            } else if (BluetoothProfile.BB_AUDIO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                int audioinfoselect = (int) (value[0] & 0xFF);
+                mAudioInfoSelect.put(device, audioinfoselect);
+
+                l("Write audio info characteristic: " + mAudioInfoSelect + " needs reply: " + responseNeeded);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            } else {
+                // Invalid characteristic
+                l("Invalid Characteristic Write: " + characteristic.getUuid());
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_FAILURE,
+                        0,
+                        null);
+            }
+        }
+
+
         @Override
         public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
                                             BluetoothGattDescriptor descriptor) {
-            if (BBBluetoothProfile.BB_AUDIO_DESCRIPTOR.equals(descriptor.getUuid())) {
-                Log.d(TAG, "Audio Config descriptor read");
+            if (BluetoothProfile.BB_AUDIO_DESCRIPTOR.equals(descriptor.getUuid())) {
+                Log.d(TAG, "Audio Config descriptor read, offset: " + offset);
                 byte[] returnValue;
                 if (mRegisteredDevices.contains(device)) {
                     returnValue = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE;
@@ -304,7 +428,8 @@ public class BBBluetoothLEServer {
                                              BluetoothGattDescriptor descriptor,
                                              boolean preparedWrite, boolean responseNeeded,
                                              int offset, byte[] value) {
-            if (BBBluetoothProfile.BB_AUDIO_DESCRIPTOR.equals(descriptor.getUuid())) {
+
+            if (BluetoothProfile.BB_AUDIO_DESCRIPTOR.equals(descriptor.getUuid())) {
                 if (Arrays.equals(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE, value)) {
                     Log.d(TAG, "Subscribe device to notifications: " + device);
                     mRegisteredDevices.add(device);

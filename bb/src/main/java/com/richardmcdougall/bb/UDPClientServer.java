@@ -174,7 +174,7 @@ public class UDPClientServer {
                     rp[3] = 'V';
                     longToBytes(clientTimestamp, rp, 4);
                     longToBytes(curTimeStamp, rp, 12);
-                    rp[20] = (byte) mMain.currentRadioStream;   // tell clients the current radio stream to play
+                    rp[20] = (byte) mMain.currentRadioChannel;   // tell clients the current radio stream to play
                     rp[21] = (byte) boardMode; // tell clients which graphics mode to use
                     rp[22] = (byte) boardVol; // tell clients audio volume
 
@@ -325,8 +325,8 @@ public class UDPClientServer {
                                     int boardMode = (int) b[21];
                                     int boardVol = (int) b[22];
 
-                                    if (serverStreamIndex != mMain.currentRadioStream) {
-                                        mMain.SetRadioStream(serverStreamIndex);
+                                    if (serverStreamIndex != mMain.currentRadioChannel) {
+                                        mMain.SetRadioChannel(serverStreamIndex);
                                     }
 
                                     if (boardMode > 0 &&

@@ -8,9 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.hardware.usb.UsbManager;
-import android.location.Criteria;
-import android.location.GpsSatellite;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -49,12 +46,8 @@ import android.os.Build;
 import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
-import android.widget.Toast;
 
-import static android.R.attr.versionCode;
-import static android.R.id.list;
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
-import static android.location.Criteria.NO_REQUIREMENT;
 
 public class BBService extends Service {
 
@@ -79,7 +72,7 @@ public class BBService extends Service {
         return dlManager.GetTotalAudio();
     }
 
-    public BBDownloadManager dlManager;
+    public DownloadManager dlManager;
 
     public static enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
@@ -106,20 +99,20 @@ public class BBService extends Service {
     IoTClient iotClient = null;
     int mVersion = 0;
     WifiManager mWiFiManager = null;
-    public BBRadio mRadio = null;
-    public BBGps mGps = null;
-    public BBFindMyFriends mFindMyFriends = null;
-    public BBBluetoothLEServer mBLEServer = null;
+    public RF mRadio = null;
+    public Gps mGps = null;
+    public FindMyFriends mFindMyFriends = null;
+    public BluetoothLEServer mBLEServer = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
     //public String mSerialConn = "";
 
-    int currentRadioStream = 1;
+    int currentRadioChannel = 1;
     long phoneModelAudioLatency = 0;
 
     double mGPSlat, mGPSlong = 0;
-    //locationTracker mGPS;
+    locationTracker mGPS;
 
     TextToSpeech voice;
 
@@ -211,9 +204,7 @@ public class BBService extends Service {
         }
 
         // Start the RF Radio and GPS
-        startRadio();
-
-        //mGPS = new locationTracker(mContext);
+        startRF();
 
         try {
             Thread.sleep(500);
@@ -239,9 +230,9 @@ public class BBService extends Service {
             }
         });
 
-        dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
+        dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
                 boardId, mServerMode, mVersion);
-        dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
+        dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
             public void onProgress(String file, long fileSize, long bytesDownloaded) {
@@ -407,25 +398,25 @@ public class BBService extends Service {
         mBoardVisualization.setMode(mBoardMode);
     }
 
-    private void startRadio() {
+    private void startRF() {
 
-        l("StartRadio");
+        l("StartRF");
 
         if (mServerMode == true) {
             return;
         }
 
-        mBLEServer = new BBBluetoothLEServer(this, mContext);
+        mBLEServer = new BluetoothLEServer(this, mContext);
 
         if (mBLEServer == null) {
             l("startBLE: null BLE object");
             return;
         }
 
-        mRadio = new BBRadio(this, mContext);
+        mRadio = new RF(this, mContext);
 
         if (mRadio == null) {
-            l("startRadio: null radio object");
+            l("startRF: null RF object");
             return;
         }
 
@@ -436,11 +427,11 @@ public class BBService extends Service {
             return;
         }
 
-        mFindMyFriends = new BBFindMyFriends(mContext, this, mRadio, mGps, iotClient);
+        mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
 
     }
 
-    public BBFindMyFriends getFindMyFriends() {
+    public FindMyFriends getFindMyFriends() {
         return mFindMyFriends;
     }
 
@@ -554,7 +545,7 @@ public class BBService extends Service {
     };
 
 
-    public String GetRadioStreamFile(int idx) {
+    public String GetRadioChannelFile(int idx) {
 
         if (idx < 1) {
             return "";
@@ -593,9 +584,19 @@ public class BBService extends Service {
         return ((int) (vol * (float) 127.0));
     }
 
+    public int getBoardVolumePercent() {
+        return ((int) (vol * (float) 100.0));
+    }
+
     public void setBoardVolume(int v) {
         l("Volume: " + vol + " -> " + v);
         vol = (float) v / (float) 127;
+        mediaPlayer.setVolume(vol, vol);
+    }
+
+    public void setRadioVolumePercent(int v) {
+        l("Volume: " + vol + " -> " + v);
+        vol = (float) v / (float) 100;
         mediaPlayer.setVolume(vol, vol);
     }
 
@@ -603,7 +604,7 @@ public class BBService extends Service {
     long lastSeekTimestamp = 0;
 
     long GetCurrentStreamLengthInSeconds() {
-        return dlManager.GetAudioLength(currentRadioStream - 1);
+        return dlManager.GetAudioLength( currentRadioChannel - 1);
     }
 
     // Main thread to drive the music player
@@ -692,14 +693,14 @@ public class BBService extends Service {
                         Thread.sleep(1000);
                     } catch (Throwable e) {
                     }
-                    if (currentRadioStream == 0) {
+                    if ( currentRadioChannel == 0) {
                         musicState = 2;
                     }
                     break;
 
                 case 2:
                     bluetoothPlay();
-                    if (currentRadioStream != 0) {
+                    if ( currentRadioChannel != 0) {
                         musicState = 1;
                     }
                     break;
@@ -757,7 +758,7 @@ public class BBService extends Service {
 
                 String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
                         " User " + userTimeOffset + "\nSeekOff " + seekOff +
-                        " RTT " + serverRTT + " Strm" + currentRadioStream;
+                        " RTT " + serverRTT + " Strm" + currentRadioChannel;
                 if (udpClientServer.tSentPackets != 0)
                     msg += "\nSent " + udpClientServer.tSentPackets;
                 //l(msg);
@@ -767,7 +768,7 @@ public class BBService extends Service {
                 in.putExtra("msgType", 1);
                 // Put extras into the intent as usual
                 in.putExtra("seekErr", seekErr);
-                in.putExtra("currentRadioStream", currentRadioStream);
+                in.putExtra("", currentRadioChannel);
                 in.putExtra("userTimeOffset", userTimeOffset);
                 in.putExtra("serverTimeOffset", serverTimeOffset);
                 in.putExtra("serverRTT", serverRTT);
@@ -786,10 +787,10 @@ public class BBService extends Service {
     }
 
     void NextStream() {
-        int nextRadioStream = currentRadioStream + 1;
-        if (nextRadioStream > dlManager.GetTotalAudio())
-            nextRadioStream = 0;
-        SetRadioStream(nextRadioStream);
+        int nextRadioChannel =  + 1;
+        if (nextRadioChannel > dlManager.GetTotalAudio())
+            nextRadioChannel = 0;
+        SetRadioChannel(nextRadioChannel);
 
     }
 
@@ -797,16 +798,20 @@ public class BBService extends Service {
         return dlManager.GetAudioFileLocalName(index - 1);
     }
 
-    public int getRadioStream() {
+    public int getRadioChannel() {
 
-        l("GetRadioStream: ");
-        return currentRadioStream;
+        l("GetRadioChannel: ");
+        return currentRadioChannel;
+    }
+
+    public int getRadioChannelMax() {
+        return dlManager.GetTotalAudio();
     }
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
-    public void SetRadioStream(int index) {
-        l("SetRadioStream: " + index);
-        currentRadioStream = index;
+    public void SetRadioChannel(int index) {
+        l("SetRadioChannel: " + index);
+        currentRadioChannel = index;
         if (mServerMode == true) {
             return;
         }
@@ -852,7 +857,7 @@ public class BBService extends Service {
     }
 
     public void RadioMode() {
-        SetRadioStream(currentRadioStream);
+        SetRadioChannel(currentRadioChannel);
     }
 
 
