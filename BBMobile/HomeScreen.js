@@ -195,60 +195,76 @@ export default class HomeScreen extends Component {
                     console.log('Connected to ' + peripheral.id);
 
 
-                    setTimeout(() => {
+                    //setTimeout(() => {
 
-                        /* Test read current RSSI value */
-                           BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
-                           //console.log('Retrieved peripheral services', peripheralData);
-                           console.log('Retrieved peripheral services');
+                        /* Test read current RSSI value
+                         BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
+                            //console.log('Retrieved peripheral services', peripheralData);
+                            console.log('Retrieved peripheral services');
 
-                           BleManager.readRSSI(peripheral.id).then((rssi) => {
-                           console.log('Retrieved actual RSSI value', rssi);
+                            BleManager.readRSSI(peripheral.id).then((rssi) => {
+                                console.log('Retrieved actual RSSI value', rssi);
+                            });
                            });
-                           });
+                           */
 
                         BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
                             console.log("retrieve Services");
-                            //console.log(peripheralInfo);
+                            console.log(peripheralInfo);
+                        //});
 
-                            setTimeout(() => {
-                                //BleManager.startNotification(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).then(() => {
-                                //    console.log('Started notification on ' + peripheral.id);
-                                    setTimeout(() => {
-                                        BleManager.read(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).
-                                            then((readData) => {
-                                                console.log('Read Volume 1: ' + readData);
-                                            })
-                                            .catch((error) => {
-                                            // Failure code
-                                            console.log(error);
-                                            });
-                                    }, 1000);
-                                    setTimeout(() => {
-                                        BleManager.write(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic, [30]).then(() => {
-                                            console.log('Set Volume to 30');
-                                            })
-                                            .catch((error) => {
-                                            // Failure code
-                                            console.log(error);
-                                            });
-                                    }, 1000);
-                                    setTimeout(() => {
-                                        BleManager.read(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).then((readData) => {
-                                            console.log('Read Volume 2: ' + readData);
-                                            })
-                                            .catch((error) => {
-                                            // Failure code
-                                            console.log(error);
-                                            });
-                                    }, 1000);
-                                //}).catch((error) => {
-                                //    console.log('Notification error', error);
-                                //});
-                            }, 2000);
+
+
+                    //}, 1000);
+
+                                                //setTimeout(() => {
+
+                                                    //BleManager.startNotification(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).then(() => {
+                                                        //console.log('Started notification on ' + peripheral.id);
+
+                                                        setTimeout(() => {
+                                                            BleManager.read(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).then((readData) => {
+                                                                    console.log('Read Volume 1: ' + readData);
+                                                                })
+                                                                .catch((error) => {
+                                                                // Failure code
+                                                                console.log("r1:" + error);
+                                                                });
+                                                        }, 1000);
+
+
+                                                        setTimeout(() => {
+                                                            BleManager.write(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic, [30]).then(() => {
+                                                                console.log('Set Volume to 30');
+                                                                })
+                                                                .catch((error) => {
+                                                                // Failure code
+                                                                console.log(error);
+                                                                });
+                                                        }, 500);
+                                                        setInterval(() => {
+                                                            BleManager.read(peripheral.id, this.AudioService, this.AudioInfoCharacteristic).then((readData) => {
+                                                                console.log('Read Info: ' + readData);
+                                                                var channelNo = readData[0];
+                                                                var channelInfo = "";
+                                                                for (var i = 1; i < readData.length; i++) {
+                                                                  channelInfo += String.fromCharCode(readData[i]);
+                                                                }
+                                                               console.log('Read Info channel: ' +channelNo + ", name = " + channelInfo);
+
+                                                                })
+                                                                .catch((error) => {
+                                                                // Failure code
+                                                                console.log("r2: " + error);
+                                                                });
+                                                        }, 1000);
+
+
+                                                    //}).catch((error) => {
+                                                    //    console.log('Notification error', error);
                         });
+                                                //}, 1000);
 
-                    }, 5000);
                 }).catch((error) => {
                     console.log('Connection error', error);
                 });
