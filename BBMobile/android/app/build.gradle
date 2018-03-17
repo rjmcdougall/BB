@@ -140,7 +140,6 @@ android {
 
 dependencies {
     compile project(':react-native-ble-manager')
-    compile project(':react-native-ble-manager')
     compile project(':react-native-maps')
     //compile project(':react-native-ble-plx')
     compile fileTree(dir: "libs", include: ["*.jar"])

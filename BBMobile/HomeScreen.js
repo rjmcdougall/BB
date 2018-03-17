@@ -288,10 +288,6 @@ export default class HomeScreen extends Component {
         }
     }
 
-    selectChannel = (channel) ⇒ {
-        this.setChannel({ channel: channel })
-    }
-
 
   render() {
     const list = Array.from(this.state.peripherals.values());
@@ -346,11 +342,7 @@ export default class HomeScreen extends Component {
                 }
                 />
                 <Text>{this.state.info}</Text>
-                            <Picker selectedValue = {this.audioChannelSelection.channel onValueChange = {this.selectChannel}>
-                               <Picker.Item label = "Steve" value = "steve" />
-                               <Picker.Item label = "Ellen" value = "ellen" />
-                               <Picker.Item label = "Maria" value = "maria" />
-                            </Picker>
+
         </ScrollView>
       </View>
     );
