@@ -8,6 +8,7 @@ import {
     View,
     Image,
     Button,
+    Picker,
     TouchableHighlight,
     NativeAppEventEmitter,
     NativeEventEmitter,
@@ -38,6 +39,9 @@ export default class HomeScreen extends Component {
             peripherals: new Map(),
             appState: ''
         }
+
+        this.audioChannels = {};
+        this.audioChannelSelection = {channel: ''};
 
         this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
         this.handleStopScan = this.handleStopScan.bind(this);
@@ -230,8 +234,17 @@ export default class HomeScreen extends Component {
                                                                 // Failure code
                                                                 console.log("r1:" + error);
                                                                 });
-                                                        }, 1000);
+                                                        }, 3333);
 
+                                                        setTimeout(() => {
+                                                            BleManager.read(peripheral.id, this.BatteryService, this.BatteryCharacteristic).then((readData) => {
+                                                                    console.log('Battery: ' + readData);
+                                                                })
+                                                                .catch((error) => {
+                                                                // Failure code
+                                                                console.log("batt:" + error);
+                                                                });
+                                                        }, 5333);
 
                                                         setTimeout(() => {
                                                             BleManager.write(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic, [30]).then(() => {
@@ -250,7 +263,10 @@ export default class HomeScreen extends Component {
                                                                 for (var i = 1; i < readData.length; i++) {
                                                                   channelInfo += String.fromCharCode(readData[i]);
                                                                 }
-                                                               console.log('Read Info channel: ' +channelNo + ", name = " + channelInfo);
+                                                               if (channelInfo && 0 != channelInfo.length) {
+                                                                 console.log('Read Info channel: ' +channelNo + ", name = " + channelInfo);
+                                                                 this.audioChannels[channelNo] = channelInfo;
+                                                               }
 
                                                                 })
                                                                 .catch((error) => {
@@ -271,6 +287,12 @@ export default class HomeScreen extends Component {
             }
         }
     }
+
+    selectChannel = (channel) ⇒ {
+        this.setChannel({ channel: channel })
+    }
+
+
   render() {
     const list = Array.from(this.state.peripherals.values());
     const dataSource = ds.cloneWithRows(list);
@@ -324,6 +346,11 @@ export default class HomeScreen extends Component {
                 }
                 />
                 <Text>{this.state.info}</Text>
+                            <Picker selectedValue = {this.audioChannelSelection.channel onValueChange = {this.selectChannel}>
+                               <Picker.Item label = "Steve" value = "steve" />
+                               <Picker.Item label = "Ellen" value = "ellen" />
+                               <Picker.Item label = "Maria" value = "maria" />
+                            </Picker>
         </ScrollView>
       </View>
     );
