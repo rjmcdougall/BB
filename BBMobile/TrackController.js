@@ -8,16 +8,14 @@ export default class TrackController extends React.Component {
 		super(props);
 
 		this.BLEIDs = new BLEIDs();
-		this.audioChannelSelection = { channel: '' };
-
 		this.state = {
 			peripheral: null,
 			channelNo: 0,
+			maxChannel: 0,
 			audioChannels: [{
 				channelNo: 0,
-				channelInfo: ""
+				channelInfo: "",
 			}],
-			haveAllChannels: false,
 		}
 	}
 
@@ -29,15 +27,10 @@ export default class TrackController extends React.Component {
 		if (nextProps.peripheral == null) this.setState(
 			{
 				peripheral: null,
-				haveAllChannels: false,
 			}
 		);
 		else {
-			this.setState({
-				peripheral: nextProps.peripheral,
-				haveAllChannels: false,
-			});
-			this.readTrackListingFromBLE();
+			this.readTrackFromBLE(nextProps.peripheral);
 		}
 	}
 
@@ -57,82 +50,96 @@ export default class TrackController extends React.Component {
 	// 	}
 	// }
 
-	readTrackListingFromBLE() {
+	onUpdateTrack() {
 
-		console.log("TrackController Read Listing:" + this.state.peripheral);
+		var newTrack;
+		if (this.state.channelNo < this.state.maxChannel)
+			newTrack = this.state.channelNo += 1;
+		else
+			newTrack = 1;
+
+		console.log("TrackController: submitted value: " + [this.state.maxChannel, newTrack]);
 
 		if (this.state.peripheral) {
-
-			var audioChannels = [];
-			var haveAllChannels = false;
-
-			setInterval(() => {
-				if (!this.state.haveAllChannels) {
-					BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
-						console.log('TrackController Read Info: ' + readData);
-						var channelNo = readData[0];
-						var channelInfo = "";
-						for (var i = 1; i < readData.length; i++) {
-							channelInfo += String.fromCharCode(readData[i]);
-						}
-						if (channelInfo && 0 != channelInfo.length) {
-							if (audioChannels[channelNo] != null) {
-								console.log("TrackController " + channelNo + " already exists.");
-
-								var audioArrayFull=true;
-								// for(var n=0;n<audioChannels.length;n++){
-								// 	if(audioChannels[n] == null)
-								// 		audioArrayFull=false;
-								// }
-
-								if(audioArrayFull){
-									this.state.haveAllChannels = true;
-									console.log("TrackController Audio Array: " + audioChannels);
-									haveAllChannels = true;
-									this.setState({ audioChannels: audioChannels});
-								}
-							}
-							else{
-								audioChannels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
-								console.log('TrackController Add Info channel: ' + channelNo + ", name = " + channelInfo);
-							}
-
-						}
-
-					})
-						.catch((error) => {
-							// Failure code
-							console.log("TrackController r2: " + error);
-							haveAllChannels = true;
-						});
-				}
-
-			}, 1000);
-
+			BleManager.write(this.state.peripheral.id,
+				this.BLEIDs.AudioService,
+				this.BLEIDs.AudioChannelCharacteristic,
+				[this.state.maxChannel, newTrack])
+				.then(() => {
+					this.readVolumeFromBLE(this.state.peripheral);
+				})
+				.catch(error => {
+					console.log("VolumeController: " + error);
+				});
 		}
 	}
 
+	readTrackFromBLE(peripheral) {
 
+		console.log("TrackController Read Listing:" + peripheral);
 
+		var myComponent = this;
+
+		var audioChannels = [];
+
+		if (peripheral) {
+
+			BleManager.read(peripheral.id,
+				this.BLEIDs.AudioService,
+				this.BLEIDs.AudioChannelCharacteristic)
+				.then((readData) => {
+					myComponent.setState({
+						channelNo: readData[1],
+						maxChannel: readData[0]
+					});
+					console.log('TrackController Channel No: ' + this.state.channelNo);
+					console.log('TrackController Max Channel: ' + this.state.maxChannel);
+				})
+				.catch((error) => {
+					// Failure code
+					console.log("TrackController r2: " + error);
+					haveAllChannels = true;
+				});
+
+			// BleManager.read(peripheral.id,
+			// 	this.BLEIDs.AudioService,
+			// 	this.BLEIDs.AudioInfoCharacteristic)
+			// 	.then((readData) => {
+
+			// 		console.log('TrackController Read Info: ' + readData);
+			// 		var channelNo = readData[0];
+			// 		var channelInfo = "";
+			// 		for (var i = 1; i < readData.length; i++) {
+			// 			channelInfo += String.fromCharCode(readData[i]);
+			// 		}
+			// 		if (channelInfo && 0 != channelInfo.length) {
+			// 			audioChannels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
+			// 		}
+
+			// 		// this.setState({
+			// 		// 	peripheral: , 
+			// 		// });
+			// 		console.log('TrackController Add Info channel: ' + channelNo + ", name = " + channelInfo);
+			// 	})
+			// 	.catch((error) => {
+			// 		// Failure code
+			// 		console.log("TrackController r2: " + error);
+			// 		haveAllChannels = true;
+			// 	});
+		}
+	}
+	
 	render() {
 
-		// selectedValue={this.state.language}
-		// onValueChange={(itemValue, itemIndex) => this.setState({ language: itemValue })}>
+		return (
+			<View>
+				<TouchableHighlight style={{ marginTop: 40, margin: 20, padding: 20, backgroundColor: '#ccc' }}
+					onPress={() => this.onUpdateTrack()}
+				>
+					<Text>Track {this.state.channelNo} of {this.state.maxChannel}</Text>
+				</TouchableHighlight>
+			</View>
+		);
 
-		return <View>
-
-
-			{this.state.audioChannels.map((data) => {
-				if (data != null) {
-					return (
-						<Text key={data.channelInfo}>{data.channelInfo}</Text>
-
-					)
-				}
-			})}
-
-
-
-		</View>;
 	}
 }
