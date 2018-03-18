@@ -4,67 +4,70 @@ import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 
 export default class VolumeController extends React.Component {
-  constructor(props) {
-    super(props);
+	constructor(props) {
+		super(props);
 
-    this.BLEIDs = new BLEIDs();
+		this.BLEIDs = new BLEIDs();
 
-    this.state = { peripheral: props.peripheral,
-                    volume: 0 };
-  }
+		this.state = { peripheral: props.peripheral, volume: 0 };
+	}
 
-  componentWillReceiveProps(nextProps){
-    this.setState({peripheral: nextProps.peripheral});
-  }
+	componentWillReceiveProps(nextProps) {
+		if (nextProps.peripheral == null) this.setState(
+			{
+				peripheral: null,
+				volume: 0
+			}
+		);
+		else {
+			this.setState({
+				peripheral: nextProps.peripheral
+			});
+			this.readVolumeFromBLE();
+		}
+	}
 
-  onUpdateVolume(){
-    console.log("VolumeController: pressed");
+	onUpdateVolume(event) {
+		console.log("VolumeController: submitted value: " + JSON.stringify(event.value));
 
-    if (this.state.peripheral) {
-        setTimeout(() => {
-            BleManager.write(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [70]).then(() => {
-                
-                this.readVolumeFromBLE();
-    
-                console.log('VolumeController: Set Volume to ' + this.state.volume);
-                })
-                .catch((error) => {
-                // Failure code
-                console.log("VolumeController: " + error);
-                });
-        }, 5000);  
-    }
-  }
+		var newVolume = [event.value];
 
-  readVolumeFromBLE(){
-    if (this.state.peripheral) {
-        setTimeout(() => {
-            BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic).then((readData) => {
-                    console.log('VolumeController Read Volume: ' + readData);
-                    this.setState({volume: readData});
-    
-                })
-                .catch((error) => {
-                // Failure code
-                console.log("r1:" + error);
-                });
-        }, 5000);
-    }
-  }
+		if (this.state.peripheral) {
+			BleManager.write(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, newVolume)
+				.then(() => {
+					this.readVolumeFromBLE();
+				})
+				.catch(error => {
+					console.log("VolumeController: " + error);
+				});
+		}
+	}
 
-  render() {
-      console.log("VolumeController peripheral:" + this.state.peripheral);
-      
-      this.readVolumeFromBLE();
+	readVolumeFromBLE() {
+		
+		if (this.state.peripheral) {
+			BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic)
+				.then(readData => {
+					console.log("VolumeController Read Volume: " + readData[0]);
+					this.setState({ volume: readData[0] });
+				})
+				.catch(error => {
+					// Failure code
+					console.log("VolumeController: " + error);
+				});
+		}
+	}
 
- 
+	render() {
+		console.log("VolumeController peripheral:" + this.state.peripheral);
 
-    return ( <View>
-        <Text>{this.state.volume}</Text>
-        <TouchableHighlight style={{marginTop: 0,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.onUpdateVolume() }>
-          <Text>Update Volume</Text>
-        </TouchableHighlight>
+		return <View>
+			<Text>{this.state.volume}</Text>
+			<Slider value={this.state.volume} //onValueChange={(value) => this.onUpdateVolume({value})}
+				onSlidingComplete={value => this.onUpdateVolume(
+					{ value }
+				)} minimumValue={0} maximumValue={100} step={10} />
 
-        </View>);
-  }
+		</View>;
+	}
 }

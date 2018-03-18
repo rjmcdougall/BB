@@ -175,6 +175,8 @@ export default class HomeScreen extends Component {
         if (peripheral) {
             if (peripheral.connected) {
                 BleManager.disconnect(peripheral.id);
+                this.setState({selectedPeripheral: null});
+                
             } else {
                 BleManager.connect(peripheral.id).then(() => {
                     let peripherals = this.state.peripherals;
@@ -238,15 +240,15 @@ export default class HomeScreen extends Component {
                                                                 });
                                                         }, 5333);
 
-                                                        setTimeout(() => {
-                                                            BleManager.write(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [30]).then(() => {
-                                                                console.log('Set Volume to 30');
-                                                                })
-                                                                .catch((error) => {
-                                                                // Failure code
-                                                                console.log(error);
-                                                                });
-                                                        }, 500);
+                                                        // setTimeout(() => {
+                                                        //     BleManager.write(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [30]).then(() => {
+                                                        //         console.log('Set Volume to 30');
+                                                        //         })
+                                                        //         .catch((error) => {
+                                                        //         // Failure code
+                                                        //         console.log(error);
+                                                        //         });
+                                                        // }, 500);
                                                         setInterval(() => {
                                                             BleManager.read(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
                                                                 console.log('Read Info: ' + readData);
