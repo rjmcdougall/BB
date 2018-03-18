@@ -21,6 +21,7 @@ import {
     Dimensions,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
+import BLEIDs from './BLEIDs';
 
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({
@@ -48,22 +49,9 @@ export default class HomeScreen extends Component {
         this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
         this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
         this.handleAppStateChange = this.handleAppStateChange.bind(this);
+ 
+        this.BLEIDs = new BLEIDs();
 
-        this.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";
-
-        this.localService = "04c21568-159a-11e8-b642-0ed5f89f718b";
-        this.locationCharacteristic = "03c2193c-159a-11e8-b642-0ed5f89f718b";
-        this.LocationDescriptor = "03c21a90-159a-11e8-b642-0ed5f89f718b";
-        this.bbConfig = "03c21db0-159a-11e8-b642-0ed5f89f718b";
-
-        this.AudioService = "89239614-1937-11e8-accf-0ed5f89f718b";
-        this.AudioInfoCharacteristic = "892398a8-1937-11e8-accf-0ed5f89f718b";
-        this.AudioChannelCharacteristic = "892399e8-1937-11e8-accf-0ed5f89f718b";
-        this.AudioVolumeCharacteristic = "59629212-1938-11e8-accf-0ed5f89f718b";
-        this.AudioDescriptor = "89239b0a-1937-11e8-accf-0ed5f89f718b";
-
-        this.BatteryService = "4dfc5ef6-22a9-11e8-b467-0ed5f89f718b";
-        this.BatteryCharacteristic = "4dfc6194-22a9-11e8-b467-0ed5f89f718b"
     }
 
     componentDidMount() {
@@ -145,7 +133,7 @@ export default class HomeScreen extends Component {
             this.setState({
                 peripherals: new Map()
             });
-            BleManager.scan([this.bbUUID], 3, true).then((results) => {
+            BleManager.scan([this.BLEIDs.bbUUID], 3, true).then((results) => {
                 console.log('Scanning...');
                 this.setState({
                     scanning: true
@@ -227,7 +215,7 @@ export default class HomeScreen extends Component {
                                                         //console.log('Started notification on ' + peripheral.id);
 
                                                         setTimeout(() => {
-                                                            BleManager.read(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).then((readData) => {
+                                                            BleManager.read(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic).then((readData) => {
                                                                     console.log('Read Volume 1: ' + readData);
                                                                 })
                                                                 .catch((error) => {
@@ -237,7 +225,7 @@ export default class HomeScreen extends Component {
                                                         }, 3333);
 
                                                         setTimeout(() => {
-                                                            BleManager.read(peripheral.id, this.BatteryService, this.BatteryCharacteristic).then((readData) => {
+                                                            BleManager.read(peripheral.id, this.BLEIDs.BatteryService, this.BLEIDs.BatteryCharacteristic).then((readData) => {
                                                                     console.log('Battery: ' + readData);
                                                                 })
                                                                 .catch((error) => {
@@ -247,7 +235,7 @@ export default class HomeScreen extends Component {
                                                         }, 5333);
 
                                                         setTimeout(() => {
-                                                            BleManager.write(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic, [30]).then(() => {
+                                                            BleManager.write(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [30]).then(() => {
                                                                 console.log('Set Volume to 30');
                                                                 })
                                                                 .catch((error) => {
@@ -256,7 +244,7 @@ export default class HomeScreen extends Component {
                                                                 });
                                                         }, 500);
                                                         setInterval(() => {
-                                                            BleManager.read(peripheral.id, this.AudioService, this.AudioInfoCharacteristic).then((readData) => {
+                                                            BleManager.read(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
                                                                 console.log('Read Info: ' + readData);
                                                                 var channelNo = readData[0];
                                                                 var channelInfo = "";
