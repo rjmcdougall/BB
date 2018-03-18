@@ -6,3 +6,4 @@ BBMobile/android/app/build/*
 BBMobile/android/build/android-profile/*
 BBMobile/android/.gradle/*
 BBMobile/android/local.properties
+local.properties

@@ -4,7 +4,6 @@ import android.app.Application;
 
 import com.facebook.react.ReactApplication;
 import it.innove.BleManagerPackage;
-import it.innove.BleManagerPackage;
 import com.airbnb.android.react.maps.MapsPackage;
 //import com.polidea.reactnativeble.BlePackage;
 import com.facebook.react.ReactNativeHost;
