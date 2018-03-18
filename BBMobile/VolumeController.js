@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, WebView, Button, Touchable } from "react-native";
+import { View, Text, WebView, Button, TouchableHighlight, Slider } from "react-native";
 import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 
@@ -22,17 +22,17 @@ export default class VolumeController extends React.Component {
 
     if (this.state.peripheral) {
         setTimeout(() => {
-            BleManager.write(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [30]).then(() => {
+            BleManager.write(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [70]).then(() => {
                 
-                readVolumeFromBLE();
+                this.readVolumeFromBLE();
     
                 console.log('VolumeController: Set Volume to ' + this.state.volume);
                 })
                 .catch((error) => {
                 // Failure code
-                console.log(error);
+                console.log("VolumeController: " + error);
                 });
-        }, 500);  
+        }, 5000);  
     }
   }
 
@@ -61,9 +61,9 @@ export default class VolumeController extends React.Component {
 
     return ( <View>
         <Text>{this.state.volume}</Text>
-        {/* <Touchable style={{marginTop: 0,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.onUpdateVolume() }>
+        <TouchableHighlight style={{marginTop: 0,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.onUpdateVolume() }>
           <Text>Update Volume</Text>
-        </Touchable> */}
+        </TouchableHighlight>
 
         </View>);
   }
