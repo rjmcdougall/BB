@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
+import VolumeController from './VolumeController';
 
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({
@@ -38,7 +39,8 @@ export default class HomeScreen extends Component {
         this.state = {
             scanning: false,
             peripherals: new Map(),
-            appState: ''
+            appState: '',
+            selectedPeripheral: null,
         }
 
         this.audioChannels = {};
@@ -176,13 +178,15 @@ export default class HomeScreen extends Component {
             } else {
                 BleManager.connect(peripheral.id).then(() => {
                     let peripherals = this.state.peripherals;
-                    let p = peripherals.get(peripheral.id);
-                    if (p) {
-                        p.connected = true;
-                        peripherals.set(peripheral.id, p);
+                    let selectedPeripheral = peripherals.get(peripheral.id);
+                    if (selectedPeripheral) {
+                        selectedPeripheral.connected = true;
+                        peripherals.set(peripheral.id, selectedPeripheral);
                         this.setState({
-                            peripherals
+                            peripherals: peripherals,
+                            selectedPeripheral: selectedPeripheral,
                         });
+                        console.log("selected peripheral:" + this.state.selectedPeripheral);
                     }
                     console.log('Connected to ' + peripheral.id);
 
@@ -284,10 +288,13 @@ export default class HomeScreen extends Component {
 
     return (
       <View style={styles.container}>
+     
         <Image
         style={{width: 100, height: 100, alignSelf:"center"}}
         source={require('./images/BurnerBoardIcon.png')}
                 />
+                 <VolumeController peripheral={this.state.selectedPeripheral}/>
+
         <TouchableHighlight style={{marginTop: 40,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.startScan() }>
           <Text>Scan for Burner Boards ({this.state.scanning ? 'scanning' : 'paused'})</Text>
         </TouchableHighlight>
