@@ -55,21 +55,23 @@ export default class TrackController extends React.Component {
 		var newTrack;
 		if (this.state.channelNo < this.state.maxChannel)
 			newTrack = this.state.channelNo += 1;
-		else
+		else{
 			newTrack = 1;
+		}
 
-		console.log("TrackController: submitted value: " + [this.state.maxChannel, newTrack]);
+		console.log("TrackController: submitted value: " + [newTrack]);
 
 		if (this.state.peripheral) {
 			BleManager.write(this.state.peripheral.id,
 				this.BLEIDs.AudioService,
 				this.BLEIDs.AudioChannelCharacteristic,
-				[this.state.maxChannel, newTrack])
+				[newTrack])
 				.then(() => {
+					console.log("TrackController Update:  " + [newTrack]);
 					this.readVolumeFromBLE(this.state.peripheral);
 				})
 				.catch(error => {
-					console.log("VolumeController: " + error);
+					console.log("TrackController: " + error);
 				});
 		}
 	}

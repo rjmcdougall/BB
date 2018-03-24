@@ -204,8 +204,8 @@ export default class HomeScreen extends Component {
                        */
 
                     BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-                        console.log("retrieve Services");
-                        console.log(peripheralInfo);
+                        console.log("HomeScreen: retrieve Services");
+                        console.log("HomeScreen: " + peripheralInfo);
 
                         this.setState({
                             peripherals: peripherals,

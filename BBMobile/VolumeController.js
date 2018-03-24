@@ -33,7 +33,10 @@ export default class VolumeController extends React.Component {
 		var newVolume = [event.value];
 
 		if (this.state.peripheral) {
-			BleManager.write(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, newVolume)
+			BleManager.write(this.state.peripheral.id, 
+				this.BLEIDs.AudioService, 
+				this.BLEIDs.AudioVolumeCharacteristic, 
+				newVolume)
 				.then(() => {
 					this.readVolumeFromBLE();
 				})
