@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, WebView, Button, TouchableHighlight, Slider, Picker } from "react-native";
 import BleManager from 'react-native-ble-manager';
+//import BleManager from './BLEManagerFake';
 import BLEIDs from './BLEIDs';
 
 export default class TrackController extends React.Component {

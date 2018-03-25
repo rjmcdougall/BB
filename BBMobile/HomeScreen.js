@@ -21,6 +21,7 @@ import {
     Dimensions,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
+//import BleManager from './BLEManagerFake';
 import BLEIDs from './BLEIDs';
 import VolumeController from './VolumeController';
 import TrackController from './TrackController';
@@ -132,7 +133,7 @@ export default class HomeScreen extends Component {
     }
 
     startScan() {
-        if (!this.state.scanning) {
+       if (!this.state.scanning) {
             this.setState({
                 peripherals: new Map()
             });
