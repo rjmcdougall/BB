@@ -10,7 +10,7 @@ export default class TrackController extends React.Component {
 
 		this.BLEIDs = new BLEIDs();
 		this.state = {
-			peripheral: null,
+			peripheral: props.peripheral,
 			channelNo: 0,
 			maxChannel: 0,
 			audioChannels: [{
@@ -20,20 +20,43 @@ export default class TrackController extends React.Component {
 		}
 	}
 
-	componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
+
+        //console.log("TrackController component received props:" + this.state.peripheral);
+        console.log("TrackController component received props:" + nextProps);
+        //console.log(nextProps);
+
+        if (nextProps.peripheral == null) {
+            console.log("clearing state...");
+            this.setState({
+                peripheral: null,
+                haveAllChannels: false
+                });
+        } else {
+            console.log("setting state...");
+            this.setState({
+                peripheral: nextProps.peripheral,
+                haveAllChannels: false,
+            });
+        }
+    }
 
 
-		console.log("TrackController component received props:" + this.state.peripheral);
+//    componentWillReceiveProps(nextProps) {
+//
+//
+//		console.log("TrackController component received props:" + this.state.peripheral);
+//
+//		if (nextProps.peripheral == null) this.setState(
+//			{
+//				peripheral: null,
+//			}
+//		);
+//		else {
+//			this.readTrackFromBLE(nextProps.peripheral);
+//		}
+//	}
 
-		if (nextProps.peripheral == null) this.setState(
-			{
-				peripheral: null,
-			}
-		);
-		else {
-			this.readTrackFromBLE(nextProps.peripheral);
-		}
-	}
 
 	// onUpdateVolume(event) {
 	// 	console.log("VolumeController: submitted value: " + JSON.stringify(event.value));
@@ -69,7 +92,7 @@ export default class TrackController extends React.Component {
 				[newTrack])
 				.then(() => {
 					console.log("TrackController Update:  " + [newTrack]);
-					this.readVolumeFromBLE(this.state.peripheral);
+					this.readTrackFromBLE(this.state.peripheral);
 				})
 				.catch(error => {
 					console.log("TrackController: " + error);
