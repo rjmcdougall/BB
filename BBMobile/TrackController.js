@@ -119,7 +119,7 @@ export default class TrackController extends Component {
                                 console.log("TrackController Audio Array: " + audioChannels);
                                 var tracks = audioChannels.map(a => a.channelInfo);
                                 console.log("Demo: " + tracks);
-                                haveAllChannels = true;
+                                stopLooking = true;
                                 this.setState({ audioChannels: audioChannels});
                             }
 
