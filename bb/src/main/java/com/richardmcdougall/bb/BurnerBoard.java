@@ -73,6 +73,8 @@ public class BurnerBoard {
         return 0;
     }
 
+    public int getBatteryVoltage() {return 0; }
+
     public String getBatteryStats() { return null;   }
 
     static public int getRGB(int r, int g, int b) {
@@ -356,8 +358,8 @@ public class BurnerBoard {
                 l("USB Connected to " + boardId);
                 // Perf Tests thare are useful during debugging
                 //setMode(50);
-                testTeensy();
-                testPerf();
+                //testTeensy();
+                //testPerf();
             }
         }
     }

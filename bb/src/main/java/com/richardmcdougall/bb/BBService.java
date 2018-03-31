@@ -61,6 +61,10 @@ public class BBService extends Service {
     public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
     public static final String ACTION_USB_DEVICE_ATTACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_ATTACHED";
     public static final String ACTION_USB_DEVICE_DETACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_DETACHED";
+    public static final String ACTION_BB_LOCATION = "com.richardmcdougall.bb.ACTION_BB_LOCATION";
+    public static final String ACTION_BB_VOLUME = "com.richardmcdougall.bb.ACTION_BB_VOLUME";
+    public static final String ACTION_BB_AUDIOCHANNEL = "com.richardmcdougall.bb.ACTION_BB_AUDIOCHANNEL";
+    public static final String ACTION_BB_VIDEOMODE = "com.richardmcdougall.bb.ACTION_BB_VIDEOMODE";
 
     public int GetMaxLightModes() {
 
@@ -187,12 +191,12 @@ public class BBService extends Service {
             e.printStackTrace();
         }
 
+        /*
         if (boardType.contains("BLU")) {
             mServerMode = true;
             l("I am the server");
         }
-
-
+        */
 
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
@@ -600,6 +604,12 @@ public class BBService extends Service {
         mediaPlayer.setVolume(vol, vol);
     }
 
+    public void broadcastVolume(float vol) {
+        Intent in = new Intent(ACTION_BB_VOLUME);
+        in.putExtra("volume", vol);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+    }
+
     long lastSeekOffset = 0;
     long lastSeekTimestamp = 0;
 
@@ -798,15 +808,27 @@ public class BBService extends Service {
         return dlManager.GetAudioFileLocalName(index - 1);
     }
 
+    public String getVideoModeInfo(int index) {
+        return dlManager.GetVideoFileLocalName(index - 1);
+    }
+
     public int getRadioChannel() {
 
         l("GetRadioChannel: ");
         return currentRadioChannel;
     }
 
+    public int getVideoMode() {
+        return getCurrentBoardMode();
+    }
+
     public int getRadioChannelMax() {
         return dlManager.GetTotalAudio();
     }
+    public int getVideoMax() {
+        return dlManager.GetTotalVideo();
+    }
+
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     public void SetRadioChannel(int index) {
@@ -858,6 +880,9 @@ public class BBService extends Service {
 
     public void RadioMode() {
         SetRadioChannel(currentRadioChannel);
+    }
+    public void setVideoMode(int mode) {
+        setMode(mode);
     }
 
 
@@ -1054,8 +1079,10 @@ public class BBService extends Service {
             if (mBurnerBoard != null) {
                 int level = mBurnerBoard.getBattery();
                 int current = mBurnerBoard.getBatteryCurrent();
+                int voltage = mBurnerBoard.getBatteryVoltage();
 
                 l("Board Current is " + current);
+                l("Board Voltage is " + voltage);
 
                 /*
                  * Now done in bb-installer
@@ -1064,32 +1091,48 @@ public class BBService extends Service {
                 }
                 */
 
-                if (mBurnerBoard != null) {
-                    l("Sending MQTT update");
-                    iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                // Every 10 seconds log to IOT cloud
+                if (loopCnt % 10 == 0) {
+                    if (mBurnerBoard != null) {
+                        l("Sending MQTT update");
+                        iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                    }
                 }
 
-                /*
-                if ((current > -500) && (current < 100)) {
+                // Save CPU cycles for lower power mode
+                // current is milliamps
+                // Current with brain running is about 100ma
+                // Check voltage to make sure we're really reading the battery gauge
+                if ((voltage > 20000) && (current > -150)) {
                     mBoardVisualization.inhibit(true);
                 } else {
                     mBoardVisualization.inhibit(false);
-                }*/
+                }
 
+                // Battery voltage is critically low
+                // Board will come to a halt in < 60 seconds
+                // current is milliamps
+                if ((voltage > 20000) && (voltage < 35300) ){
+                    mBoardVisualization.emergency(true);
+                } else {
+                    mBoardVisualization.emergency(false);
+                }
 
                 announce = false;
+                /*
                 if (level < 0) {
                     if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
                         lastUnknownStatement = System.currentTimeMillis();
                         voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
                     }
                 }
-                if (level < 15) {
+                */
+                if ((level >= 0) && (level < 15)) {
                     if (System.currentTimeMillis() - lastOkStatement > 60000) {
                         lastOkStatement = System.currentTimeMillis();
                         announce = true;
                     }
-                } else if (level <= 25) {
+                } else if ((level >= 0) && (level <= 25)) {
                     if (System.currentTimeMillis() - lastLowStatement > 300000) {
                         lastLowStatement = System.currentTimeMillis();
                         announce = true;
@@ -1109,7 +1152,7 @@ public class BBService extends Service {
 
 
             try {
-                Thread.sleep(15000);
+                Thread.sleep(1000);
             } catch (Throwable e) {
             }
             loopCnt++;

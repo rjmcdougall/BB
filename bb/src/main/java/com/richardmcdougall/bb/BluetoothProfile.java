@@ -21,6 +21,7 @@ public class BluetoothProfile {
     private static final String TAG = "BB.BluetoothProfile";
 
     int mCurrentAudioChannel = 0;
+    int mCurrentVideoMode = 0;
 
     public static void l(String s) {
         Log.v(TAG, s);
@@ -158,8 +159,15 @@ public class BluetoothProfile {
         if (channel == 0) {
             return new byte[] {0, (byte)service.getRadioChannelMax()};
         }
-
         String name = service.getRadioChannelInfo(channel);
+    /* Test
+        if (channel == 1) {
+            name = "fancy track 1";
+        }
+        if (channel == 2) {
+            name = "fancy track 2";
+        }
+        */
 
         // Else return the slot name
         if (name != null) {
@@ -191,6 +199,139 @@ public class BluetoothProfile {
 
         service.SetRadioChannel(value[0] & 0xff);
     }
+
+
+    public static UUID BB_VIDEO_SERVICE = UUID.fromString("89239614-9937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_VIDEO_INFO_CHARACTERISTIC = UUID.fromString("892398a8-9937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_VIDEO_CHANNEL_SELECT_CHARACTERISTIC = UUID.fromString("892399e8-9937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_VIDEO_VOLUME_CHARACTERISTIC = UUID.fromString("59629212-9938-11e8-accf-0ed5f89f718b");
+    public static UUID BB_VIDEO_DESCRIPTOR = UUID.fromString("89239b0a-9937-11e8-accf-0ed5f89f718b");
+    /**
+     * Return a configured {@link BluetoothGattService} instance for the
+     * Current Time Service.
+     */
+    public BluetoothGattService createBBVideoService() {
+
+
+        BluetoothGattService service = new BluetoothGattService(BB_VIDEO_SERVICE,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+        // Video Channel Info
+        BluetoothGattCharacteristic bbVideoInfo = new BluetoothGattCharacteristic(BB_VIDEO_INFO_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        BluetoothGattDescriptor bbVideoInfoconfigDescriptor = new BluetoothGattDescriptor(BB_VIDEO_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+        bbVideoInfo.addDescriptor(bbVideoInfoconfigDescriptor);
+
+        // Video Channel Select
+        BluetoothGattCharacteristic bbVideoModeSelect = new BluetoothGattCharacteristic(BB_VIDEO_CHANNEL_SELECT_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        BluetoothGattDescriptor bbVideoModeSelectconfigDescriptor = new BluetoothGattDescriptor(BB_VIDEO_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+
+        bbVideoModeSelect.addDescriptor(bbVideoModeSelectconfigDescriptor);
+
+        // Volume
+        BluetoothGattCharacteristic bbVideoVolume = new BluetoothGattCharacteristic(BB_VIDEO_VOLUME_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        BluetoothGattDescriptor bbVideoVolumeconfigDescriptor = new BluetoothGattDescriptor(BB_VIDEO_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+        bbVideoVolume.addDescriptor(bbVideoVolumeconfigDescriptor);
+
+        service.addCharacteristic(bbVideoInfo);
+        service.addCharacteristic(bbVideoModeSelect);
+        service.addCharacteristic(bbVideoVolume);
+
+        return service;
+    }
+
+
+    /**
+     * Construct the field values for a BB_VIDEO_DESCRIPTOR
+     * from the given epoch timestamp and adjustment reason.
+     */
+    public void setVideoDescriptor(byte[] value) {
+
+        mCurrentVideoMode = value[0] & 0xff;;
+    }
+
+    /**
+     * Construct the field values for a BB_VIDEO_DESCRIPTOR
+    public static byte[] getVideoDescriptor(BBService service) {
+
+        byte[] field = {(byte)service.GetMaxVideoModes()};
+        return field;
+    }
+     */
+
+    /**
+     * Construct the field values for a BB_VIDEO_DESCRIPTOR
+     */
+    public static byte[] getVideoInfo(BBService service, int channel) {
+
+
+        // If 0, then return the count of slots
+        if (channel == 0) {
+            return new byte[] {0, (byte)service.getVideoMax()};
+        }
+
+        String name = service.getRadioChannelInfo(channel);
+
+        // Else return the slot name
+        if (name != null) {
+            byte[] field = name.getBytes();
+            int fieldlength = java.lang.Math.min(18, field.length);
+            byte[] response = new byte[fieldlength + 1];
+            response[0] = (byte)channel;
+            System.arraycopy(field, 0, response, 1, fieldlength);
+            return response;
+        } else {
+            return new byte[] {0};
+        }
+    }
+
+
+    /**
+     * Construct the field values for a BB Locationcharacteristic
+     */
+    public static byte[] getVideoMode(BBService service) {
+
+        byte[] field = {(byte)service.getVideoMode()};
+        return field;
+    }
+
+    /**
+     * Set the video stream
+    public void setVideoMode(BBService service, byte[] value) {
+
+        service.setVideoMode(value[0] & 0xff);
+    }
+     */
+
 
     public static UUID BB_BATTERY_SERVICE = UUID.fromString("4dfc5ef6-22a9-11e8-b467-0ed5f89f718b");
     public static UUID BB_BATTERY_CHARACTERISTIC = UUID.fromString("4dfc6194-22a9-11e8-b467-0ed5f89f718b");

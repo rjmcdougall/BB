@@ -19,7 +19,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
-    public int mBatteryLevel;
+    public int mBatteryLevel = -1;
     public int [] mBatteryStats = new int[16];
     private static final String TAG = "BB.BurnerBoardClassic";
 
@@ -141,6 +141,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         } else {
             return 10 * codedLevel;
         }
+    }
+
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
     }
 
     //    cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11

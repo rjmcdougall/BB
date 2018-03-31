@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.os.ParcelUuid;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ public class BluetoothLEServer {
     String mBoardId;
 
     private HashMap<BluetoothDevice, Integer> mAudioInfoSelect = new HashMap<>();
+    private HashMap<BluetoothDevice, Integer> mVideoInfoSelect = new HashMap<>();
 
 
     /* Bluetooth API */
@@ -87,6 +89,16 @@ public class BluetoothLEServer {
             startServer();
 
         }
+
+        // Register to receive button messages
+        filter = new IntentFilter(BBService.ACTION_BB_VOLUME);
+        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        filter = new IntentFilter(BBService.ACTION_BB_AUDIOCHANNEL);
+        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        filter = new IntentFilter(BBService.ACTION_BB_VIDEOMODE);
+        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        filter = new IntentFilter(BBService.ACTION_BB_LOCATION);
+        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
     }
 
     private void sendLogMsg(String msg) {
@@ -167,6 +179,12 @@ public class BluetoothLEServer {
 
         }
         mBluetoothGattServer.addService(profile.createBBAudioService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
+        mBluetoothGattServer.addService(profile.createBBVideoService());
     }
 
     /**
@@ -261,6 +279,7 @@ public class BluetoothLEServer {
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
                                                 BluetoothGattCharacteristic characteristic) {
+
             long now = System.currentTimeMillis();
             if (BluetoothProfile.BB_LOCATION_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read location characteristic");
@@ -289,6 +308,16 @@ public class BluetoothLEServer {
                         BluetoothGatt.GATT_SUCCESS,
                         0,
                         audioChannel);
+            } else if (BluetoothProfile.BB_VIDEO_CHANNEL_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read video mode characteristic");
+                byte[] videoChannel = new byte[] {0, 0};
+                videoChannel[0] = (byte) mBBService.getVideoMax();
+                videoChannel[1] = (byte) mBBService.getVideoMode();
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        videoChannel);
             } else if (BluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read audio volume characteristic");
                 byte[] audioChannel = new byte[]{0, 0};
@@ -299,7 +328,7 @@ public class BluetoothLEServer {
                         0,
                         audioChannel);
             } else if (BluetoothProfile.BB_AUDIO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
-                l("Read audio info characteristic");
+                l("Read audio info characteristic: " + requestId);
                 int infoselect = 1;
                 if (mAudioInfoSelect.containsKey(device)) {
                     infoselect = mAudioInfoSelect.get(device).intValue();
@@ -319,6 +348,27 @@ public class BluetoothLEServer {
                         audioInfo);
                 infoselect++;
                 mAudioInfoSelect.put(device, infoselect);
+            }  else if (BluetoothProfile.BB_VIDEO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read video info characteristic");
+                int infoselect = 1;
+                if (mVideoInfoSelect.containsKey(device)) {
+                    infoselect = mVideoInfoSelect.get(device).intValue();
+                } else {
+                    l("videoinfo select key was missing");
+                }
+                byte[] videoInfo = BluetoothProfile.getVideoInfo(mBBService, infoselect);
+                if (videoInfo[0] == 0) {
+                    infoselect = 1;
+                    videoInfo = BluetoothProfile.getVideoInfo(mBBService, infoselect);
+                }
+                l("Read video info characteristic: " + infoselect);
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        videoInfo);
+                infoselect++;
+                mVideoInfoSelect.put(device, infoselect);
             } else if (BluetoothProfile.BB_BATTERY_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read battery characteristic");
                 byte[] battery = BluetoothProfile.getBatteryInfo(mBBService);
@@ -378,6 +428,18 @@ public class BluetoothLEServer {
                 mAudioInfoSelect.put(device, audioinfoselect);
 
                 l("Write audio info characteristic: " + mAudioInfoSelect + " needs reply: " + responseNeeded);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            }  else if (BluetoothProfile.BB_VIDEO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                int videoinfoselect = (int) (value[0] & 0xFF);
+                mVideoInfoSelect.put(device, videoinfoselect);
+
+                l("Write video info characteristic: " + mAudioInfoSelect + " needs reply: " + responseNeeded);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,
@@ -458,4 +520,20 @@ public class BluetoothLEServer {
         }
     };
 
-}
+
+    // We use this to catch the board events
+    private final BroadcastReceiver mBBEventReciever = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            final String TAG = "mBBEventReciever";
+
+            Log.d(TAG, "onReceive entered");
+            String action = intent.getAction();
+
+            if (BBService.ACTION_BB_VOLUME.equals(action)) {
+                Log.d(TAG, "Got volume");
+                float volume = (float) intent.getSerializableExtra("volume");
+
+                }
+            }
+        };
+    };

@@ -45,7 +45,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     //public int[] mBoardScreen;
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardAzul";
-    public int mBatteryLevel;
+    public int mBatteryLevel = -1;
     public int [] mBatteryStats = new int[16];
 
 
@@ -158,6 +158,10 @@ public class BurnerBoardAzul extends BurnerBoard {
         } else {
             return 10 * codedLevel;
         }
+    }
+
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
     }
 
     public void fuzzPixels(int amount) {

@@ -63,6 +63,7 @@ public class BoardVisualization {
     private int lastVideoMode = -1;
     private int mMultipler4Speed;
     private boolean inhibitVisual = false;
+    private boolean emergencyVisual = false;
 
     int mBoardMode;
     Context mContext;
@@ -119,6 +120,10 @@ public class BoardVisualization {
         inhibitVisual = inhibit;
     }
 
+    public void emergency(boolean emergency) {
+        emergencyVisual = emergency;
+    }
+
     private void sendLogMsg(String msg) {
         Intent in = new Intent(BBService.ACTION_STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
@@ -166,10 +171,10 @@ public class BoardVisualization {
         l("Enabled visualizer with " + vSize + " bytes");
     }
 
-    public int displayAlgorithm(String mBoardMode) {
+    public int displayAlgorithm(String algorithm) {
         int frameRate = 0;
 
-        switch (mBoardMode) {
+        switch (algorithm) {
 
             case "modeMatrix(kMatrixBurnerColor)":
                 frameRate = 12;
@@ -232,9 +237,24 @@ public class BoardVisualization {
 
         while (true) {
 
+            // Power saving when board top not turned on
             if (inhibitVisual) {
                 l("inhibit");
                 mBurnerBoard.clearPixels();
+                mBurnerBoard.showBattery();
+                mBurnerBoard.flush();
+                try {
+                    Thread.sleep(1000);
+                } catch (Throwable er) {
+                    er.printStackTrace();
+                }
+                continue;
+            }
+
+            if (emergencyVisual) {
+                l("inhibit");
+                mBurnerBoard.clearPixels();
+                mBurnerBoard.fillScreen(255, 0, 0);
                 mBurnerBoard.showBattery();
                 mBurnerBoard.flush();
                 try {
@@ -924,6 +944,7 @@ public class BoardVisualization {
 
         int curVidIndex = videoNumber % nVideos;
 
+        // TODO: check perf overhead of checking this every frame
         if(mBurnerBoard.mBBService.dlManager.GetVideo(videoNumber).has("algorithm")){
 
             String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(videoNumber);
