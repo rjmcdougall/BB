@@ -114,11 +114,14 @@ export default class TrackController extends Component {
 						if (audioChannels[channelNo] != null) {
 							console.log("TrackController " + channelNo + " already exists.");
 
-							this.state.haveAllChannels = true;
-							var tracks = audioChannels.map(a => a.channelInfo);
-							console.log("TrackController Audio Array: " + tracks);
-							stopLooking = true;
-							this.setState({ audioChannels: audioChannels });
+                           if(channelsCollected == this.state.maxChannel){
+                                this.state.haveAllChannels = true;
+                                console.log("TrackController Audio Array: " + audioChannels);
+                                var tracks = audioChannels.map(a => a.channelInfo);
+                                console.log("Demo: " + tracks);
+                                haveAllChannels = true;
+                                this.setState({ audioChannels: audioChannels});
+                            }
 
 						} else {
 							audioChannels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
