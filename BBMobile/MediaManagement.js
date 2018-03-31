@@ -104,12 +104,8 @@ export default class MediaManagement extends Component {
             )
           } else {
             boardConnected = (
-                <Touchable
-                onPress={() => this.connectToPeripheral(peripheral)}
-                style={[styles.rowText,{ backgroundColor: '#fff' }]}
-                background={Touchable.Ripple('blue')}>
-                <Text style={styles.rowText}>Reconnect to {peripheral.name}</Text>
-            </Touchable>
+                <Text style={[styles.rowText,{ backgroundColor: '#ff0000' }]}>NOT connected to {peripheral.name}</Text>
+           
             )
           }
 

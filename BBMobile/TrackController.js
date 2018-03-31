@@ -15,7 +15,7 @@ export default class TrackController extends Component {
 			scannerIsRunning: false,
 			peripheral: props.peripheral,
 			channelNo: 0,
-			channelInfo: "Touch to Load",
+			channelInfo: "Loading (~60 seconds)",
 			maxChannel: 0,
 			audioChannels: [{ channelInfo: "loading..." }],
 			haveAllChannels: false,
@@ -59,6 +59,7 @@ export default class TrackController extends Component {
 		console.log(this.state.backgroundLoop);
 		// how to stop the timer?
 		clearInterval(this.state.backgroundLoop);
+		console.log(this.state.backgroundLoop);
 	}
 
 	readTrackFromBLE(peripheral) {
