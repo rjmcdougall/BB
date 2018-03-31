@@ -21,6 +21,7 @@
   "dependencies": {
     "expo": "^25.0.0",
     "react": "^16.3.0",
+    "react-google-maps": "^9.4.5",
     "react-native": "^0.54.4",
     "react-native-ble-manager": "^6.2.8",
     "react-native-cli": "^2.0.1",

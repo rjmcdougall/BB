@@ -25,6 +25,7 @@ import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 import VolumeController from './VolumeController';
 import TrackController from './TrackController';
+import MapController from './MapController';
 
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({
@@ -319,6 +320,7 @@ export default class HomeScreen extends Component {
                             );
                         }}
                     />
+                    <MapController peripheral={this.state.selectedPeripheral} />
                 </ScrollView>
             </View>
         );
