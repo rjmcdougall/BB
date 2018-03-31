@@ -25,6 +25,7 @@ import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 import VolumeController from './VolumeController';
 import TrackController from './TrackController';
+import MapController from './MapController';
 import Touchable from 'react-native-platform-touchable';
 
 const window = Dimensions.get('window');
@@ -248,6 +249,7 @@ export default class HomeScreen extends Component {
                         }}
                     />
                 </ScrollView>
+                <MapController peripheral={this.state.selectedPeripheral} />
                 <Button
                 title="Go to BB.com"
                 onPress={() =>
