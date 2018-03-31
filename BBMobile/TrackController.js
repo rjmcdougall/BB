@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import { View, Text, WebView, Button, TouchableHighlight, Slider, StyleSheet} from "react-native";
+import { View, Text, WebView, Button, TouchableHighlight, Slider, StyleSheet } from "react-native";
 import ModalDropdown from 'react-native-modal-dropdown';
 import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
- 
+
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
@@ -15,6 +15,7 @@ export default class TrackController extends Component {
 			scannerIsRunning: false,
 			peripheral: props.peripheral,
 			channelNo: 0,
+			channelInfo: "Touch to Load",
 			maxChannel: 0,
 			audioChannels: [{ channelInfo: "loading..." }],
 			haveAllChannels: false,
@@ -22,15 +23,15 @@ export default class TrackController extends Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
- 
-		console.log("TrackController component received props:" + nextProps); 
+
+		console.log("TrackController component received props:" + nextProps);
 
 		if (nextProps.peripheral == null) {
 			console.log("clearing state...");
 			this.setState({
 				peripheral: null,
 				haveAllChannels: false,
-				audioChannels: [{ channelInfo: "loading..." }],
+				audioChannels: [{ channelInfo: "Please Select..." }],
 				channelNo: 0,
 				maxChannel: 0,
 			});
@@ -62,8 +63,6 @@ export default class TrackController extends Component {
 
 	readTrackFromBLE(peripheral) {
 
-		console.log("TrackController Read current/track counts:" + peripheral);
-
 		var myComponent = this;
 
 		if (peripheral) {
@@ -73,7 +72,6 @@ export default class TrackController extends Component {
 				this.BLEIDs.AudioService,
 				this.BLEIDs.AudioChannelCharacteristic)
 				.then((readData) => {
-					console.log("TrackController complted Read current/track counts:" + peripheral);
 					myComponent.setState({
 						channelNo: readData[1],
 						maxChannel: readData[0]
@@ -95,14 +93,14 @@ export default class TrackController extends Component {
 		var stopLooking = false;
 		var channelsCollected = 0;
 
+		if (this.state.maxChannel == 0) {
+			setTimeout(() => {
+				this.readTrackFromBLE(this.state.peripheral);
+			}, 600);
+		}
+
 		var backgroundTimer = setInterval(() => {
 			if (this.state.peripheral && !this.state.haveAllChannels) {
-
-				if (this.state.maxChannel == 0) {
-					setTimeout(() => {
-						this.readTrackFromBLE(this.state.peripheral);
-					}, 600);
-				}
 
 				BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
 					console.log('TrackController Read Info: ' + readData);
@@ -123,6 +121,10 @@ export default class TrackController extends Component {
 
 						} else {
 							audioChannels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
+
+							if(channelNo==this.state.channelNo)
+								this.setState({channelInfo: audioChannels[channelNo].channelInfo});
+
 							channelsCollected += 1;
 							console.log('TrackController Add Info channel: ' + channelNo + ", name = " + channelInfo);
 							console.log('TrackController Max Channel: ' + this.state.maxChannel);
@@ -173,39 +175,49 @@ export default class TrackController extends Component {
 
 		var tracks = this.state.audioChannels.map(a => a.channelInfo);
 		return (
-			 
-				<ModalDropdown options={tracks}
-					style={styles.PStyle}
-					dropdownStyle={styles.DDStyle}
-					textStyle={styles.rowText}
-					dropdownTextStyle ={styles.rowText}
-					dropdownTextHighlightStyle={styles.rowText}
-					onSelect={this.onSelect.bind(this)}
-				/>
-		 
+
+			<View style={{ margin: 20, backgroundColor: 'skyblue', height: 100 }}>
+				<View style={{
+					flex: 1,
+					flexDirection: 'row',
+				}}>
+					<View style={{ height: 50 }}>
+						<Text style={styles.rowText}>Audio Track</Text></View>
+				</View>
+				<View style={{ height: 50 }}>
+					<ModalDropdown options={tracks}
+						defaultValue={this.state.channelInfo}
+						style={styles.PStyle}
+						dropdownStyle={styles.DDStyle}
+						textStyle={styles.rowText}
+						dropdownTextStyle={styles.rowText}
+						dropdownTextHighlightStyle={styles.rowText}
+						onSelect={this.onSelect.bind(this)}
+					/>
+				</View>
+			</View>
 		);
 	}
 }
 
 const styles = StyleSheet.create({
 	container: {
-        flex: 1,
-        backgroundColor: '#FFF',
-        width: window.width,
-        height: window.height
-    },
-	PStyle: {
-        backgroundColor: '#ccc',
-        width: 200,
+		flex: 1,
+		backgroundColor: 'skyblue',
+		width: window.width,
+		height: window.height
 	},
-    DDStyle: {
-        backgroundColor: '#ccc',
-		width: 200,
-		height: 500,
-    },
-    rowText: {
-        margin: 5,
-        fontSize: 12, 
-        padding: 10,
-    },  
+	PStyle: {
+		backgroundColor: 'skyblue',
+		width: 280,
+	},
+	DDStyle: {
+		backgroundColor: 'skyblue',
+		width: 280,
+	},
+	rowText: {
+		margin: 5,
+		fontSize: 16,
+		padding: 10,
+	},
 });
