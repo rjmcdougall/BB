@@ -1,26 +1,33 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { StackNavigator } from 'react-navigation'; // Version can be specified in package.json
-import {Button} from 'react-native';
 import HomeScreen from './HomeScreen';
 import BBComView from './BBComView';
-import ManageBoardSettings from './ManageBoardSettings';
-  
+
 const RootStack = StackNavigator(
   {
     Home: {
       screen: HomeScreen,
+      
     },
     BBCom: { 
       screen: BBComView,
     },   
-    BoardSettings: { 
-      screen: ManageBoardSettings,
-    }, 
   },
   {
     initialRouteName: 'Home',
-  }
+    navigationOptions: {
+      headerStyle: {
+        backgroundColor: 'blue',
+        height:40,
+      },
+      headerTintColor: '#fff',
+      headerTitleStyle: {
+        fontWeight: 'bold',
+        fontSize: 12,
+      },
+    },
+  },
 );
 
 export default class App extends React.Component {

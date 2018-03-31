@@ -25,6 +25,7 @@
     "react-native-ble-manager": "^6.2.8",
     "react-native-cli": "^2.0.1",
     "react-native-modal-dropdown": "^0.6.2",
+    "react-native-platform-touchable": "^1.1.1",
     "react-navigation": "^1.5.1"
   }
 }

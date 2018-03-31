@@ -25,6 +25,7 @@ import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 import VolumeController from './VolumeController';
 import TrackController from './TrackController';
+import Touchable from 'react-native-platform-touchable';
 
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({
@@ -70,7 +71,6 @@ export default class HomeScreen extends Component {
         this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
         this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic);
 
-
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
                 if (result) {
@@ -86,7 +86,6 @@ export default class HomeScreen extends Component {
                 }
             });
         }
-
     }
 
     handleAppStateChange(nextAppState) {
@@ -172,8 +171,11 @@ export default class HomeScreen extends Component {
             })
         }
     }
+    static navigationOptions = {
+        title: 'Board Management', 
+      };
 
-    test(peripheral) {
+    connectToPeripheral(peripheral) {
         if (peripheral) {
             if (peripheral.connected) {
                 BleManager.disconnect(peripheral.id);
@@ -190,20 +192,6 @@ export default class HomeScreen extends Component {
                     }
                     console.log('HomeScreen: Connected to ' + peripheral.id);
 
-
-                    //setTimeout(() => {
-
-                    /* Test read current RSSI value
-                     BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
-                        //console.log('Retrieved peripheral services', peripheralData);
-                        console.log('Retrieved peripheral services');
-
-                        BleManager.readRSSI(peripheral.id).then((rssi) => {
-                            console.log('Retrieved actual RSSI value', rssi);
-                        });
-                       });
-                       */
-
                     BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
                         console.log("HomeScreen: retrieve Services");
                         console.log("HomeScreen: " + peripheralInfo);
@@ -215,70 +203,6 @@ export default class HomeScreen extends Component {
 
                     });
 
-
-
-                    //}, 1000);
-
-                    //setTimeout(() => {
-
-                    //BleManager.startNotification(peripheral.id, this.AudioService, this.AudioVolumeCharacteristic).then(() => {
-                    //console.log('Started notification on ' + peripheral.id);
-
-                    // setTimeout(() => {
-                    //     BleManager.read(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic).then((readData) => {
-                    //             console.log('Read Volume 1: ' + readData);
-                    //         })
-                    //         .catch((error) => {
-                    //         // Failure code
-                    //         console.log("r1:" + error);
-                    //         });
-                    // }, 3333);
-
-                    // setTimeout(() => {
-                    //     BleManager.read(peripheral.id, this.BLEIDs.BatteryService, this.BLEIDs.BatteryCharacteristic).then((readData) => {
-                    //         console.log('Battery: ' + readData);
-                    //     })
-                    //         .catch((error) => {
-                    //             // Failure code
-                    //             console.log("batt:" + error);
-                    //         });
-                    // }, 5333);
-
-                    // setTimeout(() => {
-                    //     BleManager.write(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, [30]).then(() => {
-                    //         console.log('Set Volume to 30');
-                    //         })
-                    //         .catch((error) => {
-                    //         // Failure code
-                    //         console.log(error);
-                    //         });
-                    // }, 500);
-                    // setInterval(() => {
-                    //     BleManager.read(peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
-                    //         console.log('Read Info: ' + readData);
-                    //         var channelNo = readData[0];
-                    //         var channelInfo = "";
-                    //         for (var i = 1; i < readData.length; i++) {
-                    //             channelInfo += String.fromCharCode(readData[i]);
-                    //         }
-                    //         if (channelInfo && 0 != channelInfo.length) {
-                    //             console.log('Read Info channel: ' + channelNo + ", name = " + channelInfo);
-                    //             this.audioChannels[channelNo] = channelInfo;
-                    //         }
-
-                    //     })
-                    //         .catch((error) => {
-                    //             // Failure code
-                    //             console.log("r2: " + error);
-                    //         });
-                    // }, 1000);
-
-
-                    //}).catch((error) => {
-                    //    console.log('Notification error', error);
-                    //           });
-                    //}, 1000);
-
                 }).catch((error) => {
                     console.log('Connection error', error);
                 });
@@ -286,23 +210,26 @@ export default class HomeScreen extends Component {
         }
     }
 
-
     render() {
         const list = Array.from(this.state.peripherals.values());
         const dataSource = ds.cloneWithRows(list);
+        const { navigate } = this.props.navigation;
 
         return (
             <View style={styles.container}>
                 <VolumeController peripheral={this.state.selectedPeripheral} />
                 <TrackController peripheral={this.state.selectedPeripheral} />
-                <TouchableHighlight style={{ marginTop: 40, margin: 20, padding: 20, backgroundColor: '#ccc' }} onPress={() => this.startScan()}>
-                    <Text>Scan for Burner Boards ({this.state.scanning ? 'scanning' : 'paused'})</Text>
-                </TouchableHighlight>
+
+                <Touchable
+                    onPress={() => this.startScan()}
+                    style={styles.touchableStyle}
+                    background={Touchable.Ripple('blue')}>
+                    <Text style={styles.rowText}>Scan for Burner Boards ({this.state.scanning ? 'scanning' : 'paused'})</Text>
+                </Touchable>
+ 
                 <ScrollView style={styles.scroll}>
                     {(list.length == 0) &&
-                        <View style={{ flex: 1, margin: 20 }}>
-                            <Text style={{ textAlign: 'center' }}>No peripherals</Text>
-                        </View>
+                            <Text style={styles.rowText}>No peripherals</Text>
                     }
                     <ListView
                         enableEmptySections={true}
@@ -310,19 +237,28 @@ export default class HomeScreen extends Component {
                         renderRow={(item) => {
                             const color = item.connected ? 'green' : '#fff';
                             return (
-                                <TouchableHighlight onPress={() => this.test(item)}>
-                                    <View style={[styles.row, { backgroundColor: color }]}>
-                                        <Text style={{ fontSize: 12, textAlign: 'center', color: '#333333', padding: 10 }}>{item.name}</Text>
-                                        <Text style={{ fontSize: 8, textAlign: 'center', color: '#333333', padding: 10 }}>{item.id}</Text>
-                                    </View>
-                                </TouchableHighlight>
+
+                                <Touchable
+                                    onPress={() => this.connectToPeripheral(item)}
+                                    style={{ backgroundColor: color }}
+                                    background={Touchable.Ripple('blue')}>
+                                    <Text style={styles.rowText}>{item.name}</Text>
+                                </Touchable>
+
                             );
                         }}
                     />
                 </ScrollView>
+                <Button
+                title="Go to BB.com"
+                onPress={() =>
+                    navigate('BBCom')
+                }
+            />
             </View>
         );
     }
+
 }
 
 const styles = StyleSheet.create({
@@ -333,11 +269,17 @@ const styles = StyleSheet.create({
         height: window.height
     },
     scroll: {
-        flex: 1,
         backgroundColor: '#f0f0f0',
         margin: 10,
     },
-    row: {
-        margin: 10
+    touchableStyle:{
+        backgroundColor: '#ccc',
+        margin: 10,
     },
+    rowText: {
+        margin: 5,
+        fontSize: 12, 
+        textAlign: 'center', 
+        padding: 10,
+    },  
 });
