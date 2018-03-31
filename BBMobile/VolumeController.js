@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, WebView, Button, TouchableHighlight, Slider } from "react-native";
+import { View, Text, WebView, Button, TouchableHighlight, Slider, StyleSheet } from "react-native";
 import BleManager from 'react-native-ble-manager';
 //import BleManager from './BLEManagerFake';
 import BLEIDs from './BLEIDs';
@@ -10,21 +10,24 @@ export default class VolumeController extends React.Component {
 
 		this.BLEIDs = new BLEIDs();
 
-		this.state = { peripheral: props.peripheral, volume: 0 };
+		this.state = { peripheral: props.peripheral, volume: null };
+		this.readVolumeFromBLE = this.readVolumeFromBLE.bind(this);
+ 
 	}
 
 	componentWillReceiveProps(nextProps) {
 		if (nextProps.peripheral == null) this.setState(
 			{
 				peripheral: null,
-				volume: 0
+				volume: null,
 			}
 		);
 		else {
 			this.setState({
 				peripheral: nextProps.peripheral
 			});
-			this.readVolumeFromBLE();
+		  
+			
 		}
 	}
 
@@ -34,9 +37,9 @@ export default class VolumeController extends React.Component {
 		var newVolume = [event.value];
 
 		if (this.state.peripheral) {
-			BleManager.write(this.state.peripheral.id, 
-				this.BLEIDs.AudioService, 
-				this.BLEIDs.AudioVolumeCharacteristic, 
+			BleManager.write(this.state.peripheral.id,
+				this.BLEIDs.AudioService,
+				this.BLEIDs.AudioVolumeCharacteristic,
 				newVolume)
 				.then(() => {
 					this.readVolumeFromBLE();
@@ -48,7 +51,7 @@ export default class VolumeController extends React.Component {
 	}
 
 	readVolumeFromBLE() {
-		
+
 		if (this.state.peripheral) {
 			BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic)
 				.then(readData => {
@@ -63,15 +66,35 @@ export default class VolumeController extends React.Component {
 	}
 
 	render() {
-		console.log("VolumeController peripheral:" + this.state.peripheral);
 
-		return <View>
-			<Text>{this.state.volume}</Text>
-			<Slider value={this.state.volume} //onValueChange={(value) => this.onUpdateVolume({value})}
-				onSlidingComplete={value => this.onUpdateVolume(
-					{ value }
-				)} minimumValue={0} maximumValue={100} step={10} />
+		if(!this.state.volume){
+			this.readVolumeFromBLE();
+		}
+		
+		return (
+			<View style={{ margin: 20, backgroundColor: 'skyblue', height: 100 }}>
+				<View style={{
+					flex: 1,
+					flexDirection: 'row',
+					justifyContent: 'space-between',
 
-		</View>;
+				}}>
+					<View style={{ height: 50 }}><Text style={styles.rowText}>Volume</Text></View>
+					<View style={{ height: 50 }}><Text style={styles.rowText}>{this.state.volume}</Text></View>
+				</View>
+				<View style={{ height: 50 }}><Slider value={this.state.volume}
+					onSlidingComplete={value => this.onUpdateVolume(
+						{ value }
+					)} minimumValue={0} maximumValue={100} step={10} />
+				</View>
+			</View>
+		);
 	}
 }
+const styles = StyleSheet.create({
+	rowText: {
+		margin: 5,
+		fontSize: 16,
+		padding: 10,
+	},
+});

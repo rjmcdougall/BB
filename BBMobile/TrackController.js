@@ -1,44 +1,42 @@
-import React, {Component} from "react";
-import { View, Text, WebView, Button, TouchableHighlight, Slider } from "react-native";
+import React, { Component } from "react";
+import { View, Text, WebView, Button, TouchableHighlight, Slider, StyleSheet } from "react-native";
 import ModalDropdown from 'react-native-modal-dropdown';
 import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
-
-const DEMO_OPTIONS_1 = ['option 1', 'option 2', 'option 3', 'option 4', 'option 5', 'option 6', 'option 7', 'option 8', 'option 9'];
-
 
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
 
 		this.BLEIDs = new BLEIDs();
-		this.audioChannelSelection = { channel: '' };
-        console.log("initializing state...");
+		console.log("initializing state...");
 
 		this.state = {
-            scannerIsRunning: false,
+			scannerIsRunning: false,
 			peripheral: props.peripheral,
 			channelNo: 0,
-            maxChannel: 0,
-			audioChannels: [],
+			channelInfo: "Loading (~60 seconds)",
+			maxChannel: 0,
+			audioChannels: [{ channelInfo: "loading..." }],
 			haveAllChannels: false,
 		};
 	}
 
 	componentWillReceiveProps(nextProps) {
 
-		//console.log("TrackController component received props:" + this.state.peripheral);
 		console.log("TrackController component received props:" + nextProps);
-		//console.log(nextProps);
 
 		if (nextProps.peripheral == null) {
-            console.log("clearing state...");
-            this.setState({
-		    	peripheral: null,
-		    	haveAllChannels: false
-			    });
+			console.log("clearing state...");
+			this.setState({
+				peripheral: null,
+				haveAllChannels: false,
+				audioChannels: [{ channelInfo: "Please Select..." }],
+				channelNo: 0,
+				maxChannel: 0,
+			});
 		} else {
-            console.log("setting state...");
+			console.log("setting state...");
 			this.setState({
 				peripheral: nextProps.peripheral,
 				haveAllChannels: false,
@@ -46,54 +44,35 @@ export default class TrackController extends Component {
 		}
 	}
 
-    componentDidMount() {
-        console.log("DidMount");
-        console.log(this.state);
-        // Will make this a board-side notify and we can get rid of this
-        if (!this.scannerIsRunning) {
-            this.setState({scannerIsRunning: true});
-    		this.readTrackListingFromBLE();
-        }
-    }
+	componentDidMount() {
+		console.log("DidMount");
+		console.log(this.state);
+		// Will make this a board-side notify and we can get rid of this
+		if (!this.scannerIsRunning) {
+			this.setState({ scannerIsRunning: true });
+			this.readTrackListingFromBLE();
+		}
+	}
 
-    componentWillUnmount() {
-        console.log("Unmounting TrackController...");
-        console.log(this.state.backgroundLoop);
-        // how to stop the timer?
-        clearInterval(this.state.backgroundLoop);
-    }
+	componentWillUnmount() {
+		console.log("Unmounting TrackController...");
+		console.log(this.state.backgroundLoop);
+		// how to stop the timer?
+		clearInterval(this.state.backgroundLoop);
+		console.log(this.state.backgroundLoop);
+	}
 
-	// onUpdateVolume(event) {
-	// 	console.log("VolumeController: submitted value: " + JSON.stringify(event.value));
-
-	// 	var newVolume = [event.value];
-
-	// 	if (this.state.peripheral) {
-	// 		BleManager.write(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic, newVolume)
-	// 			.then(() => {
-	// 				this.readVolumeFromBLE();
-	// 			})
-	// 			.catch(error => {
-	// 				console.log("VolumeController: " + error);
-	// 			});
-	// 	}
-	// }
-
-
-    readTrackFromBLE(peripheral) {
-
-		console.log("TrackController Read current/track counts:" + peripheral);
+	readTrackFromBLE(peripheral) {
 
 		var myComponent = this;
 
 		if (peripheral) {
 
-            console.log("TrackController doing Read current/track counts:" + peripheral);
+			console.log("TrackController doing Read current/track counts:" + peripheral);
 			BleManager.read(peripheral.id,
 				this.BLEIDs.AudioService,
 				this.BLEIDs.AudioChannelCharacteristic)
 				.then((readData) => {
-		            console.log("TrackController complted Read current/track counts:" + peripheral);
 					myComponent.setState({
 						channelNo: readData[1],
 						maxChannel: readData[0]
@@ -105,24 +84,24 @@ export default class TrackController extends Component {
 					// Failure code
 					console.log("TrackController read track: " + error);
 				});
-        }
-    }
+		}
+	}
 
 	readTrackListingFromBLE() {
 
 		console.log("TrackController Read Listing:" + this.state.peripheral);
 		var audioChannels = [];
-		var haveAllChannels = false;
-        var channelsCollected = 0;
+		var stopLooking = false;
+		var channelsCollected = 0;
 
-	    var backgroundTimer = setInterval(() => {
-	        if (this.state.peripheral &&  !this.state.haveAllChannels) {
+		if (this.state.maxChannel == 0) {
+			setTimeout(() => {
+				this.readTrackFromBLE(this.state.peripheral);
+			}, 600);
+		}
 
-                if (this.state.maxChannel == 0) {
-                    setTimeout(() => {
-                        this.readTrackFromBLE(this.state.peripheral);
-                    }, 600);
-                }
+		var backgroundTimer = setInterval(() => {
+			if (this.state.peripheral && !this.state.haveAllChannels) {
 
 				BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
 					console.log('TrackController Read Info: ' + readData);
@@ -135,46 +114,40 @@ export default class TrackController extends Component {
 						if (audioChannels[channelNo] != null) {
 							console.log("TrackController " + channelNo + " already exists.");
 
-							var audioArrayFull=true;
-							// for(var n=0;n<audioChannels.length;n++){
-							// 	if(audioChannels[n] == null)
-							// 		audioArrayFull=false;
-							// }
+							this.state.haveAllChannels = true;
+							var tracks = audioChannels.map(a => a.channelInfo);
+							console.log("TrackController Audio Array: " + tracks);
+							stopLooking = true;
+							this.setState({ audioChannels: audioChannels });
 
-							if(audioArrayFull){
-								this.state.haveAllChannels = true;
-								console.log("TrackController Audio Array: " + audioChannels);
-                                var tracks = audioChannels.map(a => a.channelInfo);
-								console.log("Demo: " + tracks);
-								haveAllChannels = true;
-								this.setState({ audioChannels: audioChannels});
-							}
 						} else {
 							audioChannels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
-                            channelsCollected += 1;
+
+							if(channelNo==this.state.channelNo)
+								this.setState({channelInfo: audioChannels[channelNo].channelInfo});
+
+							channelsCollected += 1;
 							console.log('TrackController Add Info channel: ' + channelNo + ", name = " + channelInfo);
-        					console.log('TrackController Max Channel: ' + this.state.maxChannel);
-					        console.log('TrackController Channel No: ' + this.state.channelNo);
-					        console.log('TrackController Channel count: ' + channelsCollected);
+							console.log('TrackController Max Channel: ' + this.state.maxChannel);
+							console.log('TrackController Channel No: ' + this.state.channelNo);
+							console.log('TrackController Channel count: ' + channelsCollected);
 						}
-
 					}
-
 				})
-				.catch((error) => {
+					.catch((error) => {
 						// Failure code
 						console.log("TrackController r2: " + error);
-						haveAllChannels = true;
-				});
+						stopLooking = true;
+					});
 			}
 
 		}, 500);
-        this.setState({backgroundLoop: backgroundTimer});
+		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
 	setTrack(idx) {
 
-        var trackNo = parseInt(idx);
+		var trackNo = parseInt(idx);
 
 		console.log("TrackController: submitted value: " + trackNo);
 
@@ -193,23 +166,59 @@ export default class TrackController extends Component {
 		}
 	}
 
-    onSelect(idx) {
-        console.log("Selected: " + idx);
-        console.log("Selected track: " + this.state.audioChannels[idx].channelInfo);
-        this.setTrack(idx);
-    }
+	onSelect(idx) {
+		console.log("Selected: " + idx);
+		console.log("Selected track: " + this.state.audioChannels[idx].channelInfo);
+		this.setTrack(idx);
+	}
 
 	render() {
 
-        var tracks = this.state.audioChannels.map(a => a.channelInfo);
+		var tracks = this.state.audioChannels.map(a => a.channelInfo);
+		return (
 
-
-        return (
-            <View>
-                    <ModalDropdown  options={tracks}
-                                    onSelect={this.onSelect.bind(this)}
-                    />
-            </View>
-        );
+			<View style={{ margin: 20, backgroundColor: 'skyblue', height: 100 }}>
+				<View style={{
+					flex: 1,
+					flexDirection: 'row',
+				}}>
+					<View style={{ height: 50 }}>
+						<Text style={styles.rowText}>Audio Track</Text></View>
+				</View>
+				<View style={{ height: 50 }}>
+					<ModalDropdown options={tracks}
+						defaultValue={this.state.channelInfo}
+						style={styles.PStyle}
+						dropdownStyle={styles.DDStyle}
+						textStyle={styles.rowText}
+						dropdownTextStyle={styles.rowText}
+						dropdownTextHighlightStyle={styles.rowText}
+						onSelect={this.onSelect.bind(this)}
+					/>
+				</View>
+			</View>
+		);
 	}
 }
+
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: 'skyblue',
+		width: window.width,
+		height: window.height
+	},
+	PStyle: {
+		backgroundColor: 'skyblue',
+		width: 280,
+	},
+	DDStyle: {
+		backgroundColor: 'skyblue',
+		width: 280,
+	},
+	rowText: {
+		margin: 5,
+		fontSize: 16,
+		padding: 10,
+	},
+});

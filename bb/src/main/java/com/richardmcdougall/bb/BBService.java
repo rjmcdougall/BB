@@ -797,7 +797,7 @@ public class BBService extends Service {
     }
 
     void NextStream() {
-        int nextRadioChannel =  + 1;
+        int nextRadioChannel = currentRadioChannel + 1;
         if (nextRadioChannel > dlManager.GetTotalAudio())
             nextRadioChannel = 0;
         SetRadioChannel(nextRadioChannel);
