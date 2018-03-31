@@ -201,6 +201,7 @@ export default class HomeScreen extends Component {
                             selectedPeripheral: selectedPeripheral,
                         });
 
+                        this.props.navigation.navigate('MediaScreen',{peripheral: selectedPeripheral});
                     });
 
                 }).catch((error) => {
@@ -217,8 +218,6 @@ export default class HomeScreen extends Component {
 
         return (
             <View style={styles.container}>
-                <VolumeController peripheral={this.state.selectedPeripheral} />
-                <TrackController peripheral={this.state.selectedPeripheral} />
 
                 <Touchable
                     onPress={() => this.startScan()}

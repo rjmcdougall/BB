@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { StackNavigator } from 'react-navigation'; // Version can be specified in package.json
 import HomeScreen from './HomeScreen';
 import BBComView from './BBComView';
+import MediaManagement from './MediaManagement';
 
 const RootStack = StackNavigator(
   {
@@ -13,6 +14,9 @@ const RootStack = StackNavigator(
     BBCom: { 
       screen: BBComView,
     },   
+    MediaScreen: {
+      screen: MediaManagement
+    }
   },
   {
     initialRouteName: 'Home',
