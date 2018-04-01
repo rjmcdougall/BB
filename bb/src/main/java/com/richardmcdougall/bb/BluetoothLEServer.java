@@ -412,7 +412,18 @@ public class BluetoothLEServer {
                             0,
                             null);
                 }
-            } else if (BluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
+            } else if (BluetoothProfile.BB_VIDEO_CHANNEL_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                int channel = (int) (value[0] & 0xFF);
+                l("Write video track characteristic: " + channel);
+                mBBService.setVideoMode(channel);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            }  else if (BluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 int volume = (int) (value[0] & 0xFF);
                 l("Write audio volume characteristic: " + volume);
                 mBBService.setRadioVolumePercent(volume);
@@ -439,7 +450,7 @@ public class BluetoothLEServer {
                 int videoinfoselect = (int) (value[0] & 0xFF);
                 mVideoInfoSelect.put(device, videoinfoselect);
 
-                l("Write video info characteristic: " + mAudioInfoSelect + " needs reply: " + responseNeeded);
+                l("Write video info characteristic: " + mVideoInfoSelect + " needs reply: " + responseNeeded);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,
