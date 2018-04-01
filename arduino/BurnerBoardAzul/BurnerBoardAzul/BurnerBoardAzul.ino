@@ -954,7 +954,7 @@ void setup() {
   // Setup motor control speed limiter to no-limit
   pinMode(AUX_PIN, OUTPUT);
   pinMode(SPEED_PIN, OUTPUT);
-  limitBoardSpeed(false);
+  //limitBoardSpeed(false);
   
   BBattachCommandCallbacks();
   cmdMessenger.sendCmd(BBacknowledge,"BB Ready\n");
@@ -1010,17 +1010,17 @@ void loop() {
     }
     if ((batteryVoltage > 10000) && (batteryVoltage < 35400)) {
         if (do_lowbattery_actions) {
-          limitBoardSpeed(true);
+          //limitBoardSpeed(true);
         }
         batteryCritical = true;
-      } else {
-        limitBoardSpeed(false);
+    } else {
+        //limitBoardSpeed(false);
         batteryCritical = false;
-      }
     }
     // Send upstrean to Android
     OnGetBatteryLevel();
   }
+  
 
   // Uh oh, battery is almost dead
   if (0 & batteryCritical) {
@@ -1065,4 +1065,4 @@ void limitBoardSpeed(bool limit) {
 }
 
 
-}
+
