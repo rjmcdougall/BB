@@ -299,7 +299,7 @@ public class BluetoothProfile {
             return new byte[] {0, (byte)service.getVideoMax()};
         }
 
-        String name = service.getRadioChannelInfo(channel);
+        String name = service.getVideoModeInfo(channel);
 
         // Else return the slot name
         if (name != null) {
@@ -325,12 +325,12 @@ public class BluetoothProfile {
     }
 
     /**
-     * Set the video stream
+     * Set the video stream */
     public void setVideoMode(BBService service, byte[] value) {
 
         service.setVideoMode(value[0] & 0xff);
     }
-     */
+
 
 
     public static UUID BB_BATTERY_SERVICE = UUID.fromString("4dfc5ef6-22a9-11e8-b467-0ed5f89f718b");

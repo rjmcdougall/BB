@@ -87,9 +87,13 @@ public class DownloadManager {
     }
 
     String GetVideoFileLocalName(int index) {
-        if (index >= 0 && index < GetTotalAudio()) {
+        if (index >= 0 && index < GetTotalVideo()) {
             try {
-                String fn = GetAudio(index).getString("localName");
+                String fn = "";
+                if(GetVideo(index).has("algorithm"))
+                    fn = GetVideo(index).getString("algorithm");
+                else
+                    fn = GetVideo(index).getString("localName");
                 return fn;
             } catch (JSONException e) {
                 e.printStackTrace();
