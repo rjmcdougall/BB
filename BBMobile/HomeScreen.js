@@ -249,7 +249,7 @@ export default class HomeScreen extends Component {
                         }}
                     />
                 </ScrollView>
-                <MapController peripheral={this.state.selectedPeripheral} />
+                {/* <MapController peripheral={this.state.selectedPeripheral} /> */}
                 <Button
                 title="Go to BB.com"
                 onPress={() =>
