@@ -1153,13 +1153,13 @@ void loop() {
     }
     
     if ((batteryVoltage > 10000) && (batteryVoltage < 35400)) {
-      if (do_lowbattery_actions) {
+        if (do_lowbattery_actions) {
           //limitBoardSpeed(true);
+        }
         batteryCritical = true;
-      } else {
+    } else {
         //limitBoardSpeed(false);
         batteryCritical = false;
-      }
     }
     // Send upstrean to Android
     OnGetBatteryLevel();
