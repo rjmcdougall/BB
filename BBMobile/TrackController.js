@@ -9,34 +9,54 @@ export default class TrackController extends Component {
 		super(props);
 
 		this.BLEIDs = new BLEIDs();
-		console.log("initializing state...");
 
-		this.state = {
-			scannerIsRunning: false,
-			peripheral: props.peripheral,
-			channelNo: 0,
-			channelInfo: "Loading (~60 seconds)",
-			maxChannel: 0,
-			audioChannels: [{ channelInfo: "loading..." }],
-			haveAllChannels: false,
-		};
+		if(props.mediaType=="Audio"){
+			this.state = {
+				scannerIsRunning: false,
+				peripheral: props.peripheral,
+				mediaType: props.mediaType,
+				channelNo: 0,
+				channelInfo: "Loading (~60 seconds)",
+				maxChannel: 0,
+				channels: [{ channelInfo: "loading..." }],
+				haveAllChannels: false,
+				service: this.BLEIDs.AudioService,
+				channelCharacteristic: this.BLEIDs.AudioChannelCharacteristic,
+				infoCharacteristic: this.BLEIDs.AudioInfoCharacteristic,
+			};
+		}
+		else if(props.mediaType=="Video"){
+			this.state = {
+				scannerIsRunning: false,
+				peripheral: props.peripheral,
+				mediaType: props.mediaType,
+				channelNo: 0,
+				channelInfo: "Loading (~60 seconds)",
+				maxChannel: 0,
+				channels: [{ channelInfo: "loading..." }],
+				haveAllChannels: false,
+				service: this.BLEIDs.VideoService,
+				channelCharacteristic: this.BLEIDs.VideoChannelCharacteristic,
+				infoCharacteristic: this.BLEIDs.VideoInfoCharacteristic,
+			};
+		} 
 	}
 
 	componentWillReceiveProps(nextProps) {
 
-		console.log("TrackController component received props:" + nextProps);
+		console.log("TrackController " + this.state.mediaType + " component received props:" + nextProps);
 
 		if (nextProps.peripheral == null) {
-			console.log("clearing state...");
+			console.log("TrackController " + this.state.mediaType + " clearing state...");
 			this.setState({
 				peripheral: null,
 				haveAllChannels: false,
-				audioChannels: [{ channelInfo: "Please Select..." }],
+				channels: [{ channelInfo: "Please Select..." }],
 				channelNo: 0,
 				maxChannel: 0,
 			});
 		} else {
-			console.log("setting state...");
+			console.log("TrackController " + this.state.mediaType + " setting state...");
 			this.setState({
 				peripheral: nextProps.peripheral,
 				haveAllChannels: false,
@@ -45,8 +65,8 @@ export default class TrackController extends Component {
 	}
 
 	componentDidMount() {
-		console.log("DidMount");
-		console.log(this.state);
+		console.log("TrackController " + this.state.mediaType + " DidMount");
+		console.log("TrackController " + this.state.mediaType + " state: " + this.state);
 		// Will make this a board-side notify and we can get rid of this
 		if (!this.scannerIsRunning) {
 			this.setState({ scannerIsRunning: true });
@@ -55,11 +75,10 @@ export default class TrackController extends Component {
 	}
 
 	componentWillUnmount() {
-		console.log("Unmounting TrackController...");
-		console.log(this.state.backgroundLoop);
+		console.log("TrackController " + this.state.mediaType + " Unmounting ");
+		console.log("TrackController " + this.state.mediaType + " background loop: " + this.state.backgroundLoop);
 		// how to stop the timer?
 		clearInterval(this.state.backgroundLoop);
-		console.log(this.state.backgroundLoop);
 	}
 
 	readTrackFromBLE(peripheral) {
@@ -68,78 +87,77 @@ export default class TrackController extends Component {
 
 		if (peripheral) {
 
-			console.log("TrackController doing Read current/track counts:" + peripheral);
+			console.log("TrackController " + this.state.mediaType + " doing Read current/track counts:" + peripheral);
 			BleManager.read(peripheral.id,
-				this.BLEIDs.AudioService,
-				this.BLEIDs.AudioChannelCharacteristic)
+				this.state.service,
+				this.state.channelCharacteristic)
 				.then((readData) => {
 					myComponent.setState({
 						channelNo: readData[1],
 						maxChannel: readData[0]
 					});
-					console.log('TrackController Channel No: ' + this.state.channelNo);
-					console.log('TrackController Max Channel: ' + this.state.maxChannel);
+					console.log("TrackController " + this.state.mediaType + " Selected Channel No: " + this.state.channelNo);
+					console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
 				})
 				.catch((error) => {
 					// Failure code
-					console.log("TrackController read track: " + error);
+					console.log("TrackController " + this.state.mediaType + " read track: " + error);
 				});
 		}
 	}
 
 	readTrackListingFromBLE() {
 
-		console.log("TrackController Read Listing:" + this.state.peripheral);
-		var audioChannels = [];
+		console.log("TrackController " + this.state.mediaType + " Read Listing:" + this.state.peripheral);
+		var channels = [];
 		var stopLooking = false;
 		var channelsCollected = 0;
 
 		if (this.state.maxChannel == 0) {
 			setTimeout(() => {
 				this.readTrackFromBLE(this.state.peripheral);
-			}, 600);
+			}, 10000);
 		}
 
 		var backgroundTimer = setInterval(() => {
 			if (this.state.peripheral && !this.state.haveAllChannels) {
 
-				BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioInfoCharacteristic).then((readData) => {
-					console.log('TrackController Read Info: ' + readData);
+				BleManager.read(this.state.peripheral.id, this.state.service, this.state.infoCharacteristic).then((readData) => {
+					console.log("TrackController " + this.state.mediaType + " Read Info: " + readData);
 					var channelNo = readData[0];
 					var channelInfo = "";
 					for (var i = 1; i < readData.length; i++) {
 						channelInfo += String.fromCharCode(readData[i]);
 					}
 					if (channelInfo && 0 != channelInfo.length) {
-						if (audioChannels[channelNo] != null) {
-							console.log("TrackController " + channelNo + " already exists.");
+						if (channels[channelNo] != null) {
+							console.log("TrackController " + this.state.mediaType + " " + channelNo + " already exists.");
+							console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
 
                            if(channelsCollected == this.state.maxChannel){
-                                this.state.haveAllChannels = true;
-                                console.log("TrackController Audio Array: " + audioChannels);
-                                var tracks = audioChannels.map(a => a.channelInfo);
-                                console.log("Demo: " + tracks);
+                                var tracks = channels.map(a => a.channelInfo);
+                                console.log("TrackController " + this.state.mediaType + " Tracks: " + tracks);
                                 stopLooking = true;
-                                this.setState({ audioChannels: audioChannels});
+								this.setState({ channels: channels,
+												haveAllChannels: true});
                             }
 
 						} else {
-							audioChannels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
+							channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
 
 							if(channelNo==this.state.channelNo)
-								this.setState({channelInfo: audioChannels[channelNo].channelInfo});
+								this.setState({channelInfo: channels[channelNo].channelInfo});
 
 							channelsCollected += 1;
-							console.log('TrackController Add Info channel: ' + channelNo + ", name = " + channelInfo);
-							console.log('TrackController Max Channel: ' + this.state.maxChannel);
-							console.log('TrackController Channel No: ' + this.state.channelNo);
-							console.log('TrackController Channel count: ' + channelsCollected);
+							console.log("TrackController " + this.state.mediaType + " Add Info channel: " + channelNo + ", name = " + channelInfo);
+							console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
+							console.log("TrackController " + this.state.mediaType + " Channel count: " + channelsCollected);
 						}
 					}
 				})
 					.catch((error) => {
 						// Failure code
-						console.log("TrackController r2: " + error);
+						console.log("TrackController " + this.state.mediaType + " r2: " + error);
 						stopLooking = true;
 					});
 			}
@@ -152,32 +170,32 @@ export default class TrackController extends Component {
 
 		var trackNo = parseInt(idx);
 
-		console.log("TrackController: submitted value: " + trackNo);
+		console.log("TrackController " + this.state.mediaType + " submitted value: " + trackNo);
 
 		if (this.state.peripheral) {
 			BleManager.write(this.state.peripheral.id,
-				this.BLEIDs.AudioService,
-				this.BLEIDs.AudioChannelCharacteristic,
+				this.state.service,
+				this.state.channelCharacteristic,
 				[trackNo])
 				.then(() => {
-					console.log("TrackController Update:  " + [trackNo]);
+					console.log("TrackController " + this.state.mediaType + " Update:  " + [trackNo]);
 					this.readTrackFromBLE(this.state.peripheral);
 				})
 				.catch(error => {
-					console.log("TrackController: " + error);
+					console.log("TrackController " + this.state.mediaType + " " + error);
 				});
 		}
 	}
 
 	onSelect(idx) {
-		console.log("Selected: " + idx);
-		console.log("Selected track: " + this.state.audioChannels[idx].channelInfo);
+		console.log("TrackController " + this.state.mediaType + " Selected: " + idx);
+		console.log("TrackController " + this.state.mediaType + " Selected track: " + this.state.channels[idx].channelInfo);
 		this.setTrack(idx);
 	}
 
 	render() {
 
-		var tracks = this.state.audioChannels.map(a => a.channelInfo);
+		var tracks = this.state.channels.map(a => a.channelInfo);
 		return (
 
 			<View style={{ margin: 20, backgroundColor: 'skyblue', height: 100 }}>
@@ -186,7 +204,7 @@ export default class TrackController extends Component {
 					flexDirection: 'row',
 				}}>
 					<View style={{ height: 50 }}>
-						<Text style={styles.rowText}>Audio Track</Text></View>
+						<Text style={styles.rowText}>{this.state.mediaType} Track</Text></View>
 				</View>
 				<View style={{ height: 50 }}>
 					<ModalDropdown options={tracks}
