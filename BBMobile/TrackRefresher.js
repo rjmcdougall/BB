@@ -123,6 +123,11 @@ export default class TrackRefresher extends Component {
 											console.log("***** RefreshController Stored " + res);
 										}
 
+										// store the number of items
+										await AsyncStorage.setItem(this.state.mediaType + ":length",channels.length.toString(),(error) => {
+											if(error) console.log(error);
+										});										
+
 										this.setState({
 											channels: channels,
 											haveAllChannels: true
