@@ -25,7 +25,6 @@ import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 import VolumeController from './VolumeController';
 import TrackController from './TrackController';
-import TrackRefresher from './TrackRefresher';
 import Touchable from 'react-native-platform-touchable';
 
 const window = Dimensions.get('window');
@@ -37,85 +36,44 @@ const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default class MediaManagement extends Component {
-    constructor() {
-        super()
+    constructor(props) {
+        super(props)
+
+        const { params } = this.props.navigation.state;
+        const peripheral = params.peripheral;
 
         this.state = {
-            scanning: false,
-            peripherals: new Map(),
-            appState: '',
-            selectedPeripheral: null,
+            peripheral: peripheral,
         }
 
-        this.audioChannels = {};
-        this.audioChannelSelection = { channel: '' };
-       
-   }
-   
-    static navigationOptions = {
-        title: 'Media Management', 
-      };
-
-    connectToPeripheral(peripheral) {
-        if (peripheral) {
-            if (peripheral.connected) {
-                BleManager.disconnect(peripheral.id);
-
-            } else {
-                BleManager.connect(peripheral.id).then(() => {
-                    let peripherals = this.state.peripherals;
-                    let selectedPeripheral = peripherals.get(peripheral.id);
-                    if (selectedPeripheral) {
-                        selectedPeripheral.connected = true;
-                        peripherals.set(peripheral.id, selectedPeripheral);
-
-                        console.log("MediaManagement: selected peripheral:" + this.state.selectedPeripheral);
-                    }
-                    console.log('MediaManagement: Connected to ' + peripheral.id);
-
-                    BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-                        console.log("MediaManagement: retrieve Services");
-                        console.log("MediaManagement: " + peripheralInfo);
-
-                        this.setState({
-                            peripherals: peripherals,
-                            selectedPeripheral: selectedPeripheral,
-                        });
-
-                    });
-
-                }).catch((error) => {
-                    console.log('Connection error', error);
-                });
-            }
-        }
     }
+
+    static navigationOptions = {
+        title: 'Media Management',
+    };
 
     render() {
 
         const { navigate } = this.props.navigation;
 
-        const { params } = this.props.navigation.state;
-        const peripheral = params ? params.peripheral : null;
         var boardConnected;
 
-        if (peripheral.connected) {
+        if (this.state.peripheral.connected) {
             boardConnected = (
-              <Text style={[styles.rowText,{ backgroundColor: '#fff' }]}>Connected to {peripheral.name}</Text>
+                <Text style={[styles.rowText, { backgroundColor: '#fff' }]}>Connected to {this.state.peripheral.name}</Text>
             )
-          } else {
+        } else {
             boardConnected = (
-                <Text style={[styles.rowText,{ backgroundColor: '#ff0000' }]}>NOT connected to {peripheral.name}</Text>
-           
+                <Text style={[styles.rowText, { backgroundColor: '#ff0000' }]}>NOT connected to {this.state.peripheral.name}</Text>
+
             )
-          }
+        }
 
         return (
             <View style={styles.container}>
-                <VolumeController peripheral={peripheral} />
-    {/*   <TrackController peripheral={peripheral} mediaType="Audio" />  */}
-        <TrackController peripheral={peripheral} mediaType="Video" />   
-     {/*   <TrackRefresher peripheral={peripheral} mediaType="Video" /> */}
+                <VolumeController peripheral={this.state.peripheral} />
+                <TrackController peripheral={this.state.peripheral} mediaType="Audio" />
+                <TrackController peripheral={this.state.peripheral} mediaType="Video" />
                 {boardConnected}
             </View>
         );
@@ -134,14 +92,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0f0f0',
         margin: 10,
     },
-    touchableStyle:{
+    touchableStyle: {
         backgroundColor: '#ccc',
         margin: 10,
     },
     rowText: {
         margin: 5,
-        fontSize: 12, 
-        textAlign: 'center', 
+        fontSize: 12,
+        textAlign: 'center',
         padding: 10,
-    },  
+    },
 });

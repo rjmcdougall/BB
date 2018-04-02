@@ -10,36 +10,34 @@ export default class TrackController extends Component {
 
 		this.BLEIDs = new BLEIDs();
 
-		if(props.mediaType=="Audio"){
+		if (props.mediaType == "Audio") {
 			this.state = {
-				scannerIsRunning: false,
 				peripheral: props.peripheral,
 				mediaType: props.mediaType,
 				channelNo: 0,
-				channelInfo: "Loading (~60 seconds)",
+				channelInfo: "Please Load",
 				maxChannel: 0,
 				channels: [{ channelInfo: "loading..." }],
-				haveAllChannels: false,
 				service: this.BLEIDs.AudioService,
 				channelCharacteristic: this.BLEIDs.AudioChannelCharacteristic,
 				infoCharacteristic: this.BLEIDs.AudioInfoCharacteristic,
+				refreshButtonClicked: false,
 			};
 		}
-		else if(props.mediaType=="Video"){
+		else if (props.mediaType == "Video") {
 			this.state = {
-				scannerIsRunning: false,
 				peripheral: props.peripheral,
 				mediaType: props.mediaType,
 				channelNo: 0,
 				channelInfo: "Loading (~60 seconds)",
 				maxChannel: 0,
 				channels: [{ channelInfo: "loading..." }],
-				haveAllChannels: false,
 				service: this.BLEIDs.VideoService,
 				channelCharacteristic: this.BLEIDs.VideoChannelCharacteristic,
 				infoCharacteristic: this.BLEIDs.VideoInfoCharacteristic,
+				refreshButtonClicked: false,
 			};
-		} 
+		}
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -50,7 +48,6 @@ export default class TrackController extends Component {
 			console.log("TrackController " + this.state.mediaType + " clearing state...");
 			this.setState({
 				peripheral: null,
-				haveAllChannels: false,
 				channels: [{ channelInfo: "Please Select..." }],
 				channelNo: 0,
 				maxChannel: 0,
@@ -59,136 +56,94 @@ export default class TrackController extends Component {
 			console.log("TrackController " + this.state.mediaType + " setting state...");
 			this.setState({
 				peripheral: nextProps.peripheral,
-				haveAllChannels: false,
 			});
 		}
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 		console.log("TrackController " + this.state.mediaType + " DidMount");
-		console.log("TrackController " + this.state.mediaType + " state: " + this.state);
-		// Will make this a board-side notify and we can get rid of this
-		if (!this.scannerIsRunning) {
-			this.setState({ scannerIsRunning: true });
-			this.readTrackListingFromBLE();
-		}
+		await this.refresh();
 	}
 
-	componentWillUnmount() {
-		console.log("TrackController " + this.state.mediaType + " Unmounting ");
-		console.log("TrackController " + this.state.mediaType + " background loop: " + this.state.backgroundLoop);
-		// how to stop the timer?
-		clearInterval(this.state.backgroundLoop);
-	}
-
-	readTrackFromBLE(peripheral) {
-
-		var myComponent = this;
-
+	async readTrackFromBLE(peripheral) {
 		if (peripheral) {
+			try {
+				console.log("TrackController " + this.state.mediaType + " doing Read current/track counts:" + peripheral);
+				var readData = await BleManager.read(peripheral.id,
+					this.state.service,
+					this.state.channelCharacteristic);
 
-			console.log("TrackController " + this.state.mediaType + " doing Read current/track counts:" + peripheral);
-			BleManager.read(peripheral.id,
-				this.state.service,
-				this.state.channelCharacteristic)
-				.then((readData) => {
-					myComponent.setState({
-						channelNo: readData[1],
-						maxChannel: readData[0]
-					});
-					console.log("TrackController " + this.state.mediaType + " Selected Channel No: " + this.state.channelNo);
-					console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
-				})
-				.catch((error) => {
-					// Failure code
-					console.log("TrackController " + this.state.mediaType + " read track: " + error);
+				this.setState({
+					channelNo: readData[1],
+					maxChannel: readData[0]
 				});
+				console.log("TrackController " + this.state.mediaType + " Selected Channel No: " + this.state.channelNo);
+				console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
+
+			}
+			catch (error) {
+				console.log("TrackController " + this.state.mediaType + " read track: " + error);
+			}
 		}
 	}
 
-	readTrackListingFromBLE() {
+	async refresh() {
 
 		console.log("TrackController " + this.state.mediaType + " Read Listing:" + this.state.peripheral);
 		var channels = [];
-		var stopLooking = false;
-		var channelsCollected = 0;
+		await this.readTrackFromBLE(this.state.peripheral);
 
-		if (this.state.maxChannel == 0) {
-			setTimeout(() => {
-				this.readTrackFromBLE(this.state.peripheral);
-			}, 10000);
-		}
+		try {
+			if (this.state.peripheral) {
+				for (var n = 1; n <= this.state.maxChannel; n++) {
 
-		var backgroundTimer = setInterval(() => {
-			if (this.state.peripheral && !this.state.haveAllChannels) {
-
-				BleManager.read(this.state.peripheral.id, this.state.service, this.state.infoCharacteristic).then((readData) => {
-					console.log("TrackController " + this.state.mediaType + " Read Info: " + readData);
+					var readData = await BleManager.read(this.state.peripheral.id, this.state.service, this.state.infoCharacteristic);
 					var channelNo = readData[0];
 					var channelInfo = "";
 					for (var i = 1; i < readData.length; i++) {
 						channelInfo += String.fromCharCode(readData[i]);
 					}
 					if (channelInfo && 0 != channelInfo.length) {
-						if (channels[channelNo] != null) {
-							console.log("TrackController " + this.state.mediaType + " " + channelNo + " already exists.");
-							console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
+						channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
+						if (channelNo == this.state.channelNo)
+							this.setState({ channelInfo: channels[channelNo].channelInfo });
 
-                           if(channelsCollected == this.state.maxChannel){
-                                var tracks = channels.map(a => a.channelInfo);
-                                console.log("TrackController " + this.state.mediaType + " Tracks: " + tracks);
-                                stopLooking = true;
-								this.setState({ channels: channels,
-												haveAllChannels: true});
-                            }
-
-						} else {
-							channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
-
-							if(channelNo==this.state.channelNo)
-								this.setState({channelInfo: channels[channelNo].channelInfo});
-
-							channelsCollected += 1;
-							console.log("TrackController " + this.state.mediaType + " Add Info channel: " + channelNo + ", name = " + channelInfo);
-							console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
-							console.log("TrackController " + this.state.mediaType + " Channel count: " + channelsCollected);
-						}
+						console.log("TrackController " + this.state.mediaType + " Add Info channel: " + channelNo + ", name = " + channelInfo);
 					}
-				})
-					.catch((error) => {
-						// Failure code
-						console.log("TrackController " + this.state.mediaType + " r2: " + error);
-						stopLooking = true;
-					});
+				}
+				console.log("TrackController " + this.state.mediaType + " found channels: " + JSON.stringify(channels));
+				this.setState({
+					channels: channels,
+				});
 			}
-
-		}, 500);
-		this.setState({ backgroundLoop: backgroundTimer });
+		}
+		catch (error) {
+			console.log("TrackController " + this.state.mediaType + " r2: " + error);
+		}
 	}
 
-	setTrack(idx) {
+	async setTrack(idx) {
 
 		var trackNo = parseInt(idx);
-
 		console.log("TrackController " + this.state.mediaType + " submitted value: " + trackNo);
-
 		if (this.state.peripheral) {
-			BleManager.write(this.state.peripheral.id,
-				this.state.service,
-				this.state.channelCharacteristic,
-				[trackNo])
-				.then(() => {
-					console.log("TrackController " + this.state.mediaType + " Update:  " + [trackNo]);
-					this.readTrackFromBLE(this.state.peripheral);
-				})
-				.catch(error => {
-					console.log("TrackController " + this.state.mediaType + " " + error);
-				});
+
+			try {
+				await BleManager.write(this.state.peripheral.id,
+					this.state.service,
+					this.state.channelCharacteristic,
+					[trackNo]);
+
+				console.log("TrackController " + this.state.mediaType + " Update:  " + [trackNo]);
+				await this.readTrackFromBLE(this.state.peripheral);
+			}
+			catch (error) {
+				console.log("TrackController " + this.state.mediaType + " " + error);
+			}
 		}
 	}
 
 	onSelect(idx) {
-		console.log("TrackController " + this.state.mediaType + " Selected: " + idx);
 		console.log("TrackController " + this.state.mediaType + " Selected track: " + this.state.channels[idx].channelInfo);
 		this.setTrack(idx);
 	}
@@ -198,7 +153,7 @@ export default class TrackController extends Component {
 		var tracks = this.state.channels.map(a => a.channelInfo);
 		return (
 
-			<View style={{ margin: 20, backgroundColor: 'skyblue', height: 100 }}>
+			<View style={{ margin: 10, backgroundColor: 'skyblue', height: 120 }}>
 				<View style={{
 					flex: 1,
 					flexDirection: 'row',
@@ -217,6 +172,15 @@ export default class TrackController extends Component {
 						onSelect={this.onSelect.bind(this)}
 					/>
 				</View>
+				<Button
+				title="Load"
+				onPress={async () => {
+					if (!this.state.refreshButtonClicked) {
+						this.setState({ refreshButtonClicked: true });
+						await this.refresh();
+					}
+				}
+				} />
 			</View>
 		);
 	}
