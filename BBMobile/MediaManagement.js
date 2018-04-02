@@ -114,7 +114,7 @@ export default class MediaManagement extends Component {
             <View style={styles.container}>
                 <VolumeController peripheral={peripheral} />
     {/*   <TrackController peripheral={peripheral} mediaType="Audio" />  */}
-     {/*   <TrackController peripheral={peripheral} mediaType="Video" />  */}
+        <TrackController peripheral={peripheral} mediaType="Video" />   
      {/*   <TrackRefresher peripheral={peripheral} mediaType="Video" /> */}
                 {boardConnected}
             </View>
