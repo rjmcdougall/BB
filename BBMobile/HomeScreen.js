@@ -132,24 +132,29 @@ export default class HomeScreen extends Component {
         });
     }
 
-    startScan() {
+    async startScan() {
        if (!this.state.scanning) {
             this.setState({
                 peripherals: new Map()
             });
-            BleManager.scan([this.BLEIDs.bbUUID], 3, true).then((results) => {
-                console.log('Scanning...');
+
+            try {
+                var results = await BleManager.scan([this.BLEIDs.bbUUID], 3, true);
+                console.log("HomeScreen: Scanning.");
                 this.setState({
                     scanning: true
                 });
-            });
+            }
+            catch (error) {
+                console.log("HomeScreen: Failed to Scan: " + error );
+            }
         }
     }
 
-    retrieveConnected() {
-        BleManager.getConnectedPeripherals([]).then((results) => {
-            console.log(results);
-            console.log("connected");
+    async retrieveConnected() {
+
+        try {
+            var results = await BleManager.getConnectedPeripherals([]);
             var peripherals = this.state.peripherals;
             for (var i = 0; i < results.length; i++) {
                 var peripheral = results[i];
@@ -159,13 +164,15 @@ export default class HomeScreen extends Component {
                     peripherals
                 });
             }
-        });
+        }
+        catch (error) {
+            console.log("HomeScreen: Failed to Retreive Connected Peripherals." + error );
+        }
     }
 
     handleDiscoverPeripheral(peripheral) {
         var peripherals = this.state.peripherals;
         if (!peripherals.has(peripheral.id)) {
-            //console.log('Got ble peripheral', peripheral);
             peripherals.set(peripheral.id, peripheral);
             this.setState({
                 peripherals
@@ -176,13 +183,20 @@ export default class HomeScreen extends Component {
         title: 'Board Management', 
       };
 
-    connectToPeripheral(peripheral) {
+    async connectToPeripheral(peripheral) {
         if (peripheral) {
             if (peripheral.connected) {
-                BleManager.disconnect(peripheral.id);
-
+                try{
+                    BleManager.disconnect(peripheral.id);
+                }
+                catch (error) {
+                    console.log("HomeScreen: Failed to Disconnect" + error );
+                }
             } else {
-                BleManager.connect(peripheral.id).then(() => {
+
+                try {
+                    await BleManager.connect(peripheral.id);
+
                     let peripherals = this.state.peripherals;
                     let selectedPeripheral = peripherals.get(peripheral.id);
                     if (selectedPeripheral) {
@@ -193,21 +207,21 @@ export default class HomeScreen extends Component {
                     }
                     console.log('HomeScreen: Connected to ' + peripheral.id);
 
-                    BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-                        console.log("HomeScreen: retrieve Services");
-                        console.log("HomeScreen: " + peripheralInfo);
+                    var peripheralInfo = await BleManager.retrieveServices(peripheral.id);
 
-                        this.setState({
-                            peripherals: peripherals,
-                            selectedPeripheral: selectedPeripheral,
-                        });
+                    console.log("HomeScreen: Services Retreived: " + peripheralInfo);
 
-                        this.props.navigation.navigate('MediaScreen',{peripheral: selectedPeripheral});
+                    this.setState({
+                        peripherals: peripherals,
+                        selectedPeripheral: selectedPeripheral,
                     });
 
-                }).catch((error) => {
-                    console.log('Connection error', error);
-                });
+                    this.props.navigation.navigate('MediaScreen', { peripheral: selectedPeripheral });
+
+                }
+                catch (error) {
+                    console.log('HomeScreen: Connection error', error);
+                }
             }
         }
     }
