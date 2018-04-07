@@ -10,9 +10,14 @@ export default class VolumeController extends React.Component {
 
 		this.BLEIDs = new BLEIDs();
 
-		this.state = { peripheral: props.peripheral, volume: null };
-		this.readVolumeFromBLE = this.readVolumeFromBLE.bind(this);
- 
+		this.state = { peripheral: props.peripheral, 
+						volume: null }; 
+	}
+
+
+	async componentDidMount() {
+		console.log("VolumeController " + this.state.mediaType + " DidMount");
+		await this.readVolumeFromBLE();;
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -20,59 +25,56 @@ export default class VolumeController extends React.Component {
 			{
 				peripheral: null,
 				volume: null,
+				refreshButtonClicked: false,
 			}
 		);
 		else {
 			this.setState({
-				peripheral: nextProps.peripheral
+				peripheral: nextProps.peripheral,
+				refreshButtonClicked: false,
 			});
 		  
 			
 		}
 	}
 
-	onUpdateVolume(event) {
+	async onUpdateVolume(event) {
 		console.log("VolumeController: submitted value: " + JSON.stringify(event.value));
-
 		var newVolume = [event.value];
 
 		if (this.state.peripheral) {
-			BleManager.write(this.state.peripheral.id,
-				this.BLEIDs.AudioService,
-				this.BLEIDs.AudioVolumeCharacteristic,
-				newVolume)
-				.then(() => {
-					this.readVolumeFromBLE();
-				})
-				.catch(error => {
-					console.log("VolumeController: " + error);
-				});
+			try {
+				await BleManager.write(this.state.peripheral.id,
+					this.BLEIDs.AudioService,
+					this.BLEIDs.AudioVolumeCharacteristic,
+					newVolume);
+
+				await this.readVolumeFromBLE();
+
+			}
+			catch (error) {
+				console.log("VolumeController: " + error);
+			}
 		}
 	}
 
-	readVolumeFromBLE() {
-
+	async readVolumeFromBLE() {
 		if (this.state.peripheral) {
-			BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic)
-				.then(readData => {
-					console.log("VolumeController Read Volume: " + readData[0]);
-					this.setState({ volume: readData[0] });
-				})
-				.catch(error => {
-					// Failure code
-					console.log("VolumeController: " + error);
-				});
+			try {
+				var readData = await BleManager.read(this.state.peripheral.id, this.BLEIDs.AudioService, this.BLEIDs.AudioVolumeCharacteristic);
+				console.log("VolumeController Read Volume: " + readData[0]);
+				this.setState({ volume: readData[0] });
+			}
+			catch (error){
+				console.log("VolumeController: " + error);
+			}
 		}
 	}
 
 	render() {
-
-		if(!this.state.volume){
-			this.readVolumeFromBLE();
-		}
-		
+ 
 		return (
-			<View style={{ margin: 10, backgroundColor: 'skyblue', height: 100 }}>
+			<View style={{ margin: 10, backgroundColor: 'skyblue', height: 120 }}>
 				<View style={{
 					flex: 1,
 					flexDirection: 'row',
@@ -87,6 +89,15 @@ export default class VolumeController extends React.Component {
 						{ value }
 					)} minimumValue={0} maximumValue={100} step={10} />
 				</View>
+				<Button
+				title="Load"
+				onPress={async () => {
+					if (!this.state.refreshButtonClicked) {
+						this.setState({ refreshButtonClicked: true });
+						await this.readVolumeFromBLE();
+					}
+				}
+				} />
 			</View>
 		);
 	}
