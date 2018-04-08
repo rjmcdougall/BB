@@ -1,7 +1,7 @@
 {
-  "expo": {
-    "sdkVersion": "25.0.0",
-    "slug": "BBMobile",
-    "name": "BBMobile"
-  }
+	"expo": {
+		"sdkVersion": "25.0.0",
+		"slug": "BBMobile",
+		"name": "BBMobile"
+	}
 }

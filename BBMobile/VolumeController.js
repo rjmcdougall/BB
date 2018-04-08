@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Text, WebView, Button, TouchableHighlight, Slider, StyleSheet } from "react-native";
-import BleManager from 'react-native-ble-manager';
-//import BleManager from './BLEManagerFake';
-import BLEIDs from './BLEIDs';
+import { View, Text,  Button,  Slider, StyleSheet } from "react-native";
+import BleManager from "react-native-ble-manager";
+import BLEIDs from "./BLEIDs";
+import PropTypes from "prop-types";
 
 export default class VolumeController extends React.Component {
 	constructor(props) {
@@ -10,14 +10,16 @@ export default class VolumeController extends React.Component {
 
 		this.BLEIDs = new BLEIDs();
 
-		this.state = { peripheral: props.peripheral, 
-						volume: null }; 
+		this.state = {
+			peripheral: props.peripheral,
+			volume: null
+		};
 	}
 
 
 	async componentDidMount() {
 		console.log("VolumeController " + this.state.mediaType + " DidMount");
-		await this.readVolumeFromBLE();;
+		await this.readVolumeFromBLE();
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -33,8 +35,8 @@ export default class VolumeController extends React.Component {
 				peripheral: nextProps.peripheral,
 				refreshButtonClicked: false,
 			});
-		  
-			
+
+
 		}
 	}
 
@@ -65,20 +67,20 @@ export default class VolumeController extends React.Component {
 				console.log("VolumeController Read Volume: " + readData[0]);
 				this.setState({ volume: readData[0] });
 			}
-			catch (error){
+			catch (error) {
 				console.log("VolumeController: " + error);
 			}
 		}
 	}
 
 	render() {
- 
+
 		return (
-			<View style={{ margin: 10, backgroundColor: 'skyblue', height: 120 }}>
+			<View style={{ margin: 10, backgroundColor: "skyblue", height: 120 }}>
 				<View style={{
 					flex: 1,
-					flexDirection: 'row',
-					justifyContent: 'space-between',
+					flexDirection: "row",
+					justifyContent: "space-between",
 
 				}}>
 					<View style={{ height: 50 }}><Text style={styles.rowText}>Volume</Text></View>
@@ -90,18 +92,23 @@ export default class VolumeController extends React.Component {
 					)} minimumValue={0} maximumValue={100} step={10} />
 				</View>
 				<Button
-				title="Load"
-				onPress={async () => {
-					if (!this.state.refreshButtonClicked) {
-						this.setState({ refreshButtonClicked: true });
-						await this.readVolumeFromBLE();
+					title="Load"
+					onPress={async () => {
+						if (!this.state.refreshButtonClicked) {
+							this.setState({ refreshButtonClicked: true });
+							await this.readVolumeFromBLE();
+						}
 					}
-				}
-				} />
+					} />
 			</View>
 		);
 	}
 }
+
+VolumeController.propTypes = {
+	peripheral: PropTypes.object,
+};
+
 const styles = StyleSheet.create({
 	rowText: {
 		margin: 5,

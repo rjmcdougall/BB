@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { View, Text, WebView, Button, TouchableHighlight, Slider, StyleSheet } from "react-native";
-import ModalDropdown from 'react-native-modal-dropdown';
-import BleManager from 'react-native-ble-manager';
-import BLEIDs from './BLEIDs';
+import { View, Text, Button,  StyleSheet } from "react-native";
+import ModalDropdown from "react-native-modal-dropdown";
+import BleManager from "react-native-ble-manager";
+import BLEIDs from "./BLEIDs";
+import PropTypes from "prop-types";
 
 export default class TrackController extends Component {
 	constructor(props) {
@@ -153,10 +154,10 @@ export default class TrackController extends Component {
 		var tracks = this.state.channels.map(a => a.channelInfo);
 		return (
 
-			<View style={{ margin: 10, backgroundColor: 'skyblue', height: 120 }}>
+			<View style={{ margin: 10, backgroundColor: "skyblue", height: 120 }}>
 				<View style={{
 					flex: 1,
-					flexDirection: 'row',
+					flexDirection: "row",
 				}}>
 					<View style={{ height: 50 }}>
 						<Text style={styles.rowText}>{this.state.mediaType} Track</Text></View>
@@ -173,32 +174,31 @@ export default class TrackController extends Component {
 					/>
 				</View>
 				<Button
-				title="Load"
-				onPress={async () => {
-					if (!this.state.refreshButtonClicked) {
-						this.setState({ refreshButtonClicked: true });
-						await this.refresh();
+					title="Load"
+					onPress={async () => {
+						if (!this.state.refreshButtonClicked) {
+							this.setState({ refreshButtonClicked: true });
+							await this.refresh();
+						}
 					}
-				}
-				} />
+					} />
 			</View>
 		);
 	}
 }
 
+TrackController.propTypes = {
+	mediaType: PropTypes.string,
+	peripheral: PropTypes.object,
+};
+
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: 'skyblue',
-		width: window.width,
-		height: window.height
-	},
 	PStyle: {
-		backgroundColor: 'skyblue',
+		backgroundColor: "skyblue",
 		width: 280,
 	},
 	DDStyle: {
-		backgroundColor: 'skyblue',
+		backgroundColor: "skyblue",
 		width: 280,
 	},
 	rowText: {
