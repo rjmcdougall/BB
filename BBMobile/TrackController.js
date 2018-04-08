@@ -179,6 +179,7 @@ export default class TrackController extends Component {
 						if (!this.state.refreshButtonClicked) {
 							this.setState({ refreshButtonClicked: true });
 							await this.refresh();
+							this.setState({ refreshButtonClicked: false });
 						}
 					}
 					} />

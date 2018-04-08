@@ -6,9 +6,11 @@ import {
 	Text,
 	View,  
 	Dimensions,
+	ScrollView,
 } from "react-native"; 
 import VolumeController from "./VolumeController";
 import TrackController from "./TrackController"; 
+import BatteryController from "./BatteryController"; 
 const window = Dimensions.get("window");
  
 export default class MediaManagement extends Component {
@@ -45,10 +47,13 @@ export default class MediaManagement extends Component {
 
 		return (
 			<View style={styles.container}>
-				<VolumeController peripheral={this.state.peripheral} />
-				<TrackController peripheral={this.state.peripheral} mediaType="Audio" />
-				<TrackController peripheral={this.state.peripheral} mediaType="Video" />
-				{boardConnected}
+				<ScrollView style={styles.scroll}>
+					<BatteryController peripheral={this.state.peripheral} />
+					<VolumeController peripheral={this.state.peripheral} />
+					<TrackController peripheral={this.state.peripheral} mediaType="Audio" />
+					<TrackController peripheral={this.state.peripheral} mediaType="Video" />
+					{boardConnected}
+				</ScrollView>
 			</View>
 		);
 	}

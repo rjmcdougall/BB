@@ -97,6 +97,7 @@ export default class VolumeController extends React.Component {
 						if (!this.state.refreshButtonClicked) {
 							this.setState({ refreshButtonClicked: true });
 							await this.readVolumeFromBLE();
+							this.setState({ refreshButtonClicked: false });
 						}
 					}
 					} />
