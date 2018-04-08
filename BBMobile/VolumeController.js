@@ -18,7 +18,6 @@ export default class VolumeController extends React.Component {
 
 
 	async componentDidMount() {
-		console.log("VolumeController " + this.state.mediaType + " DidMount");
 		await this.readVolumeFromBLE();
 	}
 

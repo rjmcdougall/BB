@@ -18,7 +18,6 @@ export default class BatteryController extends React.Component {
 
 
 	async componentDidMount() {
-		console.log("BatteryController " + this.state.mediaType + " DidMount");
 		await this.readBatteryFromBLE();
 	}
 
