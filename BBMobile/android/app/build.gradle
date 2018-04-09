@@ -139,6 +139,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-fs')
     compile project(':react-native-ble-manager')
     compile project(':react-native-maps')
     //compile project(':react-native-ble-plx')
