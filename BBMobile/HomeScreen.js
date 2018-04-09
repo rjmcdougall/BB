@@ -19,6 +19,7 @@ import BleManager from "react-native-ble-manager";
 //import BleManager from "./BLEManagerFake";
 import BLEIDs from "./BLEIDs"; 
 import Touchable from "react-native-platform-touchable";
+import FileSystemConfig from "./FileSystemConfig";
 
 const window = Dimensions.get("window");
 const ds = new ListView.DataSource({
@@ -202,6 +203,12 @@ export default class HomeScreen extends Component {
 					var peripheralInfo = await BleManager.retrieveServices(peripheral.id);
 
 					console.log("HomeScreen: Services Retreived: " + peripheralInfo);
+
+					// TEST TO STORE CONFIG IN FILESYSTEM. 
+					console.log("HomeScreen: Storing Peripheral to Filesystem.");
+					await FileSystemConfig.setDefaultPeripheral(peripheral);
+					var storedPeripheral = await FileSystemConfig.getDefaultPeripheral();
+					console.log("HomeScreen: Retreived from Filesystem: " + JSON.stringify(storedPeripheral));
 
 					this.setState({
 						peripherals: peripherals,
