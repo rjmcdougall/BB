@@ -19,7 +19,7 @@ exports.setDefaultPeripheral = async function (peripheral) {
 	catch (error) {
 		console.log("FileSystemConfig: Error: " + error);
 	}
-}
+};
 
 
 exports.getDefaultPeripheral = async function () {
@@ -37,10 +37,10 @@ exports.getDefaultPeripheral = async function () {
 		}
 
 		var peripheral = JSON.parse(await RNFS.readFile(path, "utf8"));
-		console.log("FileSystemConfig: Successfuly loaded configuration file: " + JSON.stringify(peripheral));
+//		console.log("FileSystemConfig: Successfuly loaded configuration file: " + JSON.stringify(peripheral));
 		return peripheral;
 	}
 	catch (error) {
 		console.log("FileSystemConfig: Error: " + error);
 	}
-}
+};

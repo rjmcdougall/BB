@@ -1,76 +1,109 @@
 import React, {
 	Component
 } from "react";
-import { 
+import {
 	StyleSheet,
 	Text,
-	View,  
+	View,
 	Dimensions,
 	ScrollView,
-} from "react-native"; 
+} from "react-native";
 import VolumeController from "./VolumeController";
-import TrackController from "./TrackController"; 
-import BatteryController from "./BatteryController"; 
+import TrackController from "./TrackController";
+import BatteryController from "./BatteryController";
+import BLEBoardData from "./BLEBoardData";
+import FileSystemConfig from "./FileSystemConfig";
+import Touchable from "react-native-platform-touchable";
 const window = Dimensions.get("window");
- 
+
 export default class MediaManagement extends Component {
 	constructor(props) {
 		super(props);
 
-		const { params } = this.props.navigation.state;
-		const peripheral = params.peripheral;
-
 		this.state = {
-			peripheral: peripheral,
+			peripheral: { name: null },//params.peripheral,
+			mediaState: BLEBoardData.fakeMediaState,
 		};
-
 	}
 
 	static navigationOptions = {
 		title: "Media Management",
 	};
 
+	async onUpdateVolume(event) {
+		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async onSelectAudioTrack(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async onSelectVideoTrack(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async componentDidMount() {
+		var storedPeripheral = await FileSystemConfig.getDefaultPeripheral();
+		var mediaState = await BLEBoardData.createMediaState(storedPeripheral);
+		this.setState({ mediaState: mediaState });
+	}
+
 	render() {
 
-		var boardConnected;
+		var connectedText = "";
 
-		if (this.state.peripheral.connected) {
-			boardConnected = (
-				<Text style={[styles.rowText, { backgroundColor: "#fff" }]}>Connected to {this.state.peripheral.name}</Text>
-			);
-		} else {
-			boardConnected = (
-				<Text style={[styles.rowText, { backgroundColor: "#ff0000" }]}>NOT connected to {this.state.peripheral.name}</Text>
+		if (this.state.mediaState.peripheral.connected)
+			connectedText = "Connected to " + this.state.mediaState.peripheral.name;
+		else
+			connectedText = "Not connected to " + this.state.mediaState.peripheral.name;
 
-			);
-		}
+		var color = this.state.mediaState.peripheral.connected ? "green" : "#fff";
 
 		return (
 			<View style={styles.container}>
 				<ScrollView style={styles.scroll}>
-					<BatteryController peripheral={this.state.peripheral} />
-					<VolumeController peripheral={this.state.peripheral} />
-					<TrackController peripheral={this.state.peripheral} mediaType="Audio" />
-					<TrackController peripheral={this.state.peripheral} mediaType="Video" />
-					{boardConnected}
+					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.state.mediaState} />
+					<BatteryController mediaState={this.state.mediaState} />
+					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.state.mediaState} mediaType="Audio" />
+					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.state.mediaState} mediaType="Video" />
 				</ScrollView>
+				<Touchable
+					onPress={async () => {
+						if (!this.state.refreshButtonClicked) {
+							try {
+								this.setState({ refreshButtonClicked: true });
+								this.setState({ mediaState: await BLEBoardData.refreshMediaState(this.state.mediaState) });
+								this.setState({ refreshButtonClicked: false });
+							}
+							catch (error) {
+								console.log("VolumeController Error: " + error);
+							}
+						}
+					}
+					}
+					style={{
+						backgroundColor: color,
+						height: 50,
+					}}
+					background={Touchable.Ripple("blue")}>
+					<Text style={styles.rowText}>{connectedText}</Text>
+				</Touchable>
 			</View>
 		);
 	}
-
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: "#FFF",
-		width: window.width,
-		height: window.height
-	},  
+		width: window.width
+	},
 	rowText: {
 		margin: 5,
-		fontSize: 12,
+		fontSize: 14,
 		textAlign: "center",
 		padding: 10,
+		color: "white",
 	},
 });

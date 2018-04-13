@@ -1,188 +1,60 @@
 import React, { Component } from "react";
-import { View, Text, Button,  StyleSheet } from "react-native";
-import ModalDropdown from "react-native-modal-dropdown";
-import BleManager from "react-native-ble-manager";
-import BLEIDs from "./BLEIDs";
-import PropTypes from "prop-types";
-
+import { View, Text, StyleSheet } from "react-native";
+import ModalDropdown from "react-native-modal-dropdown"; 
+import PropTypes from "prop-types"; 
 export default class TrackController extends Component {
 	constructor(props) {
-		super(props);
+		super(props); 
+		this.state = {
+			mediaState: props.mediaState,
+			mediaType: props.mediaType,
+			refreshButtonClicked: false,
+		};
 
-		this.BLEIDs = new BLEIDs();
-
-		if (props.mediaType == "Audio") {
-			this.state = {
-				peripheral: props.peripheral,
-				mediaType: props.mediaType,
-				channelNo: 0,
-				channelInfo: "Please Load",
-				maxChannel: 0,
-				channels: [{ channelInfo: "loading..." }],
-				service: this.BLEIDs.AudioService,
-				channelCharacteristic: this.BLEIDs.AudioChannelCharacteristic,
-				infoCharacteristic: this.BLEIDs.AudioInfoCharacteristic,
-				refreshButtonClicked: false,
-			};
-		}
-		else if (props.mediaType == "Video") {
-			this.state = {
-				peripheral: props.peripheral,
-				mediaType: props.mediaType,
-				channelNo: 0,
-				channelInfo: "Loading (~60 seconds)",
-				maxChannel: 0,
-				channels: [{ channelInfo: "loading..." }],
-				service: this.BLEIDs.VideoService,
-				channelCharacteristic: this.BLEIDs.VideoChannelCharacteristic,
-				infoCharacteristic: this.BLEIDs.VideoInfoCharacteristic,
-				refreshButtonClicked: false,
-			};
-		}
+		this.onSelectTrack = this.props.onSelectTrack.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps) {
-
-		console.log("TrackController " + this.state.mediaType + " component received props:" + nextProps);
-
-		if (nextProps.peripheral == null) {
-			console.log("TrackController " + this.state.mediaType + " clearing state...");
-			this.setState({
-				peripheral: null,
-				channels: [{ channelInfo: "Please Select..." }],
-				channelNo: 0,
-				maxChannel: 0,
-			});
-		} else {
-			console.log("TrackController " + this.state.mediaType + " setting state...");
-			this.setState({
-				peripheral: nextProps.peripheral,
-			});
-		}
-	}
-
-	async componentDidMount() {
-		console.log("TrackController " + this.state.mediaType + " DidMount");
-		await this.refresh();
-	}
-
-	async readTrackFromBLE(peripheral) {
-		if (peripheral) {
-			try {
-				console.log("TrackController " + this.state.mediaType + " doing Read current/track counts:" + peripheral);
-				var readData = await BleManager.read(peripheral.id,
-					this.state.service,
-					this.state.channelCharacteristic);
-
-				this.setState({
-					channelNo: readData[1],
-					maxChannel: readData[0]
-				});
-				console.log("TrackController " + this.state.mediaType + " Selected Channel No: " + this.state.channelNo);
-				console.log("TrackController " + this.state.mediaType + " Max Channel: " + this.state.maxChannel);
-
-			}
-			catch (error) {
-				console.log("TrackController " + this.state.mediaType + " read track: " + error);
-			}
-		}
-	}
-
-	async refresh() {
-
-		console.log("TrackController " + this.state.mediaType + " Read Listing:" + this.state.peripheral);
-		var channels = [];
-		await this.readTrackFromBLE(this.state.peripheral);
-
-		try {
-			if (this.state.peripheral) {
-				for (var n = 1; n <= this.state.maxChannel; n++) {
-
-					var readData = await BleManager.read(this.state.peripheral.id, this.state.service, this.state.infoCharacteristic);
-					var channelNo = readData[0];
-					var channelInfo = "";
-					for (var i = 1; i < readData.length; i++) {
-						channelInfo += String.fromCharCode(readData[i]);
-					}
-					if (channelInfo && 0 != channelInfo.length) {
-						channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
-						if (channelNo == this.state.channelNo)
-							this.setState({ channelInfo: channels[channelNo].channelInfo });
-
-						console.log("TrackController " + this.state.mediaType + " Add Info channel: " + channelNo + ", name = " + channelInfo);
-					}
-				}
-				console.log("TrackController " + this.state.mediaType + " found channels: " + JSON.stringify(channels));
-				this.setState({
-					channels: channels,
-				});
-			}
-		}
-		catch (error) {
-			console.log("TrackController " + this.state.mediaType + " r2: " + error);
-		}
-	}
-
-	async setTrack(idx) {
-
-		var trackNo = parseInt(idx);
-		console.log("TrackController " + this.state.mediaType + " submitted value: " + trackNo);
-		if (this.state.peripheral) {
-
-			try {
-				await BleManager.write(this.state.peripheral.id,
-					this.state.service,
-					this.state.channelCharacteristic,
-					[trackNo]);
-
-				console.log("TrackController " + this.state.mediaType + " Update:  " + [trackNo]);
-				await this.readTrackFromBLE(this.state.peripheral);
-			}
-			catch (error) {
-				console.log("TrackController " + this.state.mediaType + " " + error);
-			}
-		}
-	}
-
-	onSelect(idx) {
-		console.log("TrackController " + this.state.mediaType + " Selected track: " + this.state.channels[idx].channelInfo);
-		this.setTrack(idx);
+		this.setState({
+			mediaState: nextProps.mediaState,
+		});
 	}
 
 	render() {
 
-		var tracks = this.state.channels.map(a => a.channelInfo);
+		var tracks = null;
+		var channelInfo = null;
+
+		if (this.state.mediaType == "Audio") {
+			tracks = this.state.mediaState.audio.channels.map(a => a.channelInfo);
+			channelInfo = this.state.mediaState.audio.channelInfo;
+		}
+		else {
+			tracks = this.state.mediaState.video.channels.map(a => a.channelInfo);
+			channelInfo = this.state.mediaState.video.channelInfo;
+		}
+
 		return (
 
-			<View style={{ margin: 10, backgroundColor: "skyblue", height: 120 }}>
+			<View style={{ margin: 10, backgroundColor: "skyblue", height: 80 }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
 				}}>
-					<View style={{ height: 50 }}>
+					<View style={{ height: 40 }}>
 						<Text style={styles.rowText}>{this.state.mediaType} Track</Text></View>
 				</View>
-				<View style={{ height: 50 }}>
+				<View style={{ height: 40 }}>
 					<ModalDropdown options={tracks}
-						defaultValue={this.state.channelInfo}
+						defaultValue={channelInfo}
 						style={styles.PStyle}
 						dropdownStyle={styles.DDStyle}
 						textStyle={styles.rowText}
 						dropdownTextStyle={styles.rowText}
 						dropdownTextHighlightStyle={styles.rowText}
-						onSelect={this.onSelect.bind(this)}
+						onSelect={this.onSelectTrack.bind(this)}
 					/>
 				</View>
-				<Button
-					title="Load"
-					onPress={async () => {
-						if (!this.state.refreshButtonClicked) {
-							this.setState({ refreshButtonClicked: true });
-							await this.refresh();
-							this.setState({ refreshButtonClicked: false });
-						}
-					}
-					} />
 			</View>
 		);
 	}
@@ -190,7 +62,8 @@ export default class TrackController extends Component {
 
 TrackController.propTypes = {
 	mediaType: PropTypes.string,
-	peripheral: PropTypes.object,
+	mediaState: PropTypes.object,
+	onSelectTrack: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -204,7 +77,7 @@ const styles = StyleSheet.create({
 	},
 	rowText: {
 		margin: 5,
-		fontSize: 16,
-		padding: 10,
+		fontSize: 14,
+		padding: 5,
 	},
 });

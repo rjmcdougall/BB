@@ -15,8 +15,7 @@ import {
 	AppState,
 	Dimensions,
 } from "react-native";
-import BleManager from "react-native-ble-manager";
-//import BleManager from "./BLEManagerFake";
+import BleManager from "react-native-ble-manager"; 
 import BLEIDs from "./BLEIDs"; 
 import Touchable from "react-native-platform-touchable";
 import FileSystemConfig from "./FileSystemConfig";
