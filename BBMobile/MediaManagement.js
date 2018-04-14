@@ -12,27 +12,22 @@ import VolumeController from "./VolumeController";
 import TrackController from "./TrackController";
 import BatteryController from "./BatteryController";
 import BLEBoardData from "./BLEBoardData";
-import FileSystemConfig from "./FileSystemConfig";
 import Touchable from "react-native-platform-touchable";
 const window = Dimensions.get("window");
 
-//import BleManager from "react-native-ble-manager";
+import PropTypes from "prop-types";
 
 export default class MediaManagement extends Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
-			peripheral: { name: null }, 
 			mediaState: BLEBoardData.emptyMediaState,
 			refreshButtonClicked: false,
+			connectionMessage: "Scanning For Board",
 		};
 	}
-
-	static navigationOptions = {
-		title: "Media Management",
-	};
-
+ 
 	async onUpdateVolume(event) {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
 		console.log("Media Management: Set Media State After Update.");
@@ -53,38 +48,47 @@ export default class MediaManagement extends Component {
 
 				this.setState({ refreshButtonClicked: true });
 
-				var storedPeripheral = await FileSystemConfig.getDefaultPeripheral();
-				console.log("MediaManagement Load From BLE: " + JSON.stringify(storedPeripheral));
-				var mediaState = await BLEBoardData.createMediaState(storedPeripheral);
+				console.log("MediaManagement: Load From BLE: " + JSON.stringify(this.state.mediaState.peripheral));
+				var mediaState = await BLEBoardData.createMediaState(this.state.mediaState.peripheral);
+
+				console.log("MEdiaManagement Binding Media State: " + JSON.stringify(this.state.mediaState));
 
 				this.setState({
 					refreshButtonClicked: false,
-					mediaState: mediaState
+					mediaState: mediaState,
+					connectionMessage: "Connected to " + this.state.mediaState.peripheral.name,
 				});
+			}
+			else {
+				console.log("Media Management: ALready Loading.");
 			}
 		}
 		catch (error) {
 			console.log("MediaManagement Error: " + error);
 		}
-
 	}
-	async componentDidMount() {
 
-		await this.loadFromBLE();
+	async componentWillReceiveProps(nextProps) {
+
+		console.log("MediaManagement: Received Props: " + JSON.stringify(nextProps.peripheral));
+		var newMediaState = this.state.mediaState;
+		newMediaState.peripheral = nextProps.peripheral;
+
+		if (newMediaState.peripheral.id != "12345") {
+			console.log("Received Props: " + JSON.stringify(newMediaState.peripheral));
+			this.setState({
+				mediaState: newMediaState,
+				connectionMessage: "Located " + newMediaState.peripheral.name
+			});
+			await this.loadFromBLE();
+		}
 	}
 
 	render() {
 
-		var connectedText = "";
-
-		if (this.state.mediaState.peripheral.connected)
-			connectedText = "Connected to " + this.state.mediaState.peripheral.name;
-		else
-			connectedText = "Not connected to " + this.state.mediaState.peripheral.name;
-
 		var color;
-		if (this.state.mediaState.peripheral)
-			color = this.state.mediaState.peripheral.connected ? "green" : "#fff";
+		if (!this.state.connectionMessage.startsWith("Connected"))
+			color = "#fff";
 		else
 			color = "green";
 
@@ -106,7 +110,7 @@ export default class MediaManagement extends Component {
 						height: 50,
 					}}
 					background={Touchable.Ripple("blue")}>
-					<Text style={styles.rowText}>{connectedText}</Text>
+					<Text style={styles.rowText}>{this.state.connectionMessage}</Text>
 				</Touchable>
 				<Touchable
 					onPress={() => {
@@ -122,6 +126,9 @@ export default class MediaManagement extends Component {
 		);
 	}
 }
+MediaManagement.propTypes = {
+	peripheral: PropTypes.object,
+};
 
 const styles = StyleSheet.create({
 	container: {
@@ -133,6 +140,6 @@ const styles = StyleSheet.create({
 		margin: 5,
 		fontSize: 14,
 		textAlign: "center",
-		padding: 10, 
+		padding: 10,
 	},
 });
