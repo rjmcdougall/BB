@@ -15,15 +15,15 @@ exports.fakeMediaState = {
 		volume: 50,
 		channels:
 			[{ channelNo: 1, channelInfo: "Audio 1" },
-				{ channelNo: 2, channelInfo: "Audio 2" },
-				{ channelNo: 3, channelInfo: "Audio 3" }]
+			{ channelNo: 2, channelInfo: "Audio 2" },
+			{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
 	video: {
 		channelInfo: "Video 2",
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
-			{ channelNo: 2, channelInfo: "Video 2" },
-			{ channelNo: 3, channelInfo: "Video 3" }]
+		{ channelNo: 2, channelInfo: "Video 2" },
+		{ channelNo: 3, channelInfo: "Video 3" }]
 	},
 	battery: 87,
 };
@@ -53,7 +53,7 @@ exports.createMediaState = async function (peripheral) {
 
 	try {
 
-		console.log("BLEBoardData: " + JSON.stringify(peripheral));
+		console.log("BLEBoardData: " + peripheral.name);
 		var mediaState = this.emptyMediaState;
 		mediaState.peripheral = peripheral;
 		return await this.refreshMediaState(mediaState);
@@ -82,7 +82,7 @@ exports.refreshMediaState = async function (mediaState) {
 			mediaState = await this.readVolume(mediaState);
 			mediaState = await this.readBattery(mediaState);
 
-			console.log("BLEBoardData: RefreshMediaState: " + JSON.stringify(mediaState));
+			console.log("BLEBoardData: RefreshMediaState COmplete: ");
 			return mediaState;
 		}
 		catch (error) {
@@ -188,7 +188,6 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 					console.log("BLEBoardData " + mediaType + " Add Info channel: " + channelNo + ", name = " + channelInfo);
 				}
 			}
-			console.log("BLEBoardData " + mediaType + " found channels: " + JSON.stringify(channels));
 
 			if (mediaType == "Audio")
 				mediaState.audio.channels = channels;

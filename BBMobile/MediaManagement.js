@@ -26,8 +26,9 @@ export default class MediaManagement extends Component {
 			refreshButtonClicked: false,
 			connectionMessage: "Scanning For Board",
 		};
+		this.startScan = this.props.startScan.bind(this);
 	}
- 
+
 	async onUpdateVolume(event) {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
 		console.log("Media Management: Set Media State After Update.");
@@ -48,10 +49,10 @@ export default class MediaManagement extends Component {
 
 				this.setState({ refreshButtonClicked: true });
 
-				console.log("MediaManagement: Load From BLE: " + JSON.stringify(this.state.mediaState.peripheral));
+				console.log("MediaManagement: Load From BLE: ");
 				var mediaState = await BLEBoardData.createMediaState(this.state.mediaState.peripheral);
 
-				console.log("MEdiaManagement Binding Media State: " + JSON.stringify(this.state.mediaState));
+				console.log("MEdiaManagement Binding Media State: ");
 
 				this.setState({
 					refreshButtonClicked: false,
@@ -70,26 +71,36 @@ export default class MediaManagement extends Component {
 
 	async componentWillReceiveProps(nextProps) {
 
-		console.log("MediaManagement: Received Props: " + JSON.stringify(nextProps.peripheral));
+		console.log("MediaManagement: Received Props: " + nextProps.peripheral.name);
 		var newMediaState = this.state.mediaState;
 		newMediaState.peripheral = nextProps.peripheral;
 
 		if (newMediaState.peripheral.id != "12345") {
-			console.log("Received Props: " + JSON.stringify(newMediaState.peripheral));
+			console.log("MediaManagement: Received REAL props for: " + newMediaState.peripheral.name);
+
 			this.setState({
 				mediaState: newMediaState,
-				connectionMessage: "Located " + newMediaState.peripheral.name
+				connectionMessage: "Located " + newMediaState.peripheral.name,
 			});
 			await this.loadFromBLE();
+		}
+		else {
+			this.setState({
+				mediaState: BLEBoardData.emptyMediaState,
+				connectionMessage: "Scanning For Board",
+			});
 		}
 	}
 
 	render() {
 
 		var color;
-		if (!this.state.connectionMessage.startsWith("Connected"))
-			color = "#fff";
-		else
+
+		color = "#fff";
+
+		if (this.state.connectionMessage.startsWith("Located"))
+			color = "yellow";
+		if (this.state.connectionMessage.startsWith("Connected"))
 			color = "green";
 
 		return (
@@ -102,7 +113,7 @@ export default class MediaManagement extends Component {
 				</ScrollView>
 				<Touchable
 					onPress={async () => {
-						await this.loadFromBLE();
+						await this.startScan();
 					}
 					}
 					style={{
@@ -112,22 +123,13 @@ export default class MediaManagement extends Component {
 					background={Touchable.Ripple("blue")}>
 					<Text style={styles.rowText}>{this.state.connectionMessage}</Text>
 				</Touchable>
-				<Touchable
-					onPress={() => {
-						this.props.navigation.navigate("Admin");
-					}}
-					style={{
-						height: 50,
-					}}
-					background={Touchable.Ripple("blue")}>
-					<Text style={styles.rowText}>Board Management</Text>
-				</Touchable>
 			</View>
 		);
 	}
 }
 MediaManagement.propTypes = {
 	peripheral: PropTypes.object,
+	startScan: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

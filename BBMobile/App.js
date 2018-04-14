@@ -1,24 +1,19 @@
 import React from "react";
 import { StackNavigator } from "react-navigation"; // Version can be specified in package.json
-//import HomeScreen from "./HomeScreen";
 import BBComView from "./BBComView";
-import MediaManagement from "./MediaManagement";
 import BoardManager from "./BoardManager";
 
 const RootStack = StackNavigator(
-	{
-		Home: {
-			screen: BoardManager,
-		},
+	{ 
 		BBCom: {
 			screen: BBComView,
 		},
 		MediaScreen: {
-			screen: MediaManagement
+			screen: BoardManager
 		}
 	},
 	{
-		initialRouteName: "Home",
+		initialRouteName: "MediaScreen",
 		navigationOptions: {
 			headerStyle: {
 				backgroundColor: "blue",
