@@ -2,7 +2,7 @@
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
 
-var fakeBLE = true;
+var fakeBLE = false;
 
 exports.fakeMediaState = {
 	peripheral: {
@@ -28,10 +28,31 @@ exports.fakeMediaState = {
 	battery: 87,
 };
 
+exports.emptyMediaState = {
+	peripheral: {
+		name: "loading...",
+		id: "12345"
+	},
+	audio: {
+		channelInfo: "loading...",
+		maxChannel: 1,
+		volume: 0,
+		channels:
+			[{ channelNo: 1, channelInfo: "loading..." }]
+	},
+	video: {
+		channelInfo: "loading...",
+		maxChannel: 1,
+		channels: [{ channelNo: 1, channelInfo: "loading..." }]
+	},
+	battery: 0,
+};
+
 exports.createMediaState = async function (peripheral) {
 
 	try {
-		var mediaState = { peripheral: peripheral };
+		var mediaState = this.emptyMediaState;
+		mediaState.peripheral = peripheral;
 		return await this.refreshMediaState(mediaState);
 	}
 	catch (error) {
@@ -41,16 +62,27 @@ exports.createMediaState = async function (peripheral) {
 
 exports.refreshMediaState = async function (mediaState) {
 
-	if (!fakeBLE) {
-		console.log("BLEBoardData: Refreshing from BLE");
-		mediaState = await this.readTrack(mediaState, "Audio");
-		mediaState = await this.readTrack(mediaState, "Video");
-		mediaState = await this.refreshTrackList(mediaState, "Audio");
-		mediaState = await this.refreshTrackList(mediaState, "Video");
-		mediaState = await this.readVolume(mediaState);
-		mediaState = await this.readBattery(mediaState);
 
-		return mediaState;
+	if (!fakeBLE) {
+		try{
+
+			console.log("BLEBoardData: Connecting MediaState: " + JSON.stringify(mediaState));			
+			await BleManager.connect(mediaState.peripheral.id);
+			console.log("BLEBoardData: Connected");			
+			mediaState = await this.readTrack(mediaState, "Audio");
+			mediaState = await this.readTrack(mediaState, "Video");
+			mediaState = await this.refreshTrackList(mediaState, "Audio");
+			mediaState = await this.refreshTrackList(mediaState, "Video");
+			mediaState = await this.readVolume(mediaState);
+			mediaState = await this.readBattery(mediaState);
+
+			console.log("BLEBoardData: RefreshMediaState: " + JSON.stringify(mediaState));
+			return mediaState;
+		}
+		catch(error){
+			console.log("BLEBoardData Refresh Media Error: " + error);
+		}
+
 	}
 	else {
 		console.log("BLEBoardData: FAKE Refreshing from BLE");
@@ -74,23 +106,30 @@ exports.readTrack = async function (mediaState, mediaType) {
 		service = BLEIDs.VideoService;
 		channelCharacteristic = BLEIDs.VideoChannelCharacteristic;
 	}
+	console.log("BLEBoardData readTrack MediaType: " + mediaType);
 
 	if (mediaState.peripheral) {
 		try {
 
 			if (!fakeBLE) {
-				console.log("BLEBoardData " + mediaType + " doing Read current/track counts:" + mediaState.peripheral);
+				console.log("BLEBoardData " + mediaType + " doing Read current/track counts: " + mediaState.peripheral);
 				var readData = await BleManager.read(mediaState.peripheral.id,
 					service,
 					channelCharacteristic);
 
-				if (mediaType == "Audio")
+				if (mediaType == "Audio"){
 					mediaState.audio.channelNo = readData[1];
-				else
+					mediaState.audio.maxChannel = readData[0];
+					console.log("BLEBoardData " + mediaType + " Selected Channel No: " + mediaState.audio.channelNo);
+					console.log("BLEBoardData " + mediaType + " Max Channel: " + mediaState.audio.maxChannel);
+					}
+				else {
+					mediaState.video.channelNo = readData[1];
 					mediaState.video.maxChannel = readData[0];
-
-				console.log("BLEBoardData " + mediaType + " Selected Channel No: " + mediaState.channelNo);
-				console.log("BLEBoardData " + mediaType + " Max Channel: " + mediaState.maxChannel);
+					console.log("BLEBoardData " + mediaType + " Selected Channel No: " + mediaState.video.channelNo);
+					console.log("BLEBoardData " + mediaType + " Max Channel: " + mediaState.video.maxChannel);
+				}
+					
 			}
 			else {
 				console.log("BLEBoardData: ReadTrack Faked");
@@ -99,7 +138,7 @@ exports.readTrack = async function (mediaState, mediaType) {
 
 		}
 		catch (error) {
-			console.log("BLEBoardData " + mediaType + " read track: " + error);
+			console.log("BLEBoardData " + mediaType + " read track error: " + error);
 		}
 	}
 };
@@ -123,7 +162,6 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 
 	console.log("BLEBoardData " + mediaType + " Read Listing:" + mediaState.peripheral);
 	var channels = [];
-	mediaState = await this.readTrack(mediaState);
 
 	try {
 		if (mediaState.peripheral) {
@@ -157,7 +195,7 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 		}
 	}
 	catch (error) {
-		console.log("BLEBoardData " + this.state.mediaType + " r2: " + error);
+		console.log("BLEBoardData " + this.state.mediaType + " Error: " + error);
 	}
 };
 
@@ -179,8 +217,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		channelNo = mediaState.video.channels[trackNo].channelNo;
 	}
 
-
-	console.log("BLEBoardData " + mediaType + " submitted value: " + channelNo);
+	console.log("BLEBoardData " + mediaType + " SetTrack submitted value: " + channelNo);
 	if (mediaState.peripheral) {
 
 		try {
@@ -191,16 +228,14 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 					channelCharacteristic,
 					[channelNo]);
 
-				console.log("BLEBoardData " + mediaType + " Update:  " + channelNo);
+				console.log("BLEBoardData " + mediaType + " Update: " + channelNo);
 			}
 			else {
 				mediaState.audio.channelNo = channelNo;
 			}
-			var newMediaState = await await this.readTrack(mediaState);
+			var newMediaState = await await this.readTrack(mediaState, mediaType);
 
 			return newMediaState;
-
-
 		}
 		catch (error) {
 			console.log("BLEBoardData " + mediaType + " " + error);
@@ -220,7 +255,7 @@ exports.onUpdateVolume = async function (event, mediaState) {
 				await BleManager.write(mediaState.peripheral.id,
 					BLEIDs.AudioService,
 					BLEIDs.AudioVolumeCharacteristic,
-					newVolume);
+					[newVolume]);
 			}
 			else {
 				mediaState.audio.volume = newVolume;
@@ -229,9 +264,8 @@ exports.onUpdateVolume = async function (event, mediaState) {
 
 			return newMediaState;
 		}
-
 		catch (error) {
-			console.log("BLEBoardData: " + error);
+			console.log("BLEBoardData Update Volume Error: " + error);
 		}
 	}
 };
@@ -251,7 +285,7 @@ exports.readVolume = async function (mediaState) {
 			return mediaState;
 		}
 		catch (error) {
-			console.log("BLEBoardData: " + error);
+			console.log("BLEBoardData Read Volume Error: " + error);
 		}
 	}
 };
@@ -266,7 +300,7 @@ exports.readBattery = async function (mediaState) {
 			return mediaState;
 		}
 		catch (error) {
-			console.log("BLEBoardData: " + error);
+			console.log("BLEBoardData Read Battery Error: " + error);
 		}
 	}
 };
