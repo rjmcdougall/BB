@@ -18,7 +18,7 @@ const RootStack = StackNavigator(
 		}
 	},
 	{
-		initialRouteName: "MediaScreen",
+		initialRouteName: "Home",
 		navigationOptions: {
 			headerStyle: {
 				backgroundColor: "blue",

@@ -47,8 +47,7 @@ export default class HomeScreen extends Component {
 		this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
 		this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
 		this.handleAppStateChange = this.handleAppStateChange.bind(this);
-
-		this.BLEIDs = new BLEIDs();
+ 
 
 	}
 
@@ -131,7 +130,7 @@ export default class HomeScreen extends Component {
 			});
 
 			try {
-				var results = await BleManager.scan([this.BLEIDs.bbUUID], 3, true);
+				var results = await BleManager.scan([BLEIDs.bbUUID], 3, true);
 				console.log("HomeScreen: Scanning: " + JSON.stringify(results));
 				this.setState({
 					scanning: true
