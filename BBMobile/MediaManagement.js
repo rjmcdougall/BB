@@ -16,13 +16,16 @@ import FileSystemConfig from "./FileSystemConfig";
 import Touchable from "react-native-platform-touchable";
 const window = Dimensions.get("window");
 
+//import BleManager from "react-native-ble-manager";
+
 export default class MediaManagement extends Component {
 	constructor(props) {
 		super(props);
 
 		this.state = {
-			peripheral: { name: null },//params.peripheral,
-			mediaState: BLEBoardData.fakeMediaState,
+			peripheral: { name: null }, 
+			mediaState: BLEBoardData.emptyMediaState,
+			refreshButtonClicked: false,
 		};
 	}
 
@@ -42,10 +45,32 @@ export default class MediaManagement extends Component {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
 		console.log("Media Management: Set Media State After Update.");
 	}
+
+	async loadFromBLE() {
+
+		try {
+			if (!this.state.refreshButtonClicked) {
+
+				this.setState({ refreshButtonClicked: true });
+
+				var storedPeripheral = await FileSystemConfig.getDefaultPeripheral();
+				console.log("MediaManagement Load From BLE: " + JSON.stringify(storedPeripheral));
+				var mediaState = await BLEBoardData.createMediaState(storedPeripheral);
+
+				this.setState({
+					refreshButtonClicked: false,
+					mediaState: mediaState
+				});
+			}
+		}
+		catch (error) {
+			console.log("MediaManagement Error: " + error);
+		}
+
+	}
 	async componentDidMount() {
-		var storedPeripheral = await FileSystemConfig.getDefaultPeripheral();
-		var mediaState = await BLEBoardData.createMediaState(storedPeripheral);
-		this.setState({ mediaState: mediaState });
+
+		await this.loadFromBLE();
 	}
 
 	render() {
@@ -57,7 +82,11 @@ export default class MediaManagement extends Component {
 		else
 			connectedText = "Not connected to " + this.state.mediaState.peripheral.name;
 
-		var color = this.state.mediaState.peripheral.connected ? "green" : "#fff";
+		var color;
+		if (this.state.mediaState.peripheral)
+			color = this.state.mediaState.peripheral.connected ? "green" : "#fff";
+		else
+			color = "green";
 
 		return (
 			<View style={styles.container}>
@@ -69,16 +98,7 @@ export default class MediaManagement extends Component {
 				</ScrollView>
 				<Touchable
 					onPress={async () => {
-						if (!this.state.refreshButtonClicked) {
-							try {
-								this.setState({ refreshButtonClicked: true });
-								this.setState({ mediaState: await BLEBoardData.refreshMediaState(this.state.mediaState) });
-								this.setState({ refreshButtonClicked: false });
-							}
-							catch (error) {
-								console.log("VolumeController Error: " + error);
-							}
-						}
+						await this.loadFromBLE();
 					}
 					}
 					style={{
@@ -87,6 +107,16 @@ export default class MediaManagement extends Component {
 					}}
 					background={Touchable.Ripple("blue")}>
 					<Text style={styles.rowText}>{connectedText}</Text>
+				</Touchable>
+				<Touchable
+					onPress={() => {
+						this.props.navigation.navigate("Admin");
+					}}
+					style={{
+						height: 50,
+					}}
+					background={Touchable.Ripple("blue")}>
+					<Text style={styles.rowText}>Board Management</Text>
 				</Touchable>
 			</View>
 		);
@@ -103,7 +133,6 @@ const styles = StyleSheet.create({
 		margin: 5,
 		fontSize: 14,
 		textAlign: "center",
-		padding: 10,
-		color: "white",
+		padding: 10, 
 	},
 });

@@ -66,7 +66,9 @@ exports.refreshMediaState = async function (mediaState) {
 	if (!fakeBLE) {
 		try{
 
-			console.log("BLEBoardData: Connecting MediaState: " + JSON.stringify(mediaState));			
+			console.log("BLEBoardData: Connecting MediaState: " + JSON.stringify(mediaState));	
+			console.log("BLEBoardData: Connecting MediaState: " + mediaState.peripheral.id);	
+								
 			await BleManager.connect(mediaState.peripheral.id);
 			console.log("BLEBoardData: Connected");			
 			mediaState = await this.readTrack(mediaState, "Audio");
