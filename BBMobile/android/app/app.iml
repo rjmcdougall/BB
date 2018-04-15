@@ -130,6 +130,5 @@
     <orderEntry type="library" name="org.webkit:android-jsc-r174650" level="project" />
     <orderEntry type="module" module-name="react-native-fs" />
     <orderEntry type="module" module-name="react-native-ble-manager" />
-    <orderEntry type="module" module-name="react-native-maps" />
   </component>
 </module>
