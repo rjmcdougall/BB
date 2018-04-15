@@ -15,15 +15,15 @@ exports.fakeMediaState = {
 		volume: 50,
 		channels:
 			[{ channelNo: 1, channelInfo: "Audio 1" },
-			{ channelNo: 2, channelInfo: "Audio 2" },
-			{ channelNo: 3, channelInfo: "Audio 3" }]
+				{ channelNo: 2, channelInfo: "Audio 2" },
+				{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
 	video: {
 		channelInfo: "Video 2",
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
-		{ channelNo: 2, channelInfo: "Video 2" },
-		{ channelNo: 3, channelInfo: "Video 3" }]
+			{ channelNo: 2, channelInfo: "Video 2" },
+			{ channelNo: 3, channelInfo: "Video 3" }]
 	},
 	battery: 87,
 };

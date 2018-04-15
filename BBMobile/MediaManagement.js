@@ -24,7 +24,7 @@ export default class MediaManagement extends Component {
 		this.state = {
 			mediaState: BLEBoardData.emptyMediaState,
 			refreshButtonClicked: false,
-			connectionMessage: "Scanning For Board",
+			connectionMessage: "Scan For Board",
 		};
 		this.startScan = this.props.startScan.bind(this);
 	}
@@ -90,6 +90,7 @@ export default class MediaManagement extends Component {
 				connectionMessage: "Scanning For Board",
 			});
 		}
+
 	}
 
 	render() {

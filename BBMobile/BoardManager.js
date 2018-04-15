@@ -97,8 +97,7 @@ export default class BoardManager extends Component {
 	componentWillUnmount() {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
-		this.handlerDisconnect.remove();
-		//	this.handlerUpdate.remove();
+		this.handlerDisconnect.remove(); 
 	}
 
 	handleDisconnectedPeripheral(data) {
@@ -124,6 +123,7 @@ export default class BoardManager extends Component {
 	async startScan() {
 		if (!this.state.scanning) {
 			this.setState({
+				selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
 				scanning: true,
 				peripherals: new Map()
 			});
@@ -135,11 +135,6 @@ export default class BoardManager extends Component {
 			catch (error) {
 				console.log("BoardManager: Failed to Scan: " + error);
 			}
-
-			this.setState({
-				scanning: false
-			});
-
 		}
 	}
 
@@ -177,7 +172,7 @@ export default class BoardManager extends Component {
 						boardName: boardName,
 					});
 
-					await this.startScan();
+				//	await BleManager.scan([BLEIDs.bbUUID], 3, true);
 				}
 				catch (error) {
 					console.log("BoardManager: Connection error", error);
@@ -185,11 +180,6 @@ export default class BoardManager extends Component {
 			}
 		}
 	}
-
-
-	async loadPeripheral() { 
-		
-	} 
 
 	async handleDiscoverPeripheral(peripheral) {
 		try {
@@ -211,8 +201,6 @@ export default class BoardManager extends Component {
 				});
 				console.log("BoardManager Discovered " + peripheral.name);
 			}
-
-
 		}
 		catch (error) {
 			console.log("BoardManager Found Peripheral Error:" + error);
@@ -252,7 +240,7 @@ export default class BoardManager extends Component {
 							height: 50,
 						}}
 						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowText}>hhBoard Management</Text>
+						<Text style={styles.rowText}>Search for Boards</Text>
 					</Touchable>
 				</View>);
 		else
