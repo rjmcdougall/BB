@@ -19,7 +19,7 @@ import BLEIDs from "./BLEIDs";
 import FileSystemConfig from "./FileSystemConfig";
 import BLEBoardData from "./BLEBoardData";
 import MediaManagement from "./MediaManagement";
-import Touchable from "react-native-platform-touchable"; 
+import Touchable from "react-native-platform-touchable";
 
 const window = Dimensions.get("window");
 const ds = new ListView.DataSource({
@@ -75,11 +75,14 @@ export default class BoardManager extends Component {
 		}
 
 		var config = await FileSystemConfig.getDefaultPeripheral();
-		this.setState({
-			boardName: config.name,
-		});
+		if (config) {
+			this.setState({
+				boardName: config.name,
+			});
 
-		await this.startScan();
+			await this.startScan();
+		}
+
 	}
 
 	handleAppStateChange(nextAppState) {
@@ -97,7 +100,7 @@ export default class BoardManager extends Component {
 	componentWillUnmount() {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
-		this.handlerDisconnect.remove(); 
+		this.handlerDisconnect.remove();
 	}
 
 	handleDisconnectedPeripheral(data) {
@@ -163,7 +166,7 @@ export default class BoardManager extends Component {
 					console.log("BoardManager: Storing Peripheral to Filesystem.");
 					await FileSystemConfig.setDefaultPeripheral(peripheral);
 					console.log("BoardManager: Stored");
- 
+
 					var boardName = peripheral.name;
 
 					this.setState({
@@ -172,7 +175,7 @@ export default class BoardManager extends Component {
 						boardName: boardName,
 					});
 
-				//	await BleManager.scan([BLEIDs.bbUUID], 3, true);
+					//	await BleManager.scan([BLEIDs.bbUUID], 3, true);
 				}
 				catch (error) {
 					console.log("BoardManager: Connection error", error);
@@ -225,9 +228,12 @@ export default class BoardManager extends Component {
 					<MediaManagement peripheral={this.state.selectedPeripheral} startScan={this.startScan} />
 					<Touchable
 						onPress={async () => {
-
-							await BleManager.disconnect(this.state.selectedPeripheral.id);
-
+							try {
+								await BleManager.disconnect(this.state.selectedPeripheral.id);
+							}
+							catch (error) {
+								console.log("Pressed Search For Boards: " + error);
+							}
 							this.setState({
 								peripherals: new Map(),
 								appState: "",
