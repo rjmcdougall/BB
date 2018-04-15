@@ -262,18 +262,18 @@ export default class BoardManager extends Component {
 
 					<ScrollView style={styles.scroll}>
 						{(list.length == 0) &&
-							<Text style={styles.rowText}>No peripherals</Text>
+							<Text style={styles.rowText}>No Boards Found</Text>
 						}
 						<ListView
 							enableEmptySections={true}
 							dataSource={dataSource}
 							renderRow={(item) => {
-								const color = item.connected ? "green" : "#fff";
+
 								return (
 
 									<Touchable
 										onPress={async () => await this.onSelectPeripheral(item)}
-										style={{ backgroundColor: color }}
+										style={styles.touchableStyle}
 										background={Touchable.Ripple("blue")}>
 										<Text style={styles.rowText}>{item.name}</Text>
 									</Touchable>
@@ -299,4 +299,8 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		padding: 10,
 	},
+	touchableStyle: {
+		backgroundColor: "lightblue",
+		margin: 5,
+	}
 });
