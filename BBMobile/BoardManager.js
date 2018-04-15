@@ -38,7 +38,11 @@ export default class BoardManager extends Component {
 			peripherals: new Map(),
 			appState: "",
 			selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+			mediaState: BLEBoardData.emptyMediaState,
 			showDiscoverScreen: false,
+			discoveryState: "Looking for Board",
+			loadingMedia: false,
+			automaticallyConnect: true,
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -80,7 +84,7 @@ export default class BoardManager extends Component {
 				boardName: config.name,
 			});
 
-			await this.startScan();
+			await this.startScan(true);
 		}
 
 	}
@@ -111,6 +115,9 @@ export default class BoardManager extends Component {
 
 			this.setState({
 				selectedPeripheral: peripheral,
+				mediaState: BLEBoardData.emptyMediaState,
+				discoveryState: "Looking for Board",
+
 			});
 			console.log("BoardManager: Disconnected from " + peripheral.name);
 		}
@@ -123,16 +130,18 @@ export default class BoardManager extends Component {
 		});
 	}
 
-	async startScan() {
+	async startScan(automaticallyConnect) {
 		if (!this.state.scanning) {
 			this.setState({
 				selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+				mediaState: BLEBoardData.emptyMediaState,
 				scanning: true,
-				peripherals: new Map()
+				peripherals: new Map(),
+				automaticallyConnect: automaticallyConnect,
 			});
 
 			try {
-				console.log("BoardManager: Scanning: ");
+				console.log("BoardManager: Scanning with automatic connect: " + automaticallyConnect);
 				await BleManager.scan([BLEIDs.bbUUID], 3, true);
 			}
 			catch (error) {
@@ -155,32 +164,50 @@ export default class BoardManager extends Component {
 
 				try {
 
-					await BleManager.connect(peripheral.id);
-
-					let peripherals = this.state.peripherals;
-					peripheral.connected = true;
-					peripherals.set(peripheral.id, peripheral);
-					console.log("BoardManager: Connected to " + peripheral.id);
-
 					// store default in filesystem.
-					console.log("BoardManager: Storing Peripheral to Filesystem.");
 					await FileSystemConfig.setDefaultPeripheral(peripheral);
-					console.log("BoardManager: Stored");
 
 					var boardName = peripheral.name;
 
 					this.setState({
 						selectedPeripheral: peripheral,
+						mediaState: BLEBoardData.emptyMediaState,
 						showDiscoverScreen: false,
 						boardName: boardName,
+						discoveryState: "Looking for Board",
 					});
 
-					//	await BleManager.scan([BLEIDs.bbUUID], 3, true);
+					await this.startScan(true);
 				}
 				catch (error) {
 					console.log("BoardManager: Connection error", error);
 				}
 			}
+		}
+	}
+ 
+	async loadFromBLE() {
+
+		try {
+			if (!this.state.loadingMedia) {
+
+				this.setState({ loadingMedia: true });
+
+				var mediaState = await BLEBoardData.createMediaState(this.state.selectedPeripheral);
+
+				this.setState({
+					mediaState: mediaState,
+					loadingMedia: false,
+					discoveryState: "Connected To " + this.state.selectedPeripheral.name,
+				});
+
+			}
+			else {
+				console.log("BoardManager Management: ALready Loading.");
+			}
+		}
+		catch (error) {
+			console.log("BoardManager Error: " + error);
 		}
 	}
 
@@ -200,8 +227,13 @@ export default class BoardManager extends Component {
 
 				this.setState({
 					selectedPeripheral: peripheral,
-					peripherals: peripherals
+					peripherals: peripherals,
+					discoveryState: "Located " + peripheral.name,
 				});
+
+				if(this.state.automaticallyConnect)
+					await this.loadFromBLE();
+
 				console.log("BoardManager Discovered " + peripheral.name);
 			}
 		}
@@ -216,29 +248,49 @@ export default class BoardManager extends Component {
 
 	render() {
 
-		console.log("Board Manager Rendering: " + this.state.showDiscoverScreen);
-
 		const list = Array.from(this.state.peripherals.values());
 		const dataSource = ds.cloneWithRows(list);
 
+		var color;
+
+		color = "#fff";
+
+		if (this.state.discoveryState.startsWith("Located"))
+			color = "yellow";
+		if (this.state.discoveryState.startsWith("Connected"))
+			color = "green";
 
 		if (!this.state.showDiscoverScreen)
 			return (
 				<View style={styles.container}>
-					<MediaManagement peripheral={this.state.selectedPeripheral} startScan={this.startScan} />
+					<MediaManagement mediaState={this.state.mediaState} />
+					<Touchable
+						onPress={async () => {
+							await this.startScan(true);
+						}
+						}
+						style={{
+							backgroundColor: color,
+							height: 50,
+						}}
+						background={Touchable.Ripple("blue")}>
+						<Text style={styles.rowText}>{this.state.discoveryState} {this.state.scanning ? "(scanning)" : ""}</Text>
+					</Touchable>
 					<Touchable
 						onPress={async () => {
 							try {
 								await BleManager.disconnect(this.state.selectedPeripheral.id);
 							}
 							catch (error) {
-								console.log("Pressed Search For Boards: " + error);
+								console.log("BoardManager: Pressed Search For Boards: " + error);
 							}
 							this.setState({
 								peripherals: new Map(),
 								appState: "",
 								selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+								mediaState: BLEBoardData.emptyMediaState,
 								showDiscoverScreen: true,
+								discoveryState: "Looking for Board",
 							});
 
 						}}
@@ -254,7 +306,7 @@ export default class BoardManager extends Component {
 				<View style={styles.container}>
 
 					<Touchable
-						onPress={() => this.startScan()}
+						onPress={() => this.startScan(false)}
 						style={styles.touchableStyle}
 						background={Touchable.Ripple("blue")}>
 						<Text style={styles.rowText}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
