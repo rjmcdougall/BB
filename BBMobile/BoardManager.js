@@ -240,19 +240,22 @@ export default class BoardManager extends Component {
 		const list = Array.from(this.state.peripherals.values());
 		const dataSource = ds.cloneWithRows(list);
 
-		var color;
+		var color = "#fff";
+		var enableControls = "none";
 
-		color = "#fff";
-
-		if (this.state.discoveryState.startsWith("Located"))
+		if (this.state.discoveryState.startsWith("Located")){
 			color = "yellow";
-		if (this.state.discoveryState.startsWith("Connected"))
+			enableControls = "none";
+		}
+		else if (this.state.discoveryState.startsWith("Connected")) {
 			color = "green";
+			enableControls = "auto";
+		}
 
 		if (!this.state.showDiscoverScreen)
 			return (
-				<View style={styles.container}>
-					<MediaManagement mediaState={this.state.mediaState} />
+				<View style={styles.container} >
+					<MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
 					<Touchable
 						onPress={async () => {
 							await this.startScan(true);

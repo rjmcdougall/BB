@@ -53,7 +53,7 @@ export default class MediaManagement extends Component {
 	render() {
 
 		return (
-			<View style={styles.container}>
+			<View style={styles.container} pointerEvents={this.props.pointerEvents}>
 				<ScrollView style={styles.scroll}>
 					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.state.mediaState} />
 					<BatteryController mediaState={this.state.mediaState} />
@@ -66,6 +66,7 @@ export default class MediaManagement extends Component {
 }
 MediaManagement.propTypes = {
 	mediaState: PropTypes.object,
+	pointerEvents: PropTypes.string,
 };
 
 const styles = StyleSheet.create({
