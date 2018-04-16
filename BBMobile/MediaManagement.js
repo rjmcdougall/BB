@@ -25,6 +25,7 @@ import BleManager from 'react-native-ble-manager';
 import BLEIDs from './BLEIDs';
 import VolumeController from './VolumeController';
 import TrackController from './TrackController';
+import BTController from './BTController';
 import Touchable from 'react-native-platform-touchable';
 
 const window = Dimensions.get('window');
@@ -74,6 +75,7 @@ export default class MediaManagement extends Component {
                 <VolumeController peripheral={this.state.peripheral} />
                 <TrackController peripheral={this.state.peripheral} mediaType="Audio" />
                 <TrackController peripheral={this.state.peripheral} mediaType="Video" />
+                <BTController peripheral={this.state.peripheral} />
                 {boardConnected}
             </View>
         );

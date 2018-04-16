@@ -22,6 +22,10 @@ export default class BLEIDs {
         this.BatteryService =               "4dfc5ef6-22a9-11e8-b467-0ed5f89f718b";
         this.BatteryCharacteristic =        "4dfc6194-22a9-11e8-b467-0ed5f89f718b";
 
+        this.BTDeviceService =              "89239614-8937-11e8-accf-0ed5f89f718b";
+        this.BTDeviceInfoCharacteristic =   "892398a8-8937-11e8-accf-0ed5f89f718b";
+        this.BTDeviceSelectCharacteristic = "892399e8-8937-11e8-accf-0ed5f89f718b";
+
         this.fakeDiscoveredPeripherals =
             [
                 {
