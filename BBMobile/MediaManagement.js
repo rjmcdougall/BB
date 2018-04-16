@@ -10,6 +10,7 @@ import {
 import VolumeController from "./VolumeController";
 import TrackController from "./TrackController";
 import BatteryController from "./BatteryController";
+import BTController from "./BTController";
 import BLEBoardData from "./BLEBoardData";
 const window = Dimensions.get("window");
 
@@ -75,6 +76,7 @@ export default class MediaManagement extends Component {
 					<BatteryController mediaState={this.state.mediaState} />
 					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.state.mediaState} mediaType="Audio" />
 					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.state.mediaState} mediaType="Video" />
+					<BTController peripheral={this.state.peripheral}/>
 				</ScrollView>
 			</View>
 		);

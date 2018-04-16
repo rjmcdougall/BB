@@ -9,7 +9,7 @@ export default class BTController extends Component {
 	constructor(props) {
 		super(props);
 
-		this.BLEIDs = new BLEIDs();
+//		this.BLEIDs = new BLEIDs();
 
 		this.state = {
 			peripheral: props.peripheral,
@@ -18,9 +18,9 @@ export default class BTController extends Component {
 			deviceInfo: "Please Load",
 			maxDevice: 0,
 			devices: [{ deviceInfo: "loading..." }],
-			service: this.BLEIDs.BTDeviceService,
-			deviceCharacteristic: this.BLEIDs.BTDeviceSelectCharacteristic,
-			infoCharacteristic: this.BLEIDs.BTDeviceInfoCharacteristic,
+			service: BLEIDs.BTDeviceService,
+			deviceCharacteristic: BLEIDs.BTDeviceSelectCharacteristic,
+			infoCharacteristic: BLEIDs.BTDeviceInfoCharacteristic,
 			refreshButtonClicked: false,
 		};
 	}
