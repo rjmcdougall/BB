@@ -8,7 +8,6 @@ export default class BatteryController extends React.Component {
 
 		this.state = {
 			mediaState: props.mediaState,
-			battery: null
 		};
 	}
 

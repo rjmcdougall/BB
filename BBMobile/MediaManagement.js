@@ -22,7 +22,6 @@ export default class MediaManagement extends Component {
 		this.state = {
 			mediaState: BLEBoardData.emptyMediaState,
 		};
-
 	}
 
 	async onUpdateVolume(event) {
@@ -49,21 +48,6 @@ export default class MediaManagement extends Component {
 		}
 		else
 			console.log("MediaManagement: Null NextProps");
-
-
-		// 
-		// 	console.log("MediaManagement: Received Props: " + nextProps.mediaState.peripheral.name);
-		// 	if (nextProps.mediaState.peripheral.id != "12345") {
-		// 		console.log("MediaManagement: Received REAL props for: " + nextProps.mediaState.peripheral.name);
-
-
-		// 	}
-		// 	else {
-		// 		this.setState({
-		// 			mediaState: BLEBoardData.emptyMediaState,
-		// 		});
-		// 	}
-		// }
 	}
 
 	render() {

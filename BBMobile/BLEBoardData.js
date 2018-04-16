@@ -35,14 +35,14 @@ exports.emptyMediaState = {
 		connected: false,
 	},
 	audio: {
-		channelInfo: "loading...",
+		channelNo: 1,
 		maxChannel: 1,
 		volume: 0,
 		channels:
 			[{ channelNo: 1, channelInfo: "loading..." }]
 	},
 	video: {
-		channelInfo: "loading...",
+		channelNo: 1,
 		maxChannel: 1,
 		channels: [{ channelNo: 1, channelInfo: "loading..." }]
 	},
@@ -107,7 +107,6 @@ exports.readTrack = async function (mediaState, mediaType) {
 		service = BLEIDs.VideoService;
 		channelCharacteristic = BLEIDs.VideoChannelCharacteristic;
 	}
-	console.log("BLEBoardData readTrack MediaType: " + mediaType);
 
 	if (mediaState.peripheral) {
 		try {
@@ -116,6 +115,9 @@ exports.readTrack = async function (mediaState, mediaType) {
 				var readData = await BleManager.read(mediaState.peripheral.id,
 					service,
 					channelCharacteristic);
+
+
+				console.log("BLEBoardData Read Track: Selected: " + readData[1] + " Max: " + readData[0] );
 
 				if (mediaType == "Audio") {
 					mediaState.audio.channelNo = readData[1];
@@ -155,7 +157,6 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 		maxChannel = mediaState.video.maxChannel;
 	}
 
-	console.log("BLEBoardData " + mediaType + " Read Listing:" + mediaState.peripheral);
 	var channels = [];
 
 	try {
@@ -170,20 +171,15 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 				}
 				if (channelInfo && 0 != channelInfo.length) {
 					channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
-					if (channelNo == channelNo)
-						if (mediaType == "Audio")
-							mediaState.audio.channelInfo = channels[channelNo].channelInfo;
-						else
-							mediaState.video.channelInfo = channels[channelNo].channelInfo;
-
-					console.log("BLEBoardData " + mediaType + " Add Info channel: " + channelNo + ", name = " + channelInfo);
 				}
 			}
-
-			if (mediaType == "Audio")
+			if (mediaType == "Audio"){
 				mediaState.audio.channels = channels;
-			else
+			}
+			else {
 				mediaState.video.channels = channels;
+			}
+			console.log("BLEBoardData: " + channels.length + " " + mediaType + " Added: ");
 
 			return mediaState;
 		}
@@ -227,7 +223,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 			else {
 				mediaState.audio.channelNo = channelNo;
 			}
-			var newMediaState = await await this.readTrack(mediaState, mediaType);
+			var newMediaState = await this.readTrack(mediaState, mediaType);
 
 			return newMediaState;
 		}
@@ -239,8 +235,8 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 
 exports.onUpdateVolume = async function (event, mediaState) {
 
-	console.log("BLEBoardData: submitted value: " + JSON.stringify(event.value));
 	var newVolume = event.value;
+	console.log("BLEBoardData: submitted value: " + newVolume);
 
 	if (mediaState.peripheral) {
 

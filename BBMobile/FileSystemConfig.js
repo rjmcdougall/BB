@@ -37,7 +37,7 @@ exports.getDefaultPeripheral = async function () {
 		}
 
 		var peripheral = JSON.parse(await RNFS.readFile(path, "utf8"));
-//		console.log("FileSystemConfig: Successfuly loaded configuration file: " + JSON.stringify(peripheral));
+
 		return peripheral;
 	}
 	catch (error) {
