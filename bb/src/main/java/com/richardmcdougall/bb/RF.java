@@ -52,6 +52,7 @@ public class RF {
     public BBService mBBService = null;
     public Gps mGps = null;
     public RF.radioEvents mRadioCallback = null;
+    public RFAddress mRFAddress = null;
 
 
     public RF(BBService service, Context context) {
@@ -62,8 +63,9 @@ public class RF {
         mBBService.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);
+        mRFAddress = new RFAddress(service, context);
         initUsb();
-        mGps = new Gps(mContext);
+        mGps = new Gps(mBBService, mContext);
         mGps.attach( new Gps.GpsEvents() {
             public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
                 l("Radio Time: " + time.toString());
@@ -78,7 +80,6 @@ public class RF {
                 }
             };
         });
-
     }
 
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
@@ -318,6 +319,12 @@ public class RF {
             for (int i = 0; i < len; i++) {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));
             }
+
+            Intent in = new Intent(BBService.ACTION_BB_PACKET);
+            in.putExtra("sigStrength", sigStrength);
+            in.putExtra("packet", recvBytes.toByteArray());
+            LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);
+
             if (mRadioCallback != null) {
                 mRadioCallback.receivePacket(recvBytes.toByteArray(), sigStrength);
             }

@@ -39,10 +39,11 @@ public class BluetoothLEServer {
     public Context mContext = null;
     public BBService mBBService = null;
     String mBoardId;
+    private BluetoothRemote mBluetoothRemote = null;
 
     private HashMap<BluetoothDevice, Integer> mAudioInfoSelect = new HashMap<>();
     private HashMap<BluetoothDevice, Integer> mVideoInfoSelect = new HashMap<>();
-
+    private HashMap<BluetoothDevice, Integer> mBTInfoSelect = new HashMap<>();
 
     /* Bluetooth API */
     private BluetoothManager mBluetoothManager;
@@ -60,6 +61,8 @@ public class BluetoothLEServer {
         mContext = context;
 
         mBoardId = service.getBoardId();
+
+        mBluetoothRemote = service.mBluetoothRemote;
 
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
@@ -185,6 +188,12 @@ public class BluetoothLEServer {
 
         }
         mBluetoothGattServer.addService(profile.createBBVideoService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
+        mBluetoothGattServer.addService(profile.createBBBtdeviceService());
     }
 
     /**
@@ -267,6 +276,7 @@ public class BluetoothLEServer {
 
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+            super.onConnectionStateChange(device, status, newState);
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
                 l("BluetoothDevice CONNECTED: " + device);
             } else if (newState == android.bluetooth.BluetoothProfile.STATE_DISCONNECTED) {
@@ -318,6 +328,16 @@ public class BluetoothLEServer {
                         BluetoothGatt.GATT_SUCCESS,
                         0,
                         videoChannel);
+            }  else if (BluetoothProfile.BB_BTDEVICE_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read BTDevice select characteristic");
+                byte[] BTDevices = new byte[] {0, 0};
+                BTDevices[0] = (byte) mBluetoothRemote.getDeviceCount();
+                BTDevices[1] = (byte) 0;
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        BTDevices);
             } else if (BluetoothProfile.BB_AUDIO_VOLUME_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read audio volume characteristic");
                 byte[] audioChannel = new byte[]{0, 0};
@@ -348,6 +368,27 @@ public class BluetoothLEServer {
                         audioInfo);
                 infoselect++;
                 mAudioInfoSelect.put(device, infoselect);
+            }  else if (BluetoothProfile.BB_BTDEVICE_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read btinfo info characteristic request <" + requestId + ">");
+                int infoselect = 0;
+                if (mBTInfoSelect.containsKey(device)) {
+                    infoselect = mBTInfoSelect.get(device).intValue();
+                } else {
+                    l("btinfo device not known; adding entry");
+                }
+                byte[] btInfo = BluetoothProfile.getBtdeviceInfo(mBluetoothRemote, infoselect);
+                if (btInfo[0] == 0) {
+                    infoselect = 0;
+                    btInfo = BluetoothProfile.getBtdeviceInfo(mBluetoothRemote, infoselect);
+                }
+                l("Read BT info characteristic: " + infoselect);
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        btInfo);
+                infoselect++;
+                mBTInfoSelect.put(device, infoselect);
             }  else if (BluetoothProfile.BB_VIDEO_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read video info characteristic");
                 int infoselect = 1;
@@ -387,7 +428,6 @@ public class BluetoothLEServer {
                         null);
             }
         }
-
 
         @Override
         public void onCharacteristicWriteRequest (BluetoothDevice device,
@@ -451,6 +491,31 @@ public class BluetoothLEServer {
                 mVideoInfoSelect.put(device, videoinfoselect);
 
                 l("Write video info characteristic: " + mVideoInfoSelect + " needs reply: " + responseNeeded);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            }  else if (BluetoothProfile.BB_BTDEVICE_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+
+                l("Write bt info characteristic: " + mVideoInfoSelect + " needs reply: " + responseNeeded);
+                if (mBluetoothRemote != null) {
+                    mBluetoothRemote.discoverDevices();
+                }
+
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            } else if (BluetoothProfile.BB_BTDEVICE_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                String address = new String(value);
+                l("Write bt device select characteristic: " + address);
+                mBluetoothRemote.pairDevice(address);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,
@@ -530,7 +595,6 @@ public class BluetoothLEServer {
             }
         }
     };
-
 
     // We use this to catch the board events
     private final BroadcastReceiver mBBEventReciever = new BroadcastReceiver() {

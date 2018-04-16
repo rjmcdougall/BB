@@ -15,6 +15,7 @@ import net.sf.marineapi.nmea.sentence.GGASentence;
 import net.sf.marineapi.nmea.sentence.SentenceId;
 import net.sf.marineapi.nmea.sentence.SentenceValidator;
 import net.sf.marineapi.nmea.io.ExceptionListener;
+import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.provider.PositionProvider;
 import net.sf.marineapi.provider.event.PositionEvent;
 import net.sf.marineapi.provider.event.PositionListener;
@@ -43,6 +44,7 @@ public class Gps {
     private PipedOutputStream mSentenceOutput;
     private SentenceReader mSR;
     PositionProvider provider;
+    private BBService mBBService;
 
     public interface GpsEvents {
         void timeEvent(net.sf.marineapi.nmea.util.Time time);
@@ -55,8 +57,9 @@ public class Gps {
     }
 
 
-    public Gps(Context context) {
+    public Gps(BBService service, Context context) {
         mContext = context;
+        mBBService = service;
         l("Gps starting");
 
         try {
@@ -78,6 +81,15 @@ public class Gps {
                     l("TPV: " + evt.toString());
                     if (mGpsCallback != null) {
                         mGpsCallback.positionEvent(evt);
+                    }
+                    Position pos = evt.getPosition();
+                    if (pos != null) {
+                        double lat = pos.getLatitude();
+                        double lon = pos.getLongitude();
+                        Intent in = new Intent(BBService.ACTION_BB_LOCATION);
+                        in.putExtra("lat", evt.getPosition().getLatitude());
+                        in.putExtra("lon", evt.getPosition().getLatitude());
+                        LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);
                     }
                 }
             });
@@ -119,7 +131,6 @@ public class Gps {
             e.printStackTrace();
         }
     }
-
 
     public void addStr(String str) {
         try {

@@ -65,6 +65,7 @@ public class BBService extends Service {
     public static final String ACTION_BB_VOLUME = "com.richardmcdougall.bb.ACTION_BB_VOLUME";
     public static final String ACTION_BB_AUDIOCHANNEL = "com.richardmcdougall.bb.ACTION_BB_AUDIOCHANNEL";
     public static final String ACTION_BB_VIDEOMODE = "com.richardmcdougall.bb.ACTION_BB_VIDEOMODE";
+    public static final String ACTION_BB_PACKET = "com.richardmcdougall.bb.ACTION_BB_PACKET";
 
     public int GetMaxLightModes() {
 
@@ -92,7 +93,7 @@ public class BBService extends Service {
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
     private int userTimeOffset = 0;
-    public UDPClientServer udpClientServer = null;
+    public RFClientServer rfClientServer = null;
     public String boardId = Build.MODEL;
     public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
@@ -107,6 +108,8 @@ public class BBService extends Service {
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
     public BluetoothLEServer mBLEServer = null;
+    public A2dpSink mA2dpSink = null;
+    public BluetoothRemote mBluetoothRemote = null;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -115,8 +118,6 @@ public class BBService extends Service {
     int currentRadioChannel = 1;
     long phoneModelAudioLatency = 0;
 
-    double mGPSlat, mGPSlong = 0;
-    locationTracker mGPS;
 
     TextToSpeech voice;
 
@@ -208,7 +209,7 @@ public class BBService extends Service {
         }
 
         // Start the RF Radio and GPS
-        startRF();
+        startServices();
 
         try {
             Thread.sleep(500);
@@ -287,8 +288,6 @@ public class BBService extends Service {
         } else {
             l("music player already running");
         }
-
-
 
         if (batteryMonitor == null) {
             l("starting battery monitor thread");
@@ -402,27 +401,43 @@ public class BBService extends Service {
         mBoardVisualization.setMode(mBoardMode);
     }
 
-    private void startRF() {
+    private void startServices() {
 
-        l("StartRF");
+        l("StartServices");
 
         if (mServerMode == true) {
             return;
         }
 
+        mBluetoothRemote = new BluetoothRemote(this, mContext);
+        if (mBluetoothRemote == null) {
+            l("startServices: null BluetoothRemote object");
+            return;
+        }
         mBLEServer = new BluetoothLEServer(this, mContext);
 
         if (mBLEServer == null) {
-            l("startBLE: null BLE object");
+            l("startServices: null BLE object");
+            return;
+        }
+
+        mA2dpSink = new A2dpSink(this, mContext);
+
+        if (mBLEServer == null) {
+            l("startServices: null BLE object");
             return;
         }
 
         mRadio = new RF(this, mContext);
 
         if (mRadio == null) {
-            l("startRF: null RF object");
+            l("startServices: null RF object");
             return;
         }
+
+        InitClock();
+        rfClientServer = new RFClientServer(this, mRadio);
+        rfClientServer.Run();
 
         mGps = mRadio.getGps();
 
@@ -638,12 +653,11 @@ public class BBService extends Service {
             userTimeOffset = -4;
         }
 
-        InitClock();
 
-        udpClientServer = new UDPClientServer(this);
-        udpClientServer.Run();
 
-        InitClock();
+        //udpClientServer = new UDPClientServer(this);
+        //udpClientServer.Run();
+
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
@@ -769,8 +783,8 @@ public class BBService extends Service {
                 String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
                         " User " + userTimeOffset + "\nSeekOff " + seekOff +
                         " RTT " + serverRTT + " Strm" + currentRadioChannel;
-                if (udpClientServer.tSentPackets != 0)
-                    msg += "\nSent " + udpClientServer.tSentPackets;
+                if (rfClientServer.tSentPackets != 0)
+                    msg += "\nSent " + rfClientServer.tSentPackets;
                 //l(msg);
 
                 Intent in = new Intent(ACTION_STATS);
@@ -1081,8 +1095,8 @@ public class BBService extends Service {
                 int current = mBurnerBoard.getBatteryCurrent();
                 int voltage = mBurnerBoard.getBatteryVoltage();
 
-                l("Board Current is " + current);
-                l("Board Voltage is " + voltage);
+                //l("Board Current is " + current);
+                //l("Board Voltage is " + voltage);
 
                 /*
                  * Now done in bb-installer
@@ -1189,92 +1203,7 @@ public class BBService extends Service {
         }
     };
 
-    private class locationTracker {
 
-        LocationManager locationManager;
-
-        public locationTracker(Context context) {
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-            try {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3000, 10, new locationListener(), context.getMainLooper());
-                //GpsStatus status = LocationManager.getGpsStatus(null);
-                //int mSatellites = 0;
-                //Iterable<GpsSatellite> list = status.getSatellites();
-                //for (GpsSatellite satellite : list) {
-                //    l("GPS " + satellite.toString());
-                //}
-            } catch (SecurityException e) {
-                l("no GPS permission");
-            }
-        }
-    }
-
-
-    /**
-     * Listens to GPS status changes
-
-    private Listener mStatusListener = new GpsStatus.Listener()
-    {
-        public synchronized void onGpsStatusChanged(int event)
-        {
-            switch (event)
-            {
-                case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
-                    if (mStatusMonitor)
-                    {
-                        GpsStatus status = mLocationManager.getGpsStatus(null);
-                        mSatellites = 0;
-                        Iterable<GpsSatellite> list = status.getSatellites();
-                        for (GpsSatellite satellite : list)
-                        {
-                            if (satellite.usedInFix())
-                            {
-                                mSatellites++;
-                            }
-                        }
-                        updateNotification();
-                    }
-                    break;
-                case GpsStatus.GPS_EVENT_STOPPED:
-                    break;
-                case GpsStatus.GPS_EVENT_STARTED:
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
-     */
-
-    private class locationListener implements LocationListener {
-
-        @Override
-        public void onLocationChanged(Location location) {
-
-            mGPSlat = location.getLatitude();
-            mGPSlong = location.getLongitude();
-            String str = "GPS Latitude: " + mGPSlat + " Longitude:  " + mGPSlong;
-            l(str);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            // TODO Auto-generated method stub
-            l("GPS Status Changed");
-
-        }
-    }
 
 
 

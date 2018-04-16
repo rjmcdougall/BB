@@ -22,11 +22,12 @@ import java.security.MessageDigest;
 public class FindMyFriends {
 
     private static final String TAG = "BB.Gps";
-    Context mContext;
-    RF mRadio;
-    Gps mGps;
-    IoTClient mIotClient;
-    findMyFriendsCallback mFindMyFriendsCallback = null;
+    private Context mContext;
+    private RF mRadio;
+    private RFAddress mRFAddress = null;
+    private Gps mGps;
+    private IoTClient mIotClient;
+    private findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
     static final int kMaxFixAge = 5000;
     static final int kMagicNumberLen = 2;
@@ -64,6 +65,7 @@ public class FindMyFriends {
             l("No Radio!");
             return;
         }
+        mRFAddress = mRadio.mRFAddress;
 
         mRadio.attach(new RF.radioEvents() {
             @Override
@@ -100,7 +102,7 @@ public class FindMyFriends {
                 l("FMF Time: " + time.toString());
             }
         });
-        mBoardAddress = getBoardAddress(service.getBoardId());
+        mBoardAddress = mRFAddress.getBoardAddress(service.getBoardId());
     }
 
     // GPS Packet format =
@@ -194,82 +196,6 @@ public class FindMyFriends {
 
     }
 
-    // TODO: should have a cache of board name/addresses that comes from the cloud.
-    private int getBoardAddress(String boardId) {
-
-        byte[] encoded = null;
-        int myAddress;
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            encoded = digest.digest(boardId.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            l("Could not calculate boardAddress");
-            return -1;
-        }
-        // Natural board leaders get explicit addresses
-        switch (boardId) {
-
-            case "akula":
-                myAddress = 1;
-                break;
-
-            case "candy":
-                myAddress = 2;
-                break;
-
-            case "squeeze":
-                myAddress = 3;
-                break;
-
-            case "biscuit":
-                myAddress = 4;
-                break;
-
-            case "artemis":
-                myAddress = 5;
-                break;
-
-            case "test_board":
-                myAddress = 100;
-                break;
-
-            case "handheld1":
-                myAddress = 200;
-                break;
-
-            default:
-                // Otherwise, calculate 16 bit address for radio from name
-                myAddress = (encoded[0] * 0xff) * 256 + (encoded[1] & 0xff);
-        }
-        l("Radio address for " + boardId + " = " + myAddress);
-        return myAddress;
-    }
-
-    // TODO: should have a cache of boardnames that comes from the cloud.
-    public String boardAddressToName(int address) {
-        String [] boardNames = {
-                "proto",
-                "akula",
-                "boadie",
-                "artemis",
-                "goofy",
-                "joon",
-                "biscuit",
-                "squeeze",
-                "ratchet",
-                "pegasus",
-                "vega",
-                "monaco",
-                "candy",
-                "test_board",
-                "handheld1"};
-        for (String name :boardNames) {
-            if (address == getBoardAddress(name)) {
-                return (name);
-            }
-        }
-        return "unknown";
-    }
 
     public interface findMyFriendsCallback {
 
