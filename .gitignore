@@ -14,3 +14,4 @@ bb/gradlew
 bb/gradlew.bat
 bb/.idea/*
 bb/gradle/wrapper/*
+BBMobile/ios/build/*

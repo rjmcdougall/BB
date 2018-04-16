@@ -1,107 +1,93 @@
 import React, {
-    Component
-} from 'react';
+	Component
+} from "react";
 import {
-    AppRegistry,
-    StyleSheet,
-    Text,
-    View,
-    Image,
-    Button,
-    Picker,
-    TouchableHighlight,
-    NativeAppEventEmitter,
-    NativeEventEmitter,
-    NativeModules,
-    Platform,
-    PermissionsAndroid,
-    ListView,
-    ScrollView,
-    AppState,
-    Dimensions,
-} from 'react-native';
-import BleManager from 'react-native-ble-manager';
-//import BleManager from './BLEManagerFake';
-import BLEIDs from './BLEIDs';
-import VolumeController from './VolumeController';
-import TrackController from './TrackController';
-import BTController from './BTController';
-import Touchable from 'react-native-platform-touchable';
+	StyleSheet,
+	View,
+	Dimensions,
+	ScrollView,
+} from "react-native";
+import VolumeController from "./VolumeController";
+import TrackController from "./TrackController";
+import BatteryController from "./BatteryController";
+import BLEBoardData from "./BLEBoardData";
+const window = Dimensions.get("window");
 
-const window = Dimensions.get('window');
-// const ds = new ListView.DataSource({
-//     rowHasChanged: (r1, r2) => r1 !== r2
-// });
-
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+import PropTypes from "prop-types";
 
 export default class MediaManagement extends Component {
-    constructor(props) {
-        super(props)
+	constructor(props) {
+		super(props);
 
-        const { params } = this.props.navigation.state;
-        const peripheral = params.peripheral;
+		this.state = {
+			mediaState: BLEBoardData.emptyMediaState,
+		};
 
-        this.state = {
-            peripheral: peripheral,
-        }
+	}
 
-    }
+	async onUpdateVolume(event) {
+		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async onSelectAudioTrack(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async onSelectVideoTrack(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
 
-    static navigationOptions = {
-        title: 'Media Management',
-    };
+	async componentWillReceiveProps(nextProps) {
 
-    render() {
+		if (nextProps.mediaState) {
+			if (this.state.mediaState.peripheral.id != nextProps.mediaState.peripheral.id) {
+				this.setState({
+					mediaState: nextProps.mediaState,
+				});
+			}
+		}
+		else
+			console.log("MediaManagement: Null NextProps");
 
-        const { navigate } = this.props.navigation;
 
-        var boardConnected;
+		// 
+		// 	console.log("MediaManagement: Received Props: " + nextProps.mediaState.peripheral.name);
+		// 	if (nextProps.mediaState.peripheral.id != "12345") {
+		// 		console.log("MediaManagement: Received REAL props for: " + nextProps.mediaState.peripheral.name);
 
-        if (this.state.peripheral.connected) {
-            boardConnected = (
-                <Text style={[styles.rowText, { backgroundColor: '#fff' }]}>Connected to {this.state.peripheral.name}</Text>
-            )
-        } else {
-            boardConnected = (
-                <Text style={[styles.rowText, { backgroundColor: '#ff0000' }]}>NOT connected to {this.state.peripheral.name}</Text>
 
-            )
-        }
+		// 	}
+		// 	else {
+		// 		this.setState({
+		// 			mediaState: BLEBoardData.emptyMediaState,
+		// 		});
+		// 	}
+		// }
+	}
 
-        return (
-            <View style={styles.container}>
-                <VolumeController peripheral={this.state.peripheral} />
-                <TrackController peripheral={this.state.peripheral} mediaType="Audio" />
-                <TrackController peripheral={this.state.peripheral} mediaType="Video" />
-                <BTController peripheral={this.state.peripheral} />
-                {boardConnected}
-            </View>
-        );
-    }
+	render() {
 
+		return (
+			<View style={styles.container}>
+				<ScrollView style={styles.scroll}>
+					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.state.mediaState} />
+					<BatteryController mediaState={this.state.mediaState} />
+					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.state.mediaState} mediaType="Audio" />
+					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.state.mediaState} mediaType="Video" />
+				</ScrollView>
+			</View>
+		);
+	}
 }
+MediaManagement.propTypes = {
+	mediaState: PropTypes.object,
+};
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#FFF',
-        width: window.width,
-        height: window.height
-    },
-    scroll: {
-        backgroundColor: '#f0f0f0',
-        margin: 10,
-    },
-    touchableStyle: {
-        backgroundColor: '#ccc',
-        margin: 10,
-    },
-    rowText: {
-        margin: 5,
-        fontSize: 12,
-        textAlign: 'center',
-        padding: 10,
-    },
+	container: {
+		flex: 1,
+		backgroundColor: "#FFF",
+		width: window.width
+	},
 });
