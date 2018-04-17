@@ -1,6 +1,7 @@
 
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
+import { bin } from "charenc";
 
 var fakeBLE = false;
 
@@ -15,15 +16,20 @@ exports.fakeMediaState = {
 		volume: 50,
 		channels:
 			[{ channelNo: 1, channelInfo: "Audio 1" },
-				{ channelNo: 2, channelInfo: "Audio 2" },
-				{ channelNo: 3, channelInfo: "Audio 3" }]
+			{ channelNo: 2, channelInfo: "Audio 2" },
+			{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
 	video: {
 		channelInfo: "Video 2",
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
-			{ channelNo: 2, channelInfo: "Video 2" },
-			{ channelNo: 3, channelInfo: "Video 3" }]
+		{ channelNo: 2, channelInfo: "Video 2" },
+		{ channelNo: 3, channelInfo: "Video 3" }]
+	},
+	device: {
+		deviceNo: 1,
+		maxDevice: 1,
+		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
 	},
 	battery: 87,
 };
@@ -45,6 +51,11 @@ exports.emptyMediaState = {
 		channelNo: 1,
 		maxChannel: 1,
 		channels: [{ channelNo: 1, channelInfo: "loading..." }]
+	},
+	device: {
+		deviceNo: 1,
+		maxDevice: 1,
+		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
 	},
 	battery: 0,
 };
@@ -74,12 +85,14 @@ exports.refreshMediaState = async function (mediaState) {
 
 			mediaState = await this.readTrack(mediaState, "Audio");
 			mediaState = await this.readTrack(mediaState, "Video");
+			mediaState = await this.readTrack(mediaState, "Device");
 			mediaState = await this.refreshTrackList(mediaState, "Audio");
 			mediaState = await this.refreshTrackList(mediaState, "Video");
+			mediaState = await this.loadDevices(mediaState);
 			mediaState = await this.readVolume(mediaState);
 			mediaState = await this.readBattery(mediaState);
 
-			console.log("BLEBoardData: RefreshMediaState COmplete: ");
+			console.log("BLEBoardData: RefreshMediaState Complete: ");
 			return mediaState;
 		}
 		catch (error) {
@@ -94,6 +107,72 @@ exports.refreshMediaState = async function (mediaState) {
 	}
 };
 
+
+exports.loadDevices = async function (mediaState) {
+
+	try {
+		console.log("BLEBoardData Load Devices request scan  ");
+
+		await BleManager.write(mediaState.peripheral.id,
+			BLEIDs.BTDeviceService,
+			BLEIDs.BTDeviceInfoCharacteristic,
+			[1]);
+	}
+	catch (error) {
+		console.log("BLEBoardData Load Devices " + error);
+	}
+
+	var devices = [];
+
+	try {
+		if (mediaState.peripheral) {
+			for (var n = 1; n <= mediaState.device.maxDevice; n++) {
+
+				var readData = await BleManager.read(
+					mediaState.peripheral.id,
+					BLEIDs.BTDeviceService,
+					BLEIDs.BTDeviceInfoCharacteristic);
+
+				var deviceInfo = "";
+				if (readData.length > 3) {
+					var deviceNo = readData[0];
+					//var deviceMax = readData[1];
+					var deviceStatus = readData[2];
+					var isPaired;
+					var deviceLabel;
+					for (var i = 3; i < readData.length; i++) {
+						deviceInfo += String.fromCharCode(readData[i]);
+					}
+					if (deviceStatus == 80) {
+						deviceLabel = deviceInfo + " (Paired)";
+						isPaired = true;
+					} else {
+						deviceLabel = deviceInfo;
+						isPaired = false;
+					}
+				}
+				if (deviceInfo && 0 != deviceInfo.length) {
+					devices[deviceNo] = {
+						deviceNo: deviceNo,
+						deviceInfo: deviceInfo,
+						deviceLabel: deviceLabel,
+						isPaired: isPaired
+					};
+
+					console.log("BLEBoardData Load Devices: " + devices.length + " Added: ");
+					mediaState.device.devices = devices;
+
+					return mediaState;
+				}
+			}
+			console.log("BLEBoardData Load Devices found devices: " + JSON.stringify(devices));
+		}
+	}
+	catch (error) {
+		console.log("BTController Load Devices Error: " + error);
+	}
+};
+
 exports.readTrack = async function (mediaState, mediaType) {
 
 	var service = "";
@@ -102,6 +181,10 @@ exports.readTrack = async function (mediaState, mediaType) {
 	if (mediaType == "Audio") {
 		service = BLEIDs.AudioService;
 		channelCharacteristic = BLEIDs.AudioChannelCharacteristic;
+	}
+	else if (mediaType == "Device") {
+		service = BLEIDs.BTDeviceService;
+		channelCharacteristic = BLEIDs.BTDeviceSelectCharacteristic;
 	}
 	else {
 		service = BLEIDs.VideoService;
@@ -117,11 +200,15 @@ exports.readTrack = async function (mediaState, mediaType) {
 					channelCharacteristic);
 
 
-				console.log("BLEBoardData Read Track: Selected: " + readData[1] + " Max: " + readData[0] );
+				console.log("BLEBoardData Read Track: Selected: " + readData[1] + " Max: " + readData[0]);
 
 				if (mediaType == "Audio") {
 					mediaState.audio.channelNo = readData[1];
 					mediaState.audio.maxChannel = readData[0];
+				}
+				else if (mediaType == "Device") {
+					mediaState.device.channelNo = readData[1];
+					mediaState.device.maxChannel = readData[0];
 				}
 				else {
 					mediaState.video.channelNo = readData[1];
@@ -173,7 +260,7 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 					channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
 				}
 			}
-			if (mediaType == "Audio"){
+			if (mediaType == "Audio") {
 				mediaState.audio.channels = channels;
 			}
 			else {
@@ -200,6 +287,11 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		service = BLEIDs.AudioService;
 		channelCharacteristic = BLEIDs.AudioChannelCharacteristic;
 		channelNo = mediaState.audio.channels[trackNo].channelNo;
+	}
+	else if (mediaType == "Device") {
+		service = BLEIDs.BTDeviceService;
+		channelCharacteristic = BLEIDs.BTDeviceSelectCharacteristic;
+		channelNo = bin.stringToBytes(this.state.devices[idx].deviceInfo)
 	}
 	else {
 		service = BLEIDs.VideoService;

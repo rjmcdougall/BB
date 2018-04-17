@@ -29,6 +29,10 @@ export default class TrackController extends Component {
 			tracks = this.state.mediaState.audio.channels.map(a => a.channelInfo);
 			channelInfo =  tracks[(this.state.mediaState.audio.channelNo)];
 		}
+		else if (this.state.mediaType == "Device") {
+			tracks = this.state.mediaState.device.devices.map(a => a.deviceLabel);
+			channelInfo =  tracks[(this.state.mediaState.device.deviceNo)];
+		}
 		else {
 			tracks = this.state.mediaState.video.channels.map(a => a.channelInfo);
 			channelInfo =  tracks[(this.state.mediaState.video.channelNo)];
