@@ -283,7 +283,6 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 	var channelCharacteristic = "";
 	var channelNo;
 	var trackNo = parseInt(idx);
-	console.log(trackNo)
 	
 	if (mediaType == "Audio") {
 		service = BLEIDs.AudioService;
