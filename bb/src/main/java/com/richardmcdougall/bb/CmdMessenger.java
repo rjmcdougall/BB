@@ -62,7 +62,6 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     InputStreamReader mInputStreamReader;
     ByteArrayOutputStream sendBuffer; // Buffer that holds the data to send to serial port
 
-
     HashMap<Integer, CmdEvents> callbackList = new HashMap<Integer, CmdEvents>();
 
     private CmdEvents default_callback;

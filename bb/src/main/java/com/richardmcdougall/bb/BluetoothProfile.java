@@ -22,6 +22,7 @@ public class BluetoothProfile {
 
     int mCurrentAudioChannel = 0;
     int mCurrentVideoMode = 0;
+    int mCurrentBtDeviceMode = 0;
 
     public static void l(String s) {
         Log.v(TAG, s);
@@ -204,7 +205,6 @@ public class BluetoothProfile {
     public static UUID BB_VIDEO_SERVICE = UUID.fromString("89239614-9937-11e8-accf-0ed5f89f718b");
     public static UUID BB_VIDEO_INFO_CHARACTERISTIC = UUID.fromString("892398a8-9937-11e8-accf-0ed5f89f718b");
     public static UUID BB_VIDEO_CHANNEL_SELECT_CHARACTERISTIC = UUID.fromString("892399e8-9937-11e8-accf-0ed5f89f718b");
-    public static UUID BB_VIDEO_VOLUME_CHARACTERISTIC = UUID.fromString("59629212-9938-11e8-accf-0ed5f89f718b");
     public static UUID BB_VIDEO_DESCRIPTOR = UUID.fromString("89239b0a-9937-11e8-accf-0ed5f89f718b");
     /**
      * Return a configured {@link BluetoothGattService} instance for the
@@ -247,24 +247,9 @@ public class BluetoothProfile {
 
         bbVideoModeSelect.addDescriptor(bbVideoModeSelectconfigDescriptor);
 
-        // Volume
-        BluetoothGattCharacteristic bbVideoVolume = new BluetoothGattCharacteristic(BB_VIDEO_VOLUME_CHARACTERISTIC,
-                //Read-only characteristic, supports notifications
-                BluetoothGattCharacteristic.PROPERTY_READ |
-                        BluetoothGattCharacteristic.PROPERTY_WRITE |
-                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_READ |
-                        BluetoothGattCharacteristic.PERMISSION_WRITE);
-
-        BluetoothGattDescriptor bbVideoVolumeconfigDescriptor = new BluetoothGattDescriptor(BB_VIDEO_DESCRIPTOR,
-                //Read/write descriptor
-                BluetoothGattDescriptor.PERMISSION_READ |
-                        BluetoothGattDescriptor.PERMISSION_WRITE);
-        bbVideoVolume.addDescriptor(bbVideoVolumeconfigDescriptor);
 
         service.addCharacteristic(bbVideoInfo);
         service.addCharacteristic(bbVideoModeSelect);
-        service.addCharacteristic(bbVideoVolume);
 
         return service;
     }
@@ -372,5 +357,122 @@ public class BluetoothProfile {
 
         return field;
     }
+
+
+    public static UUID BB_BTDEVICE_SERVICE = UUID.fromString("89239614-8937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_BTDEVICE_INFO_CHARACTERISTIC = UUID.fromString("892398a8-8937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_BTDEVICE_SELECT_CHARACTERISTIC = UUID.fromString("892399e8-8937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_BTDEVICE_DESCRIPTOR = UUID.fromString("89239b0a-8937-11e8-accf-0ed5f89f718b");
+    /**
+     * Return a configured {@link BluetoothGattService} instance for the
+     * Current Time Service.
+     */
+    public BluetoothGattService createBBBtdeviceService() {
+
+
+        BluetoothGattService service = new BluetoothGattService(BB_BTDEVICE_SERVICE,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+        // Btdevice Channel Info
+        BluetoothGattCharacteristic bbBtdeviceInfo = new BluetoothGattCharacteristic(BB_BTDEVICE_INFO_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        BluetoothGattDescriptor bbBtdeviceInfoconfigDescriptor = new BluetoothGattDescriptor(BB_BTDEVICE_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+        bbBtdeviceInfo.addDescriptor(bbBtdeviceInfoconfigDescriptor);
+
+        // Btdevice Channel Select
+        BluetoothGattCharacteristic bbBtdeviceModeSelect = new BluetoothGattCharacteristic(BB_BTDEVICE_SELECT_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        BluetoothGattDescriptor bbBtdeviceModeSelectconfigDescriptor = new BluetoothGattDescriptor(BB_BTDEVICE_DESCRIPTOR,
+                //Read/write descriptor
+                BluetoothGattDescriptor.PERMISSION_READ |
+                        BluetoothGattDescriptor.PERMISSION_WRITE);
+
+        bbBtdeviceModeSelect.addDescriptor(bbBtdeviceModeSelectconfigDescriptor);
+
+
+        service.addCharacteristic(bbBtdeviceInfo);
+        service.addCharacteristic(bbBtdeviceModeSelect);
+
+        return service;
+    }
+
+
+    /**
+     * Construct the field values for a BB_BTDEVICE_DESCRIPTOR
+     * from the given epoch timestamp and adjustment reason.
+     */
+    public void setBtdeviceDescriptor(byte[] value) {
+
+        mCurrentBtDeviceMode = value[0] & 0xff;;
+    }
+
+    /**
+     * Construct the field values for a BB_BTDEVICE_DESCRIPTOR
+     public static byte[] getBtdeviceDescriptor(BBService service) {
+
+     byte[] field = {(byte)service.GetMaxBtdeviceModes()};
+     return field;
+     }
+     */
+
+    /**
+     * Construct the field values for a BB_BTDEVICE_DESCRIPTOR
+     *
+     * returns:
+     *      byte 0: device number
+     *      byte 1: total number of devices
+     *      byte 2: byte-array of string of address
+     */
+    public static byte[] getBtdeviceInfo(BluetoothRemote remote, int deviceNo) {
+
+        String address = remote.getDeviceAddress(deviceNo);
+        int numDevices = remote.getDeviceCount();
+
+        if ((deviceNo >= numDevices) || (address == null)) {
+            return new byte[] {0};
+        }
+
+        byte[] field = address.getBytes();
+        int fieldlength = java.lang.Math.min(18, field.length);
+        byte[] response = new byte[fieldlength + 2];
+        response[0] = (byte)deviceNo;
+        response[1] = (byte)numDevices;
+        System.arraycopy(field, 0, response, 2, fieldlength);
+        return response;
+    }
+
+
+    /**
+     * Construct the field values for a BB Locationcharacteristic
+     */
+    public static byte[] getBtdeviceMode(BBService service) {
+
+        //byte[] field = {(byte)service.getBtdeviceMode()};
+        //return field;
+        return null;
+    }
+
+    /**
+     * Set the btdevice stream */
+    public void setBtdeviceMode(BBService service, byte[] value) {
+
+        //service.setBtdeviceMode(value[0] & 0xff);
+    }
+
 
 }
