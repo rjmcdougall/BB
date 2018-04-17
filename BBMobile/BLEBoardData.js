@@ -16,15 +16,15 @@ exports.fakeMediaState = {
 		volume: 50,
 		channels:
 			[{ channelNo: 1, channelInfo: "Audio 1" },
-			{ channelNo: 2, channelInfo: "Audio 2" },
-			{ channelNo: 3, channelInfo: "Audio 3" }]
+				{ channelNo: 2, channelInfo: "Audio 2" },
+				{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
 	video: {
 		channelInfo: "Video 2",
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
-		{ channelNo: 2, channelInfo: "Video 2" },
-		{ channelNo: 3, channelInfo: "Video 3" }]
+			{ channelNo: 2, channelInfo: "Video 2" },
+			{ channelNo: 3, channelInfo: "Video 3" }]
 	},
 	device: {
 		deviceNo: 1,
@@ -159,8 +159,9 @@ exports.loadDevices = async function (mediaState) {
 						isPaired: isPaired
 					};
 
-					console.log("BLEBoardData Load Devices: " + devices.length + " Added: ");
+					console.log("BLEBoardData Load Devices: " + devices.length + " Added");
 					mediaState.device.devices = devices;
+					console.log("BLEBoardData Load Devices: " + JSON.stringify(devices) + " Added");
 
 					return mediaState;
 				}
@@ -200,7 +201,7 @@ exports.readTrack = async function (mediaState, mediaType) {
 					channelCharacteristic);
 
 
-				console.log("BLEBoardData Read Track: Selected: " + readData[1] + " Max: " + readData[0]);
+				console.log("BLEBoardData Read " + mediaType + "Track: Selected: " + readData[1] + " Max: " + readData[0]);
 
 				if (mediaType == "Audio") {
 					mediaState.audio.channelNo = readData[1];
@@ -282,21 +283,22 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 	var channelCharacteristic = "";
 	var channelNo;
 	var trackNo = parseInt(idx);
-
+	console.log(trackNo)
+	
 	if (mediaType == "Audio") {
 		service = BLEIDs.AudioService;
 		channelCharacteristic = BLEIDs.AudioChannelCharacteristic;
-		channelNo = mediaState.audio.channels[trackNo].channelNo;
+		channelNo = [mediaState.audio.channels[trackNo].channelNo];
 	}
 	else if (mediaType == "Device") {
 		service = BLEIDs.BTDeviceService;
 		channelCharacteristic = BLEIDs.BTDeviceSelectCharacteristic;
-		channelNo = bin.stringToBytes(this.state.devices[idx].deviceInfo)
+		channelNo = bin.stringToBytes(mediaState.device.devices[trackNo].deviceInfo);
 	}
 	else {
 		service = BLEIDs.VideoService;
 		channelCharacteristic = BLEIDs.VideoChannelCharacteristic;
-		channelNo = mediaState.video.channels[trackNo].channelNo;
+		channelNo = [mediaState.video.channels[trackNo].channelNo];
 	}
 
 	console.log("BLEBoardData " + mediaType + " SetTrack submitted value: " + channelNo);
@@ -308,7 +310,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 				await BleManager.write(mediaState.peripheral.id,
 					service,
 					channelCharacteristic,
-					[channelNo]);
+					channelNo);
 
 				console.log("BLEBoardData " + mediaType + " Update: " + channelNo);
 			}
