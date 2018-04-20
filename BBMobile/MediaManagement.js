@@ -10,6 +10,7 @@ import {
 import VolumeController from "./VolumeController";
 import TrackController from "./TrackController";
 import BatteryController from "./BatteryController";
+import MapController from "./MapController";
 import BLEBoardData from "./BLEBoardData";
 const window = Dimensions.get("window");
 
@@ -21,6 +22,7 @@ export default class MediaManagement extends Component {
 
 		this.state = {
 			mediaState: BLEBoardData.emptyMediaState,
+			locationState: BLEBoardData.emptyLocationState,
 		};
 	}
 
@@ -64,6 +66,7 @@ export default class MediaManagement extends Component {
 					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.state.mediaState} mediaType="Audio" />
 					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.state.mediaState} mediaType="Video" />
 					<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.state.mediaState} mediaType="Device" />
+					<MapController mediaState={this.state.mediaState} locationState={this.state.locationState}/>
 				</ScrollView>
 			</View>
 		);
@@ -71,6 +74,7 @@ export default class MediaManagement extends Component {
 }
 MediaManagement.propTypes = {
 	mediaState: PropTypes.object,
+	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
 };
 

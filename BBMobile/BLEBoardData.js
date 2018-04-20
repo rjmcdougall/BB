@@ -60,6 +60,15 @@ exports.emptyMediaState = {
 	battery: 0,
 };
 
+exports.emptyLocationState = {
+    location: {
+        latitude: 37.78825,
+        longitude: -122.4324,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0922,
+    },
+};
+
 exports.createMediaState = async function (peripheral) {
 
 	try {
@@ -387,3 +396,31 @@ exports.readBattery = async function (mediaState) {
 		}
 	}
 };
+
+exports.readLocation = async function (mediaState) {
+
+	if (mediaState.peripheral) {
+		try {
+			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
+			console.log("BLEBoardData Read Location: " + readData[0]);
+
+            theirAddress = readData[2] + readData[3] * 256;
+            theirTtl = readData[4];
+
+            mediaState.location.latitude = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
+            mediaState.location.longitude = readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216;
+            mediaState.location.latitudeDelta = 0.0922;
+            mediaState.location.ongitudeDelta = 0.0922;
+
+            console.log("Location: " + mediaState.location.latitude + "," + mediaState.location.longitude);
+
+			return mediaState;
+		}
+		catch (error) {
+			console.log("BLEBoardData Read Location Error: " + error);
+		}
+	}
+};
+
+
+

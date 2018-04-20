@@ -1,9 +1,10 @@
 
 exports.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";
 
-exports.localService = "04c21568-159a-11e8-b642-0ed5f89f718b";
+exports.locationService = "04c21568-159a-11e8-b642-0ed5f89f718b";
 exports.locationCharacteristic = "03c2193c-159a-11e8-b642-0ed5f89f718b";
-exports.LocationDescriptor = "03c21a90-159a-11e8-b642-0ed5f89f718b";
+exports.locationDescriptor = "03c21a90-159a-11e8-b642-0ed5f89f718b";
+
 exports.bbConfig = "03c21db0-159a-11e8-b642-0ed5f89f718b";
 
 exports.AudioVolumeCharacteristic = "59629212-1938-11e8-accf-0ed5f89f718b";
