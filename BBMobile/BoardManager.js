@@ -39,6 +39,7 @@ export default class BoardManager extends Component {
 			appState: "",
 			selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
 			mediaState: BLEBoardData.emptyMediaState,
+            locationState: "",
 			showDiscoverScreen: false,
 			discoveryState: "Connect To Board",
 			automaticallyConnect: true,
@@ -223,6 +224,9 @@ export default class BoardManager extends Component {
 							discoveryState: "Connected To " + this.state.selectedPeripheral.name,
 						});
 					}
+
+                    // Kick off a per-second location reader 
+                    this.readLocationLoop(this.state.mediaState);
 				}
 			}
 		}
@@ -230,6 +234,22 @@ export default class BoardManager extends Component {
 			console.log("BoardManager Found Peripheral Error:" + error);
 		}
 	}
+
+	readLocationLoop(mediaState) {
+
+		console.log("Location Loop:");
+
+	    var backgroundTimer = setInterval(async () => {
+	        if (this.state.mediaState) {
+                var locationState = await BLEBoardData.readLocation(this.state.mediaState);
+				this.setState({
+					locationState: locationState,
+				});
+			}
+		}, 997);
+        this.setState({backgroundLoop: backgroundTimer});
+	}
+
 
 	static navigationOptions = {
 		title: "Board Management",

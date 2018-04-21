@@ -11,6 +11,7 @@ export default class MapController extends React.Component {
 
 		this.state = {
 			mediaState: props.mediaState,
+			locationState: props.locationState,
 			region: {
 				latitude: 37.78825,
 				longitude: -122.4324,
@@ -24,6 +25,7 @@ export default class MapController extends React.Component {
 	componentWillReceiveProps(nextProps) {
 		this.setState({
 			mediaState: nextProps.mediaState,
+			locationState: nextProps.locationState,
 		});
 	}
 
@@ -37,7 +39,7 @@ export default class MapController extends React.Component {
 			<MapView
 				style={styles.map}
 				initialRegion={this.state.region}
-				region={this.state.mediaState.location}
+				region={this.state.locationState.location}
 				onRegionChange={this.onRegionChange}
 			>
 			</MapView>
