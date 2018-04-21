@@ -3,13 +3,11 @@ package com.richardmcdougall.bb;
 import android.app.Activity;
 import android.bluetooth.*;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -28,6 +26,8 @@ public class A2dpSink {
     private Context mContext = null;
     private BBService mBBService = null;
 
+    private static final int DISCOVERABLE_TIMEOUT_MS = 300;
+    private static final int REQUEST_CODE_ENABLE_DISCOVERABLE = 100;
 
     private BluetoothAdapter mBluetoothAdapter;
     private android.bluetooth.BluetoothProfile mA2DPSinkProxy;
@@ -54,11 +54,11 @@ public class A2dpSink {
 
         if (mBluetoothAdapter.isEnabled()) {
             l( "Bluetooth Adapter is already enabled.");
-            initA2DPSink();
         } else {
             l( "Bluetooth adapter not enabled. Enabling.");
             mBluetoothAdapter.enable();
         }
+        initA2DPSink();
 
     }
 
@@ -153,6 +153,19 @@ public class A2dpSink {
             }
         }, A2dpSinkHelper.A2DP_SINK_PROFILE);
 
+    }
+
+    /**
+     * Enable the current {@link BluetoothAdapter} to be discovered (available for pairing) for
+     * the next {@link #DISCOVERABLE_TIMEOUT_MS} ms.
+     */
+    private void enableDiscoverable() {
+        Log.d(TAG, "Registering for discovery.");
+        Intent discoverableIntent =
+                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
+                DISCOVERABLE_TIMEOUT_MS);
+        //mContext.startActivityForResult(discoverableIntent, REQUEST_CODE_ENABLE_DISCOVERABLE);
     }
 
     //you can get notified when a new device is connected using Broadcast receiver

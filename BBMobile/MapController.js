@@ -9,12 +9,8 @@ export default class MapController extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.BLEIDs = new BLEIDs();
-		console.log("initializing state...");
-
 		this.state = {
-			scannerIsRunning: false,
-			peripheral: props.peripheral,
+			mediaState: props.mediaState,
 			region: {
 				latitude: 37.78825,
 				longitude: -122.4324,
@@ -22,29 +18,17 @@ export default class MapController extends React.Component {
 				longitudeDelta: 0.0922,
 			}
 		};
+
 	}
 
 	componentWillReceiveProps(nextProps) {
-
-		//console.log("MapController component received props:" + this.state.peripheral);
-		console.log("MapController component received props:" + nextProps);
-		//console.log(nextProps);
-
-		if (nextProps.peripheral == null) {
-			console.log("clearing state...");
-			this.setState({
-				peripheral: null,
-			});
-		} else {
-			console.log("setting state...");
-			this.setState({
-				peripheral: nextProps.peripheral,
-			});
-		}
+		this.setState({
+			mediaState: nextProps.mediaState,
+		});
 	}
 
 	onRegionChange(region) {
-		this.setState({ region: region });
+		//this.setState({ region: region });
 	}
 
 	render() {
@@ -53,14 +37,17 @@ export default class MapController extends React.Component {
 			<MapView
 				style={styles.map}
 				initialRegion={this.state.region}
-				region={this.state.region}
+				region={this.state.mediaState.location}
 				onRegionChange={this.onRegionChange}
 			>
 			</MapView>
 		);
-
 	}
 }
+
+MapController.propTypes = {
+	mediaState: PropTypes.object,
+};
 
 const styles = StyleSheet.create({
 	map: {
@@ -68,10 +55,6 @@ const styles = StyleSheet.create({
 		marginVertical: 50,
 	},
 });
-
-MapController.propTypes = {
-	peripheral: PropTypes.object,
-};
 
 //{this.state.markers.map(marker => (
 //<Marker

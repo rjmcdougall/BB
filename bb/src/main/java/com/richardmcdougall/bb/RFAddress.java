@@ -47,11 +47,11 @@ public class RFAddress {
                 myAddress = 2;
                 break;
 
-            case "squeeze":
+            case "grumpy":
                 myAddress = 3;
                 break;
 
-            case "biscuit":
+            case "cranky":
                 myAddress = 4;
                 break;
 
@@ -69,9 +69,9 @@ public class RFAddress {
 
             default:
                 // Otherwise, calculate 16 bit address for radio from name
-                myAddress = (encoded[0] * 0xff) * 256 + (encoded[1] & 0xff);
+                myAddress = (encoded[0] & 0xff) * 256 + (encoded[1] & 0xff);
         }
-        l("Radio address for " + boardId + " = " + myAddress);
+        //l("Radio address for " + boardId + " = " + myAddress);
         return myAddress;
     }
 

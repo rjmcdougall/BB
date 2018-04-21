@@ -18,6 +18,11 @@ import java.io.PipedOutputStream;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by jonathan
@@ -31,6 +36,7 @@ public class RFClientServer {
     private static final String TAG = "BB.RFClientServer";
     static final int [] kClientSyncMagicNumber = new int[] {0xbb, 0x03};
     static final int [] kServerSyncMagicNumber = new int[] {0xbb, 0x04};
+    static final int [] kServerBeaconMagicNumber = new int[] {0xbb, 0x05};
     static final int kMagicNumberLen = 2;
     private int mServerAddress = 0;
     private int mBoardAddress;
@@ -38,6 +44,10 @@ public class RFClientServer {
     private RFAddress mRFAddress = null;
     private PipedInputStream mReceivedPacketInput;
     private PipedOutputStream mReceivedPacketOutput;
+    long mDrift;
+    long mRtt;
+    Sample mLastSample = null;
+    SharedPreferences.Editor mPrefsEditor;
 
     public void l(String s) {
 
@@ -109,11 +119,33 @@ public class RFClientServer {
         return result;
     }
 
+    private long int64FromPacket(ByteArrayInputStream bytes) {
+        return ((long) ((bytes.read() & (long)0xff) +
+                ((bytes.read() & (long)0xff) << 8) +
+                ((bytes.read() & (long)0xff) << 16) +
+                ((bytes.read() & (long)0xff) << 24) +
+                ((bytes.read() & (long)0xff) << 32) +
+                ((bytes.read() & (long)0xff) << 40) +
+                ((bytes.read() & (long)0xff) << 48) +
+                ((bytes.read() & (long)0xff) << 56)));
+    }
+
+    private void int64ToPacket(ByteArrayOutputStream bytes, long n) {
+        bytes.write((byte) (n & 0xFF));
+        bytes.write((byte) ((n >> 8) & 0xFF));
+        bytes.write((byte) ((n >> 16) & 0xFF));
+        bytes.write((byte) ((n >> 24) & 0xFF));
+        bytes.write((byte) ((n >> 32) & 0xFF));
+        bytes.write((byte) ((n >> 40) & 0xFF));
+        bytes.write((byte) ((n >> 48) & 0xFF));
+        bytes.write((byte) ((n >> 56) & 0xFF));
+    }
+
     private long int32FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & 0xff) +
-                ((bytes.read() & 0xff) << 8) +
-                ((bytes.read() & 0xff) << 16) +
-                ((bytes.read() & 0xff) << 24)));
+        return ((long) ((bytes.read() & (long)0xff) +
+                ((bytes.read() & (long)0xff) << 8) +
+                ((bytes.read() & (long)0xff) << 16) +
+                ((bytes.read() & (long)0xff) << 24)));
     }
 
     private void int32ToPacket(ByteArrayOutputStream bytes, long n) {
@@ -124,8 +156,8 @@ public class RFClientServer {
     }
 
     private long int16FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & 0xff) +
-                ((bytes.read() & 0xff) << 8)));
+        return ((long) ((bytes.read() & (long)0xff) +
+                ((bytes.read() & (long)0xff) << 8)));
     }
 
     private void int16ToPacket(ByteArrayOutputStream bytes, int n) {
@@ -134,9 +166,7 @@ public class RFClientServer {
     }
 
     // Send time-sync reply to specific client
-    void ServerReply(byte [] packet, int toClient) {
-
-        ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
+    void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         l("Server reply : " +
                 mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
@@ -148,15 +178,15 @@ public class RFClientServer {
             replyPacket.write(kServerSyncMagicNumber[i]);
         }
 
+        // Address of this server (just put this in now?)
+        int16ToPacket(replyPacket,mBoardAddress);
+
         // Address this packet is for
-        replyPacket.write(toClient & 0xFF);
-        replyPacket.write((toClient >> 8) & 0xFF);
+        int16ToPacket(replyPacket, toClient);
 
         // send the client's timestamp back along with ours so it can figure out how to adjust it's clock
-        long clientTimestamp = int32FromPacket(bytes);
-        long curTimeStamp = mMain.GetCurrentClock();
-        int32ToPacket(replyPacket, clientTimestamp);
-        int32ToPacket(replyPacket, curTimeStamp);
+        int64ToPacket(replyPacket, clientTimestamp);
+        int64ToPacket(replyPacket, curTimeStamp);
 
         // Broadcast - client will filter for it's address
         mRF.broadcast(replyPacket.toByteArray());
@@ -195,38 +225,39 @@ public class RFClientServer {
         int clientAddress = 0;
 
         if (recvMagicNumber == magicNumberToInt(kServerSyncMagicNumber)) {
-            int serverAddress = (int) ((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8));
-            clientAddress = (int) ((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8));
+            int serverAddress = (int)int16FromPacket(bytes);
+            clientAddress = (int)int16FromPacket(bytes);
 
             if (clientAddress == mBoardAddress) {
+                l("BB Sync Packet from Server: len(" + packet.length + "), data: " + bytesToHex(packet));
                 l("BB Sync Packet from Server " + serverAddress +
-                        " (" + mRFAddress.boardAddressToName(clientAddress) + ")");
+                        " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
-                synchronized (mReceivedPacketInput) {
-                    try {
-                        mReceivedPacketOutput.write(packet);
-                        mReceivedPacketOutput.flush();
-
-                    } catch (Exception e) {
-                        l("Writing packet on output failed");
-                    }
-                }
+                processSyncResponse(packet);
             }
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == magicNumberToInt(kClientSyncMagicNumber)) {
-            clientAddress = (int) ((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8));
+            clientAddress = (int)int16FromPacket(bytes);
+
+            l("BB Sync Packet from Client: len(" + packet.length + "), data: " + bytesToHex(packet));
             l("BB Sync Packet from Client " + clientAddress +
                     " (" + mRFAddress.boardAddressToName(clientAddress) + ")");
+            long clientTimestamp = int64FromPacket(bytes);
+            long curTimeStamp = mMain.GetCurrentClock();
             // Try to re-elect server based on the heard board
             tryElectServer(clientAddress, sigstrength);
             if (amServer()) {
                 // Send response back to client
-                ServerReply(packet, clientAddress);
+                ServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
             }
+        } else if (recvMagicNumber == magicNumberToInt(kServerBeaconMagicNumber)) {
+            int serverAddress = (int)int16FromPacket(bytes);
+            l("BB Server Beacon packet: len(" + packet.length + "), data: " + bytesToHex(packet));
+            l("BB Server Beacon packet from Server " + serverAddress +
+                    " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
+            // Try to re-elect server based on the heard board
+            tryElectServer(serverAddress, sigstrength);
         } else {
             l("packet not for sync server!");
         }
@@ -269,44 +300,98 @@ public class RFClientServer {
         return ret;
     }
 
-    private ByteArrayInputStream waitForPacketFromServer(PipedInputStream input) {
-        ByteArrayInputStream packet = null;
-        synchronized (input) {
 
-            byte[] recvPacket = new byte[128];
-            packet = new ByteArrayInputStream(recvPacket);
-            try {
-                input.read(recvPacket);
-            } catch (Exception e) {
-                l("Blank packet from server");
-            }
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static String bytesToHex(byte[] bytes) {
+
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
-        return(packet);
+        return new String(hexChars);
     }
 
 
-    // Client loop to send to server
+    private void processSyncResponse(byte[] recvPacket) {
+
+        l("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
+                mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                " -> " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+        ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
+
+        long packetHeader = int16FromPacket(packet);
+        long clientAddress = int16FromPacket(packet);
+        long serverAddress = int16FromPacket(packet);
+        long myTimeStamp = int64FromPacket(packet);
+        long svTimeStamp = int64FromPacket(packet);
+        long curTime = mMain.GetCurrentClock();
+        long adjDrift;
+        long roundTripTime = (curTime - myTimeStamp);
+        //l("client time stamp " + String.format("0x%16X", myTimeStamp));
+        //l("server time stamp " + String.format("0x%16X", svTimeStamp));
+        //l("Round trip time is " + roundTripTime);
+
+        if (roundTripTime < 300) {
+            if (svTimeStamp < myTimeStamp) {
+                adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
+            } else
+                adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
+
+            l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+
+            AddSample(adjDrift, roundTripTime);
+
+            Sample s = BestSample();
+
+            replyCount++;
+            Intent in = new Intent(BBService.ACTION_STATS);
+            in.putExtra("resultCode", Activity.RESULT_OK);
+            in.putExtra("msgType", 2);
+            // Put extras into the intent as usual
+            in.putExtra("stateReplies", replyCount);
+
+            in.putExtra("stateMsgWifi", "Client");
+            //mActivity.setStateMsgConn("Connected");
+
+            // Fire the broadcast with intent packaged
+            LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+
+            if (mLastSample == null || !s.equals(mLastSample)) {
+                mPrefsEditor.putLong("drift", s.drift);
+                mPrefsEditor.putLong("rtt", s.roundTripTime);
+                mPrefsEditor.commit();
+            }
+
+            l("Drift=" + s.drift + " RTT=" + s.roundTripTime);
+
+            mMain.SetServerClockOffset(s.drift, s.roundTripTime);
+        }
+    }
+
+    // Thread/ loop to send out requests
     void Start() {
-        l("Sync Client Loop Staring");
+        l("Sync Thread Staring");
         SharedPreferences prefs = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE);
-        long drift = prefs.getLong("drift", 0);
-        long rtt = prefs.getLong("rtt", 100);
-        mMain.SetServerClockOffset(drift, rtt);
+        mDrift = prefs.getLong("drift", 0);
+        mRtt = prefs.getLong("rtt", 100);
+        mMain.SetServerClockOffset(mDrift, mRtt);
 
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new   StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        SharedPreferences.Editor editor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
+        mPrefsEditor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
 
 
-        Sample lastSample = null;
         while (true) {
 
             if (amServer() == false) {
                 try {
 
-                    l("I'm a client");
+                    l("I'm a client " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -317,73 +402,36 @@ public class RFClientServer {
                     // My Client Address
                     int16ToPacket(clientPacket, mBoardAddress);
                     // My timeclock
-                    int32ToPacket(clientPacket, mMain.GetCurrentClock());
-
+                    int64ToPacket(clientPacket, mMain.GetCurrentClock());
+                    // Pad to balance send-receive round trip time for average calculation
+                    int64ToPacket(clientPacket, 0);
+                    int16ToPacket(clientPacket, 0);
+                    l("send packet " + bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     mRF.broadcast(clientPacket.toByteArray());
-                    l("BB Sync Packet broadcast to server " +
-                            mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                            " <- " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
-
-                    ByteArrayInputStream packet;
-                    // Wait for server response
-                    packet = waitForPacketFromServer(mReceivedPacketInput);
-                    l("BB Sync Packet receive from server len (" + packet.available() + ") " +
-                            mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                            " -> " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
-
-                    if (packet.available() > 0) {
-                        long myTimeStamp = int32FromPacket(packet);
-                        long svTimeStamp = int32FromPacket(packet);
-                        long curTime = mMain.GetCurrentClock();
-                        long adjDrift;
-                        long roundTripTime = (curTime - myTimeStamp);
-
-                        if (roundTripTime > 300) {      // probably we are a packet behind, try to read an extra packet
-                            packet = waitForPacketFromServer(mReceivedPacketInput);
-                            l("BB Sync : got behind reading Packet receive from server len (" + packet.available() + ") " +
-                                    mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                                    " -> " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
-                        } else if (roundTripTime < 1000) {
-                            if (svTimeStamp < myTimeStamp) {
-                                adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
-                            } else
-                                adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
-
-                            l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
-
-                            AddSample(adjDrift, roundTripTime);
-
-                            Sample s = BestSample();
-
-                            replyCount++;
-                            Intent in = new Intent(BBService.ACTION_STATS);
-                            in.putExtra("resultCode", Activity.RESULT_OK);
-                            in.putExtra("msgType", 2);
-                            // Put extras into the intent as usual
-                            in.putExtra("stateReplies", replyCount);
-
-                            in.putExtra("stateMsgWifi", "Client");
-                            //mActivity.setStateMsgConn("Connected");
-
-                            // Fire the broadcast with intent packaged
-                            LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
-
-                            if (lastSample == null || !s.equals(lastSample)) {
-                                editor.putLong("drift", s.drift);
-                                editor.putLong("rtt", s.roundTripTime);
-                                editor.commit();
-                            }
-
-                            l("Drift=" + s.drift + " RTT=" + s.roundTripTime);
-
-                            mMain.SetServerClockOffset(s.drift, s.roundTripTime);
-                        }
-                    }
+                    l("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", mMain.GetCurrentClock()) +
+                             mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
+                    " -> " + mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
                 } catch(Throwable e) {
                     //l("Client UDP failed");
                 }
+            } else {
+
+                l("I'm a server: broadcast Server beacon");
+
+                ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
+
+                for (int i = 0; i < kMagicNumberLen; i++) {
+                    replyPacket.write(kServerBeaconMagicNumber[i]);
+                }
+
+                // Address of this server (just put this in now?)
+                replyPacket.write(mBoardAddress & 0xFF);
+                replyPacket.write((mBoardAddress >> 8) & 0xFF);
+
+                // Broadcast - client will filter for it's address
+                mRF.broadcast(replyPacket.toByteArray());
             }
 
             try {
@@ -430,9 +478,16 @@ public class RFClientServer {
 
         // Ignore server if it's far away
         // 80db is typically further than you can hear the audio
-        if (sigstrength > 80) {
-            return;
-        }
+        //if (sigstrength > 80) {
+        //    return;
+        //}
+
+        // Always vote for myself.
+        // I'll get knocked out if there is a higher ranked address with votes
+        boardVote meVote = new boardVote();
+        meVote.votes = 999;
+        meVote.lastHeard = mMain.GetCurrentClock();
+        boardVote me = mBoardVotes.put(mBoardAddress, meVote);
 
         // Decrement all the board votes
         for (int board: mBoardVotes.keySet()) {
@@ -443,7 +498,6 @@ public class RFClientServer {
             }
             vote.votes = votes;
             mBoardVotes.put(board, vote);
-
         }
 
         // Increment the vote for the heard board
@@ -452,9 +506,9 @@ public class RFClientServer {
             vote = new boardVote();
             vote.votes = 0;
         }
-        vote.votes = vote.votes + 2;
-        if (vote.votes > 10) {
-            vote.votes = 10;
+        vote.votes = vote.votes + 3;
+        if (vote.votes > 12) {
+            vote.votes = 12;
         }
         vote.lastHeard = mMain.GetCurrentClock();
         mBoardVotes.put(address, vote);
@@ -464,11 +518,11 @@ public class RFClientServer {
         for (int board: mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             // Not a leader if we haven't heard from you in the last 5 mins
-            if ((mMain.GetCurrentClock() - v.lastHeard) > 300) {
+            if ((mMain.GetCurrentClock() - v.lastHeard) > 300000) {
                 continue;
             }
             // Not a leader if you aren't reliably there
-            if (v.votes < 5) {
+            if (v.votes < 6) {
                 continue;
             }
             // Elect you if you are the lowest heard from
@@ -484,10 +538,10 @@ public class RFClientServer {
         for (int board: mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             if (board == mServerAddress) {
-                l("Server " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                l("Vote: Server " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (mMain.GetCurrentClock() - v.lastHeard));
             } else {
-                l("Client " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                l("Vote: Client " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (mMain.GetCurrentClock() - v.lastHeard));
             }
         }

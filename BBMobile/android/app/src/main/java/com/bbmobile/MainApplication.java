@@ -3,6 +3,7 @@ package com.bbmobile;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.airbnb.android.react.maps.MapsPackage;
 import com.rnfs.RNFSPackage;
 import it.innove.BleManagerPackage;
 //import com.polidea.reactnativeble.BlePackage;
@@ -26,6 +27,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new MapsPackage(),
             new RNFSPackage(),
             new BleManagerPackage()
             //new BlePackage()
