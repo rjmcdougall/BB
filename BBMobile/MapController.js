@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet } from "react-native";
 import MapView from "react-native-maps"; 
-import BLEIDs from "./BLEIDs";
 import PropTypes from "prop-types";
 //import Marker from 'react-native-maps';
 
@@ -30,6 +29,7 @@ export default class MapController extends React.Component {
 	}
 
 	onRegionChange(region) {
+		return region;
 		//this.setState({ region: region });
 	}
 
@@ -57,6 +57,11 @@ const styles = StyleSheet.create({
 		marginVertical: 50,
 	},
 });
+
+MapController.propTypes = {
+	mediaState: PropTypes.object,
+	locationState: PropTypes.object,
+};
 
 //{this.state.markers.map(marker => (
 //<Marker

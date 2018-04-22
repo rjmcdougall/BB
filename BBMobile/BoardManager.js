@@ -39,7 +39,7 @@ export default class BoardManager extends Component {
 			appState: "",
 			selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
 			mediaState: BLEBoardData.emptyMediaState,
-            locationState: "",
+			locationState: "",
 			showDiscoverScreen: false,
 			discoveryState: "Connect To Board",
 			automaticallyConnect: true,
@@ -225,8 +225,8 @@ export default class BoardManager extends Component {
 						});
 					}
 
-                    // Kick off a per-second location reader 
-                    this.readLocationLoop(this.state.mediaState);
+					// Kick off a per-second location reader 
+					this.readLocationLoop(this.state.mediaState);
 				}
 			}
 		}
@@ -235,19 +235,19 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	readLocationLoop(mediaState) {
+	readLocationLoop() {
 
 		console.log("Location Loop:");
 
-	    var backgroundTimer = setInterval(async () => {
-	        if (this.state.mediaState) {
-                var locationState = await BLEBoardData.readLocation(this.state.mediaState);
+		var backgroundTimer = setInterval(async () => {
+			if (this.state.mediaState) {
+				var locationState = await BLEBoardData.readLocation(this.state.mediaState);
 				this.setState({
 					locationState: locationState,
 				});
 			}
 		}, 997);
-        this.setState({backgroundLoop: backgroundTimer});
+		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
 
@@ -263,7 +263,7 @@ export default class BoardManager extends Component {
 		var color = "#fff";
 		var enableControls = "none";
 
-		if (this.state.discoveryState.startsWith("Located")){
+		if (this.state.discoveryState.startsWith("Located")) {
 			color = "yellow";
 			enableControls = "none";
 		}

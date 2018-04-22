@@ -20,7 +20,7 @@ exports.fakeMediaState = {
 				{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
 	video: {
-		channelInfo: "Video 2",
+		channelInfo: "Video 2", 
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
 			{ channelNo: 2, channelInfo: "Video 2" },
@@ -61,12 +61,12 @@ exports.emptyMediaState = {
 };
 
 exports.emptyLocationState = {
-    location: {
-        latitude: 37.78825,
-        longitude: -122.4324,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0922,
-    },
+	location: {
+		latitude: 37.78825,
+		longitude: -122.4324,
+		latitudeDelta: 0.0922,
+		longitudeDelta: 0.0922,
+	},
 };
 
 exports.createMediaState = async function (peripheral) {
@@ -292,7 +292,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 	var channelCharacteristic = "";
 	var channelNo;
 	var trackNo = parseInt(idx);
-	
+
 	if (mediaType == "Audio") {
 		service = BLEIDs.AudioService;
 		channelCharacteristic = BLEIDs.AudioChannelCharacteristic;
@@ -400,19 +400,20 @@ exports.readBattery = async function (mediaState) {
 exports.readLocation = async function (mediaState) {
 
 	if (mediaState.peripheral) {
-        try {
-			var location = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
-	        console.log("BLEBoardData Read Location: ");
+		try {
+			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
+			console.log("BLEBoardData Read Location: ");
 
-            locationState.theirAddress = readData[2] + readData[3] * 256;
-            locationState.location.latitude = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
-            locationState.location.longitude = readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216;
-            locationState.location.latitudeDelta = 0.0922;
-            locationState.location.ongitudeDelta = 0.0922;
+			var locationState;
+			locationState.theirAddress = readData[2] + readData[3] * 256;
+			locationState.location.latitude = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
+			locationState.location.longitude = readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216;
+			locationState.location.latitudeDelta = 0.0922;
+			locationState.location.ongitudeDelta = 0.0922;
 
-            console.log("Location: " + mediaState.location.latitude + "," + mediaState.location.longitude);
-            return locationState;
-        }
+			console.log("Location: " + mediaState.location.latitude + "," + mediaState.location.longitude);
+			return locationState;
+		}
 		catch (error) {
 			console.log("BLEBoardData Read Location Error: " + error);
 		}
