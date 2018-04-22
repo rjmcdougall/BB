@@ -29,8 +29,7 @@ public class MainApplication extends Application implements ReactApplication {
           new MainReactPackage(),
             new MapsPackage(),
             new RNFSPackage(),
-            new BleManagerPackage(),
-            new MapsPackage()
+            new BleManagerPackage()
             //new BlePackage()
       );
     }
