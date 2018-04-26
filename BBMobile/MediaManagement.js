@@ -22,7 +22,6 @@ export default class MediaManagement extends Component {
 
 		this.state = {
 			mediaState: BLEBoardData.emptyMediaState,
-			locationState: BLEBoardData.emptyLocationState,
 		};
 	}
 
@@ -66,7 +65,7 @@ export default class MediaManagement extends Component {
 					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.state.mediaState} mediaType="Audio" />
 					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.state.mediaState} mediaType="Video" />
 					<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.state.mediaState} mediaType="Device" />
-					<MapController mediaState={this.state.mediaState} locationState={this.state.locationState} />
+					<MapController mediaState={this.state.mediaState} />
 				</ScrollView>
 			</View>
 		);

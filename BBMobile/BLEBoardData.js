@@ -16,15 +16,15 @@ exports.fakeMediaState = {
 		volume: 50,
 		channels:
 			[{ channelNo: 1, channelInfo: "Audio 1" },
-				{ channelNo: 2, channelInfo: "Audio 2" },
-				{ channelNo: 3, channelInfo: "Audio 3" }]
+			{ channelNo: 2, channelInfo: "Audio 2" },
+			{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
 	video: {
-		channelInfo: "Video 2", 
+		channelInfo: "Video 2",
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
-			{ channelNo: 2, channelInfo: "Video 2" },
-			{ channelNo: 3, channelInfo: "Video 3" }]
+		{ channelNo: 2, channelInfo: "Video 2" },
+		{ channelNo: 3, channelInfo: "Video 3" }]
 	},
 	device: {
 		deviceNo: 1,
@@ -32,6 +32,13 @@ exports.fakeMediaState = {
 		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
 	},
 	battery: 87,
+	theirAddress: "",
+	location: {
+		latitude: 37.78825,
+		longitude: -122.4324,
+		latitudeDelta: 0.0922,
+		longitudeDelta: 0.0922,
+	},
 };
 
 exports.emptyMediaState = {
@@ -58,9 +65,7 @@ exports.emptyMediaState = {
 		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
 	},
 	battery: 0,
-};
-
-exports.emptyLocationState = {
+	theirAddress: "",
 	location: {
 		latitude: 37.78825,
 		longitude: -122.4324,
@@ -100,6 +105,7 @@ exports.refreshMediaState = async function (mediaState) {
 			mediaState = await this.loadDevices(mediaState);
 			mediaState = await this.readVolume(mediaState);
 			mediaState = await this.readBattery(mediaState);
+			mediaState = await this.readLocation(mediaState);
 
 			console.log("BLEBoardData: RefreshMediaState Complete: ");
 			return mediaState;
@@ -402,22 +408,56 @@ exports.readLocation = async function (mediaState) {
 	if (mediaState.peripheral) {
 		try {
 			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
-			console.log("BLEBoardData Read Location: ");
+			console.log("BLEBoardData Read Location: " + JSON.stringify(readData));
 
-			var locationState;
-			locationState.theirAddress = readData[2] + readData[3] * 256;
-			locationState.location.latitude = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
-			locationState.location.longitude = readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216;
-			locationState.location.latitudeDelta = 0.0922;
-			locationState.location.ongitudeDelta = 0.0922;
+			if(readData.length>0) {
+				mediaState.theirAddress = readData[2] + readData[3] * 256;
+				mediaState.location = this.getRegionForCoordinates({
+					latitude: readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216,
+					longitude: readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216,
+				});	
+			}
 
 			console.log("Location: " + mediaState.location.latitude + "," + mediaState.location.longitude);
-			return locationState;
+			return mediaState;
 		}
 		catch (error) {
 			console.log("BLEBoardData Read Location Error: " + error);
 		}
 	}
 };
+
+exports.getRegionForCoordinates = function (points) {
+	// points should be an array of { latitude: X, longitude: Y }
+	let minX, maxX, minY, maxY;
+
+	// init first point
+	((point) => {
+		minX = point.latitude;
+		maxX = point.latitude;
+		minY = point.longitude;
+		maxY = point.longitude;
+	})(points[0]);
+
+	// calculate rect
+	points.map((point) => {
+		minX = Math.min(minX, point.latitude);
+		maxX = Math.max(maxX, point.latitude);
+		minY = Math.min(minY, point.longitude);
+		maxY = Math.max(maxY, point.longitude);
+	});
+
+	const midX = (minX + maxX) / 2;
+	const midY = (minY + maxY) / 2;
+	const deltaX = (maxX - minX);
+	const deltaY = (maxY - minY);
+
+	return {
+		latitude: midX,
+		longitude: midY,
+		latitudeDelta: deltaX,
+		longitudeDelta: deltaY
+	};
+}
 
 

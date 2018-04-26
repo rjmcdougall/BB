@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet } from "react-native";
-import MapView from "react-native-maps"; 
+import MapView from "react-native-maps";
 import PropTypes from "prop-types";
+
 //import Marker from 'react-native-maps';
 
 export default class MapController extends React.Component {
@@ -10,13 +11,6 @@ export default class MapController extends React.Component {
 
 		this.state = {
 			mediaState: props.mediaState,
-			locationState: props.locationState,
-			region: {
-				latitude: 37.78825,
-				longitude: -122.4324,
-				latitudeDelta: 0.0922,
-				longitudeDelta: 0.0922,
-			}
 		};
 
 	}
@@ -24,7 +18,6 @@ export default class MapController extends React.Component {
 	componentWillReceiveProps(nextProps) {
 		this.setState({
 			mediaState: nextProps.mediaState,
-			locationState: nextProps.locationState,
 		});
 	}
 
@@ -38,8 +31,8 @@ export default class MapController extends React.Component {
 		return (
 			<MapView
 				style={styles.map}
-				initialRegion={this.state.region}
-				region={this.state.locationState.location}
+				initialRegion={this.state.mediaState.location}
+				region={this.state.mediaState.location}
 				onRegionChange={this.onRegionChange}
 			>
 			</MapView>
@@ -57,11 +50,6 @@ const styles = StyleSheet.create({
 		marginVertical: 50,
 	},
 });
-
-MapController.propTypes = {
-	mediaState: PropTypes.object,
-	locationState: PropTypes.object,
-};
 
 //{this.state.markers.map(marker => (
 //<Marker
