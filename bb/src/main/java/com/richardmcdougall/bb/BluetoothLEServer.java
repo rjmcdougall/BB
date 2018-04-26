@@ -304,7 +304,7 @@ public class BluetoothLEServer {
                     l("null location");
                     mBluetoothGattServer.sendResponse(device,
                             requestId,
-                            BluetoothGatt.GATT_FAILURE,
+                            BluetoothGatt.GATT_SUCCESS,
                             0,
                             null);
                 }
