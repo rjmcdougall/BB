@@ -1,7 +1,7 @@
 
 exports.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";
 
-exports.locationService = "04c21568-159a-11e8-b642-0ed5f89f718b";
+exports.locationService = "03c21568-159a-11e8-b642-0ed5f89f718b";
 exports.locationCharacteristic = "03c2193c-159a-11e8-b642-0ed5f89f718b";
 exports.locationDescriptor = "03c21a90-159a-11e8-b642-0ed5f89f718b";
 
