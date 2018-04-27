@@ -43,6 +43,7 @@ export default class BoardManager extends Component {
 			showDiscoverScreen: false,
 			discoveryState: "Connect To Board",
 			automaticallyConnect: true,
+			backgroundLoop: null,
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -107,6 +108,7 @@ export default class BoardManager extends Component {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
 		this.handlerDisconnect.remove();
+		clearInterval(this.state.backgroundLoop);
 	}
 
 	handleDisconnectedPeripheral(data) {
@@ -115,11 +117,14 @@ export default class BoardManager extends Component {
 		if (peripheral.name == this.state.boardName) {
 			peripheral.connected = false;
 
+			if (this.state.backgroundLoop)
+				clearInterval(this.state.backgroundLoop);
+
 			this.setState({
 				selectedPeripheral: peripheral,
 				mediaState: BLEBoardData.emptyMediaState,
 				discoveryState: "Connect To Board",
-
+				backgroundLoop: null,
 			});
 			console.log("BoardManager: Disconnected from " + peripheral.name);
 		}
@@ -134,12 +139,17 @@ export default class BoardManager extends Component {
 
 	async startScan(automaticallyConnect) {
 		if (!this.state.scanning) {
+
+			if (this.state.backgroundLoop)
+				clearInterval(this.state.backgroundLoop);
+
 			this.setState({
 				selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
 				mediaState: BLEBoardData.emptyMediaState,
 				scanning: true,
 				peripherals: new Map(),
 				automaticallyConnect: automaticallyConnect,
+				backgroundLoop: null,
 			});
 
 			try {
@@ -173,6 +183,9 @@ export default class BoardManager extends Component {
 
 					await BleManager.stopScan();
 
+					if (this.state.backgroundLoop)
+						clearInterval(this.state.backgroundLoop);
+
 					this.setState({
 						selectedPeripheral: peripheral,
 						mediaState: BLEBoardData.emptyMediaState,
@@ -180,6 +193,7 @@ export default class BoardManager extends Component {
 						boardName: boardName,
 						discoveryState: "Connect To Board",
 						scanning: false,
+						backgroundLoop: null,
 					});
 
 
@@ -223,10 +237,14 @@ export default class BoardManager extends Component {
 							mediaState: mediaState,
 							discoveryState: "Connected To " + this.state.selectedPeripheral.name,
 						});
+
+						// Kick off a per-second location reader 
+						this.readLocationLoop(this.state.mediaState);
+						console.log("BoardManager: Begin Background Location Loop");
+
 					}
 
-					// Kick off a per-second location reader 
-					this.readLocationLoop(this.state.mediaState);
+
 				}
 			}
 		}
@@ -237,19 +255,22 @@ export default class BoardManager extends Component {
 
 	readLocationLoop() {
 
-		console.log("Location Loop:");
-
 		var backgroundTimer = setInterval(async () => {
 			if (this.state.mediaState) {
-				var locationState = await BLEBoardData.readLocation(this.state.mediaState);
-				this.setState({
-					locationState: locationState,
-				});
+
+				try {
+					var mediaState = await BLEBoardData.readLocation(this.state.mediaState);
+					this.setState({
+						mediaState: mediaState,
+					});
+				}
+				catch (error) {
+					console.log("BoardManager Location Loop Failed:" + error);
+				}
 			}
-		}, 997);
+		},3000);
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
-
 
 	static navigationOptions = {
 		title: "Board Management",
@@ -296,6 +317,10 @@ export default class BoardManager extends Component {
 							catch (error) {
 								console.log("BoardManager: Pressed Search For Boards: " + error);
 							}
+
+							if (this.state.backgroundLoop)
+								clearInterval(this.state.backgroundLoop);
+
 							this.setState({
 								peripherals: new Map(),
 								appState: "",
@@ -303,6 +328,7 @@ export default class BoardManager extends Component {
 								mediaState: BLEBoardData.emptyMediaState,
 								showDiscoverScreen: true,
 								discoveryState: "Connect To Board",
+								backgroundLoop: null,
 							});
 
 						}}

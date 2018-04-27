@@ -125,67 +125,75 @@ exports.refreshMediaState = async function (mediaState) {
 
 exports.loadDevices = async function (mediaState) {
 
-	try {
-		console.log("BLEBoardData Load Devices request scan  ");
+	if (mediaState.peripheral) {
 
-		await BleManager.write(mediaState.peripheral.id,
-			BLEIDs.BTDeviceService,
-			BLEIDs.BTDeviceInfoCharacteristic,
-			[1]);
-	}
-	catch (error) {
-		console.log("BLEBoardData Load Devices " + error);
-	}
+		try {
+			console.log("BLEBoardData Load Devices request scan  ");
 
-	var devices = [];
-
-	try {
-		if (mediaState.peripheral) {
-			for (var n = 1; n <= mediaState.device.maxDevice; n++) {
-
-				var readData = await BleManager.read(
-					mediaState.peripheral.id,
+			if (!fakeBLE) {
+				await BleManager.write(mediaState.peripheral.id,
 					BLEIDs.BTDeviceService,
-					BLEIDs.BTDeviceInfoCharacteristic);
-
-				var deviceInfo = "";
-				if (readData.length > 3) {
-					var deviceNo = readData[0];
-					//var deviceMax = readData[1];
-					var deviceStatus = readData[2];
-					var isPaired;
-					var deviceLabel;
-					for (var i = 3; i < readData.length; i++) {
-						deviceInfo += String.fromCharCode(readData[i]);
-					}
-					if (deviceStatus == 80) {
-						deviceLabel = deviceInfo + " (Paired)";
-						isPaired = true;
-					} else {
-						deviceLabel = deviceInfo;
-						isPaired = false;
-					}
-				}
-				if (deviceInfo && 0 != deviceInfo.length) {
-					devices[deviceNo] = {
-						deviceNo: deviceNo,
-						deviceInfo: deviceInfo,
-						deviceLabel: deviceLabel,
-						isPaired: isPaired
-					};
-
-					console.log("BLEBoardData Load Devices: " + devices.length + " Added");
-					mediaState.device.devices = devices;
-					console.log("BLEBoardData Load Devices: " + JSON.stringify(devices) + " Added");
-
-					return mediaState;
-				}
+					BLEIDs.BTDeviceInfoCharacteristic,
+					[1]);
 			}
-			console.log("BLEBoardData Load Devices found devices: " + JSON.stringify(devices));
 		}
-	}
-	catch (error) {
-		console.log("BTController Load Devices Error: " + error);
+		catch (error) {
+			console.log("BLEBoardData Load Devices " + error);
+		}
+
+		var devices = [];
+
+		try {
+
+			if (!fakeBLE) {
+				for (var n = 1; n <= mediaState.device.maxDevice; n++) {
+
+					var readData = await BleManager.read(
+						mediaState.peripheral.id,
+						BLEIDs.BTDeviceService,
+						BLEIDs.BTDeviceInfoCharacteristic);
+
+					var deviceInfo = "";
+					if (readData.length > 3) {
+						var deviceNo = readData[0];
+						//var deviceMax = readData[1];
+						var deviceStatus = readData[2];
+						var isPaired;
+						var deviceLabel;
+						for (var i = 3; i < readData.length; i++) {
+							deviceInfo += String.fromCharCode(readData[i]);
+						}
+						if (deviceStatus == 80) {
+							deviceLabel = deviceInfo + " (Paired)";
+							isPaired = true;
+						} else {
+							deviceLabel = deviceInfo;
+							isPaired = false;
+						}
+					}
+					if (deviceInfo && 0 != deviceInfo.length) {
+						devices[deviceNo] = {
+							deviceNo: deviceNo,
+							deviceInfo: deviceInfo,
+							deviceLabel: deviceLabel,
+							isPaired: isPaired
+						};
+
+						console.log("BLEBoardData Load Devices: " + devices.length + " Added");
+						mediaState.device.devices = devices;
+						console.log("BLEBoardData Load Devices: " + JSON.stringify(devices) + " Added");
+
+						return mediaState;
+					}
+				}
+				console.log("BLEBoardData Load Devices found devices: " + JSON.stringify(devices));
+			}
+
+		}
+		catch (error) {
+			console.log("BTController Load Devices Error: " + error);
+			return mediaState;
+		}
 	}
 };
 
@@ -239,6 +247,7 @@ exports.readTrack = async function (mediaState, mediaType) {
 		}
 		catch (error) {
 			console.log("BLEBoardData " + mediaType + " read track error: " + error);
+			return mediaState;
 		}
 	}
 };
@@ -289,6 +298,7 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 	}
 	catch (error) {
 		console.log("BLEBoardData " + this.state.mediaType + " Error: " + error);
+		return mediaState;
 	}
 };
 
@@ -337,6 +347,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		}
 		catch (error) {
 			console.log("BLEBoardData " + mediaType + " " + error);
+			return mediaState;
 		}
 	}
 };
@@ -364,6 +375,7 @@ exports.onUpdateVolume = async function (event, mediaState) {
 		}
 		catch (error) {
 			console.log("BLEBoardData Update Volume Error: " + error);
+			return mediaState;
 		}
 	}
 };
@@ -384,6 +396,7 @@ exports.readVolume = async function (mediaState) {
 		}
 		catch (error) {
 			console.log("BLEBoardData Read Volume Error: " + error);
+			return mediaState;
 		}
 	}
 };
@@ -399,6 +412,7 @@ exports.readBattery = async function (mediaState) {
 		}
 		catch (error) {
 			console.log("BLEBoardData Read Battery Error: " + error);
+			return mediaState;
 		}
 	}
 };
@@ -407,22 +421,23 @@ exports.readLocation = async function (mediaState) {
 
 	if (mediaState.peripheral) {
 		try {
-			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
-			console.log("BLEBoardData Read Location: " + JSON.stringify(readData));
+			if (!fakeBLE) {
+				var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
 
-			if(readData.length>0) {
-				mediaState.theirAddress = readData[2] + readData[3] * 256;
-				mediaState.location = this.getRegionForCoordinates({
-					latitude: readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216,
-					longitude: readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216,
-				});	
+				if (readData.length > 0) {
+					mediaState.theirAddress = readData[2] + readData[3] * 256;
+					mediaState.location = this.getRegionForCoordinates({
+						latitude: readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216,
+						longitude: readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216,
+					});
+				}
 			}
-
 			console.log("Location: " + mediaState.location.latitude + "," + mediaState.location.longitude);
 			return mediaState;
 		}
 		catch (error) {
 			console.log("BLEBoardData Read Location Error: " + error);
+			return mediaState;
 		}
 	}
 };
