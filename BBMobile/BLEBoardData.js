@@ -473,6 +473,6 @@ exports.getRegionForCoordinates = function (points) {
 		latitudeDelta: deltaX,
 		longitudeDelta: deltaY
 	};
-}
+};
 
 
