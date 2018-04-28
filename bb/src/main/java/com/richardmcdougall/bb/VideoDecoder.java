@@ -154,6 +154,10 @@ public class VideoDecoder extends AndroidTestCase {
                 Log.d(TAG, "extractMpegFrames failed");
                 mThrowable = th;
                 Log.d(TAG, "extractMpegFrames thread failed" + mThrowable.getMessage() + mThrowable.fillInStackTrace());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                }
             }
             //Log.d(TAG, "extractMpegFrames thread exiting");
 

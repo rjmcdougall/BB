@@ -304,7 +304,7 @@ public class BluetoothLEServer {
                     l("null location");
                     mBluetoothGattServer.sendResponse(device,
                             requestId,
-                            BluetoothGatt.GATT_SUCCESS,
+                            BluetoothGatt.GATT_FAILURE,
                             0,
                             null);
                 }
@@ -444,6 +444,15 @@ public class BluetoothLEServer {
             if (BluetoothProfile.BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 int channel = (int) (value[0] & 0xFF);
                 l("Write audio track characteristic: " + channel);
+                // Set board
+                // Broadcast to other boards if audio-leader
+                if (true) {
+                    mBBService.rfClientServer.sendRemote(RFClientServer.kRemoteAudioTrack, channel);
+                }
+                try {
+                    Thread.sleep(mBBService.rfClientServer.getLatency());
+                } catch (Exception e) {
+                }
                 mBBService.SetRadioChannel(channel);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,

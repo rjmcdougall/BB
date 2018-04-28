@@ -302,7 +302,7 @@ public class FindMyFriends {
             return mLastHeardLocation;
         } else {
             l("no recent locaton");
-            return null;
+            return new byte[] {0, 0};
         }
 
     }

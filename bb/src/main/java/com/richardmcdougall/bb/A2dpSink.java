@@ -36,6 +36,10 @@ public class A2dpSink {
         mContext = context;
         mBBService = service;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        // disable for now
+        if (true) {
+            return;
+        }
         if (mBluetoothAdapter == null) {
             Log.w(TAG, "No default Bluetooth adapter. Device likely does not support bluetooth.");
             return;

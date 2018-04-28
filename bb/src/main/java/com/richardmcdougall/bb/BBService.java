@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.hardware.usb.UsbManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -15,6 +16,7 @@ import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
+import android.media.SyncParams;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -300,7 +302,7 @@ public class BBService extends Service {
             });
             batteryMonitor.start();
         } else {
-            l("battery moniitor already running");
+            l("battery monitor already running");
         }
 
         startLights();
@@ -640,6 +642,7 @@ public class BBService extends Service {
         l("Starting BB on phone " + model);
 
 
+        /*
         if (model.equals("XT1064")) {
             phoneModelAudioLatency = 10;
         } else if (model.equals("BLU DASH M2")) {
@@ -652,8 +655,7 @@ public class BBService extends Service {
             phoneModelAudioLatency = 82;
             userTimeOffset = -4;
         }
-
-
+        */
 
         //udpClientServer = new UDPClientServer(this);
         //udpClientServer.Run();
@@ -675,6 +677,15 @@ public class BBService extends Service {
         if (mWiFiManager.reassociate() == false) {
             l("Failed to associate wifi");
         }
+
+        boolean hasLowLatencyFeature =
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
+
+        l("has audio LowLatencyFeature: " + hasLowLatencyFeature );
+        boolean hasProFeature =
+                getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
+        l("has audio ProFeature: " + hasLowLatencyFeature );
+
 
         dlManager.StartDownloads();
 
@@ -739,6 +750,8 @@ public class BBService extends Service {
 
     }
 
+    private long seekSave = 0;
+    private long seekSavePos = 0;
     public void SeekAndPlay() {
         if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
             synchronized (mediaPlayer) {
@@ -749,31 +762,49 @@ public class BBService extends Service {
                 long seekOff = ms % lenInMS;
                 long curPos = mediaPlayer.getCurrentPosition();
                 long seekErr = curPos - seekOff;
-
+                l("time/pos: " + curPos + "/" + CurrentClockAdjusted());
 
                 if (curPos == 0 || seekErr != 0) {
-                    if (curPos == 0 || Math.abs(seekErr) > 10) {
+                    if (curPos == 0 || Math.abs(seekErr) > 50) {
                         l("SeekAndPlay: qqexplicit seek");
-                        //mediaPlayer.pause();
+                        // mediaPlayer.pause();
                         // hack: I notice i taked 79ms on dragonboard to seekTo
+                        seekSave = SystemClock.elapsedRealtime();
+                        seekSavePos = seekOff + 79;
                         mediaPlayer.seekTo((int) seekOff + 79);
+                        //mediaPlayer.seekTo((int) seekOff + 0);
                         mediaPlayer.start();
                     } else {
                         //PlaybackParams params = mediaPlayer.getPlaybackParams();
-                        PlaybackParams params = new PlaybackParams();
                         Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
-                        //l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
-                        params.setSpeed(speed);
+                        if (speed > 1.05f) {
+                            //    speed = 1.05f;
+                        }
+                        if (speed < 0.95f) {
+                            //    speed = 0.95f;
+                        }
+                        l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
                         try {
+                            //mediaPlayer.pause();
+                            PlaybackParams params = new PlaybackParams();
+                            params.allowDefaults();
+                            params.setSpeed(speed).setPitch(speed).setAudioFallbackMode(PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT);
+                            mediaPlayer.setPlaybackParams(params);
+
                             //l("SeekAndPlay: pause()");
                             //mediaPlayer.pause();
+                            //mediaPlayer.stop();
                             //l("SeekAndPlay: setPlaybackParams()");
-                            mediaPlayer.getPlaybackParams().setSpeed(speed);
-                            //setPlaybackParams(params);
-                            //l("SeekAndPlay: setPlaybackParams() Sucesss!!");
+                            //mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(speed));
+                            //mediaPlayer.start();
+                            //mediaPlayer.prepareAsync();
+
+                            l("SeekAndPlay: setPlaybackParams() Sucesss!!");
+                        } catch (IllegalStateException exception) {
+                            l("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
                         } catch (Throwable err) {
                             //l("SeekAndPlay setPlaybackParams: " + err.getMessage());
-                            err.printStackTrace();
+                            //err.printStackTrace();
                         }
                         //l("SeekAndPlay: start()");
                         mediaPlayer.start();
@@ -783,9 +814,9 @@ public class BBService extends Service {
                 String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
                         " User " + userTimeOffset + "\nSeekOff " + seekOff +
                         " RTT " + serverRTT + " Strm" + currentRadioChannel;
-                if (rfClientServer.tSentPackets != 0)
-                    msg += "\nSent " + rfClientServer.tSentPackets;
-                //l(msg);
+                //if (rfClientServer.tSentPackets != 0)
+                //    msg += "\nSent " + rfClientServer.tSentPackets;
+                l(msg);
 
                 Intent in = new Intent(ACTION_STATS);
                 in.putExtra("resultCode", Activity.RESULT_OK);
@@ -877,10 +908,40 @@ public class BBService extends Service {
 
                         mediaPlayer.setLooping(true);
                         mediaPlayer.setVolume(vol, vol);
-                        mediaPlayer.prepare();
+
+                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mediaPlayer) {
+                                l("onPrepared");
+                                try {
+                                    //mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(0.55f));
+                                    PlaybackParams params = mediaPlayer.getPlaybackParams();
+                                    l("Playbackparams = " + params.toString());
+                                } catch (Exception e) {
+                                    l("Error in onPrepared:" + e.getMessage());
+                                }
+                                mediaPlayer.start();
+                            }
+                        });
+                        mediaPlayer.setOnSeekCompleteListener(
+                                new MediaPlayer.OnSeekCompleteListener() {
+                                    @Override
+                                    public void onSeekComplete(MediaPlayer mediaPlayer) {
+                                        long curPos = mediaPlayer.getCurrentPosition();
+                                        long curTime = SystemClock.elapsedRealtime();
+                                        l("Seek complete - off: " +
+                                                (curPos - seekSavePos) +
+                                                " took: " + (curTime - seekSave) + " ms");
+                                    }
+                                });
+                        //SyncParams syncParams = new SyncParams();
+                        //l("syncParams.getAudioAdjustMode() = " + syncParams.getAudioAdjustMode());
+                        //l("syncParams.getTolerance() = " + syncParams.getTolerance());
+                        //mediaPlayer.setSyncParams(new SyncParams());
+                        mediaPlayer.prepareAsync();
                         SeekAndPlay();
                         SeekAndPlay();
-                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
+                        // TEMPORARY: mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     }
                 }
                 SeekAndPlay();
@@ -927,7 +988,7 @@ public class BBService extends Service {
     public void bluetoothModeEnable() {
         mAudioInStream.startRecording();
         //mAudioInStream.setPreferredDevice(AudioDeviceInfo.TYPE_WIRED_HEADSET);
-        mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
+        //TEMPORARY mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
         mAudioOutStream.play();
         mAudioOutStream.setPlaybackRate(44100);
         mAudioOutStream.setVolume(vol);

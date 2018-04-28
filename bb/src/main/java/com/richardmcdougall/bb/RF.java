@@ -111,13 +111,15 @@ public class RF {
     public void broadcast(byte[] packet) {
         l("Radio Sending Packet: len(" + packet.length + "), data: " + bytesToHex(packet));
         if (mListener != null) {
-            mListener.sendCmdStart(5);
-            mListener.sendCmdArg(packet.length);
-            for (int i = 0; i < packet.length; i++) {
-                mListener.sendCmdArg((int)packet[i]);
+            synchronized (mSerialConn) {
+                mListener.sendCmdStart(5);
+                mListener.sendCmdArg(packet.length);
+                for (int i = 0; i < packet.length; i++) {
+                    mListener.sendCmdArg((int) packet[i]);
+                }
+                mListener.sendCmdEnd();
+                mListener.flushWrites();
             }
-            mListener.sendCmdEnd();
-            mListener.flushWrites();
         }
     }
 

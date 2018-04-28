@@ -16,6 +16,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
@@ -37,6 +41,7 @@ public class RFClientServer {
     static final int [] kClientSyncMagicNumber = new int[] {0xbb, 0x03};
     static final int [] kServerSyncMagicNumber = new int[] {0xbb, 0x04};
     static final int [] kServerBeaconMagicNumber = new int[] {0xbb, 0x05};
+    static final int [] kRemoteControlMagicNumber = new int[] {0xbb, 0x06};
     static final int kMagicNumberLen = 2;
     private int mServerAddress = 0;
     private int mBoardAddress;
@@ -48,6 +53,8 @@ public class RFClientServer {
     long mRtt;
     Sample mLastSample = null;
     SharedPreferences.Editor mPrefsEditor;
+    private long mLatency = 150;
+    private DatagramSocket mUDPSocket;
 
     public void l(String s) {
 
@@ -62,6 +69,37 @@ public class RFClientServer {
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
         LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+    }
+
+    private void setupUDPLogger(){
+        // InetAddress.getByName("0.0.0.0")
+        try {
+            mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
+        } catch (Exception e) {
+            l("Cannot setup UDP logger socket");
+        }
+    }
+
+    public void logUDP(long timestamp, String msg) {
+        ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
+
+        int64ToPacket(logPacketTmp, timestamp);
+        stringToPacket(logPacketTmp, msg);
+
+        final byte[] logPacket = logPacketTmp.toByteArray();
+
+        mMain.mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DatagramPacket dp = new DatagramPacket(logPacket, logPacket.length, InetAddress.getByName("10.0.6.255"), 9999);
+                    mUDPSocket.send(dp);
+                } catch (Exception e) {
+                    l("UDP Logger Socket send failed:" + e.toString());
+                }
+            }
+        });
+
     }
 
     RFClientServer(BBService service, RF rfRadio) {
@@ -86,6 +124,7 @@ public class RFClientServer {
         } catch (Exception e) {
 
         }
+        setupUDPLogger();
 
     }
 
@@ -153,6 +192,13 @@ public class RFClientServer {
         bytes.write((byte) ((n >> 8) & 0xFF));
         bytes.write((byte) ((n >> 16) & 0xFF));
         bytes.write((byte) ((n >> 24) & 0xFF));
+    }
+
+    private void stringToPacket(ByteArrayOutputStream bytes, String s) {
+        try {
+            bytes.write(s.getBytes());
+        } catch (Exception e) {
+        }
     }
 
     private long int16FromPacket(ByteArrayInputStream bytes) {
@@ -245,12 +291,15 @@ public class RFClientServer {
                     " (" + mRFAddress.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
             long curTimeStamp = mMain.GetCurrentClock();
+            mLatency = int64FromPacket(bytes);
             // Try to re-elect server based on the heard board
             tryElectServer(clientAddress, sigstrength);
             if (amServer()) {
                 // Send response back to client
                 ServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
             }
+            logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
+
         } else if (recvMagicNumber == magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int)int16FromPacket(bytes);
             l("BB Server Beacon packet: len(" + packet.length + "), data: " + bytesToHex(packet));
@@ -258,6 +307,11 @@ public class RFClientServer {
                     " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
+        } else if (recvMagicNumber == magicNumberToInt(kRemoteControlMagicNumber)) {
+            int cmd = (int) int16FromPacket(bytes);
+            int value = (int) int16FromPacket(bytes);
+            l("Received Remote Control " + cmd + " " + value);
+            receiveRemoteControl(cmd, value);
         } else {
             l("packet not for sync server!");
         }
@@ -334,17 +388,20 @@ public class RFClientServer {
         //l("server time stamp " + String.format("0x%16X", svTimeStamp));
         //l("Round trip time is " + roundTripTime);
 
+        long driftAdjust = -00;
+
         if (roundTripTime < 300) {
             if (svTimeStamp < myTimeStamp) {
                 adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
             } else
                 adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
-            l("Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+            l("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
             AddSample(adjDrift, roundTripTime);
 
             Sample s = BestSample();
+            mLatency = s.roundTripTime;
 
             replyCount++;
             Intent in = new Intent(BBService.ACTION_STATS);
@@ -365,9 +422,10 @@ public class RFClientServer {
                 mPrefsEditor.commit();
             }
 
-            l("Drift=" + s.drift + " RTT=" + s.roundTripTime);
+            l("Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
 
-            mMain.SetServerClockOffset(s.drift, s.roundTripTime);
+            mMain.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
+            logUDP(mMain.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + mMain.CurrentClockAdjusted());
         }
     }
 
@@ -403,8 +461,9 @@ public class RFClientServer {
                     int16ToPacket(clientPacket, mBoardAddress);
                     // My timeclock
                     int64ToPacket(clientPacket, mMain.GetCurrentClock());
+                    // Send latency so server knows how much to delay sync'ed start
+                    int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
-                    int64ToPacket(clientPacket, 0);
                     int16ToPacket(clientPacket, 0);
                     l("send packet " + bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
@@ -419,6 +478,9 @@ public class RFClientServer {
             } else {
 
                 l("I'm a server: broadcast Server beacon");
+                mRtt = 0;
+                mDrift = 0;
+                mMain.SetServerClockOffset(0, 0);
 
                 ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
@@ -441,27 +503,7 @@ public class RFClientServer {
         }
     }
 
-    // TODO: Put this back as a remote control packet
-    public void receiveRemoteControl() {
 
-        int serverStreamIndex = 0;
-        int boardMode = 0;
-        int boardVol = 0;
-
-        if (serverStreamIndex != mMain.currentRadioChannel) {
-            mMain.SetRadioChannel(serverStreamIndex);
-        }
-
-        if (boardMode > 0 &&
-                boardMode != mMain.getCurrentBoardMode()) {
-            mMain.setMode(boardMode);
-        }
-
-        if (boardVol != mMain.getCurrentBoardVol()) {
-            //System.out.println("UDP: set vol = " + boardVol);
-            mMain.setBoardVolume(boardVol);
-        }
-    }
 
     // Keep score of boards's we've heard from
     // If in range, vote +2 for it
@@ -556,4 +598,72 @@ public class RFClientServer {
         }
         return false;
     }
+
+    public static final int kRemoteAudioTrack = 0x01;
+    public static final int kRemoteVideoTrack = 0x02;
+    public static final int kRemoteMute = 0x03;
+
+    public void sendRemote(int cmd, int value) {
+
+        if (mRF != null) {
+            return;
+        }
+        l("Sending remote control command");
+
+        ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
+
+        for (int i = 0; i < kMagicNumberLen; i++) {
+            clientPacket.write(kRemoteControlMagicNumber[i]);
+        }
+
+        // Command
+        int16ToPacket(clientPacket, cmd);
+        // Value
+        int16ToPacket(clientPacket, value);
+
+        switch (cmd) {
+            case kRemoteAudioTrack:
+                break;
+            case kRemoteVideoTrack:
+                break;
+            case kRemoteMute:
+                break;
+            default:
+                break;
+        }
+
+        mRF.broadcast(clientPacket.toByteArray());
+
+    }
+
+    // TODO: Put this back as a remote control packet
+    public void receiveRemoteControl(int cmd, int value) {
+
+        switch (cmd) {
+            case kRemoteAudioTrack:
+                if (value != mMain.currentRadioChannel) {
+                    mMain.SetRadioChannel(value);
+                }
+                break;
+            case kRemoteVideoTrack:
+                if (value > 0 &&
+                        value != mMain.getCurrentBoardMode()) {
+                    mMain.setMode(value);
+                }
+                break;
+            case kRemoteMute:
+                if (value != mMain.getCurrentBoardVol()) {
+                    //System.out.println("UDP: set vol = " + boardVol);
+                    mMain.setBoardVolume(value);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    public long getLatency() {
+        return mLatency;
+    }
+
 }
