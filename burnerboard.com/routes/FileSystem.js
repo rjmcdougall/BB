@@ -85,7 +85,8 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 													var mp3Duration = require("mp3-duration");
 													mp3Duration(buffer, function (err, duration) {
 														if (err)
-															callback(err);
+															throw new Error(err);
+															
 														fileAttributes.songDuration = Math.floor(duration);
 
 														DownloadDirectoryDS.addMedia(boardID,

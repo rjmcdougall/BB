@@ -177,7 +177,10 @@ class AddProfile extends React.Component {
                                 </Select>
                             </FormControl>
                             <FormControl  >
-                                <Button onClick={this.handleCreateProfile} className={classes.button} raised dense>
+                                <Button onClick={async (event) => {this.setState({buttonDisabled: true});
+                                                            await this.handleCreateProfile(event);
+                                                            this.setState({buttonDisabled: false});
+                                                        }} disabled={this.state.buttonDisabled} className={classes.button} raised dense>
                                     <Save className={classes.leftIcon} />
                                     Save
                      </Button>

@@ -43,19 +43,19 @@ class BBApp extends Component {
   }
 
   handleProfileDeleteClose = () => {
-    this.setState({profileDeleteSnackbarOpen: false});
-}
+    this.setState({ profileDeleteSnackbarOpen: false });
+  }
 
-handleProfileAddClose = () => {
-  this.setState({createProfileOpenSnackbar: false});
-}
+  handleProfileAddClose = () => {
+    this.setState({ createProfileOpenSnackbar: false });
+  }
 
-handleActivateProfileClose = () => {
-  this.setState({activateOpenSnackbar: false});
-}
- 
+  handleActivateProfileClose = () => {
+    this.setState({ activateOpenSnackbar: false });
+  }
 
-  handleCreateProfile = event => {
+
+  handleCreateProfile = async (event) => {
 
     var comp = this;
 
@@ -70,54 +70,54 @@ handleActivateProfileClose = () => {
     var profileID = this.state.createProfileName.trim();
     var API = "";
 
-    var cloneFromBoardID = this.state.createProfileBoardCloneProfileName.substring(0,this.state.createProfileBoardCloneProfileName.indexOf(" - "));
+    var cloneFromBoardID = this.state.createProfileBoardCloneProfileName.substring(0, this.state.createProfileBoardCloneProfileName.indexOf(" - "));
     var cloneFromProfileID = this.state.createProfileBoardCloneProfileName.substring(this.state.createProfileBoardCloneProfileName.indexOf(" - ") + 3);
 
     if (boardID !== "GLOBAL")
       API = '/boards/' + boardID + '/profiles/' + profileID;
     else
       API = '/profiles/' + profileID;
- 
+
     console.log("API TO CREATE PROFILE : " + API);
 
-    fetch(API, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': window.sessionStorage.JWT,
-      },
-      body: JSON.stringify({
-        cloneFromBoardID: cloneFromBoardID,
-        cloneFromProfileID: cloneFromProfileID,
-      })
-    })
-      .then((res) => {
+    try {
+      var res = await fetch(API, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': window.sessionStorage.JWT,
+        },
+        body: JSON.stringify({
+          cloneFromBoardID: cloneFromBoardID,
+          cloneFromProfileID: cloneFromProfileID,
+        })
+      });
 
-        if (!res.ok) {
-          res.json().then(function (json) {
-            comp.setState({
-              createProfileOpenSnackbar: true,
-              createProfileResultsMessage: JSON.stringify(json),
-            });
-          });
-        }
-        else {
-          res.json().then(function (json) {
-            comp.setState({
-              createProfileOpenSnackbar: true,
-              createProfileResultsMessage: JSON.stringify(json),
-              forceRerendder: !comp.state.forceRerendder,
-            });
-          });
-        }
-      })
-      .catch((err) => {
+      if (!res.ok) {
+        var json = await res.json();
         comp.setState({
           createProfileOpenSnackbar: true,
-          createProfileResultsMessage: err.message
+          createProfileResultsMessage: JSON.stringify(json),
         });
+      }
+      else {
+        var json = await res.json();
+        comp.setState({
+          createProfileOpenSnackbar: true,
+          createProfileResultsMessage: JSON.stringify(json),
+          forceRerendder: !comp.state.forceRerendder,
+        });
+        return true;
+      }
+    }
+    catch (error) {
+      comp.setState({
+        createProfileOpenSnackbar: true,
+        createProfileResultsMessage: error.message
       });
+      throw new Error(error);
+    }
   }
 
   handleProfileClick = (event, id) => {
@@ -170,58 +170,58 @@ handleActivateProfileClose = () => {
 
     var API = "";
     if (boardID !== "null")
-        API = '/boards/' + boardID + '/profiles/' + profileID
+      API = '/boards/' + boardID + '/profiles/' + profileID
     else
-        API = '/profiles/' + profileID
+      API = '/profiles/' + profileID
 
-        console.log("delete API : " + API);
+    console.log("delete API : " + API);
 
     fetch(API, {
-        method: 'DELETE',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': window.sessionStorage.JWT,
-        }
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': window.sessionStorage.JWT,
+      }
     }
     )
-        .then((res) => {
+      .then((res) => {
 
-            if (!res.ok) {
-                res.json().then(function (json) {
-                    console.log('error : ' + JSON.stringify(json));
-                    comp.setState({
-                        profileDeleteSnackbarOpen: true,
-                        profileDeleteResultsMessage: JSON.stringify(json),
-                    });
-                });
-            }
-            else {
-                res.json().then(function (json) {
-                    console.log('success : ' + JSON.stringify(json));
-                    comp.setState({
-                        profileDeleteSnackbarOpen: true,
-                        profileDeleteResultsMessage: JSON.stringify(json),
-                        profileSelected: "",
-                    });
-                });
-            }
-        })
-        .catch((err) => {
-            console.log('error : ' + err);
+        if (!res.ok) {
+          res.json().then(function (json) {
+            console.log('error : ' + JSON.stringify(json));
             comp.setState({
-                profileDeleteSnackbarOpen: true,
-                profileDeleteResultsMessage: err.message
+              profileDeleteSnackbarOpen: true,
+              profileDeleteResultsMessage: JSON.stringify(json),
             });
-
+          });
+        }
+        else {
+          res.json().then(function (json) {
+            console.log('success : ' + JSON.stringify(json));
+            comp.setState({
+              profileDeleteSnackbarOpen: true,
+              profileDeleteResultsMessage: JSON.stringify(json),
+              profileSelected: "",
+            });
+          });
+        }
+      })
+      .catch((err) => {
+        console.log('error : ' + err);
+        comp.setState({
+          profileDeleteSnackbarOpen: true,
+          profileDeleteResultsMessage: err.message
         });
 
-}
+      });
+
+  }
 
   handleChange = event => {
     console.log("Set state due to form change: " + [event.target.name] + " " + event.target.value)
     this.setState({ [event.target.name]: event.target.value });
-  
+
   };
 
   handleSelect = (event, key) => {
@@ -301,7 +301,7 @@ handleActivateProfileClose = () => {
         if (this.state.currentProfileIsGlobal)
           appBody = <MediaList mediaType="video" currentProfile={this.state.currentProfile} />;
         else
-          appBody = <MediaList mediaType="video"  currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+          appBody = <MediaList mediaType="video" currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-LoadFromGDrive":
         if (this.state.currentProfileIsGlobal)
@@ -311,15 +311,15 @@ handleActivateProfileClose = () => {
         break;
       case "AppBody-ManageMedia":
         if (this.state.currentProfileIsGlobal)
-          appBody = <ManageMediaGrid  currentProfile={this.state.currentProfile} />;
+          appBody = <ManageMediaGrid currentProfile={this.state.currentProfile} />;
         else
-          appBody = <ManageMediaGrid  currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+          appBody = <ManageMediaGrid currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
         break;
       case "AppBody-ManageProfiles":
         appBody = <ProfileGrid handleProfileDeleteClose={this.handleProfileDeleteClose} profileSelected={this.state.profileSelected} handleProfileClick={this.handleProfileClick} onProfileDelete={this.onProfileDelete} profileDeleteSnackbarOpen={this.state.profileDeleteSnackbarOpen} profileDeleteResultsMessage={this.state.profileDeleteResultsMessage} />;
         break;
       case "AppBody-AddProfile":
-        appBody = <AddProfile createProfileBoardCloneProfileName={this.state.createProfileBoardCloneProfileName} handleProfileAddClose={this.handleProfileAddClose}  createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
+        appBody = <AddProfile createProfileBoardCloneProfileName={this.state.createProfileBoardCloneProfileName} handleProfileAddClose={this.handleProfileAddClose} createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
         break;
       case "AppBody-ActivateProfile":
         appBody = <SetActiveProfile handleActivateProfileClose={this.handleActivateProfileClose} handleActivateProfile={this.handleActivateProfile} activateResultsMessage={this.state.activateResultsMessage} activateOpenSnackbar={this.state.activateOpenSnackbar} currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} currentProfileIsGlobal={this.state.currentProfileIsGlobal} />;
@@ -354,7 +354,7 @@ handleActivateProfileClose = () => {
           drawerIsOpen={this.state.drawerIsOpen}
           globalDrawerIsOpen={this.state.globalDrawerIsOpen}
           currentAppBody={this.state.currentAppBody}
-          currentProfile={this.state.currentProfile} 
+          currentProfile={this.state.currentProfile}
           forceRerender={this.state.forceRerendder} />
         {/* <MuiThemeProvider theme={readableText}>
             <Typography>*/}
