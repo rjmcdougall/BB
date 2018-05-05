@@ -139,27 +139,26 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 };
 
 exports.listProfileFiles = async function (boardID, profileID) {
+	try {
 
-	return new Promise((resolve, reject) => {
-		bucket.getFiles({
+		var result = await bucket.getFiles({
 			autoPaginate: false,
 			delimiter: "/",
 			prefix: constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/"
-		})
-			.then(result => {
-				return resolve(result[0].map(item => {
-					return item.name;
-				}));
-			})
-			.catch(function (err) {
-				return reject(err);
-			});
-	});
+		});
+
+		return result[0].map(item => {
+			return item.name;
+		});
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
 
 exports.copyProfileFiles = async function (boardID, profileID, cloneFromBoardID, cloneFromProfileID) {
 
-	return new Promise((resolve, reject) => {
+	try {
 
 		var replacementPath = "";
 		var profilePath = "";
@@ -174,81 +173,74 @@ exports.copyProfileFiles = async function (boardID, profileID, cloneFromBoardID,
 		else
 			profilePath = constants.MUSIC_PATH + "/global/" + cloneFromProfileID + "/";
 
-		bucket.getFiles({
+		var result = await bucket.getFiles({
 			autoPaginate: false,
 			delimiter: "/",
 			prefix: profilePath,
-		})
-			.then(result => {
-				return resolve(result[0].map(item => {
-					item.copy(item.name.replace(profilePath, replacementPath));
-					return item.name;
-				}));
-			})
-			.catch(function (err) {
-				return reject(err);
-			});
-	});
+		});
+
+		return result[0].map(item => {
+			item.copy(item.name.replace(profilePath, replacementPath));
+			return item.name;
+		});
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
 
 exports.createRootBoardFolder = async function (boardID) {
 
-	return new Promise((resolve, reject) => {
+	try {
+		var result = await bucket.getFiles({
+			autoPaginate: false,
+			delimiter: "/",
+			prefix: constants.MUSIC_PATH + "/template/default/"
+		});
 
-		try {
-			var result = bucket.getFiles({
-				autoPaginate: false,
-				delimiter: "/",
-				prefix: constants.MUSIC_PATH + "/template/default/"
-			}).then(result => {
-				for (var i = 0; i < result[0].length; i++) {
-					result[0][i].copy(result[0][i].name.replace("template", boardID),
-						function (err, copiedFile, apiResponse) {
-							copiedFile.makePublic();
-						});
-				}
-				return true;
-			})
-				.then((worked) => {
-					return resolve("Root Folder " + boardID + " created");
+		for (var i = 0; i < result[0].length; i++) {
+			result[0][i].copy(result[0][i].name.replace("template", boardID),
+				function (err, copiedFile, apiResponse) {
+					copiedFile.makePublic();
 				});
 		}
-		catch (err) {
-			return reject(err);
-		}
-	});
+
+		return "Root Folder " + boardID + " created";
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
 
-checkForFileExists = function (boardID, profileID, fileName) {
+checkForFileExists = async function (boardID, profileID, fileName) {
 
-	return new Promise((resolve, reject) => {
-
+	try {
 		var profilePath = "";
 		if (boardID != null)
 			profilePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileName;
 		else
 			profilePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
 
-		bucket.getFiles({
+		var result = await bucket.getFiles({
 			autoPaginate: false,
 			delimiter: "/",
 			prefix: profilePath
-		})
-			.then(result => {
-				if (result[0].length > 0)
-					return resolve(true);
-				else
-					return resolve(false);
-			})
-			.catch(function (err) {
-				return reject(err);
-			});
-	});
+		});
+
+		if (result[0].length > 0)
+			return true;
+		else
+			return false;
+
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
 
 exports.deleteMedia = async function (boardID, profileID, fileName) {
 
-	return new Promise((resolve, reject) => {
+	try {
 
 		var filePath = "";
 		if (boardID != null)
@@ -256,22 +248,20 @@ exports.deleteMedia = async function (boardID, profileID, fileName) {
 		else
 			filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
 
-		bucket
+		await bucket
 			.file(filePath)
-			.delete()
-			.then(() => {
-				return resolve("File " + filePath + " deleted.");
-			})
-			.catch(err => {
-				return reject(err);
-			});
-	});
+			.delete();
+
+		return "File " + filePath + " deleted.";
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
 
 exports.deleteProfile = async function (boardID, profileID) {
 
-	return new Promise((resolve, reject) => {
-
+	try {
 		var filePath = "";
 
 		if (boardID != null)
@@ -279,28 +269,21 @@ exports.deleteProfile = async function (boardID, profileID) {
 		else
 			filePath = constants.MUSIC_PATH + "/global/" + profileID;
 
-		bucket
-			.deleteFiles({ prefix: filePath })
-			.then(() => {
-				return resolve(filePath + "* deleted");
-			})
-			.catch(err => {
-				return reject(err);
-			});
-	});
+		await bucket.deleteFiles({ prefix: filePath });
+		return filePath + "* deleted";
+
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
 
 exports.deleteBoard = async function (boardID) {
-
-	return new Promise((resolve, reject) => {
-
-		bucket
-			.deleteFiles({ prefix: constants.MUSIC_PATH + "/" + boardID })
-			.then(() => {
-				return resolve(constants.MUSIC_PATH + "/" + boardID + "* deleted");
-			})
-			.catch(err => {
-				return reject(err);
-			});
-	});
+	try {
+		await bucket.deleteFiles({ prefix: constants.MUSIC_PATH + "/" + boardID });
+		return constants.MUSIC_PATH + "/" + boardID + "* deleted";
+	}
+	catch (error) {
+		throw new Error(error);
+	}
 };
