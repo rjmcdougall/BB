@@ -1,9 +1,9 @@
-const constants = require('./Constants');
-const Storage = require('@google-cloud/storage');
+const constants = require("./Constants");
+const Storage = require("@google-cloud/storage");
 const storage = Storage();
-const google = require('googleapis');
-const drive = google.drive('v2');
-const bucket = storage.bucket('burner-board');
+const google = require("googleapis");
+const drive = google.drive("v2");
+const bucket = storage.bucket("burner-board");
 
 var fileAttributes = {
 	fileSize: 0,
@@ -21,7 +21,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 
 		drive.files.get({
 			fileId: fileId,
-			'access_token': oauthToken,
+			"access_token": oauthToken,
 		}, function (err, jsonContent) {
 
 			if (err)
@@ -44,86 +44,86 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 
 								drive.files.get({
 									fileId: fileId,
-									'access_token': oauthToken,
-									alt: 'media'
+									"access_token": oauthToken,
+									alt: "media"
 								}, {
-										encoding: null // Make sure we get the binary data
-									}, function (err, content) {
+									encoding: null // Make sure we get the binary data
+								}, function (err, content) {
 
-										if (err)
+									if (err)
+										return reject(err);
+									else {
+										// now get the real file and save it.
+										var filePath = "";
+										if (boardID != null)
+											filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileAttributes.title;
+										else
+											filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileAttributes.title;
+
+										var file3 = bucket.file(filePath);
+										var fileStream3 = file3.createWriteStream({
+											metadata: {
+												contentType: fileAttributes.mimeType,
+											}
+										});
+
+										fileStream3.on("error", (err) => {
 											return reject(err);
-										else {
-											// now get the real file and save it.
-											var filePath = "";
-											if (boardID != null)
-												filePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileAttributes.title;
-											else
-												filePath = constants.MUSIC_PATH + '/global/' + profileID + '/' + fileAttributes.title;
+										});
 
-											var file3 = bucket.file(filePath);
-											var fileStream3 = file3.createWriteStream({
-												metadata: {
-													contentType: fileAttributes.mimeType,
-												}
-											});
+										fileStream3.on("finish", () => {
+											file3.makePublic();
 
-											fileStream3.on('error', (err) => {
-												return reject(err);
-											});
+											const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+											if (filePath.endsWith("mp3")) {
 
-											fileStream3.on('finish', () => {
-												file3.makePublic();
+												var streamToBuffer = require("stream-to-buffer");
+												var stream3 = file3.createReadStream();
 
-												DownloadDirectoryDS = require('./DownloadDirectoryDS');
-												if (filePath.endsWith('mp3')) {
+												streamToBuffer(stream3, function (err, buffer) {
+													var i = buffer.length;
+													var mp3Duration = require("mp3-duration");
+													mp3Duration(buffer, function (err, duration) {
+														if (err)
+															callback(err);
+														fileAttributes.songDuration = Math.floor(duration);
 
-													var streamToBuffer = require('stream-to-buffer');
-													var stream3 = file3.createReadStream();
-
-													streamToBuffer(stream3, function (err, buffer) {
-														var i = buffer.length;
-														var mp3Duration = require('mp3-duration');
-														mp3Duration(buffer, function (err, duration) {
-															if (err)
-																callback(err);
-															fileAttributes.songDuration = Math.floor(duration);
-
-															DownloadDirectoryDS.addMedia(boardID,
-																profileID,
-																'audio',
-																filePath,
-																fileAttributes.fileSize,
-																fileAttributes.songDuration,
-																"")
-																.then(result => {
-																	return resolve(result);
-																})
-																.catch(function (err) {
-																	return reject(err);
-																});
-														});
+														DownloadDirectoryDS.addMedia(boardID,
+															profileID,
+															"audio",
+															filePath,
+															fileAttributes.fileSize,
+															fileAttributes.songDuration,
+															"")
+															.then(result => {
+																return resolve(result);
+															})
+															.catch(function (err) {
+																return reject(err);
+															});
 													});
-												}
-												else if (filePath.endsWith('mp4')) {
+												});
+											}
+											else if (filePath.endsWith("mp4")) {
 
-													DownloadDirectoryDS.addMedia(boardID,
-														profileID,
-														'video',
-														filePath,
-														fileAttributes.fileSize,
-														0,
-														"speechCue")
-														.then(result => {
-															return resolve(result);
-														})
-														.catch(function (err) {
-															return reject(err);
-														});
-												}
-											});
-											fileStream3.end(content);
-										};
-									});
+												DownloadDirectoryDS.addMedia(boardID,
+													profileID,
+													"video",
+													filePath,
+													fileAttributes.fileSize,
+													0,
+													"speechCue")
+													.then(result => {
+														return resolve(result);
+													})
+													.catch(function (err) {
+														return reject(err);
+													});
+											}
+										});
+										fileStream3.end(content);
+									}
+								});
 							}
 						})
 						.catch(function (err) {
@@ -131,20 +131,20 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 						});
 				}
 				else {
-					return reject(new Error("The file must have an mp3 or mp4 extension."))
+					return reject(new Error("The file must have an mp3 or mp4 extension."));
 				}
 			}
 		});
 	});
-}
+};
 
 exports.listProfileFiles = async function (boardID, profileID) {
 
 	return new Promise((resolve, reject) => {
 		bucket.getFiles({
 			autoPaginate: false,
-			delimiter: '/',
-			prefix: constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/'
+			delimiter: "/",
+			prefix: constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/"
 		})
 			.then(result => {
 				return resolve(result[0].map(item => {
@@ -155,7 +155,7 @@ exports.listProfileFiles = async function (boardID, profileID) {
 				return reject(err);
 			});
 	});
-}
+};
 
 exports.copyProfileFiles = async function (boardID, profileID, cloneFromBoardID, cloneFromProfileID) {
 
@@ -163,20 +163,20 @@ exports.copyProfileFiles = async function (boardID, profileID, cloneFromBoardID,
 
 		var replacementPath = "";
 		var profilePath = "";
-	
+
 		if (boardID != null)
-			replacementPath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' ;
-		else 
-			replacementPath = constants.MUSIC_PATH + '/global/' + profileID + '/' ;
-		
-		if(cloneFromBoardID != null)
-			profilePath = constants.MUSIC_PATH + '/' + cloneFromBoardID + '/' + cloneFromProfileID + '/'
+			replacementPath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/";
 		else
-			profilePath = constants.MUSIC_PATH + '/global/' + cloneFromProfileID + '/'
-		
+			replacementPath = constants.MUSIC_PATH + "/global/" + profileID + "/";
+
+		if (cloneFromBoardID != null)
+			profilePath = constants.MUSIC_PATH + "/" + cloneFromBoardID + "/" + cloneFromProfileID + "/";
+		else
+			profilePath = constants.MUSIC_PATH + "/global/" + cloneFromProfileID + "/";
+
 		bucket.getFiles({
 			autoPaginate: false,
-			delimiter: '/',
+			delimiter: "/",
 			prefix: profilePath,
 		})
 			.then(result => {
@@ -189,7 +189,7 @@ exports.copyProfileFiles = async function (boardID, profileID, cloneFromBoardID,
 				return reject(err);
 			});
 	});
-}
+};
 
 exports.createRootBoardFolder = async function (boardID) {
 
@@ -198,11 +198,11 @@ exports.createRootBoardFolder = async function (boardID) {
 		try {
 			var result = bucket.getFiles({
 				autoPaginate: false,
-				delimiter: '/',
-				prefix: constants.MUSIC_PATH + '/template/default/'
+				delimiter: "/",
+				prefix: constants.MUSIC_PATH + "/template/default/"
 			}).then(result => {
 				for (var i = 0; i < result[0].length; i++) {
-					result[0][i].copy(result[0][i].name.replace('template', boardID),
+					result[0][i].copy(result[0][i].name.replace("template", boardID),
 						function (err, copiedFile, apiResponse) {
 							copiedFile.makePublic();
 						});
@@ -211,13 +211,13 @@ exports.createRootBoardFolder = async function (boardID) {
 			})
 				.then((worked) => {
 					return resolve("Root Folder " + boardID + " created");
-				})
+				});
 		}
 		catch (err) {
 			return reject(err);
 		}
 	});
-}
+};
 
 checkForFileExists = function (boardID, profileID, fileName) {
 
@@ -225,13 +225,13 @@ checkForFileExists = function (boardID, profileID, fileName) {
 
 		var profilePath = "";
 		if (boardID != null)
-			profilePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + '/' + fileName
+			profilePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileName;
 		else
-			profilePath = constants.MUSIC_PATH + '/global/' + profileID + '/' + fileName
+			profilePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
 
 		bucket.getFiles({
 			autoPaginate: false,
-			delimiter: '/',
+			delimiter: "/",
 			prefix: profilePath
 		})
 			.then(result => {
@@ -244,17 +244,17 @@ checkForFileExists = function (boardID, profileID, fileName) {
 				return reject(err);
 			});
 	});
-}
+};
 
 exports.deleteMedia = async function (boardID, profileID, fileName) {
 
 	return new Promise((resolve, reject) => {
 
-		var filePath = ""
+		var filePath = "";
 		if (boardID != null)
-			filePath = constants.MUSIC_PATH + '/' + boardID + '/' + profileID + "/" + fileName;
+			filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileName;
 		else
-			filePath = constants.MUSIC_PATH + '/global/' + profileID + "/" + fileName;
+			filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
 
 		bucket
 			.file(filePath)
@@ -266,7 +266,7 @@ exports.deleteMedia = async function (boardID, profileID, fileName) {
 				return reject(err);
 			});
 	});
-}
+};
 
 exports.deleteProfile = async function (boardID, profileID) {
 
@@ -275,7 +275,7 @@ exports.deleteProfile = async function (boardID, profileID) {
 		var filePath = "";
 
 		if (boardID != null)
-			filePath = constants.MUSIC_PATH + "/" + boardID + '/' + profileID;
+			filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID;
 		else
 			filePath = constants.MUSIC_PATH + "/global/" + profileID;
 
@@ -288,7 +288,7 @@ exports.deleteProfile = async function (boardID, profileID) {
 				return reject(err);
 			});
 	});
-}
+};
 
 exports.deleteBoard = async function (boardID) {
 
@@ -303,4 +303,4 @@ exports.deleteBoard = async function (boardID) {
 				return reject(err);
 			});
 	});
-}
+};

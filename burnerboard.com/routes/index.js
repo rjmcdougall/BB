@@ -1,18 +1,18 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
-var util = require('util')
-var format = require('util').format;
-var bodyParser = require('body-parser');
-var UserStore = require('./UserStore');
+var util = require("util");
+var format = require("util").format;
+var bodyParser = require("body-parser");
+var UserStore = require("./UserStore");
 
 router.use(bodyParser.json());
 
 router.use(async function (req, res, next) {
 
-	if(!(req.path.endsWith('/DownloadDirectoryJSON') && req.path.startsWith('/boards/')))
+	if(!(req.path.endsWith("/DownloadDirectoryJSON") && req.path.startsWith("/boards/")))
 	{
 
-		var JWT = req.headers['authorization'].replace("Bearer ", "");
+		var JWT = req.headers["authorization"].replace("Bearer ", "");
 
 		if (JWT) {
 			try {
@@ -25,7 +25,7 @@ router.use(async function (req, res, next) {
 		}
 		else res.status(403).json({
 			success: false,
-			message: 'No token provided.'
+			message: "No token provided."
 		});
 	}
 	else
@@ -33,13 +33,13 @@ router.use(async function (req, res, next) {
 
 });
 
-router.get('/', function (req, res, next) {
+router.get("/", function (req, res, next) {
 	res.status(400).send("Not Found");
 });
 
-router.get('/boards/', async function (req, res, next) {
+router.get("/boards/", async function (req, res, next) {
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listBoards(null);
 		res.status(200).json(i);
@@ -49,11 +49,11 @@ router.get('/boards/', async function (req, res, next) {
 	}
 });
 
-router.get('/boards/:boardID', async function (req, res, next) {
+router.get("/boards/:boardID", async function (req, res, next) {
 
 	var boardID = req.params.boardID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listBoards(boardID);
 		res.status(200).json(i);
@@ -63,7 +63,7 @@ router.get('/boards/:boardID', async function (req, res, next) {
 	}
 });
 
-router.post('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
+router.post("/boards/:boardID/profiles/:profileID", async function (req, res, next) {
 
 	var boardID = req.params.boardID; 
 	var profileID = req.params.profileID;
@@ -72,10 +72,10 @@ router.post('/boards/:boardID/profiles/:profileID', async function (req, res, ne
 	if(req.body.cloneFromBoardID !== "GLOBAL")
 		cloneFromBoardID = req.body.cloneFromBoardID;
 
-	cloneFromProfileID = req.body.cloneFromProfileID;
+	var cloneFromProfileID = req.body.cloneFromProfileID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
-	FileSystem = require('./FileSystem');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+	const FileSystem = require("./FileSystem");
 
 	var results = [];
 
@@ -87,8 +87,8 @@ router.post('/boards/:boardID/profiles/:profileID', async function (req, res, ne
 			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
  				results.push(await FileSystem.copyProfileFiles(boardID, profileID, cloneFromBoardID, cloneFromProfileID));
 			}
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, 'audio'));
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, 'video'));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, "audio"));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, "video"));
 		}
 		else
 			throw new Error("the profile already exists");
@@ -100,7 +100,7 @@ router.post('/boards/:boardID/profiles/:profileID', async function (req, res, ne
 
 });
 
-router.post('/profiles/:profileID', async function (req, res, next) {
+router.post("/profiles/:profileID", async function (req, res, next) {
 
 	var profileID = req.params.profileID;
 	var cloneFromBoardID = null;
@@ -108,10 +108,10 @@ router.post('/profiles/:profileID', async function (req, res, next) {
 	if(req.body.cloneFromBoardID !== "GLOBAL")
 		cloneFromBoardID = req.body.cloneFromBoardID;
 
-	cloneFromProfileID = req.body.cloneFromProfileID;
+	var cloneFromProfileID = req.body.cloneFromProfileID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
-	FileSystem = require('./FileSystem');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+	const FileSystem = require("./FileSystem");
 
 	var results = [];
 
@@ -123,8 +123,8 @@ router.post('/profiles/:profileID', async function (req, res, next) {
 			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
  				results.push(await FileSystem.copyProfileFiles(null, profileID, cloneFromBoardID, cloneFromProfileID));
 			}
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, 'audio'));
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, 'video'));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, "audio"));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, "video"));
 		}
 		else
 			throw new Error("the profile already exists");
@@ -135,12 +135,12 @@ router.post('/profiles/:profileID', async function (req, res, next) {
 	}
 });
 
-router.delete('/profiles/:profileID', async function (req, res, next) {
+router.delete("/profiles/:profileID", async function (req, res, next) {
 
 	var profileID = req.params.profileID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
-	FileSystem = require('./FileSystem');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+	const FileSystem = require("./FileSystem");
 
 	try {
 		var profileExists = await DownloadDirectoryDS.profileExists(null, profileID);
@@ -160,13 +160,13 @@ router.delete('/profiles/:profileID', async function (req, res, next) {
 	}
 });
 
-router.delete('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
+router.delete("/boards/:boardID/profiles/:profileID", async function (req, res, next) {
 
 	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
-	FileSystem = require('./FileSystem');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+	const FileSystem = require("./FileSystem");
 
 	try {
 		var profileExists = await DownloadDirectoryDS.profileExists(boardID, profileID);
@@ -186,9 +186,9 @@ router.delete('/boards/:boardID/profiles/:profileID', async function (req, res, 
 	}
 });
 
-router.get('/allProfiles/', async function (req, res, next) {
+router.get("/allProfiles/", async function (req, res, next) {
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listProfiles(null, null);
 		res.status(200).json(i);
@@ -198,9 +198,9 @@ router.get('/allProfiles/', async function (req, res, next) {
 	}
 });
 
-router.get('/profiles/', async function (req, res, next) {
+router.get("/profiles/", async function (req, res, next) {
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listGlobalProfiles(null);
 		res.status(200).json(i);
@@ -210,11 +210,11 @@ router.get('/profiles/', async function (req, res, next) {
 	}
 });
 
-router.get('/profiles/:profileID', async function (req, res, next) {
+router.get("/profiles/:profileID", async function (req, res, next) {
 
 	var profileID = req.params.profileID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listGlobalProfiles(profileID);
 		res.status(200).json(i);
@@ -224,11 +224,11 @@ router.get('/profiles/:profileID', async function (req, res, next) {
 	}
 });
 
-router.get('/boards/:boardID/profiles', async function (req, res, next) {
+router.get("/boards/:boardID/profiles", async function (req, res, next) {
 
 	var boardID = req.params.boardID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listProfiles(boardID, null);
 		res.status(200).json(i);
@@ -238,12 +238,12 @@ router.get('/boards/:boardID/profiles', async function (req, res, next) {
 	}
 });
 
-router.get('/boards/:boardID/profiles/:profileID', async function (req, res, next) {
+router.get("/boards/:boardID/profiles/:profileID", async function (req, res, next) {
 
 	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listProfiles(boardID, profileID);
 		res.status(200).json(i);
@@ -253,12 +253,12 @@ router.get('/boards/:boardID/profiles/:profileID', async function (req, res, nex
 	}
 });
 
-router.get('/currentStatuses', async function (req, res, next) {
+router.get("/currentStatuses", async function (req, res, next) {
 
 	try {
 		var i = 1;
 
-		BatteryQueries = require('./BatteryQueries')
+		const BatteryQueries = require("./BatteryQueries");
 		var results = [];
 
 		results = await BatteryQueries.queryBatteryData();
@@ -269,9 +269,9 @@ router.get('/currentStatuses', async function (req, res, next) {
 	}
 });
 
-router.get('/boards/:boardID/batteryHistory', async function (req, res, next) {
+router.get("/boards/:boardID/batteryHistory", async function (req, res, next) {
 
-	BatteryQueries = require('./BatteryQueries')
+	const BatteryQueries = require("./BatteryQueries");
 	var results = [];
 
 	try {
@@ -283,9 +283,9 @@ router.get('/boards/:boardID/batteryHistory', async function (req, res, next) {
 	}
 });
 
-router.get('/boards/:boardID/profiles/:profileID/listFiles', async function (req, res, next) {
+router.get("/boards/:boardID/profiles/:profileID/listFiles", async function (req, res, next) {
 
-	FileSystem = require('./FileSystem');
+	const FileSystem = require("./FileSystem");
 
 	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
@@ -301,9 +301,9 @@ router.get('/boards/:boardID/profiles/:profileID/listFiles', async function (req
 
 });
 
-router.post('/boards/:boardID/activeProfile/:profileID/isGlobal/:isGlobal', async function (req, res, next) {
+router.post("/boards/:boardID/activeProfile/:profileID/isGlobal/:isGlobal", async function (req, res, next) {
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
@@ -326,8 +326,8 @@ router.post('/boards/:boardID/activeProfile/:profileID/isGlobal/:isGlobal', asyn
 
 });
 
-router.get('/boards/:boardID/DownloadDirectoryJSON', async function (req, res, next) {
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+router.get("/boards/:boardID/DownloadDirectoryJSON", async function (req, res, next) {
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	var boardID = req.params.boardID;
 	var result = [];
 	try {
@@ -353,8 +353,8 @@ router.get('/boards/:boardID/DownloadDirectoryJSON', async function (req, res, n
 
 });
 
-router.get('/boards/:boardID/profiles/:profileID/DownloadDirectoryJSON', async function (req, res, next) {
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+router.get("/boards/:boardID/profiles/:profileID/DownloadDirectoryJSON", async function (req, res, next) {
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
 	var result = [];
@@ -374,8 +374,8 @@ router.get('/boards/:boardID/profiles/:profileID/DownloadDirectoryJSON', async f
 
 });
 
-router.get('/profiles/:profileID/DownloadDirectoryJSON', async function (req, res, next) {
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+router.get("/profiles/:profileID/DownloadDirectoryJSON", async function (req, res, next) {
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	var profileID = req.params.profileID;
 	var result = [];
 	try {
@@ -388,19 +388,19 @@ router.get('/profiles/:profileID/DownloadDirectoryJSON', async function (req, re
 
 });
 
-router.delete('/profiles/:profileID/:mediaType/:mediaLocalName', async function (req, res, next) {
+router.delete("/profiles/:profileID/:mediaType/:mediaLocalName", async function (req, res, next) {
 
 	var boardID = null;
 	var profileID = req.params.profileID;
 	var mediaType = req.params.mediaType;
 	var mediaLocalName = req.params.mediaLocalName;
 
-	FileSystem = require('./FileSystem');
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const FileSystem = require("./FileSystem");
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	try {
 		var results = [];
-		var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName))
+		var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName));
 		if (mediaExists) {
 			results = await DownloadDirectoryDS.deleteMedia(boardID, profileID, mediaType, mediaLocalName);
 			results = await FileSystem.deleteMedia(boardID, profileID, mediaLocalName);
@@ -415,21 +415,21 @@ router.delete('/profiles/:profileID/:mediaType/:mediaLocalName', async function 
 	}
 });
 
-router.delete('/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName', async function (req, res, next) {
+router.delete("/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName", async function (req, res, next) {
 
 	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
 	var mediaType = req.params.mediaType;
 	var mediaLocalName = req.params.mediaLocalName;
 
-	FileSystem = require('./FileSystem');
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const FileSystem = require("./FileSystem");
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	try {
 		var results = [];
 		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
 		if (boardExists) {
-			var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName))
+			var mediaExists = await (DownloadDirectoryDS.mediaExists(boardID, profileID, mediaType, mediaLocalName));
 			if (mediaExists) {
 				results = await DownloadDirectoryDS.deleteMedia(boardID, profileID, mediaType, mediaLocalName);
 				results = await FileSystem.deleteMedia(boardID, profileID, mediaLocalName);
@@ -446,12 +446,12 @@ router.delete('/boards/:boardID/profiles/:profileID/:mediaType/:mediaLocalName',
 	}
 });
 
-router.delete('/boards/:boardID', async function (req, res, next) {
+router.delete("/boards/:boardID", async function (req, res, next) {
 
 	var boardID = req.params.boardID;
 
-	FileSystem = require('./FileSystem');
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const FileSystem = require("./FileSystem");
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	try {
 		var results = [];
@@ -472,12 +472,12 @@ router.delete('/boards/:boardID', async function (req, res, next) {
 	}
 });
 
-router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
+router.get("/boards/AddBoard/:boardID", async function (req, res, next) {
 
 	var newBoardID = req.params.boardID;
 
-	FileSystem = require('./FileSystem');
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const FileSystem = require("./FileSystem");
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	try {
 		var results = [];
@@ -485,8 +485,8 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 		if (!boardExists) {
 			results.push(await DownloadDirectoryDS.createNewBoard(newBoardID));
 			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, "video"));
-			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, 'audio'));
-			results.push(await DownloadDirectoryDS.createProfile(newBoardID, "default", false))
+			results.push(await DownloadDirectoryDS.createNewBoardMedia(newBoardID, "audio"));
+			results.push(await DownloadDirectoryDS.createProfile(newBoardID, "default", false));
 			results.push(await FileSystem.createRootBoardFolder(newBoardID));
 			res.status(200).json(results);
 		}
@@ -498,9 +498,9 @@ router.get('/boards/AddBoard/:boardID', async function (req, res, next) {
 	}
 });
 
-router.post('/profiles/:profileID/:mediaType/ReorderMedia', async function (req, res, next) {
+router.post("/profiles/:profileID/:mediaType/ReorderMedia", async function (req, res, next) {
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	var mediaArray = req.body.mediaArray;
 	var boardID = null;
@@ -518,9 +518,9 @@ router.post('/profiles/:profileID/:mediaType/ReorderMedia', async function (req,
 
 });
 
-router.post('/boards/:boardID/profiles/:profileID/:mediaType/ReorderMedia', async function (req, res, next) {
+router.post("/boards/:boardID/profiles/:profileID/:mediaType/ReorderMedia", async function (req, res, next) {
 
-	DownloadDirectoryDS = require('./DownloadDirectoryDS');
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 	var mediaArray = req.body.mediaArray;
 	var boardID = req.params.boardID;
@@ -538,7 +538,7 @@ router.post('/boards/:boardID/profiles/:profileID/:mediaType/ReorderMedia', asyn
 
 });
 
-router.post('/profiles/:profileID/AddFileFromGDrive', async function (req, res, next) {
+router.post("/profiles/:profileID/AddFileFromGDrive", async function (req, res, next) {
 
 	var oAuthToken = req.body.oauthToken;
 
@@ -546,7 +546,7 @@ router.post('/profiles/:profileID/AddFileFromGDrive', async function (req, res, 
 	var profileID = req.params.profileID;
 	var results = [];
 
-	FileSystem = require('./FileSystem');
+	const FileSystem = require("./FileSystem");
 
 	try {
 		results = await FileSystem.addGDriveFile(null, profileID, fileId, oAuthToken, "");
@@ -554,13 +554,13 @@ router.post('/profiles/:profileID/AddFileFromGDrive', async function (req, res, 
 	}
 	catch (err) {
 		if (err.message.indexOf("already exists for profile") > -1)
-			res.status(409).send(err.message)
+			res.status(409).send(err.message);
 		else
 			res.status(500).json(err.message);
 	}
 });
 
-router.post('/boards/:boardID/profiles/:profileID/AddFileFromGDrive', async function (req, res, next) {
+router.post("/boards/:boardID/profiles/:profileID/AddFileFromGDrive", async function (req, res, next) {
 
 	var oAuthToken = req.body.oauthToken;
 
@@ -569,7 +569,7 @@ router.post('/boards/:boardID/profiles/:profileID/AddFileFromGDrive', async func
 	var profileID = req.params.profileID;
 	var results = [];
 
-	FileSystem = require('./FileSystem');
+	const FileSystem = require("./FileSystem");
 
 	try {
 		results = await FileSystem.addGDriveFile(currentBoard, profileID, fileId, oAuthToken);
@@ -577,7 +577,7 @@ router.post('/boards/:boardID/profiles/:profileID/AddFileFromGDrive', async func
 	}
 	catch (err) {
 		if (err.message.indexOf("already exists for board") > -1)
-			res.status(409).send(err.message)
+			res.status(409).send(err.message);
 		else
 			res.status(500).json(err.message);
 	}

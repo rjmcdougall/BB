@@ -1,0 +1,41 @@
+{
+    "env": {
+        "browser": true,
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true,
+            "modules": true
+        }
+    },
+    "rules": {
+        "no-const-assign": "warn",
+        "no-this-before-super": "warn",
+        "no-undef": "warn",
+        "no-unreachable": "warn",
+        "constructor-super": "warn",
+        "valid-typeof": "warn",
+        "no-extra-semi": "error",
+        "indent": [
+            "warn",
+            "tab"
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": [
+            "warn",
+            "double"
+        ],
+        "semi": [
+            "warn",
+            "always"
+        ]
+    }
+}

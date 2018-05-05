@@ -1,46 +1,46 @@
-const constants = require('./Constants');
-const BigQuery = require('@google-cloud/bigquery');
+const constants = require("./Constants");
+const BigQuery = require("@google-cloud/bigquery");
 const bigquery = BigQuery({
-  projectId: constants.PROJECT_ID
+	projectId: constants.PROJECT_ID
 });
 
 exports.queryBatteryData = async function () {
 
-  const options = {
-    query: BatteryQueries.sqlBatteryLevel,
-    useLegacySql: false
-  };
+	const options = {
+		query: this.sqlBatteryLevel,
+		useLegacySql: false
+	};
 
-  return new Promise((resolve, reject) => {
-    bigquery
-      .query(options)
-      .then((results) => {
-        resolve(results[0]);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-}
+	return new Promise((resolve, reject) => {
+		bigquery
+			.query(options)
+			.then((results) => {
+				resolve(results[0]);
+			})
+			.catch((err) => {
+				reject(err);
+			});
+	});
+};
 
 exports.queryBatteryHistory = async function (boardID) {
 
-  const options = {
-    query: BatteryQueries.sqlBatteryHistory.replace('?', boardID),
-    useLegacySql: false // Use standard SQL syntax for queries.
-  };
+	const options = {
+		query: this.sqlBatteryHistory.replace("?", boardID),
+		useLegacySql: false // Use standard SQL syntax for queries.
+	};
 
-  return new Promise((resolve, reject) => {
-    bigquery
-      .query(options)
-      .then((results) => {
-        resolve(results[0]);
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-}
+	return new Promise((resolve, reject) => {
+		bigquery
+			.query(options)
+			.then((results) => {
+				resolve(results[0]);
+			})
+			.catch((err) => {
+				reject(err);
+			});
+	});
+};
 
 exports.sqlBatteryLevel = `SELECT 
 board_name,
@@ -105,4 +105,4 @@ board_name,
 TimeBucket
 ORDER BY
 TimeBucket ASC
-`
+`;

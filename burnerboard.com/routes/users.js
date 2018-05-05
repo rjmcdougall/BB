@@ -1,16 +1,16 @@
-var express = require('express');
+var express = require("express");
 var router = express.Router();
 
-router.get('/', function (req, res, next) {
+router.get("/", function (req, res, next) {
 	res.status(400).send("Not Found");
 });
 
-router.post('/Auth', async function (req, res, next) {
+router.post("/Auth", async function (req, res, next) {
 
-	var JWT = req.headers['authorization'].replace("Bearer ","");
+	var JWT = req.headers["authorization"].replace("Bearer ","");
 	var results = [];
 
-	UserStore = require('./UserStore');
+	const UserStore = require("./UserStore");
 	try {
 		results.push(await UserStore.verifyJWT(JWT));
 		res.status(200).send(results);
