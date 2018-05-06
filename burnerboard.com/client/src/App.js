@@ -1,108 +1,109 @@
-import React, { Component } from 'react';
-import BBApp from './BBApp';
-import GoogleLoginPage from './GoogleLoginPage';
+import React, { Component } from "react";
+import BBApp from "./BBApp";
+import GoogleLoginPage from "./GoogleLoginPage";
 
 class App extends Component {
 
-  constructor(props) {
-    super(props);
+	constructor(props) {
+		super(props);
 
-    this.state = {
-      JWT: "",
-      buttonText: "Login with Google",
-    };
+		this.state = {
+			JWT: "",
+			buttonText: "Login with Google",
+		};
 
-    this.responseGoogle = this.responseGoogle.bind(this);
-  }
+		this.responseGoogle = this.responseGoogle.bind(this);
+	}
 
-  responseGoogle = (response) => {
-    console.log("google response: " + response);
- 
-    if (response.error != null && response.error !== ""){
+	// @ts-ignore
+	responseGoogle(response) {
+		console.log("google response: " + response);
 
-      this.setState({ buttonText: "Error: " + response.error + " " + response.details +  " Please try again." });
-  }
-    else {
+		if (response.error != null && response.error !== "") {
 
-      var id_token = response.getAuthResponse().id_token;
+			this.setState({ buttonText: "Error: " + response.error + " " + response.details + " Please try again." });
+		}
+		else {
 
-      console.log("id token : " + id_token);
+			var id_token = response.getAuthResponse().id_token;
 
-      const app = this;
+			console.log("id token : " + id_token);
 
-      var API = '/users/Auth';
+			const app = this;
 
-      fetch(API, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'authorization': id_token,
-          }
-        })
-        .then(res => {
-          if (!res.ok) {
-            res.text().then(function (text) {
+			var API = "/users/Auth";
 
-              app.setState({
-                JWT: "",
-                buttonText: text,
-              });
-           });
-          }
-          else {
+			fetch(API, {
+				method: "POST",
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": id_token,
+				}
+			})
+				.then(res => {
+					if (!res.ok) {
+						res.text().then(function (text) {
 
-            window.sessionStorage.setItem("JWT", id_token)
-            console.log("JWT stored in sessionStorage: " + id_token);
-            console.log(window.sessionStorage.getItem("JWT"));
-            
+							app.setState({
+								JWT: "",
+								buttonText: text,
+							});
+						});
+					}
+					else {
 
-            app.setState({
-              JWT: window.sessionStorage.JWT,
-              buttonText: "",
-            });
-
-            res.text().then(function (text) {
-              console.log('OK res : ' + text);
-
-            });
-          }
-        })
-        .catch((err) => {
-
-          err.text().then(function (text) {
-            app.setState({
-              JWT: "",
-              buttonText: text,
-            });
-          });
-
-        });
-
-    }
+						window.sessionStorage.setItem("JWT", id_token);
+						console.log("JWT stored in sessionStorage: " + id_token);
+						console.log(window.sessionStorage.getItem("JWT"));
 
 
-  }
+						app.setState({
+							JWT: window.sessionStorage.JWT,
+							buttonText: "",
+						});
 
-  render() {
+						res.text().then(function (text) {
+							console.log("OK res : " + text);
 
-    var JWT = "";
-    var appBody = "";
+						});
+					}
+				})
+				.catch((err) => {
 
-    if (window.sessionStorage.JWT != null)
-      JWT = window.sessionStorage.JWT;
+					err.text().then(function (text) {
+						app.setState({
+							JWT: "",
+							buttonText: text,
+						});
+					});
 
-    if (JWT === "")
-      appBody = <GoogleLoginPage buttonText={this.state.buttonText} responseGoogle={this.responseGoogle} />;
-    else
-      appBody = <BBApp />;
+				});
 
-    return (
-      <div className="App" style={{ margin: 0 }}>
-        {appBody}
-      </div>
-    );
-  }
+		}
+
+
+	}
+
+	render() {
+
+		var JWT = "";
+		var appBody = "";
+
+		if (window.sessionStorage.JWT != null)
+			JWT = window.sessionStorage.JWT;
+
+		if (JWT === "")
+			appBody = <GoogleLoginPage buttonText={this.state.buttonText} responseGoogle={this.responseGoogle} />;
+		else
+			appBody = <BBApp />;
+
+		return (
+			<div className="App" style={{ margin: 0 }}>
+				{appBody}
+			</div>
+		);
+	}
 }
 
 export default App;
