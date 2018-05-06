@@ -42,20 +42,20 @@ class BBApp extends Component {
 
 	}
 
-	handleProfileDeleteClose() {
+	handleProfileDeleteClose = () => { //eslint-disable-line
 		this.setState({ profileDeleteSnackbarOpen: false });
 	}
 
-	handleProfileAddClose() {
+	handleProfileAddClose = () => {
 		this.setState({ createProfileOpenSnackbar: false });
 	}
 
-	handleActivateProfileClose() {
+	handleActivateProfileClose = () => {
 		this.setState({ activateOpenSnackbar: false });
 	}
 
 
-	async handleCreateProfile(event) {
+	handleCreateProfile = async (event) => {
 
 		var comp = this;
 
@@ -120,12 +120,12 @@ class BBApp extends Component {
 		}
 	}
 
-	handleProfileClick(event, id) {
+	handleProfileClick = (event, id) => {
 		let newSelected = [id];
 		this.setState({ profileSelected: newSelected });
 	};
 
-	handleActivateProfile(event) {
+	handleActivateProfile = event => {
 
 		var comp = this;
 
@@ -160,7 +160,7 @@ class BBApp extends Component {
 			});
 	}
 
-	onProfileDelete() {
+	onProfileDelete = () => {
 
 		var comp = this;
 
