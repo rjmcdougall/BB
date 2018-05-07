@@ -33,12 +33,32 @@ exports.fakeMediaState = {
 	},
 	battery: 87,
 	theirAddress: "",
-	location: {
+	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
 		latitudeDelta: 0.0922,
 		longitudeDelta: 0.0922,
 	},
+	locations: [{
+		title: "default1",
+		latitude: 37.789,
+		longitude: -122.432,
+	},
+	{
+		title: "default2",
+		latitude: 37.790,
+		longitude: -122.434,
+	},
+	{
+		title: "default3",
+		latitude: 37.791,
+		longitude: -122.436,
+	},
+	{
+		title: "default4",
+		latitude: 37.792,
+		longitude: -122.438,
+	}],
 };
 
 exports.emptyMediaState = {
@@ -66,12 +86,32 @@ exports.emptyMediaState = {
 	},
 	battery: 0,
 	theirAddress: "",
-	location: {
+	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
 		latitudeDelta: 0.0922,
 		longitudeDelta: 0.0922,
 	},
+	locations: [{
+		title: "default1",
+		latitude: 37.789,
+		longitude: -122.432,
+	},
+	{
+		title: "default2",
+		latitude: 37.790,
+		longitude: -122.434,
+	},
+	{
+		title: "default3",
+		latitude: 37.791,
+		longitude: -122.436,
+	},
+	{
+		title: "default4",
+		latitude: 37.792,
+		longitude: -122.438,
+	}],
 };
 
 exports.createMediaState = async function (peripheral) {
@@ -105,7 +145,7 @@ exports.refreshMediaState = async function (mediaState) {
 			mediaState = await this.loadDevices(mediaState);
 			mediaState = await this.readVolume(mediaState);
 			mediaState = await this.readBattery(mediaState);
-			mediaState = await this.readLocation(mediaState);
+			//mediaState = await this.readLocation(mediaState);
 
 			console.log("BLEBoardData: RefreshMediaState Complete: ");
 			return mediaState;
@@ -423,31 +463,43 @@ exports.readLocation = async function (mediaState) {
 		try {
 			if (!fakeBLE) {
 				var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.locationService, BLEIDs.locationCharacteristic);
-                console.log("readLocation: " + JSON.stringify(readData));
 
-				if (readData.length > 4) {
-					mediaState.theirAddress = readData[2] + readData[3] * 256;
-					lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
-                    if (lat > Math.pow(2, 31)) {
-                        lat = -1 * (Math.pow(2, 32)  - 1 - lat);
-                    }
-					lon = readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216;
-                    if (lon > Math.pow(2, 31)) {
-                        lon = -1 * (Math.pow(2, 32) - 1 - lon);
-                    }
-                    // TODO: We need to keep an array of recent coordinates to plot rather than one
-					mediaState.location = this.getRegionForCoordinates([{
-						latitude: lat / 1000000.0,
-						longitude: lon / 1000000.0,
-					}]);
-					mediaState.coordinate = this.getMarkersForCoordinates([{
-						latitude: lat / 1000000.0,
-						longitude: lon / 1000000.0,
-					}]);
+				if (readData) {
+					if (readData.length > 4) {
+						var lat;
+						var lon;
+						mediaState.theirAddress = readData[2] + readData[3] * 256;
+						lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
+						if (lat > Math.pow(2, 31)) {
+							lat = -1 * (Math.pow(2, 32) - 1 - lat);
+						}
+						lon = readData[9] + readData[10] * 256 + readData[11] * 65536 + readData[12] * 16777216;
+						if (lon > Math.pow(2, 31)) {
+							lon = -1 * (Math.pow(2, 32) - 1 - lon);
+						}
+
+						//clear out the emptyMediaState data if its still in the array
+						mediaState.locations = mediaState.locations.filter((item) => {
+							if (!item.title.startsWith("default"))
+								return item;
+						});
+
+						// push new coordinates to locatin array
+						mediaState.locations.push({
+							latitude: lat / 1000000.0,
+							longitude: lon / 1000000.0,
+						});
+						console.log("BLEBoardData: ReadLocation found new coordinates lat: " + lat + " lon: " + lon);
+					}
 				}
+				else
+					console.log("BLEBoardData: ReadLocation found no new coordinates");
+
 			}
-			console.log("Location: " + mediaState.location.latitude + "," + mediaState.location.longitude);
-            console.log("mediaState.coordinate: " + JSON.stringify(mediaState.coordinate));
+			// determine new region.
+			if(mediaState.locations.length>0)
+				mediaState.region = this.getRegionForCoordinates(mediaState.locations);
+
 			return mediaState;
 		}
 		catch (error) {
@@ -458,8 +510,6 @@ exports.readLocation = async function (mediaState) {
 };
 
 exports.getRegionForCoordinates = function (points) {
-    console.log("Points: " + JSON.stringify(points));
-
 	// points should be an array of { latitude: X, longitude: Y }
 	let minX, maxX, minY, maxY;
 
@@ -470,7 +520,6 @@ exports.getRegionForCoordinates = function (points) {
 		minY = point.longitude;
 		maxY = point.longitude;
 	})(points[0]);
-    console.log("getRegionForCoordinates: " + minX + "," + minY);
 
 	// calculate rect
 	points.map((point) => {
@@ -482,10 +531,8 @@ exports.getRegionForCoordinates = function (points) {
 
 	const midX = (minX + maxX) / 2;
 	const midY = (minY + maxY) / 2;
-	//const deltaX = (maxX - minX);
-	//const deltaY = (maxY - minY);
-	const deltaX = 0.0922;
-	const deltaY = 0.0922;
+	const deltaX = (maxX - minX) * 2;
+	const deltaY = (maxY - minY) * 2;
 
 	return {
 		latitude: midX,
@@ -495,28 +542,5 @@ exports.getRegionForCoordinates = function (points) {
 	};
 };
 
-exports.getMarkersForCoordinates = function (points) {
-    console.log("Markers: " + JSON.stringify(points));
-
-	// points should be an array of { latitude: X, longitude: Y }
-
-    // TOD: This should really convert the list of points into a list of markers
-
-
-	let X, Y;
-
-	// calculate 
-	points.map((point) => {
-		X = point.latitude;
-		Y = point.longitude;
-	});
-
-    console.log("getMarkerorCoordinates: " + X + "," + Y);
-
-	return {
-        latitude: X,
-        longitude: Y,
-	};
-};
 
 

@@ -239,7 +239,7 @@ export default class BoardManager extends Component {
 						});
 
 						// Kick off a per-second location reader 
-						this.readLocationLoop(this.state.mediaState);
+						await this.readLocationLoop(this.state.mediaState);
 						console.log("BoardManager: Begin Background Location Loop");
 
 					}
@@ -253,7 +253,7 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	readLocationLoop() {
+	async readLocationLoop() {
 
 		var backgroundTimer = setInterval(async () => {
 			if (this.state.mediaState) {

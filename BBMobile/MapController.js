@@ -2,8 +2,7 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import MapView from "react-native-maps";
 import PropTypes from "prop-types";
-
-import Marker from 'react-native-maps';
+import BLEBoardData from "./BLEBoardData";
 
 export default class MapController extends React.Component {
 	constructor(props) {
@@ -26,20 +25,38 @@ export default class MapController extends React.Component {
 		//this.setState({ region: region });
 	}
 
+
+
 	render() {
 
+		var locations = BLEBoardData.emptyMediaState.locations;
+
 		return (
-            <MapView
+			<MapView
 				style={styles.map}
-				initialRegion={this.state.mediaState.location}
-				region={this.state.mediaState.location}
+				initialRegion={{
+					latitude: 39.7684,
+					longitude: -86.1581,
+					latitudeDelta: 0.0922,
+					longitudeDelta: 0.0922,
+				}}
+				region={this.state.mediaState.region}
 				onRegionChange={this.onRegionChange}
-            >
-			<Marker
-                coordinate={this.state.mediaState.coordinate}
-                title="test"
-			/>
+			>
+				{locations.map(marker => {
+					return (
+						<MapView.Marker
+							key={marker.title}
+							coordinate={{
+								latitude: marker.latitude,
+								longitude: marker.longitude
+							}}
+							title={marker.title}
+						/>
+					);
+				})}
 			</MapView>
+
 		);
 	}
 }
@@ -54,21 +71,3 @@ const styles = StyleSheet.create({
 		marginVertical: 50,
 	},
 });
-/*
-                this.state.markers.map(marker => (
-                <Marker
-                coordinate={marker.latlng}
-                title={marker.title}
-                description={marker.description}
-                />
-                ))}
-*/
-
-//{this.state.markers.map(marker => (
-//<Marker
-//coordinate={marker.latlng}
-//title={marker.title}
-//description={marker.description}
-///>
-//))}
-//</MapView>
