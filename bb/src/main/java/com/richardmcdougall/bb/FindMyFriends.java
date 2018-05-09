@@ -3,6 +3,7 @@ package com.richardmcdougall.bb;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -14,6 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.HashMap;
 
 /**
  * Created by rmc on 2/7/18.
@@ -21,12 +23,13 @@ import java.security.MessageDigest;
 
 public class FindMyFriends {
 
-    private static final String TAG = "BB.Gps";
+    private static final String TAG = "BB.FMF";
     private Context mContext;
     private RF mRadio;
     private RFAddress mRFAddress = null;
     private Gps mGps;
     private IoTClient mIotClient;
+    private BBService mBBService;
     private findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
     static final int kMaxFixAge = 5000;
@@ -59,6 +62,7 @@ public class FindMyFriends {
         mRadio = radio;
         mGps = gps;
         mIotClient = iotclient;
+        mBBService = service;
         l("Starting FindMyFriends");
 
         if (mRadio == null) {
@@ -71,10 +75,8 @@ public class FindMyFriends {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
                 l("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
-                if (processReceive(bytes)) {
-                    l("theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
-                    mIotClient.sendUpdate("bbevent", "[" +
-                            "remote," + sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
+                if (processReceive(bytes, sigStrength)) {
+
                 }
             }
 
@@ -90,7 +92,7 @@ public class FindMyFriends {
                 if (sinceLastFix > kMaxFixAge) {
                     l("FMF: sending GPS update");
                     mIotClient.sendUpdate("bbevent", "[" +
-                                "local," + 0 + "," + mLat + "," + mLon + "]");
+                            mRFAddress.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
                     mLastFix = System.currentTimeMillis();
 
@@ -170,6 +172,7 @@ public class FindMyFriends {
         mRadio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
         l("Sent packet...");
+        updateBoardLocations(mBoardAddress, 999, radioPacket.toByteArray());
 
         radioPacket = new ByteArrayOutputStream();
 
@@ -238,7 +241,7 @@ public class FindMyFriends {
         return new String(hexChars);
     }
 
-    boolean processReceive(byte [] packet) {
+    boolean processReceive(byte [] packet, int sigStrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         int recvMagicNumber = magicNumberToInt(
@@ -264,6 +267,10 @@ public class FindMyFriends {
             mThereAccurate = bytes.read();
             mLastRecv = System.currentTimeMillis();
             mLastHeardLocation = packet.clone();
+            l("theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
+            mIotClient.sendUpdate("bbevent", "[" +
+                    mRFAddress.boardAddressToName(mTheirAddress) + "," + sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
+            updateBoardLocations(mTheirAddress, sigStrength, packet.clone());
             return true;
         } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
             l("tracker packet");
@@ -293,18 +300,63 @@ public class FindMyFriends {
     }
 
 
-    // TODO: make this pull from a buffered list of recent locations
-    // this just samples the last written location for now
+    // Pull one location from the list of recent locations
+    // TODO: pull only recent locations according to age
+    int lastLocationGet = 0;
     byte[] getRecentLocation() {
 
-        if (mLastHeardLocation != null) {
+        byte [] lastHeardLocation = null;
+        int address = 0;
+
+        int keyNo = 0;
+        int getLoc = lastLocationGet;
+        if (lastLocationGet == (mBoardLocations.size())) {
+            lastLocationGet = 0;
+            getLoc = 0;
+        }
+        lastLocationGet = lastLocationGet + 1;
+
+
+        for (int addr: mBoardLocations.keySet()) {
+            if (keyNo == getLoc) {
+                boardLocation loc = mBoardLocations.get(addr);
+                lastHeardLocation = loc.lastheardLocaton;
+                address = addr;
+                l("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
+                break;
+            }
+            keyNo++;
+        }
+
+        if (lastHeardLocation != null) {
             l("get recent location " + mLastHeardLocation.length);
-            return mLastHeardLocation;
+            return lastHeardLocation;
         } else {
             l("no recent locaton");
             return new byte[] {0, 0};
         }
 
+    }
+
+    // Keep a list of board GPS locations
+    class boardLocation {
+        int sigStrength;
+        long lastHeard;
+        byte[] lastheardLocaton;
+    }
+    private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
+
+    private void updateBoardLocations(int address, int sigstrength, byte[] locationPacket) {
+
+        boardLocation loc = new boardLocation();
+        loc.lastHeard = SystemClock.elapsedRealtime();
+        loc.lastheardLocaton = locationPacket.clone();
+        loc.sigStrength = sigstrength;
+        mBoardLocations.put(address, loc);
+        for (int addr: mBoardLocations.keySet()) {
+            boardLocation l = mBoardLocations.get(addr);
+            l("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard) + ", bytes: " + bytesToHex(l.lastheardLocaton));
+        }
     }
 
 }
