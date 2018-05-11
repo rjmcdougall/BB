@@ -21,7 +21,14 @@ class App extends Component {
 
 		if (response.error != null && response.error !== "") {
 
-			this.setState({ buttonText: "Error: " + response.error + " " + response.details + " Please try again." });
+			var errorText = "";
+			if(response.error.contains("http://burnerboard.com"))
+				errorText = "YOU MUST USE HTTPS!!!!!!!!!!!!! GET OFF OF HTTP ITS NOT SECURE!!!!!!"
+			else
+				errorText = "Error: " + response.error + " " + response.details + " Please try again." ;
+
+
+			this.setState({ buttonText: errorText});
 		}
 		else {
 
