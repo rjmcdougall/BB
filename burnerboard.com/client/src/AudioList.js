@@ -6,7 +6,7 @@ const getItems = function () {
 	return getDirectoryJSON.audio.map(item => ({
 		id: `${item.localName}`,
 		content: `${item.localName}`,
-	}))
+	}));
 };
 
 // a little function to help us with reordering the result
