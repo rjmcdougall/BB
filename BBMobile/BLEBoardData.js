@@ -468,7 +468,8 @@ exports.readLocation = async function (mediaState) {
 					if (readData.length > 4) {
 						var lat;
 						var lon;
-						mediaState.theirAddress = readData[2] + readData[3] * 256;
+                        var theirAddress;
+						theirAddress = readData[2] + readData[3] * 256;
 						lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
 						if (lat > Math.pow(2, 31)) {
 							lat = -1 * (Math.pow(2, 32) - 1 - lat);
@@ -486,6 +487,7 @@ exports.readLocation = async function (mediaState) {
 
 						// push new coordinates to locatin array
 						mediaState.locations.push({
+                            title: theirAddress.toString(),
 							latitude: lat / 1000000.0,
 							longitude: lon / 1000000.0,
 						});
@@ -531,8 +533,8 @@ exports.getRegionForCoordinates = function (points) {
 
 	const midX = (minX + maxX) / 2;
 	const midY = (minY + maxY) / 2;
-	const deltaX = (maxX - minX) * 2;
-	const deltaY = (maxY - minY) * 2;
+	const deltaX = Math.max(0.01, (maxX - minX) * 2);
+	const deltaY = Math.max(0.01, (maxY - minY) * 2);
 
 	return {
 		latitude: midX,
