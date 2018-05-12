@@ -14,8 +14,7 @@ exports.fakeMediaState = {
 		channelInfo: "Audio 2",
 		maxChannel: 3,
 		volume: 50,
-		channels:
-			[{ channelNo: 1, channelInfo: "Audio 1" },
+		channels: [{ channelNo: 1, channelInfo: "Audio 1" },
 			{ channelNo: 2, channelInfo: "Audio 2" },
 			{ channelNo: 3, channelInfo: "Audio 3" }]
 	},
@@ -23,8 +22,8 @@ exports.fakeMediaState = {
 		channelInfo: "Video 2",
 		maxChannel: 3,
 		channels: [{ channelNo: 1, channelInfo: "Video 1" },
-		{ channelNo: 2, channelInfo: "Video 2" },
-		{ channelNo: 3, channelInfo: "Video 3" }]
+			{ channelNo: 2, channelInfo: "Video 2" },
+			{ channelNo: 3, channelInfo: "Video 3" }]
 	},
 	device: {
 		deviceNo: 1,
@@ -468,7 +467,7 @@ exports.readLocation = async function (mediaState) {
 					if (readData.length > 4) {
 						var lat;
 						var lon;
-                        var theirAddress;
+						var theirAddress;
 						theirAddress = readData[2] + readData[3] * 256;
 						lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
 						if (lat > Math.pow(2, 31)) {
@@ -487,7 +486,7 @@ exports.readLocation = async function (mediaState) {
 
 						// push new coordinates to locatin array
 						mediaState.locations.push({
-                            title: theirAddress.toString(),
+							title: theirAddress.toString(),
 							latitude: lat / 1000000.0,
 							longitude: lon / 1000000.0,
 						});
@@ -499,7 +498,7 @@ exports.readLocation = async function (mediaState) {
 
 			}
 			// determine new region.
-			if(mediaState.locations.length>0)
+			if (mediaState.locations.length > 0)
 				mediaState.region = this.getRegionForCoordinates(mediaState.locations);
 
 			return mediaState;

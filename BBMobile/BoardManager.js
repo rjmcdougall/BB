@@ -9,7 +9,6 @@ import {
 	Platform,
 	PermissionsAndroid,
 	AppState,
-	Dimensions,
 	Text,
 	ScrollView,
 	ListView,
@@ -22,7 +21,6 @@ import MediaManagement from "./MediaManagement";
 import AdminManagement from "./AdminManagement";
 import Touchable from "react-native-platform-touchable";
 
-const window = Dimensions.get("window");
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
 });
@@ -46,6 +44,7 @@ export default class BoardManager extends Component {
 			discoveryState: "Connect To Board",
 			automaticallyConnect: true,
 			backgroundLoop: null,
+			title: "Board Management",
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -188,6 +187,8 @@ export default class BoardManager extends Component {
 					if (this.state.backgroundLoop)
 						clearInterval(this.state.backgroundLoop);
 
+					this.props.navigation.setParams({ title: "Media Management" });
+
 					this.setState({
 						selectedPeripheral: peripheral,
 						mediaState: BLEBoardData.emptyMediaState,
@@ -275,8 +276,12 @@ export default class BoardManager extends Component {
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
-	static navigationOptions = {
-		title: "Board Management",
+	static navigationOptions = ({ navigation }) => {
+		const { params } = navigation.state;
+
+		return {
+			title: params ? params.title : "Media Management",
+		}
 	};
 
 	render() {
@@ -298,76 +303,87 @@ export default class BoardManager extends Component {
 
 		if (!this.state.showDiscoverScreen)
 			return (
-				<View style={styles.container} >
-					{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
-						: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
-					}
-
-					<Touchable
-						onPress={async () => {
-							await this.startScan(true);
+				<View style={styles.container}>
+					<View style={styles.contentContainer}>
+						{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
+							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
 						}
-						}
-						style={{
-							backgroundColor: color,
-							height: 50,
-						}}
-						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowText}>{this.state.discoveryState} {this.state.scanning ? "(scanning)" : ""}</Text>
-					</Touchable>
-					<View style={styles.buttonContainer}>
-						<View style={styles.button}>
-							<Touchable
-								onPress={async () => {
-									try {
-										await BleManager.disconnect(this.state.selectedPeripheral.id);
-									}
-									catch (error) {
-										console.log("BoardManager: Pressed Search For Boards: " + error);
-									}
 
-									if (this.state.backgroundLoop)
-										clearInterval(this.state.backgroundLoop);
+						<Touchable
+							onPress={async () => {
+								await this.startScan(true);
+							}
+							}
+							style={{
+								backgroundColor: color,
+								height: 50,
+							}}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>{this.state.discoveryState} {this.state.scanning ? "(scanning)" : ""}</Text>
+						</Touchable>
+						<View style={styles.footer}>
+							<View style={styles.button}>
+								<Touchable
+									onPress={async () => {
+										try {
+											await BleManager.disconnect(this.state.selectedPeripheral.id);
+										}
+										catch (error) {
+											console.log("BoardManager: Pressed Search For Boards: " + error);
+										}
 
-									this.setState({
-										peripherals: new Map(),
-										appState: "",
-										selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-										mediaState: BLEBoardData.emptyMediaState,
-										showDiscoverScreen: true,
-										showAdminScreen: false,
-										discoveryState: "Connect To Board",
-										backgroundLoop: null,
-									});
+										if (this.state.backgroundLoop)
+											clearInterval(this.state.backgroundLoop);
 
-								}}
-								style={{
-									height: 50,
-								}}
-								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}>Search for Boards</Text>
-							</Touchable>
-						</View>
-						<View style={styles.button}>
-							<Touchable
-								onPress={async () => {
+										this.props.navigation.setParams({ title: "Search For Boards" });
 
-									this.setState({
-										showDiscoverScreen: false,
-										showAdminScreen: !this.state.showAdminScreen,
-									});
+										this.setState({
+											peripherals: new Map(),
+											appState: "",
+											selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+											mediaState: BLEBoardData.emptyMediaState,
+											showDiscoverScreen: true,
+											showAdminScreen: false,
+											discoveryState: "Connect To Board",
+											backgroundLoop: null,
+										});
 
-								}}
-								style={{
-									height: 50,
-								}}
-								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}>
-									{(!this.state.showAdminScreen) ? "Admin"
-										: "Media"
-									}
-								</Text>
-							</Touchable>
+									}}
+									style={{
+										height: 50,
+									}}
+									background={Touchable.Ripple("blue")}>
+									<Text style={styles.rowText}>Search for Boards</Text>
+								</Touchable>
+							</View>
+							<View style={styles.button}>
+								<Touchable
+									onPress={async () => {
+
+										var title;
+										if (!this.state.showAdminScreen) // reversing current state
+											title = "Administration";
+										else
+											title = "Media Management";
+										this.props.navigation.setParams({ title: title });
+
+										this.setState({
+											showDiscoverScreen: false,
+											showAdminScreen: !this.state.showAdminScreen,
+										});
+
+									}}
+									style={{
+										height: 50,
+									}}
+									background={Touchable.Ripple("blue")}>
+									<Text style={styles.rowText}>
+										{(!this.state.showAdminScreen) ? "Administration"
+											: "Media Management"
+										}
+									</Text>
+								</Touchable>
+							</View>
 						</View>
 					</View>
 				</View>);
@@ -413,8 +429,9 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: "#FFF",
-		width: window.width,
-		justifyContent: "space-between"
+	},
+	contentContainer: {
+		flex: 1 // pushes the footer to the end of the screen
 	},
 	rowText: {
 		margin: 5,
@@ -426,8 +443,8 @@ const styles = StyleSheet.create({
 		backgroundColor: "lightblue",
 		margin: 5,
 	},
-	buttonContainer: {
-		flex: 1,
+	footer: {
+		height: 50,
 		flexDirection: "row",
 		justifyContent: "space-between"
 	},

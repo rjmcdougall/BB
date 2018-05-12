@@ -1,7 +1,7 @@
 Backlog:
 
-https://docs.google.com/spreadsheets/d/1nmcX9UCCsBYD3ZrqjoOENo60PON87yQOyqJhMPakI38/edit#gid=0
-
+ https://github.com/rjmcdougall/BB/issues
+ 
 USAGE:
 
 1) Create a test board.  Boards will map by name (lowercase only please)
