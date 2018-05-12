@@ -109,7 +109,8 @@ export default class BoardManager extends Component {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
 		this.handlerDisconnect.remove();
-		clearInterval(this.state.backgroundLoop);
+		if (this.state.backgroundLoop)
+			clearInterval(this.state.backgroundLoop);
 	}
 
 	handleDisconnectedPeripheral(data) {
@@ -141,19 +142,24 @@ export default class BoardManager extends Component {
 	async startScan(automaticallyConnect) {
 		if (!this.state.scanning) {
 
-			if (this.state.backgroundLoop)
-				clearInterval(this.state.backgroundLoop);
-
-			this.setState({
-				selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-				mediaState: BLEBoardData.emptyMediaState,
-				scanning: true,
-				peripherals: new Map(),
-				automaticallyConnect: automaticallyConnect,
-				backgroundLoop: null,
-			});
-
 			try {
+
+				console.log("BoardManager: Clearing Interval: ");
+
+				if (this.state.backgroundLoop)
+					clearInterval(this.state.backgroundLoop);
+
+				console.log("BoardManager: Clearing State: ");
+
+				this.setState({
+					selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+					mediaState: BLEBoardData.emptyMediaState,
+					scanning: true,
+					peripherals: new Map(),
+					automaticallyConnect: automaticallyConnect,
+					backgroundLoop: null,
+				});
+
 				console.log("BoardManager: Scanning with automatic connect: " + automaticallyConnect);
 				await BleManager.scan([BLEIDs.bbUUID], 5, true);
 			}
@@ -272,7 +278,7 @@ export default class BoardManager extends Component {
 					console.log("BoardManager Location Loop Failed:" + error);
 				}
 			}
-		}, 3000);
+		}, 8000);
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
