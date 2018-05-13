@@ -941,7 +941,7 @@ public class BBService extends Service {
                         mediaPlayer.prepareAsync();
                         SeekAndPlay();
                         SeekAndPlay();
-                        // TEMPORARY: mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
+                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
                     }
                 }
                 SeekAndPlay();
@@ -988,7 +988,7 @@ public class BBService extends Service {
     public void bluetoothModeEnable() {
         mAudioInStream.startRecording();
         //mAudioInStream.setPreferredDevice(AudioDeviceInfo.TYPE_WIRED_HEADSET);
-        //TEMPORARY mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
+        mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
         mAudioOutStream.play();
         mAudioOutStream.setPlaybackRate(44100);
         mAudioOutStream.setVolume(vol);
