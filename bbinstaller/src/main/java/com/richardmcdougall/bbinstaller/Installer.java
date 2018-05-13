@@ -102,6 +102,8 @@ public class Installer extends Service {
         conf.preSharedKey = "\""+ networkPass +"\"";
         mWiFiManager.addNetwork(conf);
 
+        mWiFiManager.reassociate();
+
         intentf.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         mContext.registerReceiver(new MQTTBroadcastReceiver(),
                 new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
@@ -165,7 +167,9 @@ public class Installer extends Service {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    voice.speak("Downloading New Software " + file + ", " + String.valueOf(percent) + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    if (fileSize > 1048576) {
+                        voice.speak("Downloading New Software " + file + ", " + String.valueOf(percent) + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    }
                     lastTextTime = curTime;
                     l(String.format("Downloading %02x%% %s", bytesDownloaded * 100 / fileSize, file));
                 }
@@ -422,11 +426,11 @@ public class Installer extends Service {
             hasConnectivity = hasMmobile || hasWifi;
             l("hasConn: " + hasConnectivity + " hasChange: " + hasChanged);
             if (hasConnectivity && hasChanged) {
-                voice.speak("Network Connected", TextToSpeech.QUEUE_ADD, null, "swversfail");
+                //voice.speak("Network Connected", TextToSpeech.QUEUE_ADD, null, "swversfail");
 
             } else if (!hasConnectivity) {
                 l("doDisconnect()");
-                voice.speak("Network Disconnected", TextToSpeech.QUEUE_ADD, null, "swversfail");
+                //voice.speak("Network Disconnected", TextToSpeech.QUEUE_ADD, null, "swversfail");
             }
         }
     }
