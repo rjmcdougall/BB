@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/play-services-tasks-11.0.4.aar/7916cf52aca91429e25aea2455df3b56/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="2430e711762a749feb00b3d64858ca4768251b9d">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/39.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/support-fragment-25.2.0.aar/9605b0c8658837026b77a96d8b531170/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="8fe8a8f77d651982ce5e18f6187dc4daf914ac57">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/43.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/sourcecode/BB/BBMobile/node_modules/react-native-fs/android/build/intermediates/intermediate-jars/release/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="59e6fc893135577fa02aee194c9df10e67bc8435">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/31.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/sourcecode/BB/BBMobile/node_modules/react-native-google-sign-in/android/build/intermediates/intermediate-jars/release/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="9c4e6838faf4a7a6cb0a708650cd047d6fedb977">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/49.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/sourcecode/BB/BBMobile/node_modules/react-native-maps/lib/android/build/intermediates/intermediate-jars/release/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="f3cab5534142d3bae5542190950deeddc9898abd">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/30.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/play-services-base-11.0.4.aar/2b0a59601ddbbe563f71301dfa6e15ed/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="70ffe00aaf049893f59d1dad57bd82992faa38ef">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/38.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/support-compat-25.2.0.aar/571c57160e05954d1c65a67ea4c90ffe/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="67eb33110dbacb46a48175b08ae0c96761d2c17d">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/47.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.2.0.aar/8b5eedc0a1cc77fbebe6c933d931a7e5/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="fa0446a14ed5dd3725047d6399ffea771a564b30">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/46.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/sourcecode/BB/BBMobile/node_modules/react-native-ble-manager/android/build/intermediates/intermediate-jars/release/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="898908c54d1e757be1581cf79685ce8c60d32bc7">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/32.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/support-v4-25.2.0.aar/efa926df9590aa3b13c0a4424d84189d/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="d7c42c80f6509b9ea4db28ca7859ffae08ec5741">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/41.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.2.0.aar/889f8973892280f96eddfe780d399643/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="e820b7be8c035dd522da4bc822e8a76c8e27921a">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/45.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/play-services-auth-base-11.0.4.aar/300648d6e03636e88538820251e28ea3/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="0bffdc0bd4f7ca0e27c5bfeef39569f8da00aa26">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/37.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/Library/Android/sdk/extras/android/m2repository/com/android/support/support-annotations/25.2.0/support-annotations-25.2.0.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="4a5a82a027706397fff621b22fd6fa796e91d7c5">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/48.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.2.0.aar/ba5a2ccebcf7876e6ba75cb464cf4197/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="ee394a892dd21c03a528139c1e8d4e0e1264ac84">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/44.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/play-services-auth-11.0.4.aar/46b10139c59972fb985efacf65627bba/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="f5ff5e3811e8c9485fd27f9052ae4d4d23a22d9d">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/36.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/d.wilson/.gradle/caches/transforms-1/files-1.1/play-services-basement-11.0.4.aar/393eb42920fea8188d5d4bca0f40d105/jars/classes.jar"
+        jumboMode="false"
+        min-sdk-version="19"
+        optimize="true"
+        revision="26.0.2"
+        sha1="364364bf77b4a71afc5930fc3ae57b3f0eea637c">
+        <dex dex="/Users/d.wilson/sourcecode/BB/BBMobile/android/app/build/intermediates/transforms/preDex/release/40.jar" />
+    </item>
+
+</items>

@@ -4,7 +4,6 @@ import React, {
 import {
 	StyleSheet,
 	View,
-	Dimensions,
 	ScrollView,
 	Text,
 } from "react-native";
@@ -12,8 +11,6 @@ import {
 import TrackController from "./TrackController";
 import BLEBoardData from "./BLEBoardData";
 import Touchable from "react-native-platform-touchable";
-const window = Dimensions.get("window");
-
 import PropTypes from "prop-types";
 
 export default class AdminManagement extends Component {
