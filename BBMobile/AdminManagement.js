@@ -50,7 +50,7 @@ export default class AdminManagement extends Component {
 		return (
 
 
-			<View style={styles.container} pointerEvents={this.props.pointerEvents}>
+			<View style={styles.container}  >
 				<View style={styles.contentContainer}>
 
 					<ScrollView style={styles.scroll}>
