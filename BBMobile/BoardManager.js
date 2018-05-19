@@ -287,7 +287,7 @@ export default class BoardManager extends Component {
 
 		return {
 			title: params ? params.title : "Media Management",
-		}
+		};
 	};
 
 	render() {
@@ -312,7 +312,7 @@ export default class BoardManager extends Component {
 				<View style={styles.container}>
 					<View style={styles.contentContainer}>
 						{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
-							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
+							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} />
 						}
 
 						<Touchable

@@ -15,6 +15,18 @@ class App extends Component {
 		this.responseGoogle = this.responseGoogle.bind(this);
 	}
 
+	getQueryVariable(variable) {
+		var query = window.location.search.substring(1);
+		var vars = query.split('&');
+		for (var i = 0; i < vars.length; i++) {
+			var pair = vars[i].split('=');
+			if (decodeURIComponent(pair[0]) == variable) {
+				return decodeURIComponent(pair[1]);
+			}
+		}
+		console.log('Query variable %s not found', variable);
+	}
+
 	// @ts-ignore
 	responseGoogle(response) {
 		console.log("google response: " + response);
@@ -96,7 +108,14 @@ class App extends Component {
 
 		var JWT = "";
 		var appBody = "";
+		var queryJWT = this.getQueryVariable("JWT");
 
+		if(queryJWT && queryJWT!=""){
+			console.log(queryJWT);
+			window.sessionStorage.setItem("JWT", queryJWT);
+		}
+		
+ 
 		if (window.sessionStorage.JWT != null)
 			JWT = window.sessionStorage.JWT;
 
