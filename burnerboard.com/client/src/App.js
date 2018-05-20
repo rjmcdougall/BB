@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import BBApp from "./BBApp";
 import GoogleLoginPage from "./GoogleLoginPage";
+import HttpsRedirect from "react-https-redirect";
 
 class App extends Component {
 
@@ -115,9 +116,13 @@ class App extends Component {
 			appBody = <BBApp />;
 
 		return (
-			<div className="App" style={{ margin: 0 }}>
-				{appBody}
-			</div>
+
+			<HttpsRedirect>
+				<div className="App" style={{ margin: 0 }}>
+					{appBody}
+				</div>
+			</HttpsRedirect>
+
 		);
 	}
 }
