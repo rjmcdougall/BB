@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import GoogleDriveSpinner from "./GoogleDriveSpinner";
-import GoogleChooser from "./GoogleChooser";
 import PropTypes from "prop-types";
 import loadScript from "load-script";
 
@@ -204,7 +203,7 @@ class GoogleDriveMediaPicker extends Component {
 	}
 }
 
-GoogleChooser.propTypes = {
+GoogleDriveMediaPicker.propTypes = {
 	currentBoard: PropTypes.object,
 	currentProfile: PropTypes.object
 };
