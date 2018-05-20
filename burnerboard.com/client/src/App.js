@@ -17,19 +17,19 @@ class App extends Component {
 
 	getQueryVariable(variable) {
 		var query = window.location.search.substring(1);
-		var vars = query.split('&');
+		var vars = query.split("&");
 		for (var i = 0; i < vars.length; i++) {
-			var pair = vars[i].split('=');
+			var pair = vars[i].split("=");
 			if (decodeURIComponent(pair[0]) == variable) {
 				return decodeURIComponent(pair[1]);
 			}
 		}
-		console.log('Query variable %s not found', variable);
+		console.log("Query variable %s not found", variable);
 	}
 
 	// @ts-ignore
 	responseGoogle(response) {
-		console.log("google response: " + response);
+		console.log("google response: " + JSON.stringify(response));
 
 		if (response.error != null && response.error !== "") {
 
@@ -45,7 +45,7 @@ class App extends Component {
 		else {
 
 			var id_token = response.getAuthResponse().id_token;
-
+			var access_token  = response.getAuthResponse().access_token;
 			console.log("id token : " + id_token);
 
 			const app = this;
@@ -73,18 +73,13 @@ class App extends Component {
 					else {
 
 						window.sessionStorage.setItem("JWT", id_token);
+						window.sessionStorage.setItem("accessToken", access_token);
 						console.log("JWT stored in sessionStorage: " + id_token);
-						console.log(window.sessionStorage.getItem("JWT"));
-
+						console.log("accessToken stored in sessionStorage: " + access_token);
 
 						app.setState({
 							JWT: window.sessionStorage.JWT,
 							buttonText: "",
-						});
-
-						res.text().then(function (text) {
-							console.log("OK res : " + text);
-
 						});
 					}
 				})
