@@ -305,6 +305,16 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
     /**
+     * Send string argument
+     */
+    void sendCmdArg(String arg) {
+        if (startCommand) {
+            printByte(field_separator);
+            printStr(arg.getBytes());
+        }
+    }
+
+    /**
      * Send end of command
      */
     boolean sendCmdEnd(boolean reqAc, int ackCmdId, int timeout) {

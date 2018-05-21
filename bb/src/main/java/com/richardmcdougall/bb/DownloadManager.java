@@ -445,6 +445,9 @@ public class DownloadManager {
                                         }
                                     }
 
+                                    //RMC fix
+                                    //upTodate = true;
+
                                     if (mIsServer) {
                                         //downloadSuccess = true;
                                     } else {

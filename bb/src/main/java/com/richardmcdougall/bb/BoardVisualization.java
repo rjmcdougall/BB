@@ -47,6 +47,7 @@ import android.support.v4.graphics.ColorUtils;
 public class BoardVisualization {
 
     private static final String TAG = "BB.BoardVisualization";
+    private BBService mBBservice;
     private int testState = 0;
     private Random mRandom = new Random();
     private byte[] testRow1 = "012345678901234567890123456789012345".getBytes();
@@ -70,8 +71,9 @@ public class BoardVisualization {
 
     BurnerBoard mBurnerBoard = null;
 
-    BoardVisualization(Context context, BurnerBoard board) {
+    BoardVisualization(Context context, BurnerBoard board, BBService service) {
         mBurnerBoard = board;
+        mBBservice = service;
         l("Starting Board Visualization " + mBurnerBoard.boardType + " on " + mBurnerBoard.boardId);
         if (mBurnerBoard.boardType.contains(new String("Classic"))) {
             l("Starting Classic Visualization");
@@ -82,6 +84,16 @@ public class BoardVisualization {
             l("Starting Mast Visualization");
             mBoardWidth = 24;
             mBoardHeight = 159;
+            mMultipler4Speed = 3;
+        } else if (mBurnerBoard.boardId.contains(new String("grumpy"))) {
+            l("Starting Panel Visualization");
+            mBoardWidth = 32;
+            mBoardHeight = 64;
+            mMultipler4Speed = 3;
+        } else if (mBurnerBoard.boardId.contains(new String("cranky"))) {
+            l("Starting Panel Visualization");
+            mBoardWidth = 32;
+            mBoardHeight = 64;
             mMultipler4Speed = 3;
         } else if (mBurnerBoard.boardId.contains(new String("test"))) {
             l("Starting Mast Visualization");
@@ -267,6 +279,7 @@ public class BoardVisualization {
 
             frameRate = modeVideo(mBoardMode);
 
+            // RMC: Fix
             // limit output framerate to max of 12fps
             if (frameRate > 12) {
                 frameRate = 12;
@@ -280,6 +293,7 @@ public class BoardVisualization {
                     er.printStackTrace();
                 }
             }
+
             lastFrameTime = curFrameTime;
 
             boardDisplayCnt++;
@@ -943,6 +957,10 @@ public class BoardVisualization {
             return 12;
 
         int curVidIndex = videoNumber % nVideos;
+
+        //mBurnerBoard.setMsg(String.valueOf(mBBservice.CurrentClockAdjusted() % 1000000));
+        //if (true)
+        //    return 20;
 
         // TODO: check perf overhead of checking this every frame
         if(mBurnerBoard.mBBService.dlManager.GetVideo(videoNumber).has("algorithm")){

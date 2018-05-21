@@ -6,20 +6,17 @@ import android.util.Log;
 
 import java.util.Arrays;
 
-import static android.R.attr.x;
-import static android.R.attr.y;
-
 /**
- * Created by rmc on 7/25/17.
+ * Created by rmc on 5/20/18.
  */
 
 
 /*
 
-   bottom
-         46,118
+   Back
+         32,64
  +------+
- |      | strip 1
+ |      |
  |      |
  |      |
  |      |
@@ -34,68 +31,66 @@ import static android.R.attr.y;
  |      |
  |      |
  |      |
- |      | strip 8
+ |      |
  +------+
  0,0 X
- top
+ Front
 
  */
 
 
-public class BurnerBoardMast extends BurnerBoard {
-    private int mBoardWidth = 24;
-    private int mBoardHeight = 159;
+public class BurnerBoardPanel extends BurnerBoard {
+    private int mBoardWidth = 32;
+    private int mBoardHeight = 64;
     //public int[] mBoardScreen;
     private int mDimmerLevel = 255;
-    private static final String TAG = "BB.BurnerBoardMast";
-    public int mBatteryLevel;
-    public int [] mBatteryStats = new int[16];
-    //public String boardId = Build.MODEL;
+    private static final String TAG = "BB.BurnerBoardPanel";
+    public int mBatteryLevel = -1;
+    public int[] mBatteryStats = new int[16];
 
 
-    public BurnerBoardMast(BBService service, Context context) {
+    public BurnerBoardPanel(BBService service, Context context) {
         super(service, context);
         boardId = Build.MODEL;
-        boardType = "Burner Board Mast";
-        l("Burner Board Mast initing...");
+        boardType = "Burner Board Panel";
+        l("Burner Board Panel initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
         mContext = context;
         initPixelOffset();
-        initpixelMap2Board();
         initUsb();
     }
 
     public void start() {
 
         // attach default cmdMessenger callback
-        BurnerBoardMast.BoardCallbackDefault defaultCallback =
-                new BurnerBoardMast.BoardCallbackDefault();
+        BurnerBoardPanel.BoardCallbackDefault defaultCallback =
+                new BurnerBoardPanel.BoardCallbackDefault();
         mListener.attach(defaultCallback);
 
         // attach Test cmdMessenger callback
-        BurnerBoardMast.BoardCallbackTest testCallback =
-                new BurnerBoardMast.BoardCallbackTest();
+        BurnerBoardPanel.BoardCallbackTest testCallback =
+                new BurnerBoardPanel.BoardCallbackTest();
         mListener.attach(5, testCallback);
 
         // attach Mode cmdMessenger callback
-        BurnerBoardMast.BoardCallbackMode modeCallback =
-                new BurnerBoardMast.BoardCallbackMode();
+        BurnerBoardPanel.BoardCallbackMode modeCallback =
+                new BurnerBoardPanel.BoardCallbackMode();
         mListener.attach(4, modeCallback);
 
         // attach Mode cmdMessenger callback
-        BurnerBoardMast.BoardCallbackBoardID boardIDCallback =
-                new BurnerBoardMast.BoardCallbackBoardID();
+        BurnerBoardPanel.BoardCallbackBoardID boardIDCallback =
+                new BurnerBoardPanel.BoardCallbackBoardID();
         mListener.attach(11, boardIDCallback);
 
         // attach echoRow cmdMessenger callback
-        BurnerBoardMast.BoardCallbackEchoRow echoCallback =
-                new BurnerBoardMast.BoardCallbackEchoRow();
+        BurnerBoardPanel.BoardCallbackEchoRow echoCallback =
+                new BurnerBoardPanel.BoardCallbackEchoRow();
         mListener.attach(17, echoCallback);
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardMast.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardMast.BoardCallbackGetBatteryLevel();
+        BurnerBoardPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
+                new BurnerBoardPanel.BoardCallbackGetBatteryLevel();
         mListener.attach(8, getBatteryLevelCallback);
 
     }
@@ -164,6 +159,10 @@ public class BurnerBoardMast extends BurnerBoard {
         }
     }
 
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
+    }
+
     public void fuzzPixels(int amount) {
 
         for (int x = 0; x < mBoardWidth; x++) {
@@ -197,7 +196,8 @@ public class BurnerBoardMast extends BurnerBoard {
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
 
-    static int [][][] pixel2OffsetTable = new int[255][255][3];
+    static int[][][] pixel2OffsetTable = new int[255][255][3];
+
     private void initPixelOffset() {
         for (int x = 0; x < mBoardWidth; x++) {
             for (int y = 0; y < mBoardHeight; y++) {
@@ -340,7 +340,7 @@ public class BurnerBoardMast extends BurnerBoard {
     }
 
 
-    public int [] getPixelBuffer() {
+    public int[] getPixelBuffer() {
         return mBoardScreen;
     }
 
@@ -350,7 +350,7 @@ public class BurnerBoardMast extends BurnerBoard {
 
     // TODO: make faster by using ints
     private int pixelColorCorrectionRed(int red) {
-        return gammaCorrect(red) ;
+        return gammaCorrect(red);
     }
 
     private int pixelColorCorrectionGreen(int green) {
@@ -385,7 +385,6 @@ public class BurnerBoardMast extends BurnerBoard {
         }
 
 
-
         // Here we calculate the total power percentage of the whole board
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
@@ -408,7 +407,7 @@ public class BurnerBoardMast extends BurnerBoard {
         }
 
         final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
-        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 12, 0);
+        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
 
         int[] rowPixels = new int[mBoardWidth * 3];
         for (int y = 0; y < mBoardHeight; y++) {
@@ -420,26 +419,63 @@ public class BurnerBoardMast extends BurnerBoard {
                     rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-            setRowVisual(y, rowPixels);
+            //setRowVisual(y, rowPixels);
+            setRow(y, rowPixels);
         }
 
-        // Walk through each strip and fill from the graphics buffer
-        for (int s = 0; s < kStrips; s++) {
-            int[] stripPixels = new int[mBoardHeight * 3 * 3];
-            // Walk through all the pixels in the strip
-            for (int offset = 0; offset < mBoardHeight * 3 * 3;) {
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-            }
-            setStrip(s, stripPixels, powerLimitMultiplierPercent);
-            // Send to board
-            flush2Board();
-        }
         // Render on board
         update();
         flush2Board();
     }
+
+    private boolean setRow(int row, int[] pixels) {
+
+        int [] dimPixels = new int [pixels.length];
+        for (int pixel = 0; pixel < pixels.length; pixel++) {
+            dimPixels[pixel] =
+                    (mDimmerLevel * pixels[pixel]) / 255;
+        }
+
+        // Do color correction on burner board display pixels
+        byte [] newPixels = new byte[mBoardWidth * 3];
+        for (int pixel = 0; pixel < mBoardWidth * 3; pixel = pixel + 3) {
+            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
+            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+        }
+
+        //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
+
+        //l("sendCommand: 10,n,...");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(10);
+                mListener.sendCmdArg(row);
+                mListener.sendCmdEscArg(newPixels);
+                mListener.sendCmdEnd();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean haveUpdated = false;
+    public void setMsg(String msg) {
+        //l("sendCommand: 10,n,...");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(13);
+                mListener.sendCmdArg(msg);
+                mListener.sendCmdEnd();
+            }
+            if (!haveUpdated) {
+                haveUpdated = true;
+                update();
+            }
+            flush2Board();
+        }
+    }
+
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
     public boolean update() {
@@ -452,8 +488,7 @@ public class BurnerBoardMast extends BurnerBoard {
                 mListener.sendCmd(6);
                 mListener.sendCmdEnd();
                 return true;
-            }
-            else {
+            } else {
                 // Emulate board's 30ms refresh time
                 try {
                     Thread.sleep(5);
@@ -478,9 +513,6 @@ public class BurnerBoardMast extends BurnerBoard {
             return;
         }
         return;
-    }
-
-    public void setMsg(String msg) {
     }
 
     //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
@@ -523,114 +555,4 @@ public class BurnerBoardMast extends BurnerBoard {
         sendVisual(14, row, dimPixels);
     }
 
-    // Send a strip of pixels to the board
-    private void setStrip(int strip, int[] pixels, int powerLimitMultiplierPercent) {
-
-        int[] dimPixels = new int[pixels.length];
-
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 256 * powerLimitMultiplierPercent / 100;
-        }
-
-        // Do color correction on burner board display pixels
-        byte [] newPixels = new byte[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
-        }
-
-        //newPixels[30]=(byte)128;
-        //newPixels[31]=(byte)128;
-        //newPixels[32]=(byte)128;
-        //newPixels[3]=2;
-        //newPixels[4]=40;
-        //newPixels[5]=2;
-        //newPixels[6]=2;
-        //newPixels[7]=2;
-        //newPixels[8]=40;
-        //newPixels[9]=2;
-        //newPixels[10]=2;
-        //newPixels[11]=40;
-
-        //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
-
-        //l("sendCommand: 14,n,...");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(10);
-                mListener.sendCmdArg(strip);
-                mListener.sendCmdEscArg(newPixels);
-                mListener.sendCmdEnd();
-            }
-        }
-    }
-
-    public static class TranslationMap {
-        int y;
-        int startX;
-        int endX;
-        int stripDirection;
-        int stripNumber;
-        int stripOffset;
-
-        private TranslationMap(
-                int y,
-                int startX,
-                int endX,
-                int stripDirection,
-                int stripNumber,
-                int stripOffset) {
-            this.y = y;
-            this.startX = startX;
-            this.endX = endX;
-            this.stripDirection = stripDirection;
-            this.stripNumber = stripNumber;
-            this.stripOffset = stripOffset;
-        }
-    }
-
-    static int pixelMap2Board(int s, int offset)
-    {
-        return pixelMap2BoardTable[s][offset];
-    }
-
-    private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
-        pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_BLUE);
-    }
-
-
-    // Two primary mapping functions
-    static int kStrips = 8;
-    static int [][] pixelMap2BoardTable = new int[8][4096];
-    private TranslationMap[] boardMap;
-
-    private void initpixelMap2Board() {
-
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
-
-                final int subStrip = x % 3;
-                final int stripNo = x / 3;
-                final boolean stripUp = subStrip % 2 == 0;
-                int stripOffset;
-
-                if (stripUp) {
-                    stripOffset = subStrip * mBoardHeight + y;
-                } else {
-                    stripOffset = subStrip * mBoardHeight + (mBoardHeight - 1 - y);
-                }
-                pixelRemap(x, y, stripNo, stripOffset * 3);
-            }
-
-        }
-
-    }
 }
-

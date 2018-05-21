@@ -384,6 +384,10 @@ public class BBService extends Service {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else if (boardId.contains("Mast")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
+        } else if (boardId.contains("cranky")) {
+            mBurnerBoard = new BurnerBoardPanel(this, mContext);
+        } else if (boardId.contains("grumpy")) {
+            mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (boardId.contains("test")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
         } else {
@@ -398,7 +402,7 @@ public class BBService extends Service {
         }
 
         if (mBoardVisualization == null) {
-            mBoardVisualization = new BoardVisualization(this, mBurnerBoard);
+            mBoardVisualization = new BoardVisualization(this, mBurnerBoard, this);
         }
         mBoardVisualization.setMode(mBoardMode);
     }
@@ -641,7 +645,6 @@ public class BBService extends Service {
 
         l("Starting BB on phone " + model);
 
-
         /*
         if (model.equals("XT1064")) {
             phoneModelAudioLatency = 10;
@@ -660,11 +663,9 @@ public class BBService extends Service {
         //udpClientServer = new UDPClientServer(this);
         //udpClientServer.Run();
 
-
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         // RMC putback
-
         if (mWiFiManager.isWifiEnabled()) {
             l("Wifi Enabled Already, disabling");
             //mWiFiManager.setWifiEnabled(false);
@@ -681,11 +682,21 @@ public class BBService extends Service {
         boolean hasLowLatencyFeature =
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
 
-        l("has audio LowLatencyFeature: " + hasLowLatencyFeature );
+        l("has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-        l("has audio ProFeature: " + hasLowLatencyFeature );
+        l("has audio ProFeature: " + hasProFeature );
 
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+        int sampleRate = Integer.parseInt(sampleRateStr);
+
+        l("audio sampleRate: " + sampleRate );
+
+        String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+        int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
+
+        l("audio framesPerBufferInt: " + framesPerBufferInt );
 
         dlManager.StartDownloads();
 
@@ -725,6 +736,7 @@ public class BBService extends Service {
                 case 1:
                     SeekAndPlay();
                     try {
+                        // RMC try 15 seconds instead of 1
                         Thread.sleep(1000);
                     } catch (Throwable e) {
                     }
@@ -765,14 +777,15 @@ public class BBService extends Service {
                 l("time/pos: " + curPos + "/" + CurrentClockAdjusted());
 
                 if (curPos == 0 || seekErr != 0) {
-                    if (curPos == 0 || Math.abs(seekErr) > 50) {
+                    if (curPos == 0 || Math.abs(seekErr) > 100) {
                         l("SeekAndPlay: qqexplicit seek");
                         // mediaPlayer.pause();
                         // hack: I notice i taked 79ms on dragonboard to seekTo
                         seekSave = SystemClock.elapsedRealtime();
                         seekSavePos = seekOff + 79;
-                        mediaPlayer.seekTo((int) seekOff + 79);
-                        //mediaPlayer.seekTo((int) seekOff + 0);
+                        // RMC
+                        //mediaPlayer.seekTo((int) seekOff + 79);
+                        mediaPlayer.seekTo((int) seekOff + 100);
                         mediaPlayer.start();
                     } else {
                         //PlaybackParams params = mediaPlayer.getPlaybackParams();
@@ -1263,10 +1276,6 @@ public class BBService extends Service {
             }
         }
     };
-
-
-
-
 
     public static class usbReceiver extends BroadcastReceiver {
         @Override

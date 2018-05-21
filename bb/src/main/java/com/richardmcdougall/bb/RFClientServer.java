@@ -83,7 +83,7 @@ public class RFClientServer {
     public void logUDP(long timestamp, String msg) {
         ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
 
-        int64ToPacket(logPacketTmp, timestamp);
+        stringToPacket(logPacketTmp, String.valueOf(timestamp));
         stringToPacket(logPacketTmp, msg);
 
         final byte[] logPacket = logPacketTmp.toByteArray();
@@ -338,7 +338,8 @@ public class RFClientServer {
         s.drift = drift;
         s.roundTripTime = rtt;
         samples.add(samples.size(), s);
-        if (samples.size()>100)
+        // RMC: trying 10 instead of 100 because of long recovery times when time jumps on master
+        if (samples.size()>10)
             samples.remove(0);
     }
 

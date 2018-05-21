@@ -510,6 +510,10 @@ public class BurnerBoardAzul extends BurnerBoard {
         return false;
     }
 
+    public void setMsg(String msg) {
+    }
+
+
     private void setRowVisual(int row, int[] pixels) {
 
         int[] dimPixels = new int[pixels.length];

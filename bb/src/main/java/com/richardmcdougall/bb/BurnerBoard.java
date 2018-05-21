@@ -166,6 +166,9 @@ public class BurnerBoard {
     public void fadePixels(int amount) {
     }
 
+    public void setMsg(String msg) {
+    }
+
 
     public void l(String s) {
         Log.v(TAG, s);
