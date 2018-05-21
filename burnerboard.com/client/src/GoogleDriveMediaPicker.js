@@ -145,11 +145,7 @@ class GoogleDriveMediaPicker extends Component {
 						googleDriveMediaPicker.setSpinnerActive(false);
 					}
 					catch (err) {
-						var myErrorInfo = "";
-						err.text().then(function (text) {
-							myErrorInfo = text;
-						});
-						this.setState({ errorInfo: myErrorInfo });
+						this.setState({ errorInfo: await err.text() });
 					}
 				}
 			});

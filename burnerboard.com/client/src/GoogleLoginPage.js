@@ -47,7 +47,7 @@ class GoogleLoginPage extends Component {
 					<GoogleLogin
 						clientId="845419422405-4e826kofd0al1npjaq6tijn1f3imk43p.apps.googleusercontent.com"
 						buttonText={this.state.buttonText}
-						accessType="offline"
+						accessType="online"
 						onSuccess={this.responseGoogle}
 						onFailure={this.responseGoogle}
 						scope="https://www.googleapis.com/auth/drive.readonly"

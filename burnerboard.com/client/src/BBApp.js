@@ -39,24 +39,32 @@ class BBApp extends Component {
 		};
 
 		this.handleSelect = this.handleSelect.bind(this);
-
+		this.reloadOnExpiration = this.props.reloadOnExpiration.bind(this);
 	}
 
-	handleProfileDeleteClose = () => { //eslint-disable-line
+	handleProfileDeleteClose = () => {  
+		this.reloadOnExpiration();
+		
 		this.setState({ profileDeleteSnackbarOpen: false });
 	}
 
 	handleProfileAddClose = () => {
+		this.reloadOnExpiration();
+		
 		this.setState({ createProfileOpenSnackbar: false });
 	}
 
 	handleActivateProfileClose = () => {
+		this.reloadOnExpiration();
+		
 		this.setState({ activateOpenSnackbar: false });
 	}
 
 
 	handleCreateProfile = async (event) => {
-
+		
+		this.reloadOnExpiration();
+		
 		var comp = this;
 
 		console.log("state: ", JSON.stringify(this.state));
@@ -102,10 +110,10 @@ class BBApp extends Component {
 				});
 			}
 			else {
-				var json = await res.json();
+				var json2 = await res.json();
 				comp.setState({
 					createProfileOpenSnackbar: true,
-					createProfileResultsMessage: JSON.stringify(json),
+					createProfileResultsMessage: JSON.stringify(json2),
 					forceRerendder: !comp.state.forceRerendder,
 				});
 				return true;
@@ -121,12 +129,17 @@ class BBApp extends Component {
 	}
 
 	handleProfileClick = (event, id) => {
+
+		this.reloadOnExpiration();
+
 		let newSelected = [id];
 		this.setState({ profileSelected: newSelected });
 	};
 
 	handleActivateProfile = event => {
 
+		this.reloadOnExpiration();
+		
 		var comp = this;
 
 		var API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
@@ -162,6 +175,8 @@ class BBApp extends Component {
 
 	onProfileDelete = () => {
 
+		this.reloadOnExpiration();
+		
 		var comp = this;
 
 		var profileSelected = this.state.profileSelected.toString();
@@ -219,12 +234,17 @@ class BBApp extends Component {
 	}
 
 	handleChange = event => {
+
+		this.reloadOnExpiration();
+		
 		console.log("Set state due to form change: " + [event.target.name] + " " + event.target.value)
 		this.setState({ [event.target.name]: event.target.value });
 
 	};
 
 	handleSelect = (event, key) => {
+
+		this.reloadOnExpiration();
 
 		var API;
 

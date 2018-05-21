@@ -9,7 +9,6 @@ class App extends Component {
 		super(props);
 
 		this.state = {
-			JWT: "",
 			buttonText: "Login with Google",
 		};
 
@@ -21,7 +20,7 @@ class App extends Component {
 		var vars = query.split("&");
 		for (var i = 0; i < vars.length; i++) {
 			var pair = vars[i].split("=");
-			if (decodeURIComponent(pair[0]) == variable) {
+			if (decodeURIComponent(pair[0]) === variable) {
 				return decodeURIComponent(pair[1]);
 			}
 		}
@@ -30,23 +29,17 @@ class App extends Component {
 
 	// @ts-ignore
 	async responseGoogle(response) {
-		console.log("google response: " + JSON.stringify(response));
 
 		if (response.error != null && response.error !== "") {
-
-			var errorText = "";
-			if (response.error.contains("http://burnerboard.com"))
-				errorText = "YOU MUST USE HTTPS!!!!!!!!!!!!! GET OFF OF HTTP ITS NOT SECURE!!!!!!";
-			else
-				errorText = "Error: " + response.error + " " + response.details + " Please try again.";
-
+			var errorText = "Error: " + response.error + " " + response.details + " Please try again.";
 			this.setState({ buttonText: errorText });
 		}
 		else {
 
 			var id_token = response.getAuthResponse().id_token;
 			var access_token = response.getAuthResponse().access_token;
-			console.log("id token : " + id_token);
+			var expires_at = response.getAuthResponse().expires_at - 600000;
+			//var expires_at = Date.now() + 10000; // for testing now+10 seconds
 
 			const app = this;
 			var API = "/users/Auth";
@@ -62,33 +55,26 @@ class App extends Component {
 				});
 
 				if (!res.ok) {
-					res.text().then(function (text) {
-
-						app.setState({
-							JWT: "",
-							buttonText: text,
-						});
+					var text = await res.text();
+					app.setState({
+						buttonText: text,
 					});
 				}
 				else {
-
-					window.sessionStorage.setItem("JWT", id_token);
-					window.sessionStorage.setItem("accessToken", access_token);
-					console.log("JWT stored in sessionStorage: " + id_token);
-					console.log("accessToken stored in sessionStorage: " + access_token);
+					window.sessionStorage.JWT = id_token;
+					window.sessionStorage.accessToken = access_token;
+					window.sessionStorage.expires_at = expires_at;
 
 					app.setState({
-						JWT: window.sessionStorage.JWT,
 						buttonText: "",
 					});
 				}
 			}
 			catch (err) {
 				try {
-					var text = await err.text();
+					var text2 = await err.text();
 					app.setState({
-						JWT: "",
-						buttonText: text,
+						buttonText: text2,
 					});
 				}
 				finally { }
@@ -96,24 +82,41 @@ class App extends Component {
 		}
 	}
 
+	reloadOnExpiration() {
+		// if the token is expiring, wipe the session storage.
+		if (window.sessionStorage.JWT != null) {
+			if (window.sessionStorage.expires_at) {
+				if (Date.now() > window.sessionStorage.expires_at) {
+					window.sessionStorage.removeItem("expires_at");
+					window.sessionStorage.removeItem("JWT");
+					window.sessionStorage.removeItem("accessToken");
+
+					this.setState({
+						buttonText: "Login with Google",
+					});
+					window.location.reload(true);
+				}
+			}
+		}
+
+	}
+
 	render() {
 
-		var JWT = "";
 		var appBody = "";
 		var queryJWT = this.getQueryVariable("JWT");
 
-		if (queryJWT && queryJWT != "") {
-			console.log(queryJWT);
+		// passed in from BBMobile App
+		if (queryJWT && queryJWT !== "") {
 			window.sessionStorage.setItem("JWT", queryJWT);
 		}
-
-		if (window.sessionStorage.JWT != null)
-			JWT = window.sessionStorage.JWT;
-
-		if (JWT === "")
+ 
+		if (window.sessionStorage.getItem("JWT") !== null && window.sessionStorage.getItem("JWT") !== "") {
+			appBody = <BBApp reloadOnExpiration={this.reloadOnExpiration} />;
+		}
+		else {
 			appBody = <GoogleLoginPage buttonText={this.state.buttonText} responseGoogle={this.responseGoogle} />;
-		else
-			appBody = <BBApp />;
+		}
 
 		return (
 
