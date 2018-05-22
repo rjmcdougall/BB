@@ -27,26 +27,6 @@ PODS:
   - GoogleMaps/Base (2.5.0)
   - GoogleMaps/Maps (2.5.0):
     - GoogleMaps/Base
-  - GoogleSignIn (4.1.2):
-    - "GoogleToolboxForMac/NSDictionary+URLArguments (~> 2.1)"
-    - "GoogleToolboxForMac/NSString+URLArguments (~> 2.1)"
-    - GTMOAuth2 (~> 1.0)
-    - GTMSessionFetcher/Core (~> 1.1)
-  - GoogleToolboxForMac/DebugUtils (2.1.4):
-    - GoogleToolboxForMac/Defines (= 2.1.4)
-  - GoogleToolboxForMac/Defines (2.1.4)
-  - "GoogleToolboxForMac/NSDictionary+URLArguments (2.1.4)":
-    - GoogleToolboxForMac/DebugUtils (= 2.1.4)
-    - GoogleToolboxForMac/Defines (= 2.1.4)
-    - "GoogleToolboxForMac/NSString+URLArguments (= 2.1.4)"
-  - "GoogleToolboxForMac/NSString+URLArguments (2.1.4)"
-  - GTMOAuth2 (1.1.6):
-    - GTMSessionFetcher (~> 1.1)
-  - GTMSessionFetcher (1.1.15):
-    - GTMSessionFetcher/Full (= 1.1.15)
-  - GTMSessionFetcher/Core (1.1.15)
-  - GTMSessionFetcher/Full (1.1.15):
-    - GTMSessionFetcher/Core (= 1.1.15)
   - React (0.54.4):
     - React/Core (= 0.54.4)
   - react-native-google-maps (0.21.0):
@@ -108,7 +88,6 @@ DEPENDENCIES:
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - Google-Maps-iOS-Utils
   - GoogleMaps
-  - GoogleSignIn
   - react-native-google-maps (from `../node_modules/react-native-maps`)
   - react-native-maps (from `../node_modules/react-native-maps`)
   - React/Core (from `../node_modules/react-native`)
@@ -131,10 +110,6 @@ SPEC REPOS:
     - boost-for-react-native
     - Google-Maps-iOS-Utils
     - GoogleMaps
-    - GoogleSignIn
-    - GoogleToolboxForMac
-    - GTMOAuth2
-    - GTMSessionFetcher
 
 EXTERNAL SOURCES:
   DoubleConversion:
@@ -159,15 +134,11 @@ SPEC CHECKSUMS:
   glog: 1de0bb937dccdc981596d3b5825ebfb765017ded
   Google-Maps-iOS-Utils: c32891ff472eaaa1fca032beedafa1a013af7875
   GoogleMaps: c087b8e5dfe87ca6ebf59adb9b4894a4146bec4f
-  GoogleSignIn: d9ef55b10f0aa401a5de2747f59b725e4b9732ac
-  GoogleToolboxForMac: 91c824d21e85b31c2aae9bb011c5027c9b4e738f
-  GTMOAuth2: c77fe325e4acd453837e72d91e3b5f13116857b2
-  GTMSessionFetcher: 5fa5b80fd20e439ef5f545fb2cb3ca6c6714caa2
   React: c237e42de9c70e5cac6eeb52b4cfd3a0910c1f00
   react-native-google-maps: 2cfe3b01f8422c7dae51d8764139fd70f888cfce
   react-native-maps: 066c2afcc89e18726377bcc685315f989ca22449
   yoga: 55da126afc384965b96bff46652464373b330add
 
-PODFILE CHECKSUM: 7d0cc01cb970143d800c6168c4efcea8fc239135
+PODFILE CHECKSUM: b3508e14ce70e89b08bdc8a58229257ebbaca763
 
 COCOAPODS: 1.5.0
