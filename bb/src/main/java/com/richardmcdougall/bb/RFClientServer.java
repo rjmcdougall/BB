@@ -392,10 +392,12 @@ public class RFClientServer {
         long driftAdjust = -00;
 
         if (roundTripTime < 300) {
-            if (svTimeStamp < myTimeStamp) {
-                adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
-            } else
-                adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
+            //if (svTimeStamp < myTimeStamp) {
+            //    adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
+            //} else
+            // adjDrift = mytime delta from server
+            // 4156 - 2208
+            adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
             l("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
