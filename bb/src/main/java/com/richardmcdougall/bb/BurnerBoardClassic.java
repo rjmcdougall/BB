@@ -357,6 +357,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
+    public void setMsg(String msg) {
+    }
+
 
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     // row is 12 pixels : board has 10
