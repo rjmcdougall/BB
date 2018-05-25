@@ -83,7 +83,7 @@ public class RFClientServer {
     public void logUDP(long timestamp, String msg) {
         ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
 
-        int64ToPacket(logPacketTmp, timestamp);
+        stringToPacket(logPacketTmp, String.valueOf(timestamp));
         stringToPacket(logPacketTmp, msg);
 
         final byte[] logPacket = logPacketTmp.toByteArray();
@@ -338,7 +338,8 @@ public class RFClientServer {
         s.drift = drift;
         s.roundTripTime = rtt;
         samples.add(samples.size(), s);
-        if (samples.size()>100)
+        // RMC: trying 10 instead of 100 because of long recovery times when time jumps on master
+        if (samples.size()>10)
             samples.remove(0);
     }
 
@@ -391,10 +392,12 @@ public class RFClientServer {
         long driftAdjust = -00;
 
         if (roundTripTime < 300) {
-            if (svTimeStamp < myTimeStamp) {
-                adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
-            } else
-                adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
+            //if (svTimeStamp < myTimeStamp) {
+            //    adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
+            //} else
+            // adjDrift = mytime delta from server
+            // 4156 - 2208
+            adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
             l("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
