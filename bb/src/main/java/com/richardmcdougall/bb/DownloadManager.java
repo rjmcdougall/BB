@@ -34,14 +34,16 @@ public class DownloadManager {
     boolean mIsServer = false;
     String mBoardId;
 
-    JSONObject GetDataDirectory() { return dataDirectory; }
+    JSONObject GetDataDirectory() {
+        return dataDirectory;
+    }
 
 
     interface OnDownloadProgressType {
         public void onProgress(String file, long fileSize, long bytesDownloaded);
+
         public void onVoiceCue(String err);
     }
-
 
 
     public OnDownloadProgressType onProgressCallback = null;
@@ -90,7 +92,7 @@ public class DownloadManager {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
-                if(GetVideo(index).has("algorithm"))
+                if (GetVideo(index).has("algorithm"))
                     fn = GetVideo(index).getString("algorithm");
                 else
                     fn = GetVideo(index).getString("localName");
@@ -115,7 +117,7 @@ public class DownloadManager {
     }
 
     int GetTotalAudio() {
-        if (dataDirectory==null)
+        if (dataDirectory == null)
             return 0;
         else {
             try {
@@ -129,7 +131,7 @@ public class DownloadManager {
     }
 
     int GetTotalVideo() {
-        if (dataDirectory==null)
+        if (dataDirectory == null)
             return 0;
         else {
             try {
@@ -144,7 +146,7 @@ public class DownloadManager {
 
 
     JSONObject GetVideo(int index) {
-        if (dataDirectory==null)
+        if (dataDirectory == null)
             return null;
         if (dataDirectory.has("video")) {
             try {
@@ -153,13 +155,12 @@ public class DownloadManager {
                 e.printStackTrace();
                 return null;
             }
-        }
-        else
+        } else
             return null;
     }
 
     String GetAlgorithm(int index) {
-        if (dataDirectory==null)
+        if (dataDirectory == null)
             return null;
         if (dataDirectory.has("video")) {
             try {
@@ -168,13 +169,12 @@ public class DownloadManager {
                 e.printStackTrace();
                 return null;
             }
-        }
-        else
+        } else
             return null;
     }
 
     JSONObject GetAudio(int index) {
-        if (dataDirectory==null)
+        if (dataDirectory == null)
             return null;
         if (dataDirectory.has("audio")) {
             try {
@@ -183,8 +183,7 @@ public class DownloadManager {
                 e.printStackTrace();
                 return null;
             }
-        }
-        else
+        } else
             return null;
     }
 
@@ -197,7 +196,6 @@ public class DownloadManager {
             return 1000;   // return a dummy value
         }
     }
-
 
 
     private class BackgroundThread implements Runnable {
@@ -268,7 +266,7 @@ public class DownloadManager {
                     fileOutput.write(buffer, 0, bufferLength);
                     downloadSize += bufferLength;
 
-                    if (mDM.onProgressCallback!=null) {
+                    if (mDM.onProgressCallback != null) {
                         mDM.onProgressCallback.onProgress(progressName, fileSize, downloadSize);
 
                     }
@@ -327,7 +325,7 @@ public class DownloadManager {
 
                 String dataDir = mDM.mFilesDir;
                 File[] flist = new File(dataDir).listFiles();
-                for (int i=0; i<flist.length; i++) {
+                for (int i = 0; i < flist.length; i++) {
                     String fname = flist[i].getName();
 
                     if (fname.endsWith(".mp4") || fname.endsWith(".mp3")) {
@@ -345,15 +343,9 @@ public class DownloadManager {
             try {
                 String dataDir = mDM.mFilesDir;
                 File[] flist = new File(dataDir).listFiles();
-                if(flist != null){
-                    for (int i=0; i<flist.length; i++) {
-                        String fname = flist[i].getName();
-                        if (fname.endsWith(".tmp")) {   // download finished, move it over
-                            String dstName = flist[i].getName().substring(0, flist[i].getName().lastIndexOf('.'));
-                            flist[i].renameTo(new File(dataDir, dstName));
-                        }
-                    }
+                if (flist != null) {
 
+                    // if files are no longer referenced in the Data Directory, delete them.
                     String origDir = LoadTextFile("directory.json");
                     if (origDir != null) {
                         JSONObject dir = new JSONObject(origDir);
@@ -368,122 +360,144 @@ public class DownloadManager {
             }
         }
 
+        // Spaces were breaking the download
+        public String encodeURL(String url){
+            try {
+                String[] urlArray = url.split("/");
+                urlArray[urlArray.length - 1] = URLEncoder.encode(urlArray[urlArray.length - 1], "UTF-8").replaceAll("\\+", "%20");
+                urlArray[urlArray.length - 2] = URLEncoder.encode(urlArray[urlArray.length - 2], "UTF-8").replaceAll("\\+", "%20");
+                urlArray[urlArray.length - 3] = URLEncoder.encode(urlArray[urlArray.length - 3], "UTF-8").replaceAll("\\+", "%20");
+                return TextUtils.join("/", urlArray);
+            }
+            catch(Throwable th){
+                return "";
+            }
+        }
+
+        public boolean GetNewDirectory() {
+
+            try {
+
+
+                String dataDir = mDM.mFilesDir;
+                String DirectoryURL = "https://burnerboard.com/boards/" + mBoardId + "/DownloadDirectoryJSON";
+
+                DirectoryURL = encodeURL(DirectoryURL);
+
+                long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
+
+                if (ddsz < 0) {
+                    Log.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
+                    return false;
+                }
+
+                if (ddsz == dataDir.length()) {
+                    Log.d(TAG, "No Changes to DirecotryJSON.");
+                    return true;
+                }
+
+                Log.d(TAG, "Reading Directory from " + DirectoryURL);
+
+                if (mDM.onProgressCallback != null)
+                    mDM.onProgressCallback.onVoiceCue("Media Changes Detected. Downloading.");
+
+                new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
+
+                String dirTxt = LoadTextFile("directory.json.tmp");
+                JSONObject dir = new JSONObject(dirTxt);
+
+                int tFiles = 0;
+
+                String[] dTypes = new String[]{"audio", "video"};
+                String[] extTypes = new String[]{"mp3", "mp4", "m4a"};
+
+                for (int i = 0; i < dTypes.length; i++) {
+                    JSONArray tList = dir.getJSONArray(dTypes[i]);
+                    for (int j = 0; j < tList.length(); j++) {
+
+                        JSONObject elm = tList.getJSONObject(j);
+
+                        // if there is no URL, it is an algorithm and should be skipped for download.
+                        if (elm.has("URL")) {
+
+                            String localName = elm.getString("localName");
+                            String url = elm.getString("URL");
+
+                            url = encodeURL(url);
+
+                            Boolean upTodate = false;
+                            File dstFile = new File(dataDir, localName);
+                            if (elm.has("Size")) {
+                                long sz = elm.getLong("Size");
+                                if (dstFile.exists())
+                                    if (dstFile.length() == sz)
+                                        upTodate = true;
+                            } else {
+                                if (dstFile.exists()) {
+                                    long remoteSz = GetURLFileSize(url);
+
+                                    if (dstFile.length() == remoteSz)
+                                        upTodate = true;
+                                }
+                            }
+
+                            if (mIsServer) {
+                                //downloadSuccess = true;
+                            } else {
+                                File dstFile2;
+                                if (!upTodate) {
+                                    DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+                                    tFiles++;
+                                    dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
+
+                                    if (dstFile2.exists())
+                                        dstFile2.delete();
+                                    new File(dataDir, "tmp").renameTo(dstFile2);
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+                // got new media.  Update!
+                mDM.dataDirectory = dir;
+                CleanupOldFiles();
+
+                // now that you have the media, update the directory so the board can use it.
+                new File(dataDir, "directory.json.tmp").renameTo(new File(dataDir, "directory.json"));
+
+                if (mDM.onProgressCallback != null)
+                    mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files. Media ready.");
+
+                return true;
+            } catch (JSONException jse) {
+                Log.d(TAG, "Error " + jse.getMessage());
+                return false;
+            } catch (Throwable th) {
+                Log.d(TAG, "Error " + th.getMessage());
+                return false;
+            }
+        }
 
         @Override
         public void run() {
             LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
-            // keep trying to connect to the Internet to look for updates until we are able to connect
             try {
                 boolean downloadSuccess = false;
 
+                // On boot it can take some time to get an internet connection.  Check every 5 seconds for 5 minutes
                 while (!downloadSuccess) {
-
-                    String dataDir = mDM.mFilesDir;
-
-                    String DirectoryURL =
-                            "https://burnerboard.com/boards/" +
-                                    mBoardId +  "/DownloadDirectoryJSON";
-
-                    Log.d(TAG, "Reading Directory from " + DirectoryURL);
-
-                    long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
-
-                    if (ddsz < 0) {
-                        Log.d(TAG, "Sleeping for 5 seconds. ");
-                        Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
-                    } else {
-                        new File(dataDir, "tmp").renameTo(new File(dataDir,
-                                "directory.json.tmp"));
-
-                        String dirTxt = LoadTextFile("directory.json.tmp");
-                        JSONObject dir = new JSONObject(dirTxt);
-
-                        int tFiles = 0;
-
-                        String[] dTypes = new String[]{"audio", "video"};
-                        String[] extTypes = new String[]{"mp3", "mp4"};
-                        for (int i = 0; i < dTypes.length; i++) {
-                            JSONArray tList = dir.getJSONArray(dTypes[i]);
-                            for (int j = 0; j < tList.length(); j++) {
-                                long appVersion = 0;
-                                JSONObject elm = tList.getJSONObject(j);
-
-                                // if there is no URL, it is an algorithm and should be skipped for download.
-                                if(elm.has("URL")) {
-
-                                    String localName;
-                                    if (elm.has("localName"))
-                                        localName = elm.getString("localName");
-                                    else
-                                        localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
-
-                                    String url = elm.getString("URL");
-                                    // Spaces were breaking the download
-                                    String[] urlArray = url.split("/");
-                                    urlArray[urlArray.length-1] = URLEncoder.encode(urlArray[urlArray.length-1], "UTF-8").replaceAll("\\+", "%20");
-                                    urlArray[urlArray.length-2] = URLEncoder.encode(urlArray[urlArray.length-2], "UTF-8").replaceAll("\\+", "%20");
-                                    url = TextUtils.join("/", urlArray);
-
-                                    Boolean upTodate = false;
-                                    File dstFile = new File(dataDir, localName);
-                                    if (elm.has("Size")) {
-                                        long sz = elm.getLong("Size");
-
-                                        if (dstFile.exists()) {
-                                            if (dstFile.length() == sz) {
-                                                upTodate = true;
-                                            }
-                                        }
-                                    } else {
-                                        if (dstFile.exists()) {
-                                            long remoteSz = GetURLFileSize(url);
-
-                                            if (dstFile.length() == remoteSz) {
-                                                upTodate = true;
-                                            }
-                                        }
-                                    }
-
-                                    //RMC fix
-                                    //upTodate = true;
-
-                                    if (mIsServer) {
-                                        //downloadSuccess = true;
-                                    } else {
-                                        File dstFile2;
-                                        if (!upTodate) {
-                                            DownloadURL(url, "tmp", localName);   // download to a "tmp" file
-                                            tFiles++;
-                                            if (appVersion == 0) { // .tmp files for all media except app packages
-                                                dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
-                                            } else {
-                                                dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
-                                            }
-                                            if (dstFile2.exists())
-                                                dstFile2.delete();
-                                            new File(dataDir, "tmp").renameTo(dstFile2);
-
-                                        }
-                                    }
-                                }
-
-
-                            }
-                        }
-                        mDM.dataDirectory = dir;
-
-                        if (mDM.onProgressCallback != null) {
-                            if (tFiles == 0)
-                                mDM.onProgressCallback.onVoiceCue("Media ready");
-                            else
-                                mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
-                        }
-                        downloadSuccess = true;
-
-                    }
+                    downloadSuccess = GetNewDirectory();
+                    Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
                 }
 
+                // After the first boot check periodically in case the profile has changed.
+                while (true) {
+                    downloadSuccess = GetNewDirectory();
+                    Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
+                }
             } catch (Throwable th) {
                 if (mDM.onProgressCallback != null)
                     mDM.onProgressCallback.onVoiceCue(th.getMessage());

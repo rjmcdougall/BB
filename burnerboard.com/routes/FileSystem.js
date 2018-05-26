@@ -35,7 +35,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 					speechCue: "",
 				};
 
-				if (jsonContent.title.endsWith("mp3") || jsonContent.title.endsWith("mp4")) {
+				if (jsonContent.title.endsWith("m4a") || jsonContent.title.endsWith("mp3") || jsonContent.title.endsWith("mp4")) {
 					checkForFileExists(boardID, profileID, jsonContent.title)
 						.then(result => {
 							if (result == true)
@@ -75,7 +75,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 											file3.makePublic();
 
 											const DownloadDirectoryDS = require("./DownloadDirectoryDS");
-											if (filePath.endsWith("mp3")) {
+											if (filePath.endsWith("mp3") || filePath.endsWith("m4a")) {
 
 												var streamToBuffer = require("stream-to-buffer");
 												var stream3 = file3.createReadStream();
@@ -86,8 +86,12 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 													mp3Duration(buffer, function (err, duration) {
 														if (err)
 															throw new Error(err);
-															
-														fileAttributes.songDuration = Math.floor(duration);
+														
+														if(filePath.endsWith("mp3"))
+															fileAttributes.songDuration = Math.floor(duration);
+														else 
+															fileAttributes.songDuration = 0; // length wont be accurate.  0 should not hurt.  
+																							 //It will just mean length changes on the server wont force refresh.
 
 														DownloadDirectoryDS.addMedia(boardID,
 															profileID,
@@ -132,7 +136,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 						});
 				}
 				else {
-					return reject(new Error("The file must have an mp3 or mp4 extension."));
+					return reject(new Error("The file must have an mp3, m4a, or mp4 extension."));
 				}
 			}
 		});
