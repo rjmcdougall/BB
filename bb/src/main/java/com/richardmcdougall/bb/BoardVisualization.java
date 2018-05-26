@@ -958,7 +958,7 @@ public class BoardVisualization {
 
         int curVidIndex = videoNumber % nVideos;
 
-        //mBurnerBoard.setMsg(String.valueOf(mBBservice.CurrentClockAdjusted() % 1000000));
+        //mBurnerBoard.setMsg(String.format("%04d %04d", mBBservice.GetCurrentClock() % 10000, mBBservice.CurrentClockAdjusted() % 10000));
         //if (true)
         //    return 20;
 
