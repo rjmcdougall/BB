@@ -137,8 +137,8 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 				"video",
 				filePath,
 				fileAttributes.fileSize,
-				0,
-				"speechCue");
+				fileAttributes.songDuration,
+				"");
 		}
 	}
 	catch (error) {
