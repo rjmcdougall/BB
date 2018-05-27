@@ -4,6 +4,9 @@ const storage = Storage();
 const google = require("googleapis");
 const drive = google.drive("v2");
 const bucket = storage.bucket("burner-board");
+const ffmpegPath = require("ffmpeg-static").path;
+const ffmpeg = require("fluent-ffmpeg");
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 var fileAttributes = {
 	fileSize: 0,
@@ -47,88 +50,88 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 									"access_token": oauthToken,
 									alt: "media"
 								}, {
-									encoding: null // Make sure we get the binary data
-								}, function (err, content) {
+										encoding: null // Make sure we get the binary data
+									}, function (err, content) {
 
-									if (err)
-										return reject(err);
-									else {
-										// now get the real file and save it.
-										var filePath = "";
-										if (boardID != null)
-											filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileAttributes.title;
-										else
-											filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileAttributes.title;
-
-										var file3 = bucket.file(filePath);
-										var fileStream3 = file3.createWriteStream({
-											metadata: {
-												contentType: fileAttributes.mimeType,
-											}
-										});
-
-										fileStream3.on("error", (err) => {
+										if (err)
 											return reject(err);
-										});
+										else {
+											// now get the real file and save it.
+											var filePath = "";
+											if (boardID != null)
+												filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileAttributes.title;
+											else
+												filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileAttributes.title;
 
-										fileStream3.on("finish", () => {
-											file3.makePublic();
+											var file3 = bucket.file(filePath);
+											var fileStream3 = file3.createWriteStream({
+												metadata: {
+													contentType: fileAttributes.mimeType,
+												}
+											});
 
-											const DownloadDirectoryDS = require("./DownloadDirectoryDS");
-											if (filePath.endsWith("mp3") || filePath.endsWith("m4a")) {
+											fileStream3.on("error", (err) => {
+												return reject(err);
+											});
 
-												var streamToBuffer = require("stream-to-buffer");
-												var stream3 = file3.createReadStream();
+											fileStream3.on("finish", () => {
+												file3.makePublic();
 
-												streamToBuffer(stream3, function (err, buffer) {
-													var i = buffer.length;
-													var mp3Duration = require("mp3-duration");
-													mp3Duration(buffer, function (err, duration) {
-														if (err)
-															throw new Error(err);
-														
-														if(filePath.endsWith("mp3"))
-															fileAttributes.songDuration = Math.floor(duration);
-														else 
-															fileAttributes.songDuration = 0; // length wont be accurate.  0 should not hurt.  
-																							 //It will just mean length changes on the server wont force refresh.
+												const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+												if (filePath.endsWith("mp3") || filePath.endsWith("m4a")) {
 
-														DownloadDirectoryDS.addMedia(boardID,
-															profileID,
-															"audio",
-															filePath,
-															fileAttributes.fileSize,
-															fileAttributes.songDuration,
-															"")
-															.then(result => {
-																return resolve(result);
-															})
-															.catch(function (err) {
-																return reject(err);
-															});
+													var streamToBuffer = require("stream-to-buffer");
+													var stream3 = file3.createReadStream();
+
+													streamToBuffer(stream3, function (err, buffer) {
+														var i = buffer.length;
+														var mp3Duration = require("mp3-duration");
+														mp3Duration(buffer, function (err, duration) {
+															if (err)
+																throw new Error(err);
+
+															if (filePath.endsWith("mp3"))
+																fileAttributes.songDuration = Math.floor(duration);
+															else
+																fileAttributes.songDuration = 0; // length wont be accurate.  0 should not hurt.  
+															//It will just mean length changes on the server wont force refresh.
+
+															DownloadDirectoryDS.addMedia(boardID,
+																profileID,
+																"audio",
+																filePath,
+																fileAttributes.fileSize,
+																fileAttributes.songDuration,
+																"")
+																.then(result => {
+																	return resolve(result);
+																})
+																.catch(function (err) {
+																	return reject(err);
+																});
+														});
 													});
-												});
-											}
-											else if (filePath.endsWith("mp4")) {
+												}
+												else if (filePath.endsWith("mp4")) {
 
-												DownloadDirectoryDS.addMedia(boardID,
-													profileID,
-													"video",
-													filePath,
-													fileAttributes.fileSize,
-													0,
-													"speechCue")
-													.then(result => {
-														return resolve(result);
-													})
-													.catch(function (err) {
-														return reject(err);
-													});
-											}
-										});
-										fileStream3.end(content);
-									}
-								});
+													DownloadDirectoryDS.addMedia(boardID,
+														profileID,
+														"video",
+														filePath,
+														fileAttributes.fileSize,
+														0,
+														"speechCue")
+														.then(result => {
+															return resolve(result);
+														})
+														.catch(function (err) {
+															return reject(err);
+														});
+												}
+											});
+											fileStream3.end(content);
+										}
+									});
 							}
 						})
 						.catch(function (err) {
@@ -292,3 +295,52 @@ exports.deleteBoard = async function (boardID) {
 		throw new Error(error);
 	}
 };
+
+exports.convertToM4A = async function (boardID, profileID, fileName) {
+
+	var duration = 0; // we can only get this via converting the file. No Metadata!!
+	var filePath = "";
+	if (boardID != null)
+		filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileName;
+	else
+		filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
+
+	var file = bucket.file(filePath);
+	var remoteReadStream = bucket.file(file.name).createReadStream();
+	var remoteWriteStream = bucket.file(file.name.replace(".mp3", ".m4a"))
+		.createWriteStream({
+			metadata: {
+				contentType: "audio/mp4",
+			}
+		});
+ 
+	return new Promise((resolve, reject) => {
+		ffmpeg()
+			.input(remoteReadStream)
+			.format("mp4")
+			.outputOptions("-movflags frag_keyframe+empty_moov") // Not sure what this does, but it works.
+			.audioCodec("aac")
+			.audioBitrate(128)
+			.outputOptions("-y")
+			.on("start", (cmdLine) => {
+				console.log("Started ffmpeg with command:", cmdLine);
+			})
+			.on("progress", (progress) => {
+				console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
+				duration = progress.timemark;
+			})
+			.on("end", (data) => {
+				console.log("Successfully re-encoded audio.");
+				console.log(JSON.stringify(data));
+				resolve(duration);
+			})
+			.on("error", (err, stdout, stderr) => {
+				console.error("An error occured during encoding", err.message);
+				console.error("stdout:", stdout);
+				console.error("stderr:", stderr);
+				reject(err);
+			})
+			.pipe(remoteWriteStream, { end: true }); // end: true, emit end event when readable stream ends
+	});
+};
+ 
