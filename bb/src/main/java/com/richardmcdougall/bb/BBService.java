@@ -972,7 +972,9 @@ public class BBService extends Service {
         }
 
         // If I am set to be the master, broadcast to other boards
-        if (mMasterRemote && (mRfClientServer == null)) {
+        if (mMasterRemote && (mRfClientServer != null)) {
+
+            l("Sending remote");
 
             String fileName = getRadioChannelInfo(index);
             mRfClientServer.sendRemote(kRemoteAudioTrack, hashTrackName(fileName));
@@ -1213,9 +1215,11 @@ public class BBService extends Service {
             mBoardMode = maxModes;
 
         // If I am set to be the master, broadcast to other boards
-        if (mMasterRemote && (mRfClientServer == null)) {
+        if (mMasterRemote && (mRfClientServer != null)) {
 
-            String name = getVideoModeInfo(mode);
+
+            String name = getVideoModeInfo(mBoardMode);
+            l("Sending video remote for video " + name);
             mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name));
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             try {
