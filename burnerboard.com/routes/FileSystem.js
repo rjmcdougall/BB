@@ -7,6 +7,7 @@ const bucket = storage.bucket("burner-board");
 const ffmpegPath = require("ffmpeg-static").path;
 const ffmpeg = require("fluent-ffmpeg");
 ffmpeg.setFfmpegPath(ffmpegPath);
+const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 var fileAttributes = {
 	fileSize: 0,
@@ -16,11 +17,16 @@ var fileAttributes = {
 	speechCue: 0,
 };
 
-exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, speechCue) {
+exports.filePath = function (boardID, profileID) {
+	if (boardID != null)
+		return constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileAttributes.title;
+	else
+		return constants.MUSIC_PATH + "/global/" + profileID + "/" + fileAttributes.title;
+};
 
+
+exports.getGDriveMetadata = async function (fileId, oauthToken) {
 	return new Promise((resolve, reject) => {
-
-		var tempFileName = "";
 
 		drive.files.get({
 			fileId: fileId,
@@ -37,113 +43,107 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 					songDuration: 0,
 					speechCue: "",
 				};
+				resolve();
+			}
+		}
+		);
+	});
+};
 
-				if (jsonContent.title.endsWith("m4a") || jsonContent.title.endsWith("mp3") || jsonContent.title.endsWith("mp4")) {
-					checkForFileExists(boardID, profileID, jsonContent.title)
-						.then(result => {
-							if (result == true)
-								throw new Error("the file " + fileAttributes.title + " already exists for board " + boardID + " in profile " + profileID);
-							else {
+exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken, speechCue) {
 
-								drive.files.get({
-									fileId: fileId,
-									"access_token": oauthToken,
-									alt: "media"
-								}, {
-										encoding: null // Make sure we get the binary data
-									}, function (err, content) {
+	var module = this;
 
-										if (err)
-											return reject(err);
-										else {
-											// now get the real file and save it.
-											var filePath = "";
-											if (boardID != null)
-												filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileAttributes.title;
-											else
-												filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileAttributes.title;
+	return new Promise((resolve, reject) => {
 
-											var file3 = bucket.file(filePath);
-											var fileStream3 = file3.createWriteStream({
-												metadata: {
-													contentType: fileAttributes.mimeType,
-												}
-											});
+		drive.files.get({
+			fileId: fileId,
+			"access_token": oauthToken,
+			alt: "media"
+		}, { encoding: null }, function (err, content) {
 
-											fileStream3.on("error", (err) => {
-												return reject(err);
-											});
+			if (err)
+				return reject(err);
+			else {
+				// now get the real file and save it.
+				var filePath = module.filePath(boardID, profileID);
 
-											fileStream3.on("finish", () => {
-												file3.makePublic();
-
-												const DownloadDirectoryDS = require("./DownloadDirectoryDS");
-												if (filePath.endsWith("mp3") || filePath.endsWith("m4a")) {
-
-													var streamToBuffer = require("stream-to-buffer");
-													var stream3 = file3.createReadStream();
-
-													streamToBuffer(stream3, function (err, buffer) {
-														var i = buffer.length;
-														var mp3Duration = require("mp3-duration");
-														mp3Duration(buffer, function (err, duration) {
-															if (err)
-																throw new Error(err);
-
-															if (filePath.endsWith("mp3"))
-																fileAttributes.songDuration = Math.floor(duration);
-															else
-																fileAttributes.songDuration = 0; // length wont be accurate.  0 should not hurt.  
-															//It will just mean length changes on the server wont force refresh.
-
-															DownloadDirectoryDS.addMedia(boardID,
-																profileID,
-																"audio",
-																filePath,
-																fileAttributes.fileSize,
-																fileAttributes.songDuration,
-																"")
-																.then(result => {
-																	return resolve(result);
-																})
-																.catch(function (err) {
-																	return reject(err);
-																});
-														});
-													});
-												}
-												else if (filePath.endsWith("mp4")) {
-
-													DownloadDirectoryDS.addMedia(boardID,
-														profileID,
-														"video",
-														filePath,
-														fileAttributes.fileSize,
-														0,
-														"speechCue")
-														.then(result => {
-															return resolve(result);
-														})
-														.catch(function (err) {
-															return reject(err);
-														});
-												}
-											});
-											fileStream3.end(content);
-										}
-									});
-							}
-						})
-						.catch(function (err) {
-							return reject(err);
-						});
-				}
-				else {
-					return reject(new Error("The file must have an mp3, m4a, or mp4 extension."));
-				}
+				var file3 = bucket.file(filePath);
+				var fileStream3 = file3.createWriteStream({
+					metadata: {
+						contentType: fileAttributes.mimeType,
+					}
+				})
+					.on("error", (err) => {
+						return reject(err);
+					})
+					.on("finish", () => {
+						file3.makePublic();
+						return resolve();
+					})
+					.end(content);
 			}
 		});
 	});
+};
+
+function getSeconds(str) {
+	var durationParts = str.split(":");
+
+	var seconds = 0;
+	seconds += durationParts[0] * 60 * 60;
+	seconds += durationParts[1] * 60;
+	seconds += Math.floor(durationParts[2]);
+	return seconds;
+}
+
+exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, speechCue) {
+
+	try {
+
+		await this.getGDriveMetadata(fileId, oauthToken);
+
+		var filePath = this.filePath(boardID, profileID);
+
+		if (!fileAttributes.title.endsWith("mp3") && !fileAttributes.title.endsWith("mp4"))
+			throw new Error("The file must have an mp3, or mp4 extension.");
+
+		var result = await this.checkForFileExists(boardID, profileID, fileAttributes.title);
+		if (result == true)
+			throw new Error("the file " + fileAttributes.title + " already exists for board " + boardID + " in profile " + profileID);
+
+		await this.getDriveContent(boardID, profileID, fileId, oauthToken, speechCue);
+
+		if (filePath.endsWith("mp3")) {
+			var duration = await this.getDurationMP3(boardID, profileID);
+
+			fileAttributes.songDuration = getSeconds(duration);
+
+			return await DownloadDirectoryDS.addMedia(boardID,
+				profileID,
+				"audio",
+				filePath,
+				fileAttributes.fileSize,
+				fileAttributes.songDuration,
+				"");
+		}
+		else if (filePath.endsWith("mp4")) {
+			var duration = await this.getDurationMP4(boardID, profileID);
+
+			fileAttributes.songDuration = getSeconds(duration);
+
+			return await DownloadDirectoryDS.addMedia(boardID,
+				profileID,
+				"video",
+				filePath,
+				fileAttributes.fileSize,
+				0,
+				"speechCue");
+		}
+	}
+	catch (error) {
+		throw error;
+	}
 };
 
 exports.listProfileFiles = async function (boardID, profileID) {
@@ -220,7 +220,7 @@ exports.createRootBoardFolder = async function (boardID) {
 	}
 };
 
-checkForFileExists = async function (boardID, profileID, fileName) {
+exports.checkForFileExists = async function (boardID, profileID, fileName) {
 
 	try {
 		var profilePath = "";
@@ -296,29 +296,38 @@ exports.deleteBoard = async function (boardID) {
 	}
 };
 
-exports.convertToM4A = async function (boardID, profileID, fileName) {
+// DOES NOT WORK~~
+exports.convertToMP4 = async function (boardID, profileID, fileName) {
+
+	ffmpeg.getAvailableCodecs(function (err, codecs) {
+		console.log('Available codecs:');
+		console.dir(codecs);
+	});
+
 
 	var duration = 0; // we can only get this via converting the file. No Metadata!!
 	var filePath = "";
+
 	if (boardID != null)
 		filePath = constants.MUSIC_PATH + "/" + boardID + "/" + profileID + "/" + fileName;
 	else
 		filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
 
 	var file = bucket.file(filePath);
+	var newFilePath = file.name.replace(".mp3", ".mp4");
 	var remoteReadStream = bucket.file(file.name).createReadStream();
-	var remoteWriteStream = bucket.file(file.name.replace(".mp3", ".m4a"))
+	var remoteWriteStream = bucket.file(newFilePath)
 		.createWriteStream({
 			metadata: {
 				contentType: "audio/mp4",
 			}
 		});
- 
+
 	return new Promise((resolve, reject) => {
 		ffmpeg()
 			.input(remoteReadStream)
 			.format("mp4")
-			.outputOptions("-movflags frag_keyframe+empty_moov") // Not sure what this does, but it works.
+			.outputOptions("-movflags empty_moov")  
 			.audioCodec("aac")
 			.audioBitrate(128)
 			.outputOptions("-y")
@@ -326,12 +335,13 @@ exports.convertToM4A = async function (boardID, profileID, fileName) {
 				console.log("Started ffmpeg with command:", cmdLine);
 			})
 			.on("progress", (progress) => {
-				console.log(`[ffmpeg] ${JSON.stringify(progress)}`);
+				console.log("[ffmpeg] " + JSON.stringify(progress));
 				duration = progress.timemark;
 			})
-			.on("end", (data) => {
+			.on("end", async (data) => {
 				console.log("Successfully re-encoded audio.");
 				console.log(JSON.stringify(data));
+
 				resolve(duration);
 			})
 			.on("error", (err, stdout, stderr) => {
@@ -340,7 +350,103 @@ exports.convertToM4A = async function (boardID, profileID, fileName) {
 				console.error("stderr:", stderr);
 				reject(err);
 			})
-			.pipe(remoteWriteStream, { end: true }); // end: true, emit end event when readable stream ends
+			.pipe(remoteWriteStream, { end: true });  
+	});
+
+};
+
+exports.getDurationMP4 = async function (boardID, profileID, fileName) {
+
+	var duration = 0;  
+	var filePath = "";
+
+	var filePath = this.filePath(boardID, profileID);
+
+	var file = bucket.file(filePath);
+	var newFilePath = file.name.replace(".mp4", ".tmp");
+	var remoteReadStream = bucket.file(file.name).createReadStream();
+	var remoteWriteStream = bucket.file(newFilePath)
+		.createWriteStream({
+			metadata: {
+				contentType: "audio/mp4",
+			}
+		});
+
+	console.log("File Path: " + filePath);
+	console.log("Temp File Path: " + newFilePath);
+
+	return new Promise((resolve, reject) => {
+		ffmpeg()
+			.input(remoteReadStream)
+			.format("mp4")
+			.addOption("-c copy")
+			.outputOptions("-movflags empty_moov") 
+			.on("start", (cmdLine) => {
+				console.log("Started ffmpeg with command:", cmdLine);
+			})
+			.on("progress", (progress) => {
+				console.log("[ffmpeg] " + JSON.stringify(progress));
+				duration = progress.timemark;
+			})
+			.on("end", async (data) => {
+				console.log("Successfully re-encoded audio.");
+				console.log(JSON.stringify(data));
+
+				resolve(duration);
+			})
+			.on("error", (err, stdout, stderr) => {
+				console.error("An error occured during encoding", err.message);
+				console.error("stdout:", stdout);
+				console.error("stderr:", stderr);
+				reject(err);
+			})
+			.pipe(remoteWriteStream, { end: true });  
+	});
+
+};
+
+exports.getDurationMP3 = async function (boardID, profileID) {
+
+	var duration = 0;  
+	var filePath = this.filePath(boardID, profileID);
+
+	var file = bucket.file(filePath);
+	var newFilePath = file.name.replace(".mp3", ".tmp");
+	var remoteReadStream = bucket.file(file.name).createReadStream();
+	var remoteWriteStream = bucket.file(newFilePath)
+		.createWriteStream({
+			metadata: {
+				contentType: "audio/mp3",
+			}
+		});
+	var duration;
+
+	return new Promise((resolve, reject) => {
+		ffmpeg()
+			.input(remoteReadStream)
+			.format("mp3")
+			.addOption("-c copy")
+			.on("start", (cmdLine) => {
+				console.log("Started ffmpeg with command:", cmdLine);
+			})
+			.on("progress", (progress) => {
+				console.log("[ffmpeg]" + JSON.stringify(progress));
+				duration = progress.timemark;
+			})
+			.on("end", async (data) => {
+				console.log("Successfully re-encoded audio.");
+				console.log(JSON.stringify(data));
+
+				resolve(duration);
+			})
+			.on("error", (err, stdout, stderr) => {
+				console.error("An error occured during encoding", err.message);
+				console.error("stdout:", stdout);
+				console.error("stderr:", stderr);
+				reject(err);
+			})
+			.pipe(remoteWriteStream, { end: true });  
 	});
 };
- 
+
+

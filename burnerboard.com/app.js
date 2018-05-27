@@ -50,12 +50,12 @@ app.use(function (err, req, res, next) {
 	res.send("error");
 });
 
-var myFunc = async function() {
-	var FileSystem = require("./routes/FileSystem");
-	var duration = await FileSystem.convertToM4A("vega","VegaRocks","60 BPM.mp3" );
-	console.log("Duration: " + duration);
-};
+// var myFunc = async function() {
+// 	var FileSystem = require("./routes/FileSystem");
+// 	var duration = await FileSystem.getDurationMP4("vega","VegaRocks","lightrays.mp4" );
+// 	console.log("Duration: " + duration);
+// };
 
-myFunc();
+// myFunc();
 
 module.exports = app;
