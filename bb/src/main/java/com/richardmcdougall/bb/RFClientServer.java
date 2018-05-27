@@ -606,7 +606,7 @@ public class RFClientServer {
 
     public void sendRemote(int cmd, long value) {
 
-        if (mRF != null) {
+        if (mRF == null) {
             return;
         }
         l("Sending remote control command");
@@ -632,7 +632,7 @@ public class RFClientServer {
     }
 
     public long getLatency() {
-        return mLatency;
+        return mLatency / 2;
     }
 
 }
