@@ -391,20 +391,22 @@ public class DownloadManager {
                     return false;
                 }
 
-                if (ddsz == dataDir.length()) {
-                    Log.d(TAG, "No Changes to DirecotryJSON.");
-                    return true;
-                }
-
                 Log.d(TAG, "Reading Directory from " + DirectoryURL);
-
-                if (mDM.onProgressCallback != null)
-                    mDM.onProgressCallback.onVoiceCue("Media Changes Detected. Downloading.");
 
                 new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
 
                 String dirTxt = LoadTextFile("directory.json.tmp");
                 JSONObject dir = new JSONObject(dirTxt);
+
+                if(mDM.dataDirectory != null)
+                    if (dir.toString().length() == mDM.dataDirectory.toString().length()) {
+                        Log.d(TAG, "No Changes to DirecotryJSON.");
+                        return true;
+                    }
+
+
+                if (mDM.onProgressCallback != null)
+                    mDM.onProgressCallback.onVoiceCue("Media Changes Detected. Downloading.");
 
                 int tFiles = 0;
 
@@ -495,7 +497,7 @@ public class DownloadManager {
 
                 // After the first boot check periodically in case the profile has changed.
                 while (true) {
-                    downloadSuccess = GetNewDirectory();
+                    GetNewDirectory();
                     Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
                 }
             } catch (Throwable th) {
