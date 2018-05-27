@@ -35,7 +35,7 @@ public class BluetoothProfile {
 
     /**
      * Return a configured {@link BluetoothGattService} instance for the
-     * Current Time Service.
+     * Location Service.
      */
     public static BluetoothGattService createBBLocationService() {
         BluetoothGattService service = new BluetoothGattService(BB_LOCATION_SERVICE,
@@ -70,7 +70,7 @@ public class BluetoothProfile {
     public static UUID BB_AUDIO_DESCRIPTOR = UUID.fromString("89239b0a-1937-11e8-accf-0ed5f89f718b");
     /**
      * Return a configured {@link BluetoothGattService} instance for the
-     * Current Time Service.
+     * Audio Service
      */
     public BluetoothGattService createBBAudioService() {
 
@@ -208,7 +208,7 @@ public class BluetoothProfile {
     public static UUID BB_VIDEO_DESCRIPTOR = UUID.fromString("89239b0a-9937-11e8-accf-0ed5f89f718b");
     /**
      * Return a configured {@link BluetoothGattService} instance for the
-     * Current Time Service.
+     * Video Track Service
      */
     public BluetoothGattService createBBVideoService() {
 
@@ -359,13 +359,13 @@ public class BluetoothProfile {
     }
 
 
-    public static UUID BB_BTDEVICE_SERVICE = UUID.fromString("89239614-8937-11e8-accf-0ed5f89f718b");
+   public static UUID BB_BTDEVICE_SERVICE = UUID.fromString("89239614-8937-11e8-accf-0ed5f89f718b");
     public static UUID BB_BTDEVICE_INFO_CHARACTERISTIC = UUID.fromString("892398a8-8937-11e8-accf-0ed5f89f718b");
     public static UUID BB_BTDEVICE_SELECT_CHARACTERISTIC = UUID.fromString("892399e8-8937-11e8-accf-0ed5f89f718b");
     public static UUID BB_BTDEVICE_DESCRIPTOR = UUID.fromString("89239b0a-8937-11e8-accf-0ed5f89f718b");
     /**
      * Return a configured {@link BluetoothGattService} instance for the
-     * Current Time Service.
+     * Bluetooth Device Service
      */
     public BluetoothGattService createBBBtdeviceService() {
 
@@ -474,5 +474,52 @@ public class BluetoothProfile {
         //service.setBtdeviceMode(value[0] & 0xff);
     }
 
+    public static UUID BB_AUDIOSYNC_SERVICE = UUID.fromString("89279614-8937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_AUDIOSYNC_STATS_CHARACTERISTIC =  UUID.fromString("892799e8-8937-11e8-accf-0ed5f89f718b");
+    public static UUID BB_AUDIOSYNC_REMOTE_CHARACTERISTIC = UUID.fromString("892799e8-8937-11e8-abcf-0ed5f89f718b");
+
+    /**
+     * Return a configured {@link BluetoothGattService} instance for the
+     * Audio Sync Service
+     */
+    public BluetoothGattService createBBAudioSyncService() {
+
+        BluetoothGattService service = new BluetoothGattService(BB_AUDIOSYNC_SERVICE,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+        // Audio Sync Stats
+        BluetoothGattCharacteristic bbAudioSyncStats = new BluetoothGattCharacteristic(BB_AUDIOSYNC_STATS_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ);
+
+        // Audio Sync Global Remote Control
+        BluetoothGattCharacteristic bbAudioSyncRemote = new BluetoothGattCharacteristic(BB_AUDIOSYNC_REMOTE_CHARACTERISTIC,
+                //Read-only characteristic, supports notifications
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        service.addCharacteristic(bbAudioSyncStats);
+        service.addCharacteristic(bbAudioSyncRemote);
+
+        return service;
+    }
+
+    // Stats:
+    // 0-2: current master address
+    // 3-4: round trip latency
+    /**
+     * Construct the field values for a BB Locationcharacteristic
+     * from the given epoch timestamp and adjustment reason.
+     */
+    public static byte[] getAudioSyncStats(BBService service) {
+
+        byte[] field = service.getAudioSyncStats();
+        return field;
+    }
 
 }
