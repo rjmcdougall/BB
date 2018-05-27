@@ -384,6 +384,8 @@ public class BBService extends Service {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else if (boardId.contains("Mast")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
+        } else if (boardType.contains("Panel")) {
+            mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (boardId.contains("cranky")) {
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (boardId.contains("grumpy")) {
@@ -1167,6 +1169,7 @@ public class BBService extends Service {
             if (mBurnerBoard != null) {
                 int level = mBurnerBoard.getBattery();
                 int current = mBurnerBoard.getBatteryCurrent();
+                int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
                 int voltage = mBurnerBoard.getBatteryVoltage();
 
                 //l("Board Current is " + current);
@@ -1191,7 +1194,8 @@ public class BBService extends Service {
                 // current is milliamps
                 // Current with brain running is about 100ma
                 // Check voltage to make sure we're really reading the battery gauge
-                if ((voltage > 20000) && (current > -150)) {
+                // Make sure we're not seeing +ve current, which is charging
+                if ((voltage > 20000) && (current > -150) && (current < 10)) {
                     mBoardVisualization.inhibit(true);
                 } else {
                     mBoardVisualization.inhibit(false);

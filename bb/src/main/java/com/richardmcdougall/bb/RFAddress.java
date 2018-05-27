@@ -95,6 +95,7 @@ public class RFAddress {
                 "test_board",
                 "grumpy",
                 "cranky",
+                "sexy",
                 "littleboard",
                 "handheld1"};
         for (String name :boardNames) {
