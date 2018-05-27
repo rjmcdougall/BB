@@ -309,7 +309,7 @@ public class RFClientServer {
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == magicNumberToInt(kRemoteControlMagicNumber)) {
             int cmd = (int) int16FromPacket(bytes);
-            int value = (int) int16FromPacket(bytes);
+            int value = (int) int32FromPacket(bytes);
             l("Received Remote Control " + cmd + " " + value);
             receiveRemoteControl(cmd, value);
         } else {
@@ -602,11 +602,9 @@ public class RFClientServer {
         return false;
     }
 
-    public static final int kRemoteAudioTrack = 0x01;
-    public static final int kRemoteVideoTrack = 0x02;
-    public static final int kRemoteMute = 0x03;
 
-    public void sendRemote(int cmd, int value) {
+
+    public void sendRemote(int cmd, long value) {
 
         if (mRF != null) {
             return;
@@ -622,47 +620,15 @@ public class RFClientServer {
         // Command
         int16ToPacket(clientPacket, cmd);
         // Value
-        int16ToPacket(clientPacket, value);
-
-        switch (cmd) {
-            case kRemoteAudioTrack:
-                break;
-            case kRemoteVideoTrack:
-                break;
-            case kRemoteMute:
-                break;
-            default:
-                break;
-        }
+        int32ToPacket(clientPacket, value);
 
         mRF.broadcast(clientPacket.toByteArray());
 
     }
 
     // TODO: Put this back as a remote control packet
-    public void receiveRemoteControl(int cmd, int value) {
-
-        switch (cmd) {
-            case kRemoteAudioTrack:
-                if (value != mMain.currentRadioChannel) {
-                    mMain.SetRadioChannel(value);
-                }
-                break;
-            case kRemoteVideoTrack:
-                if (value > 0 &&
-                        value != mMain.getCurrentBoardMode()) {
-                    mMain.setMode(value);
-                }
-                break;
-            case kRemoteMute:
-                if (value != mMain.getCurrentBoardVol()) {
-                    //System.out.println("UDP: set vol = " + boardVol);
-                    mMain.setBoardVolume(value);
-                }
-                break;
-            default:
-                break;
-        }
+    public void receiveRemoteControl(int cmd, long value) {
+        mMain.decodeRemoteControl(cmd, value);
     }
 
     public long getLatency() {

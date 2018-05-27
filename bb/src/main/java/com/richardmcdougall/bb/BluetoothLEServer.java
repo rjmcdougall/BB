@@ -193,7 +193,13 @@ public class BluetoothLEServer {
         } catch (Exception e) {
 
         }
-        mBluetoothGattServer.addService(profile.createBBBtdeviceService());
+        mBluetoothGattServer.addService(profile.createBBVideoService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
+        mBluetoothGattServer.addService(profile.createBBAudioSyncService());
     }
 
     /**
@@ -444,15 +450,7 @@ public class BluetoothLEServer {
             if (BluetoothProfile.BB_AUDIO_CHANNEL_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 int channel = (int) (value[0] & 0xFF);
                 l("Write audio track characteristic: " + channel);
-                // Set board
-                // Broadcast to other boards if audio-leader
-                if (true) {
-                    mBBService.rfClientServer.sendRemote(RFClientServer.kRemoteAudioTrack, channel);
-                }
-                try {
-                    Thread.sleep(mBBService.rfClientServer.getLatency());
-                } catch (Exception e) {
-                }
+
                 mBBService.SetRadioChannel(channel);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
@@ -525,6 +523,17 @@ public class BluetoothLEServer {
                 String address = new String(value);
                 l("Write bt device select characteristic: " + address);
                 mBluetoothRemote.pairDevice(address);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            } else if (BluetoothProfile.BB_AUDIOSYNC_REMOTE_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                boolean enableMaster = (value[0] != 0);;
+                l("Write audio sync remote characteristic: " + enableMaster);
+                mBBService.enableMaster(enableMaster);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,

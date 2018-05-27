@@ -32,6 +32,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -95,7 +97,7 @@ public class BBService extends Service {
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
     private int userTimeOffset = 0;
-    public RFClientServer rfClientServer = null;
+    public RFClientServer mRfClientServer = null;
     public String boardId = Build.MODEL;
     public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
@@ -112,6 +114,7 @@ public class BBService extends Service {
     public BluetoothLEServer mBLEServer = null;
     public A2dpSink mA2dpSink = null;
     public BluetoothRemote mBluetoothRemote = null;
+    private boolean mMasterRemote = false;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -444,8 +447,8 @@ public class BBService extends Service {
         }
 
         InitClock();
-        rfClientServer = new RFClientServer(this, mRadio);
-        rfClientServer.Run();
+        mRfClientServer = new RFClientServer(this, mRadio);
+        mRfClientServer.Run();
 
         mGps = mRadio.getGps();
 
@@ -848,6 +851,64 @@ public class BBService extends Service {
 
     }
 
+    public byte[] getAudioSyncStats() {
+        return new byte[] {1,2,3,4,5,6,7,8};
+    }
+
+    public void enableMaster(boolean enable) {
+        mMasterRemote = enable;
+        if (enable) {
+            voice.speak("I am the Master Remote", TextToSpeech.QUEUE_ADD, null, "enableMaster");
+        } else {
+            voice.speak("Disabling Master Remote", TextToSpeech.QUEUE_ADD, null, "disableMaster");
+        }
+    }
+
+    public static final int kRemoteAudioTrack = 0x01;
+    public static final int kRemoteVideoTrack = 0x02;
+    public static final int kRemoteMute = 0x03;
+
+    // TODO: Put this back as a remote control packet
+    // Change value -> hash lookup
+    public void decodeRemoteControl(int cmd, long value) {
+
+        l("Received remote cmd, value " + cmd + ", " + value);
+        switch (cmd) {
+            case kRemoteAudioTrack:
+
+                for (int i = 1; i <= getRadioChannelMax(); i++) {
+                    String name = getRadioChannelInfo(i);
+                    long hashed = hashTrackName(name);
+                    if (hashed == value) {
+                        SetRadioChannel((int)i);
+                        l("Received remote audio switch to track " + i + " (" + name + ")");
+                        break;
+                    }
+                }
+                break;
+
+            case kRemoteVideoTrack:
+                for (int i = 1; i <= getVideoMax(); i++) {
+                    String name = getVideoModeInfo(i);
+                    long hashed = hashTrackName(name);
+                    if (hashed == value) {
+                        setVideoMode((int)i);
+                        l("Received remote video switch to mode " + i + " (" + name + ")");
+                        break;
+                    }
+                }
+                break;
+            case kRemoteMute:
+                if (value != getCurrentBoardVol()) {
+                    //System.out.println("UDP: set vol = " + boardVol);
+                    setBoardVolume((int)value);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
     private void RadioStop() {
 
     }
@@ -889,6 +950,18 @@ public class BBService extends Service {
         return dlManager.GetTotalVideo();
     }
 
+    // Hash String as 32-bit
+    public long hashTrackName(String name) {
+        byte[] encoded = {0, 0, 0, 0};
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            encoded = digest.digest(name.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            l("Could not calculate boardAddress");
+            return -1;
+        }
+        return (encoded[0] << 24) + (encoded[1] << 16) + (encoded[2] << 8) + encoded[0];
+    }
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     public void SetRadioChannel(int index) {
@@ -897,6 +970,20 @@ public class BBService extends Service {
         if (mServerMode == true) {
             return;
         }
+
+        // If I am set to be the master, broadcast to other boards
+        if (mMasterRemote && (mRfClientServer == null)) {
+
+            String fileName = getRadioChannelInfo(index);
+            mRfClientServer.sendRemote(kRemoteAudioTrack, hashTrackName(fileName));
+            // Wait for 1/2 RTT so that we all select the same track/video at the same time
+            try {
+                Thread.sleep(mRfClientServer.getLatency());
+            } catch (Exception e) {
+            }
+
+        }
+
         if (index == 0) {
             mediaPlayer.pause();
             l("Bluetooth Mode");
@@ -1125,10 +1212,25 @@ public class BBService extends Service {
         else if (mBoardMode < 1)
             mBoardMode = maxModes;
 
+        // If I am set to be the master, broadcast to other boards
+        if (mMasterRemote && (mRfClientServer == null)) {
+
+            String name = getVideoModeInfo(mode);
+            mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name));
+            // Wait for 1/2 RTT so that we all select the same track/video at the same time
+            try {
+                Thread.sleep(mRfClientServer.getLatency());
+            } catch (Exception e) {
+            }
+        }
+
         if (mBoardVisualization != null) {
             l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
             mBoardVisualization.setMode(mBoardMode);
         }
+
+
+
         voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
     }
 
