@@ -85,6 +85,11 @@ public class BoardVisualization {
             mBoardWidth = 24;
             mBoardHeight = 159;
             mMultipler4Speed = 3;
+        } else if (mBurnerBoard.boardType.contains(new String("Panel"))) {
+            l("Starting Panel Visualization");
+            mBoardWidth = 32;
+            mBoardHeight = 64;
+            mMultipler4Speed = 3;
         } else if (mBurnerBoard.boardId.contains(new String("grumpy"))) {
             l("Starting Panel Visualization");
             mBoardWidth = 32;
