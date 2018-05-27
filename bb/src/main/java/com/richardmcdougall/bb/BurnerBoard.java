@@ -69,10 +69,17 @@ public class BurnerBoard {
         return -1;
     }
 
+    // Average current in milliamps
+    public int getBatteryCurrentInstant() {
+        return 0;
+    }
+
+    // Instant current in milliamps
     public int getBatteryCurrent() {
         return 0;
     }
 
+    // Voltage in millivolts
     public int getBatteryVoltage() {return 0; }
 
     public String getBatteryStats() { return null;   }

@@ -164,6 +164,15 @@ public class BurnerBoardMast extends BurnerBoard {
         }
     }
 
+    public int getBatteryCurrentInstant() {
+        int codedLevel = mBatteryStats[9];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
     public void fuzzPixels(int amount) {
 
         for (int x = 0; x < mBoardWidth; x++) {
