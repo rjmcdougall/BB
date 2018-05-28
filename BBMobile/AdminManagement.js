@@ -110,7 +110,14 @@ export default class AdminManagement extends Component {
 
 	render() {
 
-		const { navigate } = this.props.navigation;
+		var masterText;
+
+		//	const { navigate } = this.props.navigation;
+
+		if (this.state.mediaState.audioMaster == 0)
+			masterText = "Enable Master";
+		else
+			masterText = "Disable Master";
 
 		return (
 
@@ -124,11 +131,28 @@ export default class AdminManagement extends Component {
 
 					<View style={styles.footer}>
 						<View style={styles.button}>
-							<Touchable 
+							<Touchable
+								onPress={async () => {
+
+
+									if (this.state.mediaState.audioMaster == 0)
+										this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.state.mediaState) });
+									else
+										this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.state.mediaState) });
+
+									return true;
+
+								}}
+								style={styles.touchableStyle}
+								background={Touchable.Ripple("blue")}>
+								<Text style={styles.rowText}> {masterText}
+								</Text>
+							</Touchable>
+							<Touchable
 								onPress={async () => {
 
 									return true;
-									
+
 									// try {
 									// 	await BleManager.disconnect(this.state.selectedPeripheral.id);
 									// }
@@ -136,26 +160,26 @@ export default class AdminManagement extends Component {
 									// 	console.log("BoardManager: Pressed BBcom: " + error);
 									// }
 
-									if (this.state.backgroundLoop)
-										clearInterval(this.state.backgroundLoop);
+									// if (this.state.backgroundLoop)
+									// 	clearInterval(this.state.backgroundLoop);
 
-									this.props.navigation.setParams({ title: "Search For Boards" });
+									// this.props.navigation.setParams({ title: "Search For Boards" });
 
-									this.setState({
-										peripherals: new Map(),
-										appState: "",
-										selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-										mediaState: BLEBoardData.emptyMediaState,
-										showDiscoverScreen: true,
-										showAdminScreen: false,
-										discoveryState: "Connect To Board",
-										backgroundLoop: null,
-									});
+									// this.setState({
+									// 	peripherals: new Map(),
+									// 	appState: "",
+									// 	selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+									// 	mediaState: BLEBoardData.emptyMediaState,
+									// 	showDiscoverScreen: true,
+									// 	showAdminScreen: false,
+									// 	discoveryState: "Connect To Board",
+									// 	backgroundLoop: null,
+									// });
 
-									var JWT = await this.login();
+									// var JWT = await this.login();
 
-									navigate("BBCom",
-										{ JWT: JWT});
+									// navigate("BBCom",
+									// 	{ JWT: JWT });
 
 
 								}}

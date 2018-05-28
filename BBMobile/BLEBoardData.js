@@ -32,6 +32,7 @@ exports.fakeMediaState = {
 	},
 	battery: 87,
 	theirAddress: "",
+	audioMaster: 0,
 	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
@@ -85,6 +86,7 @@ exports.emptyMediaState = {
 	},
 	battery: 0,
 	theirAddress: "",
+	audioMaster: 0,
 	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
@@ -146,6 +148,8 @@ exports.refreshMediaState = async function (mediaState) {
 				mediaState = await this.loadDevices(mediaState);
 				mediaState = await this.readVolume(mediaState);
 				mediaState = await this.readBattery(mediaState);
+				//mediaState = await this.readAudioSync(mediaState);
+
 				//mediaState = await this.readLocation(mediaState);
 
 				console.log("BLEBoardData: RefreshMediaState Complete: ");
@@ -462,6 +466,31 @@ exports.readVolume = async function (mediaState) {
 		return mediaState;
 };
 
+exports.onEnableMaster = async function (value, mediaState) {
+
+	var newMaster = value;
+	console.log("BLEBoardData: Enable Master submitted value: " + newMaster);
+
+	if (mediaState.peripheral) {
+		try {
+			await BleManager.write(mediaState.peripheral.id,
+				BLEIDs.AudioSyncService, BLEIDs.AudioSyncRemoteCharacteristic,
+				[newMaster]);
+
+			mediaState.audioMaster = newMaster;
+			
+			return mediaState;
+		}
+		catch (error) {
+			console.log("BLEBoardData Enable Master Error: " + error);
+			return mediaState;
+		}
+	}
+	else
+		return mediaState;
+};
+
+
 exports.readBattery = async function (mediaState) {
 
 	if (mediaState.peripheral) {
@@ -510,7 +539,7 @@ exports.readLocation = async function (mediaState) {
 
 						// remove if it already exists.
 						mediaState.locations = mediaState.locations.filter(item => {
-							return item.title!=theirAddress.toString();
+							return item.title != theirAddress.toString();
 						});
 
 						// push the new one.
@@ -519,7 +548,7 @@ exports.readLocation = async function (mediaState) {
 							latitude: lat / 1000000.0,
 							longitude: lon / 1000000.0,
 						});
-						
+
 						console.log("BLEBoardData: ReadLocation found new coordinates lat: " + lat + " lon: " + lon);
 					}
 				}
