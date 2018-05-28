@@ -68,13 +68,13 @@ public class RF {
         mGps = new Gps(mBBService, mContext);
         mGps.attach( new Gps.GpsEvents() {
             public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
-                l("Radio Time: " + time.toString());
+                d("Radio Time: " + time.toString());
                 if (mRadioCallback != null) {
                     mRadioCallback.timeEvent(time);
                 }
             };
             public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
-                l("Radio Position: " + gps.toString());
+                d("Radio Position: " + gps.toString());
                 if (mRadioCallback != null) {
                     mRadioCallback.GPSevent(gps);
                 }
@@ -109,7 +109,7 @@ public class RF {
     }
 
     public void broadcast(byte[] packet) {
-        l("Radio Sending Packet: len(" + packet.length + "), data: " + bytesToHex(packet));
+        d("Radio Sending Packet: len(" + packet.length + "), data: " + bytesToHex(packet));
         if (mListener != null) {
             synchronized (mSerialConn) {
                 mListener.sendCmdStart(5);
@@ -132,11 +132,17 @@ public class RF {
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
     }
 
+    public void d(String s) {
+        if (BBService.debug == true) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
+    }
+
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
     }
-
 
     private void onDeviceStateChange() {
         l("RF: onDeviceStateChange()");
@@ -316,7 +322,7 @@ public class RF {
 
             int sigStrength = mListener.readIntArg();
             int len = mListener.readIntArg();
-            l("radio receive callback: sigstrength" + sigStrength + ", " + len + " bytes");
+            d("radio receive callback: sigstrength" + sigStrength + ", " + len + " bytes");
             ByteArrayOutputStream recvBytes =  new ByteArrayOutputStream();
             for (int i = 0; i < len; i++) {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));

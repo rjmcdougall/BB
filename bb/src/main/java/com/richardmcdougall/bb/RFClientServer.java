@@ -62,6 +62,13 @@ public class RFClientServer {
         sendLogMsg(s);
     }
 
+    public void d(String s) {
+        if (BBService.debug == true) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
+    }
+
     private void sendLogMsg(String msg) {
         Intent in = new Intent(com.richardmcdougall.bb.BBService.ACTION_STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
@@ -72,34 +79,38 @@ public class RFClientServer {
     }
 
     private void setupUDPLogger(){
-        // InetAddress.getByName("0.0.0.0")
-        try {
-            mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
-        } catch (Exception e) {
-            l("Cannot setup UDP logger socket");
+        if (BBService.debug == true) {
+            // InetAddress.getByName("0.0.0.0")
+            try {
+                mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
+            } catch (Exception e) {
+                l("Cannot setup UDP logger socket");
+            }
         }
     }
 
     public void logUDP(long timestamp, String msg) {
-        ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
 
-        stringToPacket(logPacketTmp, String.valueOf(timestamp));
-        stringToPacket(logPacketTmp, msg);
+        if (BBService.debug == true) {
+            ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
 
-        final byte[] logPacket = logPacketTmp.toByteArray();
+            stringToPacket(logPacketTmp, String.valueOf(timestamp));
+            stringToPacket(logPacketTmp, msg);
 
-        mMain.mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    DatagramPacket dp = new DatagramPacket(logPacket, logPacket.length, InetAddress.getByName("10.0.6.255"), 9999);
-                    mUDPSocket.send(dp);
-                } catch (Exception e) {
-                    l("UDP Logger Socket send failed:" + e.toString());
+            final byte[] logPacket = logPacketTmp.toByteArray();
+
+            mMain.mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        DatagramPacket dp = new DatagramPacket(logPacket, logPacket.length, InetAddress.getByName("10.0.6.255"), 9999);
+                        mUDPSocket.send(dp);
+                    } catch (Exception e) {
+                        l("UDP Logger Socket send failed:" + e.toString());
+                    }
                 }
-            }
-        });
-
+            });
+        }
     }
 
     RFClientServer(BBService service, RF rfRadio) {
@@ -214,7 +225,7 @@ public class RFClientServer {
     // Send time-sync reply to specific client
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
-        l("Server reply : " +
+        d("Server reply : " +
                 mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + mRFAddress.boardAddressToName(toClient) + "(" + toClient + ")");
 
@@ -275,8 +286,8 @@ public class RFClientServer {
             clientAddress = (int)int16FromPacket(bytes);
 
             if (clientAddress == mBoardAddress) {
-                l("BB Sync Packet from Server: len(" + packet.length + "), data: " + bytesToHex(packet));
-                l("BB Sync Packet from Server " + serverAddress +
+                d("BB Sync Packet from Server: len(" + packet.length + "), data: " + bytesToHex(packet));
+                d("BB Sync Packet from Server " + serverAddress +
                         " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
                 processSyncResponse(packet);
@@ -286,8 +297,8 @@ public class RFClientServer {
         } else if (recvMagicNumber == magicNumberToInt(kClientSyncMagicNumber)) {
             clientAddress = (int)int16FromPacket(bytes);
 
-            l("BB Sync Packet from Client: len(" + packet.length + "), data: " + bytesToHex(packet));
-            l("BB Sync Packet from Client " + clientAddress +
+            d("BB Sync Packet from Client: len(" + packet.length + "), data: " + bytesToHex(packet));
+            d("BB Sync Packet from Client " + clientAddress +
                     " (" + mRFAddress.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
             long curTimeStamp = mMain.GetCurrentClock();
@@ -302,15 +313,15 @@ public class RFClientServer {
 
         } else if (recvMagicNumber == magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int)int16FromPacket(bytes);
-            l("BB Server Beacon packet: len(" + packet.length + "), data: " + bytesToHex(packet));
-            l("BB Server Beacon packet from Server " + serverAddress +
+            d("BB Server Beacon packet: len(" + packet.length + "), data: " + bytesToHex(packet));
+            d("BB Server Beacon packet from Server " + serverAddress +
                     " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == magicNumberToInt(kRemoteControlMagicNumber)) {
             int cmd = (int) int16FromPacket(bytes);
             int value = (int) int32FromPacket(bytes);
-            l("Received Remote Control " + cmd + " " + value);
+            d("Received Remote Control " + cmd + " " + value);
             receiveRemoteControl(cmd, value);
         } else {
             l("packet not for sync server!");
@@ -372,7 +383,7 @@ public class RFClientServer {
 
     private void processSyncResponse(byte[] recvPacket) {
 
-        l("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
+        d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
@@ -399,7 +410,7 @@ public class RFClientServer {
             // 4156 - 2208
             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
-            l("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+            d("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
             AddSample(adjDrift, roundTripTime);
 
@@ -425,7 +436,7 @@ public class RFClientServer {
                 mPrefsEditor.commit();
             }
 
-            l("Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
+            d("Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
 
             mMain.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
             logUDP(mMain.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + mMain.CurrentClockAdjusted());
@@ -452,7 +463,7 @@ public class RFClientServer {
             if (amServer() == false) {
                 try {
 
-                    l("I'm a client " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                    d("I'm a client " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -468,10 +479,10 @@ public class RFClientServer {
                     int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
                     int16ToPacket(clientPacket, 0);
-                    l("send packet " + bytesToHex(clientPacket.toByteArray()));
+                    d("send packet " + bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     mRF.broadcast(clientPacket.toByteArray());
-                    l("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", mMain.GetCurrentClock()) +
+                    d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", mMain.GetCurrentClock()) +
                              mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
                     " -> " + mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
@@ -480,7 +491,7 @@ public class RFClientServer {
                 }
             } else {
 
-                l("I'm a server: broadcast Server beacon");
+                d("I'm a server: broadcast Server beacon");
                 mRtt = 0;
                 mDrift = 0;
                 mMain.SetServerClockOffset(0, 0);

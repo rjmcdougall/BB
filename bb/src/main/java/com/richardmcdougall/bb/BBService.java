@@ -55,6 +55,8 @@ import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
 
+    public static final boolean debug = false;
+
     private static final String TAG = "BB.BBService";
 
     // Set to force classic mode when using Emulator
@@ -136,6 +138,13 @@ public class BBService extends Service {
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
+    }
+
+    public void d(String s) {
+        if (BBService.debug == true) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
     }
 
     public String getBoardId() {
@@ -810,11 +819,11 @@ public class BBService extends Service {
                 long seekOff = ms % lenInMS;
                 long curPos = mediaPlayer.getCurrentPosition();
                 long seekErr = curPos - seekOff;
-                l("time/pos: " + curPos + "/" + CurrentClockAdjusted());
+                d("time/pos: " + curPos + "/" + CurrentClockAdjusted());
 
                 if (curPos == 0 || seekErr != 0) {
                     if (curPos == 0 || Math.abs(seekErr) > 100) {
-                        l("SeekAndPlay: qqexplicit seek");
+                        d("SeekAndPlay: qqexplicit seek");
                         // mediaPlayer.pause();
                         // hack: I notice i taked 79ms on dragonboard to seekTo
                         seekSave = SystemClock.elapsedRealtime();
@@ -832,7 +841,7 @@ public class BBService extends Service {
                         if (speed < 0.95f) {
                             //    speed = 0.95f;
                         }
-                        l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
+                        d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
                         try {
                             //mediaPlayer.pause();
                             PlaybackParams params = new PlaybackParams();
@@ -848,9 +857,9 @@ public class BBService extends Service {
                             //mediaPlayer.start();
                             //mediaPlayer.prepareAsync();
 
-                            l("SeekAndPlay: setPlaybackParams() Sucesss!!");
+                            d("SeekAndPlay: setPlaybackParams() Sucesss!!");
                         } catch (IllegalStateException exception) {
-                            l("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
+                            d("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
                         } catch (Throwable err) {
                             //l("SeekAndPlay setPlaybackParams: " + err.getMessage());
                             //err.printStackTrace();
@@ -865,7 +874,7 @@ public class BBService extends Service {
                         " RTT " + serverRTT + " Strm" + currentRadioChannel;
                 //if (rfClientServer.tSentPackets != 0)
                 //    msg += "\nSent " + rfClientServer.tSentPackets;
-                l(msg);
+                d(msg);
 
                 Intent in = new Intent(ACTION_STATS);
                 in.putExtra("resultCode", Activity.RESULT_OK);

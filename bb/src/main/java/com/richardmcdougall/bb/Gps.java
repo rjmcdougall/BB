@@ -115,7 +115,7 @@ public class Gps {
                     //l(event.getSentence().toString());
                     GGASentence s = (GGASentence) event.getSentence();
                     if (s.isValid()) {
-                        l("Sat Time: " + s.getTime().toString());
+                        d("Sat Time: " + s.getTime().toString());
                         if (mGpsCallback != null) {
                             mGpsCallback.timeEvent(s.getTime());
                         }
@@ -153,6 +153,13 @@ public class Gps {
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
+    }
+
+    public void d(String s) {
+        if (BBService.debug == true) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
     }
 
 }

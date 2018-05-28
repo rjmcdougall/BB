@@ -74,7 +74,7 @@ public class FindMyFriends {
         mRadio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                l("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
+                d("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -90,7 +90,7 @@ public class FindMyFriends {
                 long sinceLastFix = System.currentTimeMillis() - mLastFix;
 
                 if (sinceLastFix > kMaxFixAge) {
-                    l("FMF: sending GPS update");
+                    d("FMF: sending GPS update");
                     mIotClient.sendUpdate("bbevent", "[" +
                             mRFAddress.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
@@ -101,7 +101,7 @@ public class FindMyFriends {
 
             @Override
             public void timeEvent(Time time) {
-                l("FMF Time: " + time.toString());
+                d("FMF Time: " + time.toString());
             }
         });
         mBoardAddress = mRFAddress.getBoardAddress(service.getBoardId());
@@ -228,6 +228,14 @@ public class FindMyFriends {
         sendLogMsg(s);
     }
 
+    public void d(String s) {
+        if (BBService.debug == true) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
+    }
+
+
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     public static String bytesToHex(byte[] bytes) {
@@ -248,7 +256,7 @@ public class FindMyFriends {
                 new int[] { bytes.read(), bytes.read()});
 
         if (recvMagicNumber == magicNumberToInt(kGPSMagicNumber)) {
-            l("BB GPS Packet");
+            d("BB GPS Packet");
             mTheirAddress = (int) ((bytes.read() & 0xff) +
                     ((bytes.read() & 0xff) << 8));
             int ttl = bytes.read();
@@ -267,13 +275,13 @@ public class FindMyFriends {
             mThereAccurate = bytes.read();
             mLastRecv = System.currentTimeMillis();
             mLastHeardLocation = packet.clone();
-            l("theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
+            d("theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
             mIotClient.sendUpdate("bbevent", "[" +
                     mRFAddress.boardAddressToName(mTheirAddress) + "," + sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
             updateBoardLocations(mTheirAddress, sigStrength, packet.clone());
             return true;
         } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
-            l("tracker packet");
+            d("tracker packet");
             mTheirLat = (double) ((bytes.read() & 0xff) +
                     ((bytes.read() & 0xff) << 8) +
                     ((bytes.read() & 0xff) << 16) +
@@ -286,7 +294,7 @@ public class FindMyFriends {
             mLastRecv = System.currentTimeMillis();
             return true;
         } else {
-                l("rogue packet not for us!");
+                d("rogue packet not for us!");
         }
         return false;
     }
@@ -322,7 +330,7 @@ public class FindMyFriends {
                 boardLocation loc = mBoardLocations.get(addr);
                 lastHeardLocation = loc.lastheardLocaton;
                 address = addr;
-                l("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
+                d("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
                 break;
             }
             keyNo++;
@@ -355,7 +363,7 @@ public class FindMyFriends {
         mBoardLocations.put(address, loc);
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);
-            l("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard) + ", bytes: " + bytesToHex(l.lastheardLocaton));
+            d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard) + ", bytes: " + bytesToHex(l.lastheardLocaton));
         }
     }
 
