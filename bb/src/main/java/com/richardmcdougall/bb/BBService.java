@@ -611,23 +611,54 @@ public class BBService extends Service {
     }
 
     public int getCurrentBoardVol() {
-        return ((int) (vol * (float) 127.0));
+        int v = getAndroidVolumePercent();
+        return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
     }
 
     public int getBoardVolumePercent() {
-        return ((int) (vol * (float) 100.0));
+        return getAndroidVolumePercent();
+ //       return ((int) (vol * (float) 100.0));
     }
 
     public void setBoardVolume(int v) {
-        l("Volume: " + vol + " -> " + v);
-        vol = (float) v / (float) 127;
-        mediaPlayer.setVolume(vol, vol);
+        setAndroidVolumePercent(v);
+//        l("Volume: " + vol + " -> " + v);
+//        vol = (float) v / (float) 127;
+//        mediaPlayer.setVolume(vol, vol);
     }
 
     public void setRadioVolumePercent(int v) {
-        l("Volume: " + vol + " -> " + v);
-        vol = (float) v / (float) 100;
-        mediaPlayer.setVolume(vol, vol);
+        setAndroidVolumePercent(v);
+//        l("Volume: " + vol + " -> " + v);
+//        vol = (float) v / (float) 100;
+//        mediaPlayer.setVolume(vol, vol);
+    }
+
+    public int getAndroidVolumePercent(){
+        // Get the AudioManager
+        AudioManager audioManager =
+                (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        vol = ((float)volume / (float)maxVolume);
+        int v = (int) ( vol * (float)100);
+        return v;
+    }
+
+    public void setAndroidVolumePercent(int v){
+        // Get the AudioManager
+        AudioManager audioManager =
+                (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
+
+        vol = v / (float)100;
+        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int setVolume = (int)((float) maxVolume * (float) v / (float) 100);
+
+        audioManager.setStreamVolume (
+                AudioManager.STREAM_MUSIC,
+                setVolume,
+                0);
     }
 
     public void broadcastVolume(float vol) {
