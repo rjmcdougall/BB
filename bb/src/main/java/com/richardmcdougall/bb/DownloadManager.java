@@ -312,7 +312,7 @@ public class DownloadManager {
                 JSONObject dir = mDM.dataDirectory;
 
                 String[] dTypes = new String[]{"audio", "video"};
-                String[] extTypes = new String[]{"mp3", "mp4"};
+                String[] extTypes = new String[]{"mp3", "mp4", "m4a"};
                 for (int i = 0; i < dTypes.length; i++) {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
                     for (int j = 0; j < tList.length(); j++) {
@@ -328,7 +328,7 @@ public class DownloadManager {
                 for (int i = 0; i < flist.length; i++) {
                     String fname = flist[i].getName();
 
-                    if (fname.endsWith(".mp4") || fname.endsWith(".mp3")) {
+                    if (fname.endsWith(".mp4") || fname.endsWith(".mp3") || fname.endsWith(".m4a")) {
                         if (!refrerencedFiles.contains(fname)) {
                             flist[i].delete();
                         }
@@ -440,7 +440,7 @@ public class DownloadManager {
 
                                     if (dstFile.length() == remoteSz)
                                         upTodate = true;
-                                }
+                                }   //
                             }
 
                             if (mIsServer) {
