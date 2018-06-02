@@ -7,33 +7,21 @@ export default class MapController extends React.Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {
-			mediaState: props.mediaState,
-		};
-
 	}
-
-	UNSAFE_componentWillReceiveProps(nextProps) {
-		this.setState({
-			mediaState: nextProps.mediaState,
-		});
-	}
-
  
-
 	render() {
 
 		try{
-			var locations = this.state.mediaState.locations;
+			var locations = this.props.mediaState.locations;
 
-			console.log("locations: " + this.state.locations);
-			console.log("region: " + JSON.stringify(this.state.mediaState.region));
+			console.log("locations: " + locations);
+			console.log("region: " + JSON.stringify(this.props.mediaState.region));
 			
 
 			return (
 				<MapView
 					style={styles.map}
-					region={this.state.mediaState.region}
+					region={this.props.mediaState.region}
 				>
 					{locations.map(marker => {
 						return (

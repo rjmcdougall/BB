@@ -22,12 +22,18 @@ export default class MediaManagement extends Component {
 
 		this.state = {
 			mediaState: BLEBoardData.emptyMediaState,
+			pointerEvents: "none",
 		};
+
+		this.onUpdateVolume = this.onUpdateVolume.bind(this);
+		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
+		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
+		
 	}
 
 	async onUpdateVolume(event) {
-		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
 		console.log("Media Management: Set Media State After Update.");
+		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
 	}
 	async onSelectAudioTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
@@ -37,9 +43,10 @@ export default class MediaManagement extends Component {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
 		console.log("Media Management: Set Media State After Update.");
 	}
+ 
+	async OLD_componentWillReceiveProps(nextProps) {
 
-	async componentWillReceiveProps(nextProps) {
-
+		console.log("Next Props: " + JSON.stringify(nextProps.mediaState));
 		if (nextProps.mediaState) {
 			if (this.state.mediaState.peripheral.id != nextProps.mediaState.peripheral.id) {
 				this.setState({
@@ -68,9 +75,13 @@ export default class MediaManagement extends Component {
 }
 MediaManagement.propTypes = {
 	mediaState: PropTypes.object,
-	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
 };
+
+//MediaManagement.defaultProps = {
+//	mediaState: BLEBoardData.emptyMediaState,
+//	pointerEvents: "none",
+//};
 
 const styles = StyleSheet.create({
 	container: {

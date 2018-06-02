@@ -5,37 +5,29 @@ import PropTypes from "prop-types";
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props); 
-		this.state = {
-			mediaState: props.mediaState,
-			mediaType: props.mediaType,
+		this.state = { 
 			refreshButtonClicked: false,
 		};
 
 		this.onSelectTrack = this.props.onSelectTrack.bind(this);
 	}
-
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			mediaState: nextProps.mediaState,
-		});
-	}
-
+ 
 	render() {
 
 		var tracks = null;
 		var channelInfo = null;
 
-		if (this.state.mediaType == "Audio") {
-			tracks = this.state.mediaState.audio.channels.map(a => a.channelInfo);
-			channelInfo =  tracks[(this.state.mediaState.audio.channelNo)];
+		if (this.props.mediaType == "Audio") {
+			tracks = this.props.mediaState.audio.channels.map(a => a.channelInfo);
+			channelInfo =  tracks[(this.props.mediaState.audio.channelNo)];
 		}
-		else if (this.state.mediaType == "Device") {
-			tracks = this.state.mediaState.device.devices.map(a => a.deviceLabel);
-			channelInfo =  tracks[(this.state.mediaState.device.deviceNo)];
+		else if (this.props.mediaType == "Device") {
+			tracks = this.props.mediaState.device.devices.map(a => a.deviceLabel);
+			channelInfo =  tracks[(this.props.mediaState.device.deviceNo)];
 		}
 		else {
-			tracks = this.state.mediaState.video.channels.map(a => a.channelInfo);
-			channelInfo =  tracks[(this.state.mediaState.video.channelNo)];
+			tracks = this.props.mediaState.video.channels.map(a => a.channelInfo);
+			channelInfo =  tracks[(this.props.mediaState.video.channelNo)];
 		} 
 
 		return (
@@ -46,7 +38,7 @@ export default class TrackController extends Component {
 					flexDirection: "row",
 				}}>
 					<View style={{ height: 40 }}>
-						<Text style={styles.rowText}>{this.state.mediaType} Track</Text></View>
+						<Text style={styles.rowText}>{this.props.mediaType} Track</Text></View>
 				</View>
 				<View style={{ height: 40 }}>
 					<ModalDropdown options={tracks}
@@ -64,7 +56,7 @@ export default class TrackController extends Component {
 	}
 }
 
-TrackController.propTypes = {
+TrackController.propTypes = { 
 	mediaType: PropTypes.string,
 	mediaState: PropTypes.object,
 	onSelectTrack: PropTypes.func,

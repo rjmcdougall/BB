@@ -1,22 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import PropTypes from "prop-types";
+import BLEBoardData from "./BLEBoardData";
 
 export default class BatteryController extends React.Component {
 	constructor(props) {
 		super(props);
-
-		this.state = {
-			mediaState: props.mediaState,
-		};
 	}
-
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			mediaState: nextProps.mediaState,
-		});
-	}
-
+ 
 	render() {
 
 		return (
@@ -28,7 +19,7 @@ export default class BatteryController extends React.Component {
 
 				}}>
 					<View style={{ height: 50 }}><Text style={styles.rowText}>Battery</Text></View>
-					<View style={{ height: 50 }}><Text style={styles.rowText}>{this.state.mediaState.battery}</Text></View>
+					<View style={{ height: 50 }}><Text style={styles.rowText}>{this.props.mediaState.battery}</Text></View>
 				</View>
 			</View>
 		);
@@ -37,6 +28,10 @@ export default class BatteryController extends React.Component {
 
 BatteryController.propTypes = {
 	mediaState: PropTypes.object,
+};
+
+BatteryController.defaultProps = {
+	mediaState: BLEBoardData.emptyMediaState,
 };
 
 const styles = StyleSheet.create({

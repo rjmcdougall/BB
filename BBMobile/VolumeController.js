@@ -5,19 +5,9 @@ import PropTypes from "prop-types";
 export default class VolumeController extends React.Component {
 	constructor(props) {
 		super(props);
-
-		this.state = {
-			mediaState: props.mediaState,
-			volume: null
-		};
-
+ 
 		this.onUpdateVolume = this.props.onUpdateVolume.bind(this);
-	}
 
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			mediaState: nextProps.mediaState,
-		});
 	}
 
 	render() {
@@ -31,9 +21,9 @@ export default class VolumeController extends React.Component {
 
 				}}>
 					<View style={{ height: 40 }}><Text style={styles.rowText}>Volume</Text></View>
-					<View style={{ height: 40 }}><Text style={styles.rowText}>{this.state.mediaState.volume}</Text></View>
+					<View style={{ height: 40 }}><Text style={styles.rowText}>{this.props.mediaState.audio.volume}</Text></View>
 				</View>
-				<View style={{ height: 40 }}><Slider value={this.state.mediaState.audio.volume}
+				<View style={{ height: 40 }}><Slider value={this.props.mediaState.audio.volume}
 					onSlidingComplete={async (value) => {
 						try {
 							await this.onUpdateVolume(
