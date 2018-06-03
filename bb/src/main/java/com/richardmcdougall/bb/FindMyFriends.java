@@ -337,7 +337,7 @@ public class FindMyFriends {
         }
 
         if (lastHeardLocation != null) {
-            l("get recent location " + mLastHeardLocation.length);
+            l("get recent location " + lastHeardLocation);
             return lastHeardLocation;
         } else {
             l("no recent locaton");
