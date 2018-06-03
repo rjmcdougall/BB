@@ -54,7 +54,8 @@ export default class BoardManager extends Component {
 		this.onUpdateVolume = this.onUpdateVolume.bind(this);
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
 		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
-		
+		this.onSelectDevice = this.onSelectDevice.bind(this);
+
 	}
 
 	async componentDidMount() {
@@ -220,7 +221,6 @@ export default class BoardManager extends Component {
 		}
 	}
 
-
 	async onUpdateVolume(event) {
 		console.log("Media Management: Set Media State After Update.");
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
@@ -233,7 +233,11 @@ export default class BoardManager extends Component {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
 		console.log("Media Management: Set Media State After Update.");
 	}
- 
+	async onSelectDevice(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+
 	async handleDiscoverPeripheral(peripheral) {
 		try {
 
@@ -281,10 +285,12 @@ export default class BoardManager extends Component {
 	async readLocationLoop() {
 
 		var backgroundTimer = setInterval(async () => {
+			console.log("Location Loop");
 			if (this.state.mediaState) {
-
+				console.log("Found Media State");
 				try {
 					var mediaState = await BLEBoardData.readLocation(this.state.mediaState);
+					console.log("Called Location Update")
 					this.setState({
 						mediaState: mediaState,
 					});
@@ -327,7 +333,7 @@ export default class BoardManager extends Component {
 				<View style={styles.container}>
 					<View style={styles.contentContainer}>
 						{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} />
-							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} />
+							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} />
 						}
 
 						<Touchable
