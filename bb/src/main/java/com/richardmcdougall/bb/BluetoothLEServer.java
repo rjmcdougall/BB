@@ -199,6 +199,12 @@ public class BluetoothLEServer {
         } catch (Exception e) {
 
         }
+        mBluetoothGattServer.addService(profile.createBBBtdeviceService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
         mBluetoothGattServer.addService(profile.createBBAudioSyncService());
     }
 
