@@ -19,48 +19,22 @@ import PropTypes from "prop-types";
 export default class MediaManagement extends Component {
 	constructor(props) {
 		super(props);
-
-		this.state = {
-			mediaState: BLEBoardData.emptyMediaState,
-		};
+ 
+		this.onUpdateVolume = this.props.onUpdateVolume.bind(this);
+		this.onSelectAudioTrack = this.props.onSelectAudioTrack.bind(this);
+		this.onSelectVideoTrack = this.props.onSelectVideoTrack.bind(this);
 	}
-
-	async onUpdateVolume(event) {
-		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
-		console.log("Media Management: Set Media State After Update.");
-	}
-	async onSelectAudioTrack(idx) {
-		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
-		console.log("Media Management: Set Media State After Update.");
-	}
-	async onSelectVideoTrack(idx) {
-		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
-		console.log("Media Management: Set Media State After Update.");
-	}
-
-	async componentWillReceiveProps(nextProps) {
-
-		if (nextProps.mediaState) {
-			if (this.state.mediaState.peripheral.id != nextProps.mediaState.peripheral.id) {
-				this.setState({
-					mediaState: nextProps.mediaState,
-				});
-			}
-		}
-		else
-			console.log("MediaManagement: Null NextProps");
-	}
-
+ 
 	render() {
 
 		return (
 			<View style={styles.container} pointerEvents={this.props.pointerEvents}>
 				<ScrollView style={styles.scroll}>
-					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.state.mediaState} />
-					<BatteryController mediaState={this.state.mediaState} />
-					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.state.mediaState} mediaType="Audio" />
-					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.state.mediaState} mediaType="Video" />
-					<MapController mediaState={this.state.mediaState} />
+					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.props.mediaState} />
+					<BatteryController mediaState={this.props.mediaState} />
+					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
+					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.props.mediaState} mediaType="Video" />
+					<MapController mediaState={this.props.mediaState} />
 				</ScrollView>
 			</View>
 		);
@@ -68,8 +42,16 @@ export default class MediaManagement extends Component {
 }
 MediaManagement.propTypes = {
 	mediaState: PropTypes.object,
-	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
+	onUpdateVolume: PropTypes.func,
+	onSelectAudioTrack: PropTypes.func,
+	onSelectVideoTrack: PropTypes.func,
+};
+
+MediaManagement.defaultProps = {
+	mediaState: BLEBoardData.emptyMediaState,
+	pointerEvents: "none",
+
 };
 
 const styles = StyleSheet.create({

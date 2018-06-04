@@ -51,6 +51,11 @@ export default class BoardManager extends Component {
 		this.handleStopScan = this.handleStopScan.bind(this);
 		this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
 		this.handleAppStateChange = this.handleAppStateChange.bind(this);
+		this.onUpdateVolume = this.onUpdateVolume.bind(this);
+		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
+		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
+		this.onSelectDevice = this.onSelectDevice.bind(this);
+
 	}
 
 	async componentDidMount() {
@@ -216,6 +221,23 @@ export default class BoardManager extends Component {
 		}
 	}
 
+	async onUpdateVolume(event) {
+		console.log("Media Management: Set Media State After Update.");
+		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
+	}
+	async onSelectAudioTrack(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async onSelectVideoTrack(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+	async onSelectDevice(idx) {
+		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
+		console.log("Media Management: Set Media State After Update.");
+	}
+
 	async handleDiscoverPeripheral(peripheral) {
 		try {
 
@@ -251,10 +273,7 @@ export default class BoardManager extends Component {
 						// Kick off a per-second location reader 
 						await this.readLocationLoop(this.state.mediaState);
 						console.log("BoardManager: Begin Background Location Loop");
-
 					}
-
-
 				}
 			}
 		}
@@ -266,10 +285,12 @@ export default class BoardManager extends Component {
 	async readLocationLoop() {
 
 		var backgroundTimer = setInterval(async () => {
+			console.log("Location Loop");
 			if (this.state.mediaState) {
-
+				console.log("Found Media State");
 				try {
 					var mediaState = await BLEBoardData.readLocation(this.state.mediaState);
+					console.log("Called Location Update")
 					this.setState({
 						mediaState: mediaState,
 					});
@@ -311,8 +332,8 @@ export default class BoardManager extends Component {
 			return (
 				<View style={styles.container}>
 					<View style={styles.contentContainer}>
-						{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} />
-							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} />
+						{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} />
+							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} />
 						}
 
 						<Touchable

@@ -6,7 +6,9 @@ const drive = google.drive("v2");
 const bucket = storage.bucket("burner-board");
 const ffmpegPath = require("ffmpeg-static").path;
 const ffmpeg = require("fluent-ffmpeg");
+var ffprobe = require("ffprobe-static");
 ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobe.path);
 const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 
 var fileAttributes = {
@@ -105,7 +107,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 
 		var filePath = this.filePath(boardID, profileID);
 
-		if (!fileAttributes.title.endsWith("mp3") && !fileAttributes.title.endsWith("mp4"))
+		if (!fileAttributes.title.endsWith("mp3") && !fileAttributes.title.endsWith("mp4") && !fileAttributes.title.endsWith("m4a"))
 			throw new Error("The file must have an mp3, or mp4 extension.");
 
 		var result = await this.checkForFileExists(boardID, profileID, fileAttributes.title);
@@ -114,10 +116,13 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 
 		await this.getDriveContent(boardID, profileID, fileId, oauthToken, speechCue);
 
-		if (filePath.endsWith("mp3")) {
-			var duration = await this.getDurationMP3(boardID, profileID);
+		// duration is jacked.  two different approaches.
+		if(filePath.endsWith(".mp4") || filePath.endsWith(".m4a"))
+			fileAttributes.songDuration = Math.floor(await this.getDurationMP4(boardID, profileID));
+		else // mp3
+			fileAttributes.songDuration = Math.floor(await this.getDurationMP3(boardID, profileID));
 
-			fileAttributes.songDuration = getSeconds(duration);
+		if (filePath.endsWith(".mp3") || filePath.endsWith(".m4a")) {
 
 			return await DownloadDirectoryDS.addMedia(boardID,
 				profileID,
@@ -127,10 +132,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 				fileAttributes.songDuration,
 				"");
 		}
-		else if (filePath.endsWith("mp4")) {
-			var duration = await this.getDurationMP4(boardID, profileID);
-
-			fileAttributes.songDuration = getSeconds(duration);
+		else if (filePath.endsWith(".mp4")) {
 
 			return await DownloadDirectoryDS.addMedia(boardID,
 				profileID,
@@ -300,7 +302,7 @@ exports.deleteBoard = async function (boardID) {
 exports.convertToMP4 = async function (boardID, profileID, fileName) {
 
 	ffmpeg.getAvailableCodecs(function (err, codecs) {
-		console.log('Available codecs:');
+		console.log("Available codecs:");
 		console.dir(codecs);
 	});
 
@@ -314,7 +316,7 @@ exports.convertToMP4 = async function (boardID, profileID, fileName) {
 		filePath = constants.MUSIC_PATH + "/global/" + profileID + "/" + fileName;
 
 	var file = bucket.file(filePath);
-	var newFilePath = file.name.replace(".mp3", ".mp4");
+	var newFilePath = file.name.replace(".mp3", ".mp4", ".m4a");
 	var remoteReadStream = bucket.file(file.name).createReadStream();
 	var remoteWriteStream = bucket.file(newFilePath)
 		.createWriteStream({
@@ -327,7 +329,7 @@ exports.convertToMP4 = async function (boardID, profileID, fileName) {
 		ffmpeg()
 			.input(remoteReadStream)
 			.format("mp4")
-			.outputOptions("-movflags empty_moov")  
+			.outputOptions("-movflags empty_moov")
 			.audioCodec("aac")
 			.audioBitrate(128)
 			.outputOptions("-y")
@@ -350,57 +352,33 @@ exports.convertToMP4 = async function (boardID, profileID, fileName) {
 				console.error("stderr:", stderr);
 				reject(err);
 			})
-			.pipe(remoteWriteStream, { end: true });  
+			.pipe(remoteWriteStream, { end: true });
 	});
 
 };
 
 exports.getDurationMP4 = async function (boardID, profileID, fileName) {
 
-	var duration = 0;  
+	var duration = 0;
 	var filePath = "";
 
 	var filePath = this.filePath(boardID, profileID);
 
 	var file = bucket.file(filePath);
-	var newFilePath = file.name.replace(".mp4", ".tmp");
 	var remoteReadStream = bucket.file(file.name).createReadStream();
-	var remoteWriteStream = bucket.file(newFilePath)
-		.createWriteStream({
-			metadata: {
-				contentType: "audio/mp4",
-			}
-		});
-
-	console.log("File Path: " + filePath);
-	console.log("Temp File Path: " + newFilePath);
 
 	return new Promise((resolve, reject) => {
+
 		ffmpeg()
 			.input(remoteReadStream)
-			.format("mp4")
-			.addOption("-c copy")
-			.outputOptions("-movflags empty_moov") 
-			.on("start", (cmdLine) => {
-				console.log("Started ffmpeg with command:", cmdLine);
-			})
-			.on("progress", (progress) => {
-				console.log("[ffmpeg] " + JSON.stringify(progress));
-				duration = progress.timemark;
-			})
-			.on("end", async (data) => {
-				console.log("Successfully re-encoded audio.");
-				console.log(JSON.stringify(data));
+			.ffprobe(function (err, data) {
+				if (err)
+					reject(err);
+				else {
+					resolve(data.format.duration);
+				}
+			});
 
-				resolve(duration);
-			})
-			.on("error", (err, stdout, stderr) => {
-				console.error("An error occured during encoding", err.message);
-				console.error("stdout:", stdout);
-				console.error("stderr:", stderr);
-				reject(err);
-			})
-			.pipe(remoteWriteStream, { end: true });  
 	});
 
 };
@@ -448,5 +426,3 @@ exports.getDurationMP3 = async function (boardID, profileID) {
 			.pipe(remoteWriteStream, { end: true });  
 	});
 };
-
-

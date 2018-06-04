@@ -18,17 +18,7 @@ export default class AdminManagement extends Component {
 	constructor(props) {
 		super(props);
 
-		this.state = {
-			mediaState: BLEBoardData.emptyMediaState,
-		};
-
-		this.onSelectDevice = this.onSelectDevice.bind(this);
-
-	}
-
-	async onSelectDevice(idx) {
-		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		this.onSelectDevice = this.props.onSelectDevice.bind(this);
 	}
 
 
@@ -94,27 +84,14 @@ export default class AdminManagement extends Component {
 		// 	console.log("AdminManagement: Error " + error );
 		// }
 	}
-
-	async OLD_componentWillReceiveProps(nextProps) {
-
-		if (nextProps.mediaState) {
-			if (this.state.mediaState.peripheral.id != nextProps.mediaState.peripheral.id) {
-				this.setState({
-					mediaState: nextProps.mediaState,
-				});
-			}
-		}
-		else
-			console.log("MediaManagement: Null NextProps");
-	}
-
+ 
 	render() {
 
 		var masterText;
 
 		//	const { navigate } = this.props.navigation;
 
-		if (this.state.mediaState.audioMaster == 0)
+		if (this.props.mediaState.audioMaster == 0)
 			masterText = "Enable Master";
 		else
 			masterText = "Disable Master";
@@ -126,7 +103,7 @@ export default class AdminManagement extends Component {
 				<View style={styles.contentContainer}>
 
 					<ScrollView style={styles.scroll}>
-						<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.state.mediaState} mediaType="Device" />
+						<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" />
 					</ScrollView>
 
 					<View style={styles.footer}>
@@ -134,14 +111,12 @@ export default class AdminManagement extends Component {
 							<Touchable
 								onPress={async () => {
 
-
-									if (this.state.mediaState.audioMaster == 0)
-										this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.state.mediaState) });
+									if (this.props.mediaState.audioMaster == 0)
+										this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.props.mediaState) });
 									else
-										this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.state.mediaState) });
+										this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.props.mediaState) });
 
 									return true;
-
 								}}
 								style={styles.touchableStyle}
 								background={Touchable.Ripple("blue")}>
@@ -199,6 +174,11 @@ AdminManagement.propTypes = {
 	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
 	navigation: PropTypes.object,
+	onSelectDevice: PropTypes.func,
+};
+ 
+AdminManagement.defaultProps = {
+	mediaState: BLEBoardData.emptyMediaState,
 };
 
 const styles = StyleSheet.create({
