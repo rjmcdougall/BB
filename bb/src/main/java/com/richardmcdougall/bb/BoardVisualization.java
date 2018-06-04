@@ -76,44 +76,10 @@ public class BoardVisualization {
         mBBservice = service;
         l("Starting Board Visualization " + mBurnerBoard.boardType + " on " + mBurnerBoard.boardId);
 
+        mBoardWidth = mBurnerBoard.getWidth();
+        mBoardHeight = mBurnerBoard.getHeight();
+        mMultipler4Speed = mBurnerBoard.getMultiplier4Speed();
 
-        // TODO: Replace this with calls into the BurnerBoard class to discover
-        if (mBurnerBoard.boardType.contains(new String("Classic"))) {
-            l("Starting Classic Visualization");
-            mBoardWidth = 10;
-            mBoardHeight = 70;
-            mMultipler4Speed = 1;
-        } else if (mBurnerBoard.boardId.contains(new String("Mast"))) {
-            l("Starting Mast Visualization");
-            mBoardWidth = 24;
-            mBoardHeight = 159;
-            mMultipler4Speed = 3;
-        } else if (mBurnerBoard.boardType.contains(new String("Panel"))) {
-            l("Starting Panel Visualization");
-            mBoardWidth = 32;
-            mBoardHeight = 64;
-            mMultipler4Speed = 3;
-        } else if (mBurnerBoard.boardId.contains(new String("grumpy"))) {
-            l("Starting Panel Visualization");
-            mBoardWidth = 32;
-            mBoardHeight = 64;
-            mMultipler4Speed = 3;
-        } else if (mBurnerBoard.boardId.contains(new String("cranky"))) {
-            l("Starting Panel Visualization");
-            mBoardWidth = 32;
-            mBoardHeight = 64;
-            mMultipler4Speed = 3;
-        } else if (mBurnerBoard.boardId.contains(new String("test"))) {
-            l("Starting Mast Visualization");
-            mBoardWidth = 24;
-            mBoardHeight = 159;
-            mMultipler4Speed = 3;
-        } else {
-            l("Starting Azul Visualization");
-            mBoardWidth = 46;
-            mBoardHeight = 118;
-            mMultipler4Speed = 3;
-        }
         mContext = context;
         // Start Board Display
         Thread boardDisplay = new Thread(new Runnable() {
@@ -158,6 +124,7 @@ public class BoardVisualization {
         mBoardMode = mode;
         mBurnerBoard.resetParams();
         mBurnerBoard.clearPixels();
+        mickeySparkleNo = 0;
     }
 
     public int getMode() {
@@ -192,13 +159,18 @@ public class BoardVisualization {
     }
 
     public int displayAlgorithm(String algorithm) {
-        int frameRate = 0;
+        int frameRate = 1;
 
         switch (algorithm) {
 
             case "modeMatrix(kMatrixBurnerColor)":
                 frameRate = 12;
                 modeMatrix(kMatrixBurnerColor);
+                break;
+
+            case "modeMatrix(kMatrixReverse)":
+                frameRate = 12;
+                modeMatrix(kMatrixReverse);
                 break;
 
             case "modeMatrix(kMatrixLunarian)":
@@ -244,6 +216,34 @@ public class BoardVisualization {
             case "modeMeteor()":
                 frameRate = 12;
                 modeMeteor();
+                break;
+
+            case "MickeyGold()":
+                frameRate = 12;
+                modeMickeyGold();
+                break;
+
+            case "MickeySparkle()":
+                frameRate = 12;
+                modeMickeySparkle();
+                break;
+
+            case "MickeyColors()":
+                frameRate = 12;
+                modeMickeyColors();
+                break;
+
+            case "MickeyBlueGold()":
+                frameRate = 12;
+                modeMatrix(kMatrixMickey);
+                break;
+
+            case "modeMickeyBlank()":
+                frameRate = 12;
+                modeMickeyBlank();
+                break;
+
+            default:
                 break;
 
         }
@@ -477,6 +477,8 @@ public class BoardVisualization {
     public static final int kMatrixIrukandji = 6;
     public static final int kMatrixFireFull = 7;
     public static final int kMatrix9 = 8;
+    public static final int kMatrixReverse = 9;
+    public static final int kMatrixMickey = 10;
 
     private static final int[] googleColors = {
             BurnerBoard.getRGB(60, 186, 84),
@@ -497,6 +499,8 @@ public class BoardVisualization {
     private int fireColor = 40;
     private int googleColor = 0;
 
+    private int colorState = 0;
+
     void modeMatrix(int mode) {
 
         // Row plus two pixels for side lights
@@ -508,6 +512,7 @@ public class BoardVisualization {
         int y;
         int sideLight;
         int pixelSkip;
+        boolean isReverse = (mode == kMatrixReverse) || (mode ==kMatrixMickey);
 
         if (mBoardWidth > 10) {
             pixelSkip = 3;
@@ -516,7 +521,11 @@ public class BoardVisualization {
         }
         pixelSkip = 1;
 
-        y = mBoardHeight - 1;
+        if (isReverse) {
+            y = 0;
+        } else {
+            y = mBoardHeight - 1;
+        }
         sideLight = mBoardSideLights - 1;
 
 
@@ -524,6 +533,7 @@ public class BoardVisualization {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixBurnerColor:
+                case kMatrixReverse:
 
                     if (mRandom.nextInt(3) != 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
@@ -532,9 +542,25 @@ public class BoardVisualization {
                         wheelInc(1);
                     }
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
+                    break;
+
+                case kMatrixMickey:
+
+                    if (mRandom.nextInt(3) != 0) {
+                        color = BurnerBoard.getRGB(0, 0, 0);
+                    } else {
+                        if (colorState < 10) {
+                            color = BurnerBoard.getRGB(255, 147, 41);
+                            colorState++;
+                        } else {
+                            color = BurnerBoard.getRGB(0, 0, 255);
+                            colorState++;
+                        }
+                        if (colorState > 20) {
+                            colorState = 0;
+                        }
+                    }
+                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
 
                 case kMatrixEsperanto:
@@ -639,7 +665,7 @@ public class BoardVisualization {
         }
 
         for (int i = 0; i < mMultipler4Speed; i++) {
-            mBurnerBoard.scrollPixels(true);
+            mBurnerBoard.scrollPixels(!isReverse);
         }
 
         switch (mode) {
@@ -966,7 +992,8 @@ public class BoardVisualization {
         videoNumber += -1;
 
         int nVideos = mBurnerBoard.mBBService.dlManager.GetTotalVideo();
-        if (nVideos==0)
+
+        if (nVideos == 0)
             return 12;
 
         int curVidIndex = videoNumber % nVideos;
@@ -1997,4 +2024,118 @@ public class BoardVisualization {
 
         return;
     }
+
+    // Menlo Mickey
+    private final static int kLEDS1 = 99;
+    private final static int kLEDS2 = 137;
+
+    void mickeySetPixel(int n, int color) {
+        if (n < 0 || n >= (kLEDS1 + kLEDS2)) {
+            return;
+        }
+        if (n < kLEDS1) {
+           mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS1 - n - 1) % mBoardHeight, color);
+        } else {
+          mBurnerBoard.setPixel(1 + kLEDS1 / mBoardHeight +
+                    ((n - kLEDS1) / mBoardHeight),  (n - kLEDS1) % mBoardHeight, color);
+        }
+    }
+
+    void modeMickeyGold() {
+        mBurnerBoard.fillScreen(255, 147, 41);
+        mBurnerBoard.flush();
+    }
+
+
+    private int mickeySparkleNo = 0;
+    private final static int kMikeySparkleMiddle = (kLEDS1 + kLEDS2)/ 2;
+
+    void modeMickey2a() {
+
+        int ledNo;
+
+        mBurnerBoard.fadePixels(10);
+
+        if (mickeySparkleNo > kMikeySparkleMiddle) {
+            mBurnerBoard.flush();
+            return;
+        }
+
+        for (ledNo = kMikeySparkleMiddle + mickeySparkleNo; ledNo < kMikeySparkleMiddle + mickeySparkleNo + 6; ledNo++) {
+            mickeySetPixel(ledNo, wheelDim(35, (float)mRandom.nextInt(100) / (float)100.0));
+        }
+
+        for (ledNo = kMikeySparkleMiddle - mickeySparkleNo; ledNo > kMikeySparkleMiddle - mickeySparkleNo - 6; ledNo--) {
+            mickeySetPixel(ledNo, wheelDim(35, (float) mRandom.nextInt(100) / (float) 100.0));
+        }
+
+        mBurnerBoard.flush();
+        mickeySparkleNo+= 1;
+    }
+
+    void modeMickeySparkle() {
+
+        int ledNo;
+
+        //mBurnerBoard.fadePixels(10);
+
+        if (mickeySparkleNo > kMikeySparkleMiddle) {
+            mBurnerBoard.fadePixels(20);
+            mBurnerBoard.flush();
+            mickeySparkleNo+= 1;
+            if (mickeySparkleNo > kMikeySparkleMiddle + 20) {
+                mickeySparkleNo = 0;
+            }
+            return;
+        }
+
+        for (ledNo = kMikeySparkleMiddle; ledNo < kMikeySparkleMiddle + mickeySparkleNo; ledNo++) {
+            mickeySetPixel(ledNo, wheelDim(35, (float)mRandom.nextInt(100) / (float)100.0));
+        }
+
+        for (ledNo = kMikeySparkleMiddle; ledNo > kMikeySparkleMiddle - mickeySparkleNo; ledNo--) {
+            mickeySetPixel(ledNo, wheelDim(35, (float) mRandom.nextInt(100) / (float) 100.0));
+        }
+
+        mBurnerBoard.flush();
+        mickeySparkleNo+= 1;
+    }
+
+    private final static int kMickeyPhaseShift = 10;
+    private int mickeyColor = 0;
+
+    void modeMickeyColors() {
+
+        int ledNo;
+
+        for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
+            int index = kMickeyPhaseShift * (mickeyColor + ledNo) % 360; //* kMickeyPhaseShift / 2) % 360;
+            mickeySetPixel(ledNo, wheel(index));
+        }
+        mBurnerBoard.flush();
+        mickeyColor ++;
+        mickeyColor %= 360;
+    }
+
+    void modeMickeyBlank() {
+
+        mBurnerBoard.fillScreen(0, 0, 0);
+        mBurnerBoard.flush();
+    }
+
+
+    private int mickeyRotate = 0;
+    void modeMickeyBlueGold() {
+
+        int ledNo;
+
+        for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
+            int index = (mickeyRotate + ledNo) % 10; //* kMickeyPhaseShift / 2) % 360;
+            mickeySetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) : BurnerBoard.getRGB(0, 0, 255));
+        }
+        mBurnerBoard.flush();
+        mickeyRotate ++;
+        mickeyRotate %= 360;
+    }
+
 }

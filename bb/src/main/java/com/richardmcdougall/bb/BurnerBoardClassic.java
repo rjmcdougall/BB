@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
+
+import java.nio.IntBuffer;
 import java.util.Arrays;
 
 
@@ -13,20 +15,20 @@ import java.util.Arrays;
 public class BurnerBoardClassic extends BurnerBoard {
 
 
-    private int mBoardWidth = 10;
-    private int mBoardHeight = 70;
     private int mBoardSideLights = 79;
     //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
     public int mBatteryLevel = -1;
-    public int [] mBatteryStats = new int[16];
+    public int[] mBatteryStats = new int[16];
     private static final String TAG = "BB.BurnerBoardClassic";
-
 
 
     public BurnerBoardClassic(BBService service, Context context) {
         super(service, context);
+        mBoardWidth = 10;
+        mBoardHeight = 70;
+        mTextSize = 6;
         boardId = Build.MODEL;
         boardType = "Burner Board Classic";
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
@@ -36,6 +38,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         mContext = context;
         initPixelOffset();
         initUsb();
+        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
 
     public void resetParams() {
@@ -172,7 +175,7 @@ public class BurnerBoardClassic extends BurnerBoard {
 
 
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
-    public boolean setMode(int mode) {
+    public boolean setModeRetired(int mode) {
 
         l("sendCommand: 4," + mode);
         if (mListener == null) {
@@ -353,7 +356,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
 
-
     public void fillScreen(int r, int g, int b) {
 
         //System.out.println("Fillscreen " + r + "," + g + "," + b);
@@ -374,7 +376,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     // row is 12 pixels : board has 10
     private boolean setRow(int row, int[] pixels) {
 
-        int [] dimPixels = new int [pixels.length];
+        int[] dimPixels = new int[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             dimPixels[pixel] =
                     (mDimmerLevel * pixels[pixel]) / 255;
@@ -384,11 +386,11 @@ public class BurnerBoardClassic extends BurnerBoard {
         sendVisual(14, row, dimPixels);
 
         // Do color correction on burner board display pixels
-        byte [] newPixels = new byte[mBoardWidth * 3];
+        byte[] newPixels = new byte[mBoardWidth * 3];
         for (int pixel = 0; pixel < mBoardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+            newPixels[pixel] = (byte) pixelColorCorrectionRed(dimPixels[pixel]);
+            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);
         }
 
         //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
@@ -407,7 +409,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
 
-
     //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     public boolean setOtherlight(int other, int[] pixels) {
 
@@ -417,11 +418,11 @@ public class BurnerBoardClassic extends BurnerBoard {
 
         // Do color correction on burner board display pixels
         //byte [] newPixels = new byte[pixels.length];
-        byte [] newPixels = new byte[pixels.length];
+        byte[] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(pixels[pixel + 2]);
+            newPixels[pixel] = (byte) pixelColorCorrectionRed(pixels[pixel]);
+            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(pixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(pixels[pixel + 2]);
         }
 
         //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
@@ -450,11 +451,9 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
 
-
     public void dimPixels(int level) {
         mDimmerLevel = level;
     }
-
 
 
     // Other lights
@@ -508,7 +507,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
 
-    static int [][][] pixel2OffsetTable = new int[255][255][3];
+    static int[][][] pixel2OffsetTable = new int[255][255][3];
 
     private void initPixelOffset() {
         for (int x = 0; x < mBoardWidth; x++) {
@@ -533,6 +532,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public static final int kOtherLights = 2;
     public static final int kLeftSightlight = 0;
     public static final int kRightSidelight = 1;
+
     int pixelOtherlight2Offset(int pixel, int other, int rgb) {
 
         return (other * mBoardSideLights + pixel) * 3 + rgb;
@@ -546,7 +546,8 @@ public class BurnerBoardClassic extends BurnerBoard {
             System.out.println("setPixel out of range: " + x + "," + y);
             for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
                 System.out.println(ste);
-            }            return;
+            }
+            return;
         }
         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
         mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
@@ -559,7 +560,8 @@ public class BurnerBoardClassic extends BurnerBoard {
             System.out.println("setPixel out of range: " + pixel + "," + (mBoardWidth * mBoardHeight));
             for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
                 System.out.println(ste);
-            }            return;
+            }
+            return;
         }
         mBoardScreen[pixel * 3] = r;
         mBoardScreen[pixel * 3 + 1] = g;
@@ -573,7 +575,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void setOtherlightsAutomatically() {
         for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
             // Calculate sidelight proportional to lengths
-            int fromY = (int) ((float) pixel * (float) mBoardHeight / (float)mBoardSideLights);
+            int fromY = (int) ((float) pixel * (float) mBoardHeight / (float) mBoardSideLights);
             setPixelOtherlight(pixel, kLeftSightlight,
                     mBoardScreen[pixel2Offset(0, fromY, PIXEL_RED)],
                     mBoardScreen[pixel2Offset(0, fromY, PIXEL_GREEN)],
@@ -687,14 +689,13 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
 
-    public int [] getPixelBuffer() {
+    public int[] getPixelBuffer() {
         return mBoardScreen;
     }
 
     // TODO: gamma correction
     // encoded = ((original / 255) ^ (1 / gamma)) * 255
     // original = ((encoded / 255) ^ gamma) * 255
-
 
 
     /*
@@ -715,7 +716,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 */
     private int pixelColorCorrectionRed(int red) {
-        return gammaCorrect(red) ;
+        return gammaCorrect(red);
     }
 
     private int pixelColorCorrectionGreen(int green) {
@@ -728,23 +729,28 @@ public class BurnerBoardClassic extends BurnerBoard {
 
 
     public void flush() {
-        int[] rowPixels = new int[mBoardWidth * 3];
-        for (int y = 0; y < mBoardHeight; y++) {
-            //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                if (y < mBoardHeight) {
-                    rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                }
-            }
 
-            //rowPixels[0] = rowPixels[3];
-            //rowPixels[1] = rowPixels[4];
-            //rowPixels[2] = rowPixels[5];
-            //rowPixels[33] = rowPixels[30];
-            //rowPixels[34] = rowPixels[31];
-            //rowPixels[35] = rowPixels[32];
+        // Suppress updating when displaying a text message
+        if (isTextDisplaying > 0) {
+            isTextDisplaying--;
+        } else {
+            int[] rowPixels = new int[mBoardWidth * 3];
+            for (int y = 0; y < mBoardHeight; y++) {
+                //for (int y = 30; y < 31; y++) {
+                for (int x = 0; x < mBoardWidth; x++) {
+                    if (y < mBoardHeight) {
+                        rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                        rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                        rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    }
+                }
+
+                //rowPixels[0] = rowPixels[3];
+                //rowPixels[1] = rowPixels[4];
+                //rowPixels[2] = rowPixels[5];
+                //rowPixels[33] = rowPixels[30];
+                //rowPixels[34] = rowPixels[31];
+                //rowPixels[35] = rowPixels[32];
             /*
             if (rowPixels[0] ==0) {
 
@@ -755,26 +761,27 @@ public class BurnerBoardClassic extends BurnerBoard {
                 rowPixels[4]= 0;
                 rowPixels[4]= 33;
                 */
-            setRow(y, rowPixels);
-            //update();
-        }
-
-
-        for (int x = 0; x < kOtherLights; x++) {
-            int [] otherPixels = new int[mBoardSideLights * 3];
-            for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
-                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
-                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
-                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_GREEN)] =
-                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)];
-                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_BLUE)] =
-                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)];
+                setRow(y, rowPixels);
+                //update();
             }
-            setOtherlight(x, otherPixels);
+
+
+            for (int x = 0; x < kOtherLights; x++) {
+                int[] otherPixels = new int[mBoardSideLights * 3];
+                for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
+                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
+                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_GREEN)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)];
+                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_BLUE)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)];
+                }
+                setOtherlight(x, otherPixels);
+            }
+            setOtherlightsAutomatically();
+            update();
+            flush2Board();
         }
-        setOtherlightsAutomatically();
-        update();
-        flush2Board();
     }
 
 }

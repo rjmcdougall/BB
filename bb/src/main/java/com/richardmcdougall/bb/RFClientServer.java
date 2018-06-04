@@ -324,7 +324,7 @@ public class RFClientServer {
             d("Received Remote Control " + cmd + " " + value);
             receiveRemoteControl(cmd, value);
         } else {
-            l("packet not for sync server!");
+            d("packet not for sync server!");
         }
         return;
     }

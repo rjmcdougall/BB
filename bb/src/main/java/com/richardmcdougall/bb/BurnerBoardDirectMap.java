@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
+
+import java.nio.IntBuffer;
 import java.util.Arrays;
 
 /**
@@ -39,8 +41,6 @@ import java.util.Arrays;
 
 
 public class BurnerBoardDirectMap extends BurnerBoard {
-    private int mBoardWidth = 24;
-    private int mBoardHeight = 159;
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardDirectMap";
     public int mBatteryLevel;
@@ -50,6 +50,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     public BurnerBoardDirectMap(BBService service, Context context) {
         super(service, context);
+        mBoardWidth = 8;
+        mBoardHeight = 256;
+        mMultipler4Speed = 3;
         boardId = Build.MODEL;
         boardType = "Burner Board DirectMap";
         l("Burner Board DirectMap initing...");
@@ -57,8 +60,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mBBService = service;
         mContext = context;
         initPixelOffset();
-        initpixelMap2Board();
         initUsb();
+        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
 
     public void start() {
@@ -201,7 +204,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     static int PIXEL_GREEN = 1;
     static int PIXEL_BLUE = 2;
 
-    static int [][][] pixel2OffsetTable = new int[255][255][3];
+    static int [][][] pixel2OffsetTable = new int[255][1024][3];
     private void initPixelOffset() {
         for (int x = 0; x < mBoardWidth; x++) {
             for (int y = 0; y < mBoardHeight; y++) {
@@ -255,12 +258,12 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         } else {
             for (int x = 0; x < mBoardWidth; x++) {
                 for (int y = mBoardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
         }
@@ -375,6 +378,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     private int flushCnt = 0;
     long lastFlushTime = java.lang.System.currentTimeMillis();
+    static int kStrips = 8;
 
     public void flush() {
 
@@ -388,61 +392,66 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             flushCnt = 0;
         }
 
+        // Suppress updating when displaying a text message
+        if (isTextDisplaying > 0) {
+            isTextDisplaying--;
+        } else {
 
-
-        // Here we calculate the total power percentage of the whole board
-        // We want to limit the board to no more than 50% of pixel output total
-        // This is because the board is setup to flip the breaker at 200 watts
-        // Output is percentage multiplier for the LEDs
-        // At full brightness we limit to 30% of their output
-        // Power is on-linear to pixel brightness: 37% = 50% power.
-        // powerPercent = 100: 15% multiplier
-        // powerPercent <= 15: 100% multiplier
-        int totalBrightnessSum = 0;
-        int powerLimitMultiplierPercent = 100;
-        for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
-            // R
-            if (pixel % 3 == 0) {
-                totalBrightnessSum += mBoardScreen[pixel];
-            } else if (pixel % 3 == 1) {
-                totalBrightnessSum += mBoardScreen[pixel];
-            } else {
-                totalBrightnessSum += mBoardScreen[pixel] / 2;
-            }
-        }
-
-        final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
-        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 12, 0);
-
-        int[] rowPixels = new int[mBoardWidth * 3];
-        for (int y = 0; y < mBoardHeight; y++) {
-            //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                if (y < mBoardHeight) {
-                    rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+            // Here we calculate the total power percentage of the whole board
+            // We want to limit the board to no more than 50% of pixel output total
+            // This is because the board is setup to flip the breaker at 200 watts
+            // Output is percentage multiplier for the LEDs
+            // At full brightness we limit to 30% of their output
+            // Power is on-linear to pixel brightness: 37% = 50% power.
+            // powerPercent = 100: 15% multiplier
+            // powerPercent <= 15: 100% multiplier
+            int totalBrightnessSum = 0;
+            int powerLimitMultiplierPercent = 100;
+            for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
+                // R
+                if (pixel % 3 == 0) {
+                    totalBrightnessSum += mBoardScreen[pixel];
+                } else if (pixel % 3 == 1) {
+                    totalBrightnessSum += mBoardScreen[pixel];
+                } else {
+                    totalBrightnessSum += mBoardScreen[pixel] / 2;
                 }
             }
-            setRowVisual(y, rowPixels);
-        }
 
-        // Walk through each strip and fill from the graphics buffer
-        for (int s = 0; s < kStrips; s++) {
-            int[] stripPixels = new int[mBoardHeight * 3 * 3];
-            // Walk through all the pixels in the strip
-            for (int offset = 0; offset < mBoardHeight * 3 * 3;) {
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
+            final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
+            powerLimitMultiplierPercent = 100;// - java.lang.Math.max(powerPercent - 12, 0);
+
+            int[] rowPixels = new int[mBoardWidth * 3];
+            for (int y = 0; y < mBoardHeight; y++) {
+                //for (int y = 30; y < 31; y++) {
+                for (int x = 0; x < mBoardWidth; x++) {
+                    if (y < mBoardHeight) {
+                        rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                        rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                        rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    }
+                }
+                //setRowVisual(y, rowPixels);
             }
-            setStrip(s, stripPixels, powerLimitMultiplierPercent);
-            // Send to board
+
+            // Walk through each strip and fill from the graphics buffer
+            for (int s = 0; s < kStrips; s++) {
+                int[] stripPixels = new int[mBoardHeight * 3];
+                // Walk through all the pixels in the strip
+                for (int y = 0; y < mBoardHeight; y++) {
+                    stripPixels[y * 3] = mBoardScreen[pixel2Offset(s, y, PIXEL_RED)];
+                    stripPixels[y * 3 + 1] = mBoardScreen[pixel2Offset(s, y, PIXEL_GREEN)];
+                    stripPixels[y * 3 + 2] = mBoardScreen[pixel2Offset(s, y, PIXEL_BLUE)];
+                }
+                setStrip(s, stripPixels, powerLimitMultiplierPercent);
+                // Send to board
+                flush2Board();
+            }
+
+            // Render on board
+            update();
             flush2Board();
         }
-        // Render on board
-        update();
-        flush2Board();
     }
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
@@ -555,70 +564,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         }
     }
 
-    public static class TranslationMap {
-        int y;
-        int startX;
-        int endX;
-        int stripDirection;
-        int stripNumber;
-        int stripOffset;
 
-        private TranslationMap(
-                int y,
-                int startX,
-                int endX,
-                int stripDirection,
-                int stripNumber,
-                int stripOffset) {
-            this.y = y;
-            this.startX = startX;
-            this.endX = endX;
-            this.stripDirection = stripDirection;
-            this.stripNumber = stripNumber;
-            this.stripOffset = stripOffset;
-        }
-    }
-
-    static int pixelMap2Board(int s, int offset)
-    {
-        return pixelMap2BoardTable[s][offset];
-    }
-
-    private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
-        pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_BLUE);
-    }
-
-
-    // Two primary mapping functions
-    static int kStrips = 8;
-    static int [][] pixelMap2BoardTable = new int[8][4096];
-    private TranslationMap[] boardMap;
-
-    private void initpixelMap2Board() {
-
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
-
-                final int subStrip = x % 3;
-                final int stripNo = x / 3;
-                final boolean stripUp = subStrip % 2 == 0;
-                int stripOffset;
-
-                if (stripUp) {
-                    stripOffset = subStrip * mBoardHeight + y;
-                } else {
-                    stripOffset = subStrip * mBoardHeight + (mBoardHeight - 1 - y);
-                }
-                pixelRemap(x, y, stripNo, stripOffset * 3);
-            }
-
-        }
-
-    }
 }
 

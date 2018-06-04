@@ -11,6 +11,8 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Objects;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
@@ -171,6 +173,8 @@ public class A2dpSink {
                 DISCOVERABLE_TIMEOUT_MS);
         //mContext.startActivityForResult(discoverableIntent, REQUEST_CODE_ENABLE_DISCOVERABLE);
     }
+
+
 
     //you can get notified when a new device is connected using Broadcast receiver
     private final BroadcastReceiver btReceive = new BroadcastReceiver() {

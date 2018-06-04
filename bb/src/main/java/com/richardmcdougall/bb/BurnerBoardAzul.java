@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import java.nio.IntBuffer;
 import java.util.Arrays;
 
 /**
@@ -40,8 +41,7 @@ import java.util.Arrays;
 
 
 public class BurnerBoardAzul extends BurnerBoard {
-    private int mBoardWidth = 46;
-    private int mBoardHeight = 118;
+
     //public int[] mBoardScreen;
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardAzul";
@@ -51,6 +51,9 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public BurnerBoardAzul(BBService service, Context context) {
         super(service, context);
+        mBoardWidth = 46;
+        mBoardHeight = 118;
+        mMultipler4Speed = 3;
         boardId = Build.MODEL;
         boardType = "Burner Board Azul";
         l("Burner Board Azul initing...");
@@ -60,6 +63,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
+        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
 
     public void start() {
@@ -260,12 +264,12 @@ public class BurnerBoardAzul extends BurnerBoard {
         } else {
             for (int x = 0; x < mBoardWidth; x++) {
                 for (int y = mBoardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
         }
@@ -394,7 +398,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
 
 
-
         // Here we calculate the total power percentage of the whole board
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
@@ -433,12 +436,11 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
 
 
-
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
-            for (int offset = 0; offset < pixelsPerStrip[s]* 3;) {
+            for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
                 stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
@@ -450,6 +452,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         // Render on board
         update();
         flush2Board();
+
     }
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6

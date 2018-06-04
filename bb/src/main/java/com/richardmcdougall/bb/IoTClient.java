@@ -139,7 +139,7 @@ public class IoTClient {
                             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
                             mqttClient.setCallback(new MqttEventCallback());
                             mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
-                            mqttClient.setTraceEnabled(true);
+                            mqttClient.setTraceEnabled(BBService.debug);
 
                             mqttClient.connect(options, null, new IMqttActionListener() {
 
@@ -237,8 +237,8 @@ public class IoTClient {
 
         @Override
         public void deliveryComplete(IMqttDeliveryToken arg0) {
-            Log.i(TAG, "Message delivered, " +
-                    mqttClient.getBufferedMessageCount() + " messages outstanding");
+            //Log.i(TAG, "Message delivered, " +
+            //mqttClient.getBufferedMessageCount() + " messages outstanding");
         }
 
         @Override
@@ -281,14 +281,14 @@ public class IoTClient {
         IMqttDeliveryToken deliveryToken;
 
         if (haveConnected == true) {
-            Log.d(TAG, "sendUpdate(), " +
-                    mqttClient.getBufferedMessageCount() + " messages ready to send");
+            //Log.d(TAG, "sendUpdate(), " +
+            //        mqttClient.getBufferedMessageCount() + " messages ready to send");
         } else {
-            Log.d(TAG, "sendUpdate()");
+            //Log.d(TAG, "sendUpdate()");
         }
 
         if (mqttClient == null) {
-            Log.d(TAG, "null mqttClient");
+            //Log.d(TAG, "null mqttClient");
             return;
         }
 
@@ -306,7 +306,7 @@ public class IoTClient {
         try {
                 String t = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
             //String t = new String("/devices/bb-test/events/" + topic);
-            Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
+            //Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
         } catch (Exception e) {
             Log.d(TAG, "Failed to send:" + e.toString());

@@ -400,7 +400,7 @@ public class DownloadManager {
 
                 if(mDM.dataDirectory != null)
                     if (dir.toString().length() == mDM.dataDirectory.toString().length()) {
-                        Log.d(TAG, "No Changes to DirecotryJSON.");
+                        Log.d(TAG, "No Changes to Directory JSON.");
                         return true;
                     }
 

@@ -78,7 +78,7 @@ public class Gps {
             provider.addListener(new PositionListener() {
                 public void providerUpdate(PositionEvent evt) {
                     // do something with the data..
-                    l("TPV: " + evt.toString());
+                    d("TPV: " + evt.toString());
                     if (mGpsCallback != null) {
                         mGpsCallback.positionEvent(evt);
                     }

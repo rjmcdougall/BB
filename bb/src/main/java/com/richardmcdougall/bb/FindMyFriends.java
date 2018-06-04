@@ -82,7 +82,7 @@ public class FindMyFriends {
 
             @Override
             public void GPSevent(PositionEvent gps) {
-                l("FMF Position: " + gps.toString());
+                d("FMF Position: " + gps.toString());
                 Position pos = gps.getPosition();
                 mLat = (int)(pos.getLatitude() * 1000000);
                 mLon = (int)(pos.getLongitude() * 1000000);
@@ -168,10 +168,10 @@ public class FindMyFriends {
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
 
-        l("Sending packet...");
+        d("Sending packet...");
         mRadio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
-        l("Sent packet...");
+        d("Sent packet...");
         updateBoardLocations(mBoardAddress, 999, radioPacket.toByteArray());
 
         radioPacket = new ByteArrayOutputStream();
@@ -192,10 +192,10 @@ public class FindMyFriends {
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
 
-        l("Sending packet...");
+        d("Sending packet...");
         mRadio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
-        l("Sent packet...");
+        d("Sent packet...");
 
     }
 

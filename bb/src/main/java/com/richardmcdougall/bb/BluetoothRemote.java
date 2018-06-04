@@ -6,21 +6,28 @@ import android.bluetooth.*;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.input.InputManager;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import android.bluetooth.BluetoothProfile;
 import android.view.View;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.view.inputmethod.InputMethodManager;
+
 /**
  * Created by rmc on 4/6/18.
  */
@@ -61,6 +68,8 @@ public class BluetoothRemote {
             mBluetoothAdapter.enable();
         }
 
+        l("Hidden constant: " + getInputDeviceHiddenConstant());
+
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         mBBService.registerReceiver(mReceiver, filter);
@@ -79,6 +88,7 @@ public class BluetoothRemote {
                 mPairedDevices.put(device.getAddress(), device);
             }
         }
+        setupBT();
         discoverDevices();
     }
 
@@ -371,6 +381,64 @@ public class BluetoothRemote {
                 l("Could not close the connect socket" + e.getMessage());
             }
         }
+
     }
+
+    BluetoothDevice mBluetoothInputDevice;
+    BluetoothProfile.ServiceListener mProfileListener = new BluetoothProfile.ServiceListener() {
+        @Override
+        public void onServiceConnected(int profile, BluetoothProfile proxy) {
+            l( "onServiceConnected:" + profile);
+            if (profile == getInputDeviceHiddenConstant()) {
+                List<BluetoothDevice> connectedDevices = proxy.getConnectedDevices();
+                if (connectedDevices.size() == 0) {
+                } else if (connectedDevices.size() == 1) {
+                    mBluetoothInputDevice = connectedDevices.get(0);
+                } else {
+                    l("too many input devices");
+                }
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(int profile) {
+            l("onServiceDisconnected");
+        }
+    };
+
+    public static int getInputDeviceHiddenConstant() {
+        Class<BluetoothProfile> clazz = BluetoothProfile.class;
+        for (Field f : clazz.getFields()) {
+
+            int mod = f.getModifiers();
+            if (Modifier.isStatic(mod) &&
+                    Modifier.isPublic(mod) &&
+                    Modifier.isFinal(mod)) {
+                try {
+                    if
+                            (f.getName().equals("INPUT_DEVICE")) {
+                        return f.getInt(null);
+                    }
+                } catch (Exception e) {
+                    //l(e.toString());
+                }
+            }
+        }
+        return -1;
+    }
+
+    android.hardware.input.InputManager mInput;
+    public void setupBT() {
+        //mBluetoothAdapter.getProfileProxy(mBBService,
+        //        mProfileListener,
+        //        getInputDeviceHiddenConstant());
+
+        //mInput = (android.hardware.input.InputManager)
+        //        mContext.getSystemService(Context.INPUT_SERVICE);
+        //mInput.registerInputDeviceListener(new InputManagerCompat.InputDeviceListener());
+    }
+
+    //AppCompatActivity a = new AppCompatActivity()
+
 
 }

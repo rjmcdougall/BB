@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import java.nio.IntBuffer;
 import java.util.Arrays;
 
 /**
@@ -40,25 +41,29 @@ import java.util.Arrays;
 
 
 public class BurnerBoardPanel extends BurnerBoard {
-    private int mBoardWidth = 32;
-    private int mBoardHeight = 64;
     //public int[] mBoardScreen;
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardPanel";
     public int mBatteryLevel = -1;
     public int[] mBatteryStats = new int[16];
+    public int [] mLayeredScreen;
 
 
     public BurnerBoardPanel(BBService service, Context context) {
         super(service, context);
+        mBoardWidth = 32;
+        mBoardHeight = 64;
+        mMultipler4Speed = 3;
         boardId = Build.MODEL;
         boardType = "Burner Board Panel";
-        l("Burner Board Panel initing...");
+        l("Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
         mContext = context;
         initPixelOffset();
         initUsb();
+        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
+        mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
     }
 
     public void start() {
@@ -260,12 +265,12 @@ public class BurnerBoardPanel extends BurnerBoard {
         } else {
             for (int x = 0; x < mBoardWidth; x++) {
                 for (int y = mBoardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
         }
@@ -394,6 +399,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
 
 
+
         // Here we calculate the total power percentage of the whole board
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
@@ -418,6 +424,13 @@ public class BurnerBoardPanel extends BurnerBoard {
         final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
         powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
 
+        // Render on board
+        //if (isTextDisplaying > 0) {
+            //renderText(mLayeredScreen);
+        //} else {
+            //System.arraycopy(mBoardScreen, 0, mLayeredScreen, 0, mBoardScreen.length);
+        //}
+
         int[] rowPixels = new int[mBoardWidth * 3];
         for (int y = 0; y < mBoardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
@@ -432,9 +445,9 @@ public class BurnerBoardPanel extends BurnerBoard {
             setRow(y, rowPixels);
         }
 
-        // Render on board
         update();
         flush2Board();
+
     }
 
     private boolean setRow(int row, int[] pixels) {

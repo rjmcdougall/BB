@@ -117,6 +117,7 @@ public class BBService extends Service {
     public A2dpSink mA2dpSink = null;
     public BluetoothRemote mBluetoothRemote = null;
     private boolean mMasterRemote = false;
+    private boolean mVoiceAnnouncements = false;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -402,6 +403,8 @@ public class BBService extends Service {
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (boardId.contains("grumpy")) {
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
+        } else if (boardId.contains("mickey")) {
+            mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
         } else if (boardId.contains("test")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
         } else {
@@ -1007,6 +1010,8 @@ public class BBService extends Service {
     public void SetRadioChannel(int index) {
         l("SetRadioChannel: " + index);
         currentRadioChannel = index;
+
+
         if (mServerMode == true) {
             return;
         }
@@ -1029,7 +1034,10 @@ public class BBService extends Service {
         if (index == 0) {
             mediaPlayer.pause();
             l("Bluetooth Mode");
-            voice.speak("Blue tooth Audio", TextToSpeech.QUEUE_FLUSH, null, "bluetooth");
+            mBurnerBoard.setText("Bluetooth", 500);
+            if (mVoiceAnnouncements) {
+                voice.speak("Blue tooth Audio", TextToSpeech.QUEUE_FLUSH, null, "bluetooth");
+            }
             try {
                 Thread.sleep(1000);
             } catch (Throwable e) {
@@ -1038,7 +1046,10 @@ public class BBService extends Service {
 
         } else {
             l("Radio Mode");
-            voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
+            mBurnerBoard.setText(String.valueOf(index), 500);
+            if (mVoiceAnnouncements) {
+                voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
+            }
             bluetoothModeDisable();
             try {
                 if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
@@ -1103,7 +1114,6 @@ public class BBService extends Service {
     public void setVideoMode(int mode) {
         setMode(mode);
     }
-
 
     private AudioRecord mAudioInStream;
     private AudioTrack mAudioOutStream;
@@ -1268,12 +1278,11 @@ public class BBService extends Service {
             }
         }
 
-        if (mBoardVisualization != null) {
+        if (mBoardVisualization != null && mBurnerBoard != null) {
             l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
             mBoardVisualization.setMode(mBoardMode);
+            mBurnerBoard.setMode(mBoardMode);
         }
-
-
 
         voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
     }
@@ -1331,7 +1340,7 @@ public class BBService extends Service {
                 // Every 10 seconds log to IOT cloud
                 if (loopCnt % 10 == 0) {
                     if (mBurnerBoard != null) {
-                        l("Sending MQTT update");
+                        d("Sending MQTT update");
                         iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
                     }
                 }
@@ -1427,7 +1436,7 @@ public class BBService extends Service {
         }
     };
 
-    public static class usbReceiver extends BroadcastReceiver {
+    public class usbReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             //l("usbReceiver");
@@ -1444,6 +1453,10 @@ public class BBService extends Service {
 
                     // Broadcast this event so we can receive it
                     LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+
+                    if (mBurnerBoard != null) {
+                        mBurnerBoard.initUsb();
+                    }
                 }
                 if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED))
                 {

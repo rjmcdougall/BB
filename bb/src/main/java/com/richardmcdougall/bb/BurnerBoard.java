@@ -6,10 +6,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -19,12 +27,11 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.nio.Buffer;
+import java.nio.IntBuffer;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.Arrays;
-import java.lang.System;
 
 /**
  * Created by rmc on 3/5/17.
@@ -32,6 +39,9 @@ import java.lang.System;
 
 public class BurnerBoard {
 
+    public int mBoardWidth = 1;
+    public int mBoardHeight = 1;
+    public int mMultipler4Speed = 1;
     public BurnerBoard.BoardEvents boardCallback = null;
     public CmdMessenger mListener = null;
     private SerialInputOutputManager mSerialIoManager;
@@ -48,6 +58,10 @@ public class BurnerBoard {
     public String mEchoString = "";
     public int[] mBoardScreen;
     public String boardType;
+    public int isTextDisplaying = 0;
+    public int mRefreshRate = 15;
+    public int mTextSize = 12;
+    public Buffer mTextBuffer = null;
 
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
@@ -57,6 +71,17 @@ public class BurnerBoard {
         mBBService.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);
+    }
+
+    public int getWidth() {
+        return mBoardWidth;
+    }
+
+    public int getHeight() {
+        return mBoardHeight;
+    }
+    public int getMultiplier4Speed() {
+        return mMultipler4Speed;
     }
 
     public interface BoardEvents {
@@ -86,7 +111,7 @@ public class BurnerBoard {
 
     static public int getRGB(int r, int g, int b) {
 
-        return (b * 65536 + g * 256 + r);
+        return (r * 65536 + g * 256 + b);
     }
 
     public void showBattery() {
@@ -105,9 +130,9 @@ public class BurnerBoard {
 
     public void setPixel(int x, int y, int color) {
 
-        int r = (color & 0xff);
+        int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
-        int b = ((color & 0xff0000) >> 16);
+        int r = ((color & 0xff0000) >> 16);
         setPixel(x, y, r, g, b);
     }
 
@@ -167,6 +192,7 @@ public class BurnerBoard {
     }
 
     public boolean setMode(int mode) {
+        //setText(String.valueOf(mode), 500);
         return true;
     }
 
@@ -567,6 +593,47 @@ public class BurnerBoard {
         if (value>255) value = 255;
         if (value < 0) value = 0;
         return gamma8[value];
+    }
+
+    public void aRGBtoBoardScreen(Buffer buf, int [] screen) {
+
+        int [] buffer = (int [])buf.array();
+
+        for (int pixelNo = 0; pixelNo < buf.capacity() / 4; pixelNo++) {
+            int offset = pixelNo * 4;
+            int pixel_offset = pixelNo * 3;
+            int pixel = buffer[pixelNo];
+            int a = pixel & 0xff;
+            screen[pixel_offset] = (pixel >> 8) & 0xff;
+            screen[pixel_offset+1] = (pixel >> 16) & 0xff;
+            screen[pixel_offset+2] = (pixel >> 24) & 0xff;
+        }
+    }
+
+    // Draw text on screen and delay for n seconds
+    public void setText(String text, int delay) {
+        isTextDisplaying = delay * mRefreshRate / 1000;
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        canvas.scale(-1, 1, mBoardWidth / 2, mBoardHeight / 2);
+        canvas.rotate(90, mBoardWidth / 2, mBoardHeight / 2);
+        Paint paint = new Paint();
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setColor(Color.WHITE); // Text Color
+        paint.setTextSize(mTextSize); // Text Size
+        //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
+        canvas.drawText(text, mBoardWidth / 2, mBoardHeight / 2, paint);
+        if (mTextBuffer != null) {
+            bitmap.copyPixelsToBuffer(mTextBuffer);
+        }
+    }
+
+    // render text on screen
+    public void renderText(int [] screen) {
+        // Suppress updating when displaying a text message
+        isTextDisplaying--;
+        aRGBtoBoardScreen(mTextBuffer, screen);
     }
 
 }
