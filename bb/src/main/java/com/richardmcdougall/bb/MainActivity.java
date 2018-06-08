@@ -54,7 +54,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private static final String TAG = "BB.MainActivity";
 
-    public static final boolean kEmbeddedMode = true;
+    public static final boolean kEmbeddedMode = false;
+    public static final boolean kThings = true;
 
     boolean imRunning = false;
 
@@ -264,6 +265,11 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private BroadcastReceiver BBstatsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            if (kThings) {
+                return;
+            }
+
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
             int msgType = intent.getIntExtra("msgType", 0);
             if (resultCode == RESULT_OK) {

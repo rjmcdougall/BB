@@ -215,7 +215,7 @@ public class BBService extends Service {
         */
 
         l("BBService: onCreate");
-        l("I am " + Build.MANUFACTURER + " / " + Build.MODEL);
+        l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
 
         mContext = getApplicationContext();
 
@@ -407,6 +407,10 @@ public class BBService extends Service {
             mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
         } else if (boardId.contains("test")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
+        } else if (boardId.contains("iot_rpi3")) {
+            mBurnerBoard = new BurnerBoardPanel(this, mContext);
+        } else if (boardId.contains("imx7d_pico")) {
+            mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else {
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         }
@@ -414,6 +418,8 @@ public class BBService extends Service {
             l("startLights: null burner board");
             return;
         }
+        mBurnerBoard.setText(mBurnerBoard.boardId, 5000);
+
         if (mBurnerBoard != null) {
             mBurnerBoard.attach(new BoardCallback());
         }
@@ -693,20 +699,16 @@ public class BBService extends Service {
 
         l("Starting BB on phone " + model);
 
-        /*
-        if (model.equals("XT1064")) {
-            phoneModelAudioLatency = 10;
-        } else if (model.equals("BLU DASH M2")) {
-            phoneModelAudioLatency = 10;
-        } else if (model.equals("BLU ADVANCE 5.0 HD")) {
-            phoneModelAudioLatency = 10;
-        } else if (model.equals("MSM8916 for arm64")) {
-            phoneModelAudioLatency = 40;
+
+        if (model.equals("iot_rpi3")) {
+            phoneModelAudioLatency = 80;
+        } else if (model.equals("imx7d_pico")) {
+            phoneModelAudioLatency = 110;
         } else {
-            phoneModelAudioLatency = 82;
-            userTimeOffset = -4;
+            phoneModelAudioLatency = 0;
+            userTimeOffset = 0;
         }
-        */
+
 
         //udpClientServer = new UDPClientServer(this);
         //udpClientServer.Run();
@@ -826,7 +828,7 @@ public class BBService extends Service {
 
                 if (curPos == 0 || seekErr != 0) {
                     if (curPos == 0 || Math.abs(seekErr) > 100) {
-                        d("SeekAndPlay: qqexplicit seek");
+                        l("SeekAndPlay: explicit seek");
                         // mediaPlayer.pause();
                         // hack: I notice i taked 79ms on dragonboard to seekTo
                         seekSave = SystemClock.elapsedRealtime();
@@ -845,6 +847,11 @@ public class BBService extends Service {
                             //    speed = 0.95f;
                         }
                         d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
+
+                        if ((seekErr > 10) || (seekErr < -10)) {
+                            l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
+                        }
+
                         try {
                             //mediaPlayer.pause();
                             PlaybackParams params = new PlaybackParams();
@@ -862,9 +869,9 @@ public class BBService extends Service {
 
                             d("SeekAndPlay: setPlaybackParams() Sucesss!!");
                         } catch (IllegalStateException exception) {
-                            d("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
+                            l("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
                         } catch (Throwable err) {
-                            //l("SeekAndPlay setPlaybackParams: " + err.getMessage());
+                            l("SeekAndPlay setPlaybackParams: " + err.getMessage());
                             //err.printStackTrace();
                         }
                         //l("SeekAndPlay: start()");
@@ -901,8 +908,10 @@ public class BBService extends Service {
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;
         if (enable) {
+            mBurnerBoard.setText("Master", 2000);
             voice.speak("I am the Master Remote", TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
+            mBurnerBoard.setText("Solo", 2000);
             voice.speak("Disabling Master Remote", TextToSpeech.QUEUE_ADD, null, "disableMaster");
         }
     }
@@ -1034,7 +1043,7 @@ public class BBService extends Service {
         if (index == 0) {
             mediaPlayer.pause();
             l("Bluetooth Mode");
-            mBurnerBoard.setText("Bluetooth", 500);
+            mBurnerBoard.setText("Bluetooth", 2000);
             if (mVoiceAnnouncements) {
                 voice.speak("Blue tooth Audio", TextToSpeech.QUEUE_FLUSH, null, "bluetooth");
             }
@@ -1046,7 +1055,8 @@ public class BBService extends Service {
 
         } else {
             l("Radio Mode");
-            mBurnerBoard.setText(String.valueOf(index), 500);
+            String [] shortName = getRadioChannelInfo(index).split("\\.", 2);
+            mBurnerBoard.setText(shortName[0], 2000);
             if (mVoiceAnnouncements) {
                 voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             }
@@ -1084,7 +1094,7 @@ public class BBService extends Service {
                                     public void onSeekComplete(MediaPlayer mediaPlayer) {
                                         long curPos = mediaPlayer.getCurrentPosition();
                                         long curTime = SystemClock.elapsedRealtime();
-                                        l("Seek complete - off: " +
+                                        d("Seek complete - off: " +
                                                 (curPos - seekSavePos) +
                                                 " took: " + (curTime - seekSave) + " ms");
                                     }

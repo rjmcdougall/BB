@@ -805,8 +805,12 @@ public class BoardVisualization {
         if (mBoardFFT == null)
             return null;
         synchronized (mVisualizer) {
-            if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
+            try {
+                if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
+                    return null;
+            } catch (Exception e) {
                 return null;
+            }
 
             int[] dbLevels = new int[16];
             byte rfk;

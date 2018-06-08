@@ -61,7 +61,7 @@ public class BurnerBoard {
     public int isTextDisplaying = 0;
     public int mRefreshRate = 15;
     public int mTextSize = 12;
-    public Buffer mTextBuffer = null;
+    public IntBuffer mTextBuffer = null;
 
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
@@ -71,6 +71,11 @@ public class BurnerBoard {
         mBBService.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);
+    }
+
+    public void setTextBuffer(int width, int height) {
+        mTextBuffer = IntBuffer.allocate(width * height);
+
     }
 
     public int getWidth() {
@@ -192,7 +197,7 @@ public class BurnerBoard {
     }
 
     public boolean setMode(int mode) {
-        //setText(String.valueOf(mode), 500);
+        setText(String.valueOf(mode), 2000);
         return true;
     }
 
@@ -522,6 +527,9 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId) {
+        if (BBService.debug == false) {
+            return;
+        }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
@@ -530,6 +538,9 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId, int arg) {
+        if (BBService.debug == false) {
+            return;
+        }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
@@ -539,6 +550,9 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId, int arg1, int arg2, int arg3) {
+        if (BBService.debug == false) {
+            return;
+        }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
@@ -550,6 +564,9 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId, int arg1, int[] arg2) {
+        if (BBService.debug == false) {
+            return;
+        }
         final byte[] pixels = new byte[arg2.length];
         for (int i = 0; i < arg2.length; i++) {
             pixels[i] = (byte) arg2[i];
@@ -595,24 +612,31 @@ public class BurnerBoard {
         return gamma8[value];
     }
 
-    public void aRGBtoBoardScreen(Buffer buf, int [] screen) {
+    public void aRGBtoBoardScreen(Buffer buf, int[] sourceScreen, int [] destScreen) {
 
         int [] buffer = (int [])buf.array();
 
-        for (int pixelNo = 0; pixelNo < buf.capacity() / 4; pixelNo++) {
-            int offset = pixelNo * 4;
+        for (int pixelNo = 0; pixelNo < (mBoardWidth * mBoardHeight); pixelNo++) {
             int pixel_offset = pixelNo * 3;
             int pixel = buffer[pixelNo];
             int a = pixel & 0xff;
-            screen[pixel_offset] = (pixel >> 8) & 0xff;
-            screen[pixel_offset+1] = (pixel >> 16) & 0xff;
-            screen[pixel_offset+2] = (pixel >> 24) & 0xff;
+            // Render the new text over the original
+            if (pixel != 0) {
+                destScreen[pixel_offset] = (pixel >> 8) & 0xff;
+                destScreen[pixel_offset + 1] = (pixel >> 16) & 0xff;
+                destScreen[pixel_offset + 2] = (pixel >> 24) & 0xff;
+            } else {
+                destScreen[pixel_offset] = sourceScreen[pixel_offset];
+                destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
+                destScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
+            }
         }
     }
 
     // Draw text on screen and delay for n seconds
     public void setText(String text, int delay) {
         isTextDisplaying = delay * mRefreshRate / 1000;
+
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
@@ -623,17 +647,23 @@ public class BurnerBoard {
         paint.setColor(Color.WHITE); // Text Color
         paint.setTextSize(mTextSize); // Text Size
         //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
-        canvas.drawText(text, mBoardWidth / 2, mBoardHeight / 2, paint);
+        canvas.drawText(text, (mBoardWidth / 2), mBoardHeight / 2 + (mTextSize / 3), paint);
         if (mTextBuffer != null) {
+            mTextBuffer.rewind();
             bitmap.copyPixelsToBuffer(mTextBuffer);
         }
     }
 
     // render text on screen
-    public void renderText(int [] screen) {
+    public int [] renderText(int [] newScreen, int [] origScreen) {
         // Suppress updating when displaying a text message
-        isTextDisplaying--;
-        aRGBtoBoardScreen(mTextBuffer, screen);
+        if (isTextDisplaying > 0) {
+            isTextDisplaying--;
+            aRGBtoBoardScreen(mTextBuffer, origScreen, newScreen);
+            return newScreen;
+        } else {
+            return null;
+        }
     }
 
 }

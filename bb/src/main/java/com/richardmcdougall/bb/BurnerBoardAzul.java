@@ -47,6 +47,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     private static final String TAG = "BB.BurnerBoardAzul";
     public int mBatteryLevel = -1;
     public int [] mBatteryStats = new int[16];
+    public int [] mLayeredScreen;
 
 
     public BurnerBoardAzul(BBService service, Context context) {
@@ -63,6 +64,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
+        mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
 
@@ -435,15 +437,22 @@ public class BurnerBoardAzul extends BurnerBoard {
             setRowVisual(y, rowPixels);
         }
 
+        // Render text on board
+        int [] mOutputScreen;
+        if (renderText(mLayeredScreen, mBoardScreen) != null) {
+            mOutputScreen = mLayeredScreen;
+        } else {
+            mOutputScreen = mBoardScreen;
+        }
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels, powerLimitMultiplierPercent);
             // Send to board

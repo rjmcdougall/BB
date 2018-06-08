@@ -53,6 +53,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         super(service, context);
         mBoardWidth = 32;
         mBoardHeight = 64;
+        super.setTextBuffer(mBoardWidth, mBoardHeight);
         mMultipler4Speed = 3;
         boardId = Build.MODEL;
         boardType = "Burner Board Panel";
@@ -62,7 +63,6 @@ public class BurnerBoardPanel extends BurnerBoard {
         mContext = context;
         initPixelOffset();
         initUsb();
-        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
         mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
     }
 
@@ -424,21 +424,22 @@ public class BurnerBoardPanel extends BurnerBoard {
         final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
         powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
 
-        // Render on board
-        //if (isTextDisplaying > 0) {
-            //renderText(mLayeredScreen);
-        //} else {
-            //System.arraycopy(mBoardScreen, 0, mLayeredScreen, 0, mBoardScreen.length);
-        //}
+        // Render text on board
+        int [] mOutputScreen;
+        if (renderText(mLayeredScreen, mBoardScreen) != null) {
+            mOutputScreen = mLayeredScreen;
+        } else {
+            mOutputScreen = mBoardScreen;
+        }
 
         int[] rowPixels = new int[mBoardWidth * 3];
         for (int y = 0; y < mBoardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < mBoardWidth; x++) {
                 if (y < mBoardHeight) {
-                    rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
             //setRowVisual(y, rowPixels);
