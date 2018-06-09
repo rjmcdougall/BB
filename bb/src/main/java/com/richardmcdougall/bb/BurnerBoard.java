@@ -728,7 +728,7 @@ public class BurnerBoard {
     }
 
     public void flashScreen(int delay) {
-        isFlashDisplaying = delay;
+        isFlashDisplaying = delay * mRefreshRate / 1000;
     }
 
 }
