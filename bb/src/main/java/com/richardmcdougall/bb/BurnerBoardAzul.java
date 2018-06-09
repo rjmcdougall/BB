@@ -54,7 +54,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         super(service, context);
         mBoardWidth = 46;
         mBoardHeight = 118;
-        mMultipler4Speed = 3;
+        mMultipler4Speed = 2;
         boardId = Build.MODEL;
         boardType = "Burner Board Azul";
         l("Burner Board Azul initing...");
@@ -100,6 +100,10 @@ public class BurnerBoardAzul extends BurnerBoard {
                 new BurnerBoardAzul.BoardCallbackGetBatteryLevel();
         mListener.attach(8, getBatteryLevelCallback);
 
+    }
+
+    public int getFrameRate() {
+        return 22;
     }
 
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {

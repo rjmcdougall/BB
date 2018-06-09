@@ -66,6 +66,10 @@ public class BurnerBoardPanel extends BurnerBoard {
         mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
     }
 
+    public int getFrameRate() {
+        return 12;
+    }
+
     public void start() {
 
         // attach default cmdMessenger callback

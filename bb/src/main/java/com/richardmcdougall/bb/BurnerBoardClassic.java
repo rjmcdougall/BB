@@ -45,6 +45,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         mDimmerLevel = 255;
     }
 
+    public int getFrameRate() {
+            return 20;
+    }
+
     public void start() {
 
         getBoardId();

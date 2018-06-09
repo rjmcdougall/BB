@@ -65,6 +65,7 @@ public class BoardVisualization {
     private int mMultipler4Speed;
     private boolean inhibitVisual = false;
     private boolean emergencyVisual = false;
+    private int mFrameRate;
 
     int mBoardMode;
     Context mContext;
@@ -91,6 +92,7 @@ public class BoardVisualization {
         boardDisplay.start();
         mBoardScreen = board.getPixelBuffer();
         initFire();
+        mFrameRate = board.getFrameRate();
     }
 
     private int boardDisplayCnt = 0;
@@ -164,82 +166,82 @@ public class BoardVisualization {
         switch (algorithm) {
 
             case "modeMatrix(kMatrixBurnerColor)":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMatrix(kMatrixBurnerColor);
                 break;
 
             case "modeMatrix(kMatrixReverse)":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMatrix(kMatrixReverse);
                 break;
 
             case "modeMatrix(kMatrixLunarian)":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMatrix(kMatrixLunarian);
                 break;
 
             case "modeAudioCenter()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeAudioCenter();
                 break;
 
             case "modeFire(kModeFireNormal)":
-                frameRate = 36;
+                frameRate = mFrameRate * 3;
                 modeFire(kModeFireNormal);
                 break;
 
             case "modeFire(kModeFireDistrikt)":
-                frameRate = 36;
+                frameRate = mFrameRate * 3;
                 modeFire(kModeFireDistrikt);
                 break;
 
             case "modeFire(kModeFireTheMan)":
-                frameRate = 36;
+                frameRate = mFrameRate * 3;
                 modeFire(kModeFireTheMan);
                 break;
 
             case "modeAudioBarV()":
-                frameRate = 12;
+                frameRate = mFrameRate * 3;
                 modeAudioBarV();
                 break;
 
             case "modeMatrix(kMatrix9)":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMatrix(kMatrix9);
                 break;
 
             case "modeAudioTile()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeAudioTile();
                 break;
 
             case "modeMeteor()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMeteor();
                 break;
 
             case "MickeyGold()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMickeyGold();
                 break;
 
             case "MickeySparkle()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMickeySparkle();
                 break;
 
             case "MickeyColors()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMickeyColors();
                 break;
 
             case "MickeyBlueGold()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMatrix(kMatrixMickey);
                 break;
 
             case "modeMickeyBlank()":
-                frameRate = 12;
+                frameRate = mFrameRate;
                 modeMickeyBlank();
                 break;
 
@@ -294,9 +296,9 @@ public class BoardVisualization {
 
             // RMC: Fix
             // limit output framerate to max of 12fps
-            if (frameRate > 12) {
-                frameRate = 12;
-            }
+            //if (frameRate > mFrameRate) {
+            //    frameRate = 12;
+            //}
             long frameTime = 1000 / frameRate;
             long curFrameTime = System.currentTimeMillis();
             if (curFrameTime-lastFrameTime<frameTime) {
@@ -1067,7 +1069,7 @@ public class BoardVisualization {
                 l("Frames: " + frameCnt);
             }
             mBurnerBoard.flush();
-            return 20; // framerate
+            return mFrameRate; // framerate
         }
     }
 

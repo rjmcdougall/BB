@@ -83,6 +83,10 @@ public class BurnerBoard {
 
     }
 
+    public int getFrameRate() {
+        return 12;
+    }
+
     public int getWidth() {
         return mBoardWidth;
     }

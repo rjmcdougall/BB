@@ -69,6 +69,10 @@ public class BurnerBoardMast extends BurnerBoard {
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
 
+    public int getFrameRate() {
+        return 12;
+    }
+
     public void start() {
 
         // attach default cmdMessenger callback
@@ -584,6 +588,7 @@ public class BurnerBoardMast extends BurnerBoard {
             }
         }
     }
+
 
     public static class TranslationMap {
         int y;
