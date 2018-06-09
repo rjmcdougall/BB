@@ -5,46 +5,7 @@
 #include <i2c_t3.h>
 
 boolean do_lowbattery_actions = false;
-
-//#define DEBUG_PIXELS 1
-
-// Burner Boards have 2 relay outputs, speed-pin control and a spare aux relay
-#define SPEED_PIN 23
-#define AUX_PIN 22
-
-#define RGB_MAX 255
-
-const int ledsPerStrip = 552;
-const int NUM_LEDS = 4416;
-
-DMAMEM int displayMemory[ledsPerStrip*6];
-int drawingMemory[ledsPerStrip*6];
-
-const int config = WS2811_GRB | WS2811_800kHz;
-OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
-bool inited = false;
-
-
-char field_separator   = ',';
-char command_separator = ';';
-char escape_separator  = '\\';
-
-
-boolean batteryCritical = false;
-boolean batteryLow = false;
-
-uint32_t batteryControl = -1;        
-int  batteryStateOfCharge = -1;     // %
-int  batteryMaxError = -1;          // %
-int batteryRemainingCapacity = -1;  // mAh
-int batteryFullChargeCapacity = -1; // mAh
-int batteryVoltage = -1;            // mV
-int batteryAverageCurrent = -1;     // mA
-int batteryTemperature = -1;        // 0.1K
-int batteryFlags = -1;          
-int batteryCurrent = -1;            // mA
-int batteryFlagsB = -1;
-
+boolean kDisableBatteryMeter = false;
 
 struct TranslationMap {
                 int y;
@@ -298,6 +259,49 @@ struct TranslationMap boardMapCandy[] = {
   115,34,11,-1,1,494,
   116,14,31,1,1,518,
   117,26,19,-1,1,536};
+
+
+//#define DEBUG_PIXELS 1
+
+// Burner Boards have 2 relay outputs, speed-pin control and a spare aux relay
+#define SPEED_PIN 23
+#define AUX_PIN 22
+
+#define RGB_MAX 255
+
+const int ledsPerStrip = 552;
+const int NUM_LEDS = 4416;
+
+DMAMEM int displayMemory[ledsPerStrip*6];
+int drawingMemory[ledsPerStrip*6];
+
+const int config = WS2811_GRB | WS2813_800kHz;
+OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
+bool inited = false;
+
+
+char field_separator   = ',';
+char command_separator = ';';
+char escape_separator  = '\\';
+
+
+boolean batteryCritical = false;
+boolean batteryLow = false;
+
+uint32_t batteryControl = -1;        
+int  batteryStateOfCharge = -1;     // %
+int  batteryMaxError = -1;          // %
+int batteryRemainingCapacity = -1;  // mAh
+int batteryFullChargeCapacity = -1; // mAh
+int batteryVoltage = -1;            // mV
+int batteryAverageCurrent = -1;     // mA
+int batteryTemperature = -1;        // 0.1K
+int batteryFlags = -1;          
+int batteryCurrent = -1;            // mA
+int batteryFlagsB = -1;
+
+
+
 
 
 #define PIXEL_RED  0;
@@ -661,6 +665,8 @@ void batteryStats() {
 #define BQ34Z100 0x55
 
 int getBattery8(int reg) {
+  if (kDisableBatteryMeter)
+    return 128;
   Wire.beginTransmission(BQ34Z100);
   Wire.write(reg);
   Wire.endTransmission();
