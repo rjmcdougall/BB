@@ -801,7 +801,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             new TranslationMap(114,14,31,1,1,476),
             new TranslationMap(115,34,11,-1,1,494),
             new TranslationMap(116,14,31,1,1,518),
-            new TranslationMap(117,26,19,-1,1,536)
+            new TranslationMap(117,26,19,-1,1,536) // trying to fix the back lights direction
     };
 
 
@@ -924,7 +924,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             new TranslationMap(114,14,31,1,1,476),
             new TranslationMap(115,34,11,-1,1,494),
             new TranslationMap(116,14,31,1,1,518),
-            new TranslationMap(117,19,26,1,1,536) // trying to fix the back lights direction
+            new TranslationMap(117,26,19,-1,1,536) // trying to fix the back lights direction
     };
 }
 
