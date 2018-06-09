@@ -61,6 +61,7 @@ public class BBService extends Service {
 
     // Set to force classic mode when using Emulator
     public static final boolean kEmulatingClassic = false;
+    public static final boolean kBeepOnConnect = false;
 
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
@@ -418,7 +419,7 @@ public class BBService extends Service {
             l("startLights: null burner board");
             return;
         }
-        mBurnerBoard.setText(mBurnerBoard.boardId, 5000);
+        mBurnerBoard.setText90(mBurnerBoard.boardId, 5000);
 
         if (mBurnerBoard != null) {
             mBurnerBoard.attach(new BoardCallback());
@@ -1294,7 +1295,9 @@ public class BBService extends Service {
             mBurnerBoard.setMode(mBoardMode);
         }
 
-        voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+        if (mVoiceAnnouncements) {
+            voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+        }
     }
 
 
@@ -1436,9 +1439,13 @@ public class BBService extends Service {
                 //voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
                 //the device is found
                 try {
-                    Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                    Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                    r.play();
+                    if (kBeepOnConnect) {
+                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+
+                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+                        r.play();
+                    }
+                    mBurnerBoard.flashScreen(200);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

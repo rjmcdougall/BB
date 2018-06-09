@@ -28,7 +28,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         super(service, context);
         mBoardWidth = 10;
         mBoardHeight = 70;
-        mTextSize = 6;
+        mTextSizeHorizontal = 6;
         boardId = Build.MODEL;
         boardType = "Burner Board Classic";
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79

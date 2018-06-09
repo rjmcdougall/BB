@@ -13,12 +13,15 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextPaint;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -60,8 +63,10 @@ public class BurnerBoard {
     public String boardType;
     public int isTextDisplaying = 0;
     public int mRefreshRate = 15;
-    public int mTextSize = 12;
+    public int mTextSizeHorizontal = 12;
+    public int mTextSizeVerical = 12;
     public IntBuffer mTextBuffer = null;
+    public int isFlashDisplaying = 0;
 
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
@@ -633,24 +638,76 @@ public class BurnerBoard {
         }
     }
 
+    /**
+     * @return text height
+     */
+    private float getTextHeight(String text, Paint paint) {
+
+        Rect rect = new Rect();
+        paint.getTextBounds(text, 0, text.length(), rect);
+        return rect.height();
+    }
+
     // Draw text on screen and delay for n seconds
     public void setText(String text, int delay) {
+        isTextDisplaying = delay * mRefreshRate / 1000;
+
+        // Lowres boards only display horizontal
+        if (mBoardWidth < 15) {
+            setText90(text, delay);
+            return;
+        }
+
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
+        //canvas.translate(0, mBoardHeight - 20);
+        //canvas.rotate(90, mBoardWidth / 2, mBoardHeight / 2);
+        Paint textPaint = new TextPaint();
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setColor(Color.WHITE); // Text Color
+        //textPaint.setAntiAlias(true);
+        textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
+        textPaint.setTextSize(mTextSizeVerical); // Text Size
+        //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
+        canvas.drawText(text.substring(0, Math.min(text.length(), 4)),
+                (mBoardWidth / 2), 30 , textPaint);//mBoardHeight / 2 + (mTextSizeVerical / 3), textPaint);
+        if (mTextBuffer != null) {
+            mTextBuffer.rewind();
+            bitmap.copyPixelsToBuffer(mTextBuffer);
+        }
+    }
+
+    // Draw text on screen and delay for n seconds
+    public void setText90(String text, int delay) {
         isTextDisplaying = delay * mRefreshRate / 1000;
 
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        canvas.scale(-1, 1, mBoardWidth / 2, mBoardHeight / 2);
+        canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
         canvas.rotate(90, mBoardWidth / 2, mBoardHeight / 2);
-        Paint paint = new Paint();
-        paint.setTextAlign(Paint.Align.CENTER);
-        paint.setColor(Color.WHITE); // Text Color
-        paint.setTextSize(mTextSize); // Text Size
+        Paint textPaint = new TextPaint();
+        textPaint.setDither(true);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setColor(Color.WHITE); // Text Color
+        textPaint.setTextSize(mTextSizeHorizontal); // Text Size
         //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
-        canvas.drawText(text, (mBoardWidth / 2), mBoardHeight / 2 + (mTextSize / 3), paint);
+        canvas.drawText(text, (mBoardWidth / 2), mBoardHeight / 2 + (mTextSizeHorizontal / 3), textPaint);
         if (mTextBuffer != null) {
             mTextBuffer.rewind();
             bitmap.copyPixelsToBuffer(mTextBuffer);
+        }
+    }
+
+    // TODO: Implement generic layers
+    public void fillScreenLayer(int [] layer, int r, int g, int b) {
+
+        for (int x = 0; x < mBoardWidth * mBoardHeight; x++) {
+            layer[x * 3 + 0] = r;
+            layer[x * 3 + 1] = g;
+            layer[x * 3 + 2] = b;
         }
     }
 
@@ -661,9 +718,17 @@ public class BurnerBoard {
             isTextDisplaying--;
             aRGBtoBoardScreen(mTextBuffer, origScreen, newScreen);
             return newScreen;
+        } else if (isFlashDisplaying > 0) {
+            isFlashDisplaying--;
+            fillScreenLayer(newScreen, 0, 0, 128);
+            return newScreen;
         } else {
             return null;
         }
+    }
+
+    public void flashScreen(int delay) {
+        isFlashDisplaying = delay;
     }
 
 }
