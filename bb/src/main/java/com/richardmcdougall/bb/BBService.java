@@ -906,6 +906,12 @@ public class BBService extends Service {
         return new byte[] {1,2,3,4,5,6,7,8};
     }
 
+    public byte[] getMasterStatus() {
+        byte[] masterStatus = {0};
+        masterStatus[0] = (byte)(mMasterRemote?1:0);
+        return  masterStatus;
+    }
+
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;
         if (enable) {

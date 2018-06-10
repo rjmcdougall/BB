@@ -88,13 +88,16 @@ export default class AdminManagement extends Component {
 	render() {
 
 		var masterText;
+		var backgroundColor;
 
-		//	const { navigate } = this.props.navigation;
-
-		if (this.props.mediaState.audioMaster == 0)
+		if (this.props.mediaState.audioMaster == 0){
 			masterText = "Enable Master";
-		else
+			backgroundColor = "lightblue"
+		}
+		else {
 			masterText = "Disable Master";
+			backgroundColor = "green";
+		}
 
 		return (
 
@@ -118,7 +121,7 @@ export default class AdminManagement extends Component {
 
 									return true;
 								}}
-								style={styles.touchableStyle}
+								style={[styles.touchableStyle, { backgroundColor: backgroundColor }]}
 								background={Touchable.Ripple("blue")}>
 								<Text style={styles.rowText}> {masterText}
 								</Text>

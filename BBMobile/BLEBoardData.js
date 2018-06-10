@@ -73,7 +73,7 @@ exports.refreshMediaState = async function (mediaState) {
 				mediaState = await this.loadDevices(mediaState);
 				mediaState = await this.readVolume(mediaState);
 				mediaState = await this.readBattery(mediaState);
-				//mediaState = await this.readAudioSync(mediaState);
+				mediaState = await this.readAudioMaster(mediaState);
 
 				//mediaState = await this.readLocation(mediaState);
 
@@ -405,9 +405,9 @@ exports.onEnableMaster = async function (value, mediaState) {
 				BLEIDs.AudioSyncService, BLEIDs.AudioSyncRemoteCharacteristic,
 				[newMaster]);
 
-			mediaState.audioMaster = newMaster;
+			var newMediaState = await this.readAudioMaster(mediaState);
 
-			return mediaState;
+			return newMediaState;
 		}
 		catch (error) {
 			mediaState.peripheral.connected = false;
@@ -431,6 +431,24 @@ exports.readBattery = async function (mediaState) {
 		}
 		catch (error) {
 			console.log("BLEBoardData Read Battery Error: " + error);
+			return mediaState;
+		}
+	}
+	else
+		return mediaState;
+};
+
+exports.readAudioMaster = async function (mediaState) {
+
+	if (mediaState.peripheral) {
+		try {
+			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.AudioSyncService, BLEIDs.AudioSyncRemoteCharacteristic,);
+			console.log("BLEBoardData Read Audio Master: " + readData[0]);
+			mediaState.audioMaster = readData[0];
+			return mediaState;
+		}
+		catch (error) {
+			console.log("BLEBoardData Read audio Master: " + error);
 			return mediaState;
 		}
 	}

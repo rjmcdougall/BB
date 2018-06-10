@@ -430,7 +430,16 @@ public class BluetoothLEServer {
                         BluetoothGatt.GATT_SUCCESS,
                         0,
                         battery);
-            } else {
+            } else if (BluetoothProfile.BB_AUDIOSYNC_REMOTE_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read audio sync remote characteristic");
+                byte[] masterStatus = mBBService.getMasterStatus();
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        masterStatus);
+            }
+            else {
                 // Invalid characteristic
                 l("Invalid Characteristic Read: " + characteristic.getUuid());
                 mBluetoothGattServer.sendResponse(device,
