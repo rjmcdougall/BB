@@ -394,6 +394,28 @@ exports.readVolume = async function (mediaState) {
 		return mediaState;
 };
 
+exports.onGTFO = async function (value, mediaState) {
+ 
+	console.log("BLEBoardData: GTFO submitted value: " + value);
+
+	if (mediaState.peripheral) {
+		try {
+			await BleManager.write(mediaState.peripheral.id,
+				BLEIDs.AppCommandsService, BLEIDs.AppCommandsGTFOCharacteristic,
+				[value]);
+ 
+			return mediaState;
+		}
+		catch (error) {
+			mediaState.peripheral.connected = false;
+			console.log("BLEBoardData GTFO Error: " + error);
+			return mediaState;
+		}
+	}
+	else
+		return mediaState;
+};
+
 exports.onEnableMaster = async function (value, mediaState) {
 
 	var newMaster = value;

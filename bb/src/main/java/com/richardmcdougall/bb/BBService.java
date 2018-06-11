@@ -923,6 +923,11 @@ public class BBService extends Service {
         }
     }
 
+    public void GTFO() {
+            mBurnerBoard.setText("Get The Fuck Off!", 2000);
+            voice.speak("Get The Fuck Off", TextToSpeech.QUEUE_ADD, null, "enableMaster");
+    }
+
     public static final int kRemoteAudioTrack = 0x01;
     public static final int kRemoteVideoTrack = 0x02;
     public static final int kRemoteMute = 0x03;

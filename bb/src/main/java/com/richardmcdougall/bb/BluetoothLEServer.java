@@ -205,6 +205,12 @@ public class BluetoothLEServer {
         } catch (Exception e) {
 
         }
+        mBluetoothGattServer.addService(profile.createAppCommandsService());
+        try {
+            Thread.sleep(100);
+        } catch (Exception e) {
+
+        }
         mBluetoothGattServer.addService(profile.createBBAudioSyncService());
     }
 
@@ -549,6 +555,17 @@ public class BluetoothLEServer {
                 boolean enableMaster = (value[0] != 0);;
                 l("Write audio sync remote characteristic: " + enableMaster);
                 mBBService.enableMaster(enableMaster);
+                if (responseNeeded) {
+                    mBluetoothGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null);
+                }
+            } else if (BluetoothProfile.BB_APPCOMMANDS_GTFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                boolean GTFO = (value[0] != 0);
+                l("Write GTFO remote characteristic: " + GTFO);
+                mBBService.GTFO();
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,

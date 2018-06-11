@@ -28,6 +28,32 @@ public class BluetoothProfile {
         Log.v(TAG, s);
     }
 
+
+    /* App Commands Service */
+    public static UUID BB_APPCOMMANDS_SERVICE = UUID.fromString("03c21568-111a-11e8-b642-0ed5f89f718b");
+    public static UUID BB_APPCOMMANDS_GTFO_CHARACTERISTIC = UUID.fromString("03c2193c-111b-11e8-b642-0ed5f89f718b");
+
+    /**
+     * Return a configured {@link BluetoothGattService} instance for the
+     * Location Service.
+     */
+    public BluetoothGattService createAppCommandsService() {
+        BluetoothGattService service = new BluetoothGattService(BB_APPCOMMANDS_SERVICE,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
+        BluetoothGattCharacteristic bbGTFO = new BluetoothGattCharacteristic(BB_APPCOMMANDS_GTFO_CHARACTERISTIC,
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        //bbLocation.addDescriptor(configDescriptor);
+        service.addCharacteristic(bbGTFO);
+
+        return service;
+    }
+
     /* Current Time Service UUID */
     public static UUID BB_LOCATION_SERVICE = UUID.fromString("03c21568-159a-11e8-b642-0ed5f89f718b");
     public static UUID BB_LOCATION_CHARACTERISTIC = UUID.fromString("03c2193c-159a-11e8-b642-0ed5f89f718b");

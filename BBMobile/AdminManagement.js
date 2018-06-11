@@ -84,13 +84,13 @@ export default class AdminManagement extends Component {
 		// 	console.log("AdminManagement: Error " + error );
 		// }
 	}
- 
+
 	render() {
 
 		var masterText;
 		var backgroundColor;
 
-		if (this.props.mediaState.audioMaster == 0){
+		if (this.props.mediaState.audioMaster == 0) {
 			masterText = "Enable Master";
 			backgroundColor = "lightblue"
 		}
@@ -111,6 +111,18 @@ export default class AdminManagement extends Component {
 
 					<View style={styles.footer}>
 						<View style={styles.button}>
+							<Touchable
+								onPress={async () => {
+
+									await BLEBoardData.onGTFO(1, this.props.mediaState);
+									return true;
+									
+								}}
+								style={styles.touchableStyle}
+								background={Touchable.Ripple("blue")}>
+								<Text style={styles.rowText}> GTFO
+								</Text>
+							</Touchable>
 							<Touchable
 								onPress={async () => {
 
@@ -179,7 +191,7 @@ AdminManagement.propTypes = {
 	navigation: PropTypes.object,
 	onSelectDevice: PropTypes.func,
 };
- 
+
 AdminManagement.defaultProps = {
 	mediaState: BLEBoardData.emptyMediaState,
 };
