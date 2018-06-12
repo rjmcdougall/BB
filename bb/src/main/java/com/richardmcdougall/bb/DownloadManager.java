@@ -281,30 +281,6 @@ public class DownloadManager {
             }
         }
 
-        public long GetURLFileSize(String URLString) {
-            try {
-                URL url = new URL(URLString);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
-                urlConnection.setDoOutput(true);
-                urlConnection.connect();
-
-                List values = urlConnection.getHeaderFields().get("content-Length");
-                if (values != null && !values.isEmpty()) {
-                    String sLength = (String) values.get(0);
-
-                    if (sLength != null) {
-                        return Integer.valueOf(sLength);
-                    }
-                }
-                urlConnection.disconnect();
-                return -1;
-            } catch (Throwable e) {
-                e.printStackTrace();
-                return -1;
-            }
-        }
-
         public void CleanupOldFiles() {
             try {
                 ArrayList<String> refrerencedFiles = new ArrayList<String>();
@@ -411,7 +387,6 @@ public class DownloadManager {
                 int tFiles = 0;
 
                 String[] dTypes = new String[]{"audio", "video"};
-                String[] extTypes = new String[]{"mp3", "mp4", "m4a"};
 
                 for (int i = 0; i < dTypes.length; i++) {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
@@ -434,13 +409,6 @@ public class DownloadManager {
                                 if (dstFile.exists())
                                     if (dstFile.length() == sz)
                                         upTodate = true;
-                            } else {
-                                if (dstFile.exists()) {
-                                    long remoteSz = GetURLFileSize(url);
-
-                                    if (dstFile.length() == remoteSz)
-                                        upTodate = true;
-                                }   //
                             }
 
                             if (mIsServer) {

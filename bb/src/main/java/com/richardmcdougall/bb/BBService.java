@@ -906,6 +906,12 @@ public class BBService extends Service {
         return new byte[] {1,2,3,4,5,6,7,8};
     }
 
+    public byte[] getMasterStatus() {
+        byte[] masterStatus = {0};
+        masterStatus[0] = (byte)(mMasterRemote?1:0);
+        return  masterStatus;
+    }
+
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;
         if (enable) {
@@ -915,6 +921,11 @@ public class BBService extends Service {
             mBurnerBoard.setText("Solo", 2000);
             voice.speak("Disabling Master Remote", TextToSpeech.QUEUE_ADD, null, "disableMaster");
         }
+    }
+
+    public void GTFO() {
+            mBurnerBoard.setText("Get The Fuck Off!", 2000);
+            voice.speak("Get The Fuck Off", TextToSpeech.QUEUE_ADD, null, "enableMaster");
     }
 
     public static final int kRemoteAudioTrack = 0x01;
