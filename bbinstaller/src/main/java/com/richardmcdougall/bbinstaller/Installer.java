@@ -65,6 +65,48 @@ public class Installer extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    private boolean checkWifiSSid(String ssid) {
+        List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+        if (wifiList != null) {
+            for (WifiConfiguration config : wifiList) {
+                String newSSID = config.SSID;
+
+                if (ssid.equals(newSSID)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void connectWifi(String ssid) {
+        List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+        if (wifiList != null) {
+            for (WifiConfiguration config : wifiList) {
+                String newSSID = config.SSID;
+
+                if (ssid.equals(newSSID)) {
+                    mWiFiManager.disconnect();
+                    mWiFiManager.enableNetwork(config.networkId, true);
+                    mWiFiManager.reconnect();
+
+                    return;
+                }
+            }
+        }
+    }
+
+    private void addWifi(String ssid, String pass) {
+        WifiConfiguration conf = new WifiConfiguration();
+        conf.SSID = "\"" + ssid + "\"";
+        conf.preSharedKey = "\""+ pass +"\"";
+        mWiFiManager.addNetwork(conf);
+        mWiFiManager.disconnect();
+        mWiFiManager.enableNetwork(conf.networkId, true);
+        mWiFiManager.reconnect();
+        return;
+    }
+
     @Override
     public void onCreate() {
 
@@ -75,34 +117,44 @@ public class Installer extends Service {
         mContext = getApplicationContext();
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mWiFiManager.setWifiEnabled(true);
 
-        // Default
-        String networkSSID = "burnerboard";
-        String networkPass = "firetruck";
-        WifiConfiguration conf = new WifiConfiguration();
-        conf.SSID = "\"" + networkSSID + "\"";
-        conf.preSharedKey = "\""+ networkPass +"\"";
-        mWiFiManager.addNetwork(conf);
+        this.registerReceiver(new BroadcastReceiver() {
+                                  @Override
+                                  public void onReceive(Context context, Intent intent) {
+                                      int extraWifiState =
+                                              intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
+                                              WifiManager.WIFI_STATE_UNKNOWN);
 
-        // We add networks here that are remote and that we won't need to sync with other boards.
-
-        // Dan
-        networkSSID = "ATT7Cd2QyD";
-        networkPass = "79cj+rbw%e96";
-        conf = new WifiConfiguration();
-        conf.SSID = "\"" + networkSSID + "\"";
-        conf.preSharedKey = "\""+ networkPass +"\"";
-        mWiFiManager.addNetwork(conf);
-
-        // L & E
-        networkSSID = "monkeynet";
-        networkPass = "215francisco";
-        conf = new WifiConfiguration();
-        conf.SSID = "\"" + networkSSID + "\"";
-        conf.preSharedKey = "\""+ networkPass +"\"";
-        mWiFiManager.addNetwork(conf);
-
-        mWiFiManager.reassociate();
+                                      switch(extraWifiState){
+                                          case WifiManager.WIFI_STATE_DISABLED:
+                                              l("WIFI STATE DISABLED");
+                                              break;
+                                          case WifiManager.WIFI_STATE_DISABLING:
+                                              l("WIFI STATE DISABLING");
+                                              break;
+                                          case WifiManager.WIFI_STATE_ENABLED:
+                                              l("WIFI STATE ENABLED");
+                                              int mfs = mWiFiManager.getWifiState();
+                                              l("Wifi state is " + mfs);
+                                              l("Checking wifi");
+                                              if (checkWifiSSid("burnerboard") == false) {
+                                                  l("adding wifi");
+                                                  addWifi("burnerboard", "firetruck");
+                                              }
+                                              l("Connecting to wifi");
+                                              connectWifi("burnerboard");
+                                              break;
+                                          case WifiManager.WIFI_STATE_ENABLING:
+                                              l("WIFI STATE ENABLING");
+                                              break;
+                                          case WifiManager.WIFI_STATE_UNKNOWN:
+                                              l("WIFI STATE UNKNOWN");
+                                              break;
+                                      }
+                                  }
+                              },
+                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
 
         intentf.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         mContext.registerReceiver(new MQTTBroadcastReceiver(),
@@ -392,7 +444,7 @@ public class Installer extends Service {
         for (ApplicationInfo packageInfo : packages) {
             try {
                 PackageInfo info = pm.getPackageInfo(packageInfo.packageName, 0);
-                l("Installed package :" + packageInfo.packageName + ", version: " + info.versionCode);
+                //l("Installed package :" + packageInfo.packageName + ", version: " + info.versionCode);
             } catch (Exception e) {
             }
 
@@ -406,6 +458,7 @@ public class Installer extends Service {
             boolean hasConnectivity = false;
             boolean hasChanged = false;
             NetworkInfo infos[] = mConnMan.getAllNetworkInfo();
+            l("Connectivity changed");
 
             for (int i = 0; i < infos.length; i++) {
                 if (infos[i].getTypeName().equalsIgnoreCase("MOBILE")) {
@@ -435,6 +488,9 @@ public class Installer extends Service {
         }
     }
 
+    public void WifiStateChangedReceiver() {
+
+    }
 
 }
 

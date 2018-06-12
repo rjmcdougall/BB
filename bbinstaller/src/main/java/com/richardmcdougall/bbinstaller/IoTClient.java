@@ -119,17 +119,15 @@ public class IoTClient {
 
                 while (true) {
 
-                    if (haveConnected == false) {
-                        try {
+                    try {
+                        if (haveConnected == false) {
                             // Disconnect if we were connected
                             // Required to recalculate jwtkey
                             if (mqttClient != null) {
                                 Log.d(TAG, "Disconnecting MQTT Client");
                                 mqttClient.disconnect();
                             }
-                        } catch (Exception e) {
-                        }
-                        try {
+
 
                             Log.d(TAG, "Connecting MQTT Client");
 
@@ -186,25 +184,23 @@ public class IoTClient {
                                     }
                                 }
                             });
-                        } catch (Exception e) {
-                            Log.i(TAG, "connect: " + e.getMessage());
-                        }
-                    } else {
-                        // We get failed reconnects because JWT key expires in Google IoT
-                        // Force a disconnect then reconnect
-                        android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
-                        NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
-                        if (state == NetworkInfo.DetailedState.CONNECTED) {
-                            if (mqttClient.isConnected() == false) {
-                                try {
-                                    Log.d(TAG, "MQTT disconnected but Wifi connected, forcing disconnect");
-                                    haveConnected = false;
-                                } catch (Exception e) {
+
+                        } else {
+                            // We get failed reconnects because JWT key expires in Google IoT
+                            // Force a disconnect then reconnect
+                            android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
+                            NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
+                            if (state == NetworkInfo.DetailedState.CONNECTED) {
+                                if (mqttClient.isConnected() == false) {
+                                    try {
+                                        Log.d(TAG, "MQTT disconnected but Wifi connected, forcing disconnect");
+                                        haveConnected = false;
+                                    } catch (Exception e) {
+                                    }
                                 }
                             }
-                        }
 
-                        // Sent fake wake-up event to android MQTT Client
+                            // Sent fake wake-up event to android MQTT Client
                         /*
                         try {
                             Intent in = new Intent(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -214,21 +210,19 @@ public class IoTClient {
                         }
                         */
 
-                    }
-                    try {
+                        }
                         Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
                         mContext.sendBroadcast(intent);
-                    } catch (Exception e) {
-                        Log.d(TAG, "Cannot send force-time-sync");
-                    }
 
-
-                    // Every  minute
-                    try {
+                        // Every  minute
                         Thread.sleep(60000);
                     } catch (Exception e) {
-                    }
+                        try {
+                            Thread.sleep(60000);
+                        } catch (Exception e2) {
 
+                        }
+                    }
                 }
             }
         });
