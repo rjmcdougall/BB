@@ -548,7 +548,7 @@ public class BBService extends Service {
         public void onReceive(Context context, Intent intent) {
             final String TAG = "mButtonReceiver";
 
-            Log.d(TAG, "onReceive entered");
+            //Log.d(TAG, "onReceive entered");
             String action = intent.getAction();
 
             if (ACTION_BUTTONS.equals(action)) {
@@ -1339,10 +1339,12 @@ public class BBService extends Service {
     private long lastUnknownStatement = System.currentTimeMillis();
 
     private int loopCnt = 0;
+    private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
 
     private void batteryThread() {
 
         boolean announce = false;
+        powerStates powerState = powerStates.STATE_DISPLAYING;
 
         while (true) {
             if (mBurnerBoard != null) {
@@ -1351,8 +1353,7 @@ public class BBService extends Service {
                 int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
                 int voltage = mBurnerBoard.getBatteryVoltage();
 
-                //l("Board Current is " + current);
-                //l("Board Voltage is " + voltage);
+
 
                 /*
                  * Now done in bb-installer
@@ -1363,9 +1364,15 @@ public class BBService extends Service {
 
                 // Every 10 seconds log to IOT cloud
                 if (loopCnt % 10 == 0) {
+                    l("Board Current(avg) is " + current);
+                    l("Board Current(Instant) is " + currentInstant);
+                    l("Board Voltage is " + voltage);
                     if (mBurnerBoard != null) {
                         d("Sending MQTT update");
-                        iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                        try {
+                            iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                        } catch (Exception e) {
+                        }
                     }
                 }
 
@@ -1374,10 +1381,39 @@ public class BBService extends Service {
                 // Current with brain running is about 100ma
                 // Check voltage to make sure we're really reading the battery gauge
                 // Make sure we're not seeing +ve current, which is charging
+                // Average current use to enter STATE_IDLE
+                // Instant current used to exit STATE_IDLE
                 if ((voltage > 20000) && (current > -150) && (current < 10)) {
+                    // Any state -> IDLE
+                    powerState = powerStates.STATE_IDLE;
                     mBoardVisualization.inhibit(true);
-                } else {
+                } else if ((voltage > 20000) && (currentInstant < -150)) {
+                    // Any state -> Displaying
+                    powerState = powerStates.STATE_DISPLAYING;
                     mBoardVisualization.inhibit(false);
+                } else if (powerState == powerStates.STATE_DISPLAYING &&
+                        // DISPLAYING -> Charging (avg current)
+                        (voltage > 20000) && (current > 10)) {
+                    powerState = powerStates.STATE_CHARGING;
+                    mBoardVisualization.inhibit(false);
+                } else if (powerState == powerStates.STATE_IDLE &&
+                        (voltage > 20000) && (currentInstant > 10)) {
+                    // STATE_IDLE -> Charging // instant
+                    powerState = powerStates.STATE_CHARGING;
+                    mBoardVisualization.inhibit(false);
+                } else if ((voltage > 20000) && (current > 10)) {
+                    // Anystate -> Charging // avg current
+                    powerState = powerStates.STATE_CHARGING;
+                    mBoardVisualization.inhibit(false);
+                } else {
+                    l("Unhandled power state " + powerState);
+                    mBoardVisualization.inhibit(false);
+                }
+
+                l("Power state is " + powerState);
+
+                if (powerState == powerStates.STATE_CHARGING) {
+                    mBurnerBoard.showBattery();
                 }
 
                 // Battery voltage is critically low

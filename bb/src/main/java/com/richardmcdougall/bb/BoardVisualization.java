@@ -201,7 +201,7 @@ public class BoardVisualization {
                 break;
 
             case "modeAudioBarV()":
-                frameRate = mFrameRate * 3;
+                frameRate = mFrameRate;
                 modeAudioBarV();
                 break;
 
