@@ -32,6 +32,8 @@ public class BluetoothProfile {
     /* App Commands Service */
     public static UUID BB_APPCOMMANDS_SERVICE = UUID.fromString("03c21568-111a-11e8-b642-0ed5f89f718b");
     public static UUID BB_APPCOMMANDS_GTFO_CHARACTERISTIC = UUID.fromString("03c2193c-111b-11e8-b642-0ed5f89f718b");
+    public static UUID BB_APPCOMMANDS_APKVERSION_CHARACTERSTIC = UUID.fromString("03c2193c-111c-11e8-b642-0ed5f89f718b");
+    public static UUID BB_APPCOMMANDS_APKUPDATEDATE_CHARACTERISTIC = UUID.fromString("03c2193c-111d-11e8-b642-0ed5f89f718b");
 
     /**
      * Return a configured {@link BluetoothGattService} instance for the
@@ -48,8 +50,25 @@ public class BluetoothProfile {
                 BluetoothGattCharacteristic.PERMISSION_READ |
                         BluetoothGattCharacteristic.PERMISSION_WRITE);
 
-        //bbLocation.addDescriptor(configDescriptor);
         service.addCharacteristic(bbGTFO);
+
+        BluetoothGattCharacteristic bbVersionInfo = new BluetoothGattCharacteristic(BB_APPCOMMANDS_APKVERSION_CHARACTERSTIC,
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        service.addCharacteristic(bbVersionInfo);
+
+        BluetoothGattCharacteristic bbBrainUpdateDate = new BluetoothGattCharacteristic(BB_APPCOMMANDS_APKUPDATEDATE_CHARACTERISTIC,
+                BluetoothGattCharacteristic.PROPERTY_READ |
+                        BluetoothGattCharacteristic.PROPERTY_WRITE |
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                BluetoothGattCharacteristic.PERMISSION_READ |
+                        BluetoothGattCharacteristic.PERMISSION_WRITE);
+
+        service.addCharacteristic(bbBrainUpdateDate);
 
         return service;
     }

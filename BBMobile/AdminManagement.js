@@ -92,7 +92,7 @@ export default class AdminManagement extends Component {
 
 		if (this.props.mediaState.audioMaster == 0) {
 			masterText = "Enable Master";
-			backgroundColor = "lightblue"
+			backgroundColor = "lightblue";
 		}
 		else {
 			masterText = "Disable Master";
@@ -108,78 +108,83 @@ export default class AdminManagement extends Component {
 					<ScrollView style={styles.scroll}>
 						<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" />
 					</ScrollView>
+					<View style={styles.button}>
+						<Touchable
+							onPress={async () => {
 
-					<View style={styles.footer}>
-						<View style={styles.button}>
-							<Touchable
-								onPress={async () => {
+								await BLEBoardData.onGTFO(1, this.props.mediaState);
+								return true;
 
-									await BLEBoardData.onGTFO(1, this.props.mediaState);
-									return true;
-									
-								}}
-								style={styles.touchableStyle}
-								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}> GTFO
-								</Text>
-							</Touchable>
-							<Touchable
-								onPress={async () => {
-
-									if (this.props.mediaState.audioMaster == 0)
-										this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.props.mediaState) });
-									else
-										this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.props.mediaState) });
-
-									return true;
-								}}
-								style={[styles.touchableStyle, { backgroundColor: backgroundColor }]}
-								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}> {masterText}
-								</Text>
-							</Touchable>
-							<Touchable
-								onPress={async () => {
-
-									return true;
-
-									// try {
-									// 	await BleManager.disconnect(this.state.selectedPeripheral.id);
-									// }
-									// catch (error) {
-									// 	console.log("BoardManager: Pressed BBcom: " + error);
-									// }
-
-									// if (this.state.backgroundLoop)
-									// 	clearInterval(this.state.backgroundLoop);
-
-									// this.props.navigation.setParams({ title: "Search For Boards" });
-
-									// this.setState({
-									// 	peripherals: new Map(),
-									// 	appState: "",
-									// 	selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-									// 	mediaState: BLEBoardData.emptyMediaState,
-									// 	showDiscoverScreen: true,
-									// 	showAdminScreen: false,
-									// 	discoveryState: "Connect To Board",
-									// 	backgroundLoop: null,
-									// });
-
-									// var JWT = await this.login();
-
-									// navigate("BBCom",
-									// 	{ JWT: JWT });
-
-
-								}}
-								style={styles.touchableStyle}
-								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}>Go To BB.Com</Text>
-							</Touchable>
-						</View>
+							}}
+							style={styles.touchableStyle}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}> GTFO
+							</Text>
+						</Touchable>
 					</View>
+					<View style={styles.button}>
+						<Touchable
+							onPress={async () => {
+
+								if (this.props.mediaState.audioMaster == 0)
+									this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.props.mediaState) });
+								else
+									this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.props.mediaState) });
+
+								return true;
+							}}
+							style={[styles.touchableStyle, { backgroundColor: backgroundColor }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}> {masterText}
+							</Text>
+						</Touchable>
+					</View>
+					<View style={styles.button}>
+						<Touchable
+							onPress={async () => {
+
+								return true;
+
+								// try {
+								// 	await BleManager.disconnect(this.state.selectedPeripheral.id);
+								// }
+								// catch (error) {
+								// 	console.log("BoardManager: Pressed BBcom: " + error);
+								// }
+
+								// if (this.state.backgroundLoop)
+								// 	clearInterval(this.state.backgroundLoop);
+
+								// this.props.navigation.setParams({ title: "Search For Boards" });
+
+								// this.setState({
+								// 	peripherals: new Map(),
+								// 	appState: "",
+								// 	selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+								// 	mediaState: BLEBoardData.emptyMediaState,
+								// 	showDiscoverScreen: true,
+								// 	showAdminScreen: false,
+								// 	discoveryState: "Connect To Board",
+								// 	backgroundLoop: null,
+								// });
+
+								// var JWT = await this.login();
+
+								// navigate("BBCom",
+								// 	{ JWT: JWT });
+
+
+							}}
+							style={styles.touchableStyle}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>Go To BB.Com</Text>
+						</Touchable>
+					</View>
+					<Text style={styles.rowText}> APK Version: {this.props.mediaState.APKVersion}  
+					Last Updated: {this.props.mediaState.APKUpdateDate}
+					</Text>
 				</View>
+
 			</View>
 		);
 	}
@@ -214,14 +219,9 @@ const styles = StyleSheet.create({
 		backgroundColor: "lightblue",
 		margin: 5,
 		height: 50,
-	},
-	footer: {
-		height: 50,
-		flexDirection: "row",
-		justifyContent: "space-between"
-	},
+	}, 
 	button: {
-		width: "100%",
-		height: 50
+		height: 50,
+		margin: 5,
 	}
 });

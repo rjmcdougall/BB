@@ -444,7 +444,24 @@ public class BluetoothLEServer {
                         BluetoothGatt.GATT_SUCCESS,
                         0,
                         masterStatus);
+            }else if (BluetoothProfile.BB_APPCOMMANDS_APKUPDATEDATE_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                l("Read APK update date characteristic");
+                byte[] masterStatus = mBBService.getAPKUpdatedDate();
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        masterStatus);
+            }else if (BluetoothProfile.BB_APPCOMMANDS_APKVERSION_CHARACTERSTIC.equals(characteristic.getUuid())) {
+                l("Read APK Version characteristic");
+                byte[] masterStatus = mBBService.getAPKVersion();
+                mBluetoothGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        masterStatus);
             }
+
             else {
                 // Invalid characteristic
                 l("Invalid Characteristic Read: " + characteristic.getUuid());

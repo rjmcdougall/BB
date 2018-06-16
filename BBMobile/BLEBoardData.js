@@ -30,6 +30,8 @@ exports.emptyMediaState = {
 	},
 	battery: 0,
 	audioMaster: 0,
+	APKUpdateDate: 0,
+	APKVersion: 0,
 	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
@@ -74,6 +76,8 @@ exports.refreshMediaState = async function (mediaState) {
 				mediaState = await this.readVolume(mediaState);
 				mediaState = await this.readBattery(mediaState);
 				mediaState = await this.readAudioMaster(mediaState);
+				mediaState = await this.readAppCommand(mediaState, "APKVersion");
+				mediaState = await this.readAppCommand(mediaState, "APKUpdateDate");
 
 				//mediaState = await this.readLocation(mediaState);
 
@@ -173,6 +177,78 @@ exports.loadDevices = async function (mediaState) {
 	}
 	else
 		return mediaState;
+};
+
+exports.longToByteArray = function (/*long*/long) {
+	// we want to represent the input as a 8-bytes array
+	var byteArray = [0, 0, 0, 0, 0, 0, 0, 0];
+
+	for (var index = 0; index < byteArray.length; index++) {
+		var byte = long & 0xff;
+		byteArray[index] = byte;
+		long = (long - byte) / 256;
+	}
+
+	return byteArray;
+};
+
+exports.byteArrayToLong = function (/*byte[]*/byteArray) {
+	var value = 0;
+	for (var i = byteArray.length - 1; i >= 0; i--) {
+		value = (value * 256) + byteArray[i];
+	}
+
+	return value;
+};
+
+exports.readAppCommand = async function (mediaState, dataType) {
+
+	var service = "";
+	var channelCharacteristic = "";
+
+	if (mediaState.peripheral) {
+		if (dataType == "APKVersion") {
+			service = BLEIDs.AppCommandsService;
+			channelCharacteristic = BLEIDs.AppCommandsAPKVersionCharacteristic;
+		}
+		else if (dataType == "APKUpdateDate") {
+			service = BLEIDs.AppCommandsService;
+			channelCharacteristic = BLEIDs.AppCommandsAPKUpdateDateCharacteristic;
+		}
+
+		if (mediaState.peripheral) {
+			try {
+
+				var readData = await BleManager.read(mediaState.peripheral.id,
+					service,
+					channelCharacteristic);
+
+				var charactersticValue = "";
+
+				for (var i = 0; i < readData.length; i++) {
+					charactersticValue += String.fromCharCode(readData[i]);
+				}
+
+				console.log("BLEBoardData Read " + dataType + "Value: " + charactersticValue);
+
+				if (dataType == "APKVersion") {
+					mediaState.APKVersion = charactersticValue;
+				}
+				else if (dataType == "APKUpdateDate") {
+					mediaState.APKUpdateDate = charactersticValue;
+				}
+
+				return mediaState;
+
+			}
+			catch (error) {
+				console.log("BLEBoardData " + dataType + "Value: "  + error);
+				return mediaState;
+			}
+		}
+		else
+			return mediaState;
+	}
 };
 
 exports.readTrack = async function (mediaState, mediaType) {
@@ -395,7 +471,7 @@ exports.readVolume = async function (mediaState) {
 };
 
 exports.onGTFO = async function (value, mediaState) {
- 
+
 	console.log("BLEBoardData: GTFO submitted value: " + value);
 
 	if (mediaState.peripheral) {
@@ -403,7 +479,7 @@ exports.onGTFO = async function (value, mediaState) {
 			await BleManager.write(mediaState.peripheral.id,
 				BLEIDs.AppCommandsService, BLEIDs.AppCommandsGTFOCharacteristic,
 				[value]);
- 
+
 			return mediaState;
 		}
 		catch (error) {
@@ -464,7 +540,7 @@ exports.readAudioMaster = async function (mediaState) {
 
 	if (mediaState.peripheral) {
 		try {
-			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.AudioSyncService, BLEIDs.AudioSyncRemoteCharacteristic,);
+			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.AudioSyncService, BLEIDs.AudioSyncRemoteCharacteristic, );
 			console.log("BLEBoardData Read Audio Master: " + readData[0]);
 			mediaState.audioMaster = readData[0];
 			return mediaState;

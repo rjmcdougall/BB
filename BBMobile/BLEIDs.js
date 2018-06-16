@@ -30,4 +30,6 @@ exports.AudioSyncRemoteCharacteristic = "892799e8-8937-11e8-abcf-0ed5f89f718b";
 
 exports.AppCommandsService = "03c21568-111a-11e8-b642-0ed5f89f718b";
 exports.AppCommandsGTFOCharacteristic = "03c2193c-111b-11e8-b642-0ed5f89f718b";
+exports.AppCommandsAPKVersionCharacteristic = "03c2193c-111c-11e8-b642-0ed5f89f718b";
+exports.AppCommandsAPKUpdateDateCharacteristic = "03c2193c-111d-11e8-b642-0ed5f89f718b";
  
