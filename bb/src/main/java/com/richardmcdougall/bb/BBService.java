@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
-import java.nio.ByteBuffer;
 
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
