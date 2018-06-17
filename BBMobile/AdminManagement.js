@@ -99,9 +99,9 @@ export default class AdminManagement extends Component {
 			masterText = "Disable Master";
 			backgroundColor = "green";
 		}
- //
+		//
 		return (
- 
+
 
 			<View style={styles.container}  >
 				<View style={styles.contentContainer}>

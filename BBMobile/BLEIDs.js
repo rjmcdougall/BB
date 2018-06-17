@@ -60,7 +60,7 @@ UUIDs.push({ UUID: "03c2193c-111c-11e8-b642-0ed5f89f718b", name: "AppCommandsAPK
 UUIDs.push({ UUID: "03c2193c-111d-11e8-b642-0ed5f89f718b", name: "AppCommandsAPKUpdateDateCharacteristic" });
 
 exports.BLELogger = function (mediaState, logText, isError) {
-	logText = this.fixErrorMessage(logText);
+	logText = this.fixErrorMessage(logText, mediaState);
 	mediaState.logLines.push({logLine: logText, isError: isError});
 	if(!mediaState.isError){
 		mediaState.isError = isError;
@@ -69,9 +69,11 @@ exports.BLELogger = function (mediaState, logText, isError) {
 	return mediaState;
 };
 
-exports.fixErrorMessage = function (uuid) {
+exports.fixErrorMessage = function (logText, mediaState) {
 	for (var i = 0; i < UUIDs.length; i++) {
-		uuid = uuid.replace("UUID " + UUIDs[i].UUID, UUIDs[i].name);
+		logText = logText.replace("UUID " + UUIDs[i].UUID, UUIDs[i].name);
 	}
-	return uuid;
+	logText = logText.replace(mediaState.peripheral.id, mediaState.peripheral.name);
+
+	return logText;
 };

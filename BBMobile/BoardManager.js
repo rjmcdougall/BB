@@ -235,7 +235,7 @@ export default class BoardManager extends Component {
 		console.log("Media Management: Set Media State After Select Device.");
 	}
 	async onRefreshDevices() {
-		this.setState({ mediaState: await BLEBoardData.refreshDevices(this.state.mediaState)});
+		this.setState({ mediaState: await BLEBoardData.refreshDevices(this.state.mediaState) });
 		console.log("Media Management: Set Media State After Refresh Devices.");
 	}
 
@@ -360,28 +360,30 @@ export default class BoardManager extends Component {
 							<View style={styles.button}>
 								<Touchable
 									onPress={async () => {
-										try {
-											await BleManager.disconnect(this.state.selectedPeripheral.id);
+										if (!this.state.scanning) {
+
+											try {
+												await BleManager.disconnect(this.state.selectedPeripheral.id);
+											}
+											catch (error) {
+												console.log("BoardManager: Pressed Search For Boards: " + error);
+											}
+
+											if (this.state.backgroundLoop)
+												clearInterval(this.state.backgroundLoop);
+
+											this.props.navigation.setParams({ title: "Search For Boards" });
+
+											this.setState({
+												peripherals: new Map(),
+												appState: "",
+												selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+												mediaState: BLEBoardData.emptyMediaState,
+												showScreen: "Discover",
+												discoveryState: "Connect To Board",
+												backgroundLoop: null,
+											});
 										}
-										catch (error) {
-											console.log("BoardManager: Pressed Search For Boards: " + error);
-										}
-
-										if (this.state.backgroundLoop)
-											clearInterval(this.state.backgroundLoop);
-
-										this.props.navigation.setParams({ title: "Search For Boards" });
-
-										this.setState({
-											peripherals: new Map(),
-											appState: "",
-											selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-											mediaState: BLEBoardData.emptyMediaState,
-											showScreen: "Discover",
-											discoveryState: "Connect To Board",
-											backgroundLoop: null,
-										});
-
 									}}
 									style={{
 										height: 50,
