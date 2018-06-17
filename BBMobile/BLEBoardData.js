@@ -44,9 +44,12 @@ exports.emptyMediaState = {
 
 exports.createMediaState = async function (peripheral) {
 	try {
-		console.log("BLEBoardData: " + peripheral.name);
 		var mediaState = this.emptyMediaState;
+		console.log("BLEBoardData: " + peripheral.name);
+		console.log("new media state" + mediaState.logLines.length);
 		mediaState.peripheral = peripheral;
+		mediaState.logLines = [{logLine: "", isError: false}];
+		mediaState.isError = false;
 		return await this.refreshMediaState(mediaState);
 	}
 	catch (error) {
