@@ -66,11 +66,9 @@ exports.refreshMediaState = async function (mediaState) {
 			await BleManager.retrieveServices(mediaState.peripheral.id);
 
 			mediaState = await this.readTrack(mediaState, "Audio");
-			mediaState = await this.readTrack(mediaState, "Video");
-			mediaState = await this.readTrack(mediaState, "Device");
+			mediaState = await this.readTrack(mediaState, "Video"); 
 			mediaState = await this.refreshTrackList(mediaState, "Audio");
-			mediaState = await this.refreshTrackList(mediaState, "Video");
-			mediaState = await this.loadDevices(mediaState);
+			mediaState = await this.refreshTrackList(mediaState, "Video"); 
 			mediaState = await this.readVolume(mediaState);
 			mediaState = await this.readBattery(mediaState);
 			mediaState = await this.readAudioMaster(mediaState);
@@ -87,6 +85,12 @@ exports.refreshMediaState = async function (mediaState) {
 	else {
 		return mediaState;
 	}
+};
+
+exports.refreshDevices = async function (mediaState){
+	mediaState = await this.readTrack(mediaState, "Device");
+	mediaState = await this.loadDevices(mediaState);
+	return mediaState;
 };
 
 exports.loadDevices = async function (mediaState) {
@@ -113,7 +117,7 @@ exports.loadDevices = async function (mediaState) {
 					mediaState.peripheral.id,
 					BLEIDs.BTDeviceService,
 					BLEIDs.BTDeviceInfoCharacteristic);
-
+ 
 				var deviceInfo = "";
 				if (readData.length > 3) {
 					var deviceNo = readData[0];

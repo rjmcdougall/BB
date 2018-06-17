@@ -54,7 +54,7 @@ export default class BoardManager extends Component {
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
 		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
 		this.onSelectDevice = this.onSelectDevice.bind(this);
-
+		this.onRefreshDevices = this.onRefreshDevices.bind(this);
 	}
 
 	async componentDidMount() {
@@ -219,20 +219,24 @@ export default class BoardManager extends Component {
 	}
 
 	async onUpdateVolume(event) {
-		console.log("Media Management: Set Media State After Update.");
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
+		console.log("Media Management: Set Media State After Update Volume.");
 	}
 	async onSelectAudioTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		console.log("Media Management: Set Media State After after Select Audio.");
 	}
 	async onSelectVideoTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		console.log("Media Management: Set Media State After Select Video.");
 	}
 	async onSelectDevice(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		console.log("Media Management: Set Media State After Select Device.");
+	}
+	async onRefreshDevices() {
+		this.setState({ mediaState: await BLEBoardData.refreshDevices(this.state.mediaState)});
+		console.log("Media Management: Set Media State After Refresh Devices.");
 	}
 
 	async handleDiscoverPeripheral(peripheral) {
@@ -337,7 +341,7 @@ export default class BoardManager extends Component {
 					<View style={styles.contentContainer}>
 						{(this.state.showScreen == "Media Management") ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} />
 							: (this.state.showScreen == "Diagnostic") ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
-								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} />
+								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
 						}
 
 						<Touchable
