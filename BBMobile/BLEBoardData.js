@@ -45,15 +45,14 @@ exports.emptyMediaState = {
 exports.createMediaState = async function (peripheral) {
 	try {
 		var mediaState = this.emptyMediaState;
-		console.log("BLEBoardData: " + peripheral.name);
-		console.log("new media state" + mediaState.logLines.length);
 		mediaState.peripheral = peripheral;
 		mediaState.logLines = [{logLine: "", isError: false}];
 		mediaState.isError = false;
+		mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting BLE Data for " + peripheral.name, false);
 		return await this.refreshMediaState(mediaState);
 	}
 	catch (error) {
-		console.log("BLEBoardData: " + BLEIDs.fixErrorMessage(error));
+		console.log("BLE: " + BLEIDs.fixErrorMessage(error));
 	}
 };
 
@@ -61,7 +60,7 @@ exports.refreshMediaState = async function (mediaState) {
 
 	if (mediaState.peripheral) {
 		try {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: Connecting MediaState: " + mediaState.peripheral.id, false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Connecting MediaState: " + mediaState.peripheral.id, false);
  
 			await BleManager.connect(mediaState.peripheral.id);
 			await BleManager.retrieveServices(mediaState.peripheral.id);
@@ -78,11 +77,11 @@ exports.refreshMediaState = async function (mediaState) {
 			mediaState = await this.readAppCommand(mediaState, "APKVersion");
 			mediaState = await this.readAppCommand(mediaState, "APKUpdateDate");
 
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: RefreshMediaState Complete: ", false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: RefreshMediaState Complete: ", false);
 			return mediaState;
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Refresh Media Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Refresh Media Error: " + error, true);
 		}
 	}
 	else {
@@ -95,7 +94,7 @@ exports.loadDevices = async function (mediaState) {
 	if (mediaState.peripheral) {
 
 		try {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Load Devices request scan  ", false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices request scan  ", false);
 
 			await BleManager.write(mediaState.peripheral.id,
 				BLEIDs.BTDeviceService,
@@ -103,7 +102,7 @@ exports.loadDevices = async function (mediaState) {
 				[1]);
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Load Devices " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices " + error, true);
 		}
 
 		var devices = [];
@@ -141,17 +140,17 @@ exports.loadDevices = async function (mediaState) {
 						isPaired: isPaired
 					};
 
-					mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Load Devices: " + devices.length + " Added", false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices: " + devices.length + " Added", false);
 					mediaState.device.devices = devices;
-					mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Load Devices: " + JSON.stringify(devices) + " Added", false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices: " + JSON.stringify(devices) + " Added", false);
 
 					return mediaState;
 				}
 			}
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Load Devices found devices: " + JSON.stringify(devices), false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices found devices: " + JSON.stringify(devices), false);
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BTController Load Devices Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices Error: " + error, true);
 		}
 		return mediaState;
 	}
@@ -188,7 +187,7 @@ exports.readAppCommand = async function (mediaState, dataType) {
 						charactersticValue += String.fromCharCode(readData[i]);
 					}
 
-					mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read " + dataType + "Value: " + charactersticValue, false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + dataType + "Value: " + charactersticValue, false);
 
 					if (dataType == "APKVersion") {
 						mediaState.APKVersion = charactersticValue;
@@ -198,10 +197,10 @@ exports.readAppCommand = async function (mediaState, dataType) {
 					}
 				}
 				else
-					mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read" + dataType + "returned Null", true);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read" + dataType + "returned Null", true);
 			}
 			catch (error) {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData " + dataType + "Error: " + error, true);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + dataType + "Error: " + error, true);
 			}
 			return mediaState;
 		}
@@ -237,7 +236,7 @@ exports.readTrack = async function (mediaState, mediaType) {
 					channelCharacteristic);
 
 				if (readData) {
-					mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read " + mediaType + "Track: Selected: " + readData[1] + " Max: " + readData[0], false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + mediaType + "Track: Selected: " + readData[1] + " Max: " + readData[0], false);
 
 					if (mediaType == "Audio") {
 						mediaState.audio.channelNo = readData[1];
@@ -253,11 +252,11 @@ exports.readTrack = async function (mediaState, mediaType) {
 					}
 				}
 				else
-					mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read " + mediaType + ": returned Null", true);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + mediaType + ": returned Null", true);
 
 			}
 			catch (error) {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData " + mediaType + " read track error: " + error, true);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + mediaType + " read track error: " + error, true);
 			}
 			return mediaState;
 		}
@@ -305,11 +304,11 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 			else {
 				mediaState.video.channels = channels;
 			}
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: " + channels.length + " " + mediaType + " Added: ", false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + channels.length + " " + mediaType + " Added: ", false);
 			return mediaState;
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData " + mediaType + " Error: " + error, false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + mediaType + " Error: " + error, false);
 			return mediaState;
 		}
 	}
@@ -340,7 +339,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		channelNo = [mediaState.video.channels[trackNo].channelNo];
 	}
 
-	mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData " + mediaType + " SetTrack submitted value: " + channelNo, false);
+	mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + mediaType + " SetTrack submitted value: " + channelNo, false);
 
 	if (mediaState.peripheral) {
 		try {
@@ -349,13 +348,13 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 				channelCharacteristic,
 				channelNo);
 
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData " + mediaType + " Update: " + channelNo, false);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + mediaType + " Update: " + channelNo, false);
 
 			mediaState = await this.readTrack(mediaState, mediaType);
 		}
 		catch (error) {
 			mediaState.peripheral.connected = false;
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData " + mediaType + " " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + mediaType + " " + error, true);
 		}
 		return mediaState;
 	}
@@ -366,7 +365,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 exports.onUpdateVolume = async function (event, mediaState) {
 
 	var newVolume = event.value;
-	mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: submitted value: " + newVolume, false);
+	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Submitted Volume: " + newVolume, false);
 
 	if (mediaState.peripheral) {
 		try {
@@ -382,7 +381,7 @@ exports.onUpdateVolume = async function (event, mediaState) {
 		catch (error) {
 			mediaState.peripheral.connected = false;
 
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Update Volume Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Update Volume Error: " + error, true);
 			return mediaState;
 		}
 	}
@@ -397,15 +396,15 @@ exports.readVolume = async function (mediaState) {
 			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.AudioService, BLEIDs.AudioVolumeCharacteristic);
 			if (readData) {
 
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: Read Volume: " + readData[0], false);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Volume: " + readData[0], false);
 
 				mediaState.audio.volume = readData[0];
 			}
 			else
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Volume:  returned Null", true);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Volume:  returned Null", true);
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Volume Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Volume Error: " + error, true);
 		}
 		return mediaState;
 	}
@@ -415,7 +414,7 @@ exports.readVolume = async function (mediaState) {
 
 exports.onGTFO = async function (value, mediaState) {
 
-	mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: GTFO submitted value: " + value, false);
+	mediaState = BLEIDs.BLELogger(mediaState, "BLE: GTFO submitted value: " + value, false);
 
 	if (mediaState.peripheral) {
 		try {
@@ -427,7 +426,7 @@ exports.onGTFO = async function (value, mediaState) {
 		}
 		catch (error) {
 			mediaState.peripheral.connected = false;
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData GTFO Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: GTFO Error: " + error, true);
 			return mediaState;
 		}
 	}
@@ -438,7 +437,7 @@ exports.onGTFO = async function (value, mediaState) {
 exports.onEnableMaster = async function (value, mediaState) {
 
 	var newMaster = value;
-	mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: Enable Master submitted value: " + newMaster, false);
+	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Enable Master submitted value: " + newMaster, false);
 
 	if (mediaState.peripheral) {
 		try {
@@ -452,7 +451,7 @@ exports.onEnableMaster = async function (value, mediaState) {
 		}
 		catch (error) {
 			mediaState.peripheral.connected = false;
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Enable Master Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Enable Master Error: " + error, true);
 			return mediaState;
 		}
 	}
@@ -467,14 +466,14 @@ exports.readBattery = async function (mediaState) {
 		try {
 			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.BatteryService, BLEIDs.BatteryCharacteristic);
 			if (readData) {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Battery: " + readData[0], false);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Battery: " + readData[0], false);
 				mediaState.battery = readData[0];
 			}
 			else
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Battery returned Null", true);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Battery returned Null", true);
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Battery Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Battery Error: " + error, true);
 		}
 		return mediaState;
 	}
@@ -489,15 +488,15 @@ exports.readAudioMaster = async function (mediaState) {
 			var readData = await BleManager.read(mediaState.peripheral.id, BLEIDs.AudioSyncService, BLEIDs.AudioSyncRemoteCharacteristic);
 
 			if (readData) {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Audio Master: " + readData[0], false);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Audio Master: " + readData[0], false);
 
 				mediaState.audioMaster = readData[0];
 			}
 			else
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Audio Master: returned Null", true);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Audio Master: returned Null", true);
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read audio Master: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read audio Master: " + error, true);
 		}
 		return mediaState;
 	}
@@ -539,7 +538,7 @@ exports.readLocation = async function (mediaState) {
 							longitude: lon / 1000000.0,
 						});
 
-						mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: ReadLocation found new coordinates lat: " + lat + " lon: " + lon, false);
+						mediaState = BLEIDs.BLELogger(mediaState, "BLE: ReadLocation found new coordinates lat: " + lat + " lon: " + lon, false);
 
 						// determine new region.
 						mediaState.region = this.getRegionForCoordinates(mediaState.locations);
@@ -547,13 +546,13 @@ exports.readLocation = async function (mediaState) {
 				}
 			}
 			else {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData: ReadLocation found no new coordinates", false);
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: ReadLocation found no new coordinates", false);
 			}
 
 			return mediaState;
 		}
 		catch (error) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLEBoardData Read Location Error: " + error, true);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read Location Error: " + error, true);
 			return mediaState;
 		}
 	}
