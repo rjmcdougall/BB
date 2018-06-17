@@ -19,6 +19,7 @@ import FileSystemConfig from "./FileSystemConfig";
 import BLEBoardData from "./BLEBoardData";
 import MediaManagement from "./MediaManagement";
 import AdminManagement from "./AdminManagement";
+import Diagnostic from "./Diagnostic";
 import Touchable from "react-native-platform-touchable";
 
 const ds = new ListView.DataSource({
@@ -27,7 +28,6 @@ const ds = new ListView.DataSource({
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
 export default class BoardManager extends Component {
 	constructor() {
 		super();
@@ -39,8 +39,7 @@ export default class BoardManager extends Component {
 			selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
 			mediaState: BLEBoardData.emptyMediaState,
 			locationState: "",
-			showDiscoverScreen: false,
-			showAdminScreen: false,
+			showScreen: "Media Management",
 			discoveryState: "Connect To Board",
 			automaticallyConnect: true,
 			backgroundLoop: null,
@@ -55,7 +54,7 @@ export default class BoardManager extends Component {
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
 		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
 		this.onSelectDevice = this.onSelectDevice.bind(this);
-
+		this.onRefreshDevices = this.onRefreshDevices.bind(this);
 	}
 
 	async componentDidMount() {
@@ -95,7 +94,6 @@ export default class BoardManager extends Component {
 
 			await this.startScan(true);
 		}
-
 	}
 
 	handleAppStateChange(nextAppState) {
@@ -203,8 +201,7 @@ export default class BoardManager extends Component {
 					this.setState({
 						selectedPeripheral: peripheral,
 						mediaState: BLEBoardData.emptyMediaState,
-						showDiscoverScreen: false,
-						showAdminScreen: false,
+						showScreen: "Media Management",
 						boardName: boardName,
 						discoveryState: "Connect To Board",
 						scanning: false,
@@ -222,20 +219,24 @@ export default class BoardManager extends Component {
 	}
 
 	async onUpdateVolume(event) {
-		console.log("Media Management: Set Media State After Update.");
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
+		console.log("Media Management: Set Media State After Update Volume.");
 	}
 	async onSelectAudioTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		console.log("Media Management: Set Media State After after Select Audio.");
 	}
 	async onSelectVideoTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		console.log("Media Management: Set Media State After Select Video.");
 	}
 	async onSelectDevice(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
-		console.log("Media Management: Set Media State After Update.");
+		console.log("Media Management: Set Media State After Select Device.");
+	}
+	async onRefreshDevices() {
+		this.setState({ mediaState: await BLEBoardData.refreshDevices(this.state.mediaState) });
+		console.log("Media Management: Set Media State After Refresh Devices.");
 	}
 
 	async handleDiscoverPeripheral(peripheral) {
@@ -290,7 +291,7 @@ export default class BoardManager extends Component {
 				console.log("Found Media State");
 				try {
 					var mediaState = await BLEBoardData.readLocation(this.state.mediaState);
-					console.log("Called Location Update")
+					console.log("Called Location Update");
 					this.setState({
 						mediaState: mediaState,
 					});
@@ -324,16 +325,23 @@ export default class BoardManager extends Component {
 			enableControls = "none";
 		}
 		else if (this.state.discoveryState.startsWith("Connected")) {
-			color = "green";
+			if (!this.state.mediaState.isError) {
+				color = "green";
+			}
+			else {
+				color = "red";
+			}
 			enableControls = "auto";
 		}
 
-		if (!this.state.showDiscoverScreen)
+		if (!(this.state.showScreen == "Discover"))
+
 			return (
 				<View style={styles.container}>
 					<View style={styles.contentContainer}>
-						{(!this.state.showAdminScreen) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} />
-							: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} />
+						{(this.state.showScreen == "Media Management") ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} />
+							: (this.state.showScreen == "Diagnostic") ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
+								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
 						}
 
 						<Touchable
@@ -352,29 +360,30 @@ export default class BoardManager extends Component {
 							<View style={styles.button}>
 								<Touchable
 									onPress={async () => {
-										try {
-											await BleManager.disconnect(this.state.selectedPeripheral.id);
+										if (!this.state.scanning) {
+
+											try {
+												await BleManager.disconnect(this.state.selectedPeripheral.id);
+											}
+											catch (error) {
+												console.log("BoardManager: Pressed Search For Boards: " + error);
+											}
+
+											if (this.state.backgroundLoop)
+												clearInterval(this.state.backgroundLoop);
+
+											this.props.navigation.setParams({ title: "Search For Boards" });
+
+											this.setState({
+												peripherals: new Map(),
+												appState: "",
+												selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
+												mediaState: BLEBoardData.emptyMediaState,
+												showScreen: "Discover",
+												discoveryState: "Connect To Board",
+												backgroundLoop: null,
+											});
 										}
-										catch (error) {
-											console.log("BoardManager: Pressed Search For Boards: " + error);
-										}
-
-										if (this.state.backgroundLoop)
-											clearInterval(this.state.backgroundLoop);
-
-										this.props.navigation.setParams({ title: "Search For Boards" });
-
-										this.setState({
-											peripherals: new Map(),
-											appState: "",
-											selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-											mediaState: BLEBoardData.emptyMediaState,
-											showDiscoverScreen: true,
-											showAdminScreen: false,
-											discoveryState: "Connect To Board",
-											backgroundLoop: null,
-										});
-
 									}}
 									style={{
 										height: 50,
@@ -387,16 +396,19 @@ export default class BoardManager extends Component {
 								<Touchable
 									onPress={async () => {
 
-										var title;
-										if (!this.state.showAdminScreen) // reversing current state
-											title = "Administration";
-										else
-											title = "Media Management";
-										this.props.navigation.setParams({ title: title });
+										var newScreen;
+										if (this.state.showScreen == "Media Management") {
+											newScreen = "Administration";
+										} else if ((this.state.showScreen == "Administration")) {
+											newScreen = "Diagnostic";
+										} else if (this.state.showScreen == "Diagnostic") {
+											newScreen = "Media Management";
+										}
+
+										this.props.navigation.setParams({ title: newScreen });
 
 										this.setState({
-											showDiscoverScreen: false,
-											showAdminScreen: !this.state.showAdminScreen,
+											showScreen: newScreen,
 										});
 
 									}}
@@ -405,8 +417,10 @@ export default class BoardManager extends Component {
 									}}
 									background={Touchable.Ripple("blue")}>
 									<Text style={styles.rowText}>
-										{(!this.state.showAdminScreen) ? "Administration"
-											: "Media Management"
+										{
+											(this.state.showScreen == "Media Management") ? "Administration"
+												: (this.state.showScreen == "Administration") ? "Diagnostic"
+													: "Media Management"
 										}
 									</Text>
 								</Touchable>

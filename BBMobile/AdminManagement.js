@@ -19,6 +19,7 @@ export default class AdminManagement extends Component {
 		super(props);
 
 		this.onSelectDevice = this.props.onSelectDevice.bind(this);
+		this.onRefreshDevices = this.props.onRefreshDevices.bind(this);
 	}
 
 
@@ -92,13 +93,13 @@ export default class AdminManagement extends Component {
 
 		if (this.props.mediaState.audioMaster == 0) {
 			masterText = "Enable Master";
-			backgroundColor = "lightblue"
+			backgroundColor = "lightblue";
 		}
 		else {
 			masterText = "Disable Master";
 			backgroundColor = "green";
 		}
-
+		//
 		return (
 
 
@@ -106,23 +107,21 @@ export default class AdminManagement extends Component {
 				<View style={styles.contentContainer}>
 
 					<ScrollView style={styles.scroll}>
-						<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" />
-					</ScrollView>
-
-					<View style={styles.footer}>
+						<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" refreshFunction={this.props.onRefreshDevices} />
 						<View style={styles.button}>
 							<Touchable
 								onPress={async () => {
 
 									await BLEBoardData.onGTFO(1, this.props.mediaState);
 									return true;
-									
+
 								}}
 								style={styles.touchableStyle}
 								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}> GTFO
-								</Text>
+								<Text style={styles.rowText}> GTFO </Text>
 							</Touchable>
+						</View>
+						<View style={styles.button}>
 							<Touchable
 								onPress={async () => {
 
@@ -138,6 +137,8 @@ export default class AdminManagement extends Component {
 								<Text style={styles.rowText}> {masterText}
 								</Text>
 							</Touchable>
+						</View>
+						<View style={styles.button}>
 							<Touchable
 								onPress={async () => {
 
@@ -178,8 +179,9 @@ export default class AdminManagement extends Component {
 								<Text style={styles.rowText}>Go To BB.Com</Text>
 							</Touchable>
 						</View>
-					</View>
+					</ScrollView>
 				</View>
+
 			</View>
 		);
 	}
@@ -190,6 +192,7 @@ AdminManagement.propTypes = {
 	pointerEvents: PropTypes.string,
 	navigation: PropTypes.object,
 	onSelectDevice: PropTypes.func,
+	onRefreshDevices: PropTypes.func,
 };
 
 AdminManagement.defaultProps = {
@@ -215,13 +218,8 @@ const styles = StyleSheet.create({
 		margin: 5,
 		height: 50,
 	},
-	footer: {
-		height: 50,
-		flexDirection: "row",
-		justifyContent: "space-between"
-	},
 	button: {
-		width: "100%",
-		height: 50
+		height: 50,
+		margin: 5,
 	}
 });

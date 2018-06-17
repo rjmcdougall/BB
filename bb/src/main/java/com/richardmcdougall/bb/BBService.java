@@ -40,6 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Date;
 
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -110,6 +111,7 @@ public class BBService extends Service {
     boolean mServerMode = false;
     IoTClient iotClient = null;
     int mVersion = 0;
+    Date mAPKUpdatedDate;
     WifiManager mWiFiManager = null;
     public RF mRadio = null;
     public Gps mGps = null;
@@ -201,6 +203,7 @@ public class BBService extends Service {
         try {
             pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             mVersion = pinfo.versionCode;
+            mAPKUpdatedDate = new Date(pinfo.lastUpdateTime);
             l("BurnerBoard Version " + mVersion);
             //ET2.setText(versionNumber);
         } catch (Exception e) {
@@ -910,6 +913,16 @@ public class BBService extends Service {
         byte[] masterStatus = {0};
         masterStatus[0] = (byte)(mMasterRemote?1:0);
         return  masterStatus;
+    }
+
+
+    public byte[] getAPKVersion() {
+
+         return String.valueOf(mVersion).getBytes();
+    }
+
+    public byte[] getAPKUpdatedDate() {
+        return String.valueOf(mAPKUpdatedDate).getBytes();
     }
 
     public void enableMaster(boolean enable) {
