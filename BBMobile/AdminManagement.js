@@ -180,9 +180,6 @@ export default class AdminManagement extends Component {
 							<Text style={styles.rowText}>Go To BB.Com</Text>
 						</Touchable>
 					</View>
-					<Text style={styles.rowText}> APK Version: {this.props.mediaState.APKVersion}  
-					Last Updated: {this.props.mediaState.APKUpdateDate}
-					</Text>
 				</View>
 
 			</View>
