@@ -194,15 +194,17 @@ exports.readAppCommand = async function (mediaState, dataType) {
 					for (var i = 0; i < readData.length; i++) {
 						charactersticValue += String.fromCharCode(readData[i]);
 					}
-
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + dataType + "Value: " + charactersticValue, false);
-
+ 
 					if (dataType == "APKVersion") {
 						mediaState.APKVersion = charactersticValue;
 					}
 					else if (dataType == "APKUpdateDate") {
+						charactersticValue = charactersticValue.slice(0,20); // android bug
 						mediaState.APKUpdateDate = charactersticValue;
 					}
+
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + dataType + "Value: " + charactersticValue, false);
+
 				}
 				else
 					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read" + dataType + "returned Null", true);
