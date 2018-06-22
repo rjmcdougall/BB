@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.visualization;
 
 /**
  * Created by Jonathan on 8/5/2017.
@@ -19,7 +19,7 @@ package com.richardmcdougall.bb;
  * limitations under the License.
  */
         import com.richardmcdougall.bb.SimpleImage;
-        import android.graphics.Bitmap;
+
         import android.graphics.SurfaceTexture;
         import android.media.MediaCodec;
         import android.media.MediaExtractor;
@@ -32,15 +32,12 @@ package com.richardmcdougall.bb;
         import android.opengl.GLES11Ext;
         import android.opengl.GLES20;
         import android.opengl.Matrix;
-        import android.os.Environment;
         import android.test.AndroidTestCase;
         import android.util.Log;
         import android.view.Surface;
 
-        import java.io.BufferedOutputStream;
         import java.io.File;
         import java.io.FileNotFoundException;
-        import java.io.FileOutputStream;
         import java.io.IOException;
         import java.nio.ByteBuffer;
         import java.nio.ByteOrder;

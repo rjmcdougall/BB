@@ -106,7 +106,7 @@ public class DownloadManager {
         }
     }
 
-    String GetVideoFile(int index) {
+    public String GetVideoFile(int index) {
         try {
             String fn = mFilesDir + "/" + GetVideo(index).getString("localName");
             return fn;
@@ -130,7 +130,7 @@ public class DownloadManager {
         }
     }
 
-    int GetTotalVideo() {
+    public int GetTotalVideo() {
         if (dataDirectory == null)
             return 0;
         else {

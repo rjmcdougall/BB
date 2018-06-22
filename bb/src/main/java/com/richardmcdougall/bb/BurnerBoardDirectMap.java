@@ -81,7 +81,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
                 new BurnerBoardDirectMap.BoardCallbackMode();
         mListener.attach(4, modeCallback);
 
-        // attach Mode cmdMessenger callback
+        // attach Board ID cmdMessenger callback
         BurnerBoardDirectMap.BoardCallbackBoardID boardIDCallback =
                 new BurnerBoardDirectMap.BoardCallbackBoardID();
         mListener.attach(11, boardIDCallback);

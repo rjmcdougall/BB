@@ -85,7 +85,7 @@ public class BurnerBoardAzul extends BurnerBoard {
                 new BurnerBoardAzul.BoardCallbackMode();
         mListener.attach(4, modeCallback);
 
-        // attach Mode cmdMessenger callback
+        // attach Board ID cmdMessenger callback
         BurnerBoardAzul.BoardCallbackBoardID boardIDCallback =
                 new BurnerBoardAzul.BoardCallbackBoardID();
         mListener.attach(11, boardIDCallback);
@@ -103,7 +103,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 21;
+        return 20;
     }
 
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {

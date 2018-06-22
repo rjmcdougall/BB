@@ -69,7 +69,7 @@ public class BurnerBoardClassic extends BurnerBoard {
                 new BurnerBoardClassic.BoardCallbackMode();
         mListener.attach(4, modeCallback);
 
-        // attach Mode cmdMessenger callback
+        // attach Board ID cmdMessenger callback
         BurnerBoardClassic.BoardCallbackBoardID boardIDCallback =
                 new BurnerBoardClassic.BoardCallbackBoardID();
         mListener.attach(11, boardIDCallback);

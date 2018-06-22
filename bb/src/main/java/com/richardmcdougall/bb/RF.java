@@ -300,7 +300,7 @@ public class RF {
                         new RF.BBRadioCallbackReceive();
                 mListener.attach(4, radioReceiveCallback);
 
-                // attach Mode cmdMessenger callback
+                // attach Visualization cmdMessenger callback
                 RF.BBRadioCallbackGPS gpsCallback =
                         new RF.BBRadioCallbackGPS();
                 mListener.attach(2, gpsCallback);
