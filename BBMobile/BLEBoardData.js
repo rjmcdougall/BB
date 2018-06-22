@@ -3,7 +3,7 @@ import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
 import { bin } from "charenc";
 
-exports.emptyMediaState = {
+var bEmptyMediaState = {
 	peripheral: {
 		name: "loading...",
 		id: "12345",
@@ -39,15 +39,19 @@ exports.emptyMediaState = {
 	},
 	locations: [],
 	isError: false,
-	logLines: [{logLine: "", isError: false}],
+	logLines: [{ logLine: "", isError: false }],
 };
 
+exports.emptyMediaState = bEmptyMediaState;
+
+function blankMediaState() {
+	return JSON.parse(JSON.stringify(bEmptyMediaState));
+}
+ 
 exports.createMediaState = async function (peripheral) {
 	try {
-		var mediaState = this.emptyMediaState;
+		var mediaState = blankMediaState();
 		mediaState.peripheral = peripheral;
-		mediaState.logLines = [{logLine: "", isError: false}];
-		mediaState.isError = false;
 		mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting BLE Data for " + peripheral.name, false);
 		return await this.refreshMediaState(mediaState);
 	}
@@ -61,14 +65,14 @@ exports.refreshMediaState = async function (mediaState) {
 	if (mediaState.peripheral) {
 		try {
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Connecting MediaState: " + mediaState.peripheral.id, false);
- 
+
 			await BleManager.connect(mediaState.peripheral.id);
 			await BleManager.retrieveServices(mediaState.peripheral.id);
 
 			mediaState = await this.readTrack(mediaState, "Audio");
-			mediaState = await this.readTrack(mediaState, "Video"); 
+			mediaState = await this.readTrack(mediaState, "Video");
 			mediaState = await this.refreshTrackList(mediaState, "Audio");
-			mediaState = await this.refreshTrackList(mediaState, "Video"); 
+			mediaState = await this.refreshTrackList(mediaState, "Video");
 			mediaState = await this.readVolume(mediaState);
 			mediaState = await this.readBattery(mediaState);
 			mediaState = await this.readAudioMaster(mediaState);
@@ -87,7 +91,7 @@ exports.refreshMediaState = async function (mediaState) {
 	}
 };
 
-exports.refreshDevices = async function (mediaState){
+exports.refreshDevices = async function (mediaState) {
 	mediaState = await this.readTrack(mediaState, "Device");
 	mediaState = await this.loadDevices(mediaState);
 	return mediaState;
@@ -117,7 +121,7 @@ exports.loadDevices = async function (mediaState) {
 					mediaState.peripheral.id,
 					BLEIDs.BTDeviceService,
 					BLEIDs.BTDeviceInfoCharacteristic);
- 
+
 				var deviceInfo = "";
 				if (readData.length > 3) {
 					var deviceNo = readData[0];
