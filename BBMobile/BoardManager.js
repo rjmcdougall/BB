@@ -324,7 +324,7 @@ export default class BoardManager extends Component {
 			color = "yellow";
 			enableControls = "none";
 		}
-		else if (this.state.discoveryState.startsWith("Connected")) {
+		else if (this.state.showScreen != "Discover" && this.state.discoveryState.startsWith("Connected")) {
 			if (!this.state.mediaState.isError) {
 				color = "green";
 			}

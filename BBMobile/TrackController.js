@@ -54,7 +54,7 @@ export default class TrackController extends Component {
 			);
 		}
 		else 
-			refreshButton = "";
+			refreshButton = (<Text></Text>);
 
 		return (
 
