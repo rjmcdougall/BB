@@ -315,7 +315,7 @@ public class FindMyFriends {
 
         byte [] lastHeardLocation = null;
         int address = 0;
-
+        byte [] boardId = null;
         int keyNo = 0;
         int getLoc = lastLocationGet;
         if (lastLocationGet == (mBoardLocations.size())) {
@@ -330,6 +330,7 @@ public class FindMyFriends {
                 boardLocation loc = mBoardLocations.get(addr);
                 lastHeardLocation = loc.lastheardLocaton;
                 address = addr;
+                boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
                 d("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
                 break;
             }
@@ -338,12 +339,19 @@ public class FindMyFriends {
 
         if (lastHeardLocation != null) {
             l("get recent location " + lastHeardLocation);
-            return lastHeardLocation;
+            return concatenateByteArrays(lastHeardLocation,boardId);
         } else {
             l("no recent locaton");
             return new byte[] {0, 0};
         }
 
+    }
+
+    byte[] concatenateByteArrays(byte[] a, byte[] b) {
+        byte[] result = new byte[a.length + b.length];
+        System.arraycopy(a, 0, result, 0, a.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
     }
 
     // Keep a list of board GPS locations
