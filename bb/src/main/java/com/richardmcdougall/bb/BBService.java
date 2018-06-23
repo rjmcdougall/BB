@@ -936,9 +936,21 @@ public class BBService extends Service {
         }
     }
 
+    boolean bGTFO = true;
+
     public void GTFO() {
-            mBurnerBoard.setText("Get The Fuck Off!", 2000);
-            voice.speak("Get The Fuck Off", TextToSpeech.QUEUE_ADD, null, "enableMaster");
+
+        if(bGTFO){
+            bGTFO = false;
+            mBurnerBoard.setText90("Get Off!", 5000);
+            mediaPlayer.setVolume(0,0);
+            voice.speak("Get Off", TextToSpeech.QUEUE_ADD, null, "GTFO");
+        }
+        else {
+            bGTFO=true;
+            mediaPlayer.setVolume(1,1);
+        }
+
     }
 
     public static final int kRemoteAudioTrack = 0x01;
