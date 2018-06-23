@@ -294,7 +294,7 @@ public class FindMyFriends {
             mLastRecv = System.currentTimeMillis();
             return true;
         } else {
-                d("rogue packet not for us!");
+            d("rogue packet not for us!");
         }
         return false;
     }
@@ -317,7 +317,6 @@ public class FindMyFriends {
         int address = 0;
         byte [] boardId = null;
         int keyNo = 0;
-        String lastHeard = null;
         int getLoc = lastLocationGet;
         if (lastLocationGet == (mBoardLocations.size())) {
             lastLocationGet = 0;
@@ -330,9 +329,8 @@ public class FindMyFriends {
             if (keyNo == getLoc) {
                 boardLocation loc = mBoardLocations.get(addr);
                 lastHeardLocation = loc.lastheardLocaton;
-                lastHeard = String.valueOf(loc.lastHeard / 1000 / 60); // convert to minutes
                 address = addr;
-                boardId = padByteArray(mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)),8);
+                boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
                 d("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
                 break;
             }
@@ -341,21 +339,11 @@ public class FindMyFriends {
 
         if (lastHeardLocation != null) {
             l("get recent location " + lastHeardLocation);
-
-
-            return concatenateByteArrays(concatenateByteArrays(lastHeardLocation,boardId),new String(lastHeard).getBytes());
+            return concatenateByteArrays(lastHeardLocation,boardId);
         } else {
             l("no recent locaton");
             return new byte[] {0, 0};
         }
-
-    }
-
-    byte[] padByteArray(String a, int length){
-
-        byte[] result = new byte[length];
-        System.arraycopy(a.getBytes(), 0, result, length - a.length(), a.length());
-        return result;
 
     }
 
