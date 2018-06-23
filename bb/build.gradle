@@ -16,14 +16,11 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 36
-        versionName "36.0"
+        versionCode 3800
+        versionName "38.00"
 
         signingConfig signingConfigs.burnerboard
 
-        ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a'
-        }
 
     }
     buildTypes {
