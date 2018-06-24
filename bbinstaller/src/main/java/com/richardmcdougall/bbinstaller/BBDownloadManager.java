@@ -207,13 +207,12 @@ public class BBDownloadManager {
         }
 
 
-
         public long DownloadURL(String URLString, String filename, String progressName) {
             try {
                 URL url = new URL(URLString);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestProperty("User-Agent","Mozilla/5.0 ( compatible ) ");
-                urlConnection.setRequestProperty("Accept","*/*");
+                urlConnection.setRequestProperty("User-Agent", "Mozilla/5.0 ( compatible ) ");
+                urlConnection.setRequestProperty("Accept", "*/*");
                 urlConnection.setRequestMethod("GET");
                 //urlConnection.setDoOutput(true);
                 urlConnection.connect();
@@ -242,7 +241,7 @@ public class BBDownloadManager {
                     fileOutput.write(buffer, 0, bufferLength);
                     downloadSize += bufferLength;
 
-                    if (mDM.onProgressCallback!=null) {
+                    if (mDM.onProgressCallback != null) {
                         mDM.onProgressCallback.onProgress(progressName, fileSize, downloadSize);
 
                     }
@@ -358,7 +357,7 @@ public class BBDownloadManager {
 
                 String dataDir = mDM.mFilesDir;
                 File[] flist = new File(dataDir).listFiles();
-                for (int i=0; i<flist.length; i++) {
+                for (int i = 0; i < flist.length; i++) {
                     String fname = flist[i].getName();
 
                     if (fname.endsWith(".mp4") || fname.endsWith(".mp3")) {
@@ -376,7 +375,7 @@ public class BBDownloadManager {
             try {
                 String dataDir = mDM.mFilesDir;
                 File[] flist = new File(dataDir).listFiles();
-                for (int i=0; i<flist.length; i++) {
+                for (int i = 0; i < flist.length; i++) {
                     String fname = flist[i].getName();
                     if (fname.endsWith(".tmp")) {   // download finished, move it over
                         String dstName = flist[i].getName().substring(0, flist[i].getName().lastIndexOf('.'));
@@ -396,136 +395,150 @@ public class BBDownloadManager {
         }
 
 
+        public boolean GetNewDirectory() {
+
+            try {
+
+                String dataDir = mDM.mFilesDir;
+
+                // Check if the directory has changed
+                String currentMD5 = GetURLMD5FromGCS("https://www.googleapis.com/storage/v1/b/burner-board/o/BurnerBoardApps%2FDownloadApp.json");
+                l("current md5 " + currentMD5 + " == " + mDM.mLastDirectoryMd5 + "?");
+                if (currentMD5.equals(mDM.mLastDirectoryMd5)) {
+                    l("No Download directory changes");
+                    //downloadSuccess = true;
+                    return true;
+                }
+
+                mDM.mLastDirectoryMd5 = currentMD5;
+
+                l("Downloading app index");
+                long ddsz = DownloadURL("https://storage.googleapis.com/burner-board/BurnerBoardApps/DownloadApp.json", "tmp", "Directory");
+                if (ddsz > 0) {
+                    new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
+
+                    String dirTxt = LoadTextFile("directory.json.tmp");
+                    JSONObject dir = new JSONObject(dirTxt);
+
+                    int tFiles = 0;
+
+                    String[] dTypes = new String[]{"application"};
+                    String[] extTypes = new String[]{"apk"};
+                    for (int i = 0; i < dTypes.length; i++) {
+                        JSONArray tList = dir.getJSONArray(dTypes[i]);
+                        for (int j = 0; j < tList.length(); j++) {
+                            long appVersion = 0;
+                            JSONObject elm = tList.getJSONObject(j);
+                            String url = elm.getString("URL");
+
+                            String localName;
+                            if (elm.has("localName"))
+                                localName = elm.getString("localName");
+                            else
+                                localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
+                            l("Download file is " + localName);
+
+                            Boolean upTodate = false;
+                            File dstFile = new File(dataDir, localName);
+                            if (elm.has("Version")) {
+                                appVersion = elm.getLong("Version");
+                            }
+                            if (elm.has("Size")) {
+                                long sz = elm.getLong("Size");
+
+                                if (dstFile.exists()) {
+                                    long curSze = dstFile.length();
+                                    if (dstFile.length() == sz) {
+                                        upTodate = true;
+                                    }
+                                }
+                            } else {
+                                if (dstFile.exists()) {
+                                    long remoteSz = GetURLFileSize(url);
+                                    long curSze = dstFile.length();
+                                    l("Checking Downloaded file: " + localName + " remote URL size " + remoteSz + " == " + dstFile.length());
+
+                                    if (dstFile.length() == remoteSz) {
+                                        upTodate = true;
+                                    }
+                                }
+                            }
+
+                            File dstFile2;
+                            if (!upTodate) {
+                                l("Downloading url " + localName);
+                                DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+                                tFiles++;
+                                if (appVersion == 0) { // .tmp files for all media except app packages
+                                    dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
+                                } else {
+                                    dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
+                                }
+                                if (dstFile2.exists())
+                                    dstFile2.delete();
+                                new File(dataDir, "tmp").renameTo(dstFile2);
+
+                            } else {
+                                l("Up to date: " + dstFile);
+                            }
+
+                        }
+                    }
+                    mDM.dataDirectory = dir;
+
+                    if (mDM.onProgressCallback != null) {
+                        if (tFiles != 0)
+                            mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
+                    }
+
+                }
+                return true;
+            } catch (Throwable th) {
+                return false;
+            }
+        }
+
         @Override
         public void run() {
+            int downloadTimeout = 5;
 
-            int downloadTimeout = 1;
+            LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
-
-            LoadInitialDataDirectory();  // get started rught away using the data we have on the board already (if any)
-
-            // keep trying to connect to the Internet to look for updates until we are able to connect
             try {
                 boolean downloadSuccess = false;
 
+                // On boot it can take some time to get an internet connection.  Check every 5 seconds for 5 minutes
                 while (!downloadSuccess) {
-
-                    String dataDir = mDM.mFilesDir;
-
-                    // Check if the directory has changed
-                    String currentMD5 = GetURLMD5FromGCS("https://www.googleapis.com/storage/v1/b/burner-board/o/BurnerBoardApps%2FDownloadApp.json");
-                    l("current md5 " + currentMD5 + " == " + mDM.mLastDirectoryMd5 + "?");
-                    if (currentMD5.equals(mDM.mLastDirectoryMd5)) {
-                        l("No Download directory changes");
-                        downloadSuccess = true;
-                        continue;
-                    }
-                    mDM.mLastDirectoryMd5 = currentMD5;
-
-                    l("Downloading app index");
-                    long ddsz = DownloadURL("https://storage.googleapis.com/burner-board/BurnerBoardApps/DownloadApp.json", "tmp", "Directory");
-                    if (ddsz < 0) {
-                        l("Error ownloading app index, retrying in " + downloadTimeout + " seconds");
-                        Thread.sleep(downloadTimeout * 1000);   // no internet, wait 5 seconds before we try again
-                        if (downloadTimeout < 256) {
-                            downloadTimeout = downloadTimeout * 2;
-                        }
-                    } else {
-                        downloadTimeout = 1;
-                        new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
-
-                        String dirTxt = LoadTextFile("directory.json.tmp");
-                        JSONObject dir = new JSONObject(dirTxt);
-
-                        int tFiles = 0;
-
-                        String[] dTypes = new String[]{"application"};
-                        String[] extTypes = new String[]{ "apk"};
-                        for (int i = 0; i < dTypes.length; i++) {
-                            JSONArray tList = dir.getJSONArray(dTypes[i]);
-                            for (int j = 0; j < tList.length(); j++) {
-                                long appVersion = 0;
-                                JSONObject elm = tList.getJSONObject(j);
-                                String url = elm.getString("URL");
-
-                                String localName;
-                                if (elm.has("localName"))
-                                    localName = elm.getString("localName");
-                                else
-                                    localName = String.format("%s-%d.%s", dTypes[i], j, extTypes[i]);
-                                l("Download file is " + localName);
-
-                                Boolean upTodate = false;
-                                File dstFile = new File(dataDir, localName);
-                                if (elm.has("Version")) {
-                                    appVersion = elm.getLong("Version");
-                                }
-                                if (elm.has("Size")) {
-                                    long sz = elm.getLong("Size");
-
-                                    if (dstFile.exists()) {
-                                        long curSze = dstFile.length();
-                                        if (dstFile.length() == sz) {
-                                            upTodate = true;
-                                        }
-                                    }
-                                } else {
-                                    if (dstFile.exists()) {
-                                        long remoteSz = GetURLFileSize(url);
-                                        long curSze = dstFile.length();
-                                        l("Checking Downloaded file: " + localName + " remote URL size " + remoteSz + " == " + dstFile.length());
-
-                                        if (dstFile.length() == remoteSz) {
-                                            upTodate = true;
-                                        }
-                                    }
-                                }
-
-                                File dstFile2;
-                                if (!upTodate) {
-                                    l("Downloading url " + localName);
-                                    DownloadURL(url, "tmp", localName);   // download to a "tmp" file
-                                    tFiles++;
-                                    if (appVersion == 0) { // .tmp files for all media except app packages
-                                        dstFile2 = new File(dataDir, localName + ".tmp");   // move to localname.tmp, we'll move the file the next time we reboot
-                                    } else {
-                                        dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
-                                    }
-                                    if (dstFile2.exists())
-                                        dstFile2.delete();
-                                    new File(dataDir, "tmp").renameTo(dstFile2);
-
-                                } else {
-                                    l("Up to date: " + dstFile);
-                                }
-
-                            }
-                        }
-                        mDM.dataDirectory = dir;
-
-                        if (mDM.onProgressCallback != null) {
-                            if (tFiles != 0)
-                                mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files");
-                        }
-                        downloadSuccess = true;
-
+                    downloadSuccess = GetNewDirectory();
+                    l("Error downloading app index, retrying in " + downloadTimeout + " seconds");
+                    Thread.sleep(downloadTimeout * 1000);   // no internet, wait 5 seconds before we try again
+                    if (downloadTimeout < 256) {
+                        downloadTimeout = downloadTimeout * 2;
                     }
                 }
 
+                // After the first boot check periodically in case the profile has changed.
+                while (true) {
+                    GetNewDirectory();
+                    Thread.sleep(downloadTimeout * 1000);
+                    if (downloadTimeout < 256) {
+                        downloadTimeout = downloadTimeout * 2;
+                    }
+                }
             } catch (Throwable th) {
                 if (mDM.onProgressCallback != null)
                     mDM.onProgressCallback.onVoiceCue(th.getMessage());
+                if (downloadTimeout < 256) {
+                    downloadTimeout = downloadTimeout * 2;
+                }
                 try {
-                    Thread.sleep(10000);   // wait 10 second if unexpected error
+                    Thread.sleep(downloadTimeout * 1000);   // wait if unexpected error
                 } catch (Throwable er) {
 
                 }
             }
         }
     }
-
-
-
 }
 
 

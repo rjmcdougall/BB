@@ -200,7 +200,7 @@ public class BoardVisualization {
 
             case "modeAudioCenter()":
                 frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kDefault);
+                mVisualizationAudioCenter.update(Visualization.kDefault);
                 break;
 
             case "modeFire(kModeFireNormal)":
