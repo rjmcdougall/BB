@@ -66,44 +66,54 @@ public class Installer extends Service {
     }
 
     private boolean checkWifiSSid(String ssid) {
-        List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
-        if (wifiList != null) {
-            for (WifiConfiguration config : wifiList) {
-                String newSSID = config.SSID;
-
-                if (ssid.equals(newSSID)) {
-                    return true;
+        try {
+            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+            if (wifiList != null) {
+                for (WifiConfiguration config : wifiList) {
+                    String newSSID = config.SSID;
+                    l("Found wifi:" + newSSID + " == " + ssid + " ?");
+                    if (ssid.equals(newSSID)) {
+                        return true;
+                    }
                 }
             }
+        } catch (Exception e) {
         }
         return false;
     }
 
     private void connectWifi(String ssid) {
-        List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
-        if (wifiList != null) {
-            for (WifiConfiguration config : wifiList) {
-                String newSSID = config.SSID;
+        try {
+            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+            if (wifiList != null) {
+                for (WifiConfiguration config : wifiList) {
+                    String newSSID = config.SSID;
 
-                if (ssid.equals(newSSID)) {
-                    mWiFiManager.disconnect();
-                    mWiFiManager.enableNetwork(config.networkId, true);
-                    mWiFiManager.reconnect();
+                    if (ssid.equals(newSSID)) {
+                        mWiFiManager.disconnect();
+                        mWiFiManager.enableNetwork(config.networkId, true);
+                        mWiFiManager.reconnect();
 
-                    return;
+                        return;
+                    }
                 }
             }
+        } catch (Exception e) {
         }
     }
 
     private void addWifi(String ssid, String pass) {
-        WifiConfiguration conf = new WifiConfiguration();
-        conf.SSID = "\"" + ssid + "\"";
-        conf.preSharedKey = "\""+ pass +"\"";
-        mWiFiManager.addNetwork(conf);
-        mWiFiManager.disconnect();
-        mWiFiManager.enableNetwork(conf.networkId, true);
-        mWiFiManager.reconnect();
+        try {
+
+            WifiConfiguration conf = new WifiConfiguration();
+            conf.SSID = "\"" + ssid + "\"";
+            conf.preSharedKey = "\"" + pass + "\"";
+            mWiFiManager.addNetwork(conf);
+            mWiFiManager.disconnect();
+            mWiFiManager.enableNetwork(conf.networkId, false);
+            mWiFiManager.reconnect();
+        } catch (Exception e) {
+        }
         return;
     }
 
@@ -138,7 +148,7 @@ public class Installer extends Service {
                                               int mfs = mWiFiManager.getWifiState();
                                               l("Wifi state is " + mfs);
                                               l("Checking wifi");
-                                              if (checkWifiSSid("burnerboard") == false) {
+                                              if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
                                                   l("adding wifi");
                                                   addWifi("burnerboard", "firetruck");
                                               }

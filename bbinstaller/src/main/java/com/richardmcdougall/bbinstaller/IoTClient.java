@@ -76,6 +76,7 @@ public class IoTClient {
     byte[] keyBytes = new byte[16384];
     String jwtKey = null;
     boolean haveConnected = false;
+    boolean haveEverConnected = false;
     WifiManager mWiFiManager = null;
     String subscriptionTopic = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/config");
     public IoTAction mIoTActionCallback = null;
@@ -119,15 +120,20 @@ public class IoTClient {
 
                 while (true) {
 
-                    try {
-                        if (haveConnected == false) {
+                    if (haveConnected == false) {
+                        try {
                             // Disconnect if we were connected
                             // Required to recalculate jwtkey
-                            if (mqttClient != null) {
+                            //if ((haveEverConnected == true) && (mqttClient != null)) {
+                            if ((mqttClient != null)) {
                                 Log.d(TAG, "Disconnecting MQTT Client");
                                 mqttClient.disconnect();
                             }
 
+                        } catch (Exception e) {
+                        }
+
+                        try {
 
                             Log.d(TAG, "Connecting MQTT Client");
 
@@ -150,14 +156,15 @@ public class IoTClient {
                                 @Override
                                 public void onFailure(IMqttToken asyncActionToken,
                                                       Throwable exception) {
-                                    Log.d(TAG, "onFailure: " + exception.getMessage());
+                                    Log.d(TAG, "connect.onFailure: " + exception.getMessage());
                                     exception.printStackTrace();
                                 }
 
                                 @Override
                                 public void onSuccess(IMqttToken iMqttToken) {
-                                    Log.i(TAG, "onSuccess");
+                                    Log.d(TAG, "connect.onSuccess");
                                     haveConnected = true;
+                                    haveEverConnected = true;
                                     DisconnectedBufferOptions disconnectedBufferOptions =
                                             new DisconnectedBufferOptions();
                                     disconnectedBufferOptions.setBufferEnabled(true);
@@ -184,8 +191,11 @@ public class IoTClient {
                                     }
                                 }
                             });
-
-                        } else {
+                        } catch (Exception e) {
+                            Log.d(TAG, "MQTT Thread Exeception" + e.toString());
+                        }
+                    } else {
+                        try {
                             // We get failed reconnects because JWT key expires in Google IoT
                             // Force a disconnect then reconnect
                             android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
@@ -200,30 +210,23 @@ public class IoTClient {
                                 }
                             }
 
-                            // Sent fake wake-up event to android MQTT Client
-                        /*
-                        try {
-                            Intent in = new Intent(ConnectivityManager.CONNECTIVITY_ACTION);
-                            LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
                         } catch (Exception e) {
-                            Log.d(TAG, "could not send CONNECTIVITY_ACTION");
                         }
-                        */
 
-                        }
+                    }
+                    try {
                         Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
                         mContext.sendBroadcast(intent);
-
-                        // Every  minute
-                        Thread.sleep(60000);
                     } catch (Exception e) {
-                        try {
-                            Thread.sleep(60000);
-                        } catch (Exception e2) {
+                    }
 
-                        }
+                    // Every  minute
+                    try {
+                        Thread.sleep(60000);
+                    } catch (Exception e2) {
                     }
                 }
+
             }
         });
         connectThread.start();
