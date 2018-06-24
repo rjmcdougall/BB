@@ -47,7 +47,7 @@ exports.emptyMediaState = bEmptyMediaState;
 function blankMediaState() {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
 }
- 
+
 exports.createMediaState = async function (peripheral) {
 	try {
 		var mediaState = blankMediaState();
@@ -194,12 +194,12 @@ exports.readAppCommand = async function (mediaState, dataType) {
 					for (var i = 0; i < readData.length; i++) {
 						charactersticValue += String.fromCharCode(readData[i]);
 					}
- 
+
 					if (dataType == "APKVersion") {
 						mediaState.APKVersion = charactersticValue;
 					}
 					else if (dataType == "APKUpdateDate") {
-						charactersticValue = charactersticValue.slice(0,20); // android bug
+						charactersticValue = charactersticValue.slice(0, 20); // android bug
 						mediaState.APKUpdateDate = charactersticValue;
 					}
 
@@ -524,8 +524,8 @@ exports.readLocation = async function (mediaState) {
 				if (readData.length > 4) {
 					var lat;
 					var lon;
-					var theirAddress;
-					theirAddress = readData[2] + readData[3] * 256;
+					var address;
+					address = readData[2] + readData[3] * 256;
 					lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
 					if (lat > Math.pow(2, 31)) {
 						lat = -1 * (Math.pow(2, 32) - 1 - lat);
@@ -535,17 +535,30 @@ exports.readLocation = async function (mediaState) {
 						lon = -1 * (Math.pow(2, 32) - 1 - lon);
 					}
 
+					var boardId = "";
+					for (var i = 19; i < readData.length && i < 27; i++) {
+						boardId += String.fromCharCode(readData[i]);
+					}
+
 					if (lat != 0 && lon != 0) {
 						// remove if it already exists.
 						mediaState.locations = mediaState.locations.filter(item => {
-							return item.title != theirAddress.toString();
+							return item.address != address.toString();
 						});
+
+						var title = "";
+						if (boardId != "")
+							title = boardId;
+						else
+							title = address.toString();
 
 						// push the new one.
 						mediaState.locations.push({
-							title: theirAddress.toString(),
+							title: title,
 							latitude: lat / 1000000.0,
 							longitude: lon / 1000000.0,
+							address: address.toString(),
+							boardId: boardId,
 						});
 
 						mediaState = BLEIDs.BLELogger(mediaState, "BLE: ReadLocation found new coordinates lat: " + lat + " lon: " + lon, false);
