@@ -330,7 +330,7 @@ public class FindMyFriends {
                 boardLocation loc = mBoardLocations.get(addr);
                 lastHeardLocation = loc.lastheardLocaton;
                 address = addr;
-                boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
+               // boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
                 d("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
                 break;
             }
@@ -339,7 +339,8 @@ public class FindMyFriends {
 
         if (lastHeardLocation != null) {
             l("get recent location " + lastHeardLocation);
-            return concatenateByteArrays(lastHeardLocation,boardId);
+            //return concatenateByteArrays(lastHeardLocation,boardId);
+            return lastHeardLocation;
         } else {
             l("no recent locaton");
             return new byte[] {0, 0};

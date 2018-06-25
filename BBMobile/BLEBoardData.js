@@ -535,10 +535,10 @@ exports.readLocation = async function (mediaState) {
 						lon = -1 * (Math.pow(2, 32) - 1 - lon);
 					}
 
-					var boardId = "";
-					for (var i = 19; i < readData.length && i < 27; i++) {
-						boardId += String.fromCharCode(readData[i]);
-					}
+					// var boardId = "";
+					// for (var i = 19; i < readData.length && i < 27; i++) {
+					// 	boardId += String.fromCharCode(readData[i]);
+					// }
 
 					if (lat != 0 && lon != 0) {
 						// remove if it already exists.
@@ -547,10 +547,10 @@ exports.readLocation = async function (mediaState) {
 						});
 
 						var title = "";
-						if (boardId != "")
-							title = boardId;
-						else
-							title = address.toString();
+						// if (boardId != "")
+						// 	title = boardId;
+						// else
+						title = address.toString();
 
 						// push the new one.
 						mediaState.locations.push({
@@ -558,7 +558,7 @@ exports.readLocation = async function (mediaState) {
 							latitude: lat / 1000000.0,
 							longitude: lon / 1000000.0,
 							address: address.toString(),
-							boardId: boardId,
+						//	boardId: boardId,
 						});
 
 						mediaState = BLEIDs.BLELogger(mediaState, "BLE: ReadLocation found new coordinates lat: " + lat + " lon: " + lon, false);
