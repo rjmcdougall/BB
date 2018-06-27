@@ -1378,8 +1378,6 @@ public class BBService extends Service {
                 int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
                 int voltage = mBurnerBoard.getBatteryVoltage();
 
-
-
                 /*
                  * Now done in bb-installer
                 if (mWiFiManager.isWifiEnabled() == false) {
@@ -1437,9 +1435,8 @@ public class BBService extends Service {
 
                 l("Power state is " + powerState);
 
-                if (powerState == powerStates.STATE_CHARGING) {
-                    mBurnerBoard.showBattery();
-                }
+                // Show battery if charging
+                mBoardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
 
                 // Battery voltage is critically low
                 // Board will come to a halt in < 60 seconds

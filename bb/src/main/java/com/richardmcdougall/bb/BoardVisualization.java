@@ -60,7 +60,9 @@ public class BoardVisualization {
     public int mMultipler4Speed;
     private boolean inhibitVisual = false;
     private boolean emergencyVisual = false;
+    private boolean showBattery = false;
     private int mFrameRate;
+    private int batteryCnt = 0;
 
     public Visualization mVisualizationFire;
     public Visualization mVisualizationMatrix;
@@ -127,6 +129,10 @@ public class BoardVisualization {
 
     public void emergency(boolean emergency) {
         emergencyVisual = emergency;
+    }
+
+    public void showBattery(boolean show) {
+        showBattery = show;
     }
 
     private void sendLogMsg(String msg) {
@@ -308,6 +314,14 @@ public class BoardVisualization {
                     er.printStackTrace();
                 }
                 continue;
+            }
+
+            // TODO: render our own battery here rather than rely on firmware to do it.
+            if (showBattery) {
+                if (batteryCnt % mFrameRate == 0) {
+                    mBurnerBoard.showBattery();
+                }
+                batteryCnt++;
             }
 
             frameRate = runVisualization(mBoardMode);
