@@ -9,8 +9,13 @@ router.use(bodyParser.json());
 
 router.use(async function (req, res, next) {
 
-	if(!(req.path.endsWith("/DownloadDirectoryJSON") && req.path.startsWith("/boards/")))
-	{
+	var excludeEndsWith = ["/DownloadDirectoryJSON","/boards/"];
+
+	var exclude = excludeEndsWith.filter((item) => {
+		return req.path.endsWith(item);
+	});
+
+	if (!(exclude.length>0 && req.path.startsWith("/boards/"))) {
 
 		var JWT = req.headers["authorization"].replace("Bearer ", "");
 
@@ -65,11 +70,11 @@ router.get("/boards/:boardID", async function (req, res, next) {
 
 router.post("/boards/:boardID/profiles/:profileID", async function (req, res, next) {
 
-	var boardID = req.params.boardID; 
+	var boardID = req.params.boardID;
 	var profileID = req.params.profileID;
 	var cloneFromBoardID = null;
 
-	if(req.body.cloneFromBoardID !== "GLOBAL")
+	if (req.body.cloneFromBoardID !== "GLOBAL")
 		cloneFromBoardID = req.body.cloneFromBoardID;
 
 	var cloneFromProfileID = req.body.cloneFromProfileID;
@@ -83,12 +88,12 @@ router.post("/boards/:boardID/profiles/:profileID", async function (req, res, ne
 		var profileExists = await DownloadDirectoryDS.profileExists(boardID, profileID);
 		if (!profileExists) {
 			results.push(await DownloadDirectoryDS.createProfile(boardID, profileID, false));
-			
-			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
- 				results.push(await FileSystem.copyProfileFiles(boardID, profileID, cloneFromBoardID, cloneFromProfileID));
+
+			if (cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE") {
+				results.push(await FileSystem.copyProfileFiles(boardID, profileID, cloneFromBoardID, cloneFromProfileID));
 			}
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, "audio"));
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (boardID, profileID, cloneFromBoardID, cloneFromProfileID, "video"));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia(boardID, profileID, cloneFromBoardID, cloneFromProfileID, "audio"));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia(boardID, profileID, cloneFromBoardID, cloneFromProfileID, "video"));
 		}
 		else
 			throw new Error("the profile already exists");
@@ -105,7 +110,7 @@ router.post("/profiles/:profileID", async function (req, res, next) {
 	var profileID = req.params.profileID;
 	var cloneFromBoardID = null;
 
-	if(req.body.cloneFromBoardID !== "GLOBAL")
+	if (req.body.cloneFromBoardID !== "GLOBAL")
 		cloneFromBoardID = req.body.cloneFromBoardID;
 
 	var cloneFromProfileID = req.body.cloneFromProfileID;
@@ -119,12 +124,12 @@ router.post("/profiles/:profileID", async function (req, res, next) {
 		var profileExists = await DownloadDirectoryDS.profileExists(null, profileID);
 		if (!profileExists) {
 			results.push(await DownloadDirectoryDS.createProfile(null, profileID, true));
-			
-			if(cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE"){
- 				results.push(await FileSystem.copyProfileFiles(null, profileID, cloneFromBoardID, cloneFromProfileID));
+
+			if (cloneFromBoardID != "NONE" && cloneFromProfileID != "NONE") {
+				results.push(await FileSystem.copyProfileFiles(null, profileID, cloneFromBoardID, cloneFromProfileID));
 			}
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, "audio"));
-			results.push(await DownloadDirectoryDS.cloneBoardMedia (null, profileID, cloneFromBoardID, cloneFromProfileID, "video"));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia(null, profileID, cloneFromBoardID, cloneFromProfileID, "audio"));
+			results.push(await DownloadDirectoryDS.cloneBoardMedia(null, profileID, cloneFromBoardID, cloneFromProfileID, "video"));
 		}
 		else
 			throw new Error("the profile already exists");
@@ -337,7 +342,7 @@ router.get("/boards/:boardID/DownloadDirectoryJSON", async function (req, res, n
 			var profileID = await DownloadDirectoryDS.listBoards(boardID);
 
 			// is the deault profile global? if so, null it out!
-			if(profileID[0].isProfileGlobal)
+			if (profileID[0].isProfileGlobal)
 				boardID = null;
 
 			result = await DownloadDirectoryDS.DirectoryJSON(boardID, profileID[0].profile);
@@ -470,6 +475,19 @@ router.delete("/boards/:boardID", async function (req, res, next) {
 	catch (err) {
 		res.status(500).json(err.message);
 	}
+});
+
+router.get("/boards/", async function (req, res, next) {
+
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+	var results = [];
+	try {
+		results.push(await DownloadDirectoryDS.listBoards());
+		res.status(200).json(results);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	} 
 });
 
 router.get("/boards/AddBoard/:boardID", async function (req, res, next) {

@@ -77,6 +77,7 @@ public class RFAddress {
 
     // TODO: should have a cache of boardnames that comes from the cloud.
     // TODO: alt is to have each board broadcast their name repeatedly
+    // DKW this api is available now GET burnerboard.com/boards/
     public String boardAddressToName(int address) {
         String [] boardNames = {
                 "proto",
