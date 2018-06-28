@@ -341,7 +341,7 @@ public class IoTClient {
         if (deviceId == null) {
             deviceId = MqttAsyncClient.generateClientId();
         }
-        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" + Build.MODEL.replaceAll("\\s", ""));
+        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/installer-" + Build.MODEL.replaceAll("\\s", ""));
         //deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-test");
     }
 
