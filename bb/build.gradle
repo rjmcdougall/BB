@@ -16,12 +16,10 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 3800
-        versionName "38.00"
+        versionCode 3801
+        versionName "38.01"
 
         signingConfig signingConfigs.burnerboard
-
-
     }
     buildTypes {
         release {
