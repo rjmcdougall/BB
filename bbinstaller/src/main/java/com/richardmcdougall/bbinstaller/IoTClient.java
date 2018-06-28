@@ -78,7 +78,7 @@ public class IoTClient {
     boolean haveConnected = false;
     boolean haveEverConnected = false;
     WifiManager mWiFiManager = null;
-    String subscriptionTopic = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/config");
+    String subscriptionTopic = new String("/devices/installer-" + Build.MODEL.replaceAll("\\s", "") + "/config");
     public IoTAction mIoTActionCallback = null;
 
     interface IoTAction {
@@ -321,7 +321,7 @@ public class IoTClient {
         message.setRetained(true);
 
         try {
-            String t = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
+            String t = new String("/devices/installer-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
             //String t = new String("/devices/bb-test/events/" + topic);
             Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
