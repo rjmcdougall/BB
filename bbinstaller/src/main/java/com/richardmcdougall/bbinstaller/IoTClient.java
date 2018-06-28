@@ -78,7 +78,7 @@ public class IoTClient {
     boolean haveConnected = false;
     boolean haveEverConnected = false;
     WifiManager mWiFiManager = null;
-    String subscriptionTopic = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/config");
+    String subscriptionTopic = new String("/devices/installer-" + Build.MODEL.replaceAll("\\s", "") + "/config");
     public IoTAction mIoTActionCallback = null;
 
     interface IoTAction {
@@ -175,7 +175,7 @@ public class IoTClient {
 
 
                                     try {
-                                        mqttClient.subscribe(subscriptionTopic, 0, null, new IMqttActionListener() {
+                                        mqttClient.subscribe(subscriptionTopic, 1, null, new IMqttActionListener() {
                                             @Override
                                             public void onSuccess(IMqttToken asyncActionToken) {
                                                 Log.d(TAG, "Subscribed!");
@@ -291,7 +291,7 @@ public class IoTClient {
         }
     }
 
-    public void sendUpdate(String topic, String content) {
+    public void sendUpdate(String content) {
         //int qos             = 2;
         //String broker       = "tcp://m11.cloudmqtt.com:15488";
         int qos = 1;
@@ -321,7 +321,7 @@ public class IoTClient {
         message.setRetained(true);
 
         try {
-            String t = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
+            String t = new String("/devices/installer-" + Build.MODEL.replaceAll("\\s", "") + "/state");
             //String t = new String("/devices/bb-test/events/" + topic);
             Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
@@ -341,7 +341,7 @@ public class IoTClient {
         if (deviceId == null) {
             deviceId = MqttAsyncClient.generateClientId();
         }
-        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" + Build.MODEL.replaceAll("\\s", ""));
+        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/installer-" + Build.MODEL.replaceAll("\\s", ""));
         //deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-test");
     }
 
