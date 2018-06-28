@@ -134,7 +134,7 @@ public class Installer extends Service {
                                   public void onReceive(Context context, Intent intent) {
                                       int extraWifiState =
                                               intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                                              WifiManager.WIFI_STATE_UNKNOWN);
+                                                      WifiManager.WIFI_STATE_UNKNOWN);
 
                                       switch(extraWifiState){
                                           case WifiManager.WIFI_STATE_DISABLED:
