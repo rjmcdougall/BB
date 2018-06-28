@@ -371,6 +371,10 @@ public class BoardVisualization {
             return mFrameRate;
         }
 
+        if(mBurnerBoard.mBBService.dlManager.dataDirectory == null){
+            return mFrameRate;
+        }
+
         // TODO: check perf overhead of checking this every frame
         if(mBurnerBoard.mBBService.dlManager.GetVideo(mode).has("algorithm")){
             String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(mode);
