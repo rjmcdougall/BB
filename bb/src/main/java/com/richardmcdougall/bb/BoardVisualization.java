@@ -13,6 +13,9 @@ import android.media.audiofx.Visualizer;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.Random;
 
 /**
@@ -371,16 +374,19 @@ public class BoardVisualization {
             return mFrameRate;
         }
 
-        if(mBurnerBoard.mBBService.dlManager.dataDirectory == null){
+        if(mBurnerBoard.mBBService.dlManager == null){
             return mFrameRate;
         }
 
         // TODO: check perf overhead of checking this every frame
-        if(mBurnerBoard.mBBService.dlManager.GetVideo(mode).has("algorithm")){
+        JSONObject videos = mBurnerBoard.mBBService.dlManager.GetVideo(mode);
+        if (videos == null) {
+            return mFrameRate;
+        }
+        if(videos.has("algorithm")){
             String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
-        }
-        else {
+        } else {
             mVisualizationVideo.update(mode);
             return mFrameRate;
         }
