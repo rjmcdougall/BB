@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.speech.tts.TextToSpeech;
+import android.text.format.Formatter;
 import android.util.Log;
 
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -27,12 +28,17 @@ import org.json.JSONObject;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 import static android.R.attr.action;
 import static android.R.attr.path;
+import static android.R.attr.versionCode;
 import static android.content.ContentValues.TAG;
 
 public class Installer extends Service {
@@ -267,7 +273,31 @@ public class Installer extends Service {
 
     }
 
+    protected String wifiIpAddress(WifiManager wifiManager) {
+
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+
+        // Convert little-endian to big-endianif needed
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ipAddress = Integer.reverseBytes(ipAddress);
+        }
+
+        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+
+        String ipAddressString;
+        try {
+            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
+        } catch (UnknownHostException ex) {
+            l("Unable to get host address.");
+            ipAddressString = null;
+        }
+
+        return ipAddressString;
+    }
+
     public void installerThread() {
+
+        String wifiAddress = "";
 
         while (true) {
             try {
@@ -279,7 +309,10 @@ public class Installer extends Service {
                         mWiFiManager.setWifiEnabled(true);
                     }
                     mWiFiManager.reassociate();
+                } else {
+
                 }
+                String ip = wifiIpAddress(mWiFiManager);
                 try {
                     Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
                     mContext.sendBroadcast(intent);
@@ -288,7 +321,15 @@ public class Installer extends Service {
                 }
 
                 int currentBBVersion = getBBversion();
-
+                try {
+                    JSONObject obj = new JSONObject();
+                    obj.put("ip", ip);
+                    obj.put("version", currentBBVersion);
+                    obj.put("upgradeTo", mUpgradeToVersion);
+                    l("state:" +  obj.toString());
+                    iotClient.sendUpdate(obj.toString());
+                } catch (Exception e) {
+                }
 
 
                 if (mUpgradeToVersion == -1) {
