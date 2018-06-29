@@ -118,7 +118,7 @@ public class RFClientServer {
         mMain = service;
         mRF = rfRadio;
         mRFAddress = rfRadio.mRFAddress;
-        mBoardAddress = mRFAddress.getBoardAddress(service.getBoardId());
+   //     mBoardAddress = mRFAddress.getBoardAddress(service.getBoardId());
 
         // Make a pipe for packet receive
         try {
@@ -225,6 +225,9 @@ public class RFClientServer {
     // Send time-sync reply to specific client
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
+        if(mBoardAddress<=0)
+            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+
         d("Server reply : " +
                 mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + mRFAddress.boardAddressToName(toClient) + "(" + toClient + ")");
@@ -275,6 +278,9 @@ public class RFClientServer {
     // TODO: Decode server receive packet and send to server receive function
     void processReceive(byte [] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
+
+        if(mBoardAddress<=0)
+            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
 
         int recvMagicNumber = magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
@@ -383,6 +389,9 @@ public class RFClientServer {
 
     private void processSyncResponse(byte[] recvPacket) {
 
+        if(mBoardAddress<=0)
+            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+
         d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
@@ -457,6 +466,8 @@ public class RFClientServer {
 
         mPrefsEditor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
 
+        if(mBoardAddress<=0)
+            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
 
         while (true) {
 

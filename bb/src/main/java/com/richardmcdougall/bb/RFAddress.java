@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
@@ -27,84 +30,78 @@ public class RFAddress {
     // TODO: should have a cache of board name/addresses that comes from the cloud.
     public int getBoardAddress(String boardId) {
 
-        byte[] encoded = null;
-        int myAddress;
+        JSONObject board;
+        int myAddress = -1;
+
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            encoded = digest.digest(boardId.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            l("Could not calculate boardAddress");
-            return -1;
+
+            if(mBBService.dlManager==null) {
+                l("Could not find board address data");
+                return myAddress;
+            }
+            if(mBBService.dlManager.dataBoards==null) {
+                l("Could not find board address data");
+                return myAddress;
+            }
+
+            for (int i=0; i < mBBService.dlManager.dataBoards.length(); i++) {
+                board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                if(board.getString("name").equals(boardId)){
+                    myAddress = board.getInt("address");
+                }
+            }
+
+            return myAddress;
         }
-        // Natural board leaders get explicit addresses
-        switch (boardId) {
-
-            case "akula":
-                myAddress = 1;
-                break;
-
-            case "candy":
-                myAddress = 2;
-                break;
-
-            case "grumpy":
-                myAddress = 3;
-                break;
-
-            case "cranky":
-                myAddress = 4;
-                break;
-
-            case "artemis":
-                myAddress = 5;
-                break;
-
-            case "test_board":
-                myAddress = 100;
-                break;
-
-            case "handheld1":
-                myAddress = 200;
-                break;
-
-            default:
-                // Otherwise, calculate 16 bit address for radio from name
-                myAddress = (encoded[0] & 0xff) * 256 + (encoded[1] & 0xff);
+        catch(JSONException e){
+            l(e.getMessage());
+            return myAddress;
         }
-        //l("Radio address for " + boardId + " = " + myAddress);
-        return myAddress;
+        catch(Exception e){
+            l(e.getMessage());
+            return myAddress;
+        }
+
     }
 
     // TODO: should have a cache of boardnames that comes from the cloud.
     // TODO: alt is to have each board broadcast their name repeatedly
     // DKW this api is available now GET burnerboard.com/boards/
     public String boardAddressToName(int address) {
-        String [] boardNames = {
-                "proto",
-                "akula",
-                "boadie",
-                "artemis",
-                "goofy",
-                "joon",
-                "biscuit",
-                "squeeze",
-                "ratchet",
-                "pegasus",
-                "vega",
-                "monaco",
-                "candy",
-                "test_board",
-                "grumpy",
-                "cranky",
-                "sexy",
-                "littleboard",
-                "handheld1"};
-        for (String name :boardNames) {
-            if (address == getBoardAddress(name)) {
-                return (name);
+
+        JSONObject board;
+        String boardId = "unknown";
+
+        try {
+
+            if(mBBService.dlManager==null) {
+                l("Could not find board name data");
+                return boardId;
             }
+            if(mBBService.dlManager.dataBoards==null) {
+                l("Could not find board name data");
+                return boardId;
+            }
+
+            for (int i=0; i < mBBService.dlManager.dataBoards.length(); i++) {
+                board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                if(board.getInt("address")==address){
+                    boardId = board.getString("name");
+                }
+            }
+
+            return boardId;
         }
-        return "unknown";
+        catch(JSONException e){
+            l(e.getMessage());
+            return boardId;
+        }
+        catch(Exception e){
+            l(e.getMessage());
+            return boardId;
+        }
+
+
     }
 
     private void sendLogMsg(String msg) {
