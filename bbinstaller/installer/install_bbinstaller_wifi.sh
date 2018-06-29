@@ -18,7 +18,8 @@ echo "Configuring $DEVICE for writeable boot filesystem..."
 ~/Library/Android/sdk/platform-tools/adb remount
 echo "Deploying BB Installer to $DEVICE..."
 ~/Library/Android/sdk/platform-tools/adb shell rm -r /system/priv-app/com.richardmcdougall.bb*
-~/Library/Android/sdk/platform-tools/adb install -rg release/bbinstaller-release.apk
+#~/Library/Android/sdk/platform-tools/adb install -rg release/bbinstaller-release.apk
+~/Library/Android/sdk/platform-tools/adb install -g release/bbinstaller-release.apk
 ~/Library/Android/sdk/platform-tools/adb shell cp -rp  /data/app/com.richardmcdougall.bbinstaller* /system/priv-app
 ~/Library/Android/sdk/platform-tools/adb shell pm uninstall com.richardmcdougall.bbinstaller
 echo "Rebooting $DEVICE..."
