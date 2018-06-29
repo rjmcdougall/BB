@@ -199,6 +199,7 @@ public class BBService extends Service {
         ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
         this.registerReceiver(mUsbReceiver, ufilter);
 
+        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         PackageInfo pinfo;
         try {
@@ -718,7 +719,6 @@ public class BBService extends Service {
         //udpClientServer = new UDPClientServer(this);
         //udpClientServer.Run();
 
-        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
@@ -1376,12 +1376,16 @@ public class BBService extends Service {
                 int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
                 int voltage = mBurnerBoard.getBatteryVoltage();
 
-                /*
-                 * Now done in bb-installer
-                if (mWiFiManager.isWifiEnabled() == false) {
-                    mWiFiManager.setWifiEnabled(true);
+                if (checkWifiOnAndConnected(mWiFiManager) == false) {
+
+                    l("Enabling Wifi...");
+                    if (mWiFiManager.setWifiEnabled(true) == false) {
+                        l("Failed to enable wifi");
+                    }
+                    if (mWiFiManager.reassociate() == false) {
+                        l("Failed to associate wifi");
+                    }
                 }
-                */
 
                 // Every 10 seconds log to IOT cloud
                 if (loopCnt % 10 == 0) {
