@@ -14,29 +14,6 @@ public class AudioCenter extends Visualization {
     public AudioCenter(BurnerBoard bb, BoardVisualization visualization) {
         super(bb, visualization);
     }
-            /*
-    private void drawRectCenter(int size, int [] color) {
-        if (size == 0)
-            return;
-        int x1 = mBoardWidth / 2 - 1; // 4
-        int y1 = mBoardHeight / 2 - 1;  // 34
-        int xSizeLim = java.lang.Math.min(size, 5);
-        for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim ; x++) { // 1: 4...5
-            mBurnerBoard.setPixel(x, y1 - (size * 3 - 1) , color[size]); // 1: 34
-            mBurnerBoard.setPixel(x, y1 + (size * 3 - 1) + 1, color[size]); // 1: 35
-            mBurnerBoard.setPixel(x, y1 - (size * 3 - 1) - 1, color[size + 1]); // 1: 34
-            mBurnerBoard.setPixel(x, y1 + (size * 3 - 1) + 1 + 1, color[size + 1]); // 1: 35
-            mBurnerBoard.setPixel(x, y1 - (size * 3 - 1) - 2, color[size + 2]); // 1: 34
-            mBurnerBoard.setPixel(x, y1 + (size * 3 - 1) + 1 + 2, color[size + 2]); // 1: 35
-        }
-        for (int y = y1 - (size * 3 - 1); y <= y1 + size * 3; y++) { // 1: 34..35
-            if(size > (mBoardWidth / 2))
-                continue;
-            mBurnerBoard.setPixel(x1 - (xSizeLim - 1), y, color[size]); //
-            mBurnerBoard.setPixel(x1 + (xSizeLim - 1) + 1, y, color[size]);
-        }
-    }
-    */
 
     private void drawRectCenter(int size, int color) {
         if (size == 0)
