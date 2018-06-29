@@ -601,7 +601,7 @@ public class RFClientServer {
         for (int board: mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             // Not a leader if we haven't heard from you in the last 5 mins
-            if ((mMain.GetCurrentClock() - v.lastHeard) > 300000) {
+            if ((SystemClock.elapsedRealtime() - v.lastHeard) > 300000) {
                 continue;
             }
             // Not a leader if you aren't reliably there
