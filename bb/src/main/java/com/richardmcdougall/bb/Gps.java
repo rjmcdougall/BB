@@ -112,10 +112,10 @@ public class Gps {
                 @Override
                 public void sentenceRead(SentenceEvent event) {
                     // here we receive each sentence read from the port
-                    //l(event.getSentence().toString());
+                    l(event.getSentence().toString());
                     GGASentence s = (GGASentence) event.getSentence();
                     if (s.isValid()) {
-                        d("Sat Time: " + s.getTime().toString());
+                        l("Sat Time: " + s.getTime().toString());
                         if (mGpsCallback != null) {
                             mGpsCallback.timeEvent(s.getTime());
                         }
