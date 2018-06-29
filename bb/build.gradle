@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 3802
-        versionName "38.02"
+        versionCode 3803
+        versionName "38.03"
 
         signingConfig signingConfigs.burnerboard
     }
@@ -42,6 +42,10 @@ android {
         exclude 'META-INF/notice.txt'
         exclude 'META-INF/license'
         exclude 'META-INF/license.txt'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
