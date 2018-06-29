@@ -228,6 +228,7 @@ public class RFClientServer {
 
         if(mBoardAddress<=0)
             mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+        l("I'm address " + mBoardAddress);
 
         d("Server reply : " +
                 mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
@@ -280,7 +281,7 @@ public class RFClientServer {
     void processReceive(byte [] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
-        if(mBoardAddress<=0)
+        if(mBoardAddress <= 0)
             mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
 
         int recvMagicNumber = magicNumberToInt(
@@ -600,8 +601,8 @@ public class RFClientServer {
             // Always vote for myself.
             // I'll get knocked out if there is a higher ranked address with votes
             incVote(mBoardAddress, kIncMyVote);
+            mLastVote = SystemClock.elapsedRealtime();
         }
-        mLastVote = SystemClock.elapsedRealtime();
 
 
         // Vote for the heard board
