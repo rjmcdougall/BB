@@ -52,7 +52,7 @@ public class FindMyFriends {
     int mThereAccurate;
     long mLastSend = 0;
     long mLastRecv = 0;
-    private int mBoardAddress;
+    private int mBoardAddress = 0;
     String mBoardId;
     byte[] mLastHeardLocation;
 
@@ -89,6 +89,11 @@ public class FindMyFriends {
                 mAlt = (int)(pos.getAltitude() * 1000000);
                 long sinceLastFix = System.currentTimeMillis() - mLastFix;
 
+                // since the address is loaded from a JSON you may get a race condition
+                // so try to find the address of this board each time until you do.
+                if(mBoardAddress<=0)
+                    mBoardAddress = mRFAddress.getBoardAddress(mBBService.getBoardId());
+
                 if (sinceLastFix > kMaxFixAge) {
                     d("FMF: sending GPS update");
                     mIotClient.sendUpdate("bbevent", "[" +
@@ -104,8 +109,9 @@ public class FindMyFriends {
                 d("FMF Time: " + time.toString());
             }
         });
-        mBoardAddress = mRFAddress.getBoardAddress(service.getBoardId());
-    }
+
+
+     }
 
     // GPS Packet format =
     //         [0] kGPSMagicNumber byte one

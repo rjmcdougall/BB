@@ -30,6 +30,7 @@ public class DownloadManager {
     private static final String TAG = "BB.BBDownloadManger";
     protected String mFilesDir;
     protected JSONObject dataDirectory;
+    protected JSONArray dataBoards;
     int mVersion;
     boolean mIsServer = false;
     String mBoardId;
@@ -38,6 +39,9 @@ public class DownloadManager {
         return dataDirectory;
     }
 
+    JSONArray GetDataBoards() {
+        return dataBoards;
+    }
 
     interface OnDownloadProgressType {
         public void onProgress(String file, long fileSize, long bytesDownloaded);
@@ -336,16 +340,35 @@ public class DownloadManager {
             }
         }
 
+        public void LoadInitialBoardsDirectory() {
+            try {
+                String dataDir = mDM.mFilesDir;
+                File[] flist = new File(dataDir).listFiles();
+                if (flist != null) {
+
+                    // if files are no longer referenced in the Data Directory, delete them.
+                    String origDir = LoadTextFile("boards.json");
+                    if (origDir != null) {
+                        JSONArray dir = new JSONArray(origDir);
+                        mDM.dataBoards = dir;
+                    }
+                }
+
+            } catch (Throwable er) {
+                er.printStackTrace();
+                mDM.onProgressCallback.onVoiceCue("Error loading media error due to jason error");
+            }
+        }
+
         // Spaces were breaking the download
-        public String encodeURL(String url){
+        public String encodeURL(String url) {
             try {
                 String[] urlArray = url.split("/");
                 urlArray[urlArray.length - 1] = URLEncoder.encode(urlArray[urlArray.length - 1], "UTF-8").replaceAll("\\+", "%20");
                 urlArray[urlArray.length - 2] = URLEncoder.encode(urlArray[urlArray.length - 2], "UTF-8").replaceAll("\\+", "%20");
                 urlArray[urlArray.length - 3] = URLEncoder.encode(urlArray[urlArray.length - 3], "UTF-8").replaceAll("\\+", "%20");
                 return TextUtils.join("/", urlArray);
-            }
-            catch(Throwable th){
+            } catch (Throwable th) {
                 return "";
             }
         }
@@ -374,7 +397,7 @@ public class DownloadManager {
                 String dirTxt = LoadTextFile("directory.json.tmp");
                 JSONObject dir = new JSONObject(dirTxt);
 
-                if(mDM.dataDirectory != null)
+                if (mDM.dataDirectory != null)
                     if (dir.toString().length() == mDM.dataDirectory.toString().length()) {
                         Log.d(TAG, "No Changes to Directory JSON.");
                         return true;
@@ -450,22 +473,80 @@ public class DownloadManager {
             }
         }
 
+        public boolean GetNewBoardsJSON() {
+
+            try {
+
+                String dataDir = mDM.mFilesDir;
+                String DirectoryURL = "https://burnerboard.com/boards/";
+                //DirectoryURL = encodeURL(DirectoryURL);
+                Log.d(TAG, DirectoryURL);
+
+                long ddsz = DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON");
+
+                if (ddsz < 0) {
+                    Log.d(TAG, "Unable to Download Boards JSON.  Sleeping for 5 seconds. ");
+                    return false;
+                }
+
+                new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
+
+                String dirTxt = LoadTextFile("boards.json.tmp");
+                JSONArray dir = new JSONArray(dirTxt);
+
+                if (mDM.dataBoards != null)
+                    if (dir.toString().length() == mDM.dataBoards.toString().length()) {
+                        Log.d(TAG, "No Changes to Boards JSON.");
+                        return true;
+                    }
+
+                if (mDM.onProgressCallback != null)
+                    mDM.onProgressCallback.onVoiceCue("New Boards Discovered.");
+
+                // got new bards.  Update!
+                mDM.dataBoards = dir;
+
+                // now that you have the media, update the directory so the board can use it.
+                new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
+
+                return true;
+            } catch (JSONException jse) {
+                Log.d(TAG, "Error " + jse.getMessage());
+                return false;
+            } catch (Throwable th) {
+                Log.d(TAG, "Error " + th.getMessage());
+                return false;
+            }
+        }
+
         @Override
         public void run() {
+            LoadInitialBoardsDirectory();
             LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
             try {
-                boolean downloadSuccess = false;
+                boolean downloadSuccessDirectory = false;
+                boolean downloadSuccessBoards = false;
+                int i = 0;
 
                 // On boot it can take some time to get an internet connection.  Check every 5 seconds for 5 minutes
-                while (!downloadSuccess) {
-                    downloadSuccess = GetNewDirectory();
+                while (!(downloadSuccessDirectory && downloadSuccessBoards)
+                        && i < 60) { // try this for 5 minutes.
+                    i++;
+
+                    if(!downloadSuccessBoards)
+                        downloadSuccessBoards = GetNewBoardsJSON();
+
+                    if(!downloadSuccessDirectory)
+                        downloadSuccessDirectory = GetNewDirectory();
+
                     Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
                 }
 
                 // After the first boot check periodically in case the profile has changed.
                 while (true) {
                     GetNewDirectory();
+                    GetNewBoardsJSON();
                     Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
                 }
             } catch (Throwable th) {
