@@ -368,15 +368,15 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     // TODO: make faster by using ints
     private int pixelColorCorrectionRed(int red) {
-        return gammaCorrect(red);
+        return red;
     }
 
     private int pixelColorCorrectionGreen(int green) {
-        return gammaCorrect(green);
+        return green;
     }
 
     private int pixelColorCorrectionBlue(int blue) {
-        return gammaCorrect(blue);
+        return blue;
     }
 
     public void clearPixels() {
