@@ -18,6 +18,7 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.media.SyncParams;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -719,18 +720,15 @@ public class BBService extends Service {
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
-        // RMC putback
-        if (mWiFiManager.isWifiEnabled()) {
-            l("Wifi Enabled Already, disabling");
-            //mWiFiManager.setWifiEnabled(false);
-        }
+        if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
-        l("Enabling Wifi...");
-        if (mWiFiManager.setWifiEnabled(true) == false) {
-            l("Failed to enable wifi");
-        }
-        if (mWiFiManager.reassociate() == false) {
-            l("Failed to associate wifi");
+            l("Enabling Wifi...");
+            if (mWiFiManager.setWifiEnabled(true) == false) {
+                l("Failed to enable wifi");
+            }
+            if (mWiFiManager.reassociate() == false) {
+                l("Failed to associate wifi");
+            }
         }
 
         boolean hasLowLatencyFeature =
@@ -1562,6 +1560,21 @@ public class BBService extends Service {
 
     }
 
+    private boolean checkWifiOnAndConnected(WifiManager wifiMgr) {
+
+        if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
+
+            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+
+            if( wifiInfo.getNetworkId() == -1 ){
+                return false; // Not connected to an access point
+            }
+            return true; // Connected to an access point
+        }
+        else {
+            return false; // Wi-Fi adapter is OFF
+        }
+    }
 }
 
 
