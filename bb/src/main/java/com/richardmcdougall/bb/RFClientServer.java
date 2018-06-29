@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -136,7 +137,7 @@ public class RFClientServer {
 
         }
         setupUDPLogger();
-
+        mLastVote = SystemClock.elapsedRealtime();
     }
 
     void Run() {
@@ -530,21 +531,22 @@ public class RFClientServer {
     }
     private HashMap<Integer, boardVote> mBoardVotes = new HashMap<>();
 
-    private void tryElectServer(int address, int sigstrength) {
+    private void incVote(int address, int amount) {
+        // Increment the vote for me
+        boardVote meVote = mBoardVotes.get(address);
+        if (meVote == null) {
+            meVote = new boardVote();
+            meVote.votes = 0;
+        }
+        meVote.votes = meVote.votes + amount;
+        if (meVote.votes > kMaxVotes) {
+            meVote.votes = kMaxVotes;
+        }
+        meVote.lastHeard = SystemClock.elapsedRealtime();
+        mBoardVotes.put(address, meVote);
+    }
 
-        // Ignore server if it's far away
-        // 80db is typically further than you can hear the audio
-        //if (sigstrength > 80) {
-        //    return;
-        //}
-
-        // Always vote for myself.
-        // I'll get knocked out if there is a higher ranked address with votes
-        boardVote meVote = new boardVote();
-        meVote.votes = 999;
-        meVote.lastHeard = mMain.GetCurrentClock();
-        boardVote me = mBoardVotes.put(mBoardAddress, meVote);
-
+    private void decVotes() {
         // Decrement all the board votes
         for (int board: mBoardVotes.keySet()) {
             boardVote vote = mBoardVotes.get(board);
@@ -555,19 +557,44 @@ public class RFClientServer {
             vote.votes = votes;
             mBoardVotes.put(board, vote);
         }
+    }
 
-        // Increment the vote for the heard board
-        boardVote vote = mBoardVotes.get(address);
-        if (vote == null) {
-            vote = new boardVote();
-            vote.votes = 0;
+    private long mLastVote;
+
+    // Parameters for voting
+    // Time we hold on to a valid master server is kMaxVotes * kMinVoteTime
+    // 30 * 5 secs = 150 seconds
+    // have to hear from a master kIncVote/kMaxVotes times in 150 seconds
+    private final static int kMaxVotes    = 30; // max of 30 votes
+    private final static int kMinVotes    = 20; // Must have at least this to be a server
+    private final static int kIncVote     = 10; // have to hear from a master 3 times in 150 seconds
+    private final static int kIncMyVote   = 4;  // inc my vote slower to allow for packet loss
+    private final static int kMinVoteTime = 5000;
+
+    private void tryElectServer(int address, int sigstrength) {
+
+        // Ignore server if it's far away
+        // 80db is typically further than you can hear the audio
+        //if (sigstrength > 80) {
+        //    return;
+        //}
+
+        // Decrement all votes by one as often as every kMinVoteTime seconds.
+        // This makes the stickyness for a heard master
+        // kMaxVotes / kMinVoteTime
+        long timeSinceVote = SystemClock.elapsedRealtime() - mLastVote;
+        if (timeSinceVote > kMinVoteTime) {
+            decVotes();
+            // Vote for myself
+            // Always vote for myself.
+            // I'll get knocked out if there is a higher ranked address with votes
+            incVote(mBoardAddress, kIncMyVote);
         }
-        vote.votes = vote.votes + 3;
-        if (vote.votes > 12) {
-            vote.votes = 12;
-        }
-        vote.lastHeard = mMain.GetCurrentClock();
-        mBoardVotes.put(address, vote);
+        mLastVote = SystemClock.elapsedRealtime();
+
+
+        // Vote for the heard board
+        incVote(address, kIncVote);
 
         // Find the leader to elect
         int lowest = 65535;
@@ -578,7 +605,7 @@ public class RFClientServer {
                 continue;
             }
             // Not a leader if you aren't reliably there
-            if (v.votes < 6) {
+            if (v.votes < kMinVotes) {
                 continue;
             }
             // Elect you if you are the lowest heard from
@@ -586,7 +613,7 @@ public class RFClientServer {
                 lowest = board;
             }
         }
-        if (lowest < 65536) {
+        if (lowest < 65535) {
             mServerAddress = lowest;
         }
 
@@ -595,10 +622,10 @@ public class RFClientServer {
             boardVote v = mBoardVotes.get(board);
             if (board == mServerAddress) {
                 l("Vote: Server " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
-                        + ", lastheard: " + (mMain.GetCurrentClock() - v.lastHeard));
+                        + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             } else {
                 l("Vote: Client " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
-                        + ", lastheard: " + (mMain.GetCurrentClock() - v.lastHeard));
+                        + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             }
         }
     }
