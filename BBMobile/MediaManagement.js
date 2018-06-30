@@ -35,7 +35,7 @@ export default class MediaManagement extends Component {
 					<BatteryController mediaState={this.props.mediaState} />
 					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
 					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.props.mediaState} mediaType="Video" />
-					<MapController mediaState={this.props.mediaState} />
+					<MapController mediaState={this.props.mediaState} onLoadAPILocations={this.props.onLoadAPILocations} />
 				</ScrollView>
 			</View>
 		);
@@ -47,6 +47,7 @@ MediaManagement.propTypes = {
 	onUpdateVolume: PropTypes.func,
 	onSelectAudioTrack: PropTypes.func,
 	onSelectVideoTrack: PropTypes.func,
+	onLoadAPILocations: PropTypes.func,
 };
 
 MediaManagement.defaultProps = {

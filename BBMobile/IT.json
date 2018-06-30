@@ -1,0 +1,75 @@
+after [
+    {
+        "title": "sexy",
+        "latitude": 39.780165,
+        "longitude": -86.060892,
+        "address": "32602",
+        "boardId": "sexy"
+    },
+    {
+        "title": "grumpy",
+        "boardId": "grumpy",
+        "latitude": 37.468318,
+        "longitude": -122.16466
+    },
+    {
+        "title": "vega",
+        "boardId": "vega",
+        "latitude": 39.780345,
+        "longitude": -86.060875
+    },
+    {
+        "title": "pegasus",
+        "boardId": "pegasus",
+        "latitude": 37.759241,
+        "longitude": -122.45029
+    },
+    {
+        "title": "sexy",
+        "boardId": "sexy",
+        "latitude": 39.780006,
+        "longitude": -86.060941
+    },
+    {
+        "title": "artemis",
+        "boardId": "artemis",
+        "latitude": 37.487948,
+        "longitude": -122.189285
+    },
+    {
+        "title": "candy",
+        "boardId": "candy",
+        "latitude": 37.488023,
+        "longitude": -122.189225
+    },
+    {
+        "title": "cranky",
+        "boardId": "cranky",
+        "latitude": 37.468373,
+        "longitude": -122.164728
+    },
+    {
+        "title": "test_board",
+        "boardId": "test_board",
+        "latitude": 37.503702,
+        "longitude": -122.483745
+    },
+    {
+        "title": "ratchet",
+        "boardId": "ratchet",
+        "latitude": 37.460545,
+        "longitude": -122.176333
+    },
+    {
+        "title": "monaco",
+        "boardId": "monaco",
+        "latitude": 37.487948,
+        "longitude": -122.189285
+    },
+    {
+        "title": "akula",
+        "boardId": "akula",
+        "latitude": 37.487941,
+        "longitude": -122.189253
+    }
+]

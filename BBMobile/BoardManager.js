@@ -22,7 +22,7 @@ import AdminManagement from "./AdminManagement";
 import Diagnostic from "./Diagnostic";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
-
+import BBComAPIData from "./BBComAPIData"
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
 });
@@ -56,6 +56,8 @@ export default class BoardManager extends Component {
 		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
 		this.onSelectDevice = this.onSelectDevice.bind(this);
 		this.onRefreshDevices = this.onRefreshDevices.bind(this);
+		this.onLoadAPILocations = this.onLoadAPILocations.bind(this);
+		
 	}
 
 	async componentDidMount() {
@@ -219,25 +221,23 @@ export default class BoardManager extends Component {
 		}
 	}
 
+	async onLoadAPILocations() {
+		this.setState({ mediaState: await await BBComAPIData.fetchLocations(this.state.mediaState)});
+	}
 	async onUpdateVolume(event) {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
-		console.log("Media Management: Set Media State After Update Volume.");
 	}
 	async onSelectAudioTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
-		console.log("Media Management: Set Media State After after Select Audio.");
 	}
 	async onSelectVideoTrack(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
-		console.log("Media Management: Set Media State After Select Video.");
 	}
 	async onSelectDevice(idx) {
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
-		console.log("Media Management: Set Media State After Select Device.");
 	}
 	async onRefreshDevices() {
 		this.setState({ mediaState: await BLEBoardData.refreshDevices(this.state.mediaState) });
-		console.log("Media Management: Set Media State After Refresh Devices.");
 	}
 
 	async handleDiscoverPeripheral(peripheral) {
@@ -340,7 +340,7 @@ export default class BoardManager extends Component {
 			return (
 				<View style={styles.container}>
 					<View style={styles.contentContainer}>
-						{(this.state.showScreen == "Media Management") ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} />
+						{(this.state.showScreen == "Media Management") ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
 							: (this.state.showScreen == "Diagnostic") ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
 								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
 						}

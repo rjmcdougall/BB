@@ -9,7 +9,7 @@ router.use(bodyParser.json());
 
 router.use(async function (req, res, next) {
 
-	var excludeEndsWith = ["/DownloadDirectoryJSON","/boards/"];
+	var excludeEndsWith = ["/DownloadDirectoryJSON","/boards/","/boards/locations/"];
 
 	var exclude = excludeEndsWith.filter((item) => {
 		return req.path.endsWith(item);
@@ -47,6 +47,18 @@ router.get("/boards/", async function (req, res, next) {
 	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
 		var i = await DownloadDirectoryDS.listBoards(null);
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
+router.get("/boards/locations/", async function (req, res, next) {
+
+	const BatteryQueries = require("./BatteryQueries");
+	try {
+		var i = await BatteryQueries.queryBoardLocations();
 		res.status(200).json(i);
 	}
 	catch (err) {

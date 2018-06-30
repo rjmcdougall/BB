@@ -3,21 +3,25 @@ import { StyleSheet, Text, View } from "react-native";
 import MapView from "react-native-maps";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
+import StateBuilder from "./StateBuilder";
+
 export default class MapController extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			backgroundColor: "lightblue",
+			autoZoom: false,
+			wifiLocations: false,
 		};
 	}
 
 	render() {
 
+
 		try {
-			var locations = this.props.mediaState.locations;
+			var locations = StateBuilder.getLocations(this.props.mediaState, this.state.wifiLocations);
 			var region;
 
-			if (this.state.backgroundColor == "green")
+			if (this.state.autoZoom == true)
 				region = this.props.mediaState.region;
 			else
 				region = null;
@@ -45,19 +49,38 @@ export default class MapController extends React.Component {
 
 						<Touchable
 							onPress={() => {
-								if (this.state.backgroundColor == "lightblue")
+								if (this.state.autoZoom == true)
 									this.setState({
-										backgroundColor: "green"
+										autoZoom: false
 									});
 								else
 									this.setState({
-										backgroundColor: "lightblue"
+										autoZoom: true
 									});
 							}
 							}
-							style={[styles.container, { backgroundColor: this.state.backgroundColor }]}
+							style={[styles.container, { backgroundColor: this.state.autoZoom ? "green" : "lightblue" }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={styles.rowText}>Auto Zoom</Text>
+						</Touchable>
+						<Touchable
+							onPress={async () => {
+								if (this.state.wifiLocations == true){
+									this.setState({
+										wifiLocations: false
+									});
+								}
+								else{
+									await this.props.onLoadAPILocations();
+									this.setState({
+										wifiLocations: true
+									});
+								}
+							}
+							}
+							style={[styles.container, { backgroundColor: this.state.wifiLocations ? "green" : "lightblue" }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>Wifi Locations</Text>
 						</Touchable>
 					</View>
 				</View>
@@ -72,6 +95,7 @@ export default class MapController extends React.Component {
 
 MapController.propTypes = {
 	mediaState: PropTypes.object,
+	onLoadAPILocations: PropTypes.func,
 };
 
 const styles = StyleSheet.create({

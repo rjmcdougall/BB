@@ -42,7 +42,63 @@ exports.queryBatteryHistory = async function (boardID) {
 	});
 };
 
-exports.sqlBatteryLevel = `SELECT 
+exports.queryBoardLocations = async function () {
+
+	const options = {
+		query: sqlBoardLoactions,
+		useLegacySql: false // Use standard SQL syntax for queries.
+	};
+
+	try {
+		var results = await bigquery.query(options);
+		console.log(results);
+		return results[0].map((item) => {
+			return {
+				lat: item.lat,
+				lon: item.lon,
+				board: item.board,
+				time: item.time_stamp.value,
+			};
+		});
+
+	}
+	catch (error) {
+		throw new Error(error);
+	}
+
+};
+
+var sqlBoardLoactions =
+	`SELECT
+lat,
+lon,
+board,
+time_stamp
+FROM (
+SELECT
+  e.lat AS lat,
+  e.lon AS lon,
+  e.board_name AS board,
+  e.time_stamp AS time_stamp,
+  ROW_NUMBER() OVER (PARTITION BY e.board_name ORDER BY e.time_stamp DESC) AS seqnum
+FROM
+  \`burner-board.telemetry.events\` e
+JOIN (
+  SELECT
+	board_name,
+	MAX(time_stamp) AS time_stamp
+  FROM
+	\`burner-board.telemetry.events\` j
+  GROUP BY
+	board_name ) j
+ON
+  j.board_name = e.board_name
+WHERE
+  j.time_stamp = e.time_stamp ) t
+WHERE
+seqnum < 2;`;
+
+var sqlBatteryLevel = `SELECT 
 board_name,
 local_time as last_seen,
 is_online,
@@ -82,7 +138,7 @@ ORDER BY
 board_name ASC
 `;
 
-exports.sqlBatteryHistory = `#standardSQL
+var sqlBatteryHistory = `#standardSQL
 SELECT
 board_name,
 ROUND(AVG(battery_level)) AS BatteryLevel,
