@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import PropTypes from "prop-types";
-import BLEBoardData from "./BLEBoardData";
+import StateBuilder from "./StateBuilder";
 
 export default class BatteryController extends React.Component {
 	constructor(props) {
@@ -31,7 +31,7 @@ BatteryController.propTypes = {
 };
 
 BatteryController.defaultProps = {
-	mediaState: BLEBoardData.emptyMediaState,
+	mediaState: StateBuilder.blankMediaState(),
 };
 
 const styles = StyleSheet.create({

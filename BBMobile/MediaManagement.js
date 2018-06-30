@@ -11,7 +11,8 @@ import VolumeController from "./VolumeController";
 import TrackController from "./TrackController";
 import BatteryController from "./BatteryController";
 import MapController from "./MapController";
-import BLEBoardData from "./BLEBoardData";
+import StateBuilder from "./StateBuilder";
+
 const window = Dimensions.get("window");
 
 import PropTypes from "prop-types";
@@ -49,7 +50,7 @@ MediaManagement.propTypes = {
 };
 
 MediaManagement.defaultProps = {
-	mediaState: BLEBoardData.emptyMediaState,
+	mediaState: StateBuilder.blankMediaState(),
 	pointerEvents: "none",
 
 };

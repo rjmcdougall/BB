@@ -21,6 +21,26 @@ exports.setDefaultPeripheral = async function (peripheral) {
 	}
 };
 
+exports.setBoards = async function (boardNames) {
+	// create a path you want to write to
+	var path = RNFS.DocumentDirectoryPath + "/boardNames.json";
+
+	try {
+		var fileExists = (await RNFS.readDir(RNFS.DocumentDirectoryPath)).filter((item) => {
+			return item.name === "boardNames.json";
+		}).length > 0;
+
+		if(fileExists) {
+			RNFS.unlink(path);
+			console.log("FileSystemConfig: File Found, Deleting");
+		}
+
+		await RNFS.writeFile(path, JSON.stringify(boardNames), "utf8");
+	}
+	catch (error) {
+		console.log("FileSystemConfig: Error: " + error);
+	}
+};
 
 exports.getDefaultPeripheral = async function () {
 	// create a path you want to write to
@@ -38,6 +58,29 @@ exports.getDefaultPeripheral = async function () {
 
 		var peripheral = JSON.parse(await RNFS.readFile(path, "utf8"));
 
+		return peripheral;
+	}
+	catch (error) {
+		console.log("FileSystemConfig: Error: " + error);
+	}
+};
+
+
+exports.getBoards = async function () {
+	// create a path you want to write to
+	var path = RNFS.DocumentDirectoryPath + "/boardNames.json";
+
+	try {
+		var fileExists = (await RNFS.readDir(RNFS.DocumentDirectoryPath)).filter((item) => {
+			return item.name === "boardNames.json";
+		}).length > 0;
+
+		if (!fileExists) {
+			console.log("FileSystemConfig: File Not Found. Returning Null.");
+			return null;
+		}
+
+		var peripheral = JSON.parse(await RNFS.readFile(path, "utf8"));
 		return peripheral;
 	}
 	catch (error) {

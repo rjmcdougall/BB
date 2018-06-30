@@ -21,6 +21,7 @@ import MediaManagement from "./MediaManagement";
 import AdminManagement from "./AdminManagement";
 import Diagnostic from "./Diagnostic";
 import Touchable from "react-native-platform-touchable";
+import StateBuilder from "./StateBuilder";
 
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
@@ -36,8 +37,8 @@ export default class BoardManager extends Component {
 			scanning: false,
 			peripherals: new Map(),
 			appState: "",
-			selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-			mediaState: BLEBoardData.emptyMediaState,
+			selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+			mediaState: StateBuilder.blankMediaState(),
 			locationState: "",
 			showScreen: "Media Management",
 			discoveryState: "Connect To Board",
@@ -127,7 +128,7 @@ export default class BoardManager extends Component {
 
 			this.setState({
 				selectedPeripheral: peripheral,
-				mediaState: BLEBoardData.emptyMediaState,
+				mediaState: StateBuilder.blankMediaState(),
 				discoveryState: "Connect To Board",
 				backgroundLoop: null,
 			});
@@ -155,8 +156,8 @@ export default class BoardManager extends Component {
 				console.log("BoardManager: Clearing State: ");
 
 				this.setState({
-					selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-					mediaState: BLEBoardData.emptyMediaState,
+					selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
 					peripherals: new Map(),
 					automaticallyConnect: automaticallyConnect,
@@ -200,7 +201,7 @@ export default class BoardManager extends Component {
 
 					this.setState({
 						selectedPeripheral: peripheral,
-						mediaState: BLEBoardData.emptyMediaState,
+						mediaState: StateBuilder.blankMediaState(),
 						showScreen: "Media Management",
 						boardName: boardName,
 						discoveryState: "Connect To Board",
@@ -264,7 +265,7 @@ export default class BoardManager extends Component {
 						console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
 						this.setState({ discoveryState: "Located " + this.state.selectedPeripheral.name, });
 
-						var mediaState = await BLEBoardData.createMediaState(this.state.selectedPeripheral);
+						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
 
 						this.setState({
 							mediaState: mediaState,
@@ -377,8 +378,8 @@ export default class BoardManager extends Component {
 											this.setState({
 												peripherals: new Map(),
 												appState: "",
-												selectedPeripheral: BLEBoardData.emptyMediaState.peripheral,
-												mediaState: BLEBoardData.emptyMediaState,
+												selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+												mediaState: StateBuilder.blankMediaState(),
 												showScreen: "Discover",
 												discoveryState: "Connect To Board",
 												backgroundLoop: null,

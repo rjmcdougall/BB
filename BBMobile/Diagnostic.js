@@ -8,7 +8,7 @@ import {
 	Text,
 } from "react-native";
 
-import BLEBoardData from "./BLEBoardData";
+import StateBuilder from "./StateBuilder";
 import PropTypes from "prop-types";
 
 export default class Diagnostic extends Component {
@@ -44,7 +44,7 @@ Diagnostic.propTypes = {
 };
 
 Diagnostic.defaultProps = {
-	mediaState: BLEBoardData.emptyMediaState,
+	mediaState: StateBuilder.blankMediaState(),
 };
 
 const styles = StyleSheet.create({
