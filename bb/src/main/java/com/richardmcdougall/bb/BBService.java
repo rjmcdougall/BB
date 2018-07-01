@@ -103,7 +103,7 @@ public class BBService extends Service {
     public long serverRTT = 0;
     private int userTimeOffset = 0;
     public RFClientServer mRfClientServer = null;
-    public String boardId = Build.MODEL;
+    public String boardId = getBoardId();
     public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
@@ -152,8 +152,20 @@ public class BBService extends Service {
         }
     }
 
-    public String getBoardId() {
-        return boardId;
+
+    public static String getBoardId() {
+
+        String id;
+        String serial = Build.SERIAL;
+
+        if (Build.MODEL.contains("rpi3")) {
+            id = "rpi-" + serial.substring(Math.max(serial.length() - 6, 0),
+                    serial.length());
+        } else {
+            id = Build.MODEL;
+        }
+
+        return id;
     }
 
     /**
@@ -704,8 +716,7 @@ public class BBService extends Service {
 
         String model = android.os.Build.MODEL;
 
-        l("Starting BB on phone " + model);
-
+        l("Starting BB on " + boardId + ", model " + model);
 
         if (model.equals("iot_rpi3")) {
             phoneModelAudioLatency = 80;

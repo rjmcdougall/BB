@@ -57,7 +57,7 @@ public class BurnerBoardMast extends BurnerBoard {
         mBoardWidth = 24;
         mBoardHeight = 159;
         mMultipler4Speed = 3;
-        boardId = Build.MODEL;
+        boardId = BBService.getBoardId();
         boardType = "Burner Board Mast";
         l("Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];

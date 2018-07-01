@@ -53,7 +53,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mBoardWidth = 8;
         mBoardHeight = 256;
         mMultipler4Speed = 3;
-        boardId = Build.MODEL;
+        boardId = BBService.getBoardId();
         boardType = "Burner Board DirectMap";
         l("Burner Board DirectMap initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
