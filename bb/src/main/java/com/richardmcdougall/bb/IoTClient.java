@@ -41,6 +41,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 import java.io.InputStream;
 
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -84,11 +85,15 @@ public class IoTClient {
         setClientID();
         InputStream keyfile = context.getResources().openRawResource(context.
                 getResources().getIdentifier("rsa_private_pkcs8", "raw", context.getPackageName()));
+        int kfSize = 0;
         try {
-            keyfile.read(keyBytes);
+            kfSize = keyfile.read(keyBytes);
         } catch (Exception e) {
             Log.d(TAG, "Unable to open keyfile");
         }
+        byte[] compactKey = new byte[kfSize];
+        System.arraycopy(keyBytes, 0, compactKey, 0, kfSize);
+        keyBytes = compactKey;
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
@@ -325,10 +330,9 @@ public class IoTClient {
      * Create a Cloud IoT Core JWT for the given project id, signed with the given private key.
      */
     private String createJwtRsa(String projectId) throws Exception {
+
         DateTime now = new DateTime();
-        // Create a JWT to authenticate this device. The device will be disconnected after the token
-        // expires, and will have to reconnect with a new token. The audience field should always be set
-        // to the GCP project id.
+
         JwtBuilder jwtBuilder =
                 Jwts.builder()
                         .setIssuedAt(now.toDate())
@@ -336,14 +340,38 @@ public class IoTClient {
                         //.setExpiration(now.plusSeconds(20).toDate())
                         .setAudience(projectId);
 
-        //byte[] keyBytes = Files.readAllBytes(Paths.get(privateKeyFile));
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
 
-        return jwtBuilder.signWith(SignatureAlgorithm.RS256, kf.generatePrivate(spec)).compact();
+
+        Key key = null;
+        try {
+            key = kf.generatePrivate(spec);
+        } catch (Exception e1) {
+            Log.d(TAG, e1.toString());
+        }
+
+        String s = "none";
+        try {
+            s = jwtBuilder.signWith(SignatureAlgorithm.RS256, key).compact();
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+        }
+        return s;
     }
 
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
+    public static String bytesToHex(byte[] bytes) {
+
+        char[] hexChars = new char[bytes.length * 2];
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
 
 }
 
