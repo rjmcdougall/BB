@@ -68,8 +68,7 @@ exports.queryBoardLocations = async function () {
 
 };
 
-var sqlBoardLoactions =
-	`SELECT
+var sqlBoardLoactions = `SELECT
 lat,
 lon,
 board,
@@ -98,36 +97,39 @@ WHERE
 WHERE
 seqnum < 2;`;
 
-var sqlBatteryLevel = `SELECT 
+exports.sqlBatteryLevel = `SELECT
 board_name,
-local_time as last_seen,
+local_time AS last_seen,
 is_online,
-ROUND(battery_level) as battery_level
+ROUND(battery_level) AS battery_level
 FROM (
 SELECT
-  board_name,
-  local_time,
-  is_online,
-  battery_level,
-  row_number
+  board_name,
+  local_time,
+  is_online,
+  battery_level,
+  row_number
 FROM (
-  SELECT
-  FORMAT_DATETIME('%D %X',MAX(DATETIME(message_timestamp,
-        "US/Pacific"))) AS local_time,
-    TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), message_timestamp, HOUR) < 3 as is_online,
-    board_name,
-    ROW_NUMBER() OVER (PARTITION BY board_name ORDER BY message_timestamp DESC) AS row_number,
-    battery_level
-  FROM
-    \`burner-board.telemetry.battery_Data\`
-  WHERE
-      CAST(voltage AS FLOAT64) > 30.0
-  GROUP BY
-    board_name,
-    message_timestamp,
-    battery_level)
+  SELECT
+    FORMAT_DATETIME('%D %X',
+      MAX(DATETIME(message_timestamp,
+          "US/Pacific"))) AS local_time,
+    TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), message_timestamp, HOUR) < 3 AS is_online,
+    board_name,
+    ROW_NUMBER() OVER (PARTITION BY board_name ORDER BY message_timestamp DESC) AS row_number,
+    battery_level
+  FROM
+    \`burner-board.telemetry.battery_Data\`
+  WHERE
+    CAST(voltage AS FLOAT64) > 30.0
+    AND DATE(message_timestamp, "US/Pacific") BETWEEN DATE_ADD(CURRENT_DATE(), INTERVAL -15 DAY)
+    AND CURRENT_DATE()
+  GROUP BY
+    board_name,
+    message_timestamp,
+    battery_level)
 WHERE
-  row_number = 1 )
+  row_number = 1 )
 GROUP BY
 board_name,
 local_time,
@@ -137,8 +139,8 @@ row_number
 ORDER BY
 board_name ASC
 `;
-
-var sqlBatteryHistory = `#standardSQL
+ 
+exports.sqlBatteryHistory = `#standardSQL
 SELECT
 board_name,
 ROUND(AVG(battery_level)) AS BatteryLevel,
@@ -162,3 +164,4 @@ TimeBucket
 ORDER BY
 TimeBucket ASC
 `;
+
