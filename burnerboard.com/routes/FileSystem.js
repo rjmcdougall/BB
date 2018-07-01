@@ -16,7 +16,6 @@ var fileAttributes = {
 	mimeType: "",
 	title: "",
 	songDuration: 0,
-	speechCue: 0,
 };
 
 exports.filePath = function (boardID, profileID) {
@@ -43,7 +42,6 @@ exports.getGDriveMetadata = async function (fileId, oauthToken) {
 					mimeType: jsonContent.mimeType,
 					title: jsonContent.title,
 					songDuration: 0,
-					speechCue: "",
 				};
 				resolve();
 			}
@@ -52,7 +50,7 @@ exports.getGDriveMetadata = async function (fileId, oauthToken) {
 	});
 };
 
-exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken, speechCue) {
+exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken) {
 
 	var module = this;
 
@@ -99,7 +97,7 @@ function getSeconds(str) {
 	return seconds;
 }
 
-exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, speechCue) {
+exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken) {
 
 	try {
 
@@ -114,7 +112,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 		if (result == true)
 			throw new Error("the file " + fileAttributes.title + " already exists for board " + boardID + " in profile " + profileID);
 
-		await this.getDriveContent(boardID, profileID, fileId, oauthToken, speechCue);
+		await this.getDriveContent(boardID, profileID, fileId, oauthToken);
 
 		// duration is jacked.  two different approaches.
 		if(filePath.endsWith(".mp4") || filePath.endsWith(".m4a"))
@@ -129,8 +127,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 				"audio",
 				filePath,
 				fileAttributes.fileSize,
-				fileAttributes.songDuration,
-				"");
+				fileAttributes.songDuration);
 		}
 		else if (filePath.endsWith(".mp4")) {
 
@@ -139,8 +136,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken, 
 				"video",
 				filePath,
 				fileAttributes.fileSize,
-				fileAttributes.songDuration,
-				"");
+				fileAttributes.songDuration);
 		}
 	}
 	catch (error) {

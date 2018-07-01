@@ -579,7 +579,7 @@ router.post("/profiles/:profileID/AddFileFromGDrive", async function (req, res, 
 	const FileSystem = require("./FileSystem");
 
 	try {
-		results = await FileSystem.addGDriveFile(null, profileID, fileId, oAuthToken, "");
+		results = await FileSystem.addGDriveFile(null, profileID, fileId, oAuthToken);
 		res.status(200).json(results);
 	}
 	catch (err) {

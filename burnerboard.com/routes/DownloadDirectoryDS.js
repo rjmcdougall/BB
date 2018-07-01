@@ -25,7 +25,7 @@ exports.activateBoardProfile = async function (boardID, profileID, isProfileGlob
 	}
 };
 
-exports.addMedia = async function (boardID, profileID, mediaType, fileName, fileSize, fileLength, speechCue) {
+exports.addMedia = async function (boardID, profileID, mediaType, fileName, fileSize, fileLength) {
 
 	try {
 		var globalFolder = "global";
@@ -57,7 +57,6 @@ exports.addMedia = async function (boardID, profileID, mediaType, fileName, file
 				localName: localName,
 				Size: fileSize,
 				Length: fileLength,
-				SpeachCue: speechCue,
 				profile: profileID,
 				ordinal: null //set later
 			};
