@@ -85,22 +85,23 @@ class MediaList extends Component {
 					this.setState({
 						items: data.audio.map(item => ({
 							id: `${item.localName}`,
-							content: `${item.localName}`,
+							content: ` ${item.friendlyName ? item.friendlyName : item.localName}`,
 						}))
 					});
 				}
 				else {
+					console.log(data.video);
 					this.setState({
 						items: data.video.map(function (item) {
 							if (item.localName != null)
 								return {
 									id: `${item.localName}`,
-									content: `${item.localName}`,
+									content: `${item.friendlyName ? item.friendlyName : item.localName}`,
 								};
 							else {
 								return {
 									id: `${item.algorithm}`,
-									content: `${item.algorithm}`,
+									content: `${item.friendlyName ? item.friendlyName : item.algorithm}`,
 								};
 							}
 						})

@@ -96,10 +96,15 @@ public class DownloadManager {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
-                if (GetVideo(index).has("algorithm"))
-                    fn = GetVideo(index).getString("algorithm");
-                else
-                    fn = GetVideo(index).getString("localName");
+                if (GetVideo(index).has("friendlyName")) {
+                    fn = GetVideo(index).getString("friendlyName");
+                }
+                else {
+                    if (GetVideo(index).has("algorithm"))
+                        fn = GetVideo(index).getString("algorithm");
+                    else
+                        fn = GetVideo(index).getString("localName");
+                }
                 return fn;
             } catch (JSONException e) {
                 e.printStackTrace();

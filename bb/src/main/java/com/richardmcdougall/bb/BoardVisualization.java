@@ -233,6 +233,7 @@ public class BoardVisualization {
                 break;
 
             case "modeMatrix(kMatrix9)":
+            case "Matrix 9":
                 frameRate = mFrameRate;
                 mVisualizationMatrix.update(Matrix.kMatrix9);
                 break;
