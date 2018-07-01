@@ -199,6 +199,8 @@ public class BBService extends Service {
         ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
         this.registerReceiver(mUsbReceiver, ufilter);
 
+        mContext = getApplicationContext();
+
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         PackageInfo pinfo;
@@ -223,7 +225,6 @@ public class BBService extends Service {
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
 
-        mContext = getApplicationContext();
 
         if (iotClient == null) {
             iotClient = new IoTClient(mContext);
