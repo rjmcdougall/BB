@@ -34,6 +34,16 @@ export default class MapController extends React.Component {
 							region={region}
 						>
 							{locations.map(marker => {
+
+								var ONE_HOUR = 60 * 60 * 1000; /* ms */
+								var pinColor;
+
+								if (((new Date()) - new Date(marker.dateTime)) > ONE_HOUR)
+									pinColor = "red";
+
+								else
+									pinColor = "blue";
+
 								return (
 									<MapView.Marker
 										key={marker.title}
@@ -42,6 +52,7 @@ export default class MapController extends React.Component {
 											longitude: marker.longitude
 										}}
 										title={marker.title}
+										pinColor={pinColor}
 									/>
 								);
 							})}
@@ -65,12 +76,12 @@ export default class MapController extends React.Component {
 						</Touchable>
 						<Touchable
 							onPress={async () => {
-								if (this.state.wifiLocations == true){
+								if (this.state.wifiLocations == true) {
 									this.setState({
 										wifiLocations: false
 									});
 								}
-								else{
+								else {
 									await this.props.onLoadAPILocations();
 									this.setState({
 										wifiLocations: true

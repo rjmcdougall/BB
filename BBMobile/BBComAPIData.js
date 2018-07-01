@@ -28,9 +28,7 @@ exports.fetchLocations = async function (mediaState) {
 	//const API = "http://192.168.1.66:3001/boards/locations/";
 	const API = "https://www.burnerboard.com/boards/locations/";
 	
-	try {
-		mediaState = BLEIDs.BLELogger(mediaState, "API: Locations Fetch", false);
-	
+	try {	
 		var response = await fetch(API, {
 			headers: {
 				"Accept": "application/json",
@@ -46,8 +44,11 @@ exports.fetchLocations = async function (mediaState) {
 				boardId: board.board,
 				latitude: board.lat,
 				longitude: board.lon,
+				dateTime:  board.time,
 			};
 		});
+		mediaState = BLEIDs.BLELogger(mediaState, "API: Locations Fetch Found " + mediaState.apiLocations.length + " boards", false);
+
 		return mediaState;
 
 	}

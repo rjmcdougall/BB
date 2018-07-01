@@ -97,16 +97,29 @@ exports.getLocations = function (mediaState, showAPILocations) {
 		var locations = [...mediaState.locations, ...mediaState.apiLocations];
 		var afterLocations = Array();
 		var currentBoard;
-		var isNew;
-
+		var existingBoard;
+ 
 		for (var i = 0; i < locations.length; i++) {
 			currentBoard = locations[i];
-			// if it doesn't exist, add it.
-			isNew = afterLocations.filter((item) => {
+
+			// if it  exists
+			existingBoard = afterLocations.filter((item) => {
 				return currentBoard.boardId == item.boardId;
 			});
-			if (!isNew.length > 0)
+
+			if(existingBoard[0]) {
+				if(existingBoard.dateTime < currentBoard.dateTime){
+					// remove it and add the new one
+					afterLocations = afterLocations.filter((board) => {
+						return board.boardId != existingBoard[0].boardId;
+					});
+					afterLocations.push(currentBoard);
+				}
+			}
+			else {
+				// add it
 				afterLocations.push(currentBoard);
+			}
 		}
 		return afterLocations;
 	}

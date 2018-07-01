@@ -13,9 +13,13 @@ import net.sf.marineapi.provider.event.PositionEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Date;
 import java.util.HashMap;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Created by rmc on 2/7/18.
@@ -321,9 +325,10 @@ public class FindMyFriends {
 
         byte [] lastHeardLocation = null;
         int address = 0;
-        byte [] boardId = null;
         int keyNo = 0;
         int getLoc = lastLocationGet;
+        BigInteger lastHeardDate = BigInteger.valueOf(0);
+
         if (lastLocationGet == (mBoardLocations.size())) {
             lastLocationGet = 0;
             getLoc = 0;
@@ -335,6 +340,7 @@ public class FindMyFriends {
             if (keyNo == getLoc) {
                 boardLocation loc = mBoardLocations.get(addr);
                 lastHeardLocation = loc.lastheardLocaton;
+                lastHeardDate = BigInteger.valueOf(loc.lastHeardDate/60000);
                 address = addr;
                // boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
                 d("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
@@ -345,8 +351,9 @@ public class FindMyFriends {
 
         if (lastHeardLocation != null) {
             l("get recent location " + lastHeardLocation);
-            //return concatenateByteArrays(lastHeardLocation,boardId);
-            return lastHeardLocation;
+
+             return concatenateByteArrays(Arrays.copyOfRange(lastHeardLocation, 0, 13),lastHeardDate.toByteArray());
+
         } else {
             l("no recent locaton");
             return new byte[] {0, 0};
@@ -366,6 +373,9 @@ public class FindMyFriends {
         int sigStrength;
         long lastHeard;
         byte[] lastheardLocaton;
+        double lat;
+        double lon;
+        long lastHeardDate;
     }
     private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
 
@@ -375,6 +385,7 @@ public class FindMyFriends {
         loc.lastHeard = SystemClock.elapsedRealtime();
         loc.lastheardLocaton = locationPacket.clone();
         loc.sigStrength = sigstrength;
+        loc.lastHeardDate = System.currentTimeMillis();
         mBoardLocations.put(address, loc);
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);

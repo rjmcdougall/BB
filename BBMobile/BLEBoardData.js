@@ -479,7 +479,7 @@ exports.readLocation = async function (mediaState) {
 			if (readData) {
 				if (readData.length > 4) {
 					var lat;
-					var lon;
+					var lon; 
 					var address;
 					address = readData[2] + readData[3] * 256;
 					lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
@@ -496,6 +496,14 @@ exports.readLocation = async function (mediaState) {
 						mediaState.locations = mediaState.locations.filter(item => {
 							return item.address != address.toString();
 						});
+
+
+						var milliseconds = 60000 * (readData[16] + readData[15] * 256 + readData[14] * 65536 + readData[13] * 16777216);
+						var locationDate = new Date(milliseconds).toUTCString();
+
+						// avoid crap dates because of the bits that were sent in older versions of the boards.
+						if(locationDate > new Date("January 1, 2099") || locationDate < new Date("January 1, 2000"))
+							locationDate = null;
 
 						var title = "";
 
@@ -520,6 +528,7 @@ exports.readLocation = async function (mediaState) {
 							longitude: lon / 1000000.0,
 							address: address.toString(),
 							boardId: boardID,
+							dateTime: locationDate,
 						});
 
 						mediaState = BLEIDs.BLELogger(mediaState, "BLE: ReadLocation found new coordinates lat: " + lat + " lon: " + lon, false);
