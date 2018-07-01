@@ -62,7 +62,7 @@ exports.createMediaState = async function (peripheral) {
 		mediaState = await BLEBoardData.refreshMediaState(mediaState);
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Gettig Boards Data from API ", false);
-		mediaState = getBoards(mediaState); // don't wait!
+		mediaState = getBoardsInternal(mediaState); // don't wait!
 
 		return mediaState;
 	}
@@ -71,25 +71,35 @@ exports.createMediaState = async function (peripheral) {
 	}
 };
 
-async function getBoards(mediaState) {
+async function getBoardsInternal(mediaState) {
+	try {
+		var boards = await module.exports.getBoards();
+		mediaState.boards = boards;
+	}
+	catch (error) {
+		console.log("SB: " + error);
+	}
+	return mediaState;
+}
+
+exports.getBoards = async function () {
 	try {
 		var boards = await BBComAPIData.fetchBoards();
 
 		if (boards) {
 			await FileSystemConfig.setBoards(boards);
-			mediaState.boards = boards;
 		}
 		else {
-			var fileBoards = await FileSystemConfig.getBoards();
-			if (fileBoards)
-				mediaState.boards = fileBoards;
+			boards = await FileSystemConfig.getBoards();
 		}
 	}
 	catch (error) {
 		console.log(error);
 	}
-	return mediaState;
+	return boards;
 }
+
+
 
 exports.getLocations = function (mediaState, showAPILocations) {
 

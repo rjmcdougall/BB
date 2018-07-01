@@ -22,7 +22,8 @@ import AdminManagement from "./AdminManagement";
 import Diagnostic from "./Diagnostic";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
-import BBComAPIData from "./BBComAPIData"
+import BBComAPIData from "./BBComAPIData";
+
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
 });
@@ -45,6 +46,8 @@ export default class BoardManager extends Component {
 			automaticallyConnect: true,
 			backgroundLoop: null,
 			title: "Board Management",
+			boardData: [],
+			boardColor: "blue",
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -57,7 +60,7 @@ export default class BoardManager extends Component {
 		this.onSelectDevice = this.onSelectDevice.bind(this);
 		this.onRefreshDevices = this.onRefreshDevices.bind(this);
 		this.onLoadAPILocations = this.onLoadAPILocations.bind(this);
-		
+
 	}
 
 	async componentDidMount() {
@@ -67,6 +70,14 @@ export default class BoardManager extends Component {
 			showAlert: false
 		});
 
+		var boards = await StateBuilder.getBoards();
+		if (boards) {
+			this.setState({
+				boardData: boards,
+			});
+		}
+		console.log("board data")
+		console.log(boards)
 		this.handlerDiscover = bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", this.handleDiscoverPeripheral);
 		this.handlerStop = bleManagerEmitter.addListener("BleManagerStopScan", this.handleStopScan);
 		this.handlerDisconnect = bleManagerEmitter.addListener("BleManagerDisconnectPeripheral", this.handleDisconnectedPeripheral);
@@ -97,6 +108,8 @@ export default class BoardManager extends Component {
 
 			await this.startScan(true);
 		}
+
+
 	}
 
 	handleAppStateChange(nextAppState) {
@@ -222,7 +235,7 @@ export default class BoardManager extends Component {
 	}
 
 	async onLoadAPILocations() {
-		this.setState({ mediaState: await await BBComAPIData.fetchLocations(this.state.mediaState)});
+		this.setState({ mediaState: await await BBComAPIData.fetchLocations(this.state.mediaState) });
 	}
 	async onUpdateVolume(event) {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(event, this.state.mediaState) });
@@ -267,9 +280,15 @@ export default class BoardManager extends Component {
 
 						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
 
+						var foundBoard = this.state.boardData.filter((board) => {
+							return board.name == this.state.boardName;
+						});
+						var color = foundBoard[0].color;
+
 						this.setState({
 							mediaState: mediaState,
 							discoveryState: "Connected To " + this.state.selectedPeripheral.name,
+							boardColor: color,
 						});
 
 						// Kick off a per-second location reader 
@@ -449,11 +468,18 @@ export default class BoardManager extends Component {
 							dataSource={dataSource}
 							renderRow={(item) => {
 
+								var foundBoard = this.state.boardData.filter((board) => {
+									return board.name == item.name;
+								});
+
+								var color = foundBoard[0].color;
+
 								return (
 
 									<Touchable
 										onPress={async () => await this.onSelectPeripheral(item)}
-										style={styles.touchableStyle}
+										style={[styles.touchableStyle, { backgroundColor: color }]}
+
 										background={Touchable.Ripple("blue")}>
 										<Text style={styles.rowText}>{item.name}</Text>
 									</Touchable>
