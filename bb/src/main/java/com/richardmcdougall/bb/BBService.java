@@ -159,7 +159,7 @@ public class BBService extends Service {
         String serial = Build.SERIAL;
 
         if (Build.MODEL.contains("rpi3")) {
-            id = "rpi-" + serial.substring(Math.max(serial.length() - 6, 0),
+            id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
         } else {
             id = Build.MODEL;
