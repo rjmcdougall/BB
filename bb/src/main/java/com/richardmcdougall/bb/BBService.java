@@ -159,7 +159,7 @@ public class BBService extends Service {
         String serial = Build.SERIAL;
 
         if (Build.MODEL.contains("rpi3")) {
-            id = "rpi-" + serial.substring(Math.max(serial.length() - 6, 0),
+            id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
         } else {
             id = Build.MODEL;
@@ -932,7 +932,9 @@ public class BBService extends Service {
     }
 
     public byte[] getAPKUpdatedDate() {
-        return String.valueOf(mAPKUpdatedDate).getBytes();
+        String apkDate = String.valueOf(mAPKUpdatedDate);
+        l("apkdate: " + apkDate);
+        return apkDate.substring(0, Math.min(apkDate.length(), 16)).getBytes();
     }
 
     public void enableMaster(boolean enable) {

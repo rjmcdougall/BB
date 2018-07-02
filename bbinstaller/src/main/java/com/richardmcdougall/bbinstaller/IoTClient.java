@@ -80,7 +80,7 @@ public class IoTClient {
     boolean haveConnected = false;
     boolean haveEverConnected = false;
     WifiManager mWiFiManager = null;
-    String subscriptionTopic = new String("/devices/installer-" + Build.MODEL.replaceAll("\\s", "") + "/config");
+    String subscriptionTopic = new String("/devices/installer-" + Installer.getBoardId().replaceAll("\\s", "") + "/config");
     public IoTAction mIoTActionCallback = null;
 
     interface IoTAction {
@@ -327,7 +327,7 @@ public class IoTClient {
         message.setRetained(true);
 
         try {
-            String t = new String("/devices/installer-" + Build.MODEL.replaceAll("\\s", "") + "/state");
+            String t = new String("/devices/installer-" + Installer.getBoardId().replaceAll("\\s", "") + "/state");
             //String t = new String("/devices/bb-test/events/" + topic);
             Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
@@ -347,7 +347,7 @@ public class IoTClient {
         if (deviceId == null) {
             deviceId = MqttAsyncClient.generateClientId();
         }
-        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/installer-" + Build.MODEL.replaceAll("\\s", ""));
+        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/installer-" + Installer.getBoardId().replaceAll("\\s", ""));
         //deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-test");
     }
 

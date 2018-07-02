@@ -13,6 +13,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -86,6 +87,21 @@ public class Installer extends Service {
         } catch (Exception e) {
         }
         return false;
+    }
+
+    public static String getBoardId() {
+
+        String id;
+        String serial = Build.SERIAL;
+
+        if (Build.MODEL.contains("rpi3")) {
+            id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
+                    serial.length());
+        } else {
+            id = Build.MODEL;
+        }
+
+        return id;
     }
 
     private void connectWifi(String ssid) {
