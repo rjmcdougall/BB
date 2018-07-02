@@ -932,7 +932,9 @@ public class BBService extends Service {
     }
 
     public byte[] getAPKUpdatedDate() {
-        return String.valueOf(mAPKUpdatedDate).getBytes();
+        String apkDate = String.valueOf(mAPKUpdatedDate);
+        l("apkdate: " + apkDate);
+        return apkDate.substring(0, Math.min(apkDate.length(), 16)).getBytes();
     }
 
     public void enableMaster(boolean enable) {
