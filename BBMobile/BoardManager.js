@@ -30,6 +30,10 @@ const ds = new ListView.DataSource({
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+const DISCONNECTED = "Disconnected";
+const LOCATED = "Located";
+const CONNECTED = "Connected";
+
 export default class BoardManager extends Component {
 	constructor() {
 		super();
@@ -42,7 +46,7 @@ export default class BoardManager extends Component {
 			mediaState: StateBuilder.blankMediaState(),
 			locationState: "",
 			showScreen: "Media Management",
-			discoveryState: "Connect To Board",
+			discoveryState: DISCONNECTED,
 			automaticallyConnect: true,
 			backgroundLoop: null,
 			title: "Board Management",
@@ -144,7 +148,7 @@ export default class BoardManager extends Component {
 			this.setState({
 				selectedPeripheral: peripheral,
 				mediaState: StateBuilder.blankMediaState(),
-				discoveryState: "Connect To Board",
+				discoveryState: DISCONNECTED,
 				backgroundLoop: null,
 			});
 			console.log("BoardManager: Disconnected from " + peripheral.name);
@@ -174,6 +178,7 @@ export default class BoardManager extends Component {
 					selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
+					discoveryState: DISCONNECTED,
 					peripherals: new Map(),
 					automaticallyConnect: automaticallyConnect,
 					backgroundLoop: null,
@@ -219,7 +224,7 @@ export default class BoardManager extends Component {
 						mediaState: StateBuilder.blankMediaState(),
 						showScreen: "Media Management",
 						boardName: boardName,
-						discoveryState: "Connect To Board",
+						discoveryState: DISCONNECTED,
 						scanning: false,
 						backgroundLoop: null,
 					});
@@ -276,7 +281,7 @@ export default class BoardManager extends Component {
 
 					if (this.state.automaticallyConnect) {
 						console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
-						this.setState({ discoveryState: "Located " + this.state.selectedPeripheral.name, });
+						this.setState({ discoveryState: LOCATED });
 
 						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
 
@@ -287,7 +292,7 @@ export default class BoardManager extends Component {
 
 						this.setState({
 							mediaState: mediaState,
-							discoveryState: "Connected To " + this.state.selectedPeripheral.name,
+							discoveryState: CONNECTED,
 							boardColor: color,
 						});
 
@@ -339,19 +344,27 @@ export default class BoardManager extends Component {
 
 		var color = "#fff";
 		var enableControls = "none";
+		var connectionButtonText = "";
 
-		if (this.state.discoveryState.startsWith("Located")) {
+		switch (this.state.discoveryState) {
+		case DISCONNECTED:
+			color = "#fff";
+			enableControls = "none";
+			connectionButtonText = "Connect to Boards";
+			break;
+		case LOCATED:
 			color = "yellow";
 			enableControls = "none";
-		}
-		else if (this.state.showScreen != "Discover" && this.state.discoveryState.startsWith("Connected")) {
-			if (!this.state.mediaState.isError) {
-				color = "green";
-			}
-			else {
+			connectionButtonText = "Located " + this.state.boardName;
+			break;
+		case CONNECTED:
+			if (!this.state.mediaState.isError)  
+				color = "green";	 
+			else  
 				color = "red";
-			}
 			enableControls = "auto";
+			connectionButtonText = "Connected To " + this.state.boardName;
+			break;
 		}
 
 		if (!(this.state.showScreen == "Discover"))
@@ -374,7 +387,7 @@ export default class BoardManager extends Component {
 								height: 50,
 							}}
 							background={Touchable.Ripple("blue")}>
-							<Text style={styles.rowText}>{this.state.discoveryState} {this.state.scanning ? "(scanning)" : ""}</Text>
+							<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
 						</Touchable>
 						<View style={styles.footer}>
 							<View style={styles.button}>
@@ -400,7 +413,7 @@ export default class BoardManager extends Component {
 												selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 												mediaState: StateBuilder.blankMediaState(),
 												showScreen: "Discover",
-												discoveryState: "Connect To Board",
+												discoveryState: DISCONNECTED,
 												backgroundLoop: null,
 											});
 										}
