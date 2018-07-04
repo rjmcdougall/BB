@@ -15,16 +15,13 @@ export default class BBComView extends React.Component {
 
 	render() {
 
-		const { navigation } = this.props;
-		var JWT = navigation.getParam("JWT");
-	
-		var URI = "https://burnerboard.com?JWT=" + JWT;
+	//	var URI = "https://burnerboard.com?JWT=" + JWT;
 
 		return (
 			<View style={{ flex: 1 }}>
 				<WebView
 					source={{
-						uri: URI,
+						uri: "s",
 					}}
 					style={{ marginTop: 0 }}
 
