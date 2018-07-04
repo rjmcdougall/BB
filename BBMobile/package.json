@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "charenc": "0.0.2",
-    "native-base": "^2.6.1",
     "react": "^16.3.0",
     "react-native": "^0.54.4",
     "react-native-ble-manager": "^6.3.4",
