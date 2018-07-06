@@ -18,6 +18,7 @@ import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.media.SyncParams;
 import android.net.Uri;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -37,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -214,6 +216,25 @@ public class BBService extends Service {
         mContext = getApplicationContext();
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+
+
+        if (checkWifiOnAndConnected(mWiFiManager) == false) {
+
+            l("Enabling Wifi...");
+            setupWifi();
+
+            /*
+            if (mWiFiManager.setWifiEnabled(true) == false) {
+
+                l("Failed to enable wifi");
+            }
+            if (mWiFiManager.reassociate() == false) {
+                l("Failed to associate wifi");
+            }
+            */
+        }
+
+
 
         PackageInfo pinfo;
         try {
@@ -731,17 +752,6 @@ public class BBService extends Service {
         //udpClientServer = new UDPClientServer(this);
         //udpClientServer.Run();
 
-
-        if (checkWifiOnAndConnected(mWiFiManager) == false) {
-
-            l("Enabling Wifi...");
-            if (mWiFiManager.setWifiEnabled(true) == false) {
-                l("Failed to enable wifi");
-            }
-            if (mWiFiManager.reassociate() == false) {
-                l("Failed to associate wifi");
-            }
-        }
 
         boolean hasLowLatencyFeature =
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
@@ -1390,14 +1400,17 @@ public class BBService extends Service {
                 int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
                 int voltage = mBurnerBoard.getBatteryVoltage();
 
-                if (checkWifiOnAndConnected(mWiFiManager) == false) {
+                // Every 60 seconds check WIFI
+                if (loopCnt % 60 == 0) {
+                    if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
-                    l("Enabling Wifi...");
-                    if (mWiFiManager.setWifiEnabled(true) == false) {
-                        l("Failed to enable wifi");
-                    }
-                    if (mWiFiManager.reassociate() == false) {
-                        l("Failed to associate wifi");
+                        l("Enabling Wifi...");
+                        if (mWiFiManager.setWifiEnabled(true) == false) {
+                            l("Failed to enable wifi");
+                        }
+                        if (mWiFiManager.reassociate() == false) {
+                            l("Failed to associate wifi");
+                        }
                     }
                 }
 
@@ -1578,6 +1591,45 @@ public class BBService extends Service {
 
     }
 
+    private void setupWifi() {
+        this.registerReceiver(new BroadcastReceiver() {
+                                  @Override
+                                  public void onReceive(Context context, Intent intent) {
+                                      int extraWifiState =
+                                              intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
+                                                      WifiManager.WIFI_STATE_UNKNOWN);
+
+                                      switch(extraWifiState){
+                                          case WifiManager.WIFI_STATE_DISABLED:
+                                              l("WIFI STATE DISABLED");
+                                              break;
+                                          case WifiManager.WIFI_STATE_DISABLING:
+                                              l("WIFI STATE DISABLING");
+                                              break;
+                                          case WifiManager.WIFI_STATE_ENABLED:
+                                              l("WIFI STATE ENABLED");
+                                              int mfs = mWiFiManager.getWifiState();
+                                              l("Wifi state is " + mfs);
+                                              l("Checking wifi");
+                                              if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
+                                                  l("adding wifi");
+                                                  addWifi("burnerboard", "firetruck");
+                                              }
+                                              l("Connecting to wifi");
+                                              connectWifi("burnerboard");
+                                              break;
+                                          case WifiManager.WIFI_STATE_ENABLING:
+                                              l("WIFI STATE ENABLING");
+                                              break;
+                                          case WifiManager.WIFI_STATE_UNKNOWN:
+                                              l("WIFI STATE UNKNOWN");
+                                              break;
+                                      }
+                                  }
+                              },
+                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+    }
+
     private boolean checkWifiOnAndConnected(WifiManager wifiMgr) {
 
         if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
@@ -1593,6 +1645,69 @@ public class BBService extends Service {
             return false; // Wi-Fi adapter is OFF
         }
     }
+
+    private boolean checkWifiSSid(String ssid) {
+
+        String aWifi = "\"" + ssid + "\"";
+
+        try {
+            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+            if (wifiList != null) {
+                for (WifiConfiguration config : wifiList) {
+                    String newSSID = config.SSID;
+                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    if (aWifi.equals(newSSID)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+
+    private void connectWifi(String ssid) {
+
+        String aWifi = "\"" + ssid + "\"";
+
+        try {
+            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+            if (wifiList != null) {
+                for (WifiConfiguration config : wifiList) {
+                    String newSSID = config.SSID;
+
+                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
+
+                    if (aWifi.equals(newSSID)) {
+                        l("connecting wifi:" + newSSID);
+                        mWiFiManager.disconnect();
+                        mWiFiManager.enableNetwork(config.networkId, true);
+                        mWiFiManager.reconnect();
+
+                        return;
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    private void addWifi(String ssid, String pass) {
+        try {
+
+            WifiConfiguration conf = new WifiConfiguration();
+            conf.SSID = "\"" + ssid + "\"";
+            conf.preSharedKey = "\"" + pass + "\"";
+            mWiFiManager.addNetwork(conf);
+            mWiFiManager.disconnect();
+            mWiFiManager.enableNetwork(conf.networkId, false);
+            mWiFiManager.reconnect();
+        } catch (Exception e) {
+        }
+        return;
+    }
+
 }
 
 

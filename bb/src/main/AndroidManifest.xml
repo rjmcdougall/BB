@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.richardmcdougall.bb">
 
-    <!-- Required to act as a custom watch face. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -23,11 +22,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.REORDER_TASKS"/>
-
+    <uses-permission android:name="com.google.android.things.permission.MANAGE_UPDATE_POLICY" />
+    <uses-permission android:name="com.google.android.things.permission.PERFORM_UPDATE_NOW" />
+    <uses-permission android:name="com.google.android.things.permission.REBOOT" />
+    <uses-permission android:name="com.google.android.Manifest.permission.NETWORK_SETTINGS" />
     <!--uses-permission android:name="android.permission.INSTALL_PACKAGES"/-->
     <uses-feature android:name="android.hardware.usb.host" />
     <uses-feature android:name="android.hardware.wifi" />
-
 
 
     <application
@@ -80,7 +81,6 @@
             <meta-data android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
                 android:resource="@xml/device_filter" />
         </activity>
-
 
         <service
             android:name=".BBService"
