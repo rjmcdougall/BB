@@ -99,6 +99,7 @@ AdminManagement.propTypes = {
 	mediaState: PropTypes.object,
 	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
+	navigation: PropTypes.object,
 	onSelectDevice: PropTypes.func,
 	onRefreshDevices: PropTypes.func,
 };

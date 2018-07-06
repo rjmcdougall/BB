@@ -88,7 +88,8 @@ export default class BoardManager extends Component {
 				boardData: boards,
 			});
 		}
-		
+		console.log("board data")
+		console.log(boards)
 		this.handlerDiscover = bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", this.handleDiscoverPeripheral);
 		this.handlerStop = bleManagerEmitter.addListener("BleManagerStopScan", this.handleStopScan);
 		this.handlerDisconnect = bleManagerEmitter.addListener("BleManagerDisconnectPeripheral", this.handleDisconnectedPeripheral);
@@ -223,7 +224,9 @@ export default class BoardManager extends Component {
 
 					if (this.state.backgroundLoop)
 						clearInterval(this.state.backgroundLoop);
- 
+
+					this.props.navigation.setParams({ title: "Media Management" });
+
 					this.setState({
 						selectedPeripheral: peripheral,
 						mediaState: StateBuilder.blankMediaState(),
@@ -333,7 +336,15 @@ export default class BoardManager extends Component {
 		}, 8000);
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
- 
+
+	static navigationOptions = ({ navigation }) => {
+		const { params } = navigation.state;
+
+		return {
+			title: params ? params.title : "Media Management",
+		};
+	};
+
 	render() {
 
 		const list = Array.from(this.state.peripherals.values());
@@ -371,7 +382,7 @@ export default class BoardManager extends Component {
 					<View style={styles.contentContainer}>
 						{(this.state.showScreen == MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
 							: (this.state.showScreen == DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
-								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
+								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
 						}
 
 						<Touchable
@@ -401,6 +412,8 @@ export default class BoardManager extends Component {
 
 											if (this.state.backgroundLoop)
 												clearInterval(this.state.backgroundLoop);
+
+											this.props.navigation.setParams({ title: "Search For Boards" });
 
 											this.setState({
 												peripherals: new Map(),
@@ -432,6 +445,8 @@ export default class BoardManager extends Component {
 										} else if (this.state.showScreen == DIAGNOSTIC) {
 											newScreen = MEDIA_MANAGEMENT;
 										}
+
+										this.props.navigation.setParams({ title: newScreen });
 
 										this.setState({
 											showScreen: newScreen,
