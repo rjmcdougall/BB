@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 3800
-        versionName "38.00"
+        versionCode 3910
+        versionName "39.10"
 
         signingConfig signingConfigs.burnerboard
 
