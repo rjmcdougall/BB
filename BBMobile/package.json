@@ -21,12 +21,13 @@
     "charenc": "0.0.2",
     "react": "^16.3.0",
     "react-native": "^0.54.4",
-    "react-native-ble-manager": "^6.2.8",
+    "react-native-ble-manager": "^6.3.4",
     "react-native-cli": "^2.0.1",
     "react-native-fs": "^2.9.12",
     "react-native-maps": "^0.21.0",
     "react-native-modal-dropdown": "^0.6.2",
     "react-native-platform-touchable": "^1.1.1",
+    "react-native-vector-icons": "^4.6.0",
     "react-navigation": "^1.5.1"
   }
 }

@@ -30,6 +30,18 @@ const ds = new ListView.DataSource({
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
+//connection states.
+const DISCONNECTED = "Disconnected";
+const LOCATED = "Located";
+const CONNECTED = "Connected";
+
+// The Screens
+const DISCOVER = "Discover";
+const MEDIA_MANAGEMENT = "Media Management";
+const ADMINISTRATION = "Administration";
+const DIAGNOSTIC = "Diagnostic";
+
 export default class BoardManager extends Component {
 	constructor() {
 		super();
@@ -41,8 +53,8 @@ export default class BoardManager extends Component {
 			selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 			mediaState: StateBuilder.blankMediaState(),
 			locationState: "",
-			showScreen: "Media Management",
-			discoveryState: "Connect To Board",
+			showScreen: MEDIA_MANAGEMENT,
+			discoveryState: DISCONNECTED,
 			automaticallyConnect: true,
 			backgroundLoop: null,
 			title: "Board Management",
@@ -144,7 +156,7 @@ export default class BoardManager extends Component {
 			this.setState({
 				selectedPeripheral: peripheral,
 				mediaState: StateBuilder.blankMediaState(),
-				discoveryState: "Connect To Board",
+				discoveryState: DISCONNECTED,
 				backgroundLoop: null,
 			});
 			console.log("BoardManager: Disconnected from " + peripheral.name);
@@ -174,6 +186,7 @@ export default class BoardManager extends Component {
 					selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
+					discoveryState: DISCONNECTED,
 					peripherals: new Map(),
 					automaticallyConnect: automaticallyConnect,
 					backgroundLoop: null,
@@ -217,9 +230,9 @@ export default class BoardManager extends Component {
 					this.setState({
 						selectedPeripheral: peripheral,
 						mediaState: StateBuilder.blankMediaState(),
-						showScreen: "Media Management",
+						showScreen: MEDIA_MANAGEMENT,
 						boardName: boardName,
-						discoveryState: "Connect To Board",
+						discoveryState: DISCONNECTED,
 						scanning: false,
 						backgroundLoop: null,
 					});
@@ -276,7 +289,7 @@ export default class BoardManager extends Component {
 
 					if (this.state.automaticallyConnect) {
 						console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
-						this.setState({ discoveryState: "Located " + this.state.selectedPeripheral.name, });
+						this.setState({ discoveryState: LOCATED });
 
 						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
 
@@ -287,7 +300,7 @@ export default class BoardManager extends Component {
 
 						this.setState({
 							mediaState: mediaState,
-							discoveryState: "Connected To " + this.state.selectedPeripheral.name,
+							discoveryState: CONNECTED,
 							boardColor: color,
 						});
 
@@ -339,28 +352,36 @@ export default class BoardManager extends Component {
 
 		var color = "#fff";
 		var enableControls = "none";
+		var connectionButtonText = "";
 
-		if (this.state.discoveryState.startsWith("Located")) {
+		switch (this.state.discoveryState) {
+		case DISCONNECTED:
+			color = "#fff";
+			enableControls = "none";
+			connectionButtonText = "Connect to Boards";
+			break;
+		case LOCATED:
 			color = "yellow";
 			enableControls = "none";
-		}
-		else if (this.state.showScreen != "Discover" && this.state.discoveryState.startsWith("Connected")) {
-			if (!this.state.mediaState.isError) {
-				color = "green";
-			}
-			else {
+			connectionButtonText = "Located " + this.state.boardName;
+			break;
+		case CONNECTED:
+			if (!this.state.mediaState.isError)  
+				color = "green";	 
+			else  
 				color = "red";
-			}
 			enableControls = "auto";
+			connectionButtonText = "Connected To " + this.state.boardName;
+			break;
 		}
 
-		if (!(this.state.showScreen == "Discover"))
+		if (!(this.state.showScreen == DISCOVER))
 
 			return (
 				<View style={styles.container}>
 					<View style={styles.contentContainer}>
-						{(this.state.showScreen == "Media Management") ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
-							: (this.state.showScreen == "Diagnostic") ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
+						{(this.state.showScreen == MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
+							: (this.state.showScreen == DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
 								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
 						}
 
@@ -374,7 +395,7 @@ export default class BoardManager extends Component {
 								height: 50,
 							}}
 							background={Touchable.Ripple("blue")}>
-							<Text style={styles.rowText}>{this.state.discoveryState} {this.state.scanning ? "(scanning)" : ""}</Text>
+							<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
 						</Touchable>
 						<View style={styles.footer}>
 							<View style={styles.button}>
@@ -399,8 +420,8 @@ export default class BoardManager extends Component {
 												appState: "",
 												selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 												mediaState: StateBuilder.blankMediaState(),
-												showScreen: "Discover",
-												discoveryState: "Connect To Board",
+												showScreen: DISCOVER,
+												discoveryState: DISCONNECTED,
 												backgroundLoop: null,
 											});
 										}
@@ -417,12 +438,12 @@ export default class BoardManager extends Component {
 									onPress={async () => {
 
 										var newScreen;
-										if (this.state.showScreen == "Media Management") {
-											newScreen = "Administration";
-										} else if ((this.state.showScreen == "Administration")) {
-											newScreen = "Diagnostic";
-										} else if (this.state.showScreen == "Diagnostic") {
-											newScreen = "Media Management";
+										if (this.state.showScreen == MEDIA_MANAGEMENT) {
+											newScreen = ADMINISTRATION;
+										} else if ((this.state.showScreen == ADMINISTRATION)) {
+											newScreen = DIAGNOSTIC;
+										} else if (this.state.showScreen == DIAGNOSTIC) {
+											newScreen = MEDIA_MANAGEMENT;
 										}
 
 										this.props.navigation.setParams({ title: newScreen });
@@ -438,8 +459,8 @@ export default class BoardManager extends Component {
 									background={Touchable.Ripple("blue")}>
 									<Text style={styles.rowText}>
 										{
-											(this.state.showScreen == "Media Management") ? "Administration"
-												: (this.state.showScreen == "Administration") ? "Diagnostic"
+											(this.state.showScreen == MEDIA_MANAGEMENT) ? "Administration"
+												: (this.state.showScreen == ADMINISTRATION) ? "Diagnostic"
 													: "Media Management"
 										}
 									</Text>
