@@ -270,7 +270,7 @@ public class DownloadManager {
                     }
                 }
 
-                Log.d(TAG, "Downloading" + URLString);
+                Log.d(TAG, "Downloading " + URLString);
                 while ((bufferLength = inputStream.read(buffer)) > 0) {
                     fileOutput.write(buffer, 0, bufferLength);
                     downloadSize += bufferLength;
