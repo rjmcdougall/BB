@@ -351,18 +351,22 @@ public class BBService extends Service {
             l("music player already running");
         }
 
-        if (batteryMonitor == null) {
-            l("starting battery monitor thread");
-            // Start Battery Monitor
-            Thread batteryMonitor = new Thread(new Runnable() {
-                public void run() {
-                    Thread.currentThread().setName("BB Battery Monitor");
-                    batteryThread();
-                }
-            });
-            batteryMonitor.start();
+        if (!BurnerBoardUtil.kIsRPI) {
+            if (batteryMonitor == null) {
+                l("starting battery monitor thread");
+                // Start Battery Monitor
+                Thread batteryMonitor = new Thread(new Runnable() {
+                    public void run() {
+                        Thread.currentThread().setName("BB Battery Monitor");
+                        batteryThread();
+                    }
+                });
+                batteryMonitor.start();
+            } else {
+                l("battery monitor already running");
+            }
         } else {
-            l("battery monitor already running");
+            l("Battery monitoring not supported on Raspberry PIs");
         }
 
         startLights();
@@ -454,7 +458,7 @@ public class BBService extends Service {
             mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
         } else if (boardId.contains("test")) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
-        } else if (boardId.contains("iot_rpi3")) {
+        } else if (BurnerBoardUtil.kIsRPI) {
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (boardId.contains("imx7d_pico")) {
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
