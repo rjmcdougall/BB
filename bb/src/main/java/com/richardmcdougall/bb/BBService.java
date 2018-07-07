@@ -55,6 +55,8 @@ import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
 
+import com.richardmcdougall.bb.BurnerBoardUtil;
+
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
@@ -66,9 +68,6 @@ public class BBService extends Service {
     // Set to force classic mode when using Emulator
     public static final boolean kEmulatingClassic = false;
     public static final boolean kBeepOnConnect = false;
-
-    // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
-    public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
 
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
@@ -164,7 +163,7 @@ public class BBService extends Service {
         String id;
         String serial = Build.SERIAL;
 
-        if (kIsRPI) {
+        if (BurnerBoardUtil.kIsRPI) {
             id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
         } else {
@@ -290,7 +289,7 @@ public class BBService extends Service {
                 }
 
                 // Let the user know they're on a raspberry pi
-                if (kIsRPI) {
+                if (BurnerBoardUtil.kIsRPI) {
                     String rpiMsg = "Raspberry PI detected";
                     l(rpiMsg);
                     voice.speak( rpiMsg, TextToSpeech.QUEUE_FLUSH, null, "rpi diagnostic");
@@ -747,7 +746,7 @@ public class BBService extends Service {
 
         l("Starting BB on " + boardId + ", model " + model);
 
-        if (kIsRPI) {
+        if (BurnerBoardUtil.kIsRPI) {
             phoneModelAudioLatency = 80;
         } else if (model.equals("imx7d_pico")) {
             phoneModelAudioLatency = 110;

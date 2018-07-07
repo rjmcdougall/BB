@@ -5,6 +5,8 @@ import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.Mickey;
 import com.richardmcdougall.bb.visualization.*;
 import com.richardmcdougall.bb.visualization.Visualization;
+import com.richardmcdougall.bb.BurnerBoardUtil;
+
 
 import android.app.Activity;
 import android.content.Context;
@@ -388,7 +390,7 @@ public class BoardVisualization {
             String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
-            if (mBBservice.cpuType.contains("rpi")) {
+            if (BurnerBoardUtil.kIsRPI) {
                 return mFrameRate;
             }
             mVisualizationVideo.update(mode);
