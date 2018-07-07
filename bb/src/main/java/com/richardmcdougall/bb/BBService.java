@@ -124,6 +124,7 @@ public class BBService extends Service {
     public BluetoothRemote mBluetoothRemote = null;
     private boolean mMasterRemote = false;
     private boolean mVoiceAnnouncements = false;
+    public final String cpuType = Build.BOARD;
 
     private int statePeers = 0;
     private long stateReplies = 0;
