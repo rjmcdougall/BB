@@ -388,6 +388,9 @@ public class BoardVisualization {
             String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
+            if (mBBservice.cpuType.contains("rpi")) {
+                return mFrameRate;
+            }
             mVisualizationVideo.update(mode);
             return mFrameRate;
         }
