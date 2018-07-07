@@ -67,6 +67,9 @@ public class BBService extends Service {
     public static final boolean kEmulatingClassic = false;
     public static final boolean kBeepOnConnect = false;
 
+    // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
+    public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
+
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
     public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
@@ -161,7 +164,7 @@ public class BBService extends Service {
         String id;
         String serial = Build.SERIAL;
 
-        if (Build.MODEL.contains("rpi3")) {
+        if (kIsRPI) {
             id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
         } else {
@@ -218,7 +221,6 @@ public class BBService extends Service {
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
-
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
             l("Enabling Wifi...");
@@ -234,8 +236,6 @@ public class BBService extends Service {
             }
             */
         }
-
-
 
         PackageInfo pinfo;
         try {
@@ -287,6 +287,13 @@ public class BBService extends Service {
                             TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                 } else if (status == TextToSpeech.ERROR) {
                     l("Sorry! Text To Speech failed...");
+                }
+
+                // Let the user know they're on a raspberry pi
+                if (kIsRPI) {
+                    String rpiMsg = "Raspberry PI detected";
+                    l(rpiMsg);
+                    voice.speak( rpiMsg, TextToSpeech.QUEUE_FLUSH, null, "rpi diagnostic");
                 }
             }
         });
@@ -740,7 +747,7 @@ public class BBService extends Service {
 
         l("Starting BB on " + boardId + ", model " + model);
 
-        if (model.equals("iot_rpi3")) {
+        if (kIsRPI) {
             phoneModelAudioLatency = 80;
         } else if (model.equals("imx7d_pico")) {
             phoneModelAudioLatency = 110;
