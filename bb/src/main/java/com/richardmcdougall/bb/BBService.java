@@ -602,11 +602,11 @@ public class BBService extends Service {
             String action = intent.getAction();
 
             if (ACTION_BUTTONS.equals(action)) {
-                Log.d(TAG, "Got Some");
+                Log.d(TAG, "Received BlueTooth key press");
                 buttons actionType = (buttons) intent.getSerializableExtra("buttonType");
                 switch (actionType) {
                     case BUTTON_KEYCODE:
-                        l("BUTTON_KEYCODE");
+                        l("BUTTON_KEYCODE ");
                         int keyCode = intent.getIntExtra("keyCode", 0);
                         KeyEvent event = (KeyEvent) intent.getParcelableExtra("keyEvent");
                         onKeyDown(keyCode, event);
@@ -616,24 +616,31 @@ public class BBService extends Service {
                         NextStream();
                         break;
                     case BUTTON_MODE_UP:
+                        l("BUTTON_MODE_UP");
                         setMode(99);
                         break;
                     case BUTTON_MODE_DOWN:
+                        l("BUTTON_MODE_DOWN");
                         setMode(98);
                         break;
                     case BUTTON_DRIFT_DOWN:
+                        l("BUTTON_DRIFT_DOWN");
                         MusicOffset(-10);
                         break;
                     case BUTTON_DRIFT_UP:
+                        l("BUTTON_DRIFT_UP");
                         MusicOffset(10);
                         break;
                     case BUTTON_VOL_DOWN:
+                        l("BUTTON_VOL_DOWN");
                         onVolDown();
                         break;
                     case BUTTON_VOL_UP:
+                        l("BUTTON_VOL_UP");
                         onVolUp();
                         break;
                     case BUTTON_VOL_PAUSE:
+                        l("BUTTON_VOL_PAUSE");
                         onVolPause();
                         break;
                     default:
@@ -1047,6 +1054,15 @@ public class BBService extends Service {
 
     }
 
+    void PreviousStream() {
+        int nextRadioChannel = currentRadioChannel - 1;
+        if (nextRadioChannel < 0 ) {
+            nextRadioChannel = 0;
+        }
+        SetRadioChannel(nextRadioChannel);
+
+    }
+
     public String getRadioChannelInfo(int index) {
         return dlManager.GetAudioFileLocalName(index - 1);
     }
@@ -1277,12 +1293,21 @@ public class BBService extends Service {
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (!BurnerBoardUtil.kIsRPI) {
+            return onKeyDownBurnerBoard(keyCode, event);
+        } else {
+            return onKeyDownRPI(keyCode, event);
+
+        }
+    }
+
+    public boolean onKeyDownBurnerBoard(int keyCode, KeyEvent event) {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
-            l("Keycode:" + keyCode);
+            l("BurnerBoard Keycode:" + keyCode);
             //System.out.println("Keycode: " + keyCode);
         }
-
 
         switch (keyCode) {
             case 100:
@@ -1320,6 +1345,45 @@ public class BBService extends Service {
             case 88: //satachi left button
                 setMode(99);
                 break;
+        }
+        //mHandler.removeCallbacksAndMessages(null);
+        return true;
+    }
+
+    public boolean onKeyDownRPI(int keyCode, KeyEvent event) {
+        boolean handled = false;
+        if (event.getRepeatCount() == 0) {
+            l("RPI Keycode:" + keyCode);
+            //System.out.println("Keycode: " + keyCode);
+        }
+
+        switch (keyCode) {
+            case 85: // satachi Play button
+                //onBatteryButton();
+                // Do something more useful here. Like turn on/off lights?
+                l("RPI Bluetooth Play Button");
+                voice.speak( "I'm sorry Dave, I can't let you do that", TextToSpeech.QUEUE_FLUSH, null, "keycode");
+                break;
+
+            /* Audio stream control */
+            case 87: // satachi right button
+                l("RPI Bluetooth Right Button");
+                NextStream();
+                break;
+            case 88: //satachi left button
+                l("RPI Bluetooth Left Button");
+                PreviousStream();
+                break;
+
+            /* Volume control */
+            case 24:   // satachi & native volume up button
+                l("RPI Bluetooth Volume Up Button");
+                onVolUp();
+                return false;
+            case 25:  // satachi & native volume down button
+                l("RPI Bluetooth Volume Down Button");
+                onVolDown();
+                return false;
         }
         //mHandler.removeCallbacksAndMessages(null);
         return true;
