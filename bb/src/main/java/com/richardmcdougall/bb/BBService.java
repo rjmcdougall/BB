@@ -9,19 +9,14 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
-import android.media.SyncParams;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -358,7 +353,7 @@ public class BBService extends Service {
                 Thread batteryMonitor = new Thread(new Runnable() {
                     public void run() {
                         Thread.currentThread().setName("BB Battery Monitor");
-                        batteryThread();
+                        supervisorThread();
                     }
                 });
                 batteryMonitor.start();
@@ -1046,6 +1041,12 @@ public class BBService extends Service {
 
     }
 
+
+    /*
+    Per Richard: Track 0 only plays on a single board. On every other board, this is silence.
+    Considering this a feature for now, as it lets you 'turn off' music with a remote. -jib
+     */
+
     void NextStream() {
         int nextRadioChannel = currentRadioChannel + 1;
         if (nextRadioChannel > dlManager.GetTotalAudio())
@@ -1463,7 +1464,7 @@ public class BBService extends Service {
     private int loopCnt = 0;
     private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
 
-    private void batteryThread() {
+    private void supervisorThread() {
 
         boolean announce = false;
         powerStates powerState = powerStates.STATE_DISPLAYING;
