@@ -50,8 +50,6 @@ import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
 
-import com.richardmcdougall.bb.BurnerBoardUtil;
-
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
@@ -191,7 +189,27 @@ public class BBService extends Service {
     /**
      * Called when the service is being created.
      */
-    Thread batteryMonitor = null;
+    Thread supervisorMonitor = null;
+
+
+    /**
+     * Indicates whether battery monitoring is enabled
+     */
+    //boolean mEnableBatteryMonitoring = true;
+    boolean mEnableBatteryMonitoring = !BurnerBoardUtil.kIsRPI;
+
+    /**
+     * Indicates whether IoT reporting is enabled and how often
+     */
+    //boolean mEnableIoTReporting = true;
+    boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI;
+    int mIoTReportEveryNSeconds = 10;
+
+    /**
+     * Indicates whether Wifi reconnecting is enabled and how often
+     */
+    boolean mEnableWifiReconnect = true;
+    int mWifiReconnectEveryNSeconds = 60;
 
 
     private static final Map<String, String> BoardNames = new HashMap<String, String>();
@@ -346,22 +364,17 @@ public class BBService extends Service {
             l("music player already running");
         }
 
-        if (!BurnerBoardUtil.kIsRPI) {
-            if (batteryMonitor == null) {
-                l("starting battery monitor thread");
-                // Start Battery Monitor
-                Thread batteryMonitor = new Thread(new Runnable() {
-                    public void run() {
-                        Thread.currentThread().setName("BB Battery Monitor");
-                        supervisorThread();
-                    }
-                });
-                batteryMonitor.start();
-            } else {
-                l("battery monitor already running");
-            }
+        if (supervisorMonitor == null) {
+            l("starting supervisor thread");
+            Thread supervisorMonitor = new Thread(new Runnable() {
+                public void run() {
+                    Thread.currentThread().setName("BB Supervisor");
+                    supervisorThread();
+                }
+            });
+            supervisorMonitor.start();
         } else {
-            l("Battery monitoring not supported on Raspberry PIs");
+            l("supervisor thread already running");
         }
 
         startLights();
@@ -1457,141 +1470,149 @@ public class BBService extends Service {
         return mBurnerBoard.getBattery();
     }
 
-    private long lastOkStatement = System.currentTimeMillis();
-    private long lastLowStatement = System.currentTimeMillis();
-    private long lastUnknownStatement = System.currentTimeMillis();
 
     private int loopCnt = 0;
-    private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
 
     private void supervisorThread() {
 
-        boolean announce = false;
-        powerStates powerState = powerStates.STATE_DISPLAYING;
+        /* Communicate the settings for the supervisor thread */
+        l("Enable Battery Monitoring? " + mEnableBatteryMonitoring);
+        l("Enable IoT Reporting? " + mEnableIoTReporting);
+        l("Enable WiFi reconnect?" + mEnableWifiReconnect);
 
         while (true) {
-            if (mBurnerBoard != null) {
-                int level = mBurnerBoard.getBattery();
-                int current = mBurnerBoard.getBatteryCurrent();
-                int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
-                int voltage = mBurnerBoard.getBatteryVoltage();
 
-                // Every 60 seconds check WIFI
-                if (loopCnt % 60 == 0) {
-                    if (checkWifiOnAndConnected(mWiFiManager) == false) {
-
-                        l("Enabling Wifi...");
-                        if (mWiFiManager.setWifiEnabled(true) == false) {
-                            l("Failed to enable wifi");
-                        }
-                        if (mWiFiManager.reassociate() == false) {
-                            l("Failed to associate wifi");
-                        }
-                    }
-                }
-
-                // Every 10 seconds log to IOT cloud
-                if (loopCnt % 10 == 0) {
-                    l("Board Current(avg) is " + current);
-                    l("Board Current(Instant) is " + currentInstant);
-                    l("Board Voltage is " + voltage);
-                    if (mBurnerBoard != null) {
-                        d("Sending MQTT update");
-                        try {
-                            iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
-                        } catch (Exception e) {
-                        }
-                    }
-                }
-
-                // Save CPU cycles for lower power mode
-                // current is milliamps
-                // Current with brain running is about 100ma
-                // Check voltage to make sure we're really reading the battery gauge
-                // Make sure we're not seeing +ve current, which is charging
-                // Average current use to enter STATE_IDLE
-                // Instant current used to exit STATE_IDLE
-                if ((voltage > 20000) && (current > -150) && (current < 10)) {
-                    // Any state -> IDLE
-                    powerState = powerStates.STATE_IDLE;
-                    mBoardVisualization.inhibit(true);
-                } else if ((voltage > 20000) && (currentInstant < -150)) {
-                    // Any state -> Displaying
-                    powerState = powerStates.STATE_DISPLAYING;
-                    mBoardVisualization.inhibit(false);
-                } else if (powerState == powerStates.STATE_DISPLAYING &&
-                        // DISPLAYING -> Charging (avg current)
-                        (voltage > 20000) && (current > 10)) {
-                    powerState = powerStates.STATE_CHARGING;
-                    mBoardVisualization.inhibit(false);
-                } else if (powerState == powerStates.STATE_IDLE &&
-                        (voltage > 20000) && (currentInstant > 10)) {
-                    // STATE_IDLE -> Charging // instant
-                    powerState = powerStates.STATE_CHARGING;
-                    mBoardVisualization.inhibit(false);
-                } else if ((voltage > 20000) && (current > 10)) {
-                    // Anystate -> Charging // avg current
-                    powerState = powerStates.STATE_CHARGING;
-                    mBoardVisualization.inhibit(false);
-                } else {
-                    l("Unhandled power state " + powerState);
-                    mBoardVisualization.inhibit(false);
-                }
-
-                l("Power state is " + powerState);
-
-                // Show battery if charging
-                mBoardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
-
-                // Battery voltage is critically low
-                // Board will come to a halt in < 60 seconds
-                // current is milliamps
-                if ((voltage > 20000) && (voltage < 35300) ){
-                    mBoardVisualization.emergency(true);
-                } else {
-                    mBoardVisualization.emergency(false);
-                }
-
-                announce = false;
-                /*
-                if (level < 0) {
-                    if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
-                        lastUnknownStatement = System.currentTimeMillis();
-                        voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
-                    }
-                }
-                */
-                if ((level >= 0) && (level < 15)) {
-                    if (System.currentTimeMillis() - lastOkStatement > 60000) {
-                        lastOkStatement = System.currentTimeMillis();
-                        announce = true;
-                    }
-                } else if ((level >= 0) && (level <= 25)) {
-                    if (System.currentTimeMillis() - lastLowStatement > 300000) {
-                        lastLowStatement = System.currentTimeMillis();
-                        announce = true;
-                    }
-
-                } else if (false) {
-                    if (System.currentTimeMillis() - lastOkStatement > 1800000) {
-                        lastOkStatement = System.currentTimeMillis();
-                        announce = true;
-                    }
-                }
-                if (announce) {
-                    voice.speak("Battery Level is " +
-                            level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
-                }
+            // Every 60 seconds check WIFI
+            if (mEnableWifiReconnect && (loopCnt % mWifiReconnectEveryNSeconds == 0)) {
+                checkWifiReconnect();
             }
 
+            // Every second, check & update battery
+            if (mEnableBatteryMonitoring && (mBurnerBoard != null)) {
+                checkBattery();
+
+                // Every 10 seconds, send battery update via IoT.
+                // Only do this if we're actively checking the battery.
+                if (mEnableIoTReporting && (loopCnt % mIoTReportEveryNSeconds == 0)) {
+                    l("Sending MQTT update");
+                    try {
+                        iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                    } catch (Exception e) {
+                    }
+                }
+            }
 
             try {
                 Thread.sleep(1000);
             } catch (Throwable e) {
             }
+
             loopCnt++;
         }
     }
+
+    private long lastOkStatement = System.currentTimeMillis();
+    private long lastLowStatement = System.currentTimeMillis();
+    private long lastUnknownStatement = System.currentTimeMillis();
+    private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
+
+    private void checkBattery() {
+        if (mBurnerBoard != null) {
+
+            boolean announce = false;
+            powerStates powerState = powerStates.STATE_DISPLAYING;
+
+            int level = mBurnerBoard.getBattery();
+            int current = mBurnerBoard.getBatteryCurrent();
+            int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
+            int voltage = mBurnerBoard.getBatteryVoltage();
+
+            l("Board Current(avg) is " + current);
+            l("Board Current(Instant) is " + currentInstant);
+            l("Board Voltage is " + voltage);
+
+            // Save CPU cycles for lower power mode
+            // current is milliamps
+            // Current with brain running is about 100ma
+            // Check voltage to make sure we're really reading the battery gauge
+            // Make sure we're not seeing +ve current, which is charging
+            // Average current use to enter STATE_IDLE
+            // Instant current used to exit STATE_IDLE
+            if ((voltage > 20000) && (current > -150) && (current < 10)) {
+                // Any state -> IDLE
+                powerState = powerStates.STATE_IDLE;
+                mBoardVisualization.inhibit(true);
+            } else if ((voltage > 20000) && (currentInstant < -150)) {
+                // Any state -> Displaying
+                powerState = powerStates.STATE_DISPLAYING;
+                mBoardVisualization.inhibit(false);
+            } else if (powerState == powerStates.STATE_DISPLAYING &&
+                    // DISPLAYING -> Charging (avg current)
+                    (voltage > 20000) && (current > 10)) {
+                powerState = powerStates.STATE_CHARGING;
+                mBoardVisualization.inhibit(false);
+            } else if (powerState == powerStates.STATE_IDLE &&
+                    (voltage > 20000) && (currentInstant > 10)) {
+                // STATE_IDLE -> Charging // instant
+                powerState = powerStates.STATE_CHARGING;
+                mBoardVisualization.inhibit(false);
+            } else if ((voltage > 20000) && (current > 10)) {
+                // Anystate -> Charging // avg current
+                powerState = powerStates.STATE_CHARGING;
+                mBoardVisualization.inhibit(false);
+            } else {
+                l("Unhandled power state " + powerState);
+                mBoardVisualization.inhibit(false);
+            }
+
+            l("Power state is " + powerState);
+
+            // Show battery if charging
+            mBoardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
+
+            // Battery voltage is critically low
+            // Board will come to a halt in < 60 seconds
+            // current is milliamps
+            if ((voltage > 20000) && (voltage < 35300) ){
+                mBoardVisualization.emergency(true);
+            } else {
+                mBoardVisualization.emergency(false);
+            }
+
+            announce = false;
+            /*
+            if (level < 0) {
+                if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
+                    lastUnknownStatement = System.currentTimeMillis();
+                    voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
+                }
+            }
+            */
+
+            if ((level >= 0) && (level < 15)) {
+                if (System.currentTimeMillis() - lastOkStatement > 60000) {
+                    lastOkStatement = System.currentTimeMillis();
+                    announce = true;
+                }
+            } else if ((level >= 0) && (level <= 25)) {
+                if (System.currentTimeMillis() - lastLowStatement > 300000) {
+                    lastLowStatement = System.currentTimeMillis();
+                    announce = true;
+                }
+
+            } else if (false) {
+                if (System.currentTimeMillis() - lastOkStatement > 1800000) {
+                    lastOkStatement = System.currentTimeMillis();
+                    announce = true;
+                }
+            }
+            if (announce) {
+                voice.speak("Battery Level is " +
+                        level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
+            }
+        }
+    }
+
 
     private void onBatteryButton() {
         if (mBurnerBoard != null) {
@@ -1669,41 +1690,41 @@ public class BBService extends Service {
 
     private void setupWifi() {
         this.registerReceiver(new BroadcastReceiver() {
-                                  @Override
-                                  public void onReceive(Context context, Intent intent) {
-                                      int extraWifiState =
-                                              intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                                                      WifiManager.WIFI_STATE_UNKNOWN);
+            @Override
+            public void onReceive(Context context, Intent intent) {
+              int extraWifiState =
+                      intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
+                              WifiManager.WIFI_STATE_UNKNOWN);
 
-                                      switch(extraWifiState){
-                                          case WifiManager.WIFI_STATE_DISABLED:
-                                              l("WIFI STATE DISABLED");
-                                              break;
-                                          case WifiManager.WIFI_STATE_DISABLING:
-                                              l("WIFI STATE DISABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLED:
-                                              l("WIFI STATE ENABLED");
-                                              int mfs = mWiFiManager.getWifiState();
-                                              l("Wifi state is " + mfs);
-                                              l("Checking wifi");
-                                              if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
-                                                  l("adding wifi");
-                                                  addWifi("burnerboard", "firetruck");
-                                              }
-                                              l("Connecting to wifi");
-                                              connectWifi("burnerboard");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLING:
-                                              l("WIFI STATE ENABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_UNKNOWN:
-                                              l("WIFI STATE UNKNOWN");
-                                              break;
-                                      }
-                                  }
-                              },
-                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+              switch(extraWifiState){
+                  case WifiManager.WIFI_STATE_DISABLED:
+                      l("WIFI STATE DISABLED");
+                      break;
+                  case WifiManager.WIFI_STATE_DISABLING:
+                      l("WIFI STATE DISABLING");
+                      break;
+                  case WifiManager.WIFI_STATE_ENABLED:
+                      l("WIFI STATE ENABLED");
+                      int mfs = mWiFiManager.getWifiState();
+                      l("Wifi state is " + mfs);
+                      l("Checking wifi");
+                      if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
+                          l("adding wifi");
+                          addWifi("burnerboard", "firetruck");
+                      }
+                      l("Connecting to wifi");
+                      connectWifi("burnerboard");
+                      break;
+                  case WifiManager.WIFI_STATE_ENABLING:
+                      l("WIFI STATE ENABLING");
+                      break;
+                  case WifiManager.WIFI_STATE_UNKNOWN:
+                      l("WIFI STATE UNKNOWN");
+                      break;
+              }
+            }
+        },
+        new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
     }
 
     private boolean checkWifiOnAndConnected(WifiManager wifiMgr) {
@@ -1719,6 +1740,18 @@ public class BBService extends Service {
         }
         else {
             return false; // Wi-Fi adapter is OFF
+        }
+    }
+
+    private void checkWifiReconnect() {
+        if (checkWifiOnAndConnected(mWiFiManager) == false) {
+            l("Enabling Wifi...");
+            if (mWiFiManager.setWifiEnabled(true) == false) {
+                l("Failed to enable wifi");
+            }
+            if (mWiFiManager.reassociate() == false) {
+                l("Failed to associate wifi");
+            }
         }
     }
 
