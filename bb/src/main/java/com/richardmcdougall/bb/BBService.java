@@ -305,7 +305,8 @@ public class BBService extends Service {
                 if (BurnerBoardUtil.kIsRPI) {
                     String rpiMsg = "Raspberry PI detected";
                     l(rpiMsg);
-                    voice.speak( rpiMsg, TextToSpeech.QUEUE_FLUSH, null, "rpi diagnostic");
+                    // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
+                    voice.speak( rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
                 }
             }
         });
