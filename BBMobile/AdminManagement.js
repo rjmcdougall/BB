@@ -6,6 +6,7 @@ import {
 	View,
 	ScrollView,
 	Text,
+	Linking,
 } from "react-native";
 
 import TrackController from "./TrackController";
@@ -23,7 +24,7 @@ export default class AdminManagement extends Component {
 		this.onSelectDevice = this.props.onSelectDevice.bind(this);
 		this.onRefreshDevices = this.props.onRefreshDevices.bind(this);
 	}
- 
+
 	render() {
 
 		var masterText;
@@ -79,9 +80,13 @@ export default class AdminManagement extends Component {
 						<View style={styles.button}>
 							<Touchable
 								onPress={async () => {
-
+									var supported = await Linking.canOpenURL("https://burnerboard.com");
+									if (supported) {
+										Linking.openURL("https://burnerboard.com");
+									} else {
+										console.log("Don't know how to open URI: " + "https://burnerboard.com");
+									}
 									return true;
- 
 								}}
 								style={styles.touchableStyle}
 								background={Touchable.Ripple("blue")}>
