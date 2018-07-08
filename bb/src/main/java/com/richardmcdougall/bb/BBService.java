@@ -1497,9 +1497,10 @@ public class BBService extends Service {
                 // Every 10 seconds, send battery update via IoT.
                 // Only do this if we're actively checking the battery.
                 if (mEnableIoTReporting && (loopCnt % mIoTReportEveryNSeconds == 0)) {
-                    l("Sending MQTT update");
+                    String batteryStats = mBurnerBoard.getBatteryStats();
+                    l("Sending MQTT update: " + batteryStats);
                     try {
-                        iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                        iotClient.sendUpdate("bbtelemetery", batteryStats);
                     } catch (Exception e) {
                     }
                 }
@@ -1530,9 +1531,16 @@ public class BBService extends Service {
             int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
             int voltage = mBurnerBoard.getBatteryVoltage();
 
+            /* XXX TODO: Add these metrics to MQTT stream to address
+                https://github.com/rjmcdougall/BB/issues/39
+             */
+            int videoMode = mBoardVisualization.getMode();
+            String videoName = getVideoModeInfo(videoMode);
+
             l("Board Current(avg) is " + current);
             l("Board Current(Instant) is " + currentInstant);
             l("Board Voltage is " + voltage);
+            l("Board Pattern is " + videoName + " (mode " + videoMode + ")");
 
             // Save CPU cycles for lower power mode
             // current is milliamps
