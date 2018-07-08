@@ -309,7 +309,7 @@ public class IoTClient {
         message.setRetained(true);
 
         try {
-                String t = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
+            String t = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
             //String t = new String("/devices/bb-test/events/" + topic);
             //Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
