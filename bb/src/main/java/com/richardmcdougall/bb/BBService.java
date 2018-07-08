@@ -60,7 +60,9 @@ public class BBService extends Service {
 
     // Set to force classic mode when using Emulator
     public static final boolean kEmulatingClassic = false;
-    public static final boolean kBeepOnConnect = false;
+
+    // RPIs don't always have a screen; use beeps -jib
+    public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI;
 
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
