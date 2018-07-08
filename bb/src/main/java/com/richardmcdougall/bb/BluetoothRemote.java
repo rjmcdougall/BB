@@ -78,16 +78,6 @@ public class BluetoothRemote {
         filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         mBBService.registerReceiver(mReceiver, filter);
 
-        // Get a set of currently paired devices
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-
-        // If there are already paired devices, add each one to the paired list
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                l("found paired device: " + device.getAddress() + "-" + device.getAddress());
-                mPairedDevices.put(device.getAddress(), device);
-            }
-        }
         setupBT();
         discoverDevices();
     }
@@ -109,6 +99,18 @@ public class BluetoothRemote {
 
     public void discoverDevices() {
         l("discoverDevices()");
+
+
+        // Get a set of currently paired devices
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+
+        // If there are already paired devices, add each one to the paired list
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                l("found paired device: " + device.getAddress() + "-" + device.getAddress());
+                mPairedDevices.put(device.getAddress(), device);
+            }
+        }
 
         // If we're already discovering, stop it
         if (mBluetoothAdapter.isDiscovering()) {

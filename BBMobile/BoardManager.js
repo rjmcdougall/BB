@@ -88,8 +88,7 @@ export default class BoardManager extends Component {
 				boardData: boards,
 			});
 		}
-		console.log("board data")
-		console.log(boards)
+		
 		this.handlerDiscover = bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", this.handleDiscoverPeripheral);
 		this.handlerStop = bleManagerEmitter.addListener("BleManagerStopScan", this.handleStopScan);
 		this.handlerDisconnect = bleManagerEmitter.addListener("BleManagerDisconnectPeripheral", this.handleDisconnectedPeripheral);
