@@ -23,6 +23,17 @@ android {
 
 
     }
+    /* The internet tells me this error:
+
+        [CIRCULAR REFERENCE:com.android.tools.r8.ApiLevelException: Default interface methods are only supported starting with Android N (--min-api 24): void net.sf.marineapi.provider.event.HeadingListener.providerUpdate(net.sf.marineapi.provider.event.ProviderEvent)]
+
+       Is solved by adding the compile options below. Source:
+       https://stackoverflow.com/questions/49512629/android-studio-error-default-interface-methods-are-only-supported-starting-with
+     */
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
     buildTypes {
         release {
             minifyEnabled false
