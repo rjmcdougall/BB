@@ -101,26 +101,29 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private usbReceiver mUsbReceiver = new usbReceiver();
 
-    private boolean preventDialogs = true;
+    private boolean preventDialogs = false;
 
     // Kill popups which steal remote control input button focus from the app
     // http://www.andreas-schrade.de/2015/02/16/android-tutorial-how-to-create-a-kiosk-mode-in-android/
+    private boolean mIsCustomized = false;
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         l("MainActivity: onWindowFocusChanged()");
 
-        //if (preventDialogs == false) {
-        //    return;
-        //}
+        if (preventDialogs == false) {
+            return;
+        }
 
         //if(!hasFocus) {
+        if (!mIsCustomized) {
             // Close every kind of system dialog
             Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
             this.sendBroadcast(closeDialog);
-        //}
-        ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
-        am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
+            //}
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
+        }
     }
 
 
@@ -784,38 +787,17 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     }
 
-    public void OnSetupUsb(View v) {
+    public void OnSettings(View v) {
 
-        l("MainActivity: initUsb()");
+        l("MainActivity: settings()");
 
+        // Allow pop-ups; disables aumatic closing of pop up dialogues
+        // which we use in production
+        mIsCustomized = true;
 
-        UsbManager mUsbManager = (UsbManager) this.getSystemService(Context.USB_SERVICE);
-
-        // Find all available drivers from attached devices.
-        List<UsbSerialDriver> availableDrivers =
-                UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
-        if (availableDrivers.isEmpty()) {
-            l("USB: No USB Devices");
-            return;
-        }
-
-        // Find the Radio device by pid/vid
-        UsbDevice mUsbDevice = null;
-        l("There are " + availableDrivers.size() + " drivers");
-        for (int i = 0; i < availableDrivers.size(); i++) {
-            UsbSerialDriver mDriver = availableDrivers.get(i);
-
-            // See if we can find the adafruit M0 which is the Radio
-            mUsbDevice = mDriver.getDevice();
-
-            if (!mUsbManager.hasPermission(mUsbDevice)) {
-                //ask for permission
-                PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(GET_USB_PERMISSION), 0);
-                this.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
-                mUsbManager.requestPermission(mUsbDevice, pi);
-            }
-        }
-
+        Intent dialogIntent = new Intent(android.provider.Settings.ACTION_SETTINGS);
+        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(dialogIntent);
     }
 
     // Receive permission if it's being asked for (typically for the first time)
