@@ -16,10 +16,11 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 3800
-        versionName "38.00"
+        versionCode 3913
+        versionName "39.13"
 
         signingConfig signingConfigs.burnerboard
+        multiDexEnabled true
 
 
     }
@@ -56,6 +57,10 @@ android {
         exclude 'META-INF/license'
         exclude 'META-INF/license.txt'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 repositories {
@@ -75,6 +80,7 @@ dependencies {
     compile 'joda-time:joda-time:2.1'
     compile 'eu.chainfire:libsuperuser:1.0.0.+'
     compile group: 'net.sf.marineapi', name: 'marineapi', version: '0.10.0'
+    compileOnly 'com.google.android.things:androidthings:+'
 }
 
 

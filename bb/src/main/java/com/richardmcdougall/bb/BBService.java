@@ -1711,7 +1711,7 @@ public class BBService extends Service {
                       int mfs = mWiFiManager.getWifiState();
                       l("Wifi state is " + mfs);
                       l("Checking wifi");
-                      if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
+                      if (checkWifiSSid("burnerboard") == false) {
                           l("adding wifi");
                           addWifi("burnerboard", "firetruck");
                       }
