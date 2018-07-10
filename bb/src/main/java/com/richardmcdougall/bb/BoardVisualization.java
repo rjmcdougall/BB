@@ -64,6 +64,8 @@ public class BoardVisualization {
 
     public int mMultipler4Speed;
     private boolean inhibitVisual = false;
+    private boolean inhibitVisualGTFO = false;
+
     private boolean emergencyVisual = false;
     private boolean showBattery = false;
     private int mFrameRate;
@@ -130,6 +132,10 @@ public class BoardVisualization {
 
     public void inhibit(boolean inhibit) {
         inhibitVisual = inhibit;
+    }
+
+    public void inhibitGTFO(boolean inhibit) {
+        inhibitVisualGTFO = inhibit;
     }
 
     public void emergency(boolean emergency) {
@@ -235,7 +241,6 @@ public class BoardVisualization {
                 break;
 
             case "modeMatrix(kMatrix9)":
-            case "Matrix 9":
                 frameRate = mFrameRate;
                 mVisualizationMatrix.update(Matrix.kMatrix9);
                 break;
@@ -295,7 +300,7 @@ public class BoardVisualization {
         while (true) {
 
             // Power saving when board top not turned on
-            if (inhibitVisual) {
+            if (inhibitVisual || inhibitVisualGTFO) {
                 l("inhibit");
                 mBurnerBoard.clearPixels();
                 mBurnerBoard.showBattery();
