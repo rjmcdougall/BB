@@ -402,15 +402,15 @@ public class DownloadManager {
                 String dirTxt = LoadTextFile("directory.json.tmp");
                 JSONObject dir = new JSONObject(dirTxt);
 
-                if (mDM.dataDirectory != null)
+                if (mDM.dataDirectory != null) {
                     if (dir.toString().length() == mDM.dataDirectory.toString().length()) {
                         Log.d(TAG, "No Changes to Directory JSON.");
-                        return true;
+                        // return true;
+                    } else {
+                        if (mDM.onProgressCallback != null)
+                            mDM.onProgressCallback.onVoiceCue("Media Changes Detected. Downloading.");
                     }
-
-
-                if (mDM.onProgressCallback != null)
-                    mDM.onProgressCallback.onVoiceCue("Media Changes Detected. Downloading.");
+                }
 
                 int tFiles = 0;
 
@@ -458,15 +458,17 @@ public class DownloadManager {
                     }
                 }
 
-                // got new media.  Update!
-                mDM.dataDirectory = dir;
-                CleanupOldFiles();
+                if (tFiles > 0) {
+                    // got new media.  Update!
+                    mDM.dataDirectory = dir;
+                    CleanupOldFiles();
 
-                // now that you have the media, update the directory so the board can use it.
-                new File(dataDir, "directory.json.tmp").renameTo(new File(dataDir, "directory.json"));
+                    // now that you have the media, update the directory so the board can use it.
+                    new File(dataDir, "directory.json.tmp").renameTo(new File(dataDir, "directory.json"));
 
-                if (mDM.onProgressCallback != null)
-                    mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files. Media ready.");
+                    if (mDM.onProgressCallback != null)
+                        mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files. Media ready.");
+                }
 
                 return true;
             } catch (JSONException jse) {
