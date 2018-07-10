@@ -43,6 +43,8 @@ target 'BBMobile' do
     # Pods for testing
 
 
+    pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+
   end
 
   target 'BBMobileTests' do
