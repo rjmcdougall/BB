@@ -111,8 +111,7 @@ public class IoTClient {
         Log.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = mContext.getFilesDir().getAbsolutePath();
         mqttClient = new MqttAndroidClient(context, "ssl://mqtt.googleapis.com:8883",
-                deviceId, new MqttDefaultFilePersistence(filesDir));
-
+                deviceId, new MemoryPersistence());
         doConnect();
 
 
@@ -171,6 +170,7 @@ public class IoTClient {
                                     Log.d(TAG, "connect.onSuccess");
                                     haveConnected = true;
                                     haveEverConnected = true;
+                                    /*
                                     DisconnectedBufferOptions disconnectedBufferOptions =
                                             new DisconnectedBufferOptions();
                                     disconnectedBufferOptions.setBufferEnabled(true);
@@ -178,6 +178,7 @@ public class IoTClient {
                                     disconnectedBufferOptions.setPersistBuffer(true);
                                     disconnectedBufferOptions.setDeleteOldestMessages(false);
                                     mqttClient.setBufferOpts(disconnectedBufferOptions);
+                                    */
 
 
                                     try {

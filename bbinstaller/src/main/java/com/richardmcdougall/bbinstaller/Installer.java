@@ -72,23 +72,6 @@ public class Installer extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private boolean checkWifiSSid(String ssid) {
-        try {
-            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
-            if (wifiList != null) {
-                for (WifiConfiguration config : wifiList) {
-                    String newSSID = config.SSID;
-                    l("Found wifi:" + newSSID + " == " + ssid + " ?");
-                    if (ssid.equals(newSSID)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (Exception e) {
-        }
-        return false;
-    }
-
     public static String getBoardId() {
 
         String id;
@@ -104,14 +87,41 @@ public class Installer extends Service {
         return id;
     }
 
+    private boolean checkWifiSSid(String ssid) {
+
+        String aWifi = "\"" + ssid + "\"";
+
+        try {
+            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
+            if (wifiList != null) {
+                for (WifiConfiguration config : wifiList) {
+                    String newSSID = config.SSID;
+                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    if (aWifi.equals(newSSID)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+
     private void connectWifi(String ssid) {
+
+        String aWifi = "\"" + ssid + "\"";
+
         try {
             List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
             if (wifiList != null) {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
 
-                    if (ssid.equals(newSSID)) {
+                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
+
+                    if (aWifi.equals(newSSID)) {
+                        l("connecting wifi:" + newSSID);
                         mWiFiManager.disconnect();
                         mWiFiManager.enableNetwork(config.networkId, true);
                         mWiFiManager.reconnect();
@@ -170,7 +180,7 @@ public class Installer extends Service {
                                               int mfs = mWiFiManager.getWifiState();
                                               l("Wifi state is " + mfs);
                                               l("Checking wifi");
-                                              if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
+                                              if (checkWifiSSid(new String("burnerboard")) == false) {
                                                   l("adding wifi");
                                                   addWifi("burnerboard", "firetruck");
                                               }
