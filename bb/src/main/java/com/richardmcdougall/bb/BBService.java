@@ -102,7 +102,8 @@ public class BBService extends Service {
     public RFClientServer mRfClientServer = null;
     /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
     public static String boardId = BurnerBoardUtil.BOARD_ID;
-    public String boardType = Build.MANUFACTURER;
+    /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
+    public static String boardType = BurnerBoardUtil.BOARD_TYPE;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
@@ -445,27 +446,21 @@ public class BBService extends Service {
             return;
         }
 
-        if (kEmulatingClassic || boardType.contains("Classic")) {
+        if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
-        } else if (boardId.contains("Mast")) {
+        } else if (BurnerBoardUtil.isBBMast()) {
             mBurnerBoard = new BurnerBoardMast(this, mContext);
-        } else if (boardType.contains("Panel")) {
+        } else if (BurnerBoardUtil.isBBPanel()) {
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("cranky")) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("grumpy")) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("mickey")) {
+        } else if (BurnerBoardUtil.isBBDirectMap()) {
             mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
-        } else if (boardId.contains("test")) {
-            mBurnerBoard = new BurnerBoardMast(this, mContext);
-        } else if (BurnerBoardUtil.kIsRPI) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("imx7d_pico")) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
+        } else if (BurnerBoardUtil.isBBAzul()) {
+            mBurnerBoard = new BurnerBoardAzul(this, mContext);
         } else {
+            l( "Could not identify board type! Falling back to Azul for backwards compatibility");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         }
+
         if (mBurnerBoard == null) {
             l("startLights: null burner board");
             return;
