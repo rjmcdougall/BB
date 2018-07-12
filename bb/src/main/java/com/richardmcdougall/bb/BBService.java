@@ -32,10 +32,8 @@ import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
@@ -102,7 +100,8 @@ public class BBService extends Service {
     public long serverRTT = 0;
     private int userTimeOffset = 0;
     public RFClientServer mRfClientServer = null;
-    public String boardId = getBoardId();
+    /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
+    public static String boardId = BurnerBoardUtil.BOARD_ID;
     public String boardType = Build.MANUFACTURER;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
@@ -152,20 +151,9 @@ public class BBService extends Service {
         }
     }
 
-
+    /* XXX TODO this is here for backwards compat; this used to be computed here and is now in bbutil -jib */
     public static String getBoardId() {
-
-        String id;
-        String serial = Build.SERIAL;
-
-        if (BurnerBoardUtil.kIsRPI) {
-            id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
-                    serial.length());
-        } else {
-            id = Build.MODEL;
-        }
-
-        return id;
+        return BurnerBoardUtil.BOARD_ID;
     }
 
     /**
@@ -214,12 +202,14 @@ public class BBService extends Service {
     int mWifiReconnectEveryNSeconds = 60;
 
 
+    /* XXX TODO remove me - this looks like dead code -jib
     private static final Map<String, String> BoardNames = new HashMap<String, String>();
 
     static {
         BoardNames.put("BISCUIT", "Richard");
         BoardNames.put("newproto", "Richard");
     }
+    */
 
     @Override
     public void onCreate() {
