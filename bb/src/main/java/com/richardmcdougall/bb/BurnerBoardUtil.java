@@ -6,9 +6,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BurnerBoardUtil {
-    public static final String BOARD_TYPE = Build.MANUFACTURER;
+    /* Step one to make WiFi configurable is to pull out the strings */
+    public static final String WIFI_SSID = "burnerboard";
+    public static final String WIFI_PASS = "firetruck";
+
 
     // Known board types we have
+    public static final String BOARD_TYPE = Build.MANUFACTURER;
+
     /* XXX TODO refactor out the string use cases and transform to constants -jib
     public static final String BB_TYPE_AZUL = "Burner Board Azul";
     public static final String BB_TYPE_CLASSIC = "Burner Board Classi";

@@ -447,14 +447,19 @@ public class BBService extends Service {
         }
 
         if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
+            l( "Visualization: Using Classic");
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else if (BurnerBoardUtil.isBBMast()) {
+            l( "Visualization: Using Mast");
             mBurnerBoard = new BurnerBoardMast(this, mContext);
         } else if (BurnerBoardUtil.isBBPanel()) {
+            l( "Visualization: Using Panel");
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
+            l( "Visualization: Using Directory Map");
             mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
         } else if (BurnerBoardUtil.isBBAzul()) {
+            l( "Visualization: Using Azul");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         } else {
             l( "Could not identify board type! Falling back to Azul for backwards compatibility");
@@ -1474,7 +1479,7 @@ public class BBService extends Service {
         /* Communicate the settings for the supervisor thread */
         l("Enable Battery Monitoring? " + mEnableBatteryMonitoring);
         l("Enable IoT Reporting? " + mEnableIoTReporting);
-        l("Enable WiFi reconnect?" + mEnableWifiReconnect);
+        l("Enable WiFi reconnect? " + mEnableWifiReconnect);
 
         while (true) {
 
@@ -1704,12 +1709,12 @@ public class BBService extends Service {
                       int mfs = mWiFiManager.getWifiState();
                       l("Wifi state is " + mfs);
                       l("Checking wifi");
-                      if (checkWifiSSid("burnerboard") == false) {
-                          l("adding wifi");
-                          addWifi("burnerboard", "firetruck");
+                      if (checkWifiSSid(BurnerBoardUtil.WIFI_SSID) == false) {
+                          l("adding wifi: " + BurnerBoardUtil.WIFI_SSID);
+                          addWifi(BurnerBoardUtil.WIFI_SSID, BurnerBoardUtil.WIFI_PASS);
                       }
                       l("Connecting to wifi");
-                      connectWifi("burnerboard");
+                      connectWifi(BurnerBoardUtil.WIFI_SSID);
                       break;
                   case WifiManager.WIFI_STATE_ENABLING:
                       l("WIFI STATE ENABLING");
@@ -1751,9 +1756,20 @@ public class BBService extends Service {
         }
     }
 
+    /* On android, wifi SSIDs and passwords MUST be passed quoted. This fixes up the raw SSID & Pass -jib */
+    /* XXX TODO this code doesn't get exercised if the SSID is already in the known config it seems
+       which makes this code VERY hard to test. What's the right strategy? -jib
+     */
+    private String fixWifiSSidAndPass(String ssid) {
+        String fixedSSid = ssid;
+        fixedSSid = ssid.startsWith("\"") ? ssid : "\"" + ssid;
+        fixedSSid = ssid.endsWith("\"") ? ssid : ssid + "\"";
+        return fixedSSid;
+    }
+
     private boolean checkWifiSSid(String ssid) {
 
-        String aWifi = "\"" + ssid + "\"";
+        String aWifi = fixWifiSSidAndPass(ssid);
 
         try {
             List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
@@ -1774,7 +1790,7 @@ public class BBService extends Service {
 
     private void connectWifi(String ssid) {
 
-        String aWifi = "\"" + ssid + "\"";
+        String aWifi =fixWifiSSidAndPass(ssid);
 
         try {
             List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
@@ -1802,8 +1818,9 @@ public class BBService extends Service {
         try {
 
             WifiConfiguration conf = new WifiConfiguration();
-            conf.SSID = "\"" + ssid + "\"";
-            conf.preSharedKey = "\"" + pass + "\"";
+            conf.SSID = fixWifiSSidAndPass(ssid);
+            conf.preSharedKey = fixWifiSSidAndPass(pass);
+
             mWiFiManager.addNetwork(conf);
             mWiFiManager.disconnect();
             mWiFiManager.enableNetwork(conf.networkId, false);
