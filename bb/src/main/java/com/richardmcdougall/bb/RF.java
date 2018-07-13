@@ -344,7 +344,7 @@ public class RF {
 
             //l("GPS callback:" + str);
             String gpsStr = mListener.readStringArg().replaceAll("_", ",");
-            //l("GPS: " + gpsStr);
+            l("GPS: " + gpsStr);
             // TODO: strip string
             try {
                 mGps.addStr(gpsStr);
