@@ -995,7 +995,7 @@ public class BBService extends Service {
         if(bGTFO){
             bGTFO = false;
             mBoardVisualization.inhibitGTFO(true);
-            mBurnerBoard.setText90("Hey, Get The Fuck Off!", 5000);
+            mBurnerBoard.setText90("Get The Fuck Off!", 5000);
             mediaPlayer.setVolume(0,0);
             stashedAndroidVolumePercent = getAndroidVolumePercent();
             setAndroidVolumePercent(100);
