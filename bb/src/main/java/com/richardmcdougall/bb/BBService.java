@@ -224,6 +224,7 @@ public class BBService extends Service {
 
         mContext = getApplicationContext();
 
+
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
@@ -1759,11 +1760,30 @@ public class BBService extends Service {
     /* On android, wifi SSIDs and passwords MUST be passed quoted. This fixes up the raw SSID & Pass -jib */
     /* XXX TODO this code doesn't get exercised if the SSID is already in the known config it seems
        which makes this code VERY hard to test. What's the right strategy? -jib
+
+        Here's some test code to run to manually verify:
+
+        String ssid = BurnerBoardUtil.WIFI_SSID;
+        String pass = BurnerBoardUtil.WIFI_PASS;
+        String qssid = "\"" + ssid + "\"";
+        String qpass = "\"" + pass + "\"";
+
+        String fssid = fixWifiSSidAndPass((ssid));
+        String fpass = fixWifiSSidAndPass(pass);
+        String fqssid = fixWifiSSidAndPass(qssid);
+        String fqpass = fixWifiSSidAndPass(qpass);
+
+        boolean ssid_eq = fssid.equals(fqssid);
+        boolean pass_eq = fpass.equals(fqpass);
+
+        l("ssid: " + ssid + " - qssid: " + qssid + " - fssid: " + fssid + " - fqssid: " + fqssid + " - equals? " + ssid_eq);
+        l("pass: " + pass + " - qpass: " + qpass + " - fpass: " + fpass + " - fqpass: " + fqpass + " - equals? " + pass_eq);
+
      */
     private String fixWifiSSidAndPass(String ssid) {
         String fixedSSid = ssid;
-        fixedSSid = ssid.startsWith("\"") ? ssid : "\"" + ssid;
-        fixedSSid = ssid.endsWith("\"") ? ssid : ssid + "\"";
+        fixedSSid = ssid.startsWith("\"") ? fixedSSid : "\"" + fixedSSid;
+        fixedSSid = ssid.endsWith("\"") ? fixedSSid : fixedSSid + "\"";
         return fixedSSid;
     }
 
