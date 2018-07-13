@@ -6,6 +6,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BurnerBoardUtil {
+    /*
+        Feature flag section here
+    */
+
+    // This enabled GPS Time being polled
+    public static final boolean fEnableGpsTime = false;
+
+
     /* Step one to make WiFi configurable is to pull out the strings */
     public static final String WIFI_SSID = "burnerboard";
     public static final String WIFI_PASS = "firetruck";
