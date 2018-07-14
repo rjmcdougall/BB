@@ -194,6 +194,7 @@ export default class BoardManager extends Component {
 
 	onNavigate(nav) {
 		this.setState({ showScreen: nav });
+
 	}
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
@@ -259,8 +260,9 @@ export default class BoardManager extends Component {
 	}
 
 	async onPressSearchForBoards() {
+	
 		if (!this.state.scanning) {
-
+ 
 			try {
 				await BleManager.disconnect(this.state.selectedPeripheral.id);
 			}
@@ -270,7 +272,7 @@ export default class BoardManager extends Component {
 
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
-
+ 
 			this.setState({
 				peripherals: new Map(),
 				appState: "",
@@ -280,6 +282,7 @@ export default class BoardManager extends Component {
 				discoveryState: Constants.DISCONNECTED,
 				backgroundLoop: null,
 			});
+ 
 		}
 	}
 
@@ -393,7 +396,7 @@ export default class BoardManager extends Component {
 				<View style={{ flex: 1 }}>
 					<BatteryController mediaState={this.state.mediaState} />
 					<View style={{ flex: 1, flexDirection: "row" }}>
-						<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
+						<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
 						<View style={{ flex: 1 }}>
 							<View style={{ flex: 1 }}>
 								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
@@ -422,7 +425,7 @@ export default class BoardManager extends Component {
 		else
 			return (
 				<View style={{ flex: 1, flexDirection: "row" }}>
-					<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
+					<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen}  onPressSearchForBoards={this.onPressSearchForBoards} />
 					<View style={{ flex: 1 }}>
 						<Touchable
 							onPress={() => this.startScan(false)}
