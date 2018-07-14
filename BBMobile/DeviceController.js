@@ -27,7 +27,7 @@ export default class DeviceController extends Component {
 		var refreshButton;
 		if (this.props.refreshFunction) {
 			refreshButton = (
-				<View style={styles.button}>
+				<View>
 					<Touchable
 						onPress={async () => {
 

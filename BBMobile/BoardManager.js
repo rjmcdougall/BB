@@ -378,40 +378,40 @@ export default class BoardManager extends Component {
 		var connectionButtonText = "";
 
 		switch (this.state.discoveryState) {
-		case Constants.DISCONNECTED:
-			color = "#fff";
-			enableControls = "none";
-			connectionButtonText = "Connect to Boards";
-			break;
-		case Constants.LOCATED:
-			color = "yellow";
-			enableControls = "none";
-			connectionButtonText = "Located " + this.state.boardName;
-			break;
-		case Constants.CONNECTED:
-			if (!this.state.mediaState.isError)
-				color = "green";
-			else
-				color = "red";
-			enableControls = "auto";
-			connectionButtonText = "Connected To " + this.state.boardName;
-			break;
+			case Constants.DISCONNECTED:
+				color = "#fff";
+				enableControls = "none";
+				connectionButtonText = "Connect to Boards";
+				break;
+			case Constants.LOCATED:
+				color = "yellow";
+				enableControls = "none";
+				connectionButtonText = "Located " + this.state.boardName;
+				break;
+			case Constants.CONNECTED:
+				if (!this.state.mediaState.isError)
+					color = "green";
+				else
+					color = "red";
+				enableControls = "auto";
+				connectionButtonText = "Connected To " + this.state.boardName;
+				break;
 		}
 
 		if (!(this.state.showScreen == Constants.DISCOVER))
 
 			return (
 				<View style={{ flex: 1, flexDirection: "row" }}>
-					<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards}/>
+					<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
 					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
-							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />:<View></View>}
-							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View> }
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices}/> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ?<MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> :  <View></View> }
+							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 						</View>
 						<View style={styles.footer}>
-							<Touchable  
+							<Touchable
 								onPress={async () => {
 									await this.startScan(true);
 								}
@@ -430,52 +430,50 @@ export default class BoardManager extends Component {
 			);
 		else
 			return (
-				<View style={styles.container}>
+				<View style={{ flex: 1, flexDirection: "row" }}>
+					<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
+					<View style={{ flex: 1 }}>
+						<Touchable
+							onPress={() => this.startScan(false)}
+							style={styles.touchableStyle}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
+						</Touchable>
 
-					<Touchable
-						onPress={() => this.startScan(false)}
-						style={styles.touchableStyle}
-						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowText}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
-					</Touchable>
+						<ScrollView style={styles.scroll}>
+							{(list.length == 0) &&
+								<Text style={styles.rowText}>No Boards Found</Text>
+							}
+							<ListView
+								enableEmptySections={true}
+								dataSource={dataSource}
+								renderRow={(item) => {
 
-					<ScrollView style={styles.scroll}>
-						{(list.length == 0) &&
-							<Text style={styles.rowText}>No Boards Found</Text>
-						}
-						<ListView
-							enableEmptySections={true}
-							dataSource={dataSource}
-							renderRow={(item) => {
+									var foundBoard = this.state.boardData.filter((board) => {
+										return board.name == item.name;
+									});
 
-								var foundBoard = this.state.boardData.filter((board) => {
-									return board.name == item.name;
-								});
+									var color = foundBoard[0].color;
 
-								var color = foundBoard[0].color;
+									return (
+										<Touchable
+											onPress={async () => await this.onSelectPeripheral(item)}
+											style={[styles.touchableStyle, { backgroundColor: color }]}
 
-								return (
-									<Touchable
-										onPress={async () => await this.onSelectPeripheral(item)}
-										style={[styles.touchableStyle, { backgroundColor: color }]}
-
-										background={Touchable.Ripple("blue")}>
-										<Text style={styles.rowText}>{item.name}</Text>
-									</Touchable>
-								);
-							}}
-						/>
-					</ScrollView>
+											background={Touchable.Ripple("blue")}>
+											<Text style={styles.rowText}>{item.name}</Text>
+										</Touchable>
+									);
+								}}
+							/>
+						</ScrollView>
+					</View>
 				</View>
 			);
 	}
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#FFF",
-	}, 
 	rowText: {
 		margin: 5,
 		fontSize: 14,
@@ -490,5 +488,5 @@ const styles = StyleSheet.create({
 		height: 50,
 		flexDirection: "row",
 		justifyContent: "space-between"
-	}, 
+	},
 });
