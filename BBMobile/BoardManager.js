@@ -10,6 +10,7 @@ import {
 	AppState,
 	Text,
 	ScrollView,
+	Image,
 	ListView,
 } from "react-native";
 import BleManager from "react-native-ble-manager";
@@ -260,9 +261,9 @@ export default class BoardManager extends Component {
 	}
 
 	async onPressSearchForBoards() {
-	
+
 		if (!this.state.scanning) {
- 
+
 			try {
 				await BleManager.disconnect(this.state.selectedPeripheral.id);
 			}
@@ -272,7 +273,7 @@ export default class BoardManager extends Component {
 
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
- 
+
 			this.setState({
 				peripherals: new Map(),
 				appState: "",
@@ -282,7 +283,7 @@ export default class BoardManager extends Component {
 				discoveryState: Constants.DISCONNECTED,
 				backgroundLoop: null,
 			});
- 
+
 		}
 	}
 
@@ -366,7 +367,7 @@ export default class BoardManager extends Component {
 		var enableControls = "none";
 		var connectionButtonText = "";
 		var boardName = "board";
-		if(this.state.boardName)
+		if (this.state.boardName)
 			boardName = this.state.boardName;
 
 		switch (this.state.discoveryState) {
@@ -394,7 +395,17 @@ export default class BoardManager extends Component {
 
 			return (
 				<View style={{ flex: 1 }}>
-					<BatteryController mediaState={this.state.mediaState} />
+					<View style={{ flexDirection: "row" }}>
+						<View style={{ margin: 5, paddingTop: 10 }}>
+							<Image
+								style={{ width: 45, height: 40, }}
+								source={require("./images/BurnerBoardIcon-1026.png")}
+							/>
+						</View>
+						<View style={{ flex: 1 }}>
+							<BatteryController mediaState={this.state.mediaState} />
+						</View>
+					</View>
 					<View style={{ flex: 1, flexDirection: "row" }}>
 						<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
 						<View style={{ flex: 1 }}>
@@ -424,43 +435,56 @@ export default class BoardManager extends Component {
 			);
 		else
 			return (
-				<View style={{ flex: 1, flexDirection: "row" }}>
-					<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen}  onPressSearchForBoards={this.onPressSearchForBoards} />
-					<View style={{ flex: 1 }}>
-						<Touchable
-							onPress={() => this.startScan(false)}
-							style={StyleSheet.button}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
-						</Touchable>
-
-						<ScrollView>
-							{(list.length == 0) &&
-								<Text style={StyleSheet.buttonTextCenter}>No Boards Found</Text>
-							}
-							<ListView
-								enableEmptySections={true}
-								dataSource={dataSource}
-								renderRow={(item) => {
-
-									var foundBoard = this.state.boardData.filter((board) => {
-										return board.name == item.name;
-									});
-
-									var color = foundBoard[0].color;
-
-									return (
-										<Touchable
-											onPress={async () => await this.onSelectPeripheral(item)}
-											style={[StyleSheet.button, { backgroundColor: color }]}
-
-											background={Touchable.Ripple("blue")}>
-											<Text style={StyleSheet.buttonTextCenter}>{item.name}</Text>
-										</Touchable>
-									);
-								}}
+				<View style={{ flex: 1 }}>
+					<View style={{ flexDirection: "row" }}>
+						<View style={{ margin: 5, paddingTop: 10 }}>
+							<Image
+								style={{ width: 45, height: 40, }}
+								source={require("./images/BurnerBoardIcon-1026.png")}
 							/>
-						</ScrollView>
+						</View>
+						<View style={{ flex: 1 }}>
+							<BatteryController mediaState={this.state.mediaState} />
+						</View>
+					</View>
+					<View style={{ flex: 1, flexDirection: "row" }}>
+						<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
+						<View style={{ flex: 1 }}>
+							<Touchable
+								onPress={() => this.startScan(false)}
+								style={StyleSheet.button}
+								background={Touchable.Ripple("blue")}>
+								<Text style={StyleSheet.buttonTextCenter}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
+							</Touchable>
+
+							<ScrollView>
+								{(list.length == 0) &&
+									<Text style={StyleSheet.buttonTextCenter}>No Boards Found</Text>
+								}
+								<ListView
+									enableEmptySections={true}
+									dataSource={dataSource}
+									renderRow={(item) => {
+
+										var foundBoard = this.state.boardData.filter((board) => {
+											return board.name == item.name;
+										});
+
+										var color = foundBoard[0].color;
+
+										return (
+											<Touchable
+												onPress={async () => await this.onSelectPeripheral(item)}
+												style={[StyleSheet.button, { backgroundColor: color }]}
+
+												background={Touchable.Ripple("blue")}>
+												<Text style={StyleSheet.buttonTextCenter}>{item.name}</Text>
+											</Touchable>
+										);
+									}}
+								/>
+							</ScrollView>
+						</View>
 					</View>
 				</View>
 			);
