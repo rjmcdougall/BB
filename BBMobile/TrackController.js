@@ -1,8 +1,10 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import PropTypes from "prop-types"; 
+import { View, Text } from "react-native";
+import PropTypes from "prop-types";
 import StateBuilder from "./StateBuilder";
 import Picker from "react-native-wheel-picker";
+import StyleSheet from "./StyleSheet";
+
 var PickerItem = Picker.Item;
 
 export default class TrackController extends Component {
@@ -40,21 +42,21 @@ export default class TrackController extends Component {
 
 		return (
 
-			<View style={{ margin: 10, backgroundColor: "skyblue", }}>
+			<View style={{ margin: 2, backgroundColor: "skyblue", }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
 				}}>
 					<View>
-						<Text style={styles.rowText}>{this.props.mediaType} Track</Text>
+						<Text style={StyleSheet.rowText}>{this.props.mediaType} Track</Text>
 					</View>
 				</View>
-				<View style={styles.container}>
-					<View style={styles.contentContainer}>
+				<View style={StyleSheet.container}>
+					<View style={StyleSheet.container}>
 
 						<Picker style={{ height: 160 }}
-							selectedValue={this.state.selectedValue} 
-							itemStyle={{ color: "black", fontWeight: 'bold', fontSize: 26, height: 160 }}
+							selectedValue={this.state.selectedValue}
+							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 160 }}
 							onValueChange={async (index) => {
 
 								this.setState({ selectedValue: index });
@@ -107,11 +109,3 @@ TrackController.propTypes = {
 	refreshFunction: PropTypes.func,
 	displayRefreshButton: PropTypes.bool,
 };
-
-const styles = StyleSheet.create({
-	rowText: {
-		margin: 5,
-		fontSize: 14,
-		padding: 5,
-	},
-});

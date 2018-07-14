@@ -50,6 +50,7 @@ BatteryController.propTypes = {
 BatteryController.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
 };
+
 const styles = StyleSheet.create({
 	container: {
 		paddingTop: 15,

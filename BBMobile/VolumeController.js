@@ -13,7 +13,7 @@ export default class VolumeController extends React.Component {
 	render() {
 
 		return (
-			<View style={{ flex: 1, margin: 10, backgroundColor: "skyblue", height: 80 }}>
+			<View style={{ flex: 1, margin: 2, backgroundColor: "skyblue", height: 80 }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",

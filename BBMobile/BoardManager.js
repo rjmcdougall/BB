@@ -2,7 +2,6 @@ import React, {
 	Component
 } from "react";
 import {
-	StyleSheet,
 	View,
 	NativeEventEmitter,
 	NativeModules,
@@ -27,6 +26,7 @@ import Constants from "./Constants";
 import LeftNav from "./LeftNav";
 import MapController from "./MapController";
 import BatteryController from "./BatteryController";
+import StyleSheet from "./StyleSheet";
 
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
@@ -398,7 +398,7 @@ export default class BoardManager extends Component {
 								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
 								{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							</View>
-							<View style={styles.footer}>
+							<View style={StyleSheet.footer}>
 								<Touchable
 									onPress={async () => {
 										await this.startScan(true);
@@ -410,7 +410,7 @@ export default class BoardManager extends Component {
 										flex: 1,
 									}}
 									background={Touchable.Ripple("blue")}>
-									<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+									<Text style={StyleSheet.buttonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
 								</Touchable>
 							</View>
 						</View>
@@ -424,14 +424,14 @@ export default class BoardManager extends Component {
 					<View style={{ flex: 1 }}>
 						<Touchable
 							onPress={() => this.startScan(false)}
-							style={styles.touchableStyle}
+							style={StyleSheet.button}
 							background={Touchable.Ripple("blue")}>
-							<Text style={styles.rowText}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
+							<Text style={StyleSheet.buttonTextCenter}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
 						</Touchable>
 
-						<ScrollView style={styles.scroll}>
+						<ScrollView>
 							{(list.length == 0) &&
-								<Text style={styles.rowText}>No Boards Found</Text>
+								<Text style={StyleSheet.buttonTextCenter}>No Boards Found</Text>
 							}
 							<ListView
 								enableEmptySections={true}
@@ -447,10 +447,10 @@ export default class BoardManager extends Component {
 									return (
 										<Touchable
 											onPress={async () => await this.onSelectPeripheral(item)}
-											style={[styles.touchableStyle, { backgroundColor: color }]}
+											style={[StyleSheet.button, { backgroundColor: color }]}
 
 											background={Touchable.Ripple("blue")}>
-											<Text style={styles.rowText}>{item.name}</Text>
+											<Text style={StyleSheet.buttonTextCenter}>{item.name}</Text>
 										</Touchable>
 									);
 								}}
@@ -462,20 +462,3 @@ export default class BoardManager extends Component {
 	}
 }
 
-const styles = StyleSheet.create({
-	rowText: {
-		margin: 5,
-		fontSize: 14,
-		textAlign: "center",
-		padding: 10,
-	},
-	touchableStyle: {
-		backgroundColor: "lightblue",
-		margin: 5,
-	},
-	footer: {
-		height: 50,
-		flexDirection: "row",
-		justifyContent: "space-between"
-	},
-});

@@ -2,7 +2,6 @@ import React, {
 	Component
 } from "react";
 import {
-	StyleSheet,
 	View,
 	ScrollView,
 	Text,
@@ -10,6 +9,7 @@ import {
 
 import StateBuilder from "./StateBuilder";
 import PropTypes from "prop-types";
+import StyleSheet from "./StyleSheet";
 
 export default class Diagnostic extends Component {
 	constructor(props) {
@@ -18,19 +18,19 @@ export default class Diagnostic extends Component {
 
 	render() {
 		return (
-			<View style={styles.container}  >
-				<View style={styles.contentContainer}>
-					<ScrollView style={styles.scroll}>
+			<View style={StyleSheet.container}  >
+				<View style={StyleSheet.container}  >
+					<ScrollView>
 						<Text> APK Version: {this.props.mediaState.APKVersion} {"\n"}
 							Last Updated: {this.props.mediaState.APKUpdateDate} {"\n"}
 						</Text>
 						{
 							this.props.mediaState.logLines.map((line) => {
 								var color = "white";
-								if(line.isError)
-									color="red";
+								if (line.isError)
+									color = "red";
 
-								return (<Text key={Math.random()} style={{backgroundColor: color}}>{line.logLine}</Text>);
+								return (<Text key={Math.random()} style={{ backgroundColor: color }}>{line.logLine}</Text>);
 							})
 						}
 					</ScrollView>
@@ -47,12 +47,3 @@ Diagnostic.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
 };
 
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#FFF",
-	},
-	contentContainer: {
-		flex: 1 // pushes the footer to the end of the screen
-	}, 
-});

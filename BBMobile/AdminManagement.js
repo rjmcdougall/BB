@@ -2,7 +2,6 @@ import React, {
 	Component
 } from "react";
 import {
-	StyleSheet,
 	View,
 	ScrollView,
 	Text,
@@ -14,8 +13,7 @@ import BLEBoardData from "./BLEBoardData";
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
 import StateBuilder from "./StateBuilder";
-
-//import GoogleSignIn from "react-native-google-sign-in";
+import StyleSheet from "./StyleSheet";
 
 export default class AdminManagement extends Component {
 	constructor(props) {
@@ -42,12 +40,12 @@ export default class AdminManagement extends Component {
 		return (
 
 
-			<View style={styles.container}  >
-				<View style={styles.contentContainer}>
+			<View style={StyleSheet.container}  >
+				<View style= {StyleSheet.container}>
 
-					<ScrollView style={styles.scroll}>
+					<ScrollView>
 						<DeviceController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" refreshFunction={this.props.onRefreshDevices} />
-						<View style={styles.button}>
+						<View style={StyleSheet.button}>
 							<Touchable
 								onPress={async () => {
 
@@ -55,12 +53,11 @@ export default class AdminManagement extends Component {
 									return true;
 
 								}}
-								style={styles.touchableStyle}
 								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}> GTFO </Text>
+								<Text style={StyleSheet.buttonTextCenter}> GTFO </Text>
 							</Touchable>
 						</View>
-						<View style={styles.button}>
+						<View style={StyleSheet.button}>
 							<Touchable
 								onPress={async () => {
 
@@ -71,13 +68,13 @@ export default class AdminManagement extends Component {
 
 									return true;
 								}}
-								style={[styles.touchableStyle, { backgroundColor: backgroundColor }]}
+								style={[{ backgroundColor: backgroundColor }]}
 								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}> {masterText}
+								<Text style={StyleSheet.buttonTextCenter}> {masterText}
 								</Text>
 							</Touchable>
 						</View>
-						<View style={styles.button}>
+						<View style={StyleSheet.button}>
 							<Touchable
 								onPress={async () => {
 									var supported = await Linking.canOpenURL("https://burnerboard.com");
@@ -88,9 +85,8 @@ export default class AdminManagement extends Component {
 									}
 									return true;
 								}}
-								style={styles.touchableStyle}
 								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}>Go To BB.Com</Text>
+								<Text style={StyleSheet.buttonTextCenter}>Go To BB.Com</Text>
 							</Touchable>
 						</View>
 					</ScrollView>
@@ -112,27 +108,3 @@ AdminManagement.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
 };
 
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#FFF",
-	},
-	contentContainer: {
-		flex: 1 // pushes the footer to the end of the screen
-	},
-	rowText: {
-		margin: 5,
-		fontSize: 14,
-		textAlign: "center",
-		padding: 10,
-	},
-	touchableStyle: {
-		backgroundColor: "lightblue",
-		margin: 5,
-		height: 50,
-	},
-	button: {
-		height: 50,
-		margin: 5,
-	}
-});

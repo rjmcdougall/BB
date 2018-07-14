@@ -1,8 +1,9 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import ModalDropdown from "react-native-modal-dropdown";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
+import StyleSheet from "./StyleSheet";
 
 export default class DeviceController extends Component {
 	constructor(props) {
@@ -27,7 +28,7 @@ export default class DeviceController extends Component {
 		var refreshButton;
 		if (this.props.refreshFunction) {
 			refreshButton = (
-				<View>
+				<View style={StyleSheet.button}>
 					<Touchable
 						onPress={async () => {
 
@@ -35,9 +36,8 @@ export default class DeviceController extends Component {
 
 							return true;
 						}}
-						style={[styles.touchableStyle]}
 						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowTextCenter}> Refresh BT Devices
+						<Text style={StyleSheet.buttonTextCenter}> Refresh BT Devices
 						</Text>
 					</Touchable>
 				</View>
@@ -48,22 +48,22 @@ export default class DeviceController extends Component {
 
 		return (
 
-			<View style={{ margin: 10, backgroundColor: "skyblue", height: 80 }}>
+			<View style={StyleSheet.button}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
 				}}>
 					<View style={{ height: 40 }}>
-						<Text style={styles.rowText}>Devices</Text></View>
+						<Text style={StyleSheet.rowText}>Devices</Text></View>
 				</View>
 				<View style={{ height: 40 }}>
 					<ModalDropdown options={tracks}
 						defaultValue={channelInfo}
-						style={styles.PStyle}
-						dropdownStyle={styles.DDStyle}
-						textStyle={styles.rowText}
-						dropdownTextStyle={styles.rowText}
-						dropdownTextHighlightStyle={styles.rowText}
+						style={StyleSheet.button}
+						dropdownStyle={StyleSheet.button}
+						textStyle={StyleSheet.dropDownRowText}
+						dropdownTextStyle={StyleSheet.dropDownRowText}
+						dropdownTextHighlightStyle={StyleSheet.dropDownRowText}
 						onSelect={this.onSelectTrack.bind(this)}
 					/>
 				</View>
@@ -81,22 +81,3 @@ DeviceController.propTypes = {
 	displayRefreshButton: PropTypes.bool,
 };
 
-const styles = StyleSheet.create({
-	PStyle: {
-		backgroundColor: "skyblue", 
-	},
-	DDStyle: {
-		backgroundColor: "skyblue", 
-	},
-	rowText: {
-		margin: 5,
-		fontSize: 14,
-		padding: 5,
-	},
-	rowTextCenter: {
-		margin: 5,
-		fontSize: 14,
-		textAlign: "center",
-		padding: 10,
-	},
-});

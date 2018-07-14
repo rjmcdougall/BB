@@ -1,9 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import MapView from "react-native-maps";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
+import StyleSheet from "./StyleSheet";
 
 export default class MapController extends React.Component {
 	constructor(props) {
@@ -27,9 +28,9 @@ export default class MapController extends React.Component {
 				region = null;
 
 			return (
-				<View style={styles.mapView}>
+				<View style={StyleSheet.mapView}>
 					<MapView
-						style={styles.map}
+						style={StyleSheet.map}
 						region={region}
 					>
 						{locations.map(marker => {
@@ -56,43 +57,45 @@ export default class MapController extends React.Component {
 							);
 						})}
 					</MapView>
-
-					<Touchable
-						onPress={() => {
-							if (this.state.autoZoom == true)
-								this.setState({
-									autoZoom: false
-								});
-							else
-								this.setState({
-									autoZoom: true
-								});
-						}
-						}
-						style={[{ backgroundColor: this.state.autoZoom ? "green" : "lightblue" }]}
-						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowTextCenter}>Auto Zoom</Text>
-					</Touchable>
-					<Touchable
-						onPress={async () => {
-							if (this.state.wifiLocations == true) {
-								this.setState({
-									wifiLocations: false
-								});
+					<View style={StyleSheet.button}>
+						<Touchable
+							onPress={() => {
+								if (this.state.autoZoom == true)
+									this.setState({
+										autoZoom: false
+									});
+								else
+									this.setState({
+										autoZoom: true
+									});
 							}
-							else {
-								await this.props.onLoadAPILocations();
-								this.setState({
-									wifiLocations: true
-								});
 							}
-						}
-						}
-						style={[{ backgroundColor: this.state.wifiLocations ? "green" : "lightblue" }]}
-						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowTextCenter}>Wifi Locations</Text>
-					</Touchable>
-
+							style={[{ backgroundColor: this.state.autoZoom ? "green" : "lightblue" }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={StyleSheet.buttonTextCenter}>Auto Zoom</Text>
+						</Touchable>
+					</View>
+					<View style={StyleSheet.button}>
+						<Touchable
+							onPress={async () => {
+								if (this.state.wifiLocations == true) {
+									this.setState({
+										wifiLocations: false
+									});
+								}
+								else {
+									await this.props.onLoadAPILocations();
+									this.setState({
+										wifiLocations: true
+									});
+								}
+							}
+							}
+							style={[{ backgroundColor: this.state.wifiLocations ? "green" : "lightblue" }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={StyleSheet.buttonTextCenter}>Wifi Locations</Text>
+						</Touchable>
+					</View>
 				</View>
 			);
 		}
@@ -108,20 +111,3 @@ MapController.propTypes = {
 	onLoadAPILocations: PropTypes.func,
 };
 
-const styles = StyleSheet.create({
-	map: {
-		flex:1,
-		height: 300,
-	},
- 
-	rowTextCenter: {
-		margin: 5,
-		fontSize: 14,
-		textAlign: "center",
-		padding: 10,
-	},
-	mapView: {
-		flex: 1,
-		padding: 10,
-	},
-});
