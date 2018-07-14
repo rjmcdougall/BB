@@ -33,8 +33,6 @@ const ds = new ListView.DataSource({
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
-
 export default class BoardManager extends Component {
 	constructor() {
 		super();
@@ -194,7 +192,6 @@ export default class BoardManager extends Component {
 	}
 
 	onNavigate(nav) {
-		this.props.navigation.setParams({ title: nav });
 		this.setState({ showScreen: nav });
 	}
 	async onSelectPeripheral(peripheral) {
@@ -220,8 +217,6 @@ export default class BoardManager extends Component {
 
 					if (this.state.backgroundLoop)
 						clearInterval(this.state.backgroundLoop);
-
-					this.props.navigation.setParams({ title: "Media Management" });
 
 					this.setState({
 						selectedPeripheral: peripheral,
@@ -274,8 +269,6 @@ export default class BoardManager extends Component {
 
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
-
-			this.props.navigation.setParams({ title: "Search For Boards" });
 
 			this.setState({
 				peripherals: new Map(),
@@ -360,14 +353,6 @@ export default class BoardManager extends Component {
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
-	static navigationOptions = ({ navigation }) => {
-		const { params } = navigation.state;
-
-		return {
-			title: params ? params.title : "Media Management",
-		};
-	};
-
 	render() {
 
 		const list = Array.from(this.state.peripherals.values());
@@ -378,24 +363,24 @@ export default class BoardManager extends Component {
 		var connectionButtonText = "";
 
 		switch (this.state.discoveryState) {
-			case Constants.DISCONNECTED:
-				color = "#fff";
-				enableControls = "none";
-				connectionButtonText = "Connect to Boards";
-				break;
-			case Constants.LOCATED:
-				color = "yellow";
-				enableControls = "none";
-				connectionButtonText = "Located " + this.state.boardName;
-				break;
-			case Constants.CONNECTED:
-				if (!this.state.mediaState.isError)
-					color = "green";
-				else
-					color = "red";
-				enableControls = "auto";
-				connectionButtonText = "Connected To " + this.state.boardName;
-				break;
+		case Constants.DISCONNECTED:
+			color = "#fff";
+			enableControls = "none";
+			connectionButtonText = "Connect to Boards";
+			break;
+		case Constants.LOCATED:
+			color = "yellow";
+			enableControls = "none";
+			connectionButtonText = "Located " + this.state.boardName;
+			break;
+		case Constants.CONNECTED:
+			if (!this.state.mediaState.isError)
+				color = "green";
+			else
+				color = "red";
+			enableControls = "auto";
+			connectionButtonText = "Connected To " + this.state.boardName;
+			break;
 		}
 
 		if (!(this.state.showScreen == Constants.DISCOVER))
@@ -407,7 +392,7 @@ export default class BoardManager extends Component {
 						<View style={{ flex: 1 }}>
 							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 						</View>
 						<View style={styles.footer}>

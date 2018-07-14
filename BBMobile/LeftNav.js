@@ -9,7 +9,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 export default class LeftNav extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = { selected: Constants.MEDIA_MANAGEMENT }
+		this.state = { selected: Constants.MEDIA_MANAGEMENT };
 	}
 
 	render() {

@@ -8,8 +8,7 @@ import {
 	Text,
 	Linking,
 } from "react-native";
-
-import TrackController from "./TrackController";
+ 
 import DeviceController from "./DeviceController";
 import BLEBoardData from "./BLEBoardData";
 import Touchable from "react-native-platform-touchable";
@@ -105,7 +104,6 @@ AdminManagement.propTypes = {
 	mediaState: PropTypes.object,
 	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
-	navigation: PropTypes.object,
 	onSelectDevice: PropTypes.func,
 	onRefreshDevices: PropTypes.func,
 };
