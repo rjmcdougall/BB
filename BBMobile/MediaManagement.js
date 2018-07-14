@@ -24,12 +24,12 @@ export default class MediaManagement extends Component {
 	render() {
 
 		return (
-			<View pointerEvents={this.props.pointerEvents}>
+			<View>
 				<ScrollView>
-					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.props.mediaState} />
+					<VolumeController pointerEvents={this.props.pointerEvents} onUpdateVolume={this.onUpdateVolume} mediaState={this.props.mediaState} />
 					<BatteryController mediaState={this.props.mediaState} />
-					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
-					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.props.mediaState} mediaType="Video" />
+					<TrackController pointerEvents={this.props.pointerEvents} onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
+					<TrackController pointerEvents={this.props.pointerEvents} onSelectTrack={this.onSelectVideoTrack} mediaState={this.props.mediaState} mediaType="Video" />
 				</ScrollView>
 			</View>
 		);
