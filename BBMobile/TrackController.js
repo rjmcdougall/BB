@@ -42,7 +42,7 @@ export default class TrackController extends Component {
 
 		return (
 
-			<View style={{ margin: 2, backgroundColor: "skyblue", }}>
+			<View style={{ margin: 2, backgroundColor: "skyblue" }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",

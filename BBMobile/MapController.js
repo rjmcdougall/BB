@@ -70,7 +70,7 @@ export default class MapController extends React.Component {
 									});
 							}
 							}
-							style={[{ backgroundColor: this.state.autoZoom ? "green" : "lightblue" }]}
+							style={[{ backgroundColor: this.state.autoZoom ? "green" : "skyblue" }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}>Auto Zoom</Text>
 						</Touchable>
@@ -91,7 +91,7 @@ export default class MapController extends React.Component {
 								}
 							}
 							}
-							style={[{ backgroundColor: this.state.wifiLocations ? "green" : "lightblue" }]}
+							style={[{ backgroundColor: this.state.wifiLocations ? "green" : "skyblue" }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}>Wifi Locations</Text>
 						</Touchable>

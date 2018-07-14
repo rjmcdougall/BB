@@ -362,17 +362,20 @@ export default class BoardManager extends Component {
 		var color = "#fff";
 		var enableControls = "none";
 		var connectionButtonText = "";
+		var boardName = "board";
+		if(this.state.boardName)
+			boardName = this.state.boardName;
 
 		switch (this.state.discoveryState) {
 			case Constants.DISCONNECTED:
 				color = "#fff";
 				enableControls = "none";
-				connectionButtonText = "Connect to Boards";
+				connectionButtonText = "Connect to " + boardName;
 				break;
 			case Constants.LOCATED:
 				color = "yellow";
 				enableControls = "none";
-				connectionButtonText = "Located " + this.state.boardName;
+				connectionButtonText = "Located " + boardName;
 				break;
 			case Constants.CONNECTED:
 				if (!this.state.mediaState.isError)
@@ -380,7 +383,7 @@ export default class BoardManager extends Component {
 				else
 					color = "red";
 				enableControls = "auto";
-				connectionButtonText = "Connected To " + this.state.boardName;
+				connectionButtonText = "Connected To " + boardName;
 				break;
 		}
 
@@ -406,11 +409,10 @@ export default class BoardManager extends Component {
 									}
 									style={{
 										backgroundColor: color,
-										height: 50,
 										flex: 1,
 									}}
 									background={Touchable.Ripple("blue")}>
-									<Text style={StyleSheet.buttonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+									<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
 								</Touchable>
 							</View>
 						</View>

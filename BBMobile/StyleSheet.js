@@ -8,9 +8,16 @@ export default StyleSheet.create({
 		padding: 5,
 		fontWeight: "bold",
 	},
+	connectButtonTextCenter: {
+		margin: 2,
+		fontSize: 18,
+		textAlign: "center",
+		padding: 5,
+		fontWeight: "bold",
+	},
 	button: {
 		marginTop: 2,
-		backgroundColor: "lightblue"
+		backgroundColor: "skyblue"
 	},
 	icon: {
 		margin: 5
@@ -38,6 +45,7 @@ export default StyleSheet.create({
 	footer: {
 		height: 50,
 		margin: 2,
+		padding: 5,
 		flexDirection: "row",
 		justifyContent: "space-between"
 	},
