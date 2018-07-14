@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import TrackController from "./TrackController";
+import DeviceController from "./DeviceController";
 import BLEBoardData from "./BLEBoardData";
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
@@ -46,7 +47,7 @@ export default class AdminManagement extends Component {
 				<View style={styles.contentContainer}>
 
 					<ScrollView style={styles.scroll}>
-						<TrackController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" refreshFunction={this.props.onRefreshDevices} />
+						<DeviceController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" refreshFunction={this.props.onRefreshDevices} />
 						<View style={styles.button}>
 							<Touchable
 								onPress={async () => {
