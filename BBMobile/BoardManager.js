@@ -388,7 +388,7 @@ export default class BoardManager extends Component {
 
 			return (
 				<View style={{ flex: 1 }}>
-					<BatteryController mediaState={this.props.mediaState} />
+					<BatteryController mediaState={this.state.mediaState} />
 					<View style={{ flex: 1, flexDirection: "row" }}>
 						<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
 						<View style={{ flex: 1 }}>

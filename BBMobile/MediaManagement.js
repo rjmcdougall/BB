@@ -7,7 +7,6 @@ import {
 } from "react-native";
 import VolumeController from "./VolumeController";
 import TrackController from "./TrackController";
-import BatteryController from "./BatteryController"; 
 import StateBuilder from "./StateBuilder";
 
 import PropTypes from "prop-types";
