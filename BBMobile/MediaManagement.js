@@ -27,7 +27,6 @@ export default class MediaManagement extends Component {
 			<View>
 				<ScrollView>
 					<VolumeController pointerEvents={this.props.pointerEvents} onUpdateVolume={this.onUpdateVolume} mediaState={this.props.mediaState} />
-					<BatteryController mediaState={this.props.mediaState} />
 					<TrackController pointerEvents={this.props.pointerEvents} onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
 					<TrackController pointerEvents={this.props.pointerEvents} onSelectTrack={this.onSelectVideoTrack} mediaState={this.props.mediaState} mediaType="Video" />
 				</ScrollView>

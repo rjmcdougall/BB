@@ -11,15 +11,15 @@ export default class BatteryController extends React.Component {
 	render() {
 
 		return (
-			<View style={{ margin: 10, backgroundColor: "skyblue", height: 40 }}>
+			<View style={{backgroundColor: "skyblue", height: 40 }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
 					justifyContent: "space-between",
 
 				}}>
-					<View style={{ height: 50 }}><Text style={styles.rowText}>Battery</Text></View>
-					<View style={{ height: 50 }}><Text style={styles.rowText}>{this.props.mediaState.battery}</Text></View>
+					<View style={{ height: 40 }}><Text style={styles.rowText}>Battery</Text></View>
+					<View style={{ height: 40 }}><Text style={styles.rowText}>{this.props.mediaState.battery}</Text></View>
 				</View>
 			</View>
 		);

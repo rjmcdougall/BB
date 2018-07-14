@@ -26,6 +26,7 @@ import BBComAPIData from "./BBComAPIData";
 import Constants from "./Constants";
 import LeftNav from "./LeftNav";
 import MapController from "./MapController";
+import BatteryController from "./BatteryController";
 
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
@@ -363,52 +364,55 @@ export default class BoardManager extends Component {
 		var connectionButtonText = "";
 
 		switch (this.state.discoveryState) {
-		case Constants.DISCONNECTED:
-			color = "#fff";
-			enableControls = "none";
-			connectionButtonText = "Connect to Boards";
-			break;
-		case Constants.LOCATED:
-			color = "yellow";
-			enableControls = "none";
-			connectionButtonText = "Located " + this.state.boardName;
-			break;
-		case Constants.CONNECTED:
-			if (!this.state.mediaState.isError)
-				color = "green";
-			else
-				color = "red";
-			enableControls = "auto";
-			connectionButtonText = "Connected To " + this.state.boardName;
-			break;
+			case Constants.DISCONNECTED:
+				color = "#fff";
+				enableControls = "none";
+				connectionButtonText = "Connect to Boards";
+				break;
+			case Constants.LOCATED:
+				color = "yellow";
+				enableControls = "none";
+				connectionButtonText = "Located " + this.state.boardName;
+				break;
+			case Constants.CONNECTED:
+				if (!this.state.mediaState.isError)
+					color = "green";
+				else
+					color = "red";
+				enableControls = "auto";
+				connectionButtonText = "Connected To " + this.state.boardName;
+				break;
 		}
 
 		if (!(this.state.showScreen == Constants.DISCOVER))
 
 			return (
-				<View style={{ flex: 1, flexDirection: "row" }}>
-					<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
-					<View style={{ flex: 1 }}>
+				<View style={{ flex: 1 }}>
+					<BatteryController mediaState={this.props.mediaState} />
+					<View style={{ flex: 1, flexDirection: "row" }}>
+						<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards} />
 						<View style={{ flex: 1 }}>
-							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-						</View>
-						<View style={styles.footer}>
-							<Touchable
-								onPress={async () => {
-									await this.startScan(true);
-								}
-								}
-								style={{
-									backgroundColor: color,
-									height: 50,
-									flex: 1,
-								}}
-								background={Touchable.Ripple("blue")}>
-								<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
-							</Touchable>
+							<View style={{ flex: 1 }}>
+								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
+								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+								{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+							</View>
+							<View style={styles.footer}>
+								<Touchable
+									onPress={async () => {
+										await this.startScan(true);
+									}
+									}
+									style={{
+										backgroundColor: color,
+										height: 50,
+										flex: 1,
+									}}
+									background={Touchable.Ripple("blue")}>
+									<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+								</Touchable>
+							</View>
 						</View>
 					</View>
 				</View>
