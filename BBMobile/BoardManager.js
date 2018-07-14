@@ -9,9 +9,7 @@ import {
 	PermissionsAndroid,
 	AppState,
 	Text,
-	ScrollView,
 	Image,
-	ListView,
 } from "react-native";
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
@@ -28,10 +26,7 @@ import LeftNav from "./LeftNav";
 import MapController from "./MapController";
 import BatteryController from "./BatteryController";
 import StyleSheet from "./StyleSheet";
-
-const ds = new ListView.DataSource({
-	rowHasChanged: (r1, r2) => r1 !== r2
-});
+import DiscoverController from "./DiscoverController";
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -67,6 +62,8 @@ export default class BoardManager extends Component {
 		this.onLoadAPILocations = this.onLoadAPILocations.bind(this);
 		this.onPressSearchForBoards = this.onPressSearchForBoards.bind(this);
 		this.onNavigate = this.onNavigate.bind(this);
+		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
+		this.startScan = this.startScan.bind(this);
 
 	}
 
@@ -163,6 +160,7 @@ export default class BoardManager extends Component {
 	}
 
 	async startScan(automaticallyConnect) {
+
 		if (!this.state.scanning) {
 
 			try {
@@ -360,9 +358,6 @@ export default class BoardManager extends Component {
 
 	render() {
 
-		const list = Array.from(this.state.peripherals.values());
-		const dataSource = ds.cloneWithRows(list);
-
 		var color = "#fff";
 		var enableControls = "none";
 		var connectionButtonText = "";
@@ -391,103 +386,48 @@ export default class BoardManager extends Component {
 				break;
 		}
 
-		if (!(this.state.showScreen == Constants.DISCOVER))
-
-			return (
-				<View style={{ flex: 1 }}>
-					<View style={{ flexDirection: "row" }}>
-						<View style={{ margin: 5, paddingTop: 10 }}>
-							<Image
-								style={{ width: 45, height: 40, }}
-								source={require("./images/BurnerBoardIcon-1026.png")}
-							/>
-						</View>
-						<View style={{ flex: 1 }}>
-							<BatteryController mediaState={this.state.mediaState} />
-						</View>
+		return (
+			<View style={{ flex: 1 }}>
+				<View style={{ flexDirection: "row" }}>
+					<View style={{ margin: 5, paddingTop: 10 }}>
+						<Image
+							style={{ width: 45, height: 40, }}
+							source={require("./images/BurnerBoardIcon-1026.png")}
+						/>
 					</View>
-					<View style={{ flex: 1, flexDirection: "row" }}>
-						<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
-						<View style={{ flex: 1 }}>
-							<View style={{ flex: 1 }}>
-								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
-								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
-								{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-							</View>
-							<View style={StyleSheet.footer}>
-								<Touchable
-									onPress={async () => {
-										await this.startScan(true);
-									}
-									}
-									style={{
-										backgroundColor: color,
-										flex: 1,
-									}}
-									background={Touchable.Ripple("blue")}>
-									<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
-								</Touchable>
-							</View>
-						</View>
+					<View style={{ flex: 1 }}>
+						<BatteryController mediaState={this.state.mediaState} />
 					</View>
 				</View>
-			);
-		else
-			return (
-				<View style={{ flex: 1 }}>
-					<View style={{ flexDirection: "row" }}>
-						<View style={{ margin: 5, paddingTop: 10 }}>
-							<Image
-								style={{ width: 45, height: 40, }}
-								source={require("./images/BurnerBoardIcon-1026.png")}
-							/>
-						</View>
+				<View style={{ flex: 1, flexDirection: "row" }}>
+					<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
+					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
-							<BatteryController mediaState={this.state.mediaState} />
+							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} peripherals={this.state.peripherals} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
-					</View>
-					<View style={{ flex: 1, flexDirection: "row" }}>
-						<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
-						<View style={{ flex: 1 }}>
+						<View style={StyleSheet.footer}>
 							<Touchable
-								onPress={() => this.startScan(false)}
-								style={StyleSheet.button}
-								background={Touchable.Ripple("blue")}>
-								<Text style={StyleSheet.buttonTextCenter}>Scan for Burner Boards ({this.state.scanning ? "scanning" : "paused"})</Text>
-							</Touchable>
-
-							<ScrollView>
-								{(list.length == 0) &&
-									<Text style={StyleSheet.buttonTextCenter}>No Boards Found</Text>
+								onPress={async () => {
+									await this.startScan(true);
 								}
-								<ListView
-									enableEmptySections={true}
-									dataSource={dataSource}
-									renderRow={(item) => {
-
-										var foundBoard = this.state.boardData.filter((board) => {
-											return board.name == item.name;
-										});
-
-										var color = foundBoard[0].color;
-
-										return (
-											<Touchable
-												onPress={async () => await this.onSelectPeripheral(item)}
-												style={[StyleSheet.button, { backgroundColor: color }]}
-
-												background={Touchable.Ripple("blue")}>
-												<Text style={StyleSheet.buttonTextCenter}>{item.name}</Text>
-											</Touchable>
-										);
-									}}
-								/>
-							</ScrollView>
+								}
+								style={{
+									backgroundColor: color,
+									flex: 1,
+								}}
+								background={Touchable.Ripple("blue")}>
+								<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+							</Touchable>
 						</View>
 					</View>
 				</View>
-			);
+			</View>
+		);
+
 	}
 }
 
