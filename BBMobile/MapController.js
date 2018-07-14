@@ -27,73 +27,72 @@ export default class MapController extends React.Component {
 				region = null;
 
 			return (
-				<View style={styles.container}>
-					<View style={styles.mapView}>
-						<MapView
-							style={styles.map}
-							region={region}
-						>
-							{locations.map(marker => {
+				<View style={styles.mapView}>
+					<MapView
+						style={styles.map}
+						region={region}
+					>
+						{locations.map(marker => {
 
-								var ONE_HOUR = 60 * 60 * 1000; /* ms */
-								var pinColor;
+							var ONE_HOUR = 60 * 60 * 1000; /* ms */
+							var pinColor;
 
-								if (((new Date()) - new Date(marker.dateTime)) > ONE_HOUR)
-									pinColor = "red";
+							if (((new Date()) - new Date(marker.dateTime)) > ONE_HOUR)
+								pinColor = "red";
 
-								else
-									pinColor = "blue";
+							else
+								pinColor = "blue";
 
-								return (
-									<MapView.Marker
-										key={marker.title}
-										coordinate={{
-											latitude: marker.latitude,
-											longitude: marker.longitude
-										}}
-										title={marker.title}
-										pinColor={pinColor}
-									/>
-								);
-							})}
-						</MapView>
+							return (
+								<MapView.Marker
+									key={marker.title}
+									coordinate={{
+										latitude: marker.latitude,
+										longitude: marker.longitude
+									}}
+									title={marker.title}
+									pinColor={pinColor}
+								/>
+							);
+						})}
+					</MapView>
 
-						<Touchable
-							onPress={() => {
-								if (this.state.autoZoom == true)
-									this.setState({
-										autoZoom: false
-									});
-								else
-									this.setState({
-										autoZoom: true
-									});
+					<Touchable
+						onPress={() => {
+							if (this.state.autoZoom == true)
+								this.setState({
+									autoZoom: false
+								});
+							else
+								this.setState({
+									autoZoom: true
+								});
+						}
+						}
+						style={[{ backgroundColor: this.state.autoZoom ? "green" : "lightblue" }]}
+						background={Touchable.Ripple("blue")}>
+						<Text style={styles.rowTextCenter}>Auto Zoom</Text>
+					</Touchable>
+					<Touchable
+						onPress={async () => {
+							if (this.state.wifiLocations == true) {
+								this.setState({
+									wifiLocations: false
+								});
 							}
+							else {
+								await this.props.onLoadAPILocations();
+								this.setState({
+									wifiLocations: true
+								});
 							}
-							style={[styles.container, { backgroundColor: this.state.autoZoom ? "green" : "lightblue" }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={styles.rowText}>Auto Zoom</Text>
-						</Touchable>
-						<Touchable
-							onPress={async () => {
-								if (this.state.wifiLocations == true) {
-									this.setState({
-										wifiLocations: false
-									});
-								}
-								else {
-									await this.props.onLoadAPILocations();
-									this.setState({
-										wifiLocations: true
-									});
-								}
-							}
-							}
-							style={[styles.container, { backgroundColor: this.state.wifiLocations ? "green" : "lightblue" }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={styles.rowText}>Wifi Locations</Text>
-						</Touchable>
-					</View>
+						}
+						}
+						style={[{ backgroundColor: this.state.wifiLocations ? "green" : "lightblue" }]}
+						background={Touchable.Ripple("blue")}>
+						<Text style={styles.rowTextCenter}>Wifi Locations</Text>
+					</Touchable>
+
 				</View>
 			);
 		}
@@ -111,18 +110,18 @@ MapController.propTypes = {
 
 const styles = StyleSheet.create({
 	map: {
-		height: 200,
+		flex:1,
+		height: 300,
 	},
-	container: {
-		flex: 1,
-		backgroundColor: "#FFF",
-	},
-	rowText: {
+ 
+	rowTextCenter: {
+		margin: 5,
 		fontSize: 14,
 		textAlign: "center",
 		padding: 10,
 	},
 	mapView: {
+		flex: 1,
 		padding: 10,
 	},
 });
