@@ -25,27 +25,6 @@ export default class DeviceController extends Component {
 		tracks = this.props.mediaState.device.devices.map(a => a.deviceLabel);
 		channelInfo = tracks[(this.props.mediaState.device.deviceNo)];
 
-		var refreshButton;
-		if (this.props.refreshFunction) {
-			refreshButton = (
-				<View style={StyleSheet.button}>
-					<Touchable
-						onPress={async () => {
-
-							this.setState({ mediaState: await this.props.refreshFunction() });
-
-							return true;
-						}}
-						background={Touchable.Ripple("blue")}>
-						<Text style={StyleSheet.buttonTextCenter}> Refresh BT Devices
-						</Text>
-					</Touchable>
-				</View>
-			);
-		}
-		else
-			refreshButton = (<Text></Text>);
-
 		return (
 
 			<View style={StyleSheet.button}>
@@ -67,7 +46,19 @@ export default class DeviceController extends Component {
 						onSelect={this.onSelectTrack.bind(this)}
 					/>
 				</View>
-				{refreshButton}
+				<View style={StyleSheet.button}>
+					<Touchable
+						onPress={async () => {
+
+							this.setState({ mediaState: await this.props.refreshFunction() });
+
+							return true;
+						}}
+						background={Touchable.Ripple("blue")}>
+						<Text style={StyleSheet.buttonTextCenter}> Refresh BT Devices
+						</Text>
+					</Touchable>
+				</View>
 			</View>
 		);
 	}
