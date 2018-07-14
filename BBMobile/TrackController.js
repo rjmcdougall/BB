@@ -80,9 +80,11 @@ export default class TrackController extends Component {
 				</View>
 				<View>
 					<Picker style={{ width: "100%", height: 200}}
-						selectedValue={channelNo - 1}
+						selectedValue={this.state.selectedValue}
 						itemStyle={{ color: "black", fontSize: 26 }}
 						onValueChange={async (index) => {
+
+							this.setState({selectedValue: index});
 
 							if (tracks[0] == "loading...") {
 								console.log("dont call update if its a component load");
@@ -99,19 +101,19 @@ export default class TrackController extends Component {
 								selected = this.props.mediaState.audio.channels.filter((a) => {
 									return a.channelInfo == tracks[index];
 								});
-								 this.onSelectTrack(selected[0].channelNo);
+								this.onSelectTrack(selected[0].channelNo);
 							}
 							else if (this.props.mediaType == "Device") {
 								selected = this.props.mediaState.device.devices.filter((a) => {
 									return a.deviceLabel == tracks[index];
 								});
-								 this.onSelectTrack(selected[0].deviceNo);
+								this.onSelectTrack(selected[0].deviceNo);
 							}
 							else {
 								selected = this.props.mediaState.video.channels.filter((a) => {
 									return a.channelInfo == tracks[index];
 								});
-								 this.onSelectTrack(selected[0].channelNo);
+								this.onSelectTrack(selected[0].channelNo);
 							}
 						}}>
 
