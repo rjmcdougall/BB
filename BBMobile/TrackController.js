@@ -125,35 +125,35 @@ export default class TrackController extends Component {
 
 						</Picker>
 					</View>
-					</View>
-				{refreshButton}
 				</View>
-				);
-			}
-		}
-		
+				{refreshButton}
+			</View>
+		);
+	}
+}
+
 TrackController.defaultProps = {
-					mediaState: StateBuilder.blankMediaState(),
-			};
-			
+	mediaState: StateBuilder.blankMediaState(),
+};
+
 TrackController.propTypes = {
-					mediaType: PropTypes.string,
-				mediaState: PropTypes.object,
-				onSelectTrack: PropTypes.func,
-				refreshFunction: PropTypes.func,
-				displayRefreshButton: PropTypes.bool,
-			};
-			
+	mediaType: PropTypes.string,
+	mediaState: PropTypes.object,
+	onSelectTrack: PropTypes.func,
+	refreshFunction: PropTypes.func,
+	displayRefreshButton: PropTypes.bool,
+};
+
 const styles = StyleSheet.create({
-					rowText: {
-					margin: 5,
-				fontSize: 14,
-				padding: 5,
-			},
+	rowText: {
+		margin: 5,
+		fontSize: 14,
+		padding: 5,
+	},
 	rowTextCenter: {
-					margin: 5,
-				fontSize: 14,
-				textAlign: "center",
-				padding: 10,
-			},
-		});
+		margin: 5,
+		fontSize: 14,
+		textAlign: "center",
+		padding: 10,
+	},
+});
