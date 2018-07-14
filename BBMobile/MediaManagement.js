@@ -7,8 +7,7 @@ import {
 } from "react-native";
 import VolumeController from "./VolumeController";
 import TrackController from "./TrackController";
-import BatteryController from "./BatteryController";
-import MapController from "./MapController";
+import BatteryController from "./BatteryController"; 
 import StateBuilder from "./StateBuilder";
 
 import PropTypes from "prop-types";
@@ -31,7 +30,6 @@ export default class MediaManagement extends Component {
 					<BatteryController mediaState={this.props.mediaState} />
 					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
 					<TrackController onSelectTrack={this.onSelectVideoTrack} mediaState={this.props.mediaState} mediaType="Video" />
-					<MapController mediaState={this.props.mediaState} onLoadAPILocations={this.props.onLoadAPILocations} />
 				</ScrollView>
 			</View>
 		);

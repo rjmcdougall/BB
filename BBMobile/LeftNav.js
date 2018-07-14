@@ -1,7 +1,7 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native"; 
+import { StyleSheet, Text, View } from "react-native";
 import PropTypes from "prop-types";
-import Touchable from "react-native-platform-touchable"; 
+import Touchable from "react-native-platform-touchable";
 import Constants from "./Constants.js";
 
 export default class LeftNav extends React.Component {
@@ -21,6 +21,16 @@ export default class LeftNav extends React.Component {
 					<Text style={styles.rowText}>
 						Media Management
 					</Text>
+				</Touchable>
+				<Touchable
+					onPress={async () => {
+						this.props.onNavigate(Constants.MAP)
+					}}
+					style={{ height: 50, }}
+					background={Touchable.Ripple("blue")}>
+					<Text style={styles.rowText}>
+						Map
+				</Text>
 				</Touchable>
 				<Touchable
 					onPress={async () => {
@@ -61,12 +71,12 @@ LeftNav.propTypes = {
 };
 
 const styles = StyleSheet.create({
- 
+
 	rowText: {
 		margin: 5,
 		fontSize: 14,
 		textAlign: "center",
 		padding: 10,
 	},
- 
+
 });

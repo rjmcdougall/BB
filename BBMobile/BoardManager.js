@@ -25,6 +25,7 @@ import StateBuilder from "./StateBuilder";
 import BBComAPIData from "./BBComAPIData";
 import Constants from "./Constants";
 import LeftNav from "./LeftNav";
+import MapController from "./MapController";
 
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
@@ -404,10 +405,12 @@ export default class BoardManager extends Component {
 					<LeftNav onNavigate={this.onNavigate} onPressSearchForBoards={this.onPressSearchForBoards}/>
 					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
-							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
-								: (this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
-									: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
-							}
+							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <Text></Text> }
+							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <Text></Text> }
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices}/> : <Text></Text> }
+							{(this.state.showScreen == Constants.MAP) ?<MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <Text></Text> }
+ 
+							
 						</View>
 						<View style={styles.footer}>
 							<Touchable  
