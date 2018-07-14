@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView, ListView, StyleSheet } from "react-native";
+import { View, Text, ScrollView, ListView } from "react-native";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
+import StyleSheet from "./StyleSheet";
 
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
@@ -46,7 +47,7 @@ export default class DiscoverController extends React.Component {
 							return (
 								<Touchable
 									onPress={async () => await this.props.onSelectPeripheral(item)}
-									style={[StyleSheet.button, { backgroundColor: color }]}
+									style={[StyleSheet.button, { height: 50,backgroundColor: color }]}
 
 									background={Touchable.Ripple("blue")}>
 									<Text style={StyleSheet.connectButtonTextCenter}>{item.name}</Text>

@@ -57,7 +57,7 @@ export default class LeftNav extends React.Component {
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.DISCOVER ? "green" : "lightblue" }]}>
 					<Touchable
 						onPress={async () => {
-							await this.props.onPressSearchForBoards();
+							this.props.onNavigate(Constants.DISCOVER);
 						}}
 						style={StyleSheet.icon}
 						background={Touchable.Ripple("blue")}>
