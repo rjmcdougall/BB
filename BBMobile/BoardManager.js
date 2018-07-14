@@ -409,8 +409,6 @@ export default class BoardManager extends Component {
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <Text></Text> }
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices}/> : <Text></Text> }
 							{(this.state.showScreen == Constants.MAP) ?<MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <Text></Text> }
- 
-							
 						</View>
 						<View style={styles.footer}>
 							<Touchable  
