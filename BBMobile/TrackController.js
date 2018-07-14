@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import PropTypes from "prop-types";
-import Touchable from "react-native-platform-touchable";
+import PropTypes from "prop-types"; 
 import StateBuilder from "./StateBuilder";
 import Picker from "react-native-wheel-picker";
 var PickerItem = Picker.Item;
@@ -29,40 +28,12 @@ export default class TrackController extends Component {
 			});
 			channelNo = this.props.mediaState.audio.channelNo;
 		}
-		else if (this.props.mediaType == "Device") {
-			tracks = this.props.mediaState.device.devices.map((a) => {
-				return a.deviceLabel;
-			});
-			channelNo = this.props.mediaState.device.deviceNo;
-		}
 		else {
 			tracks = this.props.mediaState.video.channels.map((a) => {
 				return a.channelInfo;
 			});
 			channelNo = this.props.mediaState.video.channelNo;
 		}
-
-		var refreshButton;
-		if (this.props.refreshFunction) {
-			refreshButton = (
-				<View style={styles.button}>
-					<Touchable
-						onPress={async () => {
-
-							this.setState({ mediaState: await this.props.refreshFunction() });
-
-							return true;
-						}}
-						style={[styles.touchableStyle]}
-						background={Touchable.Ripple("blue")}>
-						<Text style={styles.rowTextCenter}> Refresh BT Devices
-						</Text>
-					</Touchable>
-				</View>
-			);
-		}
-		else
-			refreshButton = (<Text></Text>);
 
 		if (tracks.length > 1)
 			tracks = tracks.slice(1, tracks.length);
@@ -105,12 +76,6 @@ export default class TrackController extends Component {
 									});
 									this.onSelectTrack(selected[0].channelNo);
 								}
-								else if (this.props.mediaType == "Device") {
-									selected = this.props.mediaState.device.devices.filter((a) => {
-										return a.deviceLabel == tracks[index];
-									});
-									this.onSelectTrack(selected[0].deviceNo);
-								}
 								else {
 									selected = this.props.mediaState.video.channels.filter((a) => {
 										return a.channelInfo == tracks[index];
@@ -126,7 +91,6 @@ export default class TrackController extends Component {
 						</Picker>
 					</View>
 				</View>
-				{refreshButton}
 			</View>
 		);
 	}
@@ -149,11 +113,5 @@ const styles = StyleSheet.create({
 		margin: 5,
 		fontSize: 14,
 		padding: 5,
-	},
-	rowTextCenter: {
-		margin: 5,
-		fontSize: 14,
-		textAlign: "center",
-		padding: 10,
 	},
 });
