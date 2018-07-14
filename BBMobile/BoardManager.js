@@ -88,7 +88,7 @@ export default class BoardManager extends Component {
 				boardData: boards,
 			});
 		}
-		
+
 		this.handlerDiscover = bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", this.handleDiscoverPeripheral);
 		this.handlerStop = bleManagerEmitter.addListener("BleManagerStopScan", this.handleStopScan);
 		this.handlerDisconnect = bleManagerEmitter.addListener("BleManagerDisconnectPeripheral", this.handleDisconnectedPeripheral);
@@ -365,9 +365,9 @@ export default class BoardManager extends Component {
 			connectionButtonText = "Located " + this.state.boardName;
 			break;
 		case CONNECTED:
-			if (!this.state.mediaState.isError)  
-				color = "green";	 
-			else  
+			if (!this.state.mediaState.isError)
+				color = "green";
+			else
 				color = "red";
 			enableControls = "auto";
 			connectionButtonText = "Connected To " + this.state.boardName;
@@ -377,97 +377,98 @@ export default class BoardManager extends Component {
 		if (!(this.state.showScreen == DISCOVER))
 
 			return (
-				<View style={styles.container}>
-					<View style={styles.contentContainer}>
-						{(this.state.showScreen == MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
-							: (this.state.showScreen == DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
-								: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
-						}
-
+				<View style={{ flex: 1, flexDirection: "row" }}>
+					<View style={{ width: 50, backgroundColor: "powderblue" }}>
 						<Touchable
 							onPress={async () => {
-								await this.startScan(true);
-							}
-							}
+								this.props.navigation.setParams({ title: MEDIA_MANAGEMENT });
+								this.setState({showScreen: MEDIA_MANAGEMENT});
+							}}
+							style={{ height: 50, }}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>
+								Media Management
+							</Text>
+						</Touchable>
+						<Touchable
+							onPress={async () => {
+								this.props.navigation.setParams({ title: ADMINISTRATION });
+								this.setState({showScreen: ADMINISTRATION});
+							}}
+							style={{ height: 50, }}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>
+								Administration
+							</Text>
+						</Touchable>
+						<Touchable
+							onPress={async () => {
+								this.props.navigation.setParams({ title: DIAGNOSTIC });
+								this.setState({ showScreen: DIAGNOSTIC});
+							}}
+							style={{height: 50}}
+							background={Touchable.Ripple("blue")}>
+							<Text style={styles.rowText}>Diagnostic</Text>
+						</Touchable>
+						<Touchable
+							onPress={async () => {
+								if (!this.state.scanning) {
+
+									try {
+										await BleManager.disconnect(this.state.selectedPeripheral.id);
+									}
+									catch (error) {
+										console.log("BoardManager: Pressed Search For Boards: " + error);
+									}
+
+									if (this.state.backgroundLoop)
+										clearInterval(this.state.backgroundLoop);
+
+									this.props.navigation.setParams({ title: "Search For Boards" });
+
+									this.setState({
+										peripherals: new Map(),
+										appState: "",
+										selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+										mediaState: StateBuilder.blankMediaState(),
+										showScreen: DISCOVER,
+										discoveryState: DISCONNECTED,
+										backgroundLoop: null,
+									});
+								}
+							}}
 							style={{
-								backgroundColor: color,
 								height: 50,
 							}}
 							background={Touchable.Ripple("blue")}>
-							<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+							<Text style={styles.rowText}>Search for Boards</Text>
 						</Touchable>
+					</View>
+					<View style={{ flex: 1 }}>
+						<View style={{ flex: 1 }}>
+							{(this.state.showScreen == MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} />
+								: (this.state.showScreen == DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} />
+									: <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} navigation={this.props.navigation} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} />
+							}
+						</View>
 						<View style={styles.footer}>
-							<View style={styles.button}>
-								<Touchable
-									onPress={async () => {
-										if (!this.state.scanning) {
-
-											try {
-												await BleManager.disconnect(this.state.selectedPeripheral.id);
-											}
-											catch (error) {
-												console.log("BoardManager: Pressed Search For Boards: " + error);
-											}
-
-											if (this.state.backgroundLoop)
-												clearInterval(this.state.backgroundLoop);
-
-											this.props.navigation.setParams({ title: "Search For Boards" });
-
-											this.setState({
-												peripherals: new Map(),
-												appState: "",
-												selectedPeripheral: StateBuilder.blankMediaState().peripheral,
-												mediaState: StateBuilder.blankMediaState(),
-												showScreen: DISCOVER,
-												discoveryState: DISCONNECTED,
-												backgroundLoop: null,
-											});
-										}
-									}}
-									style={{
-										height: 50,
-									}}
-									background={Touchable.Ripple("blue")}>
-									<Text style={styles.rowText}>Search for Boards</Text>
-								</Touchable>
-							</View>
-							<View style={styles.button}>
-								<Touchable
-									onPress={async () => {
-
-										var newScreen;
-										if (this.state.showScreen == MEDIA_MANAGEMENT) {
-											newScreen = ADMINISTRATION;
-										} else if ((this.state.showScreen == ADMINISTRATION)) {
-											newScreen = DIAGNOSTIC;
-										} else if (this.state.showScreen == DIAGNOSTIC) {
-											newScreen = MEDIA_MANAGEMENT;
-										}
-
-										this.props.navigation.setParams({ title: newScreen });
-
-										this.setState({
-											showScreen: newScreen,
-										});
-
-									}}
-									style={{
-										height: 50,
-									}}
-									background={Touchable.Ripple("blue")}>
-									<Text style={styles.rowText}>
-										{
-											(this.state.showScreen == MEDIA_MANAGEMENT) ? "Administration"
-												: (this.state.showScreen == ADMINISTRATION) ? "Diagnostic"
-													: "Media Management"
-										}
-									</Text>
-								</Touchable>
-							</View>
+							<Touchable  
+								onPress={async () => {
+									await this.startScan(true);
+								}
+								}
+								style={{
+									backgroundColor: color,
+									height: 50,
+									flex: 1,
+								}}
+								background={Touchable.Ripple("blue")}>
+								<Text style={styles.rowText}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+							</Touchable>
 						</View>
 					</View>
-				</View>);
+				</View>
+			);
 		else
 			return (
 				<View style={styles.container}>
@@ -495,7 +496,6 @@ export default class BoardManager extends Component {
 								var color = foundBoard[0].color;
 
 								return (
-
 									<Touchable
 										onPress={async () => await this.onSelectPeripheral(item)}
 										style={[styles.touchableStyle, { backgroundColor: color }]}
@@ -503,7 +503,6 @@ export default class BoardManager extends Component {
 										background={Touchable.Ripple("blue")}>
 										<Text style={styles.rowText}>{item.name}</Text>
 									</Touchable>
-
 								);
 							}}
 						/>
@@ -517,10 +516,7 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: "#FFF",
-	},
-	contentContainer: {
-		flex: 1 // pushes the footer to the end of the screen
-	},
+	}, 
 	rowText: {
 		margin: 5,
 		fontSize: 14,
@@ -535,9 +531,5 @@ const styles = StyleSheet.create({
 		height: 50,
 		flexDirection: "row",
 		justifyContent: "space-between"
-	},
-	button: {
-		width: "50%",
-		height: 50
-	}
+	}, 
 });

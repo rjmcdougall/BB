@@ -1,10 +1,8 @@
 import React, {
 	Component
 } from "react";
-import {
-	StyleSheet,
+import { 
 	View,
-	Dimensions,
 	ScrollView,
 } from "react-native";
 import VolumeController from "./VolumeController";
@@ -12,8 +10,6 @@ import TrackController from "./TrackController";
 import BatteryController from "./BatteryController";
 import MapController from "./MapController";
 import StateBuilder from "./StateBuilder";
-
-const window = Dimensions.get("window");
 
 import PropTypes from "prop-types";
 
@@ -29,8 +25,8 @@ export default class MediaManagement extends Component {
 	render() {
 
 		return (
-			<View style={styles.container} pointerEvents={this.props.pointerEvents}>
-				<ScrollView style={styles.scroll}>
+			<View pointerEvents={this.props.pointerEvents}>
+				<ScrollView>
 					<VolumeController onUpdateVolume={this.onUpdateVolume} mediaState={this.props.mediaState} />
 					<BatteryController mediaState={this.props.mediaState} />
 					<TrackController onSelectTrack={this.onSelectAudioTrack} mediaState={this.props.mediaState} mediaType="Audio" />
@@ -55,11 +51,4 @@ MediaManagement.defaultProps = {
 	pointerEvents: "none",
 
 };
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#FFF",
-		width: window.width
-	},
-});
+ 

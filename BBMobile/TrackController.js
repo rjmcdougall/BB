@@ -69,7 +69,7 @@ export default class TrackController extends Component {
 
 		return (
 
-			<View style={{margin: 10, backgroundColor: "skyblue",}}>
+			<View style={{ margin: 10, backgroundColor: "skyblue", }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
@@ -78,79 +78,82 @@ export default class TrackController extends Component {
 						<Text style={styles.rowText}>{this.props.mediaType} Track</Text>
 					</View>
 				</View>
-				<View>
-					<Picker style={{ width: "100%", height: 200}}
-						selectedValue={this.state.selectedValue}
-						itemStyle={{ color: "black", fontSize: 26 }}
-						onValueChange={async (index) => {
+				<View style={styles.container}>
+					<View style={styles.contentContainer}>
 
-							this.setState({selectedValue: index});
+						<Picker style={{ height: 200 }}
+							selectedValue={this.state.selectedValue}
+							itemStyle={{ color: "black", fontSize: 26 }}
+							onValueChange={async (index) => {
 
-							if (tracks[0] == "loading...") {
-								console.log("dont call update if its a component load");
-								return;
-							}
-							if ((channelNo - 1) == index) {
-								console.log("dont call update if its not a real change");
-								return;
-							}
+								this.setState({ selectedValue: index });
 
-							var selected = null;
+								if (tracks[0] == "loading...") {
+									console.log("dont call update if its a component load");
+									return;
+								}
+								if ((channelNo - 1) == index) {
+									console.log("dont call update if its not a real change");
+									return;
+								}
 
-							if (this.props.mediaType == "Audio") {
-								selected = this.props.mediaState.audio.channels.filter((a) => {
-									return a.channelInfo == tracks[index];
-								});
-								this.onSelectTrack(selected[0].channelNo);
-							}
-							else if (this.props.mediaType == "Device") {
-								selected = this.props.mediaState.device.devices.filter((a) => {
-									return a.deviceLabel == tracks[index];
-								});
-								this.onSelectTrack(selected[0].deviceNo);
-							}
-							else {
-								selected = this.props.mediaState.video.channels.filter((a) => {
-									return a.channelInfo == tracks[index];
-								});
-								this.onSelectTrack(selected[0].channelNo);
-							}
-						}}>
+								var selected = null;
 
-						{tracks.map((value, i) => (
-							<PickerItem label={value} value={i} key={"money" + value} />
-						))}
+								if (this.props.mediaType == "Audio") {
+									selected = this.props.mediaState.audio.channels.filter((a) => {
+										return a.channelInfo == tracks[index];
+									});
+									this.onSelectTrack(selected[0].channelNo);
+								}
+								else if (this.props.mediaType == "Device") {
+									selected = this.props.mediaState.device.devices.filter((a) => {
+										return a.deviceLabel == tracks[index];
+									});
+									this.onSelectTrack(selected[0].deviceNo);
+								}
+								else {
+									selected = this.props.mediaState.video.channels.filter((a) => {
+										return a.channelInfo == tracks[index];
+									});
+									this.onSelectTrack(selected[0].channelNo);
+								}
+							}}>
 
-					</Picker>
-				</View>
+							{tracks.map((value, i) => (
+								<PickerItem label={value} value={i} key={"money" + value} />
+							))}
+
+						</Picker>
+					</View>
+					</View>
 				{refreshButton}
-			</View>
-		);
-	}
-}
-
+				</View>
+				);
+			}
+		}
+		
 TrackController.defaultProps = {
-	mediaState: StateBuilder.blankMediaState(),
-};
-
+					mediaState: StateBuilder.blankMediaState(),
+			};
+			
 TrackController.propTypes = {
-	mediaType: PropTypes.string,
-	mediaState: PropTypes.object,
-	onSelectTrack: PropTypes.func,
-	refreshFunction: PropTypes.func,
-	displayRefreshButton: PropTypes.bool,
-};
-
+					mediaType: PropTypes.string,
+				mediaState: PropTypes.object,
+				onSelectTrack: PropTypes.func,
+				refreshFunction: PropTypes.func,
+				displayRefreshButton: PropTypes.bool,
+			};
+			
 const styles = StyleSheet.create({
-	rowText: {
-		margin: 5,
-		fontSize: 14,
-		padding: 5,
-	},
+					rowText: {
+					margin: 5,
+				fontSize: 14,
+				padding: 5,
+			},
 	rowTextCenter: {
-		margin: 5,
-		fontSize: 14,
-		textAlign: "center",
-		padding: 10,
-	},
-});
+					margin: 5,
+				fontSize: 14,
+				textAlign: "center",
+				padding: 10,
+			},
+		});

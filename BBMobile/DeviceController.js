@@ -83,12 +83,10 @@ DeviceController.propTypes = {
 
 const styles = StyleSheet.create({
 	PStyle: {
-		backgroundColor: "skyblue",
-		width: 280,
+		backgroundColor: "skyblue", 
 	},
 	DDStyle: {
-		backgroundColor: "skyblue",
-		width: 280,
+		backgroundColor: "skyblue", 
 	},
 	rowText: {
 		margin: 5,

@@ -13,7 +13,7 @@ export default class VolumeController extends React.Component {
 	render() {
 
 		return (
-			<View style={{ margin: 10, backgroundColor: "skyblue", height: 80 }}>
+			<View style={{ flex: 1, margin: 10, backgroundColor: "skyblue", height: 80 }}>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
@@ -23,7 +23,7 @@ export default class VolumeController extends React.Component {
 					<View style={{ height: 40 }}><Text style={styles.rowText}>Volume</Text></View>
 					<View style={{ height: 40 }}><Text style={styles.rowText}>{this.props.mediaState.audio.volume}</Text></View>
 				</View>
-				<View style={{ height: 40 }}><Slider value={this.props.mediaState.audio.volume}
+				<View style={{ flex: 1,  height: 40 }}><Slider value={this.props.mediaState.audio.volume}
 					onSlidingComplete={async (value) => {
 						try {
 							await this.onUpdateVolume(
