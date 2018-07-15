@@ -10,13 +10,7 @@ var PickerItem = Picker.Item;
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			refreshButtonClicked: false,
-		};
-
 		this.onSelectTrack = this.props.onSelectTrack.bind(this);
-		if (this.props.refreshFunction)
-			this.refreshFunction = this.props.refreshFunction.bind(this);
 	}
 
 	render() {
@@ -37,8 +31,8 @@ export default class TrackController extends Component {
 			channelNo = this.props.mediaState.video.channelNo;
 		}
 
-		if (tracks.length > 1)
-			tracks = tracks.slice(1, tracks.length);
+		// if (tracks.length > 1)
+		// 	tracks = tracks.slice(1, tracks.length);
 
 		return (
 
@@ -55,12 +49,10 @@ export default class TrackController extends Component {
 					<View style={StyleSheet.container}>
 
 						<Picker style={{ height: 150 }}
-							selectedValue={this.state.selectedValue}
+							selectedValue={channelNo}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (index) => {
-
-								this.setState({ selectedValue: index });
-
+ 
 								if (tracks[0] == "loading...") {
 									console.log("dont call update if its a component load");
 									return;
@@ -76,13 +68,13 @@ export default class TrackController extends Component {
 									selected = this.props.mediaState.audio.channels.filter((a) => {
 										return a.channelInfo == tracks[index];
 									});
-									this.onSelectTrack(selected[0].channelNo);
+									await this.onSelectTrack(selected[0].channelNo);
 								}
 								else {
 									selected = this.props.mediaState.video.channels.filter((a) => {
 										return a.channelInfo == tracks[index];
 									});
-									this.onSelectTrack(selected[0].channelNo);
+									await this.onSelectTrack(selected[0].channelNo);
 								}
 							}}>
 
