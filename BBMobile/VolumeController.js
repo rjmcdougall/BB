@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text,  Slider, StyleSheet } from "react-native";
+import { View, Text,  Slider } from "react-native";
 import PropTypes from "prop-types";
+import StyleSheet from "./StyleSheet";
 
 export default class VolumeController extends React.Component {
 	constructor(props) {
@@ -20,10 +21,10 @@ export default class VolumeController extends React.Component {
 					justifyContent: "space-between",
 
 				}}>
-					<View style={{ height: 40 }}><Text style={styles.rowText}>Volume</Text></View>
-					<View style={{ height: 40 }}><Text style={styles.rowText}>{this.props.mediaState.audio.volume}</Text></View>
+					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>Volume</Text></View>
+					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>{this.props.mediaState.audio.volume}</Text></View>
 				</View>
-				<View style={{ flex: 1,  height: 40 }}><Slider value={this.props.mediaState.audio.volume}
+				<View style={{ flex: 1,  height: 40, margin: 10 }}><Slider value={this.props.mediaState.audio.volume}
 					onSlidingComplete={async (value) => {
 						try {
 							await this.onUpdateVolume(
@@ -45,11 +46,4 @@ VolumeController.propTypes = {
 	mediaState: PropTypes.object,
 	onUpdateVolume: PropTypes.func,
 };
-
-const styles = StyleSheet.create({
-	rowText: {
-		margin: 5,
-		fontSize: 14,
-		padding: 5,
-	},
-});
+ 

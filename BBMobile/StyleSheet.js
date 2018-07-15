@@ -41,6 +41,7 @@ export default StyleSheet.create({
 		margin: 5,
 		fontSize: 14,
 		padding: 5,
+		fontWeight: "bold",
 	},
 	footer: {
 		height: 40,
