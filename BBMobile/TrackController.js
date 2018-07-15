@@ -6,7 +6,6 @@ import Picker from "react-native-wheel-picker";
 import StyleSheet from "./StyleSheet";
 
 var PickerItem = Picker.Item;
-
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);

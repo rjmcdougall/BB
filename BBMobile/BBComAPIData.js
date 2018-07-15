@@ -2,7 +2,6 @@ import BLEIDs from "./BLEIDs";
 
 exports.fetchBoards = async function () {
 
-
 	//const API = "http://www.fakeresponse.com/api/?sleep=5";
 	const API = "https://www.burnerboard.com/boards/";
 	try {
@@ -50,7 +49,6 @@ exports.fetchLocations = async function (mediaState) {
 		mediaState = BLEIDs.BLELogger(mediaState, "API: Locations Fetch Found " + mediaState.apiLocations.length + " boards", false);
 
 		return mediaState;
-
 	}
 	catch (error) {
 		mediaState = BLEIDs.BLELogger(mediaState, "API: Locations: " + error, true);

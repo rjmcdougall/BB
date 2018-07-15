@@ -19,7 +19,6 @@ export default class BatteryController extends React.Component {
 		else
 			barColor = "green";
 
-
 		return (
 			<View style={styles.container}>
 				<AnimatedBar
@@ -37,7 +36,6 @@ export default class BatteryController extends React.Component {
 						</Text>
 					</View>
 				</AnimatedBar>
-
 			</View>
 		);
 	}

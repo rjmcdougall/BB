@@ -8,7 +8,6 @@ export default class VolumeController extends React.Component {
 		super(props);
  
 		this.onUpdateVolume = this.props.onUpdateVolume.bind(this);
-
 	}
 
 	render() {

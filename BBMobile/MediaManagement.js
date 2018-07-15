@@ -21,7 +21,6 @@ export default class MediaManagement extends Component {
 	}
  
 	render() {
-
 		return (
 			<View>
 				<ScrollView>

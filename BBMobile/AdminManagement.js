@@ -26,7 +26,6 @@ export default class AdminManagement extends Component {
 
 		this.onSelectDevice = this.props.onSelectDevice.bind(this);
 		this.onRefreshDevices = this.props.onRefreshDevices.bind(this);
-
 	}
 
 	render() {

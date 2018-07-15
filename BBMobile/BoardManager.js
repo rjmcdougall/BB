@@ -219,7 +219,6 @@ export default class BoardManager extends Component {
 						backgroundLoop: null,
 					});
 
-
 					await this.startScan(true);
 				}
 				catch (error) {
@@ -356,24 +355,24 @@ export default class BoardManager extends Component {
 			boardName = this.state.boardName;
 
 		switch (this.state.discoveryState) {
-			case Constants.DISCONNECTED:
-				color = "#fff";
-				enableControls = "none";
-				connectionButtonText = "Connect to " + boardName;
-				break;
-			case Constants.LOCATED:
-				color = "yellow";
-				enableControls = "none";
-				connectionButtonText = "Located " + boardName;
-				break;
-			case Constants.CONNECTED:
-				if (!this.state.mediaState.isError)
-					color = "green";
-				else
-					color = "red";
-				enableControls = "auto";
-				connectionButtonText = "Connected To " + boardName;
-				break;
+		case Constants.DISCONNECTED:
+			color = "#fff";
+			enableControls = "none";
+			connectionButtonText = "Connect to " + boardName;
+			break;
+		case Constants.LOCATED:
+			color = "yellow";
+			enableControls = "none";
+			connectionButtonText = "Located " + boardName;
+			break;
+		case Constants.CONNECTED:
+			if (!this.state.mediaState.isError)
+				color = "green";
+			else
+				color = "red";
+			enableControls = "auto";
+			connectionButtonText = "Connected To " + boardName;
+			break;
 		}
 
 		return (

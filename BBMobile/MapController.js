@@ -17,7 +17,6 @@ export default class MapController extends React.Component {
 
 	render() {
 
-
 		try {
 			var locations = StateBuilder.getLocations(this.props.mediaState, this.state.wifiLocations);
 			var region;
@@ -29,10 +28,7 @@ export default class MapController extends React.Component {
 
 			return (
 				<View style={StyleSheet.mapView}>
-					<MapView
-						style={StyleSheet.map}
-						region={region}
-					>
+					<MapView style={StyleSheet.map} region={region} >
 						{locations.map(marker => {
 
 							var ONE_HOUR = 60 * 60 * 1000; /* ms */

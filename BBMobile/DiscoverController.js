@@ -18,8 +18,7 @@ export default class DiscoverController extends React.Component {
 		const dataSource = ds.cloneWithRows(list);
 
 		return (
-			<View style={{ flex: 1 }}>
-				<View style={{ height: 20 }}></View>
+			<View style={{ flex: 1, margin:30 }}>
 				<Touchable
 					onPress={async () => {
 						await this.props.startScan(false);
@@ -28,7 +27,6 @@ export default class DiscoverController extends React.Component {
 					background={Touchable.Ripple("blue")}>
 					<Text style={StyleSheet.connectButtonTextCenter}>Scan for Burner Boards ({this.props.scanning ? "scanning" : "paused"})</Text>
 				</Touchable>
-				<View style={{ height: 20 }}></View>
 				<ScrollView>
 					{(list.length == 0) &&
 						<Text style={StyleSheet.connectButtonTextCenter}>No Boards Found</Text>
@@ -57,7 +55,6 @@ export default class DiscoverController extends React.Component {
 					/>
 				</ScrollView>
 			</View>
-
 		);
 	}
 }

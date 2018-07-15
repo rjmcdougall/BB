@@ -21,7 +21,6 @@ export default class DeviceController extends Component {
 		var tracks = this.props.mediaState.device.devices.map(a => a.deviceLabel);
 
 		return (
-
 			<View style={StyleSheet.button}>
 				<View style={{
 					flex: 1,
