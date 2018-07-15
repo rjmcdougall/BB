@@ -54,9 +54,9 @@ export default class TrackController extends Component {
 				<View style={StyleSheet.container}>
 					<View style={StyleSheet.container}>
 
-						<Picker style={{ height: 160 }}
+						<Picker style={{ height: 150 }}
 							selectedValue={this.state.selectedValue}
-							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 160 }}
+							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (index) => {
 
 								this.setState({ selectedValue: index });
