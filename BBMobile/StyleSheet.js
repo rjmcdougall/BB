@@ -43,11 +43,9 @@ export default StyleSheet.create({
 		padding: 5,
 	},
 	footer: {
-		height: 50,
-		margin: 2,
-		padding: 5,
-		flexDirection: "row",
-		justifyContent: "space-between"
+		height: 40,
+		margin: 2, 
+		justifyContent: "center"
 	},
 	switch: {
 		margin: 5,
