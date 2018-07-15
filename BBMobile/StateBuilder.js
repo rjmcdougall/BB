@@ -4,6 +4,11 @@ import BBComAPIData from "./BBComAPIData";
 import BLEIDs from "./BLEIDs";
 import BLEBoardData from "./BLEBoardData";
 
+
+var bEmptyUserPrefs = {
+	isDevilsHand: false,
+};
+
 var bEmptyMediaState = {
 	peripheral: {
 		name: "loading...",
@@ -44,6 +49,14 @@ var bEmptyMediaState = {
 	logLines: [{ logLine: "", isError: false }],
 	boards: [{ name: "none", address: 1234 }],
 };
+
+exports.blankUserPrefs = function () {
+	return JSON.parse(JSON.stringify(bEmptyUserPrefs));
+};
+
+function mblankUserPrefs() {
+	return JSON.parse(JSON.stringify(bEmptyUserPrefs));
+}
 
 exports.blankMediaState = function () {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
@@ -97,9 +110,27 @@ exports.getBoards = async function () {
 		console.log(error);
 	}
 	return boards;
-}
+};
 
+exports.getUserPrefs = async function () {
+	try {
+		var userPrefs = await FileSystemConfig.getUserPrefs();
 
+		if (userPrefs) {
+			return userPrefs;
+		}
+		else {
+			return mblankUserPrefs();
+		}
+	}
+	catch (error) {
+		console.log("StateBuilder: " + error);
+	}
+};
+
+exports.setUserPrefs = async function (userPrefs) {
+	return await FileSystemConfig.setUserPrefs(userPrefs);
+};
 
 exports.getLocations = function (mediaState, showAPILocations) {
 

@@ -1,16 +1,5 @@
-import React, {
-	Component
-} from "react";
-import {
-	View,
-	NativeEventEmitter,
-	NativeModules,
-	Platform,
-	PermissionsAndroid,
-	AppState,
-	Text,
-	Image,
-} from "react-native";
+import React, { Component } from "react";
+import { View, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, AppState, Text, Image, } from "react-native";
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
 import FileSystemConfig from "./FileSystemConfig";
@@ -27,6 +16,7 @@ import MapController from "./MapController";
 import BatteryController from "./BatteryController";
 import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
+import PropTypes from "prop-types";
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -64,7 +54,7 @@ export default class BoardManager extends Component {
 		this.onNavigate = this.onNavigate.bind(this);
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
 		this.startScan = this.startScan.bind(this);
-
+		
 	}
 
 	async componentDidMount() {
@@ -405,7 +395,7 @@ export default class BoardManager extends Component {
 						<View style={{ flex: 1 }}>
 							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController mediaState={this.state.mediaState} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} peripherals={this.state.peripherals} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
@@ -431,3 +421,11 @@ export default class BoardManager extends Component {
 	}
 }
 
+BoardManager.propTypes = {
+	userPrefs: PropTypes.object,
+	setUserPrefs: PropTypes.func,
+};
+
+BoardManager.defaultProps = {
+	userPrefs: StateBuilder.blankUserPrefs(),
+};

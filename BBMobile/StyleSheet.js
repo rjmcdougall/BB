@@ -49,5 +49,16 @@ export default StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between"
 	},
+	switch: {
+		margin: 5,
+		padding: 5,
+		flex:1,
+		flexDirection: "row",
+	},
+	switchText: {
+		fontSize: 14,
+		fontWeight: "bold",
+		textAlign: "center",
+	}
 });
  
