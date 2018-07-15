@@ -55,13 +55,8 @@ public class BurnerBoardUtil {
     private static boolean kForceBBTypeMast = false;
     private static boolean kForceBBTypePanel = false;
 
-    /*
-        XXX TODO: Azul is currently the 'fall through' case in BBService. There's probably a positive way to
-        identify an Azul board. -jib
-     */
     public static final boolean isBBAzul() {
-        boolean isOtherType = isBBClassic() || isBBDirectMap() || isBBMast() || isBBPanel();
-        return (kForceBBTypeAzul || !isOtherType) ? true : false;
+        return (kForceBBTypeAzul || BOARD_TYPE.contains("Azul")) ? true : false;
     }
 
     public static final boolean isBBClassic() {
@@ -73,9 +68,16 @@ public class BurnerBoardUtil {
     }
 
     public static final boolean isBBMast() {
-        return (kForceBBTypeMast || BOARD_ID.contains("Mast") || BOARD_ID.contains("test")) ? true : false;
+        return (kForceBBTypeMast || BOARD_TYPE.contains("Mast") || BOARD_ID.contains("test")) ? true : false;
     }
 
+    /*  rjmcdougall says:
+        Obviously we need a better persistent way of setting board types on android things.
+
+        The embedded android 6 we deploy allows us to set the board type at provision time via USB.
+
+        With android things we either need to allow config through the cloud or through the app.
+    */
     public static final boolean isBBPanel() {
         return (kForceBBTypePanel
             || BOARD_ID.contains("Panel")
