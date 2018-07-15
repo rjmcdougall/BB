@@ -13,6 +13,17 @@ export default class TrackController extends Component {
 
 	render() {
 
+		var channelNo;
+		var channels;
+		if(this.props.mediaType == "Audio"){
+			channelNo = this.props.mediaState.audio.channelNo;
+			channels = this.props.mediaState.audio.channels;
+		}
+		else {
+			channelNo = this.props.mediaState.video.channelNo;
+			channels = this.props.mediaState.video.channels;
+		}
+		
 		return (
 
 			<View style={{ margin: 2, backgroundColor: "skyblue" }}>
@@ -28,15 +39,15 @@ export default class TrackController extends Component {
 					<View style={StyleSheet.container}>
 
 						<Picker style={{ height: 150 }}
-							selectedValue={this.props.mediaState.audio.channelNo}
+							selectedValue={channelNo}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (index) => {
 
-								if (this.props.mediaState.audio.channels[0] == "loading...") {
+								if (channels[0] == "loading...") {
 									console.log("dont call update if its a component load");
 									return;
 								}
-								if ((this.props.mediaState.audio.channelNo) == index) {
+								if ((channelNo) == index) {
 									console.log("dont call update if its not a real change");
 									return;
 								}
@@ -46,7 +57,7 @@ export default class TrackController extends Component {
 
 							}}>
 
-							{this.props.mediaState.audio.channels.map((value, i) => (
+							{channels.map((value, i) => (
 								<PickerItem label={value} value={i} key={"money" + value} />
 							))}
 
@@ -60,6 +71,7 @@ export default class TrackController extends Component {
 
 TrackController.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
+	mediaType: "Audio",
 };
 
 TrackController.propTypes = {
