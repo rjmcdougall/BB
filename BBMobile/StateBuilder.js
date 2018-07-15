@@ -27,9 +27,9 @@ var bEmptyMediaState = {
 		channels: ["loading..."]
 	},
 	device: {
-		deviceNo: 1,
-		maxDevice: 1,
-		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
+		deviceNo: 0,
+		maxDevice: 0,
+		devices: [{ deviceNo: 0, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
 	},
 	battery: 0,
 	audioMaster: 0,

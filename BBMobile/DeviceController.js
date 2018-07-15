@@ -12,19 +12,14 @@ export default class DeviceController extends Component {
 			refreshButtonClicked: false,
 		};
 
-		this.onSelectTrack = this.props.onSelectTrack.bind(this);
 		if (this.props.refreshFunction)
 			this.refreshFunction = this.props.refreshFunction.bind(this);
 	}
 
 	render() {
- 
-		var channelInfo = null;
 
-		channelInfo = this.props.mediaState.device.devices[(this.props.mediaState.device.deviceNo)];
+		var tracks = this.props.mediaState.device.devices.map(a => a.deviceLabel);
 
-		console.log(this.props.mediaState.device.devices);
-		console.log(channelInfo)
 		return (
 
 			<View style={StyleSheet.button}>
@@ -36,14 +31,16 @@ export default class DeviceController extends Component {
 						<Text style={StyleSheet.rowText}>Devices</Text></View>
 				</View>
 				<View style={{ height: 40 }}>
-					<ModalDropdown options={this.props.mediaState.device.devices}
-						defaultValue={channelInfo}
+					<ModalDropdown options={tracks}
+						defaultValue={tracks[this.props.mediaState.device.deviceNo]}
 						style={StyleSheet.button}
 						dropdownStyle={StyleSheet.button}
 						textStyle={StyleSheet.dropDownRowText}
 						dropdownTextStyle={StyleSheet.dropDownRowText}
 						dropdownTextHighlightStyle={StyleSheet.dropDownRowText}
-						onSelect={this.onSelectTrack.bind(this)}
+						onSelect={async (idx) => {
+							await this.props.onSelectTrack(idx);
+						}}
 					/>
 				</View>
 				<View style={StyleSheet.button}>

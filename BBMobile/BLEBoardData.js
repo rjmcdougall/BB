@@ -82,7 +82,7 @@ exports.loadDevices = async function (mediaState) {
 
 				var deviceInfo = "";
 				if (readData.length > 3) {
-					var deviceNo = readData[0] - 1;//0 based
+					var deviceNo = readData[0]; 
 					//var deviceMax = readData[1];
 					var deviceStatus = readData[2];
 					var isPaired;
@@ -99,7 +99,7 @@ exports.loadDevices = async function (mediaState) {
 					}
 				}
 				if (deviceInfo && 0 != deviceInfo.length) {
-					devices[deviceNo] = {
+					devices[n] = {
 						deviceNo: deviceNo,
 						deviceInfo: deviceInfo,
 						deviceLabel: deviceLabel,
@@ -204,15 +204,15 @@ exports.readTrack = async function (mediaState, mediaType) {
 					channelCharacteristic);
 
 				if (readData) {
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + mediaType + "Track: Selected: " + new String(parseInt(readData[1]) - 1) + " Max: " + new String(parseInt(readData[0]) - 1), false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + mediaType + " Track: Selected: " + new String(parseInt(readData[1]) - 1) + " Max: " + new String(parseInt(readData[0]) - 1), false);
 
 					if (mediaType == "Audio") {
 						mediaState.audio.channelNo = parseInt(readData[1]) - 1; // 0 based
 						mediaState.audio.maxChannel = parseInt(readData[0]) - 1;
 					}
 					else if (mediaType == "Device") {
-						mediaState.device.channelNo = parseInt(readData[1]) - 1;
-						mediaState.device.maxChannel = parseInt(readData[0]) - 1;
+						mediaState.device.deviceNo = parseInt(readData[1]) ;
+						mediaState.device.maxDevice = parseInt(readData[0]) ;
 					}
 					else {
 						mediaState.video.channelNo = parseInt(readData[1]) - 1;
