@@ -18,13 +18,13 @@ export default class DeviceController extends Component {
 	}
 
 	render() {
-
-		var tracks = null;
+ 
 		var channelInfo = null;
 
-		tracks = this.props.mediaState.device.devices.map(a => a.deviceLabel);
-		channelInfo = tracks[(this.props.mediaState.device.deviceNo)];
+		channelInfo = this.props.mediaState.device.devices[(this.props.mediaState.device.deviceNo)];
 
+		console.log(this.props.mediaState.device.devices);
+		console.log(channelInfo)
 		return (
 
 			<View style={StyleSheet.button}>
@@ -36,7 +36,7 @@ export default class DeviceController extends Component {
 						<Text style={StyleSheet.rowText}>Devices</Text></View>
 				</View>
 				<View style={{ height: 40 }}>
-					<ModalDropdown options={tracks}
+					<ModalDropdown options={this.props.mediaState.device.devices}
 						defaultValue={channelInfo}
 						style={StyleSheet.button}
 						dropdownStyle={StyleSheet.button}

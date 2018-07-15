@@ -10,29 +10,9 @@ var PickerItem = Picker.Item;
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
-		this.onSelectTrack = this.props.onSelectTrack.bind(this);
 	}
 
 	render() {
-
-		var tracks = null;
-		var channelNo = null;
-
-		if (this.props.mediaType == "Audio") {
-			tracks = this.props.mediaState.audio.channels.map((a) => {
-				return a.channelInfo;
-			});
-			channelNo = this.props.mediaState.audio.channelNo;
-		}
-		else {
-			tracks = this.props.mediaState.video.channels.map((a) => {
-				return a.channelInfo;
-			});
-			channelNo = this.props.mediaState.video.channelNo;
-		}
-
-		// if (tracks.length > 1)
-		// 	tracks = tracks.slice(1, tracks.length);
 
 		return (
 
@@ -49,36 +29,25 @@ export default class TrackController extends Component {
 					<View style={StyleSheet.container}>
 
 						<Picker style={{ height: 150 }}
-							selectedValue={channelNo}
+							selectedValue={this.props.mediaState.audio.channelNo}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (index) => {
- 
-								if (tracks[0] == "loading...") {
+
+								if (this.props.mediaState.audio.channels[0] == "loading...") {
 									console.log("dont call update if its a component load");
 									return;
 								}
-								if ((channelNo - 1) == index) {
+								if ((this.props.mediaState.audio.channelNo) == index) {
 									console.log("dont call update if its not a real change");
 									return;
 								}
 
-								var selected = null;
+								console.log("index " + index)
+								await this.props.onSelectTrack(index);
 
-								if (this.props.mediaType == "Audio") {
-									selected = this.props.mediaState.audio.channels.filter((a) => {
-										return a.channelInfo == tracks[index];
-									});
-									await this.onSelectTrack(selected[0].channelNo);
-								}
-								else {
-									selected = this.props.mediaState.video.channels.filter((a) => {
-										return a.channelInfo == tracks[index];
-									});
-									await this.onSelectTrack(selected[0].channelNo);
-								}
 							}}>
 
-							{tracks.map((value, i) => (
+							{this.props.mediaState.audio.channels.map((value, i) => (
 								<PickerItem label={value} value={i} key={"money" + value} />
 							))}
 
@@ -97,7 +66,5 @@ TrackController.defaultProps = {
 TrackController.propTypes = {
 	mediaType: PropTypes.string,
 	mediaState: PropTypes.object,
-	onSelectTrack: PropTypes.func,
-	refreshFunction: PropTypes.func,
-	displayRefreshButton: PropTypes.bool,
+	onSelectTrack: PropTypes.func, 
 };
