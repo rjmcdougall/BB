@@ -33,7 +33,7 @@ export default class BatteryController extends React.Component {
 				>
 					<View style={[styles.row, styles.center]}>
 						<Text style={[styles.barText, { fontSize: 30 }]}>
-							{battery*100}%
+							{Math.round(battery*100)}%
 						</Text>
 					</View>
 				</AnimatedBar>
