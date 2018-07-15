@@ -54,7 +54,7 @@ export default class BoardManager extends Component {
 		this.onNavigate = this.onNavigate.bind(this);
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
 		this.startScan = this.startScan.bind(this);
-		
+
 	}
 
 	async componentDidMount() {
@@ -379,18 +379,24 @@ export default class BoardManager extends Component {
 		return (
 			<View style={{ flex: 1 }}>
 				<View style={{ flexDirection: "row" }}>
-					<View style={{ margin: 5, paddingTop: 10 }}>
-						<Image
-							style={{ width: 45, height: 40, }}
-							source={require("./images/BurnerBoardIcon-1026.png")}
-						/>
-					</View>
+					{(!this.props.userPrefs.isDevilsHand) ?
+						<View style={{ margin: 5, paddingTop: 10 }}>
+							<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
+						</View>
+						: <View></View>
+					}
 					<View style={{ flex: 1 }}>
 						<BatteryController mediaState={this.state.mediaState} />
 					</View>
+					{(this.props.userPrefs.isDevilsHand) ?
+						<View style={{ margin: 5, paddingTop: 10 }}>
+							<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
+						</View>
+						: <View></View>
+					}
 				</View>
 				<View style={{ flex: 1, flexDirection: "row" }}>
-					<LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} />
+					{(!this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
 							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
@@ -414,6 +420,7 @@ export default class BoardManager extends Component {
 							</Touchable>
 						</View>
 					</View>
+					{(this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 				</View>
 			</View>
 		);
