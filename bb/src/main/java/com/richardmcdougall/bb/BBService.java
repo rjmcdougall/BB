@@ -1594,41 +1594,41 @@ public class BBService extends Service {
 
     private void setupWifi() {
         this.registerReceiver(new BroadcastReceiver() {
-                                  @Override
-                                  public void onReceive(Context context, Intent intent) {
-                                      int extraWifiState =
-                                              intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                                                      WifiManager.WIFI_STATE_UNKNOWN);
+            @Override
+            public void onReceive(Context context, Intent intent) {
+              int extraWifiState =
+                      intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
+                              WifiManager.WIFI_STATE_UNKNOWN);
 
-                                      switch(extraWifiState){
-                                          case WifiManager.WIFI_STATE_DISABLED:
-                                              l("WIFI STATE DISABLED");
-                                              break;
-                                          case WifiManager.WIFI_STATE_DISABLING:
-                                              l("WIFI STATE DISABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLED:
-                                              l("WIFI STATE ENABLED");
-                                              int mfs = mWiFiManager.getWifiState();
-                                              l("Wifi state is " + mfs);
-                                              l("Checking wifi");
-                                              if (checkWifiSSid(new String("\"burnerboard\"")) == false) {
-                                                  l("adding wifi");
-                                                  addWifi("burnerboard", "firetruck");
-                                              }
-                                              l("Connecting to wifi");
-                                              connectWifi("burnerboard");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLING:
-                                              l("WIFI STATE ENABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_UNKNOWN:
-                                              l("WIFI STATE UNKNOWN");
-                                              break;
-                                      }
-                                  }
-                              },
-                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+              switch(extraWifiState){
+                  case WifiManager.WIFI_STATE_DISABLED:
+                      l("WIFI STATE DISABLED");
+                      break;
+                  case WifiManager.WIFI_STATE_DISABLING:
+                      l("WIFI STATE DISABLING");
+                      break;
+                  case WifiManager.WIFI_STATE_ENABLED:
+                      l("WIFI STATE ENABLED");
+                      int mfs = mWiFiManager.getWifiState();
+                      l("Wifi state is " + mfs);
+                      l("Checking wifi");
+                      if (checkWifiSSid("burnerboard") == false) {
+                          l("adding wifi");
+                          addWifi("burnerboard", "firetruck");
+                      }
+                      l("Connecting to wifi");
+                      connectWifi("burnerboard");
+                      break;
+                  case WifiManager.WIFI_STATE_ENABLING:
+                      l("WIFI STATE ENABLING");
+                      break;
+                  case WifiManager.WIFI_STATE_UNKNOWN:
+                      l("WIFI STATE UNKNOWN");
+                      break;
+              }
+            }
+        },
+        new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
     }
 
     private boolean checkWifiOnAndConnected(WifiManager wifiMgr) {
