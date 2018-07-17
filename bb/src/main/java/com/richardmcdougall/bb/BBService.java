@@ -32,10 +32,8 @@ import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
@@ -102,8 +100,10 @@ public class BBService extends Service {
     public long serverRTT = 0;
     private int userTimeOffset = 0;
     public RFClientServer mRfClientServer = null;
-    public String boardId = getBoardId();
-    public String boardType = Build.MANUFACTURER;
+    /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
+    public static String boardId = BurnerBoardUtil.BOARD_ID;
+    /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
+    public static String boardType = BurnerBoardUtil.BOARD_TYPE;
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
@@ -152,20 +152,9 @@ public class BBService extends Service {
         }
     }
 
-
+    /* XXX TODO this is here for backwards compat; this used to be computed here and is now in bbutil -jib */
     public static String getBoardId() {
-
-        String id;
-        String serial = Build.SERIAL;
-
-        if (BurnerBoardUtil.kIsRPI) {
-            id = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
-                    serial.length());
-        } else {
-            id = Build.MODEL;
-        }
-
-        return id;
+        return BurnerBoardUtil.BOARD_ID;
     }
 
     /**
@@ -214,12 +203,14 @@ public class BBService extends Service {
     int mWifiReconnectEveryNSeconds = 60;
 
 
+    /* XXX TODO remove me - this looks like dead code -jib
     private static final Map<String, String> BoardNames = new HashMap<String, String>();
 
     static {
         BoardNames.put("BISCUIT", "Richard");
         BoardNames.put("newproto", "Richard");
     }
+    */
 
     @Override
     public void onCreate() {
@@ -232,6 +223,7 @@ public class BBService extends Service {
         this.registerReceiver(mUsbReceiver, ufilter);
 
         mContext = getApplicationContext();
+
 
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 
@@ -455,27 +447,26 @@ public class BBService extends Service {
             return;
         }
 
-        if (kEmulatingClassic || boardType.contains("Classic")) {
+        if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
+            l( "Visualization: Using Classic");
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
-        } else if (boardId.contains("Mast")) {
+        } else if (BurnerBoardUtil.isBBMast()) {
+            l( "Visualization: Using Mast");
             mBurnerBoard = new BurnerBoardMast(this, mContext);
-        } else if (boardType.contains("Panel")) {
+        } else if (BurnerBoardUtil.isBBPanel()) {
+            l( "Visualization: Using Panel");
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("cranky")) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("grumpy")) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("mickey")) {
+        } else if (BurnerBoardUtil.isBBDirectMap()) {
+            l( "Visualization: Using Directory Map");
             mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
-        } else if (boardId.contains("test")) {
-            mBurnerBoard = new BurnerBoardMast(this, mContext);
-        } else if (BurnerBoardUtil.kIsRPI) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
-        } else if (boardId.contains("imx7d_pico")) {
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
+        } else if (BurnerBoardUtil.isBBAzul()) {
+            l( "Visualization: Using Azul");
+            mBurnerBoard = new BurnerBoardAzul(this, mContext);
         } else {
+            l( "Could not identify board type! Falling back to Azul for backwards compatibility");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         }
+
         if (mBurnerBoard == null) {
             l("startLights: null burner board");
             return;
@@ -1489,7 +1480,7 @@ public class BBService extends Service {
         /* Communicate the settings for the supervisor thread */
         l("Enable Battery Monitoring? " + mEnableBatteryMonitoring);
         l("Enable IoT Reporting? " + mEnableIoTReporting);
-        l("Enable WiFi reconnect?" + mEnableWifiReconnect);
+        l("Enable WiFi reconnect? " + mEnableWifiReconnect);
 
         while (true) {
 
@@ -1719,12 +1710,12 @@ public class BBService extends Service {
                       int mfs = mWiFiManager.getWifiState();
                       l("Wifi state is " + mfs);
                       l("Checking wifi");
-                      if (checkWifiSSid("burnerboard") == false) {
-                          l("adding wifi");
-                          addWifi("burnerboard", "firetruck");
+                      if (checkWifiSSid(BurnerBoardUtil.WIFI_SSID) == false) {
+                          l("adding wifi: " + BurnerBoardUtil.WIFI_SSID);
+                          addWifi(BurnerBoardUtil.WIFI_SSID, BurnerBoardUtil.WIFI_PASS);
                       }
                       l("Connecting to wifi");
-                      connectWifi("burnerboard");
+                      connectWifi(BurnerBoardUtil.WIFI_SSID);
                       break;
                   case WifiManager.WIFI_STATE_ENABLING:
                       l("WIFI STATE ENABLING");
@@ -1766,9 +1757,39 @@ public class BBService extends Service {
         }
     }
 
+    /* On android, wifi SSIDs and passwords MUST be passed quoted. This fixes up the raw SSID & Pass -jib */
+    /* XXX TODO this code doesn't get exercised if the SSID is already in the known config it seems
+       which makes this code VERY hard to test. What's the right strategy? -jib
+
+        Here's some test code to run to manually verify:
+
+        String ssid = BurnerBoardUtil.WIFI_SSID;
+        String pass = BurnerBoardUtil.WIFI_PASS;
+        String qssid = "\"" + ssid + "\"";
+        String qpass = "\"" + pass + "\"";
+
+        String fssid = fixWifiSSidAndPass((ssid));
+        String fpass = fixWifiSSidAndPass(pass);
+        String fqssid = fixWifiSSidAndPass(qssid);
+        String fqpass = fixWifiSSidAndPass(qpass);
+
+        boolean ssid_eq = fssid.equals(fqssid);
+        boolean pass_eq = fpass.equals(fqpass);
+
+        l("ssid: " + ssid + " - qssid: " + qssid + " - fssid: " + fssid + " - fqssid: " + fqssid + " - equals? " + ssid_eq);
+        l("pass: " + pass + " - qpass: " + qpass + " - fpass: " + fpass + " - fqpass: " + fqpass + " - equals? " + pass_eq);
+
+     */
+    private String fixWifiSSidAndPass(String ssid) {
+        String fixedSSid = ssid;
+        fixedSSid = ssid.startsWith("\"") ? fixedSSid : "\"" + fixedSSid;
+        fixedSSid = ssid.endsWith("\"") ? fixedSSid : fixedSSid + "\"";
+        return fixedSSid;
+    }
+
     private boolean checkWifiSSid(String ssid) {
 
-        String aWifi = "\"" + ssid + "\"";
+        String aWifi = fixWifiSSidAndPass(ssid);
 
         try {
             List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
@@ -1789,7 +1810,7 @@ public class BBService extends Service {
 
     private void connectWifi(String ssid) {
 
-        String aWifi = "\"" + ssid + "\"";
+        String aWifi =fixWifiSSidAndPass(ssid);
 
         try {
             List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
@@ -1817,8 +1838,9 @@ public class BBService extends Service {
         try {
 
             WifiConfiguration conf = new WifiConfiguration();
-            conf.SSID = "\"" + ssid + "\"";
-            conf.preSharedKey = "\"" + pass + "\"";
+            conf.SSID = fixWifiSSidAndPass(ssid);
+            conf.preSharedKey = fixWifiSSidAndPass(pass);
+
             mWiFiManager.addNetwork(conf);
             mWiFiManager.disconnect();
             mWiFiManager.enableNetwork(conf.networkId, false);
