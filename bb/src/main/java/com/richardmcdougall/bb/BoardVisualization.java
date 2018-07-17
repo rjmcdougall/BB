@@ -106,6 +106,8 @@ public class BoardVisualization {
         mBoardScreen = board.getPixelBuffer();
         mFrameRate = board.getFrameRate();
 
+        l("Board framerate set to " + mFrameRate);
+
         mVisualizationFire = new Fire(mBurnerBoard, this);
         mVisualizationMatrix = new Matrix(mBurnerBoard, this);
         mVisualizationTextColors = new TestColors(mBurnerBoard, this);
@@ -285,6 +287,8 @@ public class BoardVisualization {
         return frameRate;
     }
 
+    long debugCnt = 0;
+
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
@@ -335,22 +339,19 @@ public class BoardVisualization {
 
             frameRate = runVisualization(mBoardMode);
 
-            // RMC: Fix
-            // limit output framerate to max of 12fps
-            //if (frameRate > mFrameRate) {
-            //    frameRate = 12;
-            //}
             long frameTime = 1000 / frameRate;
             long curFrameTime = System.currentTimeMillis();
-            if (curFrameTime-lastFrameTime<frameTime) {
+            long thisFrame = (curFrameTime-lastFrameTime);
+
+            if (thisFrame < frameTime) {
                 try {
-                    Thread.sleep(frameTime - (curFrameTime - lastFrameTime));
+                    Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
                     er.printStackTrace();
                 }
             }
 
-            lastFrameTime = curFrameTime;
+            lastFrameTime =  System.currentTimeMillis();
 
             boardDisplayCnt++;
             if (boardDisplayCnt > 1000) {
