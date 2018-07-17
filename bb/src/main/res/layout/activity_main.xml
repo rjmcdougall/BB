@@ -317,12 +317,12 @@
             android:onClick="onModeUp" />
 
         <Button
-            android:id="@+id/usbSetup"
+            android:id="@+id/Settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="OnSetupUsb"
-            android:text="USB Setup" />
+            android:onClick="OnSettings"
+            android:text="Settings" />
 
     </LinearLayout>
 

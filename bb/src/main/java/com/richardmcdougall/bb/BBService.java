@@ -959,18 +959,26 @@ public class BBService extends Service {
         }
     }
 
-    boolean bGTFO = true;
+    private boolean bGTFO = true;
+    private int stashedAndroidVolumePercent;
 
     public void GTFO() {
 
         if(bGTFO){
             bGTFO = false;
-            mBurnerBoard.setText90("Get Off!", 5000);
+            mBoardVisualization.inhibitGTFO(true);
+            mBurnerBoard.setText90("Get The Fuck Off!", 5000);
             mediaPlayer.setVolume(0,0);
-            voice.speak("Get Off", TextToSpeech.QUEUE_ADD, null, "GTFO");
+            stashedAndroidVolumePercent = getAndroidVolumePercent();
+            setAndroidVolumePercent(100);
+            voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD,null , "GTFO");
+
+
         }
         else {
             bGTFO=true;
+            mBoardVisualization.inhibitGTFO(false);
+            setAndroidVolumePercent(stashedAndroidVolumePercent);
             mediaPlayer.setVolume(1,1);
         }
 
