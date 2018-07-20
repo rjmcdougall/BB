@@ -341,7 +341,9 @@ public class RF {
 
     public class BBRadioCallbackGPS implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
-
+            /* This page describes all the output and diagnostics we can get from the below log line,
+                which are called "GPS Sentences": http://aprs.gids.nl/nmea/     -jib
+             */
             //l("GPS callback:" + str);
             String gpsStr = mListener.readStringArg().replaceAll("_", ",");
             l("GPS: " + gpsStr);
