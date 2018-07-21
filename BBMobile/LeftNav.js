@@ -19,8 +19,7 @@ export default class LeftNav extends React.Component {
 						onPress={async () => {
 							this.props.onNavigate(Constants.MEDIA_MANAGEMENT);
 						}}
-						style={StyleSheet.icon}
-						background={Touchable.Ripple("blue")}>
+						style={StyleSheet.icon}>
 						<Icon name="music-box-outline" size={40} color="#000" />
 					</Touchable>
 				</View>
@@ -29,8 +28,7 @@ export default class LeftNav extends React.Component {
 						onPress={async () => {
 							this.props.onNavigate(Constants.MAP);
 						}}
-						style={StyleSheet.icon}
-						background={Touchable.Ripple("blue")}>
+						style={StyleSheet.icon}>
 						<Icon name="map-marker-multiple" size={40} coolor="#000" />
 					</Touchable>
 				</View>
@@ -39,8 +37,7 @@ export default class LeftNav extends React.Component {
 						onPress={async () => {
 							this.props.onNavigate(Constants.ADMINISTRATION);
 						}}
-						style={StyleSheet.icon}
-						background={Touchable.Ripple("blue")}>
+						style={StyleSheet.icon}>
 						<Icon name="settings" size={40} color="#000" />
 					</Touchable>
 				</View>
@@ -49,8 +46,7 @@ export default class LeftNav extends React.Component {
 						onPress={async () => {
 							this.props.onNavigate(Constants.DIAGNOSTIC);
 						}}
-						style={StyleSheet.icon}
-						background={Touchable.Ripple("blue")}>
+						style={StyleSheet.icon}>
 						<Icon name="help-network" size={40} color="#000" />
 					</Touchable>
 				</View>
@@ -59,8 +55,7 @@ export default class LeftNav extends React.Component {
 						onPress={async () => {
 							this.props.onNavigate(Constants.DISCOVER);
 						}}
-						style={StyleSheet.icon}
-						background={Touchable.Ripple("blue")}>
+						style={StyleSheet.icon}>
 						<Icon name="magnify" size={40} color="#000" />
 					</Touchable>
 				</View>
