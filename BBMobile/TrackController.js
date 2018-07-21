@@ -6,24 +6,30 @@ import Picker from "react-native-wheel-picker";
 import StyleSheet from "./StyleSheet";
 
 var PickerItem = Picker.Item;
+
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
+		this.onSelectTrack = this.props.onSelectTrack.bind(this);
 	}
 
 	render() {
 
-		var channelNo;
-		var channels;
-		if(this.props.mediaType == "Audio"){
+		var tracks = null;
+		var channelNo = null;
+
+		if (this.props.mediaType == "Audio") {
+			tracks = this.props.mediaState.audio.channels;
 			channelNo = this.props.mediaState.audio.channelNo;
-			channels = this.props.mediaState.audio.channels;
 		}
 		else {
+			tracks = this.props.mediaState.video.channels;
 			channelNo = this.props.mediaState.video.channelNo;
-			channels = this.props.mediaState.video.channels;
 		}
-		
+
+		if (tracks.length > 1)
+			tracks = tracks.slice(1, tracks.length);
+
 		return (
 
 			<View style={{ margin: 2, backgroundColor: "skyblue" }}>
@@ -41,24 +47,24 @@ export default class TrackController extends Component {
 						<Picker style={{ height: 150 }}
 							selectedValue={channelNo}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
-							onValueChange={async (index) => {
+							onValueChange={async (value) => {
 
-								if (channels[0] == "loading...") {
+								if (tracks[0] == "loading...") {
 									console.log("dont call update if its a component load");
 									return;
 								}
-								if ((channelNo) == index) {
+								if (channelNo == value) {
 									console.log("dont call update if its not a real change");
 									return;
 								}
-
-								console.log("index " + index)
-								await this.props.onSelectTrack(index);
+ 
+								console.log(this.props.mediaType + " " + value + " selected")
+								await this.onSelectTrack(value);
 
 							}}>
 
-							{channels.map((value, i) => (
-								<PickerItem label={value} value={i} key={"money" + value} />
+							{tracks.map((track) => (
+								<PickerItem label={track.channelInfo} value={track.channelNo} key={track.channelNo} />
 							))}
 
 						</Picker>
@@ -71,11 +77,12 @@ export default class TrackController extends Component {
 
 TrackController.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
-	mediaType: "Audio",
 };
 
 TrackController.propTypes = {
 	mediaType: PropTypes.string,
 	mediaState: PropTypes.object,
-	onSelectTrack: PropTypes.func, 
+	onSelectTrack: PropTypes.func,
+	refreshFunction: PropTypes.func,
+	displayRefreshButton: PropTypes.bool,
 };

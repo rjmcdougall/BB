@@ -34,8 +34,6 @@ exports.refreshMediaState = async function (mediaState) {
 			mediaState = await this.readAppCommand(mediaState, "APKVersion");
 			mediaState = await this.readAppCommand(mediaState, "APKUpdateDate");
 
-			console.log("media state")
-			console.log(mediaState)
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: RefreshMediaState Complete: ", false);
 			return mediaState;
 		}
@@ -73,7 +71,7 @@ exports.loadDevices = async function (mediaState) {
 
 		var devices = [];
 		try {
-			for (var n = 0; n < mediaState.device.maxDevice; n++) {
+			for (var n = 1; n <= mediaState.device.maxDevice; n++) {
 
 				var readData = await BleManager.read(
 					mediaState.peripheral.id,
@@ -82,7 +80,7 @@ exports.loadDevices = async function (mediaState) {
 
 				var deviceInfo = "";
 				if (readData.length > 3) {
-					var deviceNo = readData[0]; 
+					var deviceNo = readData[0];
 					//var deviceMax = readData[1];
 					var deviceStatus = readData[2];
 					var isPaired;
@@ -99,14 +97,14 @@ exports.loadDevices = async function (mediaState) {
 					}
 				}
 				if (deviceInfo && 0 != deviceInfo.length) {
-					devices[n] = {
+					devices[deviceNo] = {
 						deviceNo: deviceNo,
 						deviceInfo: deviceInfo,
 						deviceLabel: deviceLabel,
 						isPaired: isPaired
 					};
 
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices: " + devices.length + 1 + " Added", false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices: " + devices.length + " Added", false);
 					mediaState.device.devices = devices;
 					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Load Devices: " + JSON.stringify(devices) + " Added", false);
 
@@ -204,19 +202,19 @@ exports.readTrack = async function (mediaState, mediaType) {
 					channelCharacteristic);
 
 				if (readData) {
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + mediaType + " Track: Selected: " + new String(parseInt(readData[1]) - 1) + " Max: " + new String(parseInt(readData[0]) - 1), false);
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + mediaType + "Track: Selected: " + readData[1] + " Max: " + readData[0], false);
 
 					if (mediaType == "Audio") {
-						mediaState.audio.channelNo = parseInt(readData[1]) - 1; // 0 based
-						mediaState.audio.maxChannel = parseInt(readData[0]) - 1;
+						mediaState.audio.channelNo = readData[1];
+						mediaState.audio.maxChannel = readData[0];
 					}
 					else if (mediaType == "Device") {
-						mediaState.device.deviceNo = parseInt(readData[1]) ;
-						mediaState.device.maxDevice = parseInt(readData[0]) ;
+						mediaState.device.channelNo = readData[1];
+						mediaState.device.maxChannel = readData[0];
 					}
 					else {
-						mediaState.video.channelNo = parseInt(readData[1]) - 1;
-						mediaState.video.maxChannel = parseInt(readData[0]) - 1;
+						mediaState.video.channelNo = readData[1];
+						mediaState.video.maxChannel = readData[0];
 					}
 				}
 				else
@@ -254,16 +252,16 @@ exports.refreshTrackList = async function (mediaState, mediaType) {
 		var channels = [];
 
 		try {
-			for (var n = 0; n < maxChannel; n++) {
+			for (var n = 1; n <= maxChannel; n++) {
 
 				var readData = await BleManager.read(mediaState.peripheral.id, service, infoCharacteristic);
-				var channelNo = parseInt(readData[0]) - 1; // make it 0 based
+				var channelNo = readData[0];
 				var channelInfo = "";
 				for (var i = 1; i < readData.length; i++) {
 					channelInfo += String.fromCharCode(readData[i]);
 				}
 				if (channelInfo && 0 != channelInfo.length) {
-					channels[channelNo] = channelInfo;
+					channels[channelNo] = { channelNo: channelNo, channelInfo: channelInfo };
 				}
 			}
 			if (mediaType == "Audio") {
@@ -289,23 +287,22 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 	var service = "";
 	var channelCharacteristic = "";
 	var channelNo;
-	var trackNo = parseInt(idx) + 1; // back to 1 based
+	var trackNo = parseInt(idx);
 
-	console.log(    " " +  mediaType + " " + idx)
 	if (mediaType == "Audio") {
 		service = BLEIDs.AudioService;
 		channelCharacteristic = BLEIDs.AudioChannelCharacteristic;
-		channelNo = [trackNo];
+		channelNo = [mediaState.audio.channels[trackNo].channelNo];
 	}
 	else if (mediaType == "Device") {
 		service = BLEIDs.BTDeviceService;
 		channelCharacteristic = BLEIDs.BTDeviceSelectCharacteristic;
-		channelNo = bin.stringToBytes(mediaState.device.devices[idx].deviceInfo);
+		channelNo = bin.stringToBytes(mediaState.device.devices[trackNo].deviceInfo);
 	}
 	else {
 		service = BLEIDs.VideoService;
 		channelCharacteristic = BLEIDs.VideoChannelCharacteristic;
-		channelNo = [trackNo];
+		channelNo = [mediaState.video.channels[trackNo].channelNo];
 	}
 
 	mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + mediaType + " SetTrack submitted value: " + channelNo, false);
@@ -331,9 +328,9 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		return mediaState;
 };
 
-exports.onUpdateVolume = async function (value, mediaState) {
+exports.onUpdateVolume = async function (event, mediaState) {
 
-	var newVolume = value;
+	var newVolume = event.value;
 	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Submitted Volume: " + newVolume, false);
 
 	if (mediaState.peripheral) {
@@ -482,7 +479,7 @@ exports.readLocation = async function (mediaState) {
 			if (readData) {
 				if (readData.length > 4) {
 					var lat;
-					var lon;
+					var lon; 
 					var address;
 					address = readData[2] + readData[3] * 256;
 					lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
@@ -505,7 +502,7 @@ exports.readLocation = async function (mediaState) {
 						var locationDate = new Date(milliseconds).toUTCString();
 
 						// avoid crap dates because of the bits that were sent in older versions of the boards.
-						if (locationDate > new Date("January 1, 2099") || locationDate < new Date("January 1, 2000"))
+						if(locationDate > new Date("January 1, 2099") || locationDate < new Date("January 1, 2000"))
 							locationDate = null;
 
 						var title = "";
