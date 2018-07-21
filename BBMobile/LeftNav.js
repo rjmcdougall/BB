@@ -20,7 +20,7 @@ export default class LeftNav extends React.Component {
 							this.props.onNavigate(Constants.MEDIA_MANAGEMENT);
 						}}
 						style={StyleSheet.icon}>
-						<Icon name="music-box-outline" size={40} color="#000" />
+						<Icon name="music-box-outline" size={40} color="black" />
 					</Touchable>
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.MAP ? "green" : "lightblue" }]}>
@@ -29,7 +29,7 @@ export default class LeftNav extends React.Component {
 							this.props.onNavigate(Constants.MAP);
 						}}
 						style={StyleSheet.icon}>
-						<Icon name="map-marker-multiple" size={40} coolor="#000" />
+						<Icon name="map-marker-multiple" size={40} color="black" />
 					</Touchable>
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.ADMINISTRATION ? "green" : "lightblue" }]}>
@@ -38,7 +38,7 @@ export default class LeftNav extends React.Component {
 							this.props.onNavigate(Constants.ADMINISTRATION);
 						}}
 						style={StyleSheet.icon}>
-						<Icon name="settings" size={40} color="#000" />
+						<Icon name="settings" size={40} color="black" />
 					</Touchable>
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.DIAGNOSTIC ? "green" : "lightblue" }]}>
@@ -47,7 +47,7 @@ export default class LeftNav extends React.Component {
 							this.props.onNavigate(Constants.DIAGNOSTIC);
 						}}
 						style={StyleSheet.icon}>
-						<Icon name="help-network" size={40} color="#000" />
+						<Icon name="help-network" size={40} color="black" />
 					</Touchable>
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.DISCOVER ? "green" : "lightblue" }]}>
@@ -56,7 +56,7 @@ export default class LeftNav extends React.Component {
 							this.props.onNavigate(Constants.DISCOVER);
 						}}
 						style={StyleSheet.icon}>
-						<Icon name="magnify" size={40} color="#000" />
+						<Icon name="magnify" size={40} color="black" />
 					</Touchable>
 				</View>
 			</View>
