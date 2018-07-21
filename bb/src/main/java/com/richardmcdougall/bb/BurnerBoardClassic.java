@@ -45,8 +45,11 @@ public class BurnerBoardClassic extends BurnerBoard {
         mDimmerLevel = 255;
     }
 
+
+    // Experiments with optimized overlocked Teensy suggest 20 is to high
+    // because we don't get battery callbacks
     public int getFrameRate() {
-            return 20;
+            return 16;
     }
 
     public void start() {
@@ -732,7 +735,20 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
 
+    private int flushCnt = 0;
+    long lastFlushTime = java.lang.System.currentTimeMillis();
+
     public void flush() {
+
+        flushCnt++;
+        if (flushCnt > 100) {
+            int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
+            lastFlushTime = java.lang.System.currentTimeMillis();
+
+            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
+            flushCnt = 0;
+        }
 
         // Suppress updating when displaying a text message
         if (isTextDisplaying > 0) {

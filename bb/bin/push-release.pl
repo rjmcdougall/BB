@@ -10,7 +10,7 @@ use Getopt::Long;
 use constant APK_DIR => "$FindBin::Bin/../build/outputs/apk/release/";
 use constant APK => "bb-release.apk";
 use constant OUTPUT_JSON => 'output.json';
-use constant GCS_BUCKET => 'gs://burner-board-apk/BurnerBoardApps';
+use constant GCS_BUCKET => 'gs://burner-board/BurnerBoardApps';
 
 my $debug   = 0;
 my $help    = 0;
