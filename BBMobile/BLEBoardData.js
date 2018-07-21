@@ -331,9 +331,9 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		return mediaState;
 };
 
-exports.onUpdateVolume = async function (event, mediaState) {
+exports.onUpdateVolume = async function (value, mediaState) {
 
-	var newVolume = event.value;
+	var newVolume = value;
 	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Submitted Volume: " + newVolume, false);
 
 	if (mediaState.peripheral) {

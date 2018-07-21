@@ -35,8 +35,8 @@ export default StyleSheet.create({
 	},
 	dropDownRowText: {
 		marginLeft: 10,
-		fontSize: 24, 
-	}, 
+		fontSize: 24,
+	},
 	rowText: {
 		margin: 5,
 		fontSize: 14,
@@ -45,19 +45,30 @@ export default StyleSheet.create({
 	},
 	footer: {
 		height: 40,
-		margin: 2, 
+		margin: 2,
 		justifyContent: "center"
 	},
 	switch: {
 		margin: 5,
 		padding: 5,
-		flex:1,
+		flex: 1,
 		flexDirection: "row",
 	},
 	switchText: {
 		fontSize: 14,
 		fontWeight: "bold",
 		textAlign: "center",
+	},
+	sliderTrack: {
+		height: 10,
+		borderRadius: 5,
+		backgroundColor: "lightgrey",
+	},
+	sliderThumb: {
+		width: 20,
+		height: 20,
+		borderRadius: 5,
+		backgroundColor: "green",
 	}
+
 });
- 
