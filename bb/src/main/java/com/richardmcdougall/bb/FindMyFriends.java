@@ -36,7 +36,7 @@ public class FindMyFriends {
     private BBService mBBService;
     private findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
-    static final int kMaxFixAge = 5000;
+    static final int kMaxFixAge = 30000;
     static final int kMagicNumberLen = 2;
     static final int krepeatedBy = 0;
     static final int [] kTrackerMagicNumber = new int[] {0x02, 0xcb};
