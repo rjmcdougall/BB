@@ -38,7 +38,7 @@ public class FindMyFriends {
     long mLastFix = 0;
     static final int kMaxFixAge = 5000;
     static final int kMagicNumberLen = 2;
-    static final int kTTL = 1;
+    static final int krepeatedBy = 0;
     static final int [] kTrackerMagicNumber = new int[] {0x02, 0xcb};
     static final int [] kGPSMagicNumber = new int[] {0xbb, 0x01};
     int mLat;
@@ -78,7 +78,7 @@ public class FindMyFriends {
         mRadio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                d("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
+                l("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -122,7 +122,7 @@ public class FindMyFriends {
     //         [1] kGPSMagicNumber byte two
     //         [2] board address bits 0-7
     //         [3] board address bits 8-15
-    //         [4] ttl
+    //         [4] repeatedBy
     //         [5] lat bits 0-7
     //         [6] lat bits 8-15
     //         [7] lat bits 16-23
@@ -161,7 +161,7 @@ public class FindMyFriends {
 
         radioPacket.write(mBoardAddress & 0xFF);
         radioPacket.write((mBoardAddress >> 8) & 0xFF);
-        radioPacket.write(kTTL);
+        radioPacket.write(krepeatedBy);
         radioPacket.write(lat & 0xFF);
         radioPacket.write((lat >> 8) & 0xFF);
         radioPacket.write((lat >> 16) & 0xFF);
@@ -183,30 +183,6 @@ public class FindMyFriends {
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
         updateBoardLocations(mBoardAddress, 999, radioPacket.toByteArray());
-
-        radioPacket = new ByteArrayOutputStream();
-
-        for (int i = 0; i < kMagicNumberLen; i++) {
-            radioPacket.write(kTrackerMagicNumber[i]);
-        }
-
-        radioPacket.write(lat & 0xFF);
-        radioPacket.write((lat >> 8) & 0xFF);
-        radioPacket.write((lat >> 16) & 0xFF);
-        radioPacket.write((lat >> 24) & 0xFF);
-        radioPacket.write(lon & 0xFF);
-        radioPacket.write((lon >> 8) & 0xFF);
-        radioPacket.write((lon >> 16) & 0xFF);
-        radioPacket.write((lon >> 24) & 0xFF);
-
-        radioPacket.write(iMAccurate);
-        radioPacket.write(0);
-
-        d("Sending packet...");
-        mRadio.broadcast(radioPacket.toByteArray());
-        mLastSend = System.currentTimeMillis();
-        d("Sent packet...");
-
     }
 
 
@@ -269,7 +245,7 @@ public class FindMyFriends {
             d("BB GPS Packet");
             mTheirAddress = (int) ((bytes.read() & 0xff) +
                     ((bytes.read() & 0xff) << 8));
-            int ttl = bytes.read();
+            int repeatedBy = bytes.read();
             mTheirLat = (double) ((bytes.read() & 0xff) +
                     ((bytes.read() & 0xff) << 8) +
                     ((bytes.read() & 0xff) << 16) +
@@ -285,7 +261,7 @@ public class FindMyFriends {
             mThereAccurate = bytes.read();
             mLastRecv = System.currentTimeMillis();
             mLastHeardLocation = packet.clone();
-            d("theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
+            l(mRFAddress.boardAddressToName(mTheirAddress) + " strength " + sigStrength + "theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
             mIotClient.sendUpdate("bbevent", "[" +
                     mRFAddress.boardAddressToName(mTheirAddress) + "," + sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
             updateBoardLocations(mTheirAddress, sigStrength, packet.clone());
