@@ -328,17 +328,16 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 		return mediaState;
 };
 
-exports.onUpdateVolume = async function (event, mediaState) {
-
-	var newVolume = event.value;
-	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Submitted Volume: " + newVolume, false);
+exports.onUpdateVolume = async function (volume, mediaState) {
+ 
+	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Submitted Volume: " + volume, false);
 
 	if (mediaState.peripheral) {
 		try {
 			await BleManager.write(mediaState.peripheral.id,
 				BLEIDs.AudioService,
 				BLEIDs.AudioVolumeCharacteristic,
-				[newVolume]);
+				[volume]);
 
 			var newMediaState = await this.readVolume(mediaState);
 

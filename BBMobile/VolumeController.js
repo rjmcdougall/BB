@@ -31,6 +31,7 @@ export default class VolumeController extends React.Component {
 						minimumTrackTintColor="blue"
 						onSlidingComplete={async (value) => {
 							try {
+								console.log("bolume" + value)
 								await this.onUpdateVolume(value);
 							}
 							catch (error) {
