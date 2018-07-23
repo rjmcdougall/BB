@@ -10,10 +10,21 @@ var PickerItem = Picker.Item;
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-			selectedTrack: props.mediaState.audio.channelNo,
-		};
+
+		if (this.props.mediaType == "Audio") {
+			this.state = {
+				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
+				selectedTrack: props.mediaState.audio.channelNo,
+			};
+		}
+		else if (this.props.mediaType == "Video") {
+			this.state = {
+				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
+				selectedTrack: props.mediaState.video.channelNo,
+			};
+		}
+
+
 	}
 
 	UNSAFE_componentWillReceiveProps(nextProps) {
@@ -22,7 +33,7 @@ export default class TrackController extends Component {
 				selectedTrack: nextProps.mediaState.audio.channelNo
 			});
 		}
-		else {
+		else if (this.props.mediaType == "Video") {
 			this.setState({
 				selectedTrack: nextProps.mediaState.video.channelNo
 			});
@@ -34,7 +45,7 @@ export default class TrackController extends Component {
 
 		if (this.props.mediaType == "Audio")
 			tracks = this.props.mediaState.audio.channels;
-		else
+		else if (this.props.mediaType == "Video")
 			tracks = this.props.mediaState.video.channels;
 
 		if (tracks.length > 1)
