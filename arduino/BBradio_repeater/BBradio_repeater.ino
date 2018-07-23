@@ -1,8 +1,17 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 
+#define REPEATER_NUMBER 3
 
-#define LED 9
+#define REPEATER_BIT(rbit) (1 << rbit)
+#define REPEATED_BY(rpt, by) ((rpt & REPEATER_BIT(by)) > 0)
+#define REPEATED_BY_ME(rptme) REPEATED_BY(rptme, REPEATER_NUMBER)
+#define SET_REPEATED_BY(rpt, by) (rpt |= REPEATER_BIT(by))
+#define SET_REPEATED_BY_ME(rptme) (SET_REPEATED_BY(rptme, REPEATER_NUMBER))
+
+int16_t myAddress = 32768 + (REPEATER_BIT(REPEATER_NUMBER));
+
+#define LED 13
 
 //Teensy pin 7, Feather pin 9
 //#define VBATPIN A7
@@ -76,6 +85,12 @@ void setup() {
   rf95.setTxPower(23, false);
 
   Serial.begin(9600);
+
+  Serial.print("Repeater ");
+  Serial.print(REPEATER_NUMBER);
+  Serial.print(", address ");
+  Serial.println(myAddress);
+  
 }
 
 // timing
@@ -98,18 +113,25 @@ bool amIAccurate;
 int32_t theirLat = 99;
 int32_t theirLon = 99;
 int16_t theirAddress;
-int8_t theirTtl;
+int8_t repeatedBy;
 float theirElev;  
 bool areTheyAccurate;
 int8_t myTtl = 1;
-int16_t myAddress = 999;
 int32_t packetsForwarded = 0;
 int32_t packetsIgnored = 0;
 uint8_t myBattery = 0;
 
+
+void PrintHex8(uint8_t *data, uint8_t length) // prints 8-bit data in hex with leading zeroes
+{
+       for (int i=0; i<length; i++) { 
+         if (data[i]<0x10) {Serial.print("0");} 
+         Serial.print(data[i],HEX); 
+         //Serial.print(" "); 
+       }
+}
+
 boolean processRecv(int len) {
-
-
   for (int i = 0; i < MAGIC_NUMBER_LEN; i++) {
     if (MAGIC_NUMBER[i] != buf[i]) {
       return false;
@@ -118,7 +140,7 @@ boolean processRecv(int len) {
   void* p = buf + MAGIC_NUMBER_LEN;
   theirAddress = *(int16_t*)p;
   p = (int16_t*)p + 1;
-  theirTtl = *(int8_t*)p;
+  repeatedBy = *(int8_t*)p;
   p = (int8_t*)p + 1;
   theirLat = *(int32_t*)p;
   p = (int32_t*)p + 1;
@@ -128,6 +150,7 @@ boolean processRecv(int len) {
   p = (int32_t*)p + 1;
   areTheyAccurate = *(uint8_t*)p;
 
+
 #ifdef PRINT
   Serial.print("Rec packet len (");
   Serial.print(len);
@@ -136,31 +159,63 @@ boolean processRecv(int len) {
   Serial.print(": ");
   Serial.print(" RSSI:");
   Serial.print(lastRSSI);
+  printRepeatedBy(repeatedBy);
   Serial.print(": ");
   for (int i = 0; i < len; i++) {
     Serial.print(" ");
-    Serial.print(buf[i], HEX);
+    PrintHex8(&buf[i], 1);
   }
   Serial.println("");
-  #endif
-  
-  return true;
-  
+#endif
+
+  // Repeat this packet?
+  if (REPEATED_BY_ME(repeatedBy)) {
+    return false;
+  } else {
+    return true;
+  }
+
+}
+
+void printRepeatedBy(int8_t rpt) {
+  Serial.print(" Repeated by: ");
+  bool first = true;
+  for (int i = 0; i < 8; i++) {
+    if (REPEATED_BY(rpt, i)) {
+      if (!first) {
+        Serial.print(",");
+      }
+      first = false;
+      Serial.print(i);
+    }
+  }
 }
 
 void repeatPacket(uint8_t len) {
 #ifdef PRINT
   Serial.println("Forwaring...");
 #endif
-  // Reset TTL to zero
+  // Set repeated-by bit
   void* p = buf + MAGIC_NUMBER_LEN + sizeof(int16_t);
-  uint8_t ttl = theirTtl;
-  if (ttl > 0) {
-    ttl = ttl - 1;
-  }
-  *(int8_t*)p = ttl;
+  uint8_t rptBy = repeatedBy;
+  SET_REPEATED_BY_ME(rptBy);
+  *(int8_t*)p = rptBy;
   rf95.send((uint8_t *)buf, len);
   rf95.waitPacketSent();
+}
+
+int batteryLevel() {
+    float measuredvbat = analogRead(VBATPIN);
+    measuredvbat *= 2;    // we divided by 2, so multiply back
+    measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+    measuredvbat /= 1024; // convert to voltage
+    int batteryPct = min(100, (measuredvbat - 3.6) * 166); // 3.6v - 4.2v
+    Serial.print("VBat: " ); Serial.println(measuredvbat);
+    Serial.print("VBatHex: " ); Serial.println(myBattery);
+    Serial.print("VBatPct: "); Serial.println(batteryPct);
+    //myBattery = (measuredvbat - 3) * 100;
+    return(batteryPct);
+
 }
 
 void transmitStats() {
@@ -194,6 +249,8 @@ void loop() {
       lastRSSI = rf95.lastRssi();
       // Repeat packet if it's a location service packet
       if (processRecv(len)) {
+          // random delay up to 1 second to avoid stepping on each other
+          delay(random(1000));
           repeatPacket(len);
           packetsForwarded++;
       } else {
@@ -205,14 +262,8 @@ void loop() {
 
   long sinceLastTransmit = millis() - lastStats;
   if (sinceLastTransmit < 0 || sinceLastTransmit > TRANSMIT_INTERVAL) {
-    float measuredvbat = analogRead(VBATPIN);
-    measuredvbat *= 2;    // we divided by 2, so multiply back
-    measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-    measuredvbat /= 1024; // convert to voltage
-    myBattery = (measuredvbat - 3) * 100;
-    Serial.print("VBat: " ); Serial.println(measuredvbat);
-    Serial.print("VBatHex: " ); Serial.println(myBattery);
 
+    myBattery = batteryLevel();
     transmitStats();
   }
 
