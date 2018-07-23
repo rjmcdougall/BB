@@ -20,12 +20,12 @@ var bEmptyMediaState = {
 		maxChannel: 1,
 		volume: 0,
 		channels:
-			[{ channelNo: 1, channelInfo: "loading..." }]
+			[null,{ channelNo: 1, channelInfo: "loading..." }]
 	},
 	video: {
 		channelNo: 1,
 		maxChannel: 1,
-		channels: [{ channelNo: 1, channelInfo: "loading..." }]
+		channels: [null,{ channelNo: 1, channelInfo: "loading..." }]
 	},
 	device: {
 		deviceNo: 1,
