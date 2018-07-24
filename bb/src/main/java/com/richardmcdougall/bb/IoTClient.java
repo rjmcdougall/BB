@@ -162,9 +162,9 @@ public class IoTClient {
                                     DisconnectedBufferOptions disconnectedBufferOptions =
                                             new DisconnectedBufferOptions();
                                     disconnectedBufferOptions.setBufferEnabled(true);
-                                    disconnectedBufferOptions.setBufferSize(100000);
+                                    disconnectedBufferOptions.setBufferSize(5000);
                                     disconnectedBufferOptions.setPersistBuffer(true);
-                                    disconnectedBufferOptions.setDeleteOldestMessages(false);
+                                    disconnectedBufferOptions.setDeleteOldestMessages(true);
                                     mqttClient.setBufferOpts(disconnectedBufferOptions);
                                 }
                             });
@@ -309,7 +309,9 @@ public class IoTClient {
         message.setRetained(true);
 
         try {
-                String t = new String("/devices/bb-" + Build.MODEL.replaceAll("\\s", "") + "/events/" + topic);
+                String t = new String("/devices/bb-" +
+                        BBService.getBoardId().replaceAll("\\s", "") + "" +
+                        "/events/" + topic);
             //String t = new String("/devices/bb-test/events/" + topic);
             //Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
@@ -323,7 +325,9 @@ public class IoTClient {
     }
 
     private void setClientID() {
-        deviceId = new String("projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" + Build.MODEL.replaceAll("\\s", ""));
+        deviceId = new String(
+                "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" +
+                        BBService.getBoardId().replaceAll("\\s", ""));
     }
 
     /**
