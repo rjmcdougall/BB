@@ -10,22 +10,43 @@ var PickerItem = Picker.Item;
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
-		this.onSelectTrack = this.props.onSelectTrack.bind(this);
+
+		if (this.props.mediaType == "Audio") {
+			this.state = {
+				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
+				selectedTrack: props.mediaState.audio.channelNo,
+			};
+		}
+		else if (this.props.mediaType == "Video") {
+			this.state = {
+				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
+				selectedTrack: props.mediaState.video.channelNo,
+			};
+		}
+
+
+	}
+
+	UNSAFE_componentWillReceiveProps(nextProps) {
+		if (this.props.mediaType == "Audio") {
+			this.setState({
+				selectedTrack: nextProps.mediaState.audio.channelNo
+			});
+		}
+		else if (this.props.mediaType == "Video") {
+			this.setState({
+				selectedTrack: nextProps.mediaState.video.channelNo
+			});
+		}
 	}
 
 	render() {
-
 		var tracks = null;
-		var channelNo = null;
 
-		if (this.props.mediaType == "Audio") {
+		if (this.props.mediaType == "Audio")
 			tracks = this.props.mediaState.audio.channels;
-			channelNo = this.props.mediaState.audio.channelNo;
-		}
-		else {
+		else if (this.props.mediaType == "Video")
 			tracks = this.props.mediaState.video.channels;
-			channelNo = this.props.mediaState.video.channelNo;
-		}
 
 		if (tracks.length > 1)
 			tracks = tracks.slice(1, tracks.length);
@@ -45,7 +66,7 @@ export default class TrackController extends Component {
 					<View style={StyleSheet.container}>
 
 						<Picker style={{ height: 150 }}
-							selectedValue={channelNo}
+							selectedValue={this.state.selectedTrack}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (value) => {
 
@@ -53,13 +74,13 @@ export default class TrackController extends Component {
 									console.log("dont call update if its a component load");
 									return;
 								}
-								if (channelNo == value) {
+								if (this.state.selectedTrack == value) {
 									console.log("dont call update if its not a real change");
 									return;
 								}
- 
-								console.log(this.props.mediaType + " " + value + " selected")
-								await this.onSelectTrack(value);
+
+								this.setState({ selectedTrack: value });
+								await this.props.onSelectTrack(value);
 
 							}}>
 
