@@ -5,6 +5,12 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
+import Geojson from "react-native-geojson";
+import Fence from "./geo/fence";
+import Outline from "./geo/outline";
+// import Points from "./geo/points";
+// import Streets from "./geo/streets";
+// import Toilets from "./geo/toilets";
 
 export default class MapController extends React.Component {
 	constructor(props) {
@@ -12,16 +18,49 @@ export default class MapController extends React.Component {
 		this.state = {
 			autoZoom: false,
 			wifiLocations: false,
+			burnerRegion: {
+				latitude: 40.785,
+				longitude: -119.21,
+				latitudeDelta: 0.0522,
+				longitudeDelta: 0.0522,
+			},
+			burnerLocations: [
+				{
+					title: "Vega",
+					latitude: 40.78392228857742,
+					longitude: -119.19034076975402,
+				},
+				{
+					title: "Candy",
+					latitude: 40.78389025037139,
+					longitude: -119.19016483355881,
+				},
+				{
+					title: "Pegasus",
+					latitude: 40.78335738965655,
+					longitude: -119.19033408191932,
+				},
+			]
 		};
 	}
 
 	render() {
 
 		try {
-			var locations = StateBuilder.getLocations(this.props.mediaState, this.state.wifiLocations);
-			var region;
 
-			if (this.state.autoZoom == true)
+ 
+			var locations;
+			var region;
+			console.log("user prefs")
+			console.log(this.props.userPrefs)
+			if (this.props.userPrefs.isBurnerMode)
+				locations = this.state.burnerLocations;
+			else
+				locations = StateBuilder.getLocations(this.props.mediaState, this.state.wifiLocations);
+
+			if (this.props.userPrefs.isBurnerMode)
+				region = this.state.burnerRegion;
+			else if (this.state.autoZoom == true)
 				region = this.props.mediaState.region;
 			else
 				region = null;
@@ -52,6 +91,12 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
+						<Geojson geojson={Outline.outline} />
+						<Geojson geojson={Fence.fence} />
+						{/*	<Geojson geojson={Points.points} />
+						<Geojson geojson={Streets.streets} />
+						
+					<Geojson geojson={Toilets.toilets} /> */}
 					</MapView>
 					<View style={StyleSheet.button}>
 						<Touchable
@@ -105,5 +150,5 @@ export default class MapController extends React.Component {
 MapController.propTypes = {
 	mediaState: PropTypes.object,
 	onLoadAPILocations: PropTypes.func,
+	userPrefs: PropTypes.object,
 };
-
