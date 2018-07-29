@@ -17,7 +17,6 @@ export default class MapController extends React.Component {
 		super(props);
 		this.state = {
 			autoZoom: false,
-			wifiLocations: false,
 			burnerRegion: {
 				latitude: 40.785,
 				longitude: -119.21,
@@ -56,7 +55,7 @@ export default class MapController extends React.Component {
 			if (this.props.userPrefs.isBurnerMode)
 				locations = this.state.burnerLocations;
 			else
-				locations = StateBuilder.getLocations(this.props.mediaState, this.state.wifiLocations);
+				locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
 
 			if (this.props.userPrefs.isBurnerMode)
 				region = this.state.burnerRegion;
@@ -116,27 +115,6 @@ export default class MapController extends React.Component {
 							<Text style={StyleSheet.buttonTextCenter}>Auto Zoom</Text>
 						</Touchable>
 					</View>
-					<View style={StyleSheet.button}>
-						<Touchable
-							onPress={async () => {
-								if (this.state.wifiLocations == true) {
-									this.setState({
-										wifiLocations: false
-									});
-								}
-								else {
-									await this.props.onLoadAPILocations();
-									this.setState({
-										wifiLocations: true
-									});
-								}
-							}
-							}
-							style={[{ backgroundColor: this.state.wifiLocations ? "green" : "skyblue" }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}>Wifi Locations</Text>
-						</Touchable>
-					</View>
 				</View>
 			);
 		}
@@ -149,6 +127,5 @@ export default class MapController extends React.Component {
 
 MapController.propTypes = {
 	mediaState: PropTypes.object,
-	onLoadAPILocations: PropTypes.func,
 	userPrefs: PropTypes.object,
 };
