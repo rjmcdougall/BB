@@ -159,6 +159,29 @@ export default class AdminManagement extends Component {
 							}}
 						/>
 					</View>
+					<View style={StyleSheet.switch}>
+					<FlipToggle
+						value={this.props.userPrefs.mapPoints}
+						buttonWidth={250}
+						buttonHeight={50}
+						buttonRadius={50}
+						labelStyle={{
+							fontSize: 24,
+							fontWeight: "bold",
+							textAlign: "center",
+						}}
+						onLabel={"Show Map Points"}
+						offLabel={"No Map Points"}
+						sliderOnColor="black"
+						sliderOffColor="black"
+						buttonOnColor="lightblue"
+						buttonOffColor="lightblue"
+						onToggle={async (value) => {
+							this.props.userPrefs.mapPoints = value;
+							await this.props.setUserPrefs(this.props.userPrefs);
+						}}
+					/>
+				</View>
 				</ScrollView>
 			</View>
 		);

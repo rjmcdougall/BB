@@ -8,7 +8,7 @@ import StyleSheet from "./StyleSheet";
 import Geojson from "react-native-geojson";
 import Fence from "./geo/fence";
 import Outline from "./geo/outline";
-// import Points from "./geo/points";
+import Points from "./geo/points";
 // import Streets from "./geo/streets";
 // import Toilets from "./geo/toilets";
 
@@ -47,11 +47,10 @@ export default class MapController extends React.Component {
 
 		try {
 
- 
+
 			var locations;
 			var region;
-			console.log("user prefs")
-			console.log(this.props.userPrefs)
+
 			if (this.props.userPrefs.isBurnerMode)
 				locations = this.state.burnerLocations;
 			else
@@ -92,7 +91,10 @@ export default class MapController extends React.Component {
 						})}
 						<Geojson geojson={Outline.outline} />
 						<Geojson geojson={Fence.fence} />
-						{/*	<Geojson geojson={Points.points} />
+						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Points.points} /> : <View />}
+
+
+						{/*	
 						<Geojson geojson={Streets.streets} />
 						
 					<Geojson geojson={Toilets.toilets} /> */}
