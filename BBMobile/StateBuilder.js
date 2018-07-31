@@ -98,9 +98,13 @@ async function getBoardsInternal(mediaState) {
 	return mediaState;
 }
 
-exports.getBoards = async function () {
+exports.getBoards = async function (isBurnerMode) {
 	try {
-		var boards = await BBComAPIData.fetchBoards();
+		var boards = null;
+
+		// no wifi in burner mode
+		if(!isBurnerMode)
+			boards = await BBComAPIData.fetchBoards();
 
 		if (boards) {
 			await FileSystemConfig.setBoards(boards);

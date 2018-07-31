@@ -63,8 +63,9 @@ export default class BoardManager extends Component {
 		BleManager.start({
 			showAlert: false
 		});
+ 
+		var boards = await StateBuilder.getBoards(this.props.userPrefs.isBurnerMode);
 
-		var boards = await StateBuilder.getBoards();
 		if (boards) {
 			this.setState({
 				boardData: boards,
