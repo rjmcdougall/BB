@@ -162,9 +162,9 @@ public class IoTClient {
                                     DisconnectedBufferOptions disconnectedBufferOptions =
                                             new DisconnectedBufferOptions();
                                     disconnectedBufferOptions.setBufferEnabled(true);
-                                    disconnectedBufferOptions.setBufferSize(5000);
+                                    disconnectedBufferOptions.setBufferSize(100000);
                                     disconnectedBufferOptions.setPersistBuffer(true);
-                                    disconnectedBufferOptions.setDeleteOldestMessages(true);
+                                    disconnectedBufferOptions.setDeleteOldestMessages(false);
                                     mqttClient.setBufferOpts(disconnectedBufferOptions);
                                 }
                             });
