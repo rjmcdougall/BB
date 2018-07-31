@@ -103,7 +103,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 20;
+        return 18;
     }
 
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {

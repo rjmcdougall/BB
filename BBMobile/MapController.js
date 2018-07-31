@@ -7,10 +7,10 @@ import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
 import Geojson from "react-native-geojson";
 import Fence from "./geo/fence";
-import Outline from "./geo/outline";
+//import Outline from "./geo/outline";
 import Points from "./geo/points";
-// import Streets from "./geo/streets";
-// import Toilets from "./geo/toilets";
+import Streets from "./geo/streets";
+import Toilets from "./geo/toilets";
 
 export default class MapController extends React.Component {
 	constructor(props) {
@@ -94,15 +94,10 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
-						<Geojson geojson={Outline.outline} />
-						<Geojson geojson={Fence.fence} />
-						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Points.points} /> : <View />}
-
-
-						{/*	
 						<Geojson geojson={Streets.streets} />
-						
-					<Geojson geojson={Toilets.toilets} /> */}
+						<Geojson geojson={Fence.fence} />
+						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Points.points} pinColor="black" /> : <View />}
+						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Toilets.toilets} pinColor="brown" /> : <View />}
 					</MapView>
 					<View style={StyleSheet.button}>
 						<Touchable
