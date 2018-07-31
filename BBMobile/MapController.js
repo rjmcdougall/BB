@@ -28,6 +28,7 @@ export default class MapController extends React.Component {
 					title: "Vega",
 					latitude: 40.78392228857742,
 					longitude: -119.19034076975402,
+					dateTime: Date.now(),
 				},
 				{
 					title: "Candy",
@@ -38,6 +39,7 @@ export default class MapController extends React.Component {
 					title: "Pegasus",
 					latitude: 40.78335738965655,
 					longitude: -119.19033408191932,
+					dateTime: Date.now(),
 				},
 			]
 		};
@@ -68,14 +70,17 @@ export default class MapController extends React.Component {
 					<MapView style={StyleSheet.map} region={region} >
 						{locations.map(marker => {
 
-							var ONE_HOUR = 60 * 60 * 1000; /* ms */
+							var ONE_DAY = 24 * 60 * 60 * 1000; /* ms */
+							var THIRTY_MIN = 30 * 60 * 1000; /* ms */
+							var FIVE_MIN = 5 * 60 * 1000;
 							var pinColor;
 
-							if (((new Date()) - new Date(marker.dateTime)) > ONE_HOUR)
-								pinColor = "red";
-
-							else
+							if (((new Date()) - new Date(marker.dateTime)) < FIVE_MIN)
+								pinColor = "green";
+							else if (((new Date()) - new Date(marker.dateTime)) < THIRTY_MIN)
 								pinColor = "blue";
+							else if (((new Date()) - new Date(marker.dateTime)) < ONE_DAY)
+								pinColor = "red";
 
 							return (
 								<MapView.Marker
