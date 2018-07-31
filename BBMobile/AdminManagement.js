@@ -98,29 +98,6 @@ export default class AdminManagement extends Component {
 						/>
 					</View>
 					<View style={StyleSheet.switch}>
-						<FlipToggle
-							value={this.props.userPrefs.mapPoints}
-							buttonWidth={290}
-							buttonHeight={40}
-							buttonRadius={40}
-							labelStyle={{
-								fontSize: 20,
-								fontWeight: "bold",
-								textAlign: "center",
-							}}
-							onLabel={"Detailed Map"}
-							offLabel={"Minimal Map"}
-							sliderOnColor="black"
-							sliderOffColor="black"
-							buttonOnColor="lightblue"
-							buttonOffColor="lightblue"
-							onToggle={async (value) => {
-								this.props.userPrefs.mapPoints = value;
-								await this.props.setUserPrefs(this.props.userPrefs);
-							}}
-						/>
-					</View>
-					<View style={StyleSheet.switch}>
 
 						<FlipToggle
 							value={this.props.userPrefs.isBurnerMode}
@@ -148,6 +125,31 @@ export default class AdminManagement extends Component {
 							}}
 						/>
 					</View>
+					{(this.props.userPrefs.isBurnerMode) ?
+						<View style={StyleSheet.switch}>
+							<FlipToggle
+								value={this.props.userPrefs.mapPoints}
+								buttonWidth={290}
+								buttonHeight={40}
+								buttonRadius={40}
+								labelStyle={{
+									fontSize: 20,
+									fontWeight: "bold",
+									textAlign: "center",
+								}}
+								onLabel={"Detailed Map"}
+								offLabel={"Minimal Map"}
+								sliderOnColor="black"
+								sliderOffColor="black"
+								buttonOnColor="lightblue"
+								buttonOffColor="lightblue"
+								onToggle={async (value) => {
+									this.props.userPrefs.mapPoints = value;
+									await this.props.setUserPrefs(this.props.userPrefs);
+								}}
+							/>
+						</View>
+						: <View></View>}
 					{(!this.props.userPrefs.isBurnerMode) ?
 						<View style={StyleSheet.switch}>
 							<FlipToggle
