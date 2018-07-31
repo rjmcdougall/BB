@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "eslint": "^4.19.1",
+    "babel-eslint": "^8.2.6",
+    "eslint": "^5.2.0",
     "eslint-config-google": "^0.9.1",
     "eslint-plugin-react": "^7.7.0",
-    "react-native-scripts": "1.13.1",
-    "babel-eslint": "^8.2.2",
-    "eslint-plugin-react-native": "^3.2.1"
+    "eslint-plugin-react-native": "^3.2.1",
+    "react-native-scripts": "1.13.1"
   },
   "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
   "scripts": {
@@ -22,10 +22,11 @@
     "react": "^16.3.0",
     "react-native": "^0.54.4",
     "react-native-animated-bar": "^0.2.0",
-    "react-native-ble-manager": "^6.3.4",
+    "react-native-ble-manager": "^6.4.0",
     "react-native-cli": "^2.0.1",
     "react-native-flip-toggle-button": "^1.0.5",
     "react-native-fs": "^2.9.12",
+    "react-native-geojson": "^0.1.1",
     "react-native-maps": "^0.21.0",
     "react-native-modal-dropdown": "^0.6.2",
     "react-native-platform-touchable": "^1.1.1",

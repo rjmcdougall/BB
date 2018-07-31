@@ -112,6 +112,76 @@ export default class AdminManagement extends Component {
 							}}
 						/>
 					</View>
+					<View style={StyleSheet.switch}>
+						<FlipToggle
+							value={this.props.userPrefs.isBurnerMode}
+							buttonWidth={250}
+							buttonHeight={50}
+							buttonRadius={50}
+							labelStyle={{
+								fontSize: 24,
+								fontWeight: "bold",
+								textAlign: "center",
+							}}
+							onLabel={"Burner Mode!!!"}
+							offLabel={"Regular"}
+							sliderOnColor="black"
+							sliderOffColor="black"
+							buttonOnColor="lightblue"
+							buttonOffColor="lightblue"
+							onToggle={async (value) => {
+								this.props.userPrefs.isBurnerMode = value;
+								await this.props.setUserPrefs(this.props.userPrefs);
+							}}
+						/>
+					</View>
+					<View style={StyleSheet.switch}>
+						<FlipToggle
+							value={this.props.userPrefs.wifiLocations}
+							buttonWidth={250}
+							buttonHeight={50}
+							buttonRadius={50}
+							labelStyle={{
+								fontSize: 24,
+								fontWeight: "bold",
+								textAlign: "center",
+							}}
+							onLabel={"Wifi Loc"}
+							offLabel={"No Wifi Loc"}
+							sliderOnColor="black"
+							sliderOffColor="black"
+							buttonOnColor="lightblue"
+							buttonOffColor="lightblue"
+							onToggle={async (value) => {
+								this.props.userPrefs.wifiLocations = value;
+								this.props.onLoadAPILocations();
+								await this.props.setUserPrefs(this.props.userPrefs);
+							}}
+						/>
+					</View>
+					<View style={StyleSheet.switch}>
+					<FlipToggle
+						value={this.props.userPrefs.mapPoints}
+						buttonWidth={250}
+						buttonHeight={50}
+						buttonRadius={50}
+						labelStyle={{
+							fontSize: 24,
+							fontWeight: "bold",
+							textAlign: "center",
+						}}
+						onLabel={"Show Map Points"}
+						offLabel={"No Map Points"}
+						sliderOnColor="black"
+						sliderOffColor="black"
+						buttonOnColor="lightblue"
+						buttonOffColor="lightblue"
+						onToggle={async (value) => {
+							this.props.userPrefs.mapPoints = value;
+							await this.props.setUserPrefs(this.props.userPrefs);
+						}}
+					/>
+				</View>
 				</ScrollView>
 			</View>
 		);
@@ -126,10 +196,11 @@ AdminManagement.propTypes = {
 	onRefreshDevices: PropTypes.func,
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
+	onLoadAPILocations: PropTypes.func,
 };
 
 AdminManagement.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
 	userPrefs: StateBuilder.blankUserPrefs(),
 };
- 
+

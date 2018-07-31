@@ -7,6 +7,9 @@ import BLEBoardData from "./BLEBoardData";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
+	isBurnerMode: false,
+	wifiLocations: false,
+	mapPoints: false,
 };
 
 var bEmptyMediaState = {
@@ -117,7 +120,10 @@ exports.getUserPrefs = async function () {
 		var userPrefs = await FileSystemConfig.getUserPrefs();
 
 		if (userPrefs) {
-			return userPrefs;
+			if(userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null)
+				return userPrefs;
+			else
+				return mblankUserPrefs();
 		}
 		else {
 			return mblankUserPrefs();

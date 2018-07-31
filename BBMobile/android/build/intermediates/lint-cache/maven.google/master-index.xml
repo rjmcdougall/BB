@@ -101,4 +101,8 @@
   <androidx.palette/>
   <com.google.ar.sceneform/>
   <com.google.ar.sceneform.ux/>
+  <androidx.test.ext/>
+  <com.google.android.ads.consent/>
+  <androidx.versionedparcelable/>
+  <androidx.media2/>
 </metadata>
