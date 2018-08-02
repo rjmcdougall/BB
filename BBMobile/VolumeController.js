@@ -30,8 +30,7 @@ export default class VolumeController extends React.Component {
 						thumbStyle={StyleSheet.sliderThumb}
 						minimumTrackTintColor="blue"
 						onSlidingComplete={async (value) => {
-							try {
-								console.log("bolume" + value)
+							try { 
 								await this.onUpdateVolume(value);
 							}
 							catch (error) {

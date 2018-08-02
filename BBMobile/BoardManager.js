@@ -328,18 +328,18 @@ export default class BoardManager extends Component {
 	async readLocationLoop() {
 
 		var backgroundTimer = setInterval(async () => {
-			console.log("Location Loop");
+			console.log("Board Manager: Location Loop");
 			if (this.state.mediaState) {
-				console.log("Found Media State");
+				console.log("Board Manager: Found Media State");
 				try {
 					var mediaState = await BLEBoardData.readLocation(this.state.mediaState);
-					console.log("Called Location Update");
+					console.log("Board Manager: Called Location Update");
 					this.setState({
 						mediaState: mediaState,
 					});
 				}
 				catch (error) {
-					console.log("BoardManager Location Loop Failed:" + error);
+					console.log("BoardManager: Location Loop Failed:" + error);
 				}
 			}
 		}, 8000);

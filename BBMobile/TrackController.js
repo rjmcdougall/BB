@@ -71,11 +71,11 @@ export default class TrackController extends Component {
 							onValueChange={async (value) => {
 
 								if (tracks[0] == "loading...") {
-									console.log("dont call update if its a component load");
+									console.log("TrackController: dont call update if its a component load");
 									return;
 								}
 								if (this.state.selectedTrack == value) {
-									console.log("dont call update if its not a real change");
+									console.log("TrackController: dont call update if its not a real change");
 									return;
 								}
 
