@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
-import Geojson from "react-native-geojson";
+import Geojson from "./GeoJSON";
 import Fence from "./geo/fence";
 //import Outline from "./geo/outline";
 import Points from "./geo/points";
@@ -121,7 +121,7 @@ export default class MapController extends React.Component {
 			);
 		}
 		catch (error) {
-			console.log("Error:" + error);
+			console.log("MapController: Error:" + error);
 		}
 
 	}
