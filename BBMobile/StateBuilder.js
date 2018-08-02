@@ -93,7 +93,7 @@ async function getBoardsInternal(mediaState) {
 		mediaState.boards = boards;
 	}
 	catch (error) {
-		console.log("SB: " + error);
+		console.log("StateBuilder: " + error);
 	}
 	return mediaState;
 }
@@ -103,7 +103,7 @@ exports.getBoards = async function (isBurnerMode) {
 		var boards = null;
 
 		// no wifi in burner mode
-		if(!isBurnerMode)
+		if(isBurnerMode) 
 			boards = await BBComAPIData.fetchBoards();
 
 		if (boards) {
@@ -112,9 +112,14 @@ exports.getBoards = async function (isBurnerMode) {
 		else {
 			boards = await FileSystemConfig.getBoards();
 		}
+
+		if(boards)
+			return boards;
+		else
+			return mblankUserPrefs();
 	}
 	catch (error) {
-		console.log(error);
+		console.log("StateBuilder: Error: " + error);
 	}
 	return boards;
 };
