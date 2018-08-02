@@ -10,6 +10,10 @@ var bEmptyUserPrefs = {
 	isBurnerMode: false,
 	wifiLocations: false,
 	mapPoints: false,
+	man: {
+		latitude: 40.7866,
+		longitude: -119.20660000000001,
+	}
 };
 
 var bEmptyMediaState = {
@@ -23,12 +27,12 @@ var bEmptyMediaState = {
 		maxChannel: 1,
 		volume: 0,
 		channels:
-			[null,{ channelNo: 1, channelInfo: "loading..." }]
+			[null, { channelNo: 1, channelInfo: "loading..." }]
 	},
 	video: {
 		channelNo: 1,
 		maxChannel: 1,
-		channels: [null,{ channelNo: 1, channelInfo: "loading..." }]
+		channels: [null, { channelNo: 1, channelInfo: "loading..." }]
 	},
 	device: {
 		deviceNo: 1,
@@ -103,7 +107,7 @@ exports.getBoards = async function (isBurnerMode) {
 		var boards = null;
 
 		// no wifi in burner mode
-		if(isBurnerMode) 
+		if (isBurnerMode)
 			boards = await BBComAPIData.fetchBoards();
 
 		if (boards) {
@@ -113,7 +117,7 @@ exports.getBoards = async function (isBurnerMode) {
 			boards = await FileSystemConfig.getBoards();
 		}
 
-		if(boards)
+		if (boards)
 			return boards;
 		else
 			return mblankUserPrefs();
@@ -129,7 +133,7 @@ exports.getUserPrefs = async function () {
 		var userPrefs = await FileSystemConfig.getUserPrefs();
 
 		if (userPrefs) {
-			if(userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null)
+			if (userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null)
 				return userPrefs;
 			else
 				return mblankUserPrefs();
@@ -154,7 +158,7 @@ exports.getLocations = function (mediaState, showAPILocations) {
 		var afterLocations = Array();
 		var currentBoard;
 		var existingBoard;
- 
+
 		for (var i = 0; i < locations.length; i++) {
 			currentBoard = locations[i];
 
@@ -163,8 +167,8 @@ exports.getLocations = function (mediaState, showAPILocations) {
 				return currentBoard.boardId == item.boardId;
 			});
 
-			if(existingBoard[0]) {
-				if(existingBoard.dateTime < currentBoard.dateTime){
+			if (existingBoard[0]) {
+				if (existingBoard.dateTime < currentBoard.dateTime) {
 					// remove it and add the new one
 					afterLocations = afterLocations.filter((board) => {
 						return board.boardId != existingBoard[0].boardId;

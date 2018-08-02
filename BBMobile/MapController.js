@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
-import Geojson from "./GeoJSON";
+import GeoJSON from "./GeoJSON";
 import Fence from "./geo/fence";
 //import Outline from "./geo/outline";
 import Points from "./geo/points";
@@ -94,10 +94,10 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
-						<Geojson geojson={Streets.streets} />
-						<Geojson geojson={Fence.fence} />
-						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Points.points} pinColor="black" /> : <View />}
-						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Toilets.toilets} pinColor="brown" /> : <View />}
+						<GeoJSON geojson={Streets.streets} userPrefs={this.props.userPrefs} />
+						<GeoJSON geojson={Fence.fence} userPrefs={this.props.userPrefs} />
+						{(this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Points.points} pinColor="black" userPrefs={this.props.userPrefs} /> : <View />}
+						{(this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Toilets.toilets} pinColor="brown" userPrefs={this.props.userPrefs} /> : <View />}
 					</MapView>
 					<View style={StyleSheet.button}>
 						<Touchable
