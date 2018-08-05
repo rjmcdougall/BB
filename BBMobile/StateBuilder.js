@@ -133,7 +133,7 @@ exports.getUserPrefs = async function () {
 		var userPrefs = await FileSystemConfig.getUserPrefs();
 
 		if (userPrefs) {
-			if (userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null)
+			if (userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null && userPrefs.man != null)
 				return userPrefs;
 			else
 				return mblankUserPrefs();
@@ -148,6 +148,8 @@ exports.getUserPrefs = async function () {
 };
 
 exports.setUserPrefs = async function (userPrefs) {
+	console.log("SET user prefs")
+	console.log(userPrefs)
 	return await FileSystemConfig.setUserPrefs(userPrefs);
 };
 

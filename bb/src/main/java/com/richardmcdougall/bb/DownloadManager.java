@@ -398,7 +398,7 @@ public class DownloadManager {
             }
         }
 
-        private int replaceFile(JSONObject elm) {
+        private boolean replaceFile(JSONObject elm) {
 
             try {
                 String localName = elm.getString("localName");
@@ -409,12 +409,16 @@ public class DownloadManager {
                 if (dstFile2.exists())
                     dstFile2.delete();
                 new File(mDM.mFilesDir, "tmp").renameTo(dstFile2);
-                return;
+                return true;
 
             } catch (JSONException jse) {
                 Log.d(TAG, "Error " + jse.getMessage());
-                return;
+                return false;
+            } catch (Throwable th) {
+                Log.d(TAG, "Error " + th.getMessage());
+                return false;
             }
+
         }
 
         public boolean GetNewDirectory() {
@@ -446,18 +450,17 @@ public class DownloadManager {
                         JSONObject elm = tList.getJSONObject(j);
 
                         // if there is no URL, it is an algorithm and should be skipped for download.
-                        if (elm.has("URL")  && !mIsServer)
+                        if (elm.has("URL") && !mIsServer)
                             if (!isUpToDate(elm))
                                 changedFiles.put(elm);
                     }
                 }
 
                 // announce changes
-                if(changedFiles.length() > 0){
+                if (changedFiles.length() > 0) {
                     if (mDM.onProgressCallback != null)
                         mDM.onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
-                }
-                else {
+                } else {
                     Log.d(TAG, "No Changes to Directory JSON.");
                     return false;
                 }
@@ -469,7 +472,7 @@ public class DownloadManager {
                 }
 
                 // announce completion and set the media object to the new profile
-                if(changedFiles.length() > 0) {
+                if (changedFiles.length() > 0) {
                     mDM.dataDirectory = dir;
                     CleanupOldFiles();
                     new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));

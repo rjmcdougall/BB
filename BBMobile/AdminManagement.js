@@ -1,6 +1,4 @@
-import React, {
-	Component
-} from "react";
+import React, { Component } from "react";
 import {
 	View,
 	ScrollView,
@@ -15,6 +13,7 @@ import PropTypes from "prop-types";
 import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
 import FlipToggle from "react-native-flip-toggle-button";
+import ManLocationController from "./ManLocationController";
 
 export default class AdminManagement extends Component {
 	constructor(props) {
@@ -26,6 +25,7 @@ export default class AdminManagement extends Component {
 
 		this.onSelectDevice = this.props.onSelectDevice.bind(this);
 		this.onRefreshDevices = this.props.onRefreshDevices.bind(this);
+
 	}
 
 	render() {
@@ -148,6 +148,11 @@ export default class AdminManagement extends Component {
 									await this.props.setUserPrefs(this.props.userPrefs);
 								}}
 							/>
+						</View>
+						: <View></View>}
+					{(this.props.userPrefs.isBurnerMode) ?
+						<View>
+							<ManLocationController setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} />
 						</View>
 						: <View></View>}
 					{(!this.props.userPrefs.isBurnerMode) ?

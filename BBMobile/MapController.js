@@ -17,50 +17,40 @@ export default class MapController extends React.Component {
 		super(props);
 		this.state = {
 			autoZoom: false,
-			burnerRegion: {
-				latitude: 40.785,
-				longitude: -119.21,
-				latitudeDelta: 0.0522,
-				longitudeDelta: 0.0522,
-			},
-			burnerLocations: [
-				{
-					title: "Vega",
-					latitude: 40.78392228857742,
-					longitude: -119.19034076975402,
-					dateTime: Date.now(),
-				},
-				{
-					title: "Candy",
-					latitude: 40.78389025037139,
-					longitude: -119.19016483355881,
-				},
-				{
-					title: "Pegasus",
-					latitude: 40.78335738965655,
-					longitude: -119.19033408191932,
-					dateTime: Date.now(),
-				},
-			]
+			latitude: 0,
+			longitude: 0,
 		};
 	}
 
+	componentDidMount() {
+
+		navigator.geolocation.getCurrentPosition(
+			(position) => {
+				this.setState({
+					latitude: position.coords.latitude,
+					longitude: position.coords.longitude,
+					error: null,
+				});
+			},
+			(error) => this.setState({ error: error.message }),
+			{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
+
+	}
 	render() {
 
 		try {
 
-
 			var locations;
 			var region;
+			// if (this.props.userPrefs.isBurnerMode)
+			// 	locations = this.state.burnerLocations;
+			// else
+			locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
 
-			if (this.props.userPrefs.isBurnerMode)
-				locations = this.state.burnerLocations;
-			else
-				locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
-
-			if (this.props.userPrefs.isBurnerMode)
-				region = this.state.burnerRegion;
-			else if (this.state.autoZoom == true)
+			// if (this.props.userPrefs.isBurnerMode)
+			// 	region = this.state.burnerRegion;
+			// else 
+			if (this.state.autoZoom == true)
 				region = this.props.mediaState.region;
 			else
 				region = null;
@@ -94,6 +84,14 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
+						<MapView.Marker
+							key={"me"}
+							coordinate={{
+								latitude: this.state.latitude,
+								longitude: this.state.longitude
+							}}
+							title={"me"}
+						/>
 						<GeoJSON geojson={Streets.streets} userPrefs={this.props.userPrefs} />
 						<GeoJSON geojson={Fence.fence} userPrefs={this.props.userPrefs} />
 						{(this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Points.points} pinColor="black" userPrefs={this.props.userPrefs} /> : <View />}

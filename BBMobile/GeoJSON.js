@@ -52,7 +52,6 @@ const makeOverlay = (coordinates, feature) => {
 	} else {
 		overlay.coordinates = coordinates;
 	}
-	//console.log(feature.properties.ref)
 	return overlay;
 };
 
@@ -60,8 +59,6 @@ const makePoint = c => {
 
 	const expectedManLat = 40.7866;
 	const expectedManLon = -119.20660000000001;
-	var actualManLat = 39;
-	var actualManLon = -118;
 
 	var latitude =  c[1] - expectedManLat + actualManLat;
 	var longitude = c[0] - expectedManLon + actualManLon;
@@ -72,6 +69,9 @@ const makePoint = c => {
 }
 
 const makeLine = l => l.map(makePoint);
+
+var actualManLat = 0;
+var actualManLon = 0;
 
 const makeCoordinates = feature => {
 	const g = feature.geometry;
@@ -95,8 +95,8 @@ const makeCoordinates = feature => {
 
 const Geojson = props => {
 
-	// actualManLat = props.userPrefs.man.latitude;
-	// actualManLon = props.userPrefs.man.longitude;
+	actualManLat = props.userPrefs.man.latitude;
+	actualManLon = props.userPrefs.man.longitude;
 
 	const overlays = makeOverlays(props.geojson.features);
 	return (
