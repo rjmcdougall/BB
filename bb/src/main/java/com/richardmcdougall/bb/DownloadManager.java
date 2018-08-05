@@ -98,8 +98,7 @@ public class DownloadManager {
                 String fn = "";
                 if (GetVideo(index).has("friendlyName")) {
                     fn = GetVideo(index).getString("friendlyName");
-                }
-                else {
+                } else {
                     if (GetVideo(index).has("algorithm"))
                         fn = GetVideo(index).getString("algorithm");
                     else
@@ -378,18 +377,57 @@ public class DownloadManager {
             }
         }
 
+        private boolean isUpToDate(JSONObject elm) {
+            try {
+
+                String localName = elm.getString("localName");
+                boolean upToDate = false;
+                File dstFile = new File(mDM.mFilesDir, localName);
+
+                if (elm.has("Size")) {
+                    long sz = elm.getLong("Size");
+                    if (dstFile.exists())
+                        if (dstFile.length() == sz)
+                            upToDate = true;
+                }
+                return upToDate;
+
+            } catch (JSONException jse) {
+                Log.d(TAG, "Error " + jse.getMessage());
+                return false;
+            }
+        }
+
+        private boolean replaceFile(JSONObject elm) {
+
+            try {
+                String localName = elm.getString("localName");
+                String url = encodeURL(elm.getString("URL"));
+                DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+                File dstFile2 = new File(mDM.mFilesDir, localName);   // move to localname so that we can install it
+
+                if (dstFile2.exists())
+                    dstFile2.delete();
+                new File(mDM.mFilesDir, "tmp").renameTo(dstFile2);
+                return true;
+
+            } catch (JSONException jse) {
+                Log.d(TAG, "Error " + jse.getMessage());
+                return false;
+            } catch (Throwable th) {
+                Log.d(TAG, "Error " + th.getMessage());
+                return false;
+            }
+
+        }
+
         public boolean GetNewDirectory() {
 
             try {
-
-
-                String dataDir = mDM.mFilesDir;
                 String DirectoryURL = "https://burnerboard.com/boards/" + mBoardId + "/DownloadDirectoryJSON";
-
                 DirectoryURL = encodeURL(DirectoryURL);
 
                 long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
-
                 if (ddsz < 0) {
                     Log.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                     return false;
@@ -397,25 +435,14 @@ public class DownloadManager {
 
                 Log.d(TAG, "Reading Directory from " + DirectoryURL);
 
-                new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
+                new File(mDM.mFilesDir, "tmp").renameTo(new File(mDM.mFilesDir, "directory.json.tmp"));
 
                 String dirTxt = LoadTextFile("directory.json.tmp");
                 JSONObject dir = new JSONObject(dirTxt);
-
-                if (mDM.dataDirectory != null) {
-                    if (dir.toString().length() == mDM.dataDirectory.toString().length()) {
-                        Log.d(TAG, "No Changes to Directory JSON.");
-                        // return true;
-                    } else {
-                        if (mDM.onProgressCallback != null)
-                            mDM.onProgressCallback.onVoiceCue("Media Changes Detected. Downloading.");
-                    }
-                }
-
-                int tFiles = 0;
-
                 String[] dTypes = new String[]{"audio", "video"};
+                JSONArray changedFiles = new JSONArray();
 
+                // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
                     for (int j = 0; j < tList.length(); j++) {
@@ -423,54 +450,37 @@ public class DownloadManager {
                         JSONObject elm = tList.getJSONObject(j);
 
                         // if there is no URL, it is an algorithm and should be skipped for download.
-                        if (elm.has("URL")) {
-
-                            String localName = elm.getString("localName");
-                            String url = elm.getString("URL");
-
-                            url = encodeURL(url);
-
-                            Boolean upTodate = false;
-                            File dstFile = new File(dataDir, localName);
-                            if (elm.has("Size")) {
-                                long sz = elm.getLong("Size");
-                                if (dstFile.exists())
-                                    if (dstFile.length() == sz)
-                                        upTodate = true;
-                            }
-
-                            if (mIsServer) {
-                                //downloadSuccess = true;
-                            } else {
-                                File dstFile2;
-                                if (!upTodate) {
-                                    DownloadURL(url, "tmp", localName);   // download to a "tmp" file
-                                    tFiles++;
-                                    dstFile2 = new File(dataDir, localName);   // move to localname so that we can install it
-
-                                    if (dstFile2.exists())
-                                        dstFile2.delete();
-                                    new File(dataDir, "tmp").renameTo(dstFile2);
-                                }
-
-                            }
-                        }
+                        if (elm.has("URL") && !mIsServer)
+                            if (!isUpToDate(elm))
+                                changedFiles.put(elm);
                     }
                 }
 
-                if (tFiles > 0) {
-                    // got new media.  Update!
-                    mDM.dataDirectory = dir;
-                    CleanupOldFiles();
-
-                    // now that you have the media, update the directory so the board can use it.
-                    new File(dataDir, "directory.json.tmp").renameTo(new File(dataDir, "directory.json"));
-
+                // announce changes
+                if (changedFiles.length() > 0) {
                     if (mDM.onProgressCallback != null)
-                        mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(tFiles) + " files. Media ready.");
+                        mDM.onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
+                } else {
+                    Log.d(TAG, "No Changes to Directory JSON.");
+                    return false;
                 }
 
+                // download changes
+                for (int j = 0; j < changedFiles.length(); j++) {
+                    JSONObject elm = changedFiles.getJSONObject(j);
+                    replaceFile(elm);
+                }
+
+                // announce completion and set the media object to the new profile
+                if (changedFiles.length() > 0) {
+                    mDM.dataDirectory = dir;
+                    CleanupOldFiles();
+                    new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));
+                    if (mDM.onProgressCallback != null)
+                        mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.");
+                }
                 return true;
+
             } catch (JSONException jse) {
                 Log.d(TAG, "Error " + jse.getMessage());
                 return false;
@@ -486,7 +496,7 @@ public class DownloadManager {
 
                 String dataDir = mDM.mFilesDir;
                 String DirectoryURL = "https://burnerboard.com/boards/";
-                //DirectoryURL = encodeURL(DirectoryURL);
+
                 Log.d(TAG, DirectoryURL);
 
                 long ddsz = DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON");
@@ -507,8 +517,13 @@ public class DownloadManager {
                         return true;
                     }
 
-                if (mDM.onProgressCallback != null)
-                    mDM.onProgressCallback.onVoiceCue("New Boards Discovered.");
+                if (mDM.onProgressCallback != null) {
+                    if (mDM.dataBoards == null || dir.length() != mDM.dataBoards.length()) {
+                        Log.d(TAG, "A new board was discovered in Boards JSON.");
+                        mDM.onProgressCallback.onVoiceCue("New Boards available for syncing.");
+                    } else
+                        Log.d(TAG, "A minor change was discovered in Boards JSON.");
+                }
 
                 // got new bards.  Update!
                 mDM.dataBoards = dir;
@@ -541,10 +556,10 @@ public class DownloadManager {
                         && i < 60) { // try this for 5 minutes.
                     i++;
 
-                    if(!downloadSuccessBoards)
+                    if (!downloadSuccessBoards)
                         downloadSuccessBoards = GetNewBoardsJSON();
 
-                    if(!downloadSuccessDirectory)
+                    if (!downloadSuccessDirectory)
                         downloadSuccessDirectory = GetNewDirectory();
 
                     Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
@@ -570,3 +585,5 @@ public class DownloadManager {
 
 
 }
+
+
