@@ -91,6 +91,21 @@ export default class BoardManager extends Component {
 					});
 				}
 			});
+
+			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
+				if (result) {
+					console.log("BoardManager: Permission is OK");
+				} else {
+					PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
+						if (result) {
+							console.log("BoardManager: User accept");
+						} else {
+							console.log("BoardManager: User refuse");
+						}
+					});
+				}
+			}); 
+
 		}
 
 		// if there is a default peripheral saved, scan and attempt to load that board.
@@ -361,7 +376,8 @@ export default class BoardManager extends Component {
 					});
 				}
 				catch (error) {
-					console.log("BoardManager: Phone Location Loop Failed:" + error);
+					console.log("BoardManager: Phone Location Loop Failed:")
+					console.log(error);
 				}
 			}
 		}, 8000);
