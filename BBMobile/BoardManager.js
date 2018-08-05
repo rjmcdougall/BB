@@ -63,7 +63,7 @@ export default class BoardManager extends Component {
 		BleManager.start({
 			showAlert: false
 		});
- 
+
 		var boards = await StateBuilder.getBoards(this.props.userPrefs.isBurnerMode);
 
 		if (boards) {
@@ -102,6 +102,8 @@ export default class BoardManager extends Component {
 
 			await this.startScan(true);
 		}
+
+		this.readPhoneLocationLoop();
 	}
 
 	handleAppStateChange(nextAppState) {
@@ -346,6 +348,26 @@ export default class BoardManager extends Component {
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
+	async readPhoneLocationLoop() {
+
+		var phoneBackgroundTimer = setInterval(async () => {
+
+			if (this.state.mediaState) {
+				console.log("Board Manager: Phone GPS: Found Media State");
+				try {
+					var mediaState = await StateBuilder.getPhoneLocation(this.state.mediaState);
+					this.setState({
+						mediaState: mediaState,
+					});
+				}
+				catch (error) {
+					console.log("BoardManager: Phone Location Loop Failed:" + error);
+				}
+			}
+		}, 8000);
+		this.setState({ phoneBackgroundLoop: phoneBackgroundTimer });
+	}
+
 	render() {
 
 		var color = "#fff";
@@ -356,24 +378,24 @@ export default class BoardManager extends Component {
 			boardName = this.state.boardName;
 
 		switch (this.state.discoveryState) {
-		case Constants.DISCONNECTED:
-			color = "#fff";
-			enableControls = "none";
-			connectionButtonText = "Connect to " + boardName;
-			break;
-		case Constants.LOCATED:
-			color = "yellow";
-			enableControls = "none";
-			connectionButtonText = "Located " + boardName;
-			break;
-		case Constants.CONNECTED:
-			if (!this.state.mediaState.isError)
-				color = "green";
-			else
-				color = "red";
-			enableControls = "auto";
-			connectionButtonText = "Connected To " + boardName;
-			break;
+			case Constants.DISCONNECTED:
+				color = "#fff";
+				enableControls = "none";
+				connectionButtonText = "Connect to " + boardName;
+				break;
+			case Constants.LOCATED:
+				color = "yellow";
+				enableControls = "none";
+				connectionButtonText = "Located " + boardName;
+				break;
+			case Constants.CONNECTED:
+				if (!this.state.mediaState.isError)
+					color = "green";
+				else
+					color = "red";
+				enableControls = "auto";
+				connectionButtonText = "Connected To " + boardName;
+				break;
 		}
 
 		return (
@@ -402,7 +424,7 @@ export default class BoardManager extends Component {
 							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState}  /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} peripherals={this.state.peripherals} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
 						<View style={StyleSheet.footer}>

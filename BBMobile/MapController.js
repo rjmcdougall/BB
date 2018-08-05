@@ -17,36 +17,23 @@ export default class MapController extends React.Component {
 		super(props);
 		this.state = {
 			autoZoom: false,
-			latitude: 0,
-			longitude: 0,
 		};
 	}
 
-	componentDidMount() {
-
-		navigator.geolocation.getCurrentPosition(
-			(position) => {
-				this.setState({
-					latitude: position.coords.latitude,
-					longitude: position.coords.longitude,
-					error: null,
-				});
-			},
-			(error) => this.setState({ error: error.message }),
-			{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
-
-	}
 	render() {
 
 		try {
 
-			var locations;
+			var locations = new Array();
 			var region;
 
 			locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
 
-			if (this.state.autoZoom == true)
-				region = this.props.mediaState.region;
+			if(this.props.userPrefs.includeMeOnMap)
+				locations = [...locations,this.props.mediaState.phoneLocation];
+
+			if (this.state.autoZoom == true && (locations.length > 0))
+				region = StateBuilder.getRegionForCoordinates(locations);
 			else
 				region = null;
 
@@ -79,20 +66,10 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
-						{this.props.userPrefs.includeMeOnMap ?
-							<MapView.Marker
-								key={"me"}
-								coordinate={{
-									latitude: this.state.latitude,
-									longitude: this.state.longitude
-								}}
-								title={"me"}
-							/>
-							: <View />}
-						<GeoJSON geojson={Streets.streets} userPrefs={this.props.userPrefs} />
-						<GeoJSON geojson={Fence.fence} userPrefs={this.props.userPrefs} />
-						{(this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Points.points} pinColor="black" userPrefs={this.props.userPrefs} /> : <View />}
-						{(this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Toilets.toilets} pinColor="brown" userPrefs={this.props.userPrefs} /> : <View />}
+						{(this.props.userPrefs.isBurnerMode) ? <GeoJSON geojson={Streets.streets} userPrefs={this.props.userPrefs} /> : <View />}
+						{(this.props.userPrefs.isBurnerMode) ? <GeoJSON geojson={Fence.fence} userPrefs={this.props.userPrefs} />  : <View />}
+						{(this.props.userPrefs.isBurnerMode && this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Points.points} pinColor="black" userPrefs={this.props.userPrefs} /> : <View />}
+						{(this.props.userPrefs.isBurnerMode && this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Toilets.toilets} pinColor="brown" userPrefs={this.props.userPrefs} /> : <View />}
 					</MapView>
 					<View style={StyleSheet.button}>
 						<Touchable

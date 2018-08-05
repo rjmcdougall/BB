@@ -3,29 +3,25 @@ import { View, Text, TextInput } from "react-native";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
+import StateBuilder from "./StateBuilder";
 
 export default class ManLocationController extends Component {
 	constructor(props) {
 		super(props);
 	}
 
-	async getPhonePosition() {
-		return new Promise(function (resolve, reject) {
-			navigator.geolocation.getCurrentPosition(
-				(position) => {
-					resolve([position.coords.latitude, position.coords.longitude]);
-				},
-				(error) => {
-					reject(error);
-				},
-				{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
-		});
-	}
-
 	render() {
 
 		return (
-			<View>
+			<View style={{
+				margin: 10,
+				padding: 10,
+				borderColor: "black",
+				borderWidth: 2
+			}}>
+				<Text style={StyleSheet.smallButtonTextCenter}>
+					Man Location
+				</Text>
 				<View style={{
 					flex: 1,
 					flexDirection: "row",
@@ -67,13 +63,24 @@ export default class ManLocationController extends Component {
 				<View style={StyleSheet.button}>
 					<Touchable
 						onPress={async () => {
-							var latLon = await this.getPhonePosition();
-							this.props.userPrefs.man.latitude = parseFloat(latLon[0]);
-							this.props.userPrefs.man.longitude = parseFloat(latLon[1]);
+							var phoneLocation = await StateBuilder.getLocationForMan();
+							this.props.userPrefs.man.longitude = parseFloat(phoneLocation.longitude);
+							this.props.userPrefs.man.latitude = parseFloat(phoneLocation.latitude);
 							await this.props.setUserPrefs(this.props.userPrefs);
 						}}
 						background={Touchable.Ripple("blue")}>
-						<Text style={StyleSheet.buttonTextCenter}>My Location</Text>
+						<Text style={StyleSheet.smallButtonTextCenter}>My Location</Text>
+					</Touchable>
+				</View>
+				<View style={StyleSheet.button}>
+					<Touchable
+						onPress={async () => {
+							this.props.userPrefs.man.latitude = 40.7866;
+							this.props.userPrefs.man.longitude = -119.20660000000001;
+							await this.props.setUserPrefs(this.props.userPrefs);
+						}}
+						background={Touchable.Ripple("blue")}>
+						<Text style={StyleSheet.smallButtonTextCenter}>Defult Location</Text>
 					</Touchable>
 				</View>
 			</View>

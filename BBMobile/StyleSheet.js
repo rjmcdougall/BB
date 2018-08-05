@@ -15,6 +15,13 @@ export default StyleSheet.create({
 		padding: 5,
 		fontWeight: "bold",
 	},
+	smallButtonTextCenter: {
+		margin: 2,
+		fontSize: 14,
+		textAlign: "center",
+		padding: 5,
+		fontWeight: "bold",
+	},
 	button: {
 		marginTop: 2,
 		backgroundColor: "skyblue"

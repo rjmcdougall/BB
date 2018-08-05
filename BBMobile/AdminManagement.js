@@ -107,8 +107,8 @@ export default class AdminManagement extends Component {
 								fontWeight: "bold",
 								textAlign: "center",
 							}}
-							onLabel={"Don't Map My Phone"}
-							offLabel={"Map My Phone"}
+							onLabel={"Map My Phone"}
+							offLabel={"Don't Map My Phone"}
 							sliderOnColor="black"
 							sliderOffColor="black"
 							buttonOnColor="lightblue"
@@ -220,6 +220,7 @@ export default class AdminManagement extends Component {
 							</Touchable>
 						</View>
 						: <View></View>}
+					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>
 		);
