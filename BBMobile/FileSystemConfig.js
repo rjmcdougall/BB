@@ -93,7 +93,8 @@ exports.getUserPrefs = async function () {
 	var path = RNFS.DocumentDirectoryPath + "/userPrefs.json";
 
 	try {
-		var fileExists = (await RNFS.readDir(RNFS.DocumentDirectoryPath)).filter((item) => {
+		var dir = await RNFS.readDir(RNFS.DocumentDirectoryPath);
+		var fileExists = dir.filter((item) => {
 			return item.name === "userPrefs.json";
 		}).length > 0;
 
@@ -115,12 +116,13 @@ exports.setUserPrefs = async function (userPrefs) {
 	var path = RNFS.DocumentDirectoryPath + "/userPrefs.json";
 
 	try {
-		var fileExists = (await RNFS.readDir(RNFS.DocumentDirectoryPath)).filter((item) => {
+		var dir = await RNFS.readDir(RNFS.DocumentDirectoryPath);
+		var fileExists = dir.filter((item) => {
 			return item.name === "userPrefs.json";
 		}).length > 0;
 
 		if(fileExists) {
-			RNFS.unlink(path);
+			await RNFS.unlink(path);
 			console.log("FileSystemConfig: userPrefs File Found, Deleting");
 		}
 

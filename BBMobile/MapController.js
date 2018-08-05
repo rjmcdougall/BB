@@ -42,14 +42,9 @@ export default class MapController extends React.Component {
 
 			var locations;
 			var region;
-			// if (this.props.userPrefs.isBurnerMode)
-			// 	locations = this.state.burnerLocations;
-			// else
+
 			locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
 
-			// if (this.props.userPrefs.isBurnerMode)
-			// 	region = this.state.burnerRegion;
-			// else 
 			if (this.state.autoZoom == true)
 				region = this.props.mediaState.region;
 			else
@@ -84,14 +79,16 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
-						<MapView.Marker
-							key={"me"}
-							coordinate={{
-								latitude: this.state.latitude,
-								longitude: this.state.longitude
-							}}
-							title={"me"}
-						/>
+						{this.props.userPrefs.includeMeOnMap ?
+							<MapView.Marker
+								key={"me"}
+								coordinate={{
+									latitude: this.state.latitude,
+									longitude: this.state.longitude
+								}}
+								title={"me"}
+							/>
+							: <View />}
 						<GeoJSON geojson={Streets.streets} userPrefs={this.props.userPrefs} />
 						<GeoJSON geojson={Fence.fence} userPrefs={this.props.userPrefs} />
 						{(this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Points.points} pinColor="black" userPrefs={this.props.userPrefs} /> : <View />}

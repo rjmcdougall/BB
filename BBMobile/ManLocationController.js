@@ -7,12 +7,21 @@ import StyleSheet from "./StyleSheet";
 export default class ManLocationController extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			latitude: this.props.userPrefs.man.latitude,
-			longitude: this.props.userPrefs.man.longitude,
-		};
 	}
- 
+
+	async getPhonePosition() {
+		return new Promise(function (resolve, reject) {
+			navigator.geolocation.getCurrentPosition(
+				(position) => {
+					resolve([position.coords.latitude, position.coords.longitude]);
+				},
+				(error) => {
+					reject(error);
+				},
+				{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
+		});
+	}
+
 	render() {
 
 		return (
@@ -27,7 +36,11 @@ export default class ManLocationController extends Component {
 					<View style={{ height: 40 }}>
 						<TextInput
 							style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
-							value={"" + this.state.longitude}
+							onChangeText={async (text) => {
+								this.props.userPrefs.man.longitude = parseFloat(text);
+								await this.props.setUserPrefs(this.props.userPrefs);
+							}}
+							value={"" + this.props.userPrefs.man.longitude}
 							keyboardType='numeric'
 						/>
 					</View>
@@ -42,7 +55,11 @@ export default class ManLocationController extends Component {
 					<View style={{ height: 40 }}>
 						<TextInput
 							style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
-							value={"" + this.state.latitude}
+							onChangeText={async (text) => {
+								this.props.userPrefs.man.latitude = parseFloat(text);
+								await this.props.setUserPrefs(this.props.userPrefs);
+							}}
+							value={"" + this.props.userPrefs.man.latitude}
 							keyboardType='numeric'
 						/>
 					</View>
@@ -50,34 +67,16 @@ export default class ManLocationController extends Component {
 				<View style={StyleSheet.button}>
 					<Touchable
 						onPress={async () => {
-							navigator.geolocation.getCurrentPosition(
-								(position) => {
-									this.setState({
-										latitude: position.coords.latitude,
-										longitude: position.coords.longitude,
-										error: null,
-									});
-								},
-								(error) => this.setState({ error: error.message }),
-								{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
+							var latLon = await this.getPhonePosition();
+							this.props.userPrefs.man.latitude = parseFloat(latLon[0]);
+							this.props.userPrefs.man.longitude = parseFloat(latLon[1]);
+							await this.props.setUserPrefs(this.props.userPrefs);
 						}}
 						background={Touchable.Ripple("blue")}>
 						<Text style={StyleSheet.buttonTextCenter}>My Location</Text>
 					</Touchable>
 				</View>
-				<View style={StyleSheet.button}>
-					<Touchable
-						onPress={async () => {
-							this.props.userPrefs.man.latitude = this.state.latitude;
-							this.props.userPrefs.man.longitude = this.state.longitude;
-							await this.props.setUserPrefs(this.props.userPrefs);
-							
-						}}
-						background={Touchable.Ripple("blue")}>
-						<Text style={StyleSheet.buttonTextCenter}>Save Man Location</Text>
-					</Touchable>
-				</View>
-			</View >
+			</View>
 		);
 	}
 }

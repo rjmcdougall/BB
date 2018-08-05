@@ -10,7 +10,6 @@ import DeviceController from "./DeviceController";
 import BLEBoardData from "./BLEBoardData";
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
-import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
 import FlipToggle from "react-native-flip-toggle-button";
 import ManLocationController from "./ManLocationController";
@@ -98,6 +97,29 @@ export default class AdminManagement extends Component {
 						/>
 					</View>
 					<View style={StyleSheet.switch}>
+						<FlipToggle
+							value={this.props.userPrefs.includeMeOnMap}
+							buttonWidth={290}
+							buttonHeight={40}
+							buttonRadius={40}
+							labelStyle={{
+								fontSize: 20,
+								fontWeight: "bold",
+								textAlign: "center",
+							}}
+							onLabel={"Don't Map My Phone"}
+							offLabel={"Map My Phone"}
+							sliderOnColor="black"
+							sliderOffColor="black"
+							buttonOnColor="lightblue"
+							buttonOffColor="lightblue"
+							onToggle={async (value) => {
+								this.props.userPrefs.includeMeOnMap = value;
+								await this.props.setUserPrefs(this.props.userPrefs);
+							}}
+						/>
+					</View>
+					<View style={StyleSheet.switch}>
 
 						<FlipToggle
 							value={this.props.userPrefs.isBurnerMode}
@@ -119,7 +141,7 @@ export default class AdminManagement extends Component {
 								this.props.userPrefs.isBurnerMode = value;
 								if (value == true) {
 									this.props.userPrefs.wifiLocations = false; // turn off wifi also
-									this.props.onLoadAPILocations();
+									await this.props.onLoadAPILocations();
 								}
 								await this.props.setUserPrefs(this.props.userPrefs);
 							}}
@@ -175,7 +197,7 @@ export default class AdminManagement extends Component {
 								buttonOffColor="lightblue"
 								onToggle={async (value) => {
 									this.props.userPrefs.wifiLocations = value;
-									this.props.onLoadAPILocations();
+									await this.props.onLoadAPILocations();
 									await this.props.setUserPrefs(this.props.userPrefs);
 								}}
 							/>
@@ -187,7 +209,7 @@ export default class AdminManagement extends Component {
 								onPress={async () => {
 									var supported = await Linking.canOpenURL("https://burnerboard.com");
 									if (supported) {
-										Linking.openURL("https://burnerboard.com");
+										await Linking.openURL("https://burnerboard.com");
 									} else {
 										console.log("Don't know how to open URI: " + "https://burnerboard.com");
 									}
@@ -213,10 +235,5 @@ AdminManagement.propTypes = {
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
 	onLoadAPILocations: PropTypes.func,
-};
-
-AdminManagement.defaultProps = {
-	mediaState: StateBuilder.blankMediaState(),
-	userPrefs: StateBuilder.blankUserPrefs(),
 };
 

@@ -10,6 +10,7 @@ var bEmptyUserPrefs = {
 	isBurnerMode: false,
 	wifiLocations: false,
 	mapPoints: false,
+	includeMeOnMap: false,
 	man: {
 		latitude: 40.7866,
 		longitude: -119.20660000000001,
@@ -133,7 +134,12 @@ exports.getUserPrefs = async function () {
 		var userPrefs = await FileSystemConfig.getUserPrefs();
 
 		if (userPrefs) {
-			if (userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null && userPrefs.man != null)
+			if (userPrefs.mapPoints != null 
+				&& userPrefs.isBurnerMode != null 
+				&& userPrefs.isDevilsHand != null 
+				&& userPrefs.wifiLocations != null 
+				&& userPrefs.man != null
+				&& userPrefs.includeMeOnMap != null)
 				return userPrefs;
 			else
 				return mblankUserPrefs();
@@ -150,7 +156,7 @@ exports.getUserPrefs = async function () {
 exports.setUserPrefs = async function (userPrefs) {
 	console.log("SET user prefs")
 	console.log(userPrefs)
-	return await FileSystemConfig.setUserPrefs(userPrefs);
+	await FileSystemConfig.setUserPrefs(userPrefs);
 };
 
 exports.getLocations = function (mediaState, showAPILocations) {
