@@ -3,6 +3,7 @@ import FileSystemConfig from "./FileSystemConfig";
 import BBComAPIData from "./BBComAPIData";
 import BLEIDs from "./BLEIDs";
 import BLEBoardData from "./BLEBoardData";
+import Geolocation from "react-native-geolocation-service";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
@@ -166,19 +167,17 @@ exports.setUserPrefs = async function (userPrefs) {
 };
 
 exports.getPhoneLocation = async function (mediaState) {
-
 	mediaState.phoneLocation = await checkPhoneLocation();
 	return mediaState;
-
-}
+};
 
 exports.getLocationForMan = async function () {
 	return await checkPhoneLocation();
-}
+};
 
 function checkPhoneLocation() {
 	return new Promise(function (resolve, reject) {
-		navigator.geolocation.getCurrentPosition(
+		Geolocation.getCurrentPosition(
 			(position) => {
 				resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude, boardId: "my phone", dateTime: Date.now(), title: "my phone" });
 			},
