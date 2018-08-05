@@ -4,11 +4,6 @@ import MapView from "react-native-maps";
 import uuid from "uuid";
 import PropTypes from "prop-types";
 
-const expectedManLat = 40.7866;
-const expectedManLon = -119.20660000000001;
-var actualManLat;
-var actualManLon;
-
 export const makeOverlays = features => {
 	const points = features
 		.filter(f => f.geometry && (f.geometry.type === "Point" || f.geometry.type === "MultiPoint"))
@@ -61,18 +56,26 @@ const makeOverlay = (coordinates, feature) => {
 	return overlay;
 };
 
-const makePoint = c => ({ latitude: c[1], longitude: c[0] });
+const makePoint = c => {
+
+	const expectedManLat = 40.7866;
+	const expectedManLon = -119.20660000000001;
+	var actualManLat = 39;
+	var actualManLon = -118;
+
+	var latitude =  c[1] - expectedManLat + actualManLat;
+	var longitude = c[0] - expectedManLon + actualManLon;
+	return ({
+		latitude: latitude,
+		longitude: longitude
+	});
+}
 
 const makeLine = l => l.map(makePoint);
 
 const makeCoordinates = feature => {
 	const g = feature.geometry;
-
-	// adjust for possible location issues.  Test the map in other locations.
-	g.coordinates = g.coordinates.map(c => {
-		return [c[0] - expectedManLon + actualManLon, c[1] - expectedManLat + actualManLat];
-	});
-
+ 
 	if (g.type === "Point") {
 		return [makePoint(g.coordinates)];
 	} else if (g.type === "MultiPoint") {
@@ -92,15 +95,14 @@ const makeCoordinates = feature => {
 
 const Geojson = props => {
 
-	actualManLat = props.userPrefs.man.latitude;
-	actualManLon = props.userPrefs.man.longitude;
+	// actualManLat = props.userPrefs.man.latitude;
+	// actualManLon = props.userPrefs.man.longitude;
 
 	const overlays = makeOverlays(props.geojson.features);
 	return (
 		<View>
 			{overlays.map(overlay => {
 				if (overlay.type === "point") {
-					console.log("GeoJSON: " + props.title);
 					return (
 						<MapView.Marker
 							key={overlay.id}
