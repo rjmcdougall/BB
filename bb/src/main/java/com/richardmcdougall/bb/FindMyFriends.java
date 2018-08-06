@@ -51,6 +51,7 @@ public class FindMyFriends {
     double mTheirLat;
     double mTheirLon;
     double mTheirAlt;
+    int mTheirBatt;
     double mTheirSpeed;
     double mTheirHeading;
     int mThereAccurate;
@@ -151,6 +152,9 @@ public class FindMyFriends {
 
     private void broadcastGPSpacket(int lat, int lon, int elev, int iMAccurate,
                                     int heading, int speed) {
+
+        int batt = mBBService.getBatteryLevel();
+
         // Check GPS data is not stale
         int len = 2 * 4 + 1 + kMagicNumberLen + 1;
         ByteArrayOutputStream radioPacket = new ByteArrayOutputStream();
@@ -170,10 +174,10 @@ public class FindMyFriends {
         radioPacket.write((lon >> 8) & 0xFF);
         radioPacket.write((lon >> 16) & 0xFF);
         radioPacket.write((lon >> 24) & 0xFF);
-        radioPacket.write(elev & 0xFF);
-        radioPacket.write((elev >> 8) & 0xFF);
-        radioPacket.write((elev >> 16) & 0xFF);
-        radioPacket.write((elev >> 24) & 0xFF);
+        radioPacket.write(batt & 0xFF);
+        radioPacket.write((0) & 0xFF); // spare
+        radioPacket.write((0) & 0xFF); // spare
+        radioPacket.write((0) & 0xFF); // spare
 
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
@@ -254,16 +258,21 @@ public class FindMyFriends {
                     ((bytes.read() & 0xff) << 8) +
                     ((bytes.read() & 0xff) << 16) +
                     ((bytes.read() & 0xff) << 24)) / 1000000.0;
-            mTheirAlt = (double)((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8) +
-                    ((bytes.read() & 0xff) << 16) +
-                    ((bytes.read() & 0xff) << 24)) / 1000000.0;
+            mTheirBatt = (int)(bytes.read() & 0xff);
+            bytes.read(); // spare
+            bytes.read(); // spare
+            bytes.read(); // spare
             mThereAccurate = bytes.read();
             mLastRecv = System.currentTimeMillis();
             mLastHeardLocation = packet.clone();
-            l(mRFAddress.boardAddressToName(mTheirAddress) + " strength " + sigStrength + "theirLat = " + mTheirLat + ", theirLon = " + mTheirLon);
+            l(mRFAddress.boardAddressToName(mTheirAddress) +
+                    " strength " + sigStrength +
+                    "theirLat = " + mTheirLat + ", " +
+                    "theirLon = " + mTheirLon +
+                    "theirBatt = " + mTheirBatt);
             mIotClient.sendUpdate("bbevent", "[" +
-                    mRFAddress.boardAddressToName(mTheirAddress) + "," + sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
+                    mRFAddress.boardAddressToName(mTheirAddress) + "," +
+                    sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
             updateBoardLocations(mTheirAddress, sigStrength, packet.clone());
             return true;
         } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
