@@ -13,6 +13,8 @@ class App extends Component {
 		};
 
 		this.responseGoogle = this.responseGoogle.bind(this);
+		this.reloadOnExpiration = this.reloadOnExpiration.bind(this);
+		
 	}
 
 	getQueryVariable(variable) {

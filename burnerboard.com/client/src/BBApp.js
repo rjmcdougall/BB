@@ -42,29 +42,29 @@ class BBApp extends Component {
 		this.reloadOnExpiration = this.props.reloadOnExpiration.bind(this);
 	}
 
-	handleProfileDeleteClose = () => {  
+	handleProfileDeleteClose = () => {
 		this.reloadOnExpiration();
-		
+
 		this.setState({ profileDeleteSnackbarOpen: false });
 	}
 
 	handleProfileAddClose = () => {
 		this.reloadOnExpiration();
-		
+
 		this.setState({ createProfileOpenSnackbar: false });
 	}
 
 	handleActivateProfileClose = () => {
 		this.reloadOnExpiration();
-		
+
 		this.setState({ activateOpenSnackbar: false });
 	}
 
 
 	handleCreateProfile = async (event) => {
-		
+
 		this.reloadOnExpiration();
-		
+
 		var comp = this;
 
 		console.log("state: ", JSON.stringify(this.state));
@@ -136,118 +136,109 @@ class BBApp extends Component {
 		this.setState({ profileSelected: newSelected });
 	};
 
-	handleActivateProfile = event => {
+	handleActivateProfile = async (event) => {
 
 		this.reloadOnExpiration();
-		
-		var comp = this;
 
-		var API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
-		console.log("API TO SET BOARD ACTIVE: " + API);
+		try {
+			var API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
+			console.log("API TO SET BOARD ACTIVE: " + API);
 
-		fetch(API, {
-			method: 'POST',
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-				'Authorization': window.sessionStorage.JWT,
-			},
-		}).then((res) => res.json())
-			.then((data) => {
-				console.log(data)
-				comp.setState({
-					activeProfile: this.state.currentProfile,
-					activeProfileIsGlobal: this.state.currentProfileIsGlobal,
-					activateOpenSnackbar: true,
-					activateResultsMessage: this.state.currentProfile + " activated",
-				});
-
-
-			})
-			.catch((err) => {
-				console.log('error : ' + err);
-				comp.setState({
-					activateOpenSnackbar: true,
-					activateResultsMessage: err.message
-				});
+			var res = await fetch(API, {
+				method: 'POST',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+					'Authorization': window.sessionStorage.JWT,
+				},
 			});
+
+			var data = await res.json();
+
+			console.log(data)
+			this.setState({
+				activeProfile: this.state.currentProfile,
+				activeProfileIsGlobal: this.state.currentProfileIsGlobal,
+				activateOpenSnackbar: true,
+				activateResultsMessage: this.state.currentProfile + " activated",
+			});
+		}
+		catch (error) {
+			console.log('error : ' + error);
+			this.setState({
+				activateOpenSnackbar: true,
+				activateResultsMessage: error.message
+			});
+		}
 	}
 
-	onProfileDelete = () => {
+	onProfileDelete = async () => {
 
 		this.reloadOnExpiration();
-		
-		var comp = this;
 
-		var profileSelected = this.state.profileSelected.toString();
-		var profileID = profileSelected.slice(profileSelected.indexOf('-') + 1)
-		var boardID = profileSelected.slice(0, profileSelected.indexOf('-'));
+		try {
+			var comp = this;
+			var profileSelected = this.state.profileSelected.toString();
+			var profileID = profileSelected.slice(profileSelected.indexOf('-') + 1)
+			var boardID = profileSelected.slice(0, profileSelected.indexOf('-'));
 
-		var API = "";
-		if (boardID !== "null")
-			API = '/boards/' + boardID + '/profiles/' + profileID
-		else
-			API = '/profiles/' + profileID
+			var API = "";
+			if (boardID !== "null")
+				API = '/boards/' + boardID + '/profiles/' + profileID
+			else
+				API = '/profiles/' + profileID
 
-		console.log("delete API : " + API);
+			console.log("delete API : " + API);
 
-		fetch(API, {
-			method: 'DELETE',
-			headers: {
-				'Accept': 'application/json',
-				'Content-Type': 'application/json',
-				'Authorization': window.sessionStorage.JWT,
-			}
-		}
-		)
-			.then((res) => {
-
-				if (!res.ok) {
-					res.json().then(function (json) {
-						console.log('error : ' + JSON.stringify(json));
-						comp.setState({
-							profileDeleteSnackbarOpen: true,
-							profileDeleteResultsMessage: JSON.stringify(json),
-						});
-					});
+			var res = await fetch(API, {
+				method: 'DELETE',
+				headers: {
+					'Accept': 'application/json',
+					'Content-Type': 'application/json',
+					'Authorization': window.sessionStorage.JWT,
 				}
-				else {
-					res.json().then(function (json) {
-						console.log('success : ' + JSON.stringify(json));
-						comp.setState({
-							profileDeleteSnackbarOpen: true,
-							profileDeleteResultsMessage: JSON.stringify(json),
-							profileSelected: "",
-						});
-					});
-				}
-			})
-			.catch((err) => {
-				console.log('error : ' + err);
-				comp.setState({
-					profileDeleteSnackbarOpen: true,
-					profileDeleteResultsMessage: err.message
-				});
-
 			});
 
+			var json = await res.json();
+
+			if (!res.ok) {
+				console.log('error : ' + JSON.stringify(json));
+				this.setState({
+					profileDeleteSnackbarOpen: true,
+					profileDeleteResultsMessage: JSON.stringify(json),
+				});
+			}
+			else {
+				console.log('success : ' + JSON.stringify(json));
+				this.setState({
+					profileDeleteSnackbarOpen: true,
+					profileDeleteResultsMessage: JSON.stringify(json),
+					profileSelected: "",
+				});
+			}
+		}
+		catch (error) {
+			console.log('error : ' + error);
+			comp.setState({
+				profileDeleteSnackbarOpen: true,
+				profileDeleteResultsMessage: error.message
+			});
+		}
 	}
 
 	handleChange = event => {
 
 		this.reloadOnExpiration();
-		
+
 		console.log("Set state due to form change: " + [event.target.name] + " " + event.target.value)
 		this.setState({ [event.target.name]: event.target.value });
 
 	};
 
-	handleSelect = (event, key) => {
+	handleSelect = async (event, key) => {
 
 		this.reloadOnExpiration();
-
-		var API;
-
+ 
 		if (key.startsWith("AppBody-")) {
 
 			this.setState({
@@ -258,32 +249,34 @@ class BBApp extends Component {
 		}
 		else if (key.startsWith("board-")) {
 
-			var selectedBoard = key.slice(6);
+			try {
+				var selectedBoard = key.slice(6);
 
-			API = '/boards/' + selectedBoard;
-			console.log("API CALL TO GET ACTIVE PROFILE: " + API);
+				var API = '/boards/' + selectedBoard;
+				console.log("API CALL TO GET ACTIVE PROFILE: " + API);
 
-			fetch(API, {
-				method: 'GET',
-				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-					'Authorization': window.sessionStorage.JWT,
-				},
-			}).then((res) => res.json())
-				.then((data) => {
+				var res = await fetch(API, {
+					method: 'GET',
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json',
+						'Authorization': window.sessionStorage.JWT,
+					},
+				});
 
-					var activeProfile = data[0].profile;
-					var activeProfileIsGlobal = data[0].isGlobal;
-					this.setState({
-						activeProfile: activeProfile,
-						activeProfileIsGlobal: activeProfileIsGlobal,
-						currentBoard: selectedBoard
-					});
+				var data = await res.json();
 
-				})
-				.catch((err) => console.log(err));
-
+				var activeProfile = data[0].profile;
+				var activeProfileIsGlobal = data[0].isGlobal;
+				this.setState({
+					activeProfile: activeProfile,
+					activeProfileIsGlobal: activeProfileIsGlobal,
+					currentBoard: selectedBoard
+				});
+			}
+			catch (error) {
+				console.log(error);
+			}
 		}
 		else if (key.startsWith("profile-")) {
 			this.setState({
@@ -298,7 +291,6 @@ class BBApp extends Component {
 			});
 		}
 	}
-
 
 	render() {
 
