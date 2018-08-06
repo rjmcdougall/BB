@@ -105,81 +105,78 @@ class GlobalMenu extends React.Component {
                     type: item.type
                 }))
             });
-            console.log(this.state.boardNames);
         }
         catch (error) {
             this.setState({ error })
         }
     }
 
-    componentWillReceiveProps(nextProps) {
+    async componentWillReceiveProps(nextProps) {
 
-        console.log("FORCE RENDER: " + nextProps.forceRerendder)
-        var API = '/boards/' + nextProps.currentBoard + '/profiles/';
+        try {
+            console.log("FORCE RENDER: " + nextProps.forceRerendder)
+            var API = '/boards/' + nextProps.currentBoard + '/profiles/';
 
-        var profiles;
-        var globalProfiles;
+            var profiles;
+            var globalProfiles;
+            var response;
+            var data, data2, data3;
 
-        console.log("GET ALL PROFILES FOR BOARD API: " + API);
-        fetch(API, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'authorization': window.sessionStorage.JWT,
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
+            console.log("GET ALL PROFILES FOR BOARD API: " + API);
 
-                console.log("returned these profiles: " + JSON.stringify(data));
+            response = await fetch(API, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'authorization': window.sessionStorage.JWT,
+                }
+            });
+            data = await response.json();
 
-                profiles = data.map(item => ({
-                    profile_name: `${item.name}`,
-                }));
+            console.log("returned these profiles: " + JSON.stringify(data));
 
-                API = '/profiles/';
+            profiles = data.map(item => ({
+                profile_name: `${item.name}`,
+            }));
 
-                fetch(API, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'authorization': window.sessionStorage.JWT,
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data2 => {
+            API = '/profiles/';
+            response = await fetch(API, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'authorization': window.sessionStorage.JWT,
+                }
+            });
+            data2 = await response.json();
+            globalProfiles = data2.map(item => ({
+                profile_name: `${item.name}`,
+            }));
 
-                        globalProfiles = data2.map(item => ({
-                            profile_name: `${item.name}`,
-                        }));
+            API = '/boards/' + nextProps.currentBoard;
+            response = await fetch(API, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'authorization': window.sessionStorage.JWT,
+                }
+            });
+            data3 = await response.json();
 
-                        API = '/boards/' + nextProps.currentBoard;
-                        fetch(API, {
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json',
-                                'authorization': window.sessionStorage.JWT,
-                            }
-                        })
-                            .then(response => response.json())
-                            .then(data3 => {
+            this.setState({
+                currentBoard: nextProps.currentBoard,
+                profileNames: profiles,
+                globalProfileNames: globalProfiles,
+                currentProfile: nextProps.currentProfile,
+                activeProfile: data3[0].profile,
+                activeProfileIsGlobal: data3[0].isProfileGlobal,
+                currentAppBody: nextProps.currentAppBody,
+            });
 
-                                this.setState({
-                                    currentBoard: nextProps.currentBoard,
-                                    profileNames: profiles,
-                                    globalProfileNames: globalProfiles,
-                                    currentProfile: nextProps.currentProfile,
-                                    activeProfile: data3[0].profile,
-                                    activeProfileIsGlobal: data3[0].isProfileGlobal,
-                                    currentAppBody: nextProps.currentAppBody,
-                                });
-                            })
-                            .catch(error => this.setState({ error }));
-                    })
-                    .catch(error => this.setState({ error }));
-            })
-            .catch(error => this.setState({ error }));
-    };
+        }
+        catch (error) {
+            this.setState({ error });
+        }
+    }
 
     render() {
         const { classes } = this.props;
@@ -266,32 +263,32 @@ class GlobalMenu extends React.Component {
 
                         onKeyDown={this.toggleDrawer(false)}
                     >
-                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({showBoards: !this.state.showBoards})}>Boards</ListSubheader>} className={classes.list} >
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showBoards: !this.state.showBoards })}>Boards</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "board" }).map(item => (
                                 <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
-                                    style={{display: this.state.showBoards ? "block" : "none"}}
+                                    style={{ display: this.state.showBoards ? "block" : "none" }}
                                 > {item.board_name}
                                 </MenuItem>))
                             }
                         </MenuList>
-                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({showDevices: !this.state.showDevices})}>Devices</ListSubheader>} className={classes.list} >
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showDevices: !this.state.showDevices })}>Devices</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "device" }).map(item => (
                                 <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
-                                    style={{display: this.state.showDevices ? "block" : "none"}}
+                                    style={{ display: this.state.showDevices ? "block" : "none" }}
                                 > {item.board_name}
                                 </MenuItem>))
                             }
                         </MenuList>
-                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({showTesters: !this.state.showTesters})}>Testers</ListSubheader>} className={classes.list} >
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showTesters: !this.state.showTesters })}>Testers</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "tester" }).map(item => (
                                 <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
-                                    style={{display: this.state.showTesters ? "block" : "none"}}
+                                    style={{ display: this.state.showTesters ? "block" : "none" }}
                                 > {item.board_name}
                                 </MenuItem>))
                             }
