@@ -57,6 +57,9 @@ class GlobalMenu extends React.Component {
             activeProfile: props.activeProfile,
             currentBoard: props.currentBoard,
             currentAppBody: props.currentAppBody,
+            showBoards: false,
+            showTesters: false,
+            showDevices: false,
         };
 
         this.handleSelect = this.props.handleSelect.bind(this);
@@ -83,24 +86,30 @@ class GlobalMenu extends React.Component {
         window.open(event.currentTarget.getAttribute('dataurl'));
     }
 
-    componentDidMount() {
+    async componentDidMount() {
 
         const API = '/boards';
 
-        fetch(API, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'authorization': window.sessionStorage.JWT,
-            }
-        })
-            .then(response => response.json())
-            .then(data => this.setState({
-                boardNames: data.map(item => ({
-                    board_name: `${item.name}`,
+        try {
+            var response = await fetch(API, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'authorization': window.sessionStorage.JWT,
+                }
+            });
+            var jsonResponse = await response.json();
+            this.setState({
+                boardNames: jsonResponse.map(item => ({
+                    board_name: item.name,
+                    type: item.type
                 }))
-            }))
-            .catch(error => this.setState({ error }));
+            });
+            console.log(this.state.boardNames);
+        }
+        catch (error) {
+            this.setState({ error })
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -245,7 +254,7 @@ class GlobalMenu extends React.Component {
                         <IconButton onClick={this.toggleGlobalDrawer(true)} className={classes.menuButtonRight} color="inherit" aria-label="Global" >
                             <MenuGlobal />
                         </IconButton>
-                        <IconButton onClick={event => this.handleInstructions(event)} dataurl={"https://docs.google.com/document/d/1rbPOly_-OwgPFjdC9Gr13xeY-RzDLHVyPivl0Hv7Ss4/edit?usp=sharing"}  className={classes.menuButtonRight} color="inherit" aria-label="Help">
+                        <IconButton onClick={event => this.handleInstructions(event)} dataurl={"https://docs.google.com/document/d/1rbPOly_-OwgPFjdC9Gr13xeY-RzDLHVyPivl0Hv7Ss4/edit?usp=sharing"} className={classes.menuButtonRight} color="inherit" aria-label="Help">
                             <HelpIcon />
                         </IconButton>
                     </Toolbar>
@@ -257,16 +266,36 @@ class GlobalMenu extends React.Component {
 
                         onKeyDown={this.toggleDrawer(false)}
                     >
-                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Boards</ListSubheader>} className={classes.list} >
-                            {this.state.boardNames.map(item => (
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({showBoards: !this.state.showBoards})}>Boards</ListSubheader>} className={classes.list} >
+                            {this.state.boardNames.filter((item) => { return item.type === "board" }).map(item => (
                                 <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
+                                    style={{display: this.state.showBoards ? "block" : "none"}}
                                 > {item.board_name}
                                 </MenuItem>))
                             }
                         </MenuList>
-
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({showDevices: !this.state.showDevices})}>Devices</ListSubheader>} className={classes.list} >
+                            {this.state.boardNames.filter((item) => { return item.type === "device" }).map(item => (
+                                <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
+                                    key={"board-" + item.board_name}
+                                    selected={item.board_name === this.state.currentBoard}
+                                    style={{display: this.state.showDevices ? "block" : "none"}}
+                                > {item.board_name}
+                                </MenuItem>))
+                            }
+                        </MenuList>
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({showTesters: !this.state.showTesters})}>Testers</ListSubheader>} className={classes.list} >
+                            {this.state.boardNames.filter((item) => { return item.type === "tester" }).map(item => (
+                                <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
+                                    key={"board-" + item.board_name}
+                                    selected={item.board_name === this.state.currentBoard}
+                                    style={{display: this.state.showTesters ? "block" : "none"}}
+                                > {item.board_name}
+                                </MenuItem>))
+                            }
+                        </MenuList>
                         {this.state.currentBoard !== "Select Board" ? (
                             <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Profiles</ListSubheader>} className={classes.list} >
                                 {this.state.profileNames.map(item => {
