@@ -65,15 +65,12 @@ class GlobalMenu extends React.Component {
         };
 
         this.handleSelect = this.props.handleSelect.bind(this);
-
     }
 
     toggleDrawer = (open) => () => {
         this.setState({
             drawerIsOpen: open,
         });
-
-
     };
 
     toggleGlobalDrawer = (open) => () => {
