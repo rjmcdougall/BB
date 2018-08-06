@@ -60,6 +60,8 @@ class GlobalMenu extends React.Component {
             showBoards: false,
             showTesters: false,
             showDevices: false,
+            showProfiles: false,
+            showMedia: false,
         };
 
         this.handleSelect = this.props.handleSelect.bind(this);
@@ -198,22 +200,24 @@ class GlobalMenu extends React.Component {
                 return this.state.currentProfile;
         }
 
-        var renderProfiles = (inGlobalBlock, item) => {
+        var renderProfiles = (inGlobalBlock, item, showProfiles) => {
 
             if (inGlobalBlock) {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
-                        <MenuItem onClick={event => this.handleSelect(event, "globalProfile-" + item.profile_name)}
+                        <MenuItem onClick={event => { this.handleSelect(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
+                            style={{ display: showProfiles ? "block" : "none" }}
                         >  <CheckCircle /> &nbsp; {item.profile_name} &nbsp;<MenuGlobal />
                         </MenuItem>
                     );
                 else
                     return (
-                        <MenuItem onClick={event => this.handleSelect(event, "globalProfile-" + item.profile_name)}
+                        <MenuItem onClick={event => { this.handleSelect(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
+                            style={{ display: showProfiles ? "block" : "none" }}
                         > {item.profile_name} &nbsp; <MenuGlobal />
                         </MenuItem>
                     );
@@ -221,17 +225,19 @@ class GlobalMenu extends React.Component {
             else {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
-                        <MenuItem onClick={event => this.handleSelect(event, "profile-" + item.profile_name)}
+                        <MenuItem onClick={event => { this.handleSelect(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"profile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
+                            style={{ display: showProfiles ? "block" : "none" }}
                         > <CheckCircle /> &nbsp; {item.profile_name}
                         </MenuItem>
                     );
                 else
                     return (
-                        <MenuItem onClick={event => this.handleSelect(event, "profile-" + item.profile_name)}
+                        <MenuItem onClick={event => { this.handleSelect(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"profile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
+                            style={{ display: showProfiles ? "block" : "none" }}
                         > {item.profile_name}
                         </MenuItem>
                     );
@@ -265,7 +271,7 @@ class GlobalMenu extends React.Component {
                     >
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showBoards: !this.state.showBoards })}>Boards</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "board" }).map(item => (
-                                <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
+                                <MenuItem onClick={event => { this.handleSelect(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
                                     style={{ display: this.state.showBoards ? "block" : "none" }}
@@ -275,7 +281,7 @@ class GlobalMenu extends React.Component {
                         </MenuList>
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showDevices: !this.state.showDevices })}>Devices</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "device" }).map(item => (
-                                <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
+                                <MenuItem onClick={event => { this.handleSelect(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
                                     style={{ display: this.state.showDevices ? "block" : "none" }}
@@ -285,7 +291,7 @@ class GlobalMenu extends React.Component {
                         </MenuList>
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showTesters: !this.state.showTesters })}>Testers</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "tester" }).map(item => (
-                                <MenuItem onClick={event => this.handleSelect(event, "board-" + item.board_name)}
+                                <MenuItem onClick={event => { this.handleSelect(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
                                     style={{ display: this.state.showTesters ? "block" : "none" }}
@@ -294,13 +300,13 @@ class GlobalMenu extends React.Component {
                             }
                         </MenuList>
                         {this.state.currentBoard !== "Select Board" ? (
-                            <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Profiles</ListSubheader>} className={classes.list} >
+                            <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
                                 {this.state.profileNames.map(item => {
-                                    return renderProfiles(false, item);
+                                    return renderProfiles(false, item, this.state.showProfiles);
                                 })}
                                 <Divider />
                                 {this.state.globalProfileNames.map(item => {
-                                    return renderProfiles(true, item);
+                                    return renderProfiles(true, item, this.state.showProfiles);
                                 })}
                             </MenuList>
                         ) :
@@ -310,12 +316,27 @@ class GlobalMenu extends React.Component {
                                 })} */}
                             </MenuList>
                         }
-                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Media</ListSubheader>} className={classes.list} >
-                            <MenuItem selected={"AppBody-ReorderAudio" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ReorderAudio")} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
-                            <MenuItem selected={"AppBody-ReorderVideo" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ReorderVideo")} disabled={optionsDisabled || profileDisabled} key="AppBody-ReorderVideo">Reorder Video</MenuItem>
-                            <MenuItem selected={"AppBody-ManageMedia" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ManageMedia")} disabled={optionsDisabled || profileDisabled} key="AppBody-ManageMedia">Remove Media</MenuItem>
-                            <MenuItem selected={"AppBody-LoadFromGDrive" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-LoadFromGDrive")} disabled={optionsDisabled || profileDisabled} key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
-                            <MenuItem selected={"AppBody-ActivateProfile" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ActivateProfile")} disabled={optionsDisabled || profileDisabled} key="AppBody-ActivateProfile">Activate This Profile</MenuItem>
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showMedia: !this.state.showMedia })}>Media</ListSubheader>} className={classes.list} >
+                            <MenuItem selected={"AppBody-ReorderAudio" === this.state.currentAppBody}
+                                onClick={event => this.handleSelect(event, "AppBody-ReorderAudio")}
+                                style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
+                                key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
+                            <MenuItem selected={"AppBody-ReorderVideo" === this.state.currentAppBody}
+                                onClick={event => this.handleSelect(event, "AppBody-ReorderVideo")}
+                                style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
+                                key="AppBody-ReorderVideo">Reorder Video</MenuItem>
+                            <MenuItem selected={"AppBody-ManageMedia" === this.state.currentAppBody}
+                                onClick={event => this.handleSelect(event, "AppBody-ManageMedia")}
+                                style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
+                                key="AppBody-ManageMedia">Remove Media</MenuItem>
+                            <MenuItem selected={"AppBody-LoadFromGDrive" === this.state.currentAppBody}
+                                onClick={event => this.handleSelect(event, "AppBody-LoadFromGDrive")}
+                                style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
+                                key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
+                            <MenuItem selected={"AppBody-ActivateProfile" === this.state.currentAppBody}
+                                onClick={event => this.handleSelect(event, "AppBody-ActivateProfile")}
+                                style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
+                                key="AppBody-ActivateProfile">Activate This Profile</MenuItem>
                         </MenuList>
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Other</ListSubheader>} className={classes.list} >
                             <MenuItem disabled={optionsDisabled} onClick={event => this.handleSelect(event, "AppBody-BatteryHistory")} key="AppBody-BatteryHistory">Battery History</MenuItem>
