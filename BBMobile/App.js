@@ -26,8 +26,11 @@ export default class App extends React.Component {
 	}
  
 	async setUserPrefs(userPrefs) {
+
+		await StateBuilder.setUserPrefs(userPrefs);
+
 		this.setState({
-			userPrefs: await StateBuilder.setUserPrefs(userPrefs),
+			userPrefs: userPrefs, 
 		});
 	}
 

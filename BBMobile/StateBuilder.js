@@ -3,13 +3,18 @@ import FileSystemConfig from "./FileSystemConfig";
 import BBComAPIData from "./BBComAPIData";
 import BLEIDs from "./BLEIDs";
 import BLEBoardData from "./BLEBoardData";
-
+import Geolocation from "react-native-geolocation-service";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
 	isBurnerMode: false,
 	wifiLocations: false,
 	mapPoints: false,
+	includeMeOnMap: false,
+	man: {
+		latitude: 40.7866,
+		longitude: -119.20660000000001,
+	}
 };
 
 var bEmptyMediaState = {
@@ -23,12 +28,12 @@ var bEmptyMediaState = {
 		maxChannel: 1,
 		volume: 0,
 		channels:
-			[null,{ channelNo: 1, channelInfo: "loading..." }]
+			[null, { channelNo: 1, channelInfo: "loading..." }]
 	},
 	video: {
 		channelNo: 1,
 		maxChannel: 1,
-		channels: [null,{ channelNo: 1, channelInfo: "loading..." }]
+		channels: [null, { channelNo: 1, channelInfo: "loading..." }]
 	},
 	device: {
 		deviceNo: 1,
@@ -51,6 +56,13 @@ var bEmptyMediaState = {
 	isError: false,
 	logLines: [{ logLine: "", isError: false }],
 	boards: [{ name: "none", address: 1234 }],
+	phoneLocation: {
+		latitude: 0,
+		longitude: 0,
+		boardId: "my phone",
+		title: "my phone",
+		dateTime: Date.now()
+	}
 };
 
 exports.blankUserPrefs = function () {
@@ -93,14 +105,18 @@ async function getBoardsInternal(mediaState) {
 		mediaState.boards = boards;
 	}
 	catch (error) {
-		console.log("SB: " + error);
+		console.log("StateBuilder: " + error);
 	}
 	return mediaState;
 }
 
-exports.getBoards = async function () {
+exports.getBoards = async function (isBurnerMode) {
 	try {
-		var boards = await BBComAPIData.fetchBoards();
+		var boards = null;
+
+		// no wifi in burner mode
+		if (isBurnerMode)
+			boards = await BBComAPIData.fetchBoards();
 
 		if (boards) {
 			await FileSystemConfig.setBoards(boards);
@@ -108,9 +124,14 @@ exports.getBoards = async function () {
 		else {
 			boards = await FileSystemConfig.getBoards();
 		}
+
+		if (boards)
+			return boards;
+		else
+			return mblankUserPrefs();
 	}
 	catch (error) {
-		console.log(error);
+		console.log("StateBuilder: Error: " + error);
 	}
 	return boards;
 };
@@ -120,7 +141,12 @@ exports.getUserPrefs = async function () {
 		var userPrefs = await FileSystemConfig.getUserPrefs();
 
 		if (userPrefs) {
-			if(userPrefs.mapPoints != null && userPrefs.isBurnerMode != null && userPrefs.isDevilsHand != null && userPrefs.wifiLocations != null)
+			if (userPrefs.mapPoints != null
+				&& userPrefs.isBurnerMode != null
+				&& userPrefs.isDevilsHand != null
+				&& userPrefs.wifiLocations != null
+				&& userPrefs.man != null
+				&& userPrefs.includeMeOnMap != null)
 				return userPrefs;
 			else
 				return mblankUserPrefs();
@@ -135,8 +161,32 @@ exports.getUserPrefs = async function () {
 };
 
 exports.setUserPrefs = async function (userPrefs) {
-	return await FileSystemConfig.setUserPrefs(userPrefs);
+	console.log("SET user prefs")
+	console.log(userPrefs)
+	await FileSystemConfig.setUserPrefs(userPrefs);
 };
+
+exports.getPhoneLocation = async function (mediaState) {
+	mediaState.phoneLocation = await checkPhoneLocation();
+	return mediaState;
+};
+
+exports.getLocationForMan = async function () {
+	return await checkPhoneLocation();
+};
+
+function checkPhoneLocation() {
+	return new Promise(function (resolve, reject) {
+		Geolocation.getCurrentPosition(
+			(position) => {
+				resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude, boardId: "my phone", dateTime: Date.now(), title: "my phone" });
+			},
+			(error) => {
+				reject(error);
+			},
+			{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
+	});
+}
 
 exports.getLocations = function (mediaState, showAPILocations) {
 
@@ -145,7 +195,7 @@ exports.getLocations = function (mediaState, showAPILocations) {
 		var afterLocations = Array();
 		var currentBoard;
 		var existingBoard;
- 
+
 		for (var i = 0; i < locations.length; i++) {
 			currentBoard = locations[i];
 
@@ -154,8 +204,8 @@ exports.getLocations = function (mediaState, showAPILocations) {
 				return currentBoard.boardId == item.boardId;
 			});
 
-			if(existingBoard[0]) {
-				if(existingBoard.dateTime < currentBoard.dateTime){
+			if (existingBoard[0]) {
+				if (existingBoard.dateTime < currentBoard.dateTime) {
 					// remove it and add the new one
 					afterLocations = afterLocations.filter((board) => {
 						return board.boardId != existingBoard[0].boardId;
@@ -173,4 +223,39 @@ exports.getLocations = function (mediaState, showAPILocations) {
 	else {
 		return mediaState.locations;
 	}
+};
+
+
+exports.getRegionForCoordinates = function (points) {
+	// points should be an array of { latitude: X, longitude: Y }
+	let minX, maxX, minY, maxY;
+
+	// init first point
+	((point) => {
+		minX = point.latitude;
+		maxX = point.latitude;
+		minY = point.longitude;
+		maxY = point.longitude;
+	})(points[0]);
+
+	// calculate rect
+	points.map((point) => {
+		minX = Math.min(minX, point.latitude);
+		maxX = Math.max(maxX, point.latitude);
+		minY = Math.min(minY, point.longitude);
+		maxY = Math.max(maxY, point.longitude);
+	});
+
+	const midX = (minX + maxX) / 2;
+	const midY = (minY + maxY) / 2;
+	const deltaX = Math.max(0.01, (maxX - minX) * 2);
+	const deltaY = Math.max(0.01, (maxY - minY) * 2);
+
+	return {
+		latitude: midX,
+		longitude: midY,
+		latitudeDelta: deltaX,
+		longitudeDelta: deltaY,
+		hasBeenAutoGenerated: true,
+	};
 };

@@ -5,41 +5,18 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
 import StyleSheet from "./StyleSheet";
-import Geojson from "react-native-geojson";
+import GeoJSON from "./GeoJSON";
 import Fence from "./geo/fence";
-import Outline from "./geo/outline";
+//import Outline from "./geo/outline";
 import Points from "./geo/points";
-// import Streets from "./geo/streets";
-// import Toilets from "./geo/toilets";
+import Streets from "./geo/streets";
+import Toilets from "./geo/toilets";
 
 export default class MapController extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			autoZoom: false,
-			burnerRegion: {
-				latitude: 40.785,
-				longitude: -119.21,
-				latitudeDelta: 0.0522,
-				longitudeDelta: 0.0522,
-			},
-			burnerLocations: [
-				{
-					title: "Vega",
-					latitude: 40.78392228857742,
-					longitude: -119.19034076975402,
-				},
-				{
-					title: "Candy",
-					latitude: 40.78389025037139,
-					longitude: -119.19016483355881,
-				},
-				{
-					title: "Pegasus",
-					latitude: 40.78335738965655,
-					longitude: -119.19033408191932,
-				},
-			]
 		};
 	}
 
@@ -47,19 +24,16 @@ export default class MapController extends React.Component {
 
 		try {
 
-
-			var locations;
+			var locations = new Array();
 			var region;
 
-			if (this.props.userPrefs.isBurnerMode)
-				locations = this.state.burnerLocations;
-			else
-				locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
+			locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
 
-			if (this.props.userPrefs.isBurnerMode)
-				region = this.state.burnerRegion;
-			else if (this.state.autoZoom == true)
-				region = this.props.mediaState.region;
+			if(this.props.userPrefs.includeMeOnMap)
+				locations = [...locations,this.props.mediaState.phoneLocation];
+
+			if (this.state.autoZoom == true && (locations.length > 0))
+				region = StateBuilder.getRegionForCoordinates(locations);
 			else
 				region = null;
 
@@ -68,14 +42,17 @@ export default class MapController extends React.Component {
 					<MapView style={StyleSheet.map} region={region} >
 						{locations.map(marker => {
 
-							var ONE_HOUR = 60 * 60 * 1000; /* ms */
+							var ONE_DAY = 24 * 60 * 60 * 1000; /* ms */
+							var THIRTY_MIN = 30 * 60 * 1000; /* ms */
+							var FIVE_MIN = 5 * 60 * 1000;
 							var pinColor;
 
-							if (((new Date()) - new Date(marker.dateTime)) > ONE_HOUR)
-								pinColor = "red";
-
-							else
+							if (((new Date()) - new Date(marker.dateTime)) < FIVE_MIN)
+								pinColor = "green";
+							else if (((new Date()) - new Date(marker.dateTime)) < THIRTY_MIN)
 								pinColor = "blue";
+							else if (((new Date()) - new Date(marker.dateTime)) < ONE_DAY)
+								pinColor = "red";
 
 							return (
 								<MapView.Marker
@@ -89,15 +66,10 @@ export default class MapController extends React.Component {
 								/>
 							);
 						})}
-						<Geojson geojson={Outline.outline} />
-						<Geojson geojson={Fence.fence} />
-						{(this.props.userPrefs.mapPoints) ? <Geojson geojson={Points.points} /> : <View />}
-
-
-						{/*	
-						<Geojson geojson={Streets.streets} />
-						
-					<Geojson geojson={Toilets.toilets} /> */}
+						{(this.props.userPrefs.isBurnerMode) ? <GeoJSON geojson={Streets.streets} userPrefs={this.props.userPrefs} /> : <View />}
+						{(this.props.userPrefs.isBurnerMode) ? <GeoJSON geojson={Fence.fence} userPrefs={this.props.userPrefs} />  : <View />}
+						{(this.props.userPrefs.isBurnerMode && this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Points.points} pinColor="black" userPrefs={this.props.userPrefs} /> : <View />}
+						{(this.props.userPrefs.isBurnerMode && this.props.userPrefs.mapPoints) ? <GeoJSON geojson={Toilets.toilets} pinColor="brown" userPrefs={this.props.userPrefs} /> : <View />}
 					</MapView>
 					<View style={StyleSheet.button}>
 						<Touchable
@@ -121,7 +93,7 @@ export default class MapController extends React.Component {
 			);
 		}
 		catch (error) {
-			console.log("Error:" + error);
+			console.log("MapController: Error:" + error);
 		}
 
 	}

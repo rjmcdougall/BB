@@ -97,7 +97,7 @@ def enableProguardInReleaseBuilds = false
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.0"
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         applicationId "com.bbmobile"
@@ -139,6 +139,7 @@ android {
 }
 
 dependencies {
+    compile project(':react-native-geolocation-service')
     compile project(':react-native-wheel-picker')
     compile project(':react-native-vector-icons')
     compile project(':react-native-maps')
