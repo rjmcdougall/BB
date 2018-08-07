@@ -70,7 +70,7 @@ public class BurnerBoardMast extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 12;
+        return 18;
     }
 
     public void start() {
