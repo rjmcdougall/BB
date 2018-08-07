@@ -1,17 +1,15 @@
-import React, { Component } from 'react';
-import MediaList from './MediaList';
-import GlobalMenu from './GlobalMenu';
-import BoardGrid from './BoardGrid';
-import BatteryHistoryGrid from './BatteryHistoryGrid';
-import GoogleDriveMediaPicker from './GoogleDriveMediaPicker';
-import ManageMediaGrid from './ManageMediaGrid';
-import ProfileGrid from './ProfileGrid';
-import AddProfile from './AddProfile';
-import SetActiveProfile from './SetActiveProfile';
-//import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
-//import Typography from 'material-ui/Typography';
-
-class BBApp extends Component {
+import React, { Component } from "react";
+import MediaList from "./MediaList";
+import GlobalMenu from "./GlobalMenu";
+import BoardGrid from "./BoardGrid";
+import BatteryHistoryGrid from "./BatteryHistoryGrid";
+import GoogleDriveMediaPicker from "./GoogleDriveMediaPicker";
+import ManageMediaGrid from "./ManageMediaGrid";
+import ProfileGrid from "./ProfileGrid";
+import AddProfile from "./AddProfile";
+import SetActiveProfile from "./SetActiveProfile";
+ 
+export default class BBApp extends Component {
 
 	constructor(props) {
 		super(props);
@@ -38,7 +36,10 @@ class BBApp extends Component {
 			createProfileBoardCloneProfileName: "NONE - NONE",
 		};
 
-		this.handleSelect = this.handleSelect.bind(this);
+		this.onSelectAppBody = this.onSelectAppBody.bind(this);
+		this.onSelectBoard = this.onSelectBoard.bind(this);
+		this.onSelectProfile = this.onSelectProfile.bind(this);
+
 		this.reloadOnExpiration = this.props.reloadOnExpiration.bind(this);
 	}
 
@@ -82,19 +83,19 @@ class BBApp extends Component {
 		var cloneFromProfileID = this.state.createProfileBoardCloneProfileName.substring(this.state.createProfileBoardCloneProfileName.indexOf(" - ") + 3);
 
 		if (boardID !== "GLOBAL")
-			API = '/boards/' + boardID + '/profiles/' + profileID;
+			API = "/boards/" + boardID + "/profiles/" + profileID;
 		else
-			API = '/profiles/' + profileID;
+			API = "/profiles/" + profileID;
 
 		console.log("API TO CREATE PROFILE : " + API);
 
 		try {
 			var res = await fetch(API, {
-				method: 'POST',
+				method: "POST",
 				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-					'Authorization': window.sessionStorage.JWT,
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"Authorization": window.sessionStorage.JWT,
 				},
 				body: JSON.stringify({
 					cloneFromBoardID: cloneFromBoardID,
@@ -141,15 +142,15 @@ class BBApp extends Component {
 		this.reloadOnExpiration();
 
 		try {
-			var API = '/boards/' + this.state.currentBoard + '/activeProfile/' + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
+			var API = "/boards/" + this.state.currentBoard + "/activeProfile/" + this.state.currentProfile + "/isGlobal/" + this.state.currentProfileIsGlobal;
 			console.log("API TO SET BOARD ACTIVE: " + API);
 
 			var res = await fetch(API, {
-				method: 'POST',
+				method: "POST",
 				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-					'Authorization': window.sessionStorage.JWT,
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"Authorization": window.sessionStorage.JWT,
 				},
 			});
 
@@ -164,7 +165,7 @@ class BBApp extends Component {
 			});
 		}
 		catch (error) {
-			console.log('error : ' + error);
+			console.log("error : " + error);
 			this.setState({
 				activateOpenSnackbar: true,
 				activateResultsMessage: error.message
@@ -179,37 +180,37 @@ class BBApp extends Component {
 		try {
 			var comp = this;
 			var profileSelected = this.state.profileSelected.toString();
-			var profileID = profileSelected.slice(profileSelected.indexOf('-') + 1)
-			var boardID = profileSelected.slice(0, profileSelected.indexOf('-'));
+			var profileID = profileSelected.slice(profileSelected.indexOf("-") + 1)
+			var boardID = profileSelected.slice(0, profileSelected.indexOf("-"));
 
 			var API = "";
 			if (boardID !== "null")
-				API = '/boards/' + boardID + '/profiles/' + profileID
+				API = "/boards/" + boardID + "/profiles/" + profileID
 			else
-				API = '/profiles/' + profileID
+				API = "/profiles/" + profileID
 
 			console.log("delete API : " + API);
 
 			var res = await fetch(API, {
-				method: 'DELETE',
+				method: "DELETE",
 				headers: {
-					'Accept': 'application/json',
-					'Content-Type': 'application/json',
-					'Authorization': window.sessionStorage.JWT,
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"Authorization": window.sessionStorage.JWT,
 				}
 			});
 
 			var json = await res.json();
 
 			if (!res.ok) {
-				console.log('error : ' + JSON.stringify(json));
+				console.log("error : " + JSON.stringify(json));
 				this.setState({
 					profileDeleteSnackbarOpen: true,
 					profileDeleteResultsMessage: JSON.stringify(json),
 				});
 			}
 			else {
-				console.log('success : ' + JSON.stringify(json));
+				console.log("success : " + JSON.stringify(json));
 				this.setState({
 					profileDeleteSnackbarOpen: true,
 					profileDeleteResultsMessage: JSON.stringify(json),
@@ -218,73 +219,66 @@ class BBApp extends Component {
 			}
 		}
 		catch (error) {
-			console.log('error : ' + error);
+			console.log("error : " + error);
 			comp.setState({
 				profileDeleteSnackbarOpen: true,
 				profileDeleteResultsMessage: error.message
 			});
 		}
 	}
-
-	handleChange = event => {
-
-		this.reloadOnExpiration();
-
-		console.log("Set state due to form change: " + [event.target.name] + " " + event.target.value)
-		this.setState({ [event.target.name]: event.target.value });
-
-	};
-
-	handleSelect = async (event, key) => {
-
-		this.reloadOnExpiration();
  
-		if (key.startsWith("AppBody-")) {
+	async onSelectAppBody(event, key) {
+		this.reloadOnExpiration();
 
+		this.setState({
+			currentAppBody: key,
+			drawerIsOpen: false,
+			globalDrawerIsOpen: false,
+		});
+	}
+	async onSelectBoard(event, key) {
+		this.reloadOnExpiration();
+
+		try {
+			var selectedBoard = key.slice(6);
+
+			var API = "/boards/" + selectedBoard;
+			console.log("API CALL TO GET ACTIVE PROFILE: " + API);
+
+			var res = await fetch(API, {
+				method: "GET",
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"Authorization": window.sessionStorage.JWT,
+				},
+			});
+
+			var data = await res.json();
+
+			var activeProfile = data[0].profile;
+			var activeProfileIsGlobal = data[0].isGlobal;
 			this.setState({
-				currentAppBody: key,
-				drawerIsOpen: false,
-				globalDrawerIsOpen: false,
+				activeProfile: activeProfile,
+				activeProfileIsGlobal: activeProfileIsGlobal,
+				currentBoard: selectedBoard
 			});
 		}
-		else if (key.startsWith("board-")) {
-
-			try {
-				var selectedBoard = key.slice(6);
-
-				var API = '/boards/' + selectedBoard;
-				console.log("API CALL TO GET ACTIVE PROFILE: " + API);
-
-				var res = await fetch(API, {
-					method: 'GET',
-					headers: {
-						'Accept': 'application/json',
-						'Content-Type': 'application/json',
-						'Authorization': window.sessionStorage.JWT,
-					},
-				});
-
-				var data = await res.json();
-
-				var activeProfile = data[0].profile;
-				var activeProfileIsGlobal = data[0].isGlobal;
-				this.setState({
-					activeProfile: activeProfile,
-					activeProfileIsGlobal: activeProfileIsGlobal,
-					currentBoard: selectedBoard
-				});
-			}
-			catch (error) {
-				console.log(error);
-			}
+		catch (error) {
+			console.log(error);
 		}
-		else if (key.startsWith("profile-")) {
+	}
+
+	async onSelectProfile(event, key) {
+		this.reloadOnExpiration();
+
+		if (key.startsWith("profile-")) {
 			this.setState({
 				currentProfile: key.slice(8),
 				currentProfileIsGlobal: false
 			});
 		}
-		else if (key.startsWith("globalProfile-")) {
+		else {
 			this.setState({
 				currentProfile: key.slice(14),
 				currentProfileIsGlobal: true
@@ -340,16 +334,16 @@ class BBApp extends Component {
 			default:
 				if (this.state.currentBoard !== "Select Board") {
 					appBody = <div style={{
-						'backgroundColor': 'lightblue',
-						'margin': '1cm 1cm 1cm 1cm',
-						'padding': '10px 5px 15px 20px'
+						"backgroundColor": "lightblue",
+						"margin": "1cm 1cm 1cm 1cm",
+						"padding": "10px 5px 15px 20px"
 					}}><div>You selected {this.state.currentBoard}.</div><div>Board-specific options available.</div><div>Select a profile to manage media. The * indicates the active profile on {this.state.currentBoard}.</div></div>;
 				}
 				else {
 					appBody = <div style={{
-						'backgroundColor': 'lightblue',
-						'margin': '1cm 1cm 1cm 1cm',
-						'padding': '10px 5px 15px 20px'
+						"backgroundColor": "lightblue",
+						"margin": "1cm 1cm 1cm 1cm",
+						"padding": "10px 5px 15px 20px"
 					}}><div>Global options available.</div> <div>Please select a board for board-specific options.</div></div>;
 				}
 				break;
@@ -359,15 +353,18 @@ class BBApp extends Component {
 			<div className="BBApp" style={{ margin: 0 }}>
 
 
-				<GlobalMenu handleSelect={this.handleSelect}
-					currentBoard={this.state.currentBoard}
+				<GlobalMenu currentBoard={this.state.currentBoard}
 					activeProfile={this.state.activeProfile}
 					activeProfileIsGlobal={this.state.activeProfileIsGlobal}
 					drawerIsOpen={this.state.drawerIsOpen}
 					globalDrawerIsOpen={this.state.globalDrawerIsOpen}
 					currentAppBody={this.state.currentAppBody}
 					currentProfile={this.state.currentProfile}
-					forceRerender={this.state.forceRerendder} />
+					forceRerender={this.state.forceRerendder}
+					onSelectBoard={this.onSelectBoard}
+					onSelectAppBody={this.onSelectAppBody}
+					onSelectProfile={this.onSelectProfile}
+				/>
 				{/* <MuiThemeProvider theme={readableText}>
             <Typography>*/}
 				{appBody}
@@ -377,6 +374,4 @@ class BBApp extends Component {
 		);
 	}
 }
-
-export default BBApp;
-
+ 

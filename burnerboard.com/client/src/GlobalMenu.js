@@ -1,23 +1,22 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { withStyles } from 'material-ui/styles';
-import AppBar from 'material-ui/AppBar';
-import Toolbar from 'material-ui/Toolbar';
-import Typography from 'material-ui/Typography';
-import IconButton from 'material-ui/IconButton';
-import MenuIcon from 'material-ui-icons/Menu';
-import HelpIcon from 'material-ui-icons/Help';
-import CheckCircle from 'material-ui-icons/CheckCircle';
-import MenuGlobal from 'material-ui-icons/Language';
-import Drawer from 'material-ui/Drawer';
-import Divider from 'material-ui/Divider';
-import ListSubheader from 'material-ui/List/ListSubheader';
-
-import { MenuList, MenuItem } from 'material-ui/Menu';
+import React from "react";
+import PropTypes from "prop-types";
+import { withStyles } from "material-ui/styles";
+import AppBar from "material-ui/AppBar";
+import Toolbar from "material-ui/Toolbar";
+import Typography from "material-ui/Typography";
+import IconButton from "material-ui/IconButton";
+import MenuIcon from "material-ui-icons/Menu";
+import HelpIcon from "material-ui-icons/Help";
+import CheckCircle from "material-ui-icons/CheckCircle";
+import MenuGlobal from "material-ui-icons/Language";
+import Drawer from "material-ui/Drawer";
+import Divider from "material-ui/Divider";
+import ListSubheader from "material-ui/List/ListSubheader";
+import { MenuList, MenuItem } from "material-ui/Menu";
 
 const menuStyles = {
     root: {
-        width: '100%',
+        width: "100%",
     },
     flex: {
         flex: 1,
@@ -34,11 +33,11 @@ const menuStyles = {
         width: 250,
     },
     listSubheader: {
-        backgroundColor: '#3f50b5',//'#757ce8',
-        color: 'white',
+        backgroundColor: "#3f50b5",//"#757ce8",
+        color: "white",
     },
     listFull: {
-        width: 'auto',
+        width: "auto",
     },
 };
 
@@ -63,8 +62,7 @@ class GlobalMenu extends React.Component {
             showProfiles: false,
             showMedia: false,
         };
-
-        this.handleSelect = this.props.handleSelect.bind(this);
+ 
     }
 
     toggleDrawer = (open) => () => {
@@ -81,20 +79,20 @@ class GlobalMenu extends React.Component {
 
     handleInstructions = event => {
         // eslint-disable-next-line no-console
-        console.log(event.currentTarget.getAttribute('dataurl'));
-        window.open(event.currentTarget.getAttribute('dataurl'));
+        console.log(event.currentTarget.getAttribute("dataurl"));
+        window.open(event.currentTarget.getAttribute("dataurl"));
     }
 
     async componentDidMount() {
 
-        const API = '/boards';
+        const API = "/boards";
 
         try {
             var response = await fetch(API, {
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'authorization': window.sessionStorage.JWT,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "authorization": window.sessionStorage.JWT,
                 }
             });
             var jsonResponse = await response.json();
@@ -114,7 +112,7 @@ class GlobalMenu extends React.Component {
 
         try {
             console.log("FORCE RENDER: " + nextProps.forceRerendder)
-            var API = '/boards/' + nextProps.currentBoard + '/profiles/';
+            var API = "/boards/" + nextProps.currentBoard + "/profiles/";
 
             var profiles;
             var globalProfiles;
@@ -125,9 +123,9 @@ class GlobalMenu extends React.Component {
 
             response = await fetch(API, {
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'authorization': window.sessionStorage.JWT,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "authorization": window.sessionStorage.JWT,
                 }
             });
             data = await response.json();
@@ -138,12 +136,12 @@ class GlobalMenu extends React.Component {
                 profile_name: item.name,
             }));
 
-            API = '/profiles/';
+            API = "/profiles/";
             response = await fetch(API, {
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'authorization': window.sessionStorage.JWT,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "authorization": window.sessionStorage.JWT,
                 }
             });
             data2 = await response.json();
@@ -151,12 +149,12 @@ class GlobalMenu extends React.Component {
                 profile_name: item.name,
             }));
 
-            API = '/boards/' + nextProps.currentBoard;
+            API = "/boards/" + nextProps.currentBoard;
             response = await fetch(API, {
                 headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'authorization': window.sessionStorage.JWT,
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                    "authorization": window.sessionStorage.JWT,
                 }
             });
             data3 = await response.json();
@@ -202,7 +200,7 @@ class GlobalMenu extends React.Component {
             if (inGlobalBlock) {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
-                        <MenuItem onClick={event => { this.handleSelect(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
+                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
                             style={{ display: showProfiles ? "block" : "none" }}
@@ -211,7 +209,7 @@ class GlobalMenu extends React.Component {
                     );
                 else
                     return (
-                        <MenuItem onClick={event => { this.handleSelect(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
+                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"globalProfile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
                             style={{ display: showProfiles ? "block" : "none" }}
@@ -222,7 +220,7 @@ class GlobalMenu extends React.Component {
             else {
                 if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
                     return (
-                        <MenuItem onClick={event => { this.handleSelect(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
+                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"profile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
                             style={{ display: showProfiles ? "block" : "none" }}
@@ -231,7 +229,7 @@ class GlobalMenu extends React.Component {
                     );
                 else
                     return (
-                        <MenuItem onClick={event => { this.handleSelect(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
+                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
                             key={"profile-" + item.profile_name}
                             selected={item.profile_name === this.state.currentProfile}
                             style={{ display: showProfiles ? "block" : "none" }}
@@ -268,7 +266,7 @@ class GlobalMenu extends React.Component {
                     >
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showBoards: !this.state.showBoards })}>Boards</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "board" }).map(item => (
-                                <MenuItem onClick={event => { this.handleSelect(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
+                                <MenuItem onClick={event => { this.props.onSelectBoard(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
                                     style={{ display: this.state.showBoards ? "block" : "none" }}
@@ -278,7 +276,7 @@ class GlobalMenu extends React.Component {
                         </MenuList>
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showDevices: !this.state.showDevices })}>Devices</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "device" }).map(item => (
-                                <MenuItem onClick={event => { this.handleSelect(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
+                                <MenuItem onClick={event => { this.props.onSelectBoard(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
                                     style={{ display: this.state.showDevices ? "block" : "none" }}
@@ -288,7 +286,7 @@ class GlobalMenu extends React.Component {
                         </MenuList>
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showTesters: !this.state.showTesters })}>Testers</ListSubheader>} className={classes.list} >
                             {this.state.boardNames.filter((item) => { return item.type === "tester" }).map(item => (
-                                <MenuItem onClick={event => { this.handleSelect(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
+                                <MenuItem onClick={event => { this.props.onSelectBoard(event, "board-" + item.board_name); this.setState({ showProfiles: true }) }}
                                     key={"board-" + item.board_name}
                                     selected={item.board_name === this.state.currentBoard}
                                     style={{ display: this.state.showTesters ? "block" : "none" }}
@@ -315,28 +313,28 @@ class GlobalMenu extends React.Component {
                         }
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showMedia: !this.state.showMedia })}>Media</ListSubheader>} className={classes.list} >
                             <MenuItem selected={"AppBody-ReorderAudio" === this.state.currentAppBody}
-                                onClick={event => this.handleSelect(event, "AppBody-ReorderAudio")}
+                                onClick={event => this.props.onSelectAppBody(event, "AppBody-ReorderAudio")}
                                 style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
                                 key="AppBody-ReorderAudio">Reorder Audio</MenuItem>
                             <MenuItem selected={"AppBody-ReorderVideo" === this.state.currentAppBody}
-                                onClick={event => this.handleSelect(event, "AppBody-ReorderVideo")}
+                                onClick={event => this.props.onSelectAppBody(event, "AppBody-ReorderVideo")}
                                 style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
                                 key="AppBody-ReorderVideo">Reorder Video</MenuItem>
                             <MenuItem selected={"AppBody-ManageMedia" === this.state.currentAppBody}
-                                onClick={event => this.handleSelect(event, "AppBody-ManageMedia")}
+                                onClick={event => this.props.onSelectAppBody(event, "AppBody-ManageMedia")}
                                 style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
                                 key="AppBody-ManageMedia">Remove Media</MenuItem>
                             <MenuItem selected={"AppBody-LoadFromGDrive" === this.state.currentAppBody}
-                                onClick={event => this.handleSelect(event, "AppBody-LoadFromGDrive")}
+                                onClick={event => this.props.onSelectAppBody(event, "AppBody-LoadFromGDrive")}
                                 style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
                                 key="AppBody-LoadFromGDrive">Add From G Drive</MenuItem>
                             <MenuItem selected={"AppBody-ActivateProfile" === this.state.currentAppBody}
-                                onClick={event => this.handleSelect(event, "AppBody-ActivateProfile")}
+                                onClick={event => this.props.onSelectAppBody(event, "AppBody-ActivateProfile")}
                                 style={{ display: this.state.showMedia && !optionsDisabled && !profileDisabled ? "block" : "none" }}
                                 key="AppBody-ActivateProfile">Activate This Profile</MenuItem>
                         </MenuList>
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Other</ListSubheader>} className={classes.list} >
-                            <MenuItem disabled={optionsDisabled} onClick={event => this.handleSelect(event, "AppBody-BatteryHistory")} key="AppBody-BatteryHistory">Battery History</MenuItem>
+                            <MenuItem disabled={optionsDisabled} onClick={event => this.props.onSelectAppBody(event, "AppBody-BatteryHistory")} key="AppBody-BatteryHistory">Battery History</MenuItem>
                         </MenuList>
                     </div>
                 </Drawer>
@@ -347,9 +345,9 @@ class GlobalMenu extends React.Component {
                         onKeyDown={this.toggleGlobalDrawer(false)}
                     >
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Global Options</ListSubheader>} className={classes.list} >
-                            <MenuItem selected={"AppBody-CurrentStatuses" === this.state.currentAppBody} onClick={event => { this.toggleGlobalDrawer(false); this.handleSelect(event, "AppBody-CurrentStatuses") }} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
-                            <MenuItem selected={"AppBody-AddProfile" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-AddProfile")} key="AppBody-AddProfile">Create Profile</MenuItem>
-                            <MenuItem selected={"AppBody-ManageProfiles" === this.state.currentAppBody} onClick={event => this.handleSelect(event, "AppBody-ManageProfiles")} key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
+                            <MenuItem selected={"AppBody-CurrentStatuses" === this.state.currentAppBody} onClick={event => { this.toggleGlobalDrawer(false); this.props.onSelectAppBody(event, "AppBody-CurrentStatuses") }} key="AppBody-CurrentStatuses">Current Statuses</MenuItem>
+                            <MenuItem selected={"AppBody-AddProfile" === this.state.currentAppBody} onClick={event => this.props.onSelectAppBody(event, "AppBody-AddProfile")} key="AppBody-AddProfile">Create Profile</MenuItem>
+                            <MenuItem selected={"AppBody-ManageProfiles" === this.state.currentAppBody} onClick={event => this.props.onSelectAppBody(event, "AppBody-ManageProfiles")} key="AppBody-ManageProfiles">Manage Profiles</MenuItem>
                         </MenuList>
                     </div>
                 </Drawer>
@@ -360,6 +358,9 @@ class GlobalMenu extends React.Component {
 
 GlobalMenu.propTypes = {
     classes: PropTypes.object.isRequired,
+    onSelectAppBody: PropTypes.func,
+    onSelectProfile: PropTypes.func,
+    onSelectBoard: PropTypes.func,
 };
 
 export default withStyles(menuStyles)(GlobalMenu);
