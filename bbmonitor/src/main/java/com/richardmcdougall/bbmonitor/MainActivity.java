@@ -140,9 +140,14 @@ public class MainActivity extends Activity {
 
             updateBoardLocations(name, sigStrength, lat,lon, batteryLevel);
 
-            logToScreen(name + " " +
-                    sigStrength + "/" + batteryLevel + "% " +
-            playaStr(lat, lon, true));
+            if (name.contains("repeater")) {
+                logToScreen(name + " " +
+                        sigStrength + "/" + batteryLevel + "% ");
+            } else {
+                logToScreen(name + " " +
+                        sigStrength + "/" + batteryLevel + "% " +
+                        playaStr(lat, lon, true));
+            }
         }
 
     };
@@ -213,13 +218,11 @@ public class MainActivity extends Activity {
             long age = (SystemClock.elapsedRealtime() - l.lastHeard);
 
             l("Location Entry:" + n + ", age:" + age +
-                    ", lat: " + lat + ", lon: " + lon + ", batt: " + batteryLevel);
-
-
+                    ", lat: " + l.lat + ", lon: " + l.lon + ", batt: " + l.batteryLevel);
 
             // Draw battery level for this board
             int viewId = this.getResources().getIdentifier(
-                    getViewforBoard("battery", name),
+                    getViewforBoard("battery", n),
                     "id", this.getPackageName());;
             if (viewId > 0) {
                 if (age < kOldEntry) {
@@ -232,7 +235,7 @@ public class MainActivity extends Activity {
             }
             // Playa location for this board
             viewId = this.getResources().getIdentifier(
-                    getViewforBoard("location", name),
+                    getViewforBoard("location", n),
                     "id", this.getPackageName());;
             if (viewId > 0) {
                 TextView locView = (TextView) findViewById(viewId);
@@ -249,6 +252,7 @@ public class MainActivity extends Activity {
 
     private void clearImage(View v) {
         ImageView image = new ImageView(getApplicationContext());
+        ((ViewGroup) v).removeAllViews();
         image.setImageDrawable(null);
         ((ViewGroup) v).addView(image);
     }
@@ -411,8 +415,8 @@ public class MainActivity extends Activity {
     }
 
     Bitmap resizeBattery(Bitmap batt) {
-        int newContainerHeight = 50;
-        int newContainerWidth = 150;
+        int newContainerHeight = 120;
+        int newContainerWidth = 300;
         Bitmap copy = Bitmap.createScaledBitmap(batt,
                 (int) newContainerWidth, (int) newContainerHeight, false);
         return copy;
@@ -427,6 +431,7 @@ public class MainActivity extends Activity {
         canvas.drawBitmap(secondImage, 0f, 0f, null);
         return result;
     }
+
 
     private void drawBattery(View v, final int level, final boolean isCharging) {
         ImageView image = new ImageView(getApplicationContext());
@@ -457,6 +462,7 @@ public class MainActivity extends Activity {
         }
         Bitmap mergedImages = createSingleImageFromMultipleImages(baseBattery, pctBattery);
         image.setImageBitmap(mergedImages);
+        ((ViewGroup) v).removeAllViews();
         ((ViewGroup) v).addView(image);
     }
 

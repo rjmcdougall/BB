@@ -116,6 +116,8 @@ public class BBService extends Service {
         mHandlerThread.start();
 
         mHandler = new Handler(mHandlerThread.getLooper());
+
+        checkWifiReconnect();
     }
 
 

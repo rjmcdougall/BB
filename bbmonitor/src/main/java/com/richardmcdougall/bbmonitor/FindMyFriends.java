@@ -109,7 +109,6 @@ public class FindMyFriends {
 
     public void l(String s) {
         Log.v(TAG, s);
-        sendLogMsg(s);
     }
 
     public void d(String s) {
@@ -168,7 +167,7 @@ public class FindMyFriends {
             mLastHeardLocation = packet.clone();
             l("BB " + mRFAddress.boardAddressToName(address) + " strength " +
                     sigStrength + "theirLat = " + lat + ", theirLon = " + lon);
-            updateBoardLocations(address, sigStrength, lat, lon, batt);
+            updateBoardLocations(address, sigStrength, lat, lon, batt, false);
             return true;
         } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
             d("tracker packet");
@@ -202,7 +201,11 @@ public class FindMyFriends {
                     "battery = " + battery + ", " +
                     "packets-repeated = " + packetsForwarded +
                     "packets-ignored = " + packetsIgnored);
-            sendLogMsg("repeater " + address + " battery " + battery);
+            l("repeater " + address + " battery " + battery);
+            updateBoardLocations(address,
+                    sigStrength,
+                    0, 0,
+                    battery, true);
         } else {
             d("rogue packet not for us!");
         }
@@ -217,12 +220,19 @@ public class FindMyFriends {
         return (magicNumber);
     }
 
+    int log2(int number) {
+        return (int)(Math.log(number)/Math.log(2));
+    }
 
     private void updateBoardLocations(int address, int sigstrength,
-                                      double lat, double lon, int batt) {
+                                      double lat, double lon, int batt, boolean isRpt) {
 
         Intent in = new Intent(BBService.ACTION_BB_LOCATION);
-        in.putExtra("name", mRFAddress.boardAddressToName(address));
+        if (isRpt) {
+            in.putExtra("name", "repeater-" + log2(32768 - address));
+        } else {
+            in.putExtra("name", mRFAddress.boardAddressToName(address));
+        }
         in.putExtra("sig", sigstrength);
         in.putExtra("lat", lat);
         in.putExtra("lon", lon);
