@@ -67,6 +67,10 @@ public class BurnerBoard {
     public int mTextSizeVerical = 12;
     public IntBuffer mTextBuffer = null;
     public int isFlashDisplaying = 0;
+    public IntBuffer mDrawBuffer = null;
+
+
+
 
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
@@ -80,7 +84,7 @@ public class BurnerBoard {
 
     public void setTextBuffer(int width, int height) {
         mTextBuffer = IntBuffer.allocate(width * height);
-
+        mDrawBuffer = IntBuffer.allocate(width * height);
     }
 
     public int getFrameRate() {
@@ -733,6 +737,23 @@ public class BurnerBoard {
 
     public void flashScreen(int delay) {
         isFlashDisplaying = delay * mRefreshRate / 1000;
+    }
+
+    public void drawArc(float left, float top, float right, float bottom,
+                        float startAngle, float sweepAngle, boolean useCenter) {
+
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
+        Paint arcPaint = new Paint();
+
+        canvas.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, arcPaint);
+        if (mDrawBuffer != null) {
+            mDrawBuffer.rewind();
+            bitmap.copyPixelsToBuffer(mDrawBuffer);
+        }
+        aRGBtoBoardScreen(mTextBuffer, mBoardScreen, mBoardScreen);
     }
 
 }
