@@ -3,10 +3,10 @@
   "version": "1.0.0-alpha.1",
   "private": true,
   "dependencies": {
-    "@google-cloud/datastore": "^1.4.0",
+    "@google-cloud/datastore": "^1.4.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
-    "debug": "~2.6.9",
+    "debug": "^2.6.9",
     "express": "^4.16.3",
     "ffmpeg-static": "^2.3.0",
     "ffprobe-static": "^2.0.0",
@@ -16,11 +16,11 @@
     "googleapis": "^23.0.2",
     "morgan": "~1.9.0",
     "node-ffprobe": "^1.2.2",
-    "serve-favicon": "~2.4.5",
+    "serve-favicon": "^2.5.0",
     "yes-https": "0.0.4"
   },
   "devDependencies": {
-    "concurrently": "^3.5.1"
+    "concurrently": "^3.6.1"
   },
   "scripts": {
     "debug": "concurrently \"node ./bin/www\" \"cd client && npm start\"",

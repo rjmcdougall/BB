@@ -24,9 +24,10 @@ exports.main = function(args, callback) {
             name: "n",
             out : "o",
             main: "m",
-            global: "g"
+            global: "g",
+            import: "i"
         },
-        string: [ "name", "out", "global" ],
+        string: [ "name", "out", "global", "import" ],
         boolean: [ "comments", "main" ],
         default: {
             comments: true,
@@ -48,6 +49,8 @@ exports.main = function(args, callback) {
                 "  -o, --out       Saves to a file instead of writing to stdout.",
                 "",
                 "  -g, --global    Name of the global object in browser environments, if any.",
+                "",
+                "  -i, --import    Comma delimited list of imports. Local names will equal camelCase of the basename.",
                 "",
                 "  --no-comments   Does not output any JSDoc comments.",
                 "",
@@ -98,7 +101,8 @@ exports.main = function(args, callback) {
         // There is no proper API for jsdoc, so this executes the CLI and pipes the output
         var basedir = path.join(__dirname, ".");
         var moduleName = argv.name || "null";
-        var cmd = "node \"" + require.resolve("jsdoc/jsdoc.js") + "\" -c \"" + path.join(basedir, "lib", "tsd-jsdoc.json") + "\" -q \"module=" + encodeURIComponent(moduleName) + "&comments=" + Boolean(argv.comments) + "\" " + files.map(function(file) { return "\"" + file + "\""; }).join(" ");
+        var nodePath = process.execPath;
+        var cmd = "\"" + nodePath + "\" \"" + require.resolve("jsdoc/jsdoc.js") + "\" -c \"" + path.join(basedir, "lib", "tsd-jsdoc.json") + "\" -q \"module=" + encodeURIComponent(moduleName) + "&comments=" + Boolean(argv.comments) + "\" " + files.map(function(file) { return "\"" + file + "\""; }).join(" ");
         var child = child_process.exec(cmd, {
             cwd: process.cwd(),
             argv0: "node",
@@ -134,18 +138,43 @@ exports.main = function(args, callback) {
             return undefined;
         });
 
+        function getImportName(importItem) {
+            return path.basename(importItem, ".js").replace(/([-_~.+]\w)/g, function(match) {
+                return match[1].toUpperCase();
+            });
+        }
+
         function finish() {
             var output = [];
+            if (argv.main)
+                output.push(
+                    "// DO NOT EDIT! This is a generated file. Edit the JSDoc in src/*.js instead and run 'npm run types'.",
+                    ""
+                );
             if (argv.global)
                 output.push(
                     "export as namespace " + argv.global + ";",
                     ""
                 );
-            if (!argv.main)
-                output.push(
-                    "import * as $protobuf from \"protobufjs\";",
-                    ""
-                );
+
+            if (!argv.main) {
+                // Ensure we have a usable array of imports
+                var importArray = typeof argv.import === "string" ? argv.import.split(",") : argv.import || [];
+
+                // Build an object of imports and paths
+                var imports = {
+                    $protobuf: "protobufjs"
+                };
+                importArray.forEach(function(importItem) {
+                    imports[getImportName(importItem)] = importItem;
+                });
+
+                // Write out the imports
+                Object.keys(imports).forEach(function(key) {
+                    output.push("import * as " + key + " from \"" + imports[key] + "\";");
+                });
+            }
+
             output = output.join("\n") + "\n" + out.join("");
 
             try {
