@@ -19,7 +19,6 @@ export default class BBApp extends Component {
 			currentBoard: "Select Board",
 			currentProfile: "Select Profile",
 			currentProfileIsGlobal: false,
-			activeProfileIsGlobal: false,
 			activeProfiles: [{ profile: "1", isGlobal: true }, { profile: "2", isGlobal: true }],
 			currentSelection: "",
 			drawerIsOpen: false,
@@ -32,8 +31,10 @@ export default class BBApp extends Component {
 			profileDeleteSnackbarOpen: false,
 			profileDeleteResultsMessage: "",
 			profileSelected: "",
-			forceRerendder: false,
 			createProfileBoardCloneProfileName: "NONE - NONE",
+			boardNames: [{ board_name: "loading boards..." }],
+			profileNames: ["select Board"],
+			globalProfileNames: ["select Board"],
 		};
 
 		this.onSelectAppBody = this.onSelectAppBody.bind(this);
@@ -42,7 +43,45 @@ export default class BBApp extends Component {
 		this.onActivateProfile = this.onActivateProfile.bind(this);
 		this.onDeactivateProfile = this.onDeactivateProfile.bind(this);
 		this.reloadOnExpiration = this.props.reloadOnExpiration.bind(this);
+		this.toggleDrawer = this.toggleDrawer.bind(this);
+		this.toggleGlobalDrawer = this.toggleGlobalDrawer.bind(this);
+
 	}
+
+	async componentDidMount() {
+		const API = "/boards";
+
+		try {
+			var response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
+			var jsonResponse = await response.json();
+			this.setState({
+				boardNames: jsonResponse.map(item => ({
+					board_name: item.name,
+					type: item.type
+				}))
+			});
+		}
+		catch (error) {
+			this.setState({ error })
+		}
+	}
+
+	toggleDrawer(open) {
+		this.setState({
+			drawerIsOpen: open,
+		});
+	};
+	toggleGlobalDrawer(open) {
+		this.setState({
+			globalDrawerIsOpen: open,
+		});
+	};
 
 	handleProfileDeleteClose = () => {
 		this.reloadOnExpiration();
@@ -116,7 +155,6 @@ export default class BBApp extends Component {
 				comp.setState({
 					createProfileOpenSnackbar: true,
 					createProfileResultsMessage: JSON.stringify(json2),
-					forceRerendder: !comp.state.forceRerendder,
 				});
 				return true;
 			}
@@ -137,7 +175,7 @@ export default class BBApp extends Component {
 		let newSelected = [id];
 		this.setState({ profileSelected: newSelected });
 	};
-   
+
 	async updateActiveProfiles(event, updateType) {
 		this.reloadOnExpiration();
 
@@ -162,16 +200,16 @@ export default class BBApp extends Component {
 			var data = await res.json();
 
 			var activeProfiles = [{
-				profile: res.profile,
-				isProfileGlobal: res.isProfileGlobal
+				profile: data.profile,
+				isProfileGlobal: data.isProfileGlobal
 			},
 			{
-				profile: res.profile2,
-				isProfileGlobal: res.isProfileGlobal2
+				profile: data.profile2,
+				isProfileGlobal: data.isProfileGlobal2
 			},
 			];
 
-			console.log(data)
+			console.log(activeProfiles)
 			this.setState({
 				activeProfiles: activeProfiles,
 				activateOpenSnackbar: true,
@@ -263,10 +301,13 @@ export default class BBApp extends Component {
 		try {
 			var selectedBoard = key.slice(6);
 
-			var API = "/boards/" + selectedBoard;
-			console.log("API CALL TO GET ACTIVE PROFILE: " + API);
+			var response, API;
+			var profiles, globalProfiles, activeProfiles
+			var data;
 
-			var res = await fetch(API, {
+			// get active profiles
+			API = "/boards/" + selectedBoard;
+			response = await fetch(API, {
 				method: "GET",
 				headers: {
 					"Accept": "application/json",
@@ -274,15 +315,48 @@ export default class BBApp extends Component {
 					"Authorization": window.sessionStorage.JWT,
 				},
 			});
+			data = await response.json();
+			activeProfiles = [{
+				profile: data.profile,
+				isProfileGlobal: data.isProfileGlobal
+			},
+			{
+				profile: data.profile2,
+				isProfileGlobal: data.isProfileGlobal2
+			},
+			];
 
-			var data = await res.json();
+			//get a list of available profiles
+			API = "/boards/" + selectedBoard + "/profiles/";
+			response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
+			data = await response.json();
+			profiles = data.map(item => ({
+				profile_name: item.name,
+			}));
+			API = "/profiles/";
+			response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
+			data = await response.json();
+			globalProfiles = data.map(item => ({
+				profile_name: item.name,
+			}));
 
-			var activeProfile = data[0].profile;
-			var activeProfileIsGlobal = data[0].isGlobal;
 			this.setState({
-				activeProfile: activeProfile,
-				activeProfileIsGlobal: activeProfileIsGlobal,
-				currentBoard: selectedBoard
+				currentBoard: selectedBoard,
+				activeProfiles: activeProfiles,
+				profileNames: profiles,
+				globalProfileNames: globalProfiles,
 			});
 		}
 		catch (error) {
@@ -349,16 +423,16 @@ export default class BBApp extends Component {
 				appBody = <AddProfile createProfileBoardCloneProfileName={this.state.createProfileBoardCloneProfileName} handleProfileAddClose={this.handleProfileAddClose} createProfileBoardName={this.state.createProfileBoardName} handleChange={this.handleChange} handleCreateProfile={this.handleCreateProfile} createProfileOpenSnackbar={this.state.createProfileOpenSnackbar} createProfileResultsMessage={this.state.createProfileResultsMessage} />;
 				break;
 			case "AppBody-ActivateProfile":
-				appBody = <SetActiveProfile handleActivateProfileClose={this.handleActivateProfileClose} 
-											onActivateProfile={this.onActivateProfile} 
-											onDeactivateProfile={this.onDeactivateProfile}  
-											activateResultsMessage={this.state.activateResultsMessage} 
-											activateOpenSnackbar={this.state.activateOpenSnackbar} 
-											currentBoard={this.state.currentBoard} 
-											currentProfile={this.state.currentProfile} 
-											currentProfileIsGlobal={this.state.currentProfileIsGlobal} 
-											activeProfiles={this.state.activeProfiles}
-											/>;
+				appBody = <SetActiveProfile handleActivateProfileClose={this.handleActivateProfileClose}
+					onActivateProfile={this.onActivateProfile}
+					onDeactivateProfile={this.onDeactivateProfile}
+					activateResultsMessage={this.state.activateResultsMessage}
+					activateOpenSnackbar={this.state.activateOpenSnackbar}
+					currentBoard={this.state.currentBoard}
+					currentProfile={this.state.currentProfile}
+					currentProfileIsGlobal={this.state.currentProfileIsGlobal}
+					activeProfiles={this.state.activeProfiles}
+				/>;
 				break;
 
 			default:
@@ -388,10 +462,15 @@ export default class BBApp extends Component {
 					globalDrawerIsOpen={this.state.globalDrawerIsOpen}
 					currentAppBody={this.state.currentAppBody}
 					currentProfile={this.state.currentProfile}
-					forceRerender={this.state.forceRerendder}
 					onSelectBoard={this.onSelectBoard}
 					onSelectAppBody={this.onSelectAppBody}
 					onSelectProfile={this.onSelectProfile}
+					activeProfiles={this.state.activeProfiles}
+					toggleDrawer={this.toggleDrawer}
+					toggleGlobalDrawer={this.toggleGlobalDrawer} 
+					boardNames={this.state.boardNames}
+					profileNames={this.state.profileNames}
+					globalProfileNames={this.state.globalProfileNames}
 				/>
 				{/* <MuiThemeProvider theme={readableText}>
             <Typography>*/}

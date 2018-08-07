@@ -45,7 +45,7 @@ class SetActiveProfile extends React.Component {
 						"margin": "1cm 1cm 1cm 1cm",
 						"padding": "10px 5px 15px 20px"
 					}}>When activated, the next time {this.props.currentBoard} is connected to wifi the media will update to "{this.props.currentProfile}" profile.</div>
-{console.log(this.props)}
+
 					<form className={classes.container} autoComplete="off">
 
 						<FormControl className={classes.formControl}>
@@ -55,7 +55,7 @@ class SetActiveProfile extends React.Component {
 								<SystemUpdate className={classes.rightIcon} />
 							</Button>
 
-							You will be deactivating {(this.props.activeProfiles[0].board != null) ? this.props.activeProfiles[0].board : this.props.activeProfiles[1].board}
+							You will be deactivating {(this.props.activeProfiles[0].profile != null) ? this.props.activeProfiles[0].profile : this.props.activeProfiles[1].profile}
 
 						</FormControl>
 					</form>
