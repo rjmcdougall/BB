@@ -33,33 +33,7 @@ const styles = theme => ({
 });
 
 class SetActiveProfile extends React.Component {
-
-	constructor(props, context) {
-		super(props, context);
-
-		this.state = {
-			currentProfile: props.currentProfile,
-			currentProfileIsGlobal: props.currentProfileIsGlobal,
-			currentBoard: props.currentBoard,
-			activateResultsMessage: "",
-			activateOpenSnackbar: false,
-		};
-
-		this.onActivateProfile = this.props.onActivateProfile.bind(this);
-		this.handleActivateProfileClose = this.props.handleActivateProfileClose.bind(this);
-	}
-
-	componentWillReceiveProps(nextProps) {
-
-		this.setState({
-			currentProfile: nextProps.currentProfile,
-			currentProfileIsGlobal: nextProps.currentProfileIsGlobal,
-			currentBoard: nextProps.currentBoard,
-			activateResultsMessage: nextProps.activateResultsMessage,
-			activateOpenSnackbar: nextProps.activateOpenSnackbar,
-		});
-	}
-
+ 
 	render() {
 		const { classes } = this.props;
 
@@ -70,12 +44,12 @@ class SetActiveProfile extends React.Component {
 						"backgroundColor": "lightblue",
 						"margin": "1cm 1cm 1cm 1cm",
 						"padding": "10px 5px 15px 20px"
-					}}>When activated, the next time {this.state.currentBoard} is connected to wifi the media will update to "{this.state.currentProfile}" profile.</div>
-
+					}}>When activated, the next time {this.props.currentBoard} is connected to wifi the media will update to "{this.props.currentProfile}" profile.</div>
+{console.log(this.props)}
 					<form className={classes.container} autoComplete="off">
 
 						<FormControl className={classes.formControl}>
-							<Button onClick={this.onActivateProfile} className={classes.button} raised dense>
+							<Button onClick={this.props.onActivateProfile} className={classes.button} raised dense>
 								<SystemUpdate className={classes.leftIcon} />
 								ActivateProfile
 								<SystemUpdate className={classes.rightIcon} />
@@ -91,13 +65,13 @@ class SetActiveProfile extends React.Component {
 							vertical: "bottom",
 							horizontal: "center",
 						}}
-						open={this.state.activateOpenSnackbar}
+						open={this.props.activateOpenSnackbar}
 						autoHideDuration={3000}
-						onClose={this.handleActivateProfileClose}
+						onClose={this.props.handleActivateProfileClose}
 						SnackbarContentProps={{
 							"aria-describedby": "message-id",
 						}}
-						message={this.state.activateResultsMessage}
+						message={this.props.activateResultsMessage}
 					/>
 				</div>
 			</Center>
@@ -108,6 +82,11 @@ class SetActiveProfile extends React.Component {
 SetActiveProfile.propTypes = {
 	classes: PropTypes.object.isRequired,
 	activeProfiles: PropTypes.array,
+	currentProfile: PropTypes.string,
+	activateResultsMessage: PropTypes.string,
+	activateOpenSnackbar: PropTypes.boolean,
+	onActivateProfile: PropTypes.func,
+	handleActivateProfileClose: PropTypes.func,
 };
 
 export default withStyles(styles)(SetActiveProfile);
