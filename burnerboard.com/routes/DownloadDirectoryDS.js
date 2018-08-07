@@ -95,7 +95,7 @@ exports.addMedia = async function (boardID, profileID, mediaType, fileName, file
 			newAttributes.ordinal = maxOrdinal + 1;
 
 			await datastore.save(entity);
-			return mediaType + ` ${localName} created successfully with ordinal ` + newAttributes.ordinal;
+			return mediaType + " " + localName + " created successfully with ordinal " + newAttributes.ordinal;
 		}
 	}
 	catch (error) {

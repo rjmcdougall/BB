@@ -135,7 +135,7 @@ class GlobalMenu extends React.Component {
             console.log("returned these profiles: " + JSON.stringify(data));
 
             profiles = data.map(item => ({
-                profile_name: `${item.name}`,
+                profile_name: item.name,
             }));
 
             API = '/profiles/';
@@ -148,7 +148,7 @@ class GlobalMenu extends React.Component {
             });
             data2 = await response.json();
             globalProfiles = data2.map(item => ({
-                profile_name: `${item.name}`,
+                profile_name: item.name,
             }));
 
             API = '/boards/' + nextProps.currentBoard;

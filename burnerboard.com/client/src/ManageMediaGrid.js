@@ -262,9 +262,9 @@ class ManageMediaGrid extends React.Component {
                     return {
                         id: "video-" + item.localName,
                         mediaType: "video",
-                        localName: `${item.localName}`,
-                        URL: `${item.URL}`,
-                        ordinal: `${item.ordinal}`,
+                        localName: item.localName,
+                        URL: item.URL,
+                        ordinal: item.ordinal,
                     };
                 });
 
@@ -272,9 +272,9 @@ class ManageMediaGrid extends React.Component {
                 return {
                     id: "audio-" + item.localName,
                     mediaType: "audio",
-                    URL: `${item.URL}`,
-                    localName: `${item.localName}`,
-                    ordinal: `${item.ordinal}`,
+                    URL: item.URL,
+                    localName: item.localName,
+                    ordinal: item.ordinal,
                 }
             }));
 

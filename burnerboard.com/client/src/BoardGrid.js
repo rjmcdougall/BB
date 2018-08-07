@@ -50,10 +50,10 @@ class BoardGrid extends React.Component {
 			var data = await response.json();
 			this.setState({
 				boardData: data.map(item => ({
-					board_name: `${item.board_name}`,
-					last_seen: `${item.last_seen}`,
-					is_online: `${item.is_online}`,
-					battery_level: `${item.battery_level}`,
+					board_name: item.board_name,
+					last_seen: item.last_seen,
+					is_online: item.is_online,
+					battery_level: item.battery_level,
 				}))
 			});
 		}
