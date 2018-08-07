@@ -6,7 +6,7 @@
     "@google-cloud/datastore": "^1.4.1",
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
-    "debug": "^2.6.9",
+    "debug": "^3.1.0",
     "express": "^4.16.3",
     "ffmpeg-static": "^2.3.0",
     "ffprobe-static": "^2.0.0",
