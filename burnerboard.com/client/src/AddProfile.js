@@ -66,63 +66,67 @@ class AddProfile extends React.Component {
 
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 
 		const API = "/boards";
+		try {
+			var response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
 
-		fetch(API, {
-			headers: {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"authorization": window.sessionStorage.JWT,
-			}
-		})
-			.then(response => response.json())
-			.then(data => {
-				this.setState({
-					boardNames: data.map(item => ({
-						board_name: `${item.name}`,
-					}))
-				});
-				this.loadProfileGrid();
-			})
-			.catch(error => this.setState({ error }));
+			var data = await response.json();
+
+			this.setState({
+				boardNames: data.map(item => ({
+					board_name: item.name,
+				}))
+			});
+			this.loadProfileGrid();
+		}
+		catch (error) {
+			this.setState({ error });
+		}
 	}
 
-	loadProfileGrid() {
+	async loadProfileGrid() {
 		const API = "/allProfiles/";
 
 		console.log("API CALL TO LOAD PROFILES: " + API);
+		try {
+			var response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
 
-		fetch(API, {
-			headers: {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"authorization": window.sessionStorage.JWT,
-			}
-		})
-			.then(response => response.json())
-			.then(data => {
+			var data = await response.json();
+			var profileArray = data
+				.map(function (item) {
+					if (item.isGlobal)
+						return {
+							id: item.board + "-" + item.name,
+							board: "GLOBAL",
+							profile: item.name
+						};
+					else
+						return {
+							id: item.board + "-" + item.name,
+							board: item.board,
+							profile: item.name
+						};
+				});
 
-				var profileArray = data
-					.map(function (item) {
-						if (item.isGlobal)
-							return {
-								id: item.board + "-" + item.name,
-								board: "GLOBAL",
-								profile: item.name
-							};
-						else
-							return {
-								id: item.board + "-" + item.name,
-								board: item.board,
-								profile: item.name
-							};
-					});
-
-				this.setState({ "profileArray": profileArray });
-			})
-			.catch(error => this.setState({ error }));
+			this.setState({ "profileArray": profileArray });
+		}
+		catch (error) {
+			this.setState({ error })
+		}
 	}
 
 	render() {

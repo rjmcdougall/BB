@@ -11,35 +11,28 @@ exports.queryBatteryData = async function () {
 		useLegacySql: false
 	};
 
-	return new Promise((resolve, reject) => {
-		bigquery
-			.query(options)
-			.then((results) => {
-				resolve(results[0]);
-			})
-			.catch((err) => {
-				reject(err);
-			});
-	});
+	try {
+		var results = await bigquery.query(options);
+		return results[0];
+	}
+	catch (error) {
+		return error;
+	}
 };
 
 exports.queryBatteryHistory = async function (boardID) {
+	try {
+		const options = {
+			query: this.sqlBatteryHistory.replace("?", boardID),
+			useLegacySql: false // Use standard SQL syntax for queries.
+		};
 
-	const options = {
-		query: this.sqlBatteryHistory.replace("?", boardID),
-		useLegacySql: false // Use standard SQL syntax for queries.
-	};
-
-	return new Promise((resolve, reject) => {
-		bigquery
-			.query(options)
-			.then((results) => {
-				resolve(results[0]);
-			})
-			.catch((err) => {
-				reject(err);
-			});
-	});
+		var results = await bigquery.query(options);
+		return results[0];
+	}
+	catch (error) {
+		return error;
+	}
 };
 
 exports.queryBoardLocations = async function () {
@@ -139,7 +132,7 @@ row_number
 ORDER BY
 board_name ASC
 `;
- 
+
 exports.sqlBatteryHistory = `#standardSQL
 SELECT
 board_name,

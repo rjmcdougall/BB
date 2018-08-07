@@ -202,42 +202,45 @@ class ProfileGrid extends React.Component {
 		}, this.loadProfileGrid)
 	}
 
-	loadProfileGrid() {
+	async loadProfileGrid() {
 		const API = "/allProfiles/";
 
 		console.log("API CALL TO LOAD PROFILES: " + API);
 
-		fetch(API, {
-			headers: {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"authorization": window.sessionStorage.JWT,
-			}
-		})
-			.then(response => response.json())
-			.then(data => {
+		try {
+			var response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
 
-				var profileArray = data
-					.map(function (item) {
-						if (item.isGlobal)
-							return {
-								id: item.board + "-" + item.name,
-								board: "GLOBAL",
-								profile: item.name,
-								readOnly: item.readOnly,
-							}
-						else
-							return {
-								id: item.board + "-" + item.name,
-								board: item.board,
-								profile: item.name,
-								readOnly: item.readOnly,
-							};
-					});
+			var data = await response.json();
 
-				this.setState({ "profileArray": profileArray });
-			})
-			.catch(error => this.setState({ error }));
+			var profileArray = data
+				.map(function (item) {
+					if (item.isGlobal)
+						return {
+							id: item.board + "-" + item.name,
+							board: "GLOBAL",
+							profile: item.name,
+							readOnly: item.readOnly,
+						}
+					else
+						return {
+							id: item.board + "-" + item.name,
+							board: item.board,
+							profile: item.name,
+							readOnly: item.readOnly,
+						};
+				});
+
+			this.setState({ "profileArray": profileArray });
+		}
+		catch (error) {
+			this.setState({ error })
+		}
 	}
 
 	isSelected = id => this.state.profileSelected.indexOf(id) !== -1;
@@ -245,7 +248,6 @@ class ProfileGrid extends React.Component {
 	render() {
 		const { classes } = this.props;
 		const { profileArray, order, orderBy, profileSelected } = this.state;
-
 
 		return (
 			<Paper className={classes.root}>

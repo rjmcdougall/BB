@@ -105,9 +105,8 @@ exports.addMedia = async function (boardID, profileID, mediaType, fileName, file
 
 exports.createNewBoard = async function (boardID) {
 
-	return new Promise((resolve, reject) => {
-		var i = 2;
-		datastore
+	try {
+		var results = await datastore
 			.save({
 				key: datastore.key(["board", boardID]),
 				data: {
@@ -115,14 +114,13 @@ exports.createNewBoard = async function (boardID) {
 					profile: "default",
 					isProfileGlobal: false,
 				},
-			})
-			.then((results) => {
-				return resolve("board " + boardID + " created ");
-			})
-			.catch(err => {
-				return reject(err);
 			});
-	});
+
+		return "board " + boardID + " created ";
+	}
+	catch (error) {
+		return error;
+	}
 };
 
 exports.createProfile = async function (boardID, profileID, isGlobal) {
@@ -433,7 +431,7 @@ exports.deleteMedia = async function (boardID, profileID, mediaType, localName) 
 exports.createNewBoardMedia = async function (boardID, mediaType) {
 
 	try {
- 
+
 		var mediaArray = await this.listMedia("template", "default", mediaType);
 
 		var mappedMediaArray = mediaArray.map((item) => {
@@ -479,7 +477,7 @@ exports.createNewBoardMedia = async function (boardID, mediaType) {
 
 exports.cloneBoardMedia = async function (boardID, profileID, cloneFromBoardID, cloneFromProfileID, mediaType) {
 
-	try { 
+	try {
 		if (cloneFromBoardID == null)
 			var sourcePath = "/global/" + cloneFromProfileID + "/";
 		else

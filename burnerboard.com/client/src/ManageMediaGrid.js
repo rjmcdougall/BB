@@ -18,7 +18,7 @@ import DeleteIcon from 'material-ui-icons/Delete';
 import PlayIcon from 'material-ui-icons/PlayCircleOutline';
 import { lighten } from 'material-ui/styles/colorManipulator';
 import Snackbar from 'material-ui/Snackbar';
- 
+
 const columnData = [
     { id: 'localName', numeric: false, disablePadding: true, label: 'File Name' }
 ];
@@ -208,9 +208,14 @@ class ManageMediaGrid extends React.Component {
         }, this.loadGrid);
     }
 
-    loadGrid() {
+    async loadGrid() {
 
-        var API
+        var API;
+        var profileData;
+        var response;
+        var data;
+        var mediaArray;
+
         if (this.state.currentBoard != null)
             API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile;
         else
@@ -218,87 +223,86 @@ class ManageMediaGrid extends React.Component {
 
         console.log("API CALL TO CHECK FOR READ ONLY PROFILE: " + API);
 
-        fetch(API, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'authorization': window.sessionStorage.JWT,
-            }
-        })
-            .then(response => response.json())
-            .then(profileData => {
+        try {
 
-                if (this.state.currentBoard != null)
-                    API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
-                else
-                    API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
-
-                console.log("API CALL TO LOAD MEDIA GRID: " + API);
-
-                fetch(API, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'authorization': window.sessionStorage.JWT,
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-
-                        var mediaArray = data.video
-                            .filter(function (item) {
-                                return item.localName != null;
-                            });
-
-                        mediaArray = mediaArray
-                            .map(function (item) {
-                                return {
-                                    id: "video-" + item.localName,
-                                    mediaType: "video",
-                                    localName: `${item.localName}`,
-                                    URL: `${item.URL}`,
-                                    ordinal: `${item.ordinal}`,
-                                };
-                            });
-
-                        mediaArray = mediaArray.concat(data.audio.map(function (item) {
-                            return {
-                                id: "audio-" + item.localName,
-                                mediaType: "audio",
-                                URL: `${item.URL}`,
-                                localName: `${item.localName}`,
-                                ordinal: `${item.ordinal}`,
-                            }
-                        }));
- 
-                        console.log("Profile returned for read only check: " + JSON.stringify(profileData));
-                        console.log("profile data read only " + profileData[0].readOnly)
-
-                        if (profileData[0].readOnly != null){
-                            this.setState({ currentProfileIsReadOnly: profileData[0].readOnly,
-                                "mediaArray": mediaArray,
-                                selected: [] });
-                            }
-                        else
-                            this.setState({ currentProfileIsReadOnly: false,
-                                "mediaArray": mediaArray,
-                                selected: [] });
-                    })
-                    .catch(error => {
-                        console.log(error.message);
-                    });
-
-
-            })
-            .catch(error => {
-                console.log(error.message);
+            response = await fetch(API, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'authorization': window.sessionStorage.JWT,
+                }
             });
 
+            profileData = await response.json();
+
+            if (this.state.currentBoard != null)
+                API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+            else
+                API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+
+            console.log("API CALL TO LOAD MEDIA GRID: " + API);
+
+            response = await fetch(API, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'authorization': window.sessionStorage.JWT,
+                }
+            });
+
+            data = await response.json();
+
+            mediaArray = data.video
+                .filter(function (item) {
+                    return item.localName != null;
+                });
+
+            mediaArray = mediaArray
+                .map(function (item) {
+                    return {
+                        id: "video-" + item.localName,
+                        mediaType: "video",
+                        localName: `${item.localName}`,
+                        URL: `${item.URL}`,
+                        ordinal: `${item.ordinal}`,
+                    };
+                });
+
+            mediaArray = mediaArray.concat(data.audio.map(function (item) {
+                return {
+                    id: "audio-" + item.localName,
+                    mediaType: "audio",
+                    URL: `${item.URL}`,
+                    localName: `${item.localName}`,
+                    ordinal: `${item.ordinal}`,
+                }
+            }));
+
+            console.log("Profile returned for read only check: " + JSON.stringify(profileData));
+            console.log("profile data read only " + profileData[0].readOnly)
+
+            if (profileData[0].readOnly != null) {
+                this.setState({
+                    currentProfileIsReadOnly: profileData[0].readOnly,
+                    "mediaArray": mediaArray,
+                    selected: []
+                });
+            }
+            else
+                this.setState({
+                    currentProfileIsReadOnly: false,
+                    "mediaArray": mediaArray,
+                    selected: []
+                });
+        }
+        catch (error) {
+            console.log(error.message);
+        }
     }
 
     handleClick = (event, id) => {
 
-        if(!this.state.currentProfileIsReadOnly){
+        if (!this.state.currentProfileIsReadOnly) {
             let newSelected = [id];
             this.setState({ selected: newSelected });
         }
@@ -312,7 +316,7 @@ class ManageMediaGrid extends React.Component {
 
     isSelected = id => this.state.selected.indexOf(id) !== -1;
 
-    onDelete = () => {
+    onDelete = async () => {
 
         var mediaGrid = this;
         var selectedItem = this.state.selected[0].toString();
@@ -329,44 +333,42 @@ class ManageMediaGrid extends React.Component {
 
         console.log("DELETE MEDIA API: " + API);
 
-        fetch(API, {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': window.sessionStorage.JWT,
-            }
-        })
-            .then((res) => {
+        try {
+            var res = await fetch(API, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': window.sessionStorage.JWT,
+                }
+            });
 
-                if (!res.ok) {
-                    res.json().then(function (json) {
-                        mediaGrid.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json),
-                        });
-                    });
-                }
-                else {
-                    res.json().then(function (json) {
-                        mediaGrid.setState({
-                            open: true,
-                            resultsMessage: JSON.stringify(json),
-                            selected: [],
-                            mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
-                                return item.id !== selectedItem;
-                            })
-                        });
-                    });
-                }
-            })
-            .catch((err) => {
-                console.log('error : ' + err);
+            var json = await res.json();
+
+            if (!res.ok) {
                 mediaGrid.setState({
                     open: true,
-                    resultsMessage: err.message
+                    resultsMessage: JSON.stringify(json),
                 });
+            }
+            else {
+                mediaGrid.setState({
+                    open: true,
+                    resultsMessage: JSON.stringify(json),
+                    selected: [],
+                    mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
+                        return item.id !== selectedItem;
+                    })
+                });
+            }
+        }
+        catch (error) {
+            console.log('error : ' + error);
+            mediaGrid.setState({
+                open: true,
+                resultsMessage: error.message
             });
+        }
     }
 
     render() {
@@ -400,7 +402,7 @@ class ManageMediaGrid extends React.Component {
                                         selected={isSelected}
                                         disabled={this.state.currentProfileIsReadOnly}
                                     >
-                                       <TableCell onClick={event => this.handleClick(event, n.id)} padding="none">
+                                        <TableCell onClick={event => this.handleClick(event, n.id)} padding="none">
                                             <Checkbox disabled={this.state.currentProfileIsReadOnly} checked={isSelected} />
                                         </TableCell>
                                         <TableCell padding="none" onClick={event => this.handleClick(event, n.id)} >{n.localName}</TableCell>

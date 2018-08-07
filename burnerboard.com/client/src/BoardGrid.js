@@ -35,28 +35,31 @@ class BoardGrid extends React.Component {
 		};
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 
 		const API = "/currentStatuses";
 
-		fetch(API, {
-			headers: {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"authorization": window.sessionStorage.JWT,
-			}
-		})
-			.then(response => response.json())
-			.then(data => this.setState({
+		try {
+			var response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
+				}
+			});
+			var data = await response.json();
+			this.setState({
 				boardData: data.map(item => ({
 					board_name: `${item.board_name}`,
 					last_seen: `${item.last_seen}`,
 					is_online: `${item.is_online}`,
 					battery_level: `${item.battery_level}`,
 				}))
-			}))
-			.catch(error => this.setState({ error }));
-
+			});
+		}
+		catch (error) {
+			this.setState({ error })
+		}
 	}
 
 	render() {
@@ -83,7 +86,7 @@ class BoardGrid extends React.Component {
 		};
 
 		return (
-			<Paper className={classes.root}>
+			<Paper className={classes.root} >
 				<Table className={classes.table}>
 					<TableHead>
 						<TableRow>

@@ -38,57 +38,57 @@ class BatteryHistoryGrid extends React.Component {
 
 	}
 
-	loadBoardData() {
+	async loadBoardData() {
 
 		const API = "/boards/" + this.state.currentBoard + "/BatteryHistory";
 
 		console.log("API TO GET BATTERY DATA: " + API);
 
-		fetch(API, {
-			headers: {
-				"Accept": "application/json",
-				"Content-Type": "application/json",
-				"authorization": window.sessionStorage.JWT,
-			}
-		})
-			.then(response => response.json())
-			.then(data => {
-
-				if (data.length > 0) {
-					this.setState({
-						boardData: data.map(item => ({
-							board_name: `${item.board_name}`,
-							BatteryLevel: `${item.BatteryLevel}`,
-							TimeBucket: `${item.TimeBucket}`,
-						})),
-						timeSeriesData: data.map(item => {
-							var BatteryLevel = item.BatteryLevel;
-							if (BatteryLevel < 0)
-								BatteryLevel = 0;
-							return [new Date(item.TimeBucket),
-								BatteryLevel];
-						})
-					});
+		try {
+			var response = await fetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+					"authorization": window.sessionStorage.JWT,
 				}
-				else {
-					this.setState({
-						boardData: data.map(item => ({
-							board_name: `${item.board_name}`,
-							BatteryLevel: `${item.BatteryLevel}`,
-							TimeBucket: `${item.TimeBucket}`,
-						})),
-						timeSeriesData: [
-							["2017-01-24 00:00", 0],
-						],
-					});
-				}
-			})
-			.catch(error => {
-				console.log(error);
-				this.setState({ error });
 			});
 
+			var data = await response.json();
+			if (data.length > 0) {
+				this.setState({
+					boardData: data.map(item => ({
+						board_name: item.board_name,
+						BatteryLevel: item.BatteryLevel,
+						TimeBucket: item.TimeBucket,
+					})),
+					timeSeriesData: data.map(item => {
+						var BatteryLevel = item.BatteryLevel;
+						if (BatteryLevel < 0)
+							BatteryLevel = 0;
+						return [new Date(item.TimeBucket),
+							BatteryLevel];
+					})
+				});
+			}
+			else {
+				this.setState({
+					boardData: data.map(item => ({
+						board_name: item.board_name,
+						BatteryLevel: item.BatteryLevel,
+						TimeBucket: item.TimeBucket,
+					})),
+					timeSeriesData: [
+						["2017-01-24 00:00", 0],
+					],
+				});
+			}
+		}
+		catch (error) {
+			console.log(error);
+			this.setState({ error });
+		}
 	}
+
 	componentDidMount() {
 		this.loadBoardData();
 	}
