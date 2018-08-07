@@ -1,5 +1,5 @@
 import React from "react";
-import PropTypes from "prop-types";
+import { PropTypes, Text } from "prop-types";
 import { withStyles } from "material-ui/styles";
 import { FormControl } from "material-ui/Form";
 import SystemUpdate from "material-ui-icons/SystemUpdate";
@@ -45,7 +45,7 @@ class SetActiveProfile extends React.Component {
 			activateOpenSnackbar: false,
 		};
 
-		this.handleActivateProfile = this.props.handleActivateProfile.bind(this);
+		this.onActivateProfile = this.props.onActivateProfile.bind(this);
 		this.handleActivateProfileClose = this.props.handleActivateProfileClose.bind(this);
 	}
 
@@ -75,11 +75,14 @@ class SetActiveProfile extends React.Component {
 					<form className={classes.container} autoComplete="off">
 
 						<FormControl className={classes.formControl}>
-							<Button onClick={this.handleActivateProfile} className={classes.button} raised dense>
+							<Button onClick={this.onActivateProfile} className={classes.button} raised dense>
 								<SystemUpdate className={classes.leftIcon} />
 								ActivateProfile
 								<SystemUpdate className={classes.rightIcon} />
 							</Button>
+
+							You will be deactivating {(this.props.activeProfiles[0].board != null) ? this.props.activeProfiles[0].board : this.props.activeProfiles[1].board}
+
 						</FormControl>
 					</form>
 
@@ -104,6 +107,7 @@ class SetActiveProfile extends React.Component {
 
 SetActiveProfile.propTypes = {
 	classes: PropTypes.object.isRequired,
+	activeProfiles: PropTypes.array,
 };
 
 export default withStyles(styles)(SetActiveProfile);

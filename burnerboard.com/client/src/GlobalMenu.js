@@ -53,7 +53,6 @@ class GlobalMenu extends React.Component {
             profileNames: ["select Board"],
             globalProfileNames: ["select Board"],
             currentProfile: "Select Profile",
-            activeProfile: props.activeProfile,
             currentBoard: props.currentBoard,
             currentAppBody: props.currentAppBody,
             showBoards: false,
@@ -62,7 +61,7 @@ class GlobalMenu extends React.Component {
             showProfiles: false,
             showMedia: false,
         };
- 
+
     }
 
     toggleDrawer = (open) => () => {
@@ -145,6 +144,9 @@ class GlobalMenu extends React.Component {
                 }
             });
             data2 = await response.json();
+
+            console.log("returned these global profiles: " + JSON.stringify(data));
+
             globalProfiles = data2.map(item => ({
                 profile_name: item.name,
             }));
@@ -193,50 +195,6 @@ class GlobalMenu extends React.Component {
                 return "* " + this.state.currentProfile;
             else
                 return this.state.currentProfile;
-        }
-
-        var renderProfiles = (inGlobalBlock, item, showProfiles) => {
-
-            if (inGlobalBlock) {
-                if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
-                    return (
-                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
-                            key={"globalProfile-" + item.profile_name}
-                            selected={item.profile_name === this.state.currentProfile}
-                            style={{ display: showProfiles ? "block" : "none" }}
-                        >  <CheckCircle /> &nbsp; {item.profile_name} &nbsp;<MenuGlobal />
-                        </MenuItem>
-                    );
-                else
-                    return (
-                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
-                            key={"globalProfile-" + item.profile_name}
-                            selected={item.profile_name === this.state.currentProfile}
-                            style={{ display: showProfiles ? "block" : "none" }}
-                        > {item.profile_name} &nbsp; <MenuGlobal />
-                        </MenuItem>
-                    );
-            }
-            else {
-                if (this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal === inGlobalBlock)
-                    return (
-                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
-                            key={"profile-" + item.profile_name}
-                            selected={item.profile_name === this.state.currentProfile}
-                            style={{ display: showProfiles ? "block" : "none" }}
-                        > <CheckCircle /> &nbsp; {item.profile_name}
-                        </MenuItem>
-                    );
-                else
-                    return (
-                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
-                            key={"profile-" + item.profile_name}
-                            selected={item.profile_name === this.state.currentProfile}
-                            style={{ display: showProfiles ? "block" : "none" }}
-                        > {item.profile_name}
-                        </MenuItem>
-                    );
-            }
         }
 
         return (
@@ -294,23 +252,34 @@ class GlobalMenu extends React.Component {
                                 </MenuItem>))
                             }
                         </MenuList>
-                        {this.state.currentBoard !== "Select Board" ? (
-                            <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
-                                {this.state.profileNames.map(item => {
-                                    return renderProfiles(false, item, this.state.showProfiles);
-                                })}
-                                <Divider />
-                                {this.state.globalProfileNames.map(item => {
-                                    return renderProfiles(true, item, this.state.showProfiles);
-                                })}
-                            </MenuList>
-                        ) :
-                            <MenuList disabled={true} subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} >Profiles</ListSubheader>} className={classes.list} >
-                                {/* {this.state.globalProfileNames.map(item => {
-                                    return renderProfiles(true, item);
-                                })} */}
-                            </MenuList>
-                        }
+
+                        <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
+                            {
+                                this.state.profileNames.map(item => {
+                                    return (<MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
+                                        key={"profile-" + item.profile_name}
+                                        selected={item.profile_name === this.state.currentProfile}
+                                        style={{ display: this.state.showProfiles ? "block" : "none" }} >
+                                        {(this.state.activeProfile === item.profile_name && !this.state.activeProfileIsGlobal) ? (<CheckCircle />) : ""}
+                                        &nbsp; {item.profile_name}
+                                    </MenuItem>);
+                                })
+                            }
+                            <Divider />
+                            {
+                                this.state.globalProfileNames.map(item => {
+                                    return (
+                                        <MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
+                                            key={"globalProfile-" + item.profile_name}
+                                            selected={item.profile_name === this.state.currentProfile}
+                                            style={{ display: this.state.showProfiles ? "block" : "none" }}>
+                                            {(this.state.activeProfile === item.profile_name && this.state.activeProfileIsGlobal) ? <CheckCircle /> : ""}
+                                            &nbsp; {item.profile_name} &nbsp;<MenuGlobal />
+                                        </MenuItem>);
+                                })
+                            }
+                        </MenuList>
+
                         <MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showMedia: !this.state.showMedia })}>Media</ListSubheader>} className={classes.list} >
                             <MenuItem selected={"AppBody-ReorderAudio" === this.state.currentAppBody}
                                 onClick={event => this.props.onSelectAppBody(event, "AppBody-ReorderAudio")}

@@ -343,6 +343,31 @@ router.post("/boards/:boardID/activeProfile/:profileID/isGlobal/:isGlobal", asyn
 
 });
 
+
+router.post("/boards/:boardID/deactivateProfile/:profileID/isGlobal/:isGlobal", async function (req, res, next) {
+
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+
+	var boardID = req.params.boardID;
+	var profileID = req.params.profileID;
+	var isGlobal = req.params.isGlobal == "true";
+
+
+	try {
+		var boardExists = await DownloadDirectoryDS.boardExists(boardID);
+		if (boardExists) {
+			var result = await DownloadDirectoryDS.deactivateBoardProfile(boardID, profileID, isGlobal);
+			res.status(200).json(result);
+		}
+		else {
+			throw new Error("Board named " + boardID + " does not exist");
+		}
+	}
+	catch (err) {
+		res.status(500).json(err);
+	}
+
+});
 router.get("/boards/:boardID/DownloadDirectoryJSON", async function (req, res, next) {
 	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	var boardID = req.params.boardID;

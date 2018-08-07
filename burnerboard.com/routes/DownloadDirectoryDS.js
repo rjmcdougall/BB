@@ -13,17 +13,49 @@ exports.activateBoardProfile = async function (boardID, profileID, isProfileGlob
 	try {
 		var results = await datastore.runQuery(boardQuery);
 
-		results[0][0].profile = profileID;
-		results[0][0].isProfileGlobal = isProfileGlobal;
+		if(!profileID || profileID == ""){
+			results[0][0].profile = profileID;
+			results[0][0].isProfileGlobal = isProfileGlobal;
+		}
+		else {
+			results[0][0].profile2 = profileID;
+			results[0][0].isProfileGlobal2 = isProfileGlobal;	
+		}
 
 		await datastore.update(results[0]);
-
 		return results[0];
 	}
 	catch (error) {
 		throw new Error(error);
 	}
 };
+
+
+exports.deactivateBoardProfile = async function (boardID, profileID, isProfileGlobal) {
+
+	const boardQuery = datastore.createQuery("board")
+		.filter("name", "=", boardID);
+
+	try {
+		var results = await datastore.runQuery(boardQuery);
+
+		if(results[0][0].profile == profileID){
+			results[0][0].profile = null;
+			results[0][0].isProfileGlobal = null;
+		}
+		else {
+			results[0][0].profile2 = null;
+			results[0][0].isProfileGlobal2 = null;
+		}
+
+		await datastore.update(results[0]);
+		return results[0];
+	}
+	catch (error) {
+		throw new Error(error);
+	}
+};
+
 
 exports.addMedia = async function (boardID, profileID, mediaType, fileName, fileSize, fileLength) {
 
