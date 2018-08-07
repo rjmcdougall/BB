@@ -200,8 +200,8 @@ class GoogleDriveMediaPicker extends Component {
 }
 
 GoogleDriveMediaPicker.propTypes = {
-	currentBoard: PropTypes.object,
-	currentProfile: PropTypes.object
+	currentBoard: PropTypes.string,
+	currentProfile: PropTypes.string
 };
 
 export default GoogleDriveMediaPicker;

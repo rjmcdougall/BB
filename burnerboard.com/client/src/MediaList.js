@@ -35,7 +35,7 @@ class MediaList extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			items: [{ "localName": "loading audio..." }],
+			items: [{ "id": "loading...", "localName": "loading audio..." }],
 			currentBoard: props.currentBoard,
 			currentProfile: props.currentProfile,
 			mediaType: props.mediaType,
@@ -164,7 +164,7 @@ class MediaList extends Component {
 	}
 
 	render() {
-
+console.log(this.state.items)
 		return (
 			<DragDropContext onDragEnd={this.onDragEnd}>
 				<Droppable droppableId="droppable">
