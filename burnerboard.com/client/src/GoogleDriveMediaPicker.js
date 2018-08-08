@@ -10,9 +10,7 @@ class GoogleDriveMediaPicker extends Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {
-			currentBoard: props.currentBoard,
-			currentProfile: props.currentProfile,
+		this.state = { 
 			jsonResults: "",
 			errorInfo: "",
 			spinnerActive: false,
@@ -38,9 +36,7 @@ class GoogleDriveMediaPicker extends Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
-		this.setState({
-			currentBoard: nextProps.currentBoard,
-			currentProfile: nextProps.currentProfile,
+		this.setState({ 
 			jsonResults: "",
 			errorInfo: "",
 			spinnerActive: false,
@@ -94,17 +90,17 @@ class GoogleDriveMediaPicker extends Component {
 					url = doc[google.picker.Document.URL];
 
 					var API;
-					if (this.state.currentBoard != null)
-						API = "/boards/" + this.state.currentBoard + "/profiles/" + this.state.currentProfile + "/AddFileFromGDrive";
+					if (this.props.currentBoard != null)
+						API = "/boards/" + this.props.currentBoard + "/profiles/" + this.props.currentProfile + "/AddFileFromGDrive";
 					else
-						API = "/profiles/" + this.state.currentProfile + "/AddFileFromGDrive";
+						API = "/profiles/" + this.props.currentProfile + "/AddFileFromGDrive";
 
 					console.log("API FOR UPLOADING MEDIA: " + API);
 					console.log("BODY FOR UPLOAD: " + JSON.stringify({
 						GDriveURL: url,
 						oauthToken: sessionStorage.getItem("accessToken"),
 						fileId: data.docs[0].id,
-						currentBoard: this.state.currentBoard,
+						currentBoard: this.props.currentBoard,
 					}));
 
 					var myErrorInfo = "";
@@ -125,7 +121,7 @@ class GoogleDriveMediaPicker extends Component {
 								GDriveURL: url,
 								oauthToken: sessionStorage.getItem("accessToken"),
 								fileId: data.docs[0].id,
-								currentBoard: this.state.currentBoard,
+								currentBoard: this.props.currentBoard,
 							})
 						});
 

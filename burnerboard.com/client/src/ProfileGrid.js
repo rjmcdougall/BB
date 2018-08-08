@@ -18,12 +18,10 @@ import { lighten } from "material-ui/styles/colorManipulator";
 import Snackbar from "material-ui/Snackbar";
 import Typography from "material-ui/Typography";
 
-
 const columnData = [
 	{ id: "board", numeric: false, label: "Board" },
 	{ id: "profile", numeric: false, label: "Profile" },
 ];
-
 class EnhancedTableHead extends React.Component {
 	createSortHandler = property => event => {
 		this.props.onRequestSort(event, property);
@@ -108,7 +106,6 @@ let EnhancedTableToolbar = props => {
 				[classes.highlight]: numSelected > 0,
 			})}
 		>
-
 			<div className={classes.title}>
 				{numSelected > 0 ? (
 					<Typography type="subheading">{numSelected} selected</Typography>
@@ -154,10 +151,7 @@ class ProfileGrid extends React.Component {
 		this.state = {
 			order: "asc",
 			orderBy: "profile",
-			selected: [],
-			profileDeleteSnackbarOpen: false,
-			profileDeleteResultsMessage: "",
-			profileSelected: "",
+			selected: [],  
 			profileArray: [
 				{
 					id: 1,
@@ -191,17 +185,7 @@ class ProfileGrid extends React.Component {
 	componentDidMount() {
 		this.loadProfileGrid();
 	}
-
-	componentWillReceiveProps(nextProps) {
-
-		this.setState({
-			profileDeleteSnackbarOpen: nextProps.profileDeleteSnackbarOpen,
-			profileDeleteResultsMessage: nextProps.profileDeleteResultsMessage,
-			profileSelected: nextProps.profileSelected,
-
-		}, this.loadProfileGrid)
-	}
-
+ 
 	async loadProfileGrid() {
 		const API = "/allProfiles/";
 
@@ -243,7 +227,7 @@ class ProfileGrid extends React.Component {
 		}
 	}
 
-	isSelected = id => this.state.profileSelected.indexOf(id) !== -1;
+	isSelected = id => this.props.profileSelected.indexOf(id) !== -1;
 
 	render() {
 		const { classes } = this.props;
@@ -289,23 +273,19 @@ class ProfileGrid extends React.Component {
 						</TableBody>
 					</Table>
 				</div>
-
-
 				<Snackbar
 					anchorOrigin={{
 						vertical: "bottom",
 						horizontal: "center",
 					}}
-					open={this.state.profileDeleteSnackbarOpen}
+					open={this.props.profileDeleteSnackbarOpen}
 					onClose={this.handleProfileDeleteClose}
 					autoHideDuration={3000}
 					SnackbarContentProps={{
 						"aria-describedby": "message-id",
 					}}
-					message={this.state.profileDeleteResultsMessage}
+					message={this.props.profileDeleteResultsMessage}
 				/>
-
-
 			</Paper>
 		);
 	}
@@ -313,6 +293,16 @@ class ProfileGrid extends React.Component {
 
 ProfileGrid.propTypes = {
 	classes: PropTypes.object.isRequired,
+	profileDeleteResultsMessage: PropTypes.string,
+	profileDeleteSnackbarOpen: PropTypes.bool,
+	profileSelected: PropTypes.string,
 };
+
+ProfileGrid.defaultProps = {
+	profileDeleteSnackbarOpen: false,
+	profileDeleteResultsMessage: "",
+	profileSelected: "",
+};
+
 
 export default withStyles(styles)(ProfileGrid);

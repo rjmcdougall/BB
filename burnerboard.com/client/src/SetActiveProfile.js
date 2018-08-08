@@ -3,7 +3,6 @@ import { PropTypes, Text } from "prop-types";
 import { withStyles } from "material-ui/styles";
 import { FormControl } from "material-ui/Form";
 import SystemUpdate from "material-ui-icons/SystemUpdate";
-
 import Button from "material-ui/Button";
 import Snackbar from "material-ui/Snackbar";
 import Center from "react-center";
@@ -31,7 +30,6 @@ const styles = theme => ({
 		marginLeft: theme.spacing.unit,
 	},
 });
-
 class SetActiveProfile extends React.Component {
  
 	render() {
@@ -84,7 +82,7 @@ SetActiveProfile.propTypes = {
 	activeProfiles: PropTypes.array,
 	currentProfile: PropTypes.string,
 	activateResultsMessage: PropTypes.string,
-	activateOpenSnackbar: PropTypes.boolean,
+	activateOpenSnackbar: PropTypes.bool,
 	onActivateProfile: PropTypes.func,
 	handleActivateProfileClose: PropTypes.func,
 };

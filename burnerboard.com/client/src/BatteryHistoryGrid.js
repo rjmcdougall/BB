@@ -4,6 +4,7 @@ import Table, { TableBody, TableCell, TableHead, TableRow } from "material-ui/Ta
 import Paper from "material-ui/Paper";
 import { Charts, BarChart, Resizable, ChartContainer, ChartRow, YAxis } from "react-timeseries-charts";
 import { TimeSeries, Index } from "pondjs";
+import PropTypes from "prop-types";
 
 const styles = theme => ({
 	root: {
@@ -32,15 +33,13 @@ class BatteryHistoryGrid extends React.Component {
 			timeSeriesData: [
 				["Sat Mar 03 2018 13:15:00", 50],
 			],
-			currentBoard: props.currentBoard,
 		};
 		this.loadBoardData = this.loadBoardData.bind(this);
-
 	}
 
 	async loadBoardData() {
 
-		const API = "/boards/" + this.state.currentBoard + "/BatteryHistory";
+		const API = "/boards/" + this.props.currentBoard + "/BatteryHistory";
 
 		console.log("API TO GET BATTERY DATA: " + API);
 
@@ -93,42 +92,25 @@ class BatteryHistoryGrid extends React.Component {
 		this.loadBoardData();
 	}
 
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			currentBoard: nextProps.currentBoard,
-		}, this.loadBoardData);
-	}
-
 	render() {
 
 		try {
 			const { classes } = this.props;
-
-			console.log("time series loaded from DB: " + this.state.timeSeriesData);
-
+ 
 			var timeSeriesData = this.state.timeSeriesData.map(([d, value]) => [
 				Index.getIndexString("15m", new Date(d)),
 				value
 			]);
-
-			console.log("time series mapped : " + JSON.stringify(timeSeriesData));
-
+ 
 			const series = new TimeSeries({
 				name: "hilo_rainfall",
 				columns: ["index", "precip"],
 				points: timeSeriesData,
 			});
-
-			console.log("time series object: " + JSON.stringify(series));
-
+ 
 			return (
 				<div>
 					<div>
-						{/* <div className="row">
-                        <div className="col-md-12">
-                            <b>BarChart</b>
-                        </div>
-                    </div> */}
 						<hr />
 						<div className="row">
 							<div className="col-md-12">
@@ -187,8 +169,10 @@ class BatteryHistoryGrid extends React.Component {
 		catch (error) {
 			console.log(error);
 		}
-
 	}
 }
 
+BatteryHistoryGrid.propTypes = {
+	currentBoard: PropTypes.string,
+};
 export default withStyles(styles)(BatteryHistoryGrid);

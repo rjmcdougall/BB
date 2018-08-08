@@ -40,7 +40,6 @@ const menuStyles = {
         width: "auto",
     },
 };
-
 class GlobalMenu extends React.Component {
 
     constructor(props) {
@@ -215,8 +214,8 @@ GlobalMenu.propTypes = {
     activeProfiles: PropTypes.array,
     toggleDrawer: PropTypes.func,
     toggleGlobalDrawe: PropTypes.func,
-    drawerIsOpen: PropTypes.boolean,
-    globalDrawerIsOpen: PropTypes.boolean,
+    drawerIsOpen: PropTypes.bool,
+    globalDrawerIsOpen: PropTypes.bool,
     currentBoard: PropTypes.string,
     currentAppBody: PropTypes.string,
     currentProfile: PropTypes.string,
@@ -224,5 +223,5 @@ GlobalMenu.propTypes = {
     profileNames: PropTypes.array,
     globalProfileNames: PropTypes.array,
 };
-
+ 
 export default withStyles(menuStyles)(GlobalMenu);

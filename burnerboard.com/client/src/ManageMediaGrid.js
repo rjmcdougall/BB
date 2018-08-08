@@ -22,7 +22,6 @@ import Snackbar from 'material-ui/Snackbar';
 const columnData = [
     { id: 'localName', numeric: false, disablePadding: true, label: 'File Name' }
 ];
-
 class EnhancedTableHead extends React.Component {
     createSortHandler = property => event => {
         this.props.onRequestSort(event, property);
@@ -161,8 +160,6 @@ class ManageMediaGrid extends React.Component {
             selected: [],
             open: false,
             resultsMessage: "",
-            currentBoard: this.props.currentBoard,
-            currentProfile: this.props.currentProfile,
             currentProfileIsReadOnly: false,
             mediaArray: [
                 {
@@ -201,13 +198,6 @@ class ManageMediaGrid extends React.Component {
         this.loadGrid();
     }
 
-    componentWillReceiveProps(nextProps) {
-        this.setState({
-            currentBoard: nextProps.currentBoard,
-            currentProfile: nextProps.currentProfile,
-        }, this.loadGrid);
-    }
-
     async loadGrid() {
 
         var API;
@@ -216,10 +206,10 @@ class ManageMediaGrid extends React.Component {
         var data;
         var mediaArray;
 
-        if (this.state.currentBoard != null)
-            API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile;
+        if (this.props.currentBoard != null)
+            API = '/boards/' + this.props.currentBoard + '/profiles/' + this.props.currentProfile;
         else
-            API = '/profiles/' + this.state.currentProfile;
+            API = '/profiles/' + this.props.currentProfile;
 
         console.log("API CALL TO CHECK FOR READ ONLY PROFILE: " + API);
 
@@ -235,10 +225,10 @@ class ManageMediaGrid extends React.Component {
 
             profileData = await response.json();
 
-            if (this.state.currentBoard != null)
-                API = '/boards/' + this.state.currentBoard + '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+            if (this.props.currentBoard != null)
+                API = '/boards/' + this.props.currentBoard + '/profiles/' + this.props.currentProfile + '/DownloadDirectoryJSON';
             else
-                API = '/profiles/' + this.state.currentProfile + '/DownloadDirectoryJSON';
+                API = '/profiles/' + this.props.currentProfile + '/DownloadDirectoryJSON';
 
             console.log("API CALL TO LOAD MEDIA GRID: " + API);
 
@@ -322,8 +312,8 @@ class ManageMediaGrid extends React.Component {
         var selectedItem = this.state.selected[0].toString();
         var selectLocalName = selectedItem.slice(selectedItem.indexOf('-') + 1)
         var selectedMediaType = selectedItem.slice(0, selectedItem.indexOf('-'));
-        var profileID = this.state.currentProfile;
-        var boardID = this.state.currentBoard;
+        var profileID = this.props.currentProfile;
+        var boardID = this.props.currentBoard;
 
         var API = "";
         if (boardID != null)
@@ -438,6 +428,8 @@ class ManageMediaGrid extends React.Component {
 
 ManageMediaGrid.propTypes = {
     classes: PropTypes.object.isRequired,
+    currentBoard: PropTypes.string,
+    currentProfile: PropTypes.currentProfile,
 };
 
 export default withStyles(styles)(ManageMediaGrid);

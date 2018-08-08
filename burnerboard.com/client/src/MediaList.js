@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 //import ReactDOM from "react-dom";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import PropTypes from "prop-types";
 
 // a little function to help us with reordering the result
 const reorder = (list, startIndex, endIndex) => {
@@ -36,37 +37,21 @@ class MediaList extends Component {
 		super(props);
 		this.state = {
 			items: [{ "id": "loading...", "localName": "loading audio..." }],
-			currentBoard: props.currentBoard,
-			currentProfile: props.currentProfile,
-			mediaType: props.mediaType,
 		};
 		this.onDragEnd = this.onDragEnd.bind(this);
 		this.loadDD = this.loadDD.bind(this);
-
-	}
-
-	componentWillReceiveProps(nextProps) {
-
-		this.setState({
-			currentBoard: nextProps.currentBoard,
-			currentProfile: nextProps.currentProfile,
-			mediaType: nextProps.mediaType,
-		}, this.loadDD);
-
 	}
 
 	componentDidMount() {
-
 		this.loadDD();
-
 	}
 
 	async loadDD() {
 		var API;
-		if (this.state.currentBoard != null)
-			API = "/boards/" + this.state.currentBoard + "/profiles/" + this.state.currentProfile + "/DownloadDirectoryJSON";
+		if (this.props.currentBoard != null)
+			API = "/boards/" + this.props.currentBoard + "/profiles/" + this.props.currentProfile + "/DownloadDirectoryJSON";
 		else
-			API = "/profiles/" + this.state.currentProfile + "/DownloadDirectoryJSON";
+			API = "/profiles/" + this.props.currentProfile + "/DownloadDirectoryJSON";
 
 		console.log("URL FOR MEDIA LIST: " + API);
 
@@ -82,7 +67,7 @@ class MediaList extends Component {
 
 			var data = await response.json();
 
-			if (this.state.mediaType === "audio") {
+			if (this.props.mediaType === "audio") {
 				this.setState({
 					items: data.audio.map(item => ({
 						id: item.localName,
@@ -130,10 +115,10 @@ class MediaList extends Component {
 		try {
 			var API;
 
-			if (this.state.currentBoard != null)
-				API = "/boards/" + this.state.currentBoard + "/profiles/" + this.state.currentProfile + "/" + this.state.mediaType + "/ReorderMedia";
+			if (this.props.currentBoard != null)
+				API = "/boards/" + this.props.currentBoard + "/profiles/" + this.props.currentProfile + "/" + this.props.mediaType + "/ReorderMedia";
 			else
-				API = "/profiles/" + this.state.currentProfile + "/" + this.state.mediaType + "/ReorderMedia";
+				API = "/profiles/" + this.props.currentProfile + "/" + this.props.mediaType + "/ReorderMedia";
 
 			console.log("URL UPDATE MEDIA: " + API);
 
@@ -150,7 +135,7 @@ class MediaList extends Component {
 				},
 				body: JSON.stringify({
 					mediaArray: mediaArray,
-					mediaType: this.state.mediaType,
+					mediaType: this.props.mediaType,
 				})
 			});
 
@@ -164,7 +149,6 @@ class MediaList extends Component {
 	}
 
 	render() {
-console.log(this.state.items)
 		return (
 			<DragDropContext onDragEnd={this.onDragEnd}>
 				<Droppable droppableId="droppable">
@@ -200,5 +184,10 @@ console.log(this.state.items)
 		);
 	}
 }
+
+MediaList.propTypes = {
+	currentBoard: PropTypes.string,
+	currentProfile: PropTypes.string
+};
 
 export default MediaList;

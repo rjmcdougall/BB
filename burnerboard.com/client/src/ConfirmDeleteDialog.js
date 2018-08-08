@@ -15,12 +15,9 @@ class ResponsiveDialog extends React.Component {
 		super(props);
 		this.state = {
 			open: false,
-			selectedRows: this.props.selectedRows
 		};
 
-
 		this.handleConfirm = this.props.handleConfirm.bind(this);
-
 	}
 
 	handleClickOpen = () => {
@@ -35,9 +32,7 @@ class ResponsiveDialog extends React.Component {
 
 		return (
 			<div>
-
 				<img alt="" onClick={this.handleClickOpen} height="48" width="48" src={require("./images/trash-200.png")} />
-
 				<Dialog
 					open={this.state.open}
 					onClose={this.handleClose}
@@ -62,6 +57,5 @@ class ResponsiveDialog extends React.Component {
 		);
 	}
 }
-
 
 export default withMobileDialog()(ResponsiveDialog);

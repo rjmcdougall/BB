@@ -43,27 +43,13 @@ class AddProfile extends React.Component {
 		this.state = {
 			board: "GLOBAL",
 			profile: "",
-			createProfileOpenSnackbar: this.props.createProfileOpenSnackbar,
-			createProfileResultsMessage: this.props.createProfileResultsMessage,
 			boardNames: [{ board_name: "loading..." }],
 			profileArray: [{ board_name: "loading..." }],
-			createProfileBoardName: "GLOBAL",
-			createProfileBoardCloneProfileName: "NONE - NONE",
 		};
 
 		this.handleCreateProfile = this.props.handleCreateProfile.bind(this);
 		this.handleChange = this.props.handleChange.bind(this);
 		this.handleProfileAddClose = this.props.handleProfileAddClose.bind(this);
-	}
-
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			createProfileOpenSnackbar: nextProps.createProfileOpenSnackbar,
-			createProfileResultsMessage: nextProps.createProfileResultsMessage,
-			createProfileBoardName: nextProps.createProfileBoardName,
-			createProfileBoardCloneProfileName: nextProps.createProfileBoardCloneProfileName
-		});
-
 	}
 
 	async componentDidMount() {
@@ -142,15 +128,15 @@ class AddProfile extends React.Component {
 							<FormControl >
 								<InputLabel htmlFor="board-picker">Board</InputLabel>
 								<Select
-									value={this.state.createProfileBoardName}
+									value={this.props.createProfileBoardName}
 									onChange={this.handleChange}
 									input={<Input name="createProfileBoardName" id="board-picker" />}>
-									<MenuItem selected={this.state.createProfileBoardName === "GLOBAL"} value="GLOBAL">
+									<MenuItem selected={this.props.createProfileBoardName === "GLOBAL"} value="GLOBAL">
 										GLOBAL
 									</MenuItem>
 									{this.state.boardNames.map(item =>
 										(
-											<MenuItem selected={this.state.createProfileBoardName === item.board_name} key={item.board_name} value={item.board_name}>{item.board_name}
+											<MenuItem selected={this.props.createProfileBoardName === item.board_name} key={item.board_name} value={item.board_name}>{item.board_name}
 											</MenuItem>))
 									}
 								</Select>
@@ -167,15 +153,15 @@ class AddProfile extends React.Component {
 							<FormControl  >
 								<InputLabel htmlFor="clone-picker">Clone From</InputLabel>
 								<Select
-									value={this.state.createProfileBoardCloneProfileName}
+									value={this.props.createProfileBoardCloneProfileName}
 									onChange={this.handleChange}
 									input={<Input name="createProfileBoardCloneProfileName" id="clone-picker" />}>
-									<MenuItem selected={this.state.createProfileBoardCloneProfileName === "NONE - NONE"} value="NONE - NONE">
+									<MenuItem selected={this.props.createProfileBoardCloneProfileName === "NONE - NONE"} value="NONE - NONE">
 										NONE - NONE
 									</MenuItem>
 									{this.state.profileArray.map(item =>
 										(
-											<MenuItem selected={this.state.createProfileBoardCloneProfileName === item.board + " - " + item.profile} key={item.board + " - " + item.profile} value={item.board + " - " + item.profile}>{item.board + " - " + item.profile}
+											<MenuItem selected={this.props.createProfileBoardCloneProfileName === item.board + " - " + item.profile} key={item.board + " - " + item.profile} value={item.board + " - " + item.profile}>{item.board + " - " + item.profile}
 											</MenuItem>))
 									}
 								</Select>
@@ -199,12 +185,12 @@ class AddProfile extends React.Component {
 							horizontal: "center",
 						}}
 						autoHideDuration={3000}
-						open={this.state.createProfileOpenSnackbar}
+						open={this.props.createProfileOpenSnackbar}
 						onClose={this.handleProfileAddClose}
 						SnackbarContentProps={{
 							"aria-describedby": "message-id",
 						}}
-						message={this.state.createProfileResultsMessage}
+						message={this.props.createProfileResultsMessage}
 					/>
 				</div>
 			</Center>
@@ -214,6 +200,15 @@ class AddProfile extends React.Component {
 
 AddProfile.propTypes = {
 	classes: PropTypes.object.isRequired,
+	createProfileOpenSnackbar: PropTypes.bool,
+	createProfileResultsMessage: PropTypes.string,
+	createProfileBoardName: PropTypes.string,
+	createProfileBoardCloneProfileName: PropTypes.string,
+};
+
+AddProfile.defaultProps = {
+	createProfileBoardName: "GLOBAL",
+	createProfileBoardCloneProfileName: "NONE - NONE",
 };
 
 export default withStyles(styles)(AddProfile);

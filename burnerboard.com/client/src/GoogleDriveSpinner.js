@@ -1,25 +1,11 @@
 import React from "react";
 import { PulseLoader } from "react-spinners";
+import PropTypes from "prop-types";
 
 class GoogleDriveSpinner extends React.Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			loading: props.loading,
-			message: props.message,
-		};
-	}
-
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			loading: nextProps.loading,
-			message: nextProps.message,
-		});
-	}
-
 	render() {
 
-		if (this.state.loading) {
+		if (this.props.loading) {
 			return (
 				<div className="sweet-loading">
 					<PulseLoader
@@ -32,11 +18,15 @@ class GoogleDriveSpinner extends React.Component {
 		}
 		else {
 			return (
-				<div>{this.state.message}</div>
+				<div>{this.props.message}</div>
 			);
 		}
-
 	}
 }
+
+GoogleDriveSpinner.propTypes = {
+	message: PropTypes.string,
+	loading: PropTypes.bool,
+};
 
 export default GoogleDriveSpinner;

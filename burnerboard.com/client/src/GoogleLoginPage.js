@@ -4,23 +4,12 @@ import GoogleLogin from "react-google-login";
 class GoogleLoginPage extends Component {
 
 	constructor(props) {
-
 		super(props);
-
-		this.state = {
-			buttonText: props.buttonText,
-		};
+ 
 		this.responseGoogle = this.props.responseGoogle.bind(this);
 
 		console.log("Clear the JWT from SessionStorage.");
 		window.sessionStorage.removeItem("JWT");
-	}
-
-	componentWillReceiveProps(nextProps) {
-		this.setState({
-			buttonText: nextProps.buttonText,
-		});
-
 	}
 
 	render() {
@@ -46,7 +35,7 @@ class GoogleLoginPage extends Component {
 					<img alt="" rel="bb" height="24" width="24" src={require("./images/google logo 64.png")} />
 					<GoogleLogin
 						clientId="845419422405-4e826kofd0al1npjaq6tijn1f3imk43p.apps.googleusercontent.com"
-						buttonText={this.state.buttonText}
+						buttonText={this.props.buttonText}
 						accessType="online"
 						onSuccess={this.responseGoogle}
 						onFailure={this.responseGoogle}
@@ -64,6 +53,5 @@ class GoogleLoginPage extends Component {
 
 	}
 }
-
 
 export default GoogleLoginPage;
