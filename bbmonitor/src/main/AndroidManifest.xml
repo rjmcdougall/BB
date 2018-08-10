@@ -29,8 +29,19 @@
     <uses-feature android:name="android.hardware.usb.host" />
     <uses-feature android:name="android.hardware.wifi" />
 
-    <application>
+    <application android:theme="@android:style/Theme.NoTitleBar">
 
+        <receiver
+            android:name=".BBRunOnStartup"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+
+            </intent-filter>
+        </receiver>
 
         <uses-library android:name="com.google.android.things" />
 
