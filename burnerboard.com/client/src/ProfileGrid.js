@@ -235,11 +235,11 @@ class ProfileGrid extends React.Component {
 
 		return (
 			<Paper className={classes.root}>
-				<EnhancedTableToolbar numSelected={profileSelected.length} onDelete={this.onProfileDelete} />
+				<EnhancedTableToolbar numSelected={this.props.profileSelected.length} onDelete={this.onProfileDelete} />
 				<div className={classes.tableWrapper}>
 					<Table className={classes.table}>
 						<EnhancedTableHead
-							numSelected={profileSelected.length}
+							numSelected={this.props.profileSelected.length}
 							order={order}
 							orderBy={orderBy}
 							onRequestSort={this.handleRequestSort}

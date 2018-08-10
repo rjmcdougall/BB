@@ -18,13 +18,15 @@ class ResponsiveDialog extends React.Component {
 		};
 
 		this.handleConfirm = this.props.handleConfirm.bind(this);
+		this.handleClickOpen = this.props.handleClickOpen.bind(this);
+		this.handleClose = this.props.handleClose.bind(this);
 	}
 
-	handleClickOpen = () => {
+	handleClickOpen() {
 		this.setState({ open: true });
 	}
 
-	handleClose = () => {
+	handleClose() {
 		this.setState({ open: false });
 	}
 

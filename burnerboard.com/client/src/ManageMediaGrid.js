@@ -172,13 +172,16 @@ class ManageMediaGrid extends React.Component {
         };
 
         this.loadGrid = this.loadGrid.bind(this);
+        this.onDelete = this.onDelete.bind(this);
+        this.handleMediaDeleteClose = this.handleMediaDeleteClose.bind(this);
+        this.handleRequestSort = this.handleRequestSort.bind(this);
     }
 
-    handleMediaDeleteClose = () => {
+    handleMediaDeleteClose() {
         this.setState({ open: false });
     }
 
-    handleRequestSort = (event, property) => {
+    handleRequestSort(event, property) {
         const orderBy = property;
         let order = 'desc';
 
@@ -290,25 +293,26 @@ class ManageMediaGrid extends React.Component {
         }
     }
 
-    handleClick = (event, id) => {
+    handleClick(event, id) {
 
         if (!this.state.currentProfileIsReadOnly) {
             let newSelected = [id];
             this.setState({ selected: newSelected });
         }
-    };
+    }
 
-    handlePreview = event => {
+    handlePreview(event) {
         // eslint-disable-next-line no-console
         console.log(event.currentTarget.getAttribute('dataurl'));
         window.open(event.currentTarget.getAttribute('dataurl'));
     }
 
-    isSelected = id => this.state.selected.indexOf(id) !== -1;
+    isSelected(id) {
+        this.state.selected.indexOf(id) !== -1;
+    }
 
-    onDelete = async () => {
-
-        var mediaGrid = this;
+    async onDelete() {
+ 
         var selectedItem = this.state.selected[0].toString();
         var selectLocalName = selectedItem.slice(selectedItem.indexOf('-') + 1)
         var selectedMediaType = selectedItem.slice(0, selectedItem.indexOf('-'));
@@ -336,17 +340,17 @@ class ManageMediaGrid extends React.Component {
             var json = await res.json();
 
             if (!res.ok) {
-                mediaGrid.setState({
+                this.setState({
                     open: true,
                     resultsMessage: JSON.stringify(json),
                 });
             }
             else {
-                mediaGrid.setState({
+                this.setState({
                     open: true,
                     resultsMessage: JSON.stringify(json),
                     selected: [],
-                    mediaArray: mediaGrid.state.mediaArray.filter(function (item) {
+                    mediaArray: this.state.mediaArray.filter(function (item) {
                         return item.id !== selectedItem;
                     })
                 });
@@ -354,7 +358,7 @@ class ManageMediaGrid extends React.Component {
         }
         catch (error) {
             console.log('error : ' + error);
-            mediaGrid.setState({
+            this.setState({
                 open: true,
                 resultsMessage: error.message
             });

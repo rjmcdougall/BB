@@ -1,5 +1,5 @@
 import React from "react";
-import { PropTypes, Text } from "prop-types";
+import { PropTypes } from "prop-types";
 import { withStyles } from "material-ui/styles";
 import { FormControl } from "material-ui/Form";
 import SystemUpdate from "material-ui-icons/SystemUpdate";

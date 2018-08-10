@@ -45,7 +45,13 @@ export default class BBApp extends Component {
 		this.reloadOnExpiration = this.props.reloadOnExpiration.bind(this);
 		this.toggleDrawer = this.toggleDrawer.bind(this);
 		this.toggleGlobalDrawer = this.toggleGlobalDrawer.bind(this);
-
+		this.handleProfileDeleteClose = this.handleProfileDeleteClose.bind(this);
+		this.handleProfileAddClose = this.handleProfileAddClose.bind(this);
+		this.handleActivateProfileClose = this.handleActivateProfileClose.bind(this);
+		this.handleCreateProfile = this.handleCreateProfile.bind(this);
+		this.handleProfileClick = this.handleProfileClick.bind(this);
+		this.onProfileDelete = this.onProfileDelete.bind(this);
+		this.handleChange = this.handleChange.bind(this);
 	}
 
 	async componentDidMount() {
@@ -68,7 +74,7 @@ export default class BBApp extends Component {
 			});
 		}
 		catch (error) {
-			this.setState({ error })
+			this.setState({ error });
 		}
 	}
 
@@ -76,33 +82,34 @@ export default class BBApp extends Component {
 		this.setState({
 			drawerIsOpen: open,
 		});
-	};
+	}
+
 	toggleGlobalDrawer(open) {
 		this.setState({
 			globalDrawerIsOpen: open,
 		});
-	};
+	}
 
-	handleProfileDeleteClose = () => {
+	handleProfileDeleteClose() {
 		this.reloadOnExpiration();
 
 		this.setState({ profileDeleteSnackbarOpen: false });
 	}
 
-	handleProfileAddClose = () => {
+	handleProfileAddClose() {
 		this.reloadOnExpiration();
 
 		this.setState({ createProfileOpenSnackbar: false });
 	}
 
-	handleActivateProfileClose = () => {
+	handleActivateProfileClose() {
 		this.reloadOnExpiration();
 
 		this.setState({ activateOpenSnackbar: false });
 	}
 
 
-	handleCreateProfile = async (event) => {
+	async handleCreateProfile(event) {
 
 		this.reloadOnExpiration();
 
@@ -168,13 +175,22 @@ export default class BBApp extends Component {
 		}
 	}
 
-	handleProfileClick = (event, id) => {
+	handleChange (event) {
+
+		this.reloadOnExpiration();
+
+		console.log("Set state due to form change: " + [event.target.name] + " " + event.target.value)
+		this.setState({ [event.target.name]: event.target.value });
+
+	};
+
+	handleProfileClick(event, id) {
 
 		this.reloadOnExpiration();
 
 		let newSelected = [id];
 		this.setState({ profileSelected: newSelected });
-	};
+	}
 
 	async updateActiveProfiles(event, updateType) {
 		this.reloadOnExpiration();
@@ -209,7 +225,7 @@ export default class BBApp extends Component {
 			},
 			];
 
-			console.log(activeProfiles)
+			console.log(activeProfiles);
 			this.setState({
 				activeProfiles: activeProfiles,
 				activateOpenSnackbar: true,
@@ -232,21 +248,21 @@ export default class BBApp extends Component {
 		await this.updateActiveProfiles(event, "activate");
 	}
 
-	onProfileDelete = async () => {
+	async onProfileDelete() {
 
 		this.reloadOnExpiration();
 
 		try {
 			var comp = this;
 			var profileSelected = this.state.profileSelected.toString();
-			var profileID = profileSelected.slice(profileSelected.indexOf("-") + 1)
+			var profileID = profileSelected.slice(profileSelected.indexOf("-") + 1);
 			var boardID = profileSelected.slice(0, profileSelected.indexOf("-"));
 
 			var API = "";
 			if (boardID !== "null")
-				API = "/boards/" + boardID + "/profiles/" + profileID
+				API = "/boards/" + boardID + "/profiles/" + profileID;
 			else
-				API = "/profiles/" + profileID
+				API = "/profiles/" + profileID;
 
 			console.log("delete API : " + API);
 
@@ -302,7 +318,7 @@ export default class BBApp extends Component {
 			var selectedBoard = key.slice(6);
 
 			var response, API;
-			var profiles, globalProfiles, activeProfiles
+			var profiles, globalProfiles, activeProfiles;
 			var data;
 
 			// get active profiles
@@ -451,7 +467,7 @@ export default class BBApp extends Component {
 					}}><div>Global options available.</div> <div>Please select a board for board-specific options.</div></div>;
 				}
 				break;
-		};
+		}
 
 		return (
 			<div className="BBApp" style={{ margin: 0 }}>
@@ -467,7 +483,7 @@ export default class BBApp extends Component {
 					onSelectProfile={this.onSelectProfile}
 					activeProfiles={this.state.activeProfiles}
 					toggleDrawer={this.toggleDrawer}
-					toggleGlobalDrawer={this.toggleGlobalDrawer} 
+					toggleGlobalDrawer={this.toggleGlobalDrawer}
 					boardNames={this.state.boardNames}
 					profileNames={this.state.profileNames}
 					globalProfileNames={this.state.globalProfileNames}
