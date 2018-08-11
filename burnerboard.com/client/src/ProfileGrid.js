@@ -231,7 +231,7 @@ class ProfileGrid extends React.Component {
 
 	render() {
 		const { classes } = this.props;
-		const { profileArray, order, orderBy, profileSelected } = this.state;
+		const { profileArray, order, orderBy  } = this.state;
 
 		return (
 			<Paper className={classes.root}>

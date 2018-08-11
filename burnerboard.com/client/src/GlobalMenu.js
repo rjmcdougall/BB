@@ -80,6 +80,7 @@ class GlobalMenu extends React.Component {
 		};
 
 		return (
+
 			<div className={classes.root}>
 				<AppBar position="static">
 					<Toolbar>
@@ -126,7 +127,7 @@ class GlobalMenu extends React.Component {
 						</MenuList>
 						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showTesters: !this.state.showTesters })}>Testers</ListSubheader>} className={classes.list} >
 							{this.props.boardNames.filter((item) => { return item.type === "tester"; }).map(item => (
-								<MenuItem onClick={event => { this.props.onSelectBoard(event, "board-" + item.board_name); this.setState({ showProfiles: true }) ;}}
+								<MenuItem onClick={event => { this.props.onSelectBoard(event, "board-" + item.board_name); this.setState({ showProfiles: true }); }}
 									key={"board-" + item.board_name}
 									selected={item.board_name === this.props.currentBoard}
 									style={{ display: this.state.showTesters ? "block" : "none" }}
@@ -135,33 +136,37 @@ class GlobalMenu extends React.Component {
 							}
 						</MenuList>
 
-						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
-							{
-								this.props.profileNames.map(item => {
-									return (<MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
-										key={"profile-" + item.profile_name}
-										selected={item.profile_name === this.props.currentProfile}
-										style={{ display: this.state.showProfiles ? "block" : "none" }} >
-										{((this.props.activeProfiles[0].profile === item.profile_name || this.props.activeProfiles[1].profile === item.profile_name)) ? <CheckCircle /> : ""}
-										&nbsp; {item.profile_name}
-									</MenuItem>);
-								})
-							}
-							<Divider />
-							{
-								this.props.globalProfileNames.map(item => {
-									return (
-										<MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
-											key={"globalProfile-" + item.profile_name}
+						{(this.props.profileNames.length > 0 || this.props.globalProfileNames > 0) ?
+							<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
+								{
+									this.props.profileNames.map(item => {
+										return (<MenuItem onClick={event => { this.props.onSelectProfile(event, "profile-" + item.profile_name); this.setState({ showMedia: true }); }}
+											key={"profile-" + item.profile_name}
 											selected={item.profile_name === this.props.currentProfile}
-											style={{ display: this.state.showProfiles ? "block" : "none" }}>
+											style={{ display: this.state.showProfiles ? "block" : "none" }} >
 											{((this.props.activeProfiles[0].profile === item.profile_name || this.props.activeProfiles[1].profile === item.profile_name)) ? <CheckCircle /> : ""}
-											&nbsp; {item.profile_name} &nbsp;<MenuGlobal />
+											&nbsp; {item.profile_name}
 										</MenuItem>);
-								})
-							}
-						</MenuList>
-
+									})
+								}
+								<Divider />
+								{
+									this.props.globalProfileNames.map(item => {
+										return (
+											<MenuItem onClick={event => { this.props.onSelectProfile(event, "globalProfile-" + item.profile_name); this.setState({ showMedia: true }); }}
+												key={"globalProfile-" + item.profile_name}
+												selected={item.profile_name === this.props.currentProfile}
+												style={{ display: this.state.showProfiles ? "block" : "none" }}>
+												{((this.props.activeProfiles[0].profile === item.profile_name || this.props.activeProfiles[1].profile === item.profile_name)) ? <CheckCircle /> : ""}
+												&nbsp; {item.profile_name} &nbsp;<MenuGlobal />
+											</MenuItem>);
+									})
+								}
+							</MenuList>
+							:
+							<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
+							</MenuList>
+						}
 						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showMedia: !this.state.showMedia })}>Media</ListSubheader>} className={classes.list} >
 							<MenuItem selected={"AppBody-ReorderAudio" === this.props.currentAppBody}
 								onClick={event => this.props.onSelectAppBody(event, "AppBody-ReorderAudio")}
