@@ -104,6 +104,41 @@ public class RFAddress {
 
     }
 
+    public String boardAddressToColor(int address) {
+
+        JSONObject board;
+        String boardColor = "unknown";
+
+        try {
+
+            if(mBBService.dlManager == null) {
+                l("Could not find board color data");
+                return boardColor;
+            }
+            if(mBBService.dlManager.dataBoards == null) {
+                l("Could not find board color data");
+                return boardColor;
+            }
+
+            for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
+                board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                if(board.getInt("address") == address){
+                    boardColor = board.getString("color");
+                }
+            }
+
+            return boardColor;
+        }
+        catch(JSONException e){
+            l(e.getMessage());
+            return boardColor;
+        }
+        catch(Exception e){
+            l(e.getMessage());
+            return boardColor;
+        }
+    }
+
     private void sendLogMsg(String msg) {
         Intent in = new Intent(BBService.ACTION_STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);

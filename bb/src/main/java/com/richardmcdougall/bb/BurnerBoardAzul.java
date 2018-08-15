@@ -103,7 +103,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 18;
+        return 23;
     }
 
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
@@ -141,15 +141,25 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
+            int [] tmpBatteryStats = new int[16];
+
             for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
+                tmpBatteryStats[i] = mListener.readIntArg();
             }
-            if (mBatteryStats[1] != -1) {
-                mBatteryLevel = mBatteryStats[1];
+            if ((tmpBatteryStats[0] > 0) && //flags
+                    (tmpBatteryStats[1] != -1) &&  // level
+                    (tmpBatteryStats[5] > 20000)) { // voltage
+                mBatteryLevel = tmpBatteryStats[1];
+                System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
+                l("getBatteryLevel: " + mBatteryLevel + "%, " +
+                        "voltage: " + getBatteryVoltage() + ", " +
+                        "current: " + getBatteryCurrent() + ", " +
+                        "flags: " + mBatteryStats[0]);
             } else {
-                mBatteryLevel = 100;
+                l("getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
+                        "voltage: " + tmpBatteryStats[5] + ", " +
+                        "flags: " + tmpBatteryStats[0]);
             }
-            l("getBatteryLevel: " + mBatteryLevel);
         }
     }
 

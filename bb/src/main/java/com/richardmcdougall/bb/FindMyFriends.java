@@ -186,7 +186,7 @@ public class FindMyFriends {
         mRadio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
-        updateBoardLocations(mBoardAddress, 999, radioPacket.toByteArray());
+        updateBoardLocations(mBoardAddress, 999, lat, lon, radioPacket.toByteArray());
     }
 
 
@@ -273,7 +273,7 @@ public class FindMyFriends {
             mIotClient.sendUpdate("bbevent", "[" +
                     mRFAddress.boardAddressToName(mTheirAddress) + "," +
                     sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
-            updateBoardLocations(mTheirAddress, sigStrength, packet.clone());
+            updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, packet.clone());
             return true;
         } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
             d("tracker packet");
@@ -354,28 +354,67 @@ public class FindMyFriends {
     }
 
     // Keep a list of board GPS locations
-    class boardLocation {
-        int sigStrength;
-        long lastHeard;
-        byte[] lastheardLocaton;
-        double lat;
-        double lon;
-        long lastHeardDate;
+    public class boardLocation {
+        public int address;
+        public int sigStrength;
+        public long lastHeard;
+        public byte[] lastheardLocaton;
+        public double lat;
+        public double lon;
+        public long lastHeardDate;
     }
     private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
 
-    private void updateBoardLocations(int address, int sigstrength, byte[] locationPacket) {
+    private void updateBoardLocations(int address, int sigstrength, double lat, double lon, byte[] locationPacket) {
 
         boardLocation loc = new boardLocation();
+        loc.address = address;
         loc.lastHeard = SystemClock.elapsedRealtime();
         loc.lastheardLocaton = locationPacket.clone();
         loc.sigStrength = sigstrength;
         loc.lastHeardDate = System.currentTimeMillis();
+        loc.lat = lat;
+        loc.lon = lon;
         mBoardLocations.put(address, loc);
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);
             d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard) + ", bytes: " + bytesToHex(l.lastheardLocaton));
         }
+    }
+
+    // Pull one location from the list of recent locations
+    // filter by age seconds
+    // returns location structure
+    int lastLocationCoordGet = 0;
+    public boardLocation getRecentCoordinate(int age) {
+
+        byte [] lastHeardLocation = null;
+        int address = 0;
+        int keyNo = 0;
+        int getLoc = lastLocationCoordGet;
+        BigInteger lastHeardDate = BigInteger.valueOf(0);
+
+        if (lastLocationCoordGet == (mBoardLocations.size())) {
+            lastLocationCoordGet = 0;
+            getLoc = 0;
+        }
+        lastLocationCoordGet = lastLocationCoordGet + 1;
+
+
+        for (int addr: mBoardLocations.keySet()) {
+            if (keyNo == getLoc) {
+                boardLocation loc = mBoardLocations.get(addr);
+                if ((System.currentTimeMillis() - loc.lastHeardDate) < (age * 1000)) {
+                    return loc;
+                }
+            }
+            keyNo++;
+        }
+        return null;
+    }
+
+    public String getBoardColor(int address) {
+        return mRFAddress.boardAddressToColor(address);
     }
 
 }
