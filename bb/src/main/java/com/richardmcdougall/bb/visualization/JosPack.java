@@ -9,12 +9,12 @@ import com.richardmcdougall.bb.BurnerBoard;
 
 public class JosPack extends Visualization {
 
-    public static final int kMickeyGold = 1;
-    public static final int kMickey2a = 2;
-    public static final int kMickeySparkle = 3;
-    public static final int kMickeyColors = 4;
-    public static final int kMickeyBlank = 5;
-    public static final int kMickeyBlueGold = 6;
+    public static final int kJPGold = 1;
+    public static final int kJP2a = 2;
+    public static final int kJPSparkle = 3;
+    public static final int kJPColors = 4;
+    public static final int kJPBlank = 5;
+    public static final int kJPBlueGold = 6;
 
     private Wheel mWheel = new Wheel();
 
@@ -27,23 +27,23 @@ public class JosPack extends Visualization {
 
     public void update(int mode) {
         switch (mode) {
-            case kMickeyGold:
-                modeMickeyGold();
+            case kJPGold:
+                modeJPGold();
                 break;
-            case kMickey2a:
-                modeMickey2a();
+            case kJP2a:
+                modeJP2a();
                 break;
-            case kMickeySparkle:
-                modeMickeySparkle();
+            case kJPSparkle:
+                modeJPSparkle();
                 break;
-            case kMickeyColors:
-                modeMickeyColors();
+            case kJPColors:
+                modeJPColors();
                 break;
-            case kMickeyBlank:
-                modeMickeyBlank();
+            case kJPBlank:
+                modeJPBlank();
                 break;
-            case kMickeyBlueGold:
-                modeMickeyBlueGold();
+            case kJPBlueGold:
+                modeJPBlueGold();
                 break;
             default:
                 break;
@@ -51,10 +51,10 @@ public class JosPack extends Visualization {
     }
 
     public void setMode(int mode) {
-        mickeySparkleNo = 0;
+        jpSparkleNo = 0;
     }
 
-    void mickeySetPixel(int n, int color) {
+    void jpSetPixel(int n, int color) {
         if (n < 0 || n >= (kLEDS1 + kLEDS2)) {
             return;
         }
@@ -66,107 +66,107 @@ public class JosPack extends Visualization {
         }
     }
 
-    void modeMickeyGold() {
+    void modeJPGold() {
         mBurnerBoard.fillScreen(255, 147, 41);
         mBurnerBoard.flush();
     }
 
 
-    private int mickeySparkleNo = 0;
+    private int jpSparkleNo = 0;
     private final static int kJPSparkleMiddle = (kLEDS1 + kLEDS2)/ 2;
 
-    void modeMickey2a() {
+    void modeJP2a() {
 
         int ledNo;
 
         mBurnerBoard.fadePixels(10);
 
-        if (mickeySparkleNo > kJPSparkleMiddle) {
+        if (jpSparkleNo > kJPSparkleMiddle) {
             mBurnerBoard.flush();
             return;
         }
 
-        for (ledNo = kJPSparkleMiddle + mickeySparkleNo;
-             ledNo < kJPSparkleMiddle + mickeySparkleNo + 6; ledNo++) {
-            mickeySetPixel(ledNo, mWheel.wheelDim(35,
+        for (ledNo = kJPSparkleMiddle + jpSparkleNo;
+             ledNo < kJPSparkleMiddle + jpSparkleNo + 6; ledNo++) {
+            jpSetPixel(ledNo, mWheel.wheelDim(35,
                     (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
         }
 
-        for (ledNo = kJPSparkleMiddle - mickeySparkleNo;
-             ledNo > kJPSparkleMiddle - mickeySparkleNo - 6; ledNo--) {
-            mickeySetPixel(ledNo, mWheel.wheelDim(35,
+        for (ledNo = kJPSparkleMiddle - jpSparkleNo;
+             ledNo > kJPSparkleMiddle - jpSparkleNo - 6; ledNo--) {
+            jpSetPixel(ledNo, mWheel.wheelDim(35,
                     (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
         }
 
         mBurnerBoard.flush();
-        mickeySparkleNo+= 1;
+        jpSparkleNo+= 1;
     }
 
-    void modeMickeySparkle() {
+    void modeJPSparkle() {
 
         int ledNo;
 
         //mBurnerBoard.fadePixels(10);
 
-        if (mickeySparkleNo > kJPSparkleMiddle) {
+        if (jpSparkleNo > kJPSparkleMiddle) {
             mBurnerBoard.fadePixels(20);
             mBurnerBoard.flush();
-            mickeySparkleNo+= 1;
-            if (mickeySparkleNo > kJPSparkleMiddle + 20) {
-                mickeySparkleNo = 0;
+            jpSparkleNo+= 1;
+            if (jpSparkleNo > kJPSparkleMiddle + 20) {
+                jpSparkleNo = 0;
             }
             return;
         }
 
-        for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + mickeySparkleNo; ledNo++) {
-            mickeySetPixel(ledNo, mWheel.wheelDim(35,
+        for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + jpSparkleNo; ledNo++) {
+            jpSetPixel(ledNo, mWheel.wheelDim(35,
                     (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
         }
 
-        for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - mickeySparkleNo; ledNo--) {
-            mickeySetPixel(ledNo, mWheel.wheelDim(35,
+        for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - jpSparkleNo; ledNo--) {
+            jpSetPixel(ledNo, mWheel.wheelDim(35,
                     (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
         }
 
         mBurnerBoard.flush();
-        mickeySparkleNo+= 1;
+        jpSparkleNo+= 1;
     }
 
-    private final static int kMickeyPhaseShift = 10;
-    private int mickeyColor = 0;
+    private final static int kJPPhaseShift = 10;
+    private int jpColor = 0;
 
-    void modeMickeyColors() {
+    void modeJPColors() {
 
         int ledNo;
 
         for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
-            int index = kMickeyPhaseShift * (mickeyColor + ledNo) % 360; //* kMickeyPhaseShift / 2) % 360;
-            mickeySetPixel(ledNo, mWheel.wheel(index));
+            int index = kJPPhaseShift * (jpColor + ledNo) % 360; //* kJPPhaseShift / 2) % 360;
+            jpSetPixel(ledNo, mWheel.wheel(index));
         }
         mBurnerBoard.flush();
-        mickeyColor ++;
-        mickeyColor %= 360;
+        jpColor ++;
+        jpColor %= 360;
     }
 
-    void modeMickeyBlank() {
+    void modeJPBlank() {
 
         mBurnerBoard.fillScreen(0, 0, 0);
         mBurnerBoard.flush();
     }
 
 
-    private int mickeyRotate = 0;
-    void modeMickeyBlueGold() {
+    private int jpRotate = 0;
+    void modeJPBlueGold() {
 
         int ledNo;
 
         for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
-            int index = (mickeyRotate + ledNo) % 10; //* kMickeyPhaseShift / 2) % 360;
-            mickeySetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
+            int index = (jpRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
+            jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
                     BurnerBoard.getRGB(0, 0, 255));
         }
         mBurnerBoard.flush();
-        mickeyRotate ++;
-        mickeyRotate %= 360;
+        jpRotate ++;
+        jpRotate %= 360;
     }
 }
