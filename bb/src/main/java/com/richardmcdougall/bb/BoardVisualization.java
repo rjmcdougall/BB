@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 import com.richardmcdougall.bb.visualization.Fire;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.Mickey;
+;
+import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.*;
 import com.richardmcdougall.bb.visualization.Visualization;
 import com.richardmcdougall.bb.BurnerBoardUtil;
@@ -12,6 +14,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.audiofx.Visualizer;
+
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -79,6 +82,7 @@ public class BoardVisualization {
     public Visualization mVisualizationAudioCenter;
     public Visualization mVisualizationVideo;
     public Visualization mVisualizationMickey;
+    public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationMeteor;
     public Visualization mVisualizationPlayaMap;
@@ -119,6 +123,7 @@ public class BoardVisualization {
         mVisualizationAudioCenter = new AudioCenter(mBurnerBoard, this);
         mVisualizationVideo = new Video(mBurnerBoard, this);
         mVisualizationMickey = new Mickey(mBurnerBoard, this);
+        mVisualizationJosPack = new JosPack(mBurnerBoard, this);
         mVisualizationAudioBar = new AudioBar(mBurnerBoard, this);
         mVisualizationMeteor = new Meteor(mBurnerBoard, this);
         mVisualizationPlayaMap = new PlayaMap(mBurnerBoard, this);
@@ -203,7 +208,7 @@ public class BoardVisualization {
         int frameRate = 1;
 
         //This runs every time we update the display, so only uncomment in severe debug need!
-        //Log.d(TAG, "Using algorithm visualization: " + algorithm);
+        Log.d(TAG, "Using algorithm visualization: " + algorithm);
 
         switch (algorithm) {
 
@@ -287,6 +292,33 @@ public class BoardVisualization {
                 frameRate = mFrameRate;
                 mVisualizationMickey.update(Mickey.kMickeyBlank);
                 break;
+
+            // JosPack visualizations go here
+            case "JPGold()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJPGold);
+                break;
+
+            case "JPSparkle()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJPSparkle);
+                break;
+
+            case "JPColors()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJPColors);
+                break;
+
+            case "JPBlueGold()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJPBlueGold);
+                break;
+
+            case "modeJPBlank()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJPBlank);
+                break;
+            // End JosPack visualizations
 
             case "modePlayaMap()":
                 frameRate = mFrameRate;
