@@ -160,6 +160,7 @@ public class BoardVisualization {
     }
 
     public void setMode(int mode) {
+        Log.d(TAG, "Setting visualization mode to: " + mode);
 
         mBoardMode = mode;
         mBurnerBoard.resetParams();
@@ -200,6 +201,9 @@ public class BoardVisualization {
 
     public int displayAlgorithm(String algorithm) {
         int frameRate = 1;
+
+        //This runs every time we update the display, so only uncomment in severe debug need!
+        //Log.d(TAG, "Using algorithm visualization: " + algorithm);
 
         switch (algorithm) {
 
@@ -290,6 +294,8 @@ public class BoardVisualization {
                 break;
 
             default:
+                Log.d(TAG, "Could not find visualization algorithm: " + algorithm);
+
                 break;
 
         }
