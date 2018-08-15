@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.visualization;
 
 import android.os.SystemClock;
 
+import com.richardmcdougall.bb.BBColor;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
@@ -12,6 +13,7 @@ import com.richardmcdougall.bb.FindMyFriends;
 public class PlayaMap extends Visualization {
 
     FindMyFriends mFMF = null;
+    BBColor bbColor = new BBColor();
 
     public PlayaMap(BurnerBoard bb, BoardVisualization visualization) {
 
@@ -20,6 +22,8 @@ public class PlayaMap extends Visualization {
         if (bbService != null) {
             mFMF = bbService.getFindMyFriends();
         }
+        BBColor.ColorName c = bbColor.getColor("lightblue");
+        System.out.println("test color = " + c.r + "," + c.g + "," + c.b);
     }
 
     static final double kMapSizeRatio = 2. / 3.;
@@ -56,19 +60,6 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(0, 0, 0));
 
-            // The man
-            /*
-            mBurnerBoard.drawArc((mBoardWidth - innerRing) / 2,
-                    (mBoardWidth - theMan) / 2,
-                    (mBoardWidth - theMan) / 2 + theMan,
-                    (mBoardWidth - theMan) / 2 + theMan,
-                    0,
-                    360,
-                    true,
-                    true,
-                    BurnerBoard.getRGB(0, 0, 0));
-                    */
-
         } else if (BurnerBoardUtil.isBBPanel()) {
             mBurnerBoard.fillScreen(30, 30, 30);
             mBurnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
@@ -86,7 +77,15 @@ public class PlayaMap extends Visualization {
             FindMyFriends.boardLocation bl = mFMF.getRecentCoordinate(120);
             if (bl != null) {
                 String color = mFMF.getBoardColor(bl.address);
-                plotBoard(bl.lat, bl.lon, flashColor(0, BurnerBoard.getRGB(0, 0, 255)));
+                BBColor.ColorName c = null;
+                if (color != null) {
+                    c = bbColor.getColor(color);
+                }
+                if (c == null) {
+                    c = bbColor.getColor("white");
+                }
+                plotBoard(bl.lat, bl.lon,
+                        flashColor(0, BurnerBoard.getRGB(c.r, c.g, c.b)));
             }
         }
         mBurnerBoard.flush();
