@@ -452,9 +452,15 @@ public class DownloadManager {
                         JSONObject elm = tList.getJSONObject(j);
 
                         // if there is no URL, it is an algorithm and should be skipped for download.
-                        if (elm.has("URL") && !mIsServer)
+                        // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
+                        if (elm.has("URL") &&
+                            !elm.isNull("URL" ) &&
+                            elm.getString("URL" ).length() > 0 &&
+                            !mIsServer
+                        ) {
                             if (!isUpToDate(elm))
                                 changedFiles.put(elm);
+                        }
                     }
                 }
 
