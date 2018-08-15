@@ -53,6 +53,7 @@ public class DownloadManager {
     public OnDownloadProgressType onProgressCallback = null;
 
     DownloadManager(String filesDir, String boardId, boolean isServer, int myVersion) {
+        Log.d(TAG, "Downloading files to: " + filesDir);
         mVersion = myVersion;
         mFilesDir = filesDir;
         PackageInfo pinfo;
@@ -377,6 +378,8 @@ public class DownloadManager {
             }
         }
 
+        // XXX this only works for file, not algorithms!!! -jib
+        // See: https://github.com/rjmcdougall/BB/issues/171
         private boolean isUpToDate(JSONObject elm) {
             try {
 

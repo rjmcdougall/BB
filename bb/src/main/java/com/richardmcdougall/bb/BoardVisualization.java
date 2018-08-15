@@ -208,7 +208,7 @@ public class BoardVisualization {
         int frameRate = 1;
 
         //This runs every time we update the display, so only uncomment in severe debug need!
-        Log.d(TAG, "Using algorithm visualization: " + algorithm);
+        //Log.d(TAG, "Using algorithm visualization: " + algorithm);
 
         switch (algorithm) {
 
