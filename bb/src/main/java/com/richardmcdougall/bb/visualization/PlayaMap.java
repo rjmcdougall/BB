@@ -22,8 +22,6 @@ public class PlayaMap extends Visualization {
         if (bbService != null) {
             mFMF = bbService.getFindMyFriends();
         }
-        BBColor.ColorName c = bbColor.getColor("lightblue");
-        System.out.println("test color = " + c.r + "," + c.g + "," + c.b);
     }
 
     static final double kMapSizeRatio = 2. / 3.;
@@ -127,8 +125,8 @@ public class PlayaMap extends Visualization {
         double new_dx = Math.cos(adjustedBearing / kDegPerRAD) * dist; // cos (angle ) / dist
         double new_dy = Math.sin(adjustedBearing / kDegPerRAD) * dist; // sin (andgle) / dist
 
-        System.out.println("new dx/dy = " + new_dx + "," + new_dy);
-        System.out.println("adjusted bearing = " + adjustedBearing);
+        //System.out.println("new dx/dy = " + new_dx + "," + new_dy);
+        //System.out.println("adjusted bearing = " + adjustedBearing);
 
         int x = mBoardWidth / 2 + (int) (new_dx / kBurnRadius * mBoardWidth  / 2 * kMapSizeRatio);
         int y = mBoardHeight / 2 + (int) (new_dy / kBurnRadius * mBoardWidth  / 2 * kMapSizeRatio);
