@@ -139,6 +139,7 @@ android {
 }
 
 dependencies {
+    compile project(':bugsnag-react-native')
     compile project(':react-native-geolocation-service')
     compile project(':react-native-wheel-picker')
     compile project(':react-native-vector-icons')

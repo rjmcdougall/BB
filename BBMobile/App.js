@@ -1,11 +1,15 @@
 import React from "react";
 import BoardManager from "./BoardManager";
 import StateBuilder from "./StateBuilder";
- 
+import { Client } from 'bugsnag-react-native';
+const bugsnag = new Client("905bfbccb8f9a7e3749038ca1900b1b4");
+
 export default class App extends React.Component {
 
 	constructor() {
 		super();
+
+		bugsnag.notify(new Error("dddddddddd"));
 
 		this.state = {
 			userPrefs: StateBuilder.blankUserPrefs()
@@ -15,7 +19,7 @@ export default class App extends React.Component {
 	}
 
 	async componentDidMount() {
-		
+
 		var p = await StateBuilder.getUserPrefs();
 
 		if(p){
