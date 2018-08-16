@@ -81,6 +81,7 @@ public class BoardVisualization {
     public Visualization mVisualizationMickey;
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationMeteor;
+    public Visualization mVisualizationPlayaMap;
 
     int mBoardMode;
     Context mContext;
@@ -120,6 +121,7 @@ public class BoardVisualization {
         mVisualizationMickey = new Mickey(mBurnerBoard, this);
         mVisualizationAudioBar = new AudioBar(mBurnerBoard, this);
         mVisualizationMeteor = new Meteor(mBurnerBoard, this);
+        mVisualizationPlayaMap = new PlayaMap(mBurnerBoard, this);
 
     }
 
@@ -280,6 +282,11 @@ public class BoardVisualization {
             case "modeMickeyBlank()":
                 frameRate = mFrameRate;
                 mVisualizationMickey.update(Mickey.kMickeyBlank);
+                break;
+
+            case "modePlayaMap()":
+                frameRate = mFrameRate;
+                mVisualizationPlayaMap.update(Visualization.kDefault);
                 break;
 
             default:

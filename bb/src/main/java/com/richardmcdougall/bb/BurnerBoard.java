@@ -82,6 +82,10 @@ public class BurnerBoard {
         mBBService.registerReceiver(mUsbReceiver, filter);
     }
 
+    public BBService getBBService() {
+         return mBBService;
+    }
+
     public void setTextBuffer(int width, int height) {
         mTextBuffer = IntBuffer.allocate(width * height);
         mDrawBuffer = IntBuffer.allocate(width * height);
@@ -127,10 +131,7 @@ public class BurnerBoard {
 
     public String getBatteryStats() { return null;   }
 
-    static public int getRGB(int r, int g, int b) {
 
-        return (r * 65536 + g * 256 + b);
-    }
 
     public void showBattery() {
 
@@ -144,6 +145,11 @@ public class BurnerBoard {
     }
 
     public void clearPixels() {
+    }
+
+    static public int getRGB(int r, int g, int b) {
+
+        return (r * 65536 + g * 256 + b);
     }
 
     public void setPixel(int x, int y, int color) {
@@ -163,9 +169,9 @@ public class BurnerBoard {
 
     public void fillScreen(int color) {
 
-        int r = (color & 0xff);
+        int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
-        int b = ((color & 0xff0000) >> 16);
+        int r = ((color & 0xff0000) >> 16);
         fillScreen(r, g, b);
     }
 
@@ -186,9 +192,9 @@ public class BurnerBoard {
 
     public void setPixelOtherlight(int pixel, int other, int color) {
 
-        int r = (color & 0xff);
+        int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
-        int b = ((color & 0xff0000) >> 16);
+        int r = ((color & 0xff0000) >> 16);
         setPixelOtherlight(pixel, other, r, g, b);
     }
 
@@ -196,9 +202,9 @@ public class BurnerBoard {
     }
 
     static public int colorDim(int dimValue, int color) {
-        int r = (dimValue * (color & 0xff)) / 255;
+        int b = (dimValue * (color & 0xff)) / 255;
         int g = (dimValue * ((color & 0xff00) >> 8) / 255);
-        int b = (dimValue * ((color & 0xff0000) >> 16) / 255);
+        int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
         return (BurnerBoard.getRGB(r, g, b));
     }
 
@@ -308,7 +314,7 @@ public class BurnerBoard {
         }
 
         if (mUsbDevice == null) {
-            l("No BB device found");
+            l("No BurnerBoard USB Radio device found");
             return;
         }
 
@@ -635,9 +641,9 @@ public class BurnerBoard {
             int a = pixel & 0xff;
             // Render the new text over the original
             if (pixel != 0) {
-                destScreen[pixel_offset] = (pixel >> 8) & 0xff;
-                destScreen[pixel_offset + 1] = (pixel >> 16) & 0xff;
-                destScreen[pixel_offset + 2] = (pixel >> 24) & 0xff;
+                destScreen[pixel_offset] = (pixel >> 16) & 0xff;    //r
+                destScreen[pixel_offset + 1] = (pixel >> 8) & 0xff; //g
+                destScreen[pixel_offset + 2] = pixel & 0xff;        //b
             } else {
                 destScreen[pixel_offset] = sourceScreen[pixel_offset];
                 destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
@@ -739,21 +745,43 @@ public class BurnerBoard {
         isFlashDisplaying = delay * mRefreshRate / 1000;
     }
 
+    public int rgbToArgb(int color) {
+        int r = (color & 0xff);
+        int g = ((color & 0xff00) >> 8);
+        int b = ((color & 0xff0000) >> 16);
+        int a = 0xff;
+        return (a << 24) | color;
+    }
+
     public void drawArc(float left, float top, float right, float bottom,
-                        float startAngle, float sweepAngle, boolean useCenter) {
+                        float startAngle, float sweepAngle, boolean useCenter,
+                        boolean fill, int color) {
 
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
         canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
         Paint arcPaint = new Paint();
+        arcPaint.setColor(rgbToArgb(color)); //  Color
+        arcPaint.setStrokeWidth(1);
+        if (fill) {
+            arcPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+        } else {
+            arcPaint.setStyle(Paint.Style.STROKE);
+        }
+
+        //canvas.drawColor(Color.RED);
 
         canvas.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, arcPaint);
+        //canvas.drawArc(0, 0, canvas.getWidth() / 2, canvas.getHeight() / 2, 0, 90, true, arcPaint);
+
+        //canvas.drawText("hello", (mBoardWidth / 2), mBoardHeight / 2 + (mTextSizeHorizontal / 3), arcPaint);
+
         if (mDrawBuffer != null) {
             mDrawBuffer.rewind();
             bitmap.copyPixelsToBuffer(mDrawBuffer);
         }
-        aRGBtoBoardScreen(mTextBuffer, mBoardScreen, mBoardScreen);
+        aRGBtoBoardScreen(mDrawBuffer, mBoardScreen, mBoardScreen);
     }
 
 }
