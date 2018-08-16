@@ -44,7 +44,10 @@ export default class DiscoverController extends React.Component {
 									if (item.name) {
 										try {
 											var foundBoard = this.props.boardData.filter((board) => {
-												return board.name == item.name;
+												if(board.name)
+													return board.name == item.name;
+												else
+													return false;
 											});
 
 											var color = "whitesmoke";
