@@ -314,7 +314,7 @@ public class BurnerBoard {
         }
 
         if (mUsbDevice == null) {
-            l("No BB device found");
+            l("No BurnerBoard USB Radio device found");
             return;
         }
 
