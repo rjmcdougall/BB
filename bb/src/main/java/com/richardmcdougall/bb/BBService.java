@@ -30,6 +30,8 @@ import android.view.KeyEvent;
 
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.ByteOrder;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.List;
@@ -37,6 +39,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
+import java.net.InetAddress;
 
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -130,6 +133,8 @@ public class BBService extends Service {
     int currentRadioChannel = 1;
     long phoneModelAudioLatency = 0;
 
+    // IP address of the device
+    public String mIPAddress = null;
 
     TextToSpeech voice;
 
@@ -301,6 +306,11 @@ public class BBService extends Service {
                     l(rpiMsg);
                     // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
                     voice.speak( rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
+
+                    // Let's announce the WIFI IP on RPIs - do it here, as we need voice initialized first
+                    if( mIPAddress != null ) {
+                        voice.speak( "My WiFi IP is: " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                    }
                 }
             }
         });
@@ -1736,11 +1746,23 @@ public class BBService extends Service {
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
 
             if( wifiInfo.getNetworkId() == -1 ){
+                mIPAddress = null;
                 return false; // Not connected to an access point
             }
+
+            mIPAddress = getWifiIpAddress(wifiMgr);
+            if( mIPAddress != null) {
+                l("WIFI IP Address: " + mIPAddress);
+                // Text to speach is not set up yet at this time; move it to init loop.
+                //voice.speak("My WIFI IP is " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+            } else {
+                l( "Could not determine WIFI IP at this time");
+            }
+
             return true; // Connected to an access point
         }
         else {
+            mIPAddress = null;
             return false; // Wi-Fi adapter is OFF
         }
     }
@@ -1850,7 +1872,30 @@ public class BBService extends Service {
         return;
     }
 
+    // Cargo culted directly off of stack overflow: https://stackoverflow.com/questions/16730711/get-my-wifi-ip-address-android
+    public String getWifiIpAddress(WifiManager wifiManager) {
+        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
+
+        // Convert little-endian to big-endianif needed
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ipAddress = Integer.reverseBytes(ipAddress);
+        }
+
+        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+
+        String ipAddressString;
+        try {
+            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
+        } catch (Exception ex) {
+            l( "Unable to get host address: " + ex.toString());
+            ipAddressString = null;
+        }
+
+        return ipAddressString;
+    }
+
 }
+
 
 
 
