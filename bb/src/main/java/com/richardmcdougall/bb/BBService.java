@@ -457,8 +457,13 @@ public class BBService extends Service {
             l( "Visualization: Using Panel");
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
-            l( "Visualization: Using Directory Map");
-            mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
+            l( "Visualization: Using Direct Map");
+            mBurnerBoard = new BurnerBoardDirectMap(
+                this,
+                mContext,
+                BurnerBoardUtil.kVisualizationDirectMapWidth,
+                BurnerBoardUtil.kVisualizationDirectMapHeight
+            );
         } else if (BurnerBoardUtil.isBBAzul()) {
             l( "Visualization: Using Azul");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);

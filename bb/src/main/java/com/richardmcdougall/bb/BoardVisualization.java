@@ -314,10 +314,16 @@ public class BoardVisualization {
                 mVisualizationJosPack.update(JosPack.kJPBlueGold);
                 break;
 
-            case "modeJPBlank()":
+            case "JPBlank()":
                 frameRate = mFrameRate;
                 mVisualizationJosPack.update(JosPack.kJPBlank);
                 break;
+
+            case "JP2a()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJP2a);
+                break;
+
             // End JosPack visualizations
 
             case "modePlayaMap()":

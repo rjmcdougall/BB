@@ -95,6 +95,19 @@ public class BurnerBoardUtil {
         ) ? true : false;
     }
 
+    /* DIRECT MAP SETTINGS */
+    public static final int kVisualizationDirectMapDefaultWidth = 8;
+    public static final int kVisualizationDirectMapDefaultHeight = 256;
+
+    // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
+    public static final int kVisualizationDirectMapWidth = BurnerBoardUtil.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
+    public static final int kVisualizationDirectMapHeight = BurnerBoardUtil.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
+
+    /*
+
+    THIS SETS UP PRETTY / HUMAN NAMES FOR ANY DEVICES
+
+     */
 
     public static final String publicNameFile = "publicName.txt";
     /*

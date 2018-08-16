@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.BurnerBoardUtil;
 
 /**
  * Created by jib on 8/15/18.
@@ -18,8 +19,7 @@ public class JosPack extends Visualization {
 
     private Wheel mWheel = new Wheel();
 
-    private final static int kLEDS1 = 99;
-    private final static int kLEDS2 = 137;
+    private final static int kLEDS = BurnerBoardUtil.kVisualizationDirectMapWidth * BurnerBoardUtil.kVisualizationDirectMapHeight;
 
     public JosPack(BurnerBoard bb, BoardVisualization visualization) {
         super(bb, visualization);
@@ -55,15 +55,10 @@ public class JosPack extends Visualization {
     }
 
     void jpSetPixel(int n, int color) {
-        if (n < 0 || n >= (kLEDS1 + kLEDS2)) {
+        if (n < 0 || n >= kLEDS) {
             return;
         }
-        if (n < kLEDS1) {
-            mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS1 - n - 1) % mBoardHeight, color);
-        } else {
-            mBurnerBoard.setPixel(1 + kLEDS1 / mBoardHeight +
-                    ((n - kLEDS1) / mBoardHeight),  (n - kLEDS1) % mBoardHeight, color);
-        }
+        mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS - n - 1) % mBoardHeight, color);
     }
 
     void modeJPGold() {
@@ -73,7 +68,7 @@ public class JosPack extends Visualization {
 
 
     private int jpSparkleNo = 0;
-    private final static int kJPSparkleMiddle = (kLEDS1 + kLEDS2)/ 2;
+    private final static int kJPSparkleMiddle = kLEDS / 2;
 
     void modeJP2a() {
 
@@ -139,7 +134,7 @@ public class JosPack extends Visualization {
 
         int ledNo;
 
-        for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
+        for (ledNo = 0; ledNo < kLEDS; ledNo++) {
             int index = kJPPhaseShift * (jpColor + ledNo) % 360; //* kJPPhaseShift / 2) % 360;
             jpSetPixel(ledNo, mWheel.wheel(index));
         }
@@ -160,7 +155,7 @@ public class JosPack extends Visualization {
 
         int ledNo;
 
-        for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
+        for (ledNo = 0; ledNo < kLEDS; ledNo++) {
             int index = (jpRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
             jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
                     BurnerBoard.getRGB(0, 0, 255));

@@ -45,23 +45,29 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     private static final String TAG = "BB.BurnerBoardDirectMap";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
-    //public String boardId = Build.MODEL;
 
+    // these were the original dimensions used for the direct map. kept here for posterity and re-use
+    // if needed -jib
+    public static final int mDefaultBoardWidth = BurnerBoardUtil.kVisualizationDirectMapDefaultWidth;
+    public static final int mDefaultBoardHeight = BurnerBoardUtil.kVisualizationDirectMapDefaultHeight;
 
-    public BurnerBoardDirectMap(BBService service, Context context) {
+    public BurnerBoardDirectMap(BBService service, Context context, int width, int height) {
         super(service, context);
-        mBoardWidth = 8;
-        mBoardHeight = 256;
+        mBoardWidth = width;
+        mBoardHeight = height;
         mMultipler4Speed = 3;
-        boardId = BBService.getBoardId();
-        boardType = "Burner Board DirectMap";
-        l("Burner Board DirectMap initing...");
+        boardId = BurnerBoardUtil.BOARD_ID;
+
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
         mContext = context;
+
+        boardType = "Burner Board DirectMap";
+        l(boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);
+
+        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
         initPixelOffset();
         initUsb();
-        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
 
     public void start() {
@@ -220,7 +226,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
         //Sstem.out.println("setpixel r = " + r);
         if (x < 0 || x >= mBoardWidth || y < 0 || y >= mBoardHeight) {
-            l("setPixel out of range: " + x + "," + y);
+            l("setPixel out of range: " + x + "," + y + " - max: [" + mBoardWidth + "," + mBoardHeight +"]");
             return;
         }
         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
