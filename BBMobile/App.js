@@ -9,7 +9,7 @@ export default class App extends React.Component {
 	constructor() {
 		super();
 
-		bugsnag.notify(new Error("dddddddddd"));
+		bugsnag.notify(new Error("App Loaded"));
 
 		this.state = {
 			userPrefs: StateBuilder.blankUserPrefs()
