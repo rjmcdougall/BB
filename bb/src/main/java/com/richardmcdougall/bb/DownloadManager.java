@@ -442,6 +442,8 @@ public class DownloadManager {
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
 
+                Log.d(TAG, "Downloaded JSON: " + dirTxt);
+
                 // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
@@ -450,9 +452,15 @@ public class DownloadManager {
                         JSONObject elm = tList.getJSONObject(j);
 
                         // if there is no URL, it is an algorithm and should be skipped for download.
-                        if (elm.has("URL") && !mIsServer)
+                        // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
+                        if (elm.has("URL") &&
+                            !elm.isNull("URL" ) &&
+                            elm.getString("URL" ).length() > 0 &&
+                            !mIsServer
+                        ) {
                             if (!isUpToDate(elm))
                                 changedFiles.put(elm);
+                        }
                     }
                 }
 
@@ -476,8 +484,11 @@ public class DownloadManager {
                     mDM.dataDirectory = dir;
                     CleanupOldFiles();
                     new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));
-                    if (mDM.onProgressCallback != null)
-                        mDM.onProgressCallback.onVoiceCue("Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.");
+                    if (mDM.onProgressCallback != null) {
+                        String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
+                        Log.d(TAG, diag);
+                        mDM.onProgressCallback.onVoiceCue(diag);
+                    }
                 }
                 return true;
 
