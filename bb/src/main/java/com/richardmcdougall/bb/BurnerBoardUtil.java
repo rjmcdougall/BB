@@ -72,7 +72,7 @@ public class BurnerBoardUtil {
     }
 
     public static final boolean isBBDirectMap() {
-        return (kForceBBTypeDirectMap || BOARD_ID.contains("mickey")) ? true : false;
+        return (kForceBBTypeDirectMap || BurnerBoardUtil.kIsRPI || BOARD_ID.contains("mickey")) ? true : false;
     }
 
     public static final boolean isBBMast() {
@@ -92,7 +92,6 @@ public class BurnerBoardUtil {
             || BOARD_ID.contains("cranky")
             //|| BOARD_ID.contains("grumpy")
             || BOARD_ID.contains("imx7d_pico")
-            || BurnerBoardUtil.kIsRPI
         ) ? true : false;
     }
 
