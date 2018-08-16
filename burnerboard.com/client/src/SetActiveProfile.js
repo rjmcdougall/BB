@@ -31,7 +31,23 @@ const styles = theme => ({
 	},
 });
 class SetActiveProfile extends React.Component {
- 
+
+	constructor(props) {
+		super(props);
+
+		this.profileToDeactivate = this.profileToDeactivate.bind(this);
+	}
+
+	profileToDeactivate() {
+		if (this.props.activeProfiles[0].profile == null) {
+			return this.props.activeProfiles[0].profile;
+		}
+		else {
+			return this.props.activeProfiles[1].profile;
+		}
+
+	}
+
 	render() {
 		const { classes } = this.props;
 
@@ -53,7 +69,9 @@ class SetActiveProfile extends React.Component {
 								<SystemUpdate className={classes.rightIcon} />
 							</Button>
 
-							You will be deactivating {(this.props.activeProfiles[0].profile != null) ? this.props.activeProfiles[0].profile : this.props.activeProfiles[1].profile}
+							{(this.profileToDeactivate() != null) ?
+								"You will be deactivating " + this.profileToDeactivate()
+								: ""}
 
 						</FormControl>
 					</form>

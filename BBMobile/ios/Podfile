@@ -37,21 +37,9 @@ target 'BBMobile' do
   pod 'react-native-google-maps', path: rn_maps_path  # Remove this line if you don't want to support GoogleMaps on iOS
   pod 'GoogleMaps'  # Remove this line if you don't want to support GoogleMaps on iOS
   pod 'Google-Maps-iOS-Utils' # Remove this line if you don't want to support GoogleMaps on iOS
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+  pod 'BugsnagReactNative', :path => '../node_modules/bugsnag-react-native'
  
-  target 'BBMobile-tvOSTests' do
-    inherit! :search_paths
-    # Pods for testing
-
-
-    pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
-
-  end
-
-  target 'BBMobileTests' do
-    inherit! :search_paths
-    # Pods for testing
-  end
-
 end
 
 post_install do |installer|

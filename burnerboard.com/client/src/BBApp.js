@@ -182,7 +182,7 @@ export default class BBApp extends Component {
 		console.log("Set state due to form change: " + [event.target.name] + " " + event.target.value)
 		this.setState({ [event.target.name]: event.target.value });
 
-	};
+	}
 
 	handleProfileClick(event, id) {
 
@@ -331,14 +331,16 @@ export default class BBApp extends Component {
 					"Authorization": window.sessionStorage.JWT,
 				},
 			});
+			
 			data = await response.json();
+
 			activeProfiles = [{
-				profile: data.profile,
-				isProfileGlobal: data.isProfileGlobal
+				profile: data[0].profile,
+				isProfileGlobal: data[0].isProfileGlobal
 			},
 			{
-				profile: data.profile2,
-				isProfileGlobal: data.isProfileGlobal2
+				profile: data[0].profile2,
+				isProfileGlobal: data[0].isProfileGlobal2
 			},
 			];
 
