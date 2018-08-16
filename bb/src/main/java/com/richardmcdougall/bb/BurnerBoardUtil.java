@@ -1,9 +1,10 @@
 package com.richardmcdougall.bb;
 
 import android.os.Build;
+import android.app.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+
 
 public class BurnerBoardUtil {
     /*
@@ -34,17 +35,24 @@ public class BurnerBoardUtil {
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
 
-    // Compute the boardId
+    // DEVICE_ID is whatever the device identifies as; BOARD_ID is the 'pretty name' we may have given it
+    // BOARD_ID generally gets used as the name everywhere.
+    // To set a custom name, set the data store 'boards' "bootname" value to the device ID, and the "name"
+    // to the public name you want. That's it. Takes a reboot cycle to take effect. --jib
     public static final String BOARD_ID;
+    public static final String DEVICE_ID;
     static {
         String serial = Build.SERIAL;
+        String publicName = getPublicName();
 
         if (BurnerBoardUtil.kIsRPI) {
-            BOARD_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
+            DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
         } else {
-            BOARD_ID = Build.MODEL;
+            DEVICE_ID = Build.MODEL;
         }
+
+        BOARD_ID = (publicName == null || publicName.equals("")) ? DEVICE_ID : publicName;
     }
 
     // Switch any of these to 'true' to force identification as that board type.
@@ -86,5 +94,59 @@ public class BurnerBoardUtil {
             || BOARD_ID.contains("imx7d_pico")
             || BurnerBoardUtil.kIsRPI
         ) ? true : false;
+    }
+
+
+    public static final String publicNameFile = "publicName.txt";
+    /*
+        XXX this doesn't work as a static method:
+        error: non-static method getApplicationContext() cannot be referenced from a static context
+
+        public static final String publicNameDir = Service.getApplicationContext().getFilesDir().getAbsolutePath();
+
+        Hardcoding for now, which sucks :( Suggestions welcome -jib
+     */
+    public static final String publicNameDir = "/data/data/com.richardmcdougall.bb/files";
+
+    public static final boolean setPublicName (String name) {
+        try {
+            FileWriter fw = new FileWriter(publicNameDir + "/" + publicNameFile);
+            fw.write(name);
+            fw.close();
+        } catch (IOException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    // Cargo culted from Download manager.
+    public static final String getPublicName () {
+        try {
+            File f = new File(publicNameDir, publicNameFile);
+            if (!f.exists())
+                return null;
+            InputStream is = null;
+            try {
+                is = new FileInputStream(f);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            String line = buf.readLine();
+            StringBuilder sb = new StringBuilder();
+
+            // We only expect one line - this is a shortcut! -jib
+            while (line != null) {
+                sb.append(line);
+                line = buf.readLine();
+            }
+
+            return sb.toString();
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

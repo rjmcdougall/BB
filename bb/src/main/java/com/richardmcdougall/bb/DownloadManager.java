@@ -196,7 +196,6 @@ public class DownloadManager {
     }
 
     long GetAudioLength(int index) {
-
         try {
             return GetAudio(index).getLong("Length");
         } catch (JSONException e) {
@@ -205,6 +204,31 @@ public class DownloadManager {
         }
     }
 
+    String GetgetPublicName(String deviceID) {
+        String name = deviceID;
+        try {
+            for (int i = 0; i < dataBoards.length(); i++) {
+                JSONObject obj = dataBoards.getJSONObject(i);
+
+                if (obj.has("bootName")) {
+                    if (obj.getString("bootName").equals(deviceID)) {
+                        Log.d(TAG, "Found bootName: " + deviceID);
+                        name = obj.getString("name");
+
+                        Log.d(TAG, "Found publicName: " + name);
+                        return name;
+                    }
+                }
+            }
+
+            Log.d(TAG, "No special publicName found for: " + deviceID);
+        } catch (JSONException e) {
+            Log.d(TAG, "Could not find publicName for: " + deviceID + " " + e.toString());
+        }
+
+        // We got here, we got nothing...
+        return name;
+    }
 
     private class BackgroundThread implements Runnable {
 
@@ -355,6 +379,7 @@ public class DownloadManager {
                     if (origDir != null) {
                         JSONArray dir = new JSONArray(origDir);
                         mDM.dataBoards = dir;
+
                     }
                 }
 
@@ -522,6 +547,22 @@ public class DownloadManager {
                 String dirTxt = LoadTextFile("boards.json.tmp");
                 JSONArray dir = new JSONArray(dirTxt);
 
+                Log.d(TAG, "Downloaded Boards JSON: " + dirTxt);
+
+                // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
+                Log.d(TAG, "Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
+
+                String newPN = GetgetPublicName(BurnerBoardUtil.DEVICE_ID);
+                String existingPN = BurnerBoardUtil.getPublicName();
+
+                Log.d(TAG, "Existing: " + existingPN + " New: " + newPN);
+                if( newPN != null ) {
+                    if( existingPN == null || !existingPN.equals(newPN) ) {
+                        BurnerBoardUtil.setPublicName(newPN);
+                        Log.d(TAG, "Public name set to: " + newPN);
+                    }
+                }
+
                 if (mDM.dataBoards != null)
                     if (dir.toString().length() == mDM.dataBoards.toString().length()) {
                         Log.d(TAG, "No Changes to Boards JSON.");
@@ -536,7 +577,7 @@ public class DownloadManager {
                         Log.d(TAG, "A minor change was discovered in Boards JSON.");
                 }
 
-                // got new bards.  Update!
+                // got new boards.  Update!
                 mDM.dataBoards = dir;
 
                 // now that you have the media, update the directory so the board can use it.
