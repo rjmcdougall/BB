@@ -40,26 +40,38 @@ export default class DiscoverController extends React.Component {
 							dataSource={dataSource}
 							renderRow={(item) => {
 
-								try {
-									var foundBoard = this.props.boardData.filter((board) => {
-										return board.name == item.name;
-									});
+								if (item) {
+									if (item.name) {
+										try {
+											var foundBoard = this.props.boardData.filter((board) => {
+												return board.name == item.name;
+											});
 
-									var color = foundBoard[0].color;
+											var color = "whitesmoke";
+											if (foundBoard[0]) {
+												if (foundBoard[0].color) {
+													color = foundBoard[0].color;
+												}
+											}
 
-									return (
-										<Touchable
-											onPress={async () => await this.props.onSelectPeripheral(item)}
-											style={[StyleSheet.button, { height: 50, backgroundColor: color }]}
+											return (
+												<Touchable
+													onPress={async () => await this.props.onSelectPeripheral(item)}
+													style={[StyleSheet.button, { height: 50, backgroundColor: color }]}
 
-											background={Touchable.Ripple("blue")}>
-											<Text style={StyleSheet.connectButtonTextCenter}>{item.name}</Text>
-										</Touchable>
-									);
+													background={Touchable.Ripple("blue")}>
+													<Text style={StyleSheet.connectButtonTextCenter}>{item.name}</Text>
+												</Touchable>
+											);
+										}
+										catch (error) {
+											bugsnag.notify(error);
+										}
+									}
 								}
-								catch (error) {
-									bugsnag.notify(error);
-								}
+
+
+
 
 							}}
 						/>
