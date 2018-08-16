@@ -326,8 +326,9 @@ public class BoardVisualization {
                 break;
 
             default:
-                Log.d(TAG, "Could not find visualization algorithm: " + algorithm);
-
+                // This would print once per frame, which can easily flood log buffers. Only
+                // uncomment in extreme debugging cases! -jib
+                //Log.d(TAG, "Could not find visualization algorithm: " + algorithm);
                 break;
 
         }
