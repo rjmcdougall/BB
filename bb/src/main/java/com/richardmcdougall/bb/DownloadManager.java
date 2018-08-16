@@ -558,11 +558,11 @@ public class DownloadManager {
                 String newPN = GetgetPublicName(BurnerBoardUtil.DEVICE_ID);
                 String existingPN = BurnerBoardUtil.getPublicName();
 
-                Log.d(TAG, "Existing: " + existingPN + " New: " + newPN);
+                Log.d(TAG, "Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
                 if( newPN != null ) {
                     if( existingPN == null || !existingPN.equals(newPN) ) {
                         BurnerBoardUtil.setPublicName(newPN);
-                        Log.d(TAG, "Public name set to: " + newPN);
+                        Log.d(TAG, "Public name updated to: " + newPN);
                     }
                 }
 
