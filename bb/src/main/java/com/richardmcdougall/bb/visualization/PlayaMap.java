@@ -28,6 +28,8 @@ public class PlayaMap extends Visualization {
             mFMF = bbService.getFindMyFriends();
         }
 
+        /*
+
         // 9ish
         mFMF.updateBoardLocations(41, -53,
                 RMCHome9testLat, RMCHome9testLon, "testdata".getBytes());
@@ -37,6 +39,7 @@ public class PlayaMap extends Visualization {
         // facebook
         mFMF.updateBoardLocations(43, -53,
                 37.4872742,-122.149352, "testdata".getBytes());
+        */
 
     }
 
@@ -59,8 +62,6 @@ public class PlayaMap extends Visualization {
             final float theMan = 2;
 
             //l("Playamap");
-
-
 
             mBurnerBoard.fillScreen(0, 0, 0);
 
@@ -85,34 +86,6 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(0, 0, 0));
 
-
-            /*
-            // Do this less often
-            if (updateCnt % 20 > 0) {
-                //System.out.println("check board ");
-                boardLocation = mFMF.getRecentCoordinate(120);
-                if (boardLocation != null) {
-                    String color = mFMF.getBoardColor(boardLocation.address);
-                    boardColor = null;
-                    if (color != null) {
-                        boardColor = bbColor.getColor(color);
-                    }
-                    if (boardColor == null) {
-                        // System.out.println("Could not get color for " + color);
-                        boardColor = bbColor.getColor("white");
-                    }
-                    //l("plot board " + boardLocation.address + "," + " color = " + color);
-
-                    plotBoard(boardLocation.lat, boardLocation.lon,
-                            flashColor(updateCnt, boardLocation.address,
-                                    BurnerBoard.getRGB(boardColor.r,
-                                            boardColor.g,
-                                            boardColor.b)));
-                }
-
-
-            }
-            */
 
             List<FindMyFriends.boardLocation> boardLocations = mFMF.getBoardLocations(120);
 
