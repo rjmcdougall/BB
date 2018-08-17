@@ -480,6 +480,8 @@ public class BBService extends Service {
         if (mBoardVisualization == null) {
             mBoardVisualization = new BoardVisualization(this, mBurnerBoard, this);
         }
+
+        Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
         mBoardVisualization.setMode(mBoardMode);
     }
 
