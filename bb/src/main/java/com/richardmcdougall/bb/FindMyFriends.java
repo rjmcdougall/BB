@@ -16,10 +16,12 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by rmc on 2/7/18.
@@ -70,6 +72,7 @@ public class FindMyFriends {
         mBBService = service;
         l("Starting FindMyFriends");
 
+
         if (mRadio == null) {
             l("No Radio!");
             return;
@@ -114,6 +117,7 @@ public class FindMyFriends {
                 d("FMF Time: " + time.toString());
             }
         });
+        addTestBoardLocations();
 
 
      }
@@ -186,7 +190,8 @@ public class FindMyFriends {
         mRadio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
-        updateBoardLocations(mBoardAddress, 999, lat, lon, radioPacket.toByteArray());
+        updateBoardLocations(mBoardAddress, 999,
+                lat / 1000000.0, lon / 1000000.0, radioPacket.toByteArray());
     }
 
 
@@ -365,7 +370,7 @@ public class FindMyFriends {
     }
     private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
 
-    private void updateBoardLocations(int address, int sigstrength, double lat, double lon, byte[] locationPacket) {
+    public void updateBoardLocations(int address, int sigstrength, double lat, double lon, byte[] locationPacket) {
 
         boardLocation loc = new boardLocation();
         loc.address = address;
@@ -382,14 +387,17 @@ public class FindMyFriends {
         }
     }
 
+    private void addTestBoardLocations() {
+
+        //updateBoardLocations(41, -53, 37.476222, -122.1551087, "testdata".getBytes());
+    }
+
     // Pull one location from the list of recent locations
     // filter by age seconds
     // returns location structure
     int lastLocationCoordGet = 0;
     public boardLocation getRecentCoordinate(int age) {
 
-        byte [] lastHeardLocation = null;
-        int address = 0;
         int keyNo = 0;
         int getLoc = lastLocationCoordGet;
         BigInteger lastHeardDate = BigInteger.valueOf(0);
@@ -398,19 +406,28 @@ public class FindMyFriends {
             lastLocationCoordGet = 0;
             getLoc = 0;
         }
+
+        //l("Getting location " + getLoc);
         lastLocationCoordGet = lastLocationCoordGet + 1;
 
 
         for (int addr: mBoardLocations.keySet()) {
             if (keyNo == getLoc) {
                 boardLocation loc = mBoardLocations.get(addr);
-                if ((System.currentTimeMillis() - loc.lastHeardDate) < (age * 1000)) {
+                //l("Location Entry:" + mRFAddress.boardAddressToName(addr) +
+                // ", age:" + (SystemClock.elapsedRealtime() - loc.lastHeard) +
+                // ", bytes: " + bytesToHex(loc.lastheardLocaton));
+                if ((SystemClock.elapsedRealtime() - loc.lastHeard) < (age * 1000)) {
                     return loc;
                 }
             }
             keyNo++;
         }
         return null;
+    }
+    public List<boardLocation> getBoardLocations(int age) {
+        List<boardLocation> list = new ArrayList<boardLocation>(mBoardLocations.values());
+        return list;
     }
 
     public String getBoardColor(int address) {

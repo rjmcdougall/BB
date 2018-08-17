@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb.visualization;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.richardmcdougall.bb.BBColor;
 import com.richardmcdougall.bb.BBService;
@@ -9,8 +10,12 @@ import com.richardmcdougall.bb.BurnerBoard;
 import com.richardmcdougall.bb.BurnerBoardUtil;
 import com.richardmcdougall.bb.FindMyFriends;
 
+import java.util.List;
+
 
 public class PlayaMap extends Visualization {
+
+    String TAG = "BB.PlayaMap";
 
     FindMyFriends mFMF = null;
     BBColor bbColor = new BBColor();
@@ -22,9 +27,28 @@ public class PlayaMap extends Visualization {
         if (bbService != null) {
             mFMF = bbService.getFindMyFriends();
         }
+
+        // 9ish
+        mFMF.updateBoardLocations(41, -53,
+                RMCHome9testLat, RMCHome9testLon, "testdata".getBytes());
+        // home depot-ish
+        mFMF.updateBoardLocations(42, -53,
+                RMCHomeDepotLat, RMCHomeDepotLon, "testdata".getBytes());
+        // facebook
+        mFMF.updateBoardLocations(43, -53,
+                37.4872742,-122.149352, "testdata".getBytes());
+
+    }
+
+    public void l(String s) {
+        Log.v(TAG, s);
     }
 
     static final double kMapSizeRatio = 2. / 3.;
+
+    private int updateCnt = 0;
+    private FindMyFriends.boardLocation boardLocation = null;
+    BBColor.ColorName boardColor = null;
 
     public void update(int mode) {
 
@@ -34,29 +58,83 @@ public class PlayaMap extends Visualization {
             final float innerRing = outerRing / (float)kRingRatio;
             final float theMan = 2;
 
+            //l("Playamap");
 
-            //mBurnerBoard.fillScreen(0, 30, 0);
 
-            // Ourer ring
+
+            mBurnerBoard.fillScreen(0, 0, 0);
+
+            // Outer ring
             mBurnerBoard.drawArc((mBoardWidth - outerRing) / 2,
                     (mBoardHeight - outerRing) / 2,
                     (mBoardWidth - outerRing) / 2 + outerRing,
                     (mBoardHeight - outerRing) / 2 + outerRing,
-                    (float)(90 + kDegrees2),
+                    (float)(kDegrees2 - 90),
                     (float)(kDegrees10 - kDegrees2),
                     true,
                     true,
-                    BurnerBoard.getRGB(50, 50, 50));
+                    BurnerBoard.getRGB(100, 100, 100));
             // Inner ring
             mBurnerBoard.drawArc((mBoardWidth - innerRing) / 2,
                     (mBoardHeight - innerRing) / 2,
                     (mBoardWidth - innerRing) / 2 + innerRing,
                     (mBoardHeight - innerRing) / 2 + innerRing,
-                    (float)(90 + kDegrees2),
-                    (float)(kDegrees10 - kDegrees2),
+                    (float) (kDegrees2 - 90),
+                    (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
                     BurnerBoard.getRGB(0, 0, 0));
+
+
+            /*
+            // Do this less often
+            if (updateCnt % 20 > 0) {
+                //System.out.println("check board ");
+                boardLocation = mFMF.getRecentCoordinate(120);
+                if (boardLocation != null) {
+                    String color = mFMF.getBoardColor(boardLocation.address);
+                    boardColor = null;
+                    if (color != null) {
+                        boardColor = bbColor.getColor(color);
+                    }
+                    if (boardColor == null) {
+                        // System.out.println("Could not get color for " + color);
+                        boardColor = bbColor.getColor("white");
+                    }
+                    //l("plot board " + boardLocation.address + "," + " color = " + color);
+
+                    plotBoard(boardLocation.lat, boardLocation.lon,
+                            flashColor(updateCnt, boardLocation.address,
+                                    BurnerBoard.getRGB(boardColor.r,
+                                            boardColor.g,
+                                            boardColor.b)));
+                }
+
+
+            }
+            */
+
+            List<FindMyFriends.boardLocation> boardLocations = mFMF.getBoardLocations(120);
+
+            for (FindMyFriends.boardLocation location: boardLocations) {
+                String color = mFMF.getBoardColor(location.address);
+                boardColor = null;
+                if (color != null) {
+                    boardColor = bbColor.getColor(color);
+                }
+                if (boardColor == null) {
+                    // System.out.println("Could not get color for " + color);
+                    boardColor = bbColor.getColor("white");
+                }
+                //l("plot board " + boardLocation.address + "," + " color = " + color);
+
+                if (flashColor(updateCnt, location.address)) {
+                    plotBoard(location.lat, location.lon,
+                            BurnerBoard.getRGB(boardColor.r,
+                                    boardColor.g,
+                                    boardColor.b));
+                }
+            }
 
         } else if (BurnerBoardUtil.isBBPanel()) {
             mBurnerBoard.fillScreen(30, 30, 30);
@@ -71,30 +149,16 @@ public class PlayaMap extends Visualization {
 
         }
 
-        if (SystemClock.elapsedRealtime() % 10 == 0) {
-            FindMyFriends.boardLocation bl = mFMF.getRecentCoordinate(120);
-            if (bl != null) {
-                String color = mFMF.getBoardColor(bl.address);
-                BBColor.ColorName c = null;
-                if (color != null) {
-                    c = bbColor.getColor(color);
-                }
-                if (c == null) {
-                    c = bbColor.getColor("white");
-                }
-                plotBoard(bl.lat, bl.lon,
-                        flashColor(0, BurnerBoard.getRGB(c.r, c.g, c.b)));
-            }
-        }
         mBurnerBoard.flush();
+        updateCnt++;
 
     }
 
-    private int flashColor(int seed, int color) {
-        if ((seed * 100 + SystemClock.elapsedRealtime()) % 1000 > 500) {
-            return color;
+    private boolean flashColor(int cnt, int seed) {
+        if ((seed * 97 + cnt) % 20 > 10) {
+            return true;
         } else {
-            return 0;
+            return false;
         }
     }
 
@@ -118,7 +182,7 @@ public class PlayaMap extends Visualization {
 
         double degreesMapOffset = (12. - kNorth) * 360 / 12;
 
-        double adjustedBearing = (bearing + degreesMapOffset) % 360;
+        double adjustedBearing = (bearing + degreesMapOffset + 180) % 360;
 
         //System.out.println("bearing = " + bearing);
 
@@ -131,7 +195,9 @@ public class PlayaMap extends Visualization {
         int x = mBoardWidth / 2 + (int) (new_dx / kBurnRadius * mBoardWidth  / 2 * kMapSizeRatio);
         int y = mBoardHeight / 2 + (int) (new_dy / kBurnRadius * mBoardWidth  / 2 * kMapSizeRatio);
 
-        //System.out.println("x/y = " + x + "," + y);
+        //System.out.println("x/y = " + x + "," + y + " color = " + color);
+
+        //mBurnerBoard.setPixel(x, y, color);
 
         mBurnerBoard.drawArc(x - 1,
                 y - 1,
@@ -153,18 +219,26 @@ public class PlayaMap extends Visualization {
     static final double  kManLon = -119.206500;
     */
 
-    /*
-    // Test @ RMC Home
-    static final double  kManLat = 37.476222;
-    static final double  kManLon = -122.1551087;
-    */
 
     // Test Man =  Shop
-    //static final double  kManLat = 37.4829995;
-    //static final double  kManLon = -122.1800015;
+    /*
+    static final double  kManLat = 37.4829995;
+    static final double  kManLon = -122.1800015;
+    */
+
+    // Test Man @ Bellhaven Menlo Park
+    static final double  kManLat = 37.476222;
+    static final double  kManLon = -122.1551087;
+
+    static final double RMCHome9testLat = 37.4816092;
+    static final double RMCHome9testLon = -122.161745;
+
+    static final double RMCHomeDepotLat = 37.4713713;
+    static final double RMCHomeDepotLon = -122.1476157;
 
     static final double kCenterCampLat = 40.780822;
     static final double kCenterCampLon = -119.213934;
+
 
     static final double k6LLat = 40.775561;
     static final double k6LLon = -119.220796;
@@ -176,8 +250,8 @@ public class PlayaMap extends Visualization {
     static final double kDeepPlayaLon = -119.20037881809395;
 
     // 2018 Playa
-    static final double  kManLat =  40.786590041367525;
-    static final double  kManLon = -119.20656204564455;
+    //static final double  kManLat =  40.786590041367525;
+    //static final double  kManLon = -119.20656204564455;
 
     static final double  kPlayaElev = 1190.;  // m
     static final double  kScale = 1.;
