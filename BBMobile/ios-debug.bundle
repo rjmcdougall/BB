@@ -73217,57 +73217,68 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								enableEmptySections: true,
 								dataSource: dataSource,
 								renderRow: function renderRow(item) {
-									try {
-										var foundBoard = _this2.props.boardData.filter(function (board) {
-											return board.name == item.name;
-										});
+									if (item) {
+										if (item.name) {
+											try {
+												var foundBoard = _this2.props.boardData.filter(function (board) {
+													if (board.name) return board.name == item.name;else return false;
+												});
 
-										var color = foundBoard[0].color;
-										return _react2.default.createElement(
-											_reactNativePlatformTouchable2.default,
-											{
-												onPress: function _callee2() {
-													return regeneratorRuntime.async(function _callee2$(_context2) {
-														while (1) {
-															switch (_context2.prev = _context2.next) {
-																case 0:
-																	_context2.next = 2;
-																	return regeneratorRuntime.awrap(_this2.props.onSelectPeripheral(item));
+												var color = "whitesmoke";
 
-																case 2:
-																	return _context2.abrupt("return", _context2.sent);
-
-																case 3:
-																case "end":
-																	return _context2.stop();
-															}
-														}
-													}, null, _this2);
-												},
-												style: [_StyleSheet2.default.button, {
-													height: 50,
-													backgroundColor: color
-												}],
-												background: _reactNativePlatformTouchable2.default.Ripple("blue"),
-												__source: {
-													fileName: _jsxFileName,
-													lineNumber: 51
-												}
-											},
-											_react2.default.createElement(
-												_reactNative.Text,
-												{
-													style: _StyleSheet2.default.connectButtonTextCenter,
-													__source: {
-														fileName: _jsxFileName,
-														lineNumber: 56
+												if (foundBoard[0]) {
+													if (foundBoard[0].color) {
+														color = foundBoard[0].color;
 													}
-												},
-												item.name
-											)
-										);
-									} catch (error) {
-										bugsnag.notify(error);
+												}
+
+												return _react2.default.createElement(
+													_reactNativePlatformTouchable2.default,
+													{
+														onPress: function _callee2() {
+															return regeneratorRuntime.async(function _callee2$(_context2) {
+																while (1) {
+																	switch (_context2.prev = _context2.next) {
+																		case 0:
+																			_context2.next = 2;
+																			return regeneratorRuntime.awrap(_this2.props.onSelectPeripheral(item));
+
+																		case 2:
+																			return _context2.abrupt("return", _context2.sent);
+
+																		case 3:
+																		case "end":
+																			return _context2.stop();
+																	}
+																}
+															}, null, _this2);
+														},
+														style: [_StyleSheet2.default.button, {
+															height: 50,
+															backgroundColor: color
+														}],
+														background: _reactNativePlatformTouchable2.default.Ripple("blue"),
+														__source: {
+															fileName: _jsxFileName,
+															lineNumber: 61
+														}
+													},
+													_react2.default.createElement(
+														_reactNative.Text,
+														{
+															style: _StyleSheet2.default.connectButtonTextCenter,
+															__source: {
+																fileName: _jsxFileName,
+																lineNumber: 66
+															}
+														},
+														item.name
+													)
+												);
+											} catch (error) {
+												bugsnag.notify(error);
+											}
+										}
 									}
 								},
 								__source: {
