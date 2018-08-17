@@ -45,6 +45,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     private static final String TAG = "BB.BurnerBoardDirectMap";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
+    public static final int mPowerMultiplier = BurnerBoardUtil.kVisualizationDirectMapPowerMultiplier;
 
     // these were the original dimensions used for the direct map. kept here for posterity and re-use
     // if needed -jib
@@ -411,8 +412,12 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             // Power is on-linear to pixel brightness: 37% = 50% power.
             // powerPercent = 100: 15% multiplier
             // powerPercent <= 15: 100% multiplier
+            int powerLimitMultiplierPercent = mPowerMultiplier;
+
+            /* None of this code was actively used; see the last line that simply re-sets this value
+               to 100. So, let's comment out this code and just use the constant from bbutil -jib
+
             int totalBrightnessSum = 0;
-            int powerLimitMultiplierPercent = 100;
             for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
                 // R
                 if (pixel % 3 == 0) {
@@ -425,7 +430,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             }
 
             final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
-            powerLimitMultiplierPercent = 100;// - java.lang.Math.max(powerPercent - 12, 0);
+            //powerLimitMultiplierPercent = 100;// - java.lang.Math.max(powerPercent - 12, 0);
+            */
 
             int[] rowPixels = new int[mBoardWidth * 3];
             for (int y = 0; y < mBoardHeight; y++) {
