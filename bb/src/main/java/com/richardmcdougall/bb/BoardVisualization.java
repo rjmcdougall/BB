@@ -319,9 +319,14 @@ public class BoardVisualization {
                 mVisualizationJosPack.update(JosPack.kJPBlank);
                 break;
 
-            case "JP2a()":
+            case "JPBluePurple()":
                 frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJP2a);
+                mVisualizationJosPack.update(JosPack.kJPBluePurple);
+                break;
+
+            case "JPTriColor()":
+                frameRate = mFrameRate;
+                mVisualizationJosPack.update(JosPack.kJPTriColor);
                 break;
 
             // End JosPack visualizations
