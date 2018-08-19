@@ -1,0 +1,3 @@
+[submodule "capes/BurnerBoard"]
+	path = capes/BurnerBoard
+	url = https://github.com/herrod/BurnerBoard
