@@ -1021,8 +1021,13 @@ public class BBService extends Service {
                     String name = getRadioChannelInfo(i);
                     long hashed = hashTrackName(name);
                     if (hashed == value) {
-                        SetRadioChannel((int)i);
-                        l("Received remote audio switch to track " + i + " (" + name + ")");
+                        l("Remote Audio " + getRadioChannel() + " -> " + i);
+                        if (getRadioChannel() != i) {
+                            SetRadioChannel((int) i);
+                            l("Received remote audio switch to track " + i + " (" + name + ")");
+                        } else {
+                            l("Ignored remote audio switch to track " + i + " (" + name + ")");
+                        }
                         break;
                     }
                 }
@@ -1033,8 +1038,13 @@ public class BBService extends Service {
                     String name = getVideoModeInfo(i);
                     long hashed = hashTrackName(name);
                     if (hashed == value) {
-                        setVideoMode((int)i);
-                        l("Received remote video switch to mode " + i + " (" + name + ")");
+                        l("Remote Video " + getVideoMode() + " -> " + i);
+                        if (getVideoMode() != i) {
+                            setVideoMode((int) i);
+                            l("Received remote video switch to mode " + i + " (" + name + ")");
+                        } else {
+                            l("Ignored remote video switch to mode " + i + " (" + name + ")");
+                        }
                         break;
                     }
                 }
@@ -1434,10 +1444,12 @@ public class BBService extends Service {
             l("Sending video remote for video " + name);
             mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name));
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
+            /*
             try {
                 Thread.sleep(mRfClientServer.getLatency());
             } catch (Exception e) {
             }
+            */
         }
 
         if (mBoardVisualization != null && mBurnerBoard != null) {
