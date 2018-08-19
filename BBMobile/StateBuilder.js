@@ -115,9 +115,11 @@ exports.getBoards = async function (isBurnerMode) {
 		var boards = null;
 
 		// no wifi in burner mode
-		if (isBurnerMode)
-			boards = await BBComAPIData.fetchBoards();
+		// if (!isBurnerMode)
+		boards = await BBComAPIData.fetchBoards();
 
+		console.log(boards);
+		
 		if (boards) {
 			await FileSystemConfig.setBoards(boards);
 		}

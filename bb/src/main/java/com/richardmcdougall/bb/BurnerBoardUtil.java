@@ -88,6 +88,7 @@ public class BurnerBoardUtil {
     */
     public static final boolean isBBPanel() {
         return (kForceBBTypePanel
+            || BOARD_TYPE.contains("Panel")
             || BOARD_ID.contains("Panel")
             || BOARD_ID.contains("cranky")
             //|| BOARD_ID.contains("grumpy")
@@ -95,7 +96,27 @@ public class BurnerBoardUtil {
         ) ? true : false;
     }
 
+    /* DIRECT MAP SETTINGS */
+    public static final int kVisualizationDirectMapDefaultWidth = 8;
+    public static final int kVisualizationDirectMapDefaultHeight = 256;
 
+    // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
+    public static final int kVisualizationDirectMapWidth = BurnerBoardUtil.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
+    public static final int kVisualizationDirectMapHeight = BurnerBoardUtil.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
+
+    /* JosPacks have more of a power constraint, so we don't want to set it to full brightness. Empirically tested
+        with with a rapidly refreshing pattern (BlueGold):
+        100 -> 1.90a draw
+        50  -> 0.50a draw
+        25  -> 0.35a draw
+    */
+    public static final int kVisualizationDirectMapPowerMultiplier = BurnerBoardUtil.kIsRPI ? 25 : 100;
+
+    /*
+
+    THIS SETS UP PRETTY / HUMAN NAMES FOR ANY DEVICES
+
+     */
     public static final String publicNameFile = "publicName.txt";
     /*
         XXX this doesn't work as a static method:
