@@ -1622,11 +1622,17 @@ public class BBService extends Service {
         }
     }
 
-
+    // Single press to show battery
+    // Double press to show map
+    private long lastPressed = SystemClock.elapsedRealtime();
     private void onBatteryButton() {
         if (mBurnerBoard != null) {
             mBurnerBoard.showBattery();
+            if ((SystemClock.elapsedRealtime() - lastPressed) < 1000) {
+                mBoardVisualization.showMap();
+            }
         }
+        lastPressed = SystemClock.elapsedRealtime();
     }
 
     //you can get notified when a new device is connected using Broadcast receiver

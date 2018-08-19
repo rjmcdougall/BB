@@ -633,6 +633,10 @@ public class BurnerBoard {
 
     public void aRGBtoBoardScreen(Buffer buf, int[] sourceScreen, int [] destScreen) {
 
+        if (buf == null) {
+            return;
+        }
+
         int [] buffer = (int [])buf.array();
 
         for (int pixelNo = 0; pixelNo < (mBoardWidth * mBoardHeight); pixelNo++) {

@@ -391,6 +391,13 @@ public class BoardVisualization {
                 batteryCnt++;
             }
 
+            if (showingMap > 0) {
+                frameRate = mFrameRate;
+                mVisualizationPlayaMap.update(Visualization.kDefault);
+                showingMap -= 1;
+                continue;
+            }
+
             frameRate = runVisualization(mBoardMode);
 
             long frameTime = 1000 / frameRate;
@@ -513,6 +520,11 @@ public class BoardVisualization {
         level = (int) (25.01 * java.lang.Math.log((float) (level + 1)));
         //System.out.println("level: " + level);
         return level;
+    }
+
+    private int showingMap = 0;
+    public void showMap() {
+        showingMap = mFrameRate * 15;
     }
 
 

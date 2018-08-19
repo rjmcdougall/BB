@@ -66,6 +66,9 @@ public class BurnerBoardAzul extends BurnerBoard {
         initUsb();
         mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
+        mDrawBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
+        mTextSizeHorizontal = 14;
+
     }
 
     public void start() {
@@ -103,7 +106,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 23;
+        return 20;
     }
 
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
@@ -653,7 +656,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         int x, y;
 
         // Sadly Candy is wired up and sealed with an error
-        if (boardId.contains(new String("candy"))) {
+        if (boardId.contains(new String("candy")) || boardId.contains(new String("grumpy"))) {
             boardMap = boardMapCandy;
         } else {
             boardMap = boardMapStd;
