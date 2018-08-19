@@ -40,6 +40,9 @@ export default class DiscoverController extends React.Component {
 							dataSource={dataSource}
 							renderRow={(item) => {
 
+								console.log("item name" + item.name);
+								console.log(this.props.boardData)
+
 								if (item) {
 									if (item.name) {
 										try {
