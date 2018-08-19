@@ -88,6 +88,7 @@ public class BurnerBoardUtil {
     */
     public static final boolean isBBPanel() {
         return (kForceBBTypePanel
+            || BOARD_TYPE.contains("Panel")
             || BOARD_ID.contains("Panel")
             || BOARD_ID.contains("cranky")
             //|| BOARD_ID.contains("grumpy")
@@ -116,7 +117,6 @@ public class BurnerBoardUtil {
     THIS SETS UP PRETTY / HUMAN NAMES FOR ANY DEVICES
 
      */
-
     public static final String publicNameFile = "publicName.txt";
     /*
         XXX this doesn't work as a static method:
