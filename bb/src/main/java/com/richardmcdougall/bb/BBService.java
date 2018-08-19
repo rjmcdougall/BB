@@ -467,8 +467,13 @@ public class BBService extends Service {
             l( "Visualization: Using Panel");
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
-            l( "Visualization: Using Directory Map");
-            mBurnerBoard = new BurnerBoardDirectMap(this, mContext);
+            l( "Visualization: Using Direct Map");
+            mBurnerBoard = new BurnerBoardDirectMap(
+                this,
+                mContext,
+                BurnerBoardUtil.kVisualizationDirectMapWidth,
+                BurnerBoardUtil.kVisualizationDirectMapHeight
+            );
         } else if (BurnerBoardUtil.isBBAzul()) {
             l( "Visualization: Using Azul");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
@@ -1116,6 +1121,28 @@ public class BBService extends Service {
         return dlManager.GetTotalVideo();
     }
 
+    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
+    // VideoMode() = 1 sets it to the beginning of the profile.
+    void NextVideo() {
+        int next = getVideoMode() + 1;
+        if (next > getVideoMax()) {
+            //next = 0;
+            next = 1;
+        }
+        l( "Setting Video to: " + getVideoModeInfo(next) );
+        mBoardVisualization.setMode(next);
+    }
+
+    void PreviousVideo() {
+        int next = getVideoMode() - 1;
+        if (next > getVideoMax()) {
+            //next = 0;
+            next = 1;
+        }
+        l( "Setting Video to: " + getVideoModeInfo(next) );
+        mBoardVisualization.setMode(next);
+    }
+
     // Hash String as 32-bit
     public long hashTrackName(String name) {
         byte[] encoded = {0, 0, 0, 0};
@@ -1390,7 +1417,8 @@ public class BBService extends Service {
                 //onBatteryButton();
                 // Do something more useful here. Like turn on/off lights?
                 l("RPI Bluetooth Play Button");
-                voice.speak( "I'm sorry Dave, I can't let you do that", TextToSpeech.QUEUE_FLUSH, null, "keycode");
+                //voice.speak( "I'm sorry Dave, I can't let you do that", TextToSpeech.QUEUE_FLUSH, null, "keycode");
+                NextVideo();
                 break;
 
             /* Audio stream control */

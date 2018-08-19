@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.BurnerBoardUtil;
 
 /**
  * Created by jib on 8/15/18.
@@ -10,16 +11,16 @@ import com.richardmcdougall.bb.BurnerBoard;
 public class JosPack extends Visualization {
 
     public static final int kJPGold = 1;
-    public static final int kJP2a = 2;
+    public static final int kJPTriColor = 2;
     public static final int kJPSparkle = 3;
     public static final int kJPColors = 4;
     public static final int kJPBlank = 5;
     public static final int kJPBlueGold = 6;
+    public static final int kJPBluePurple = 7;
 
     private Wheel mWheel = new Wheel();
 
-    private final static int kLEDS1 = 99;
-    private final static int kLEDS2 = 137;
+    private final static int kLEDS = BurnerBoardUtil.kVisualizationDirectMapWidth * BurnerBoardUtil.kVisualizationDirectMapHeight;
 
     public JosPack(BurnerBoard bb, BoardVisualization visualization) {
         super(bb, visualization);
@@ -30,8 +31,8 @@ public class JosPack extends Visualization {
             case kJPGold:
                 modeJPGold();
                 break;
-            case kJP2a:
-                modeJP2a();
+            case kJPTriColor:
+                modeTriColor();
                 break;
             case kJPSparkle:
                 modeJPSparkle();
@@ -45,6 +46,9 @@ public class JosPack extends Visualization {
             case kJPBlueGold:
                 modeJPBlueGold();
                 break;
+            case kJPBluePurple:
+                modeJPBluePurple();
+                break;
             default:
                 break;
         }
@@ -55,26 +59,63 @@ public class JosPack extends Visualization {
     }
 
     void jpSetPixel(int n, int color) {
-        if (n < 0 || n >= (kLEDS1 + kLEDS2)) {
+        if (n < 0 || n >= kLEDS) {
             return;
         }
-        if (n < kLEDS1) {
-            mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS1 - n - 1) % mBoardHeight, color);
-        } else {
-            mBurnerBoard.setPixel(1 + kLEDS1 / mBoardHeight +
-                    ((n - kLEDS1) / mBoardHeight),  (n - kLEDS1) % mBoardHeight, color);
-        }
+        mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS - n - 1) % mBoardHeight, color);
     }
 
     void modeJPGold() {
-        mBurnerBoard.fillScreen(255, 147, 41);
+        //mBurnerBoard.fillScreen(255, 147, 41);
+
+        mBurnerBoard.fillScreen(255, 215, 0);
+
         mBurnerBoard.flush();
     }
 
 
     private int jpSparkleNo = 0;
-    private final static int kJPSparkleMiddle = (kLEDS1 + kLEDS2)/ 2;
+    private final static int kJPSparkleMiddle = kLEDS / 2;
 
+    void modeJPSparkle() {
+
+        int ledNo;
+
+        //mBurnerBoard.fadePixels(10);
+
+        if (jpSparkleNo > kJPSparkleMiddle) {
+            mBurnerBoard.fadePixels(30);
+            mBurnerBoard.flush();
+            jpSparkleNo+= 1;
+
+            if(jpSparkleNo >= kLEDS) {
+                jpSparkleNo = 0;
+            }
+
+            /*
+            if (jpSparkleNo > kJPSparkleMiddle + 20) {
+                jpSparkleNo = 0;
+            }
+            return;
+            */
+        }
+
+        for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + jpSparkleNo; ledNo++) {
+            jpSetPixel(ledNo, mWheel.wheelDim(35,
+                    (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
+        }
+
+        for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - jpSparkleNo; ledNo--) {
+            jpSetPixel(ledNo, mWheel.wheelDim(35,
+                    (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
+        }
+
+        mBurnerBoard.flush();
+        jpSparkleNo+= 1;
+    }
+
+    /* This is a relic from MenloMickey - I'm unclear what it is trying to do, and it doesn't
+       look good on the JosPacks atm, so commenting out for now.
     void modeJP2a() {
 
         int ledNo;
@@ -101,36 +142,7 @@ public class JosPack extends Visualization {
         mBurnerBoard.flush();
         jpSparkleNo+= 1;
     }
-
-    void modeJPSparkle() {
-
-        int ledNo;
-
-        //mBurnerBoard.fadePixels(10);
-
-        if (jpSparkleNo > kJPSparkleMiddle) {
-            mBurnerBoard.fadePixels(20);
-            mBurnerBoard.flush();
-            jpSparkleNo+= 1;
-            if (jpSparkleNo > kJPSparkleMiddle + 20) {
-                jpSparkleNo = 0;
-            }
-            return;
-        }
-
-        for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + jpSparkleNo; ledNo++) {
-            jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
-        }
-
-        for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - jpSparkleNo; ledNo--) {
-            jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
-        }
-
-        mBurnerBoard.flush();
-        jpSparkleNo+= 1;
-    }
+    */
 
     private final static int kJPPhaseShift = 10;
     private int jpColor = 0;
@@ -139,7 +151,7 @@ public class JosPack extends Visualization {
 
         int ledNo;
 
-        for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
+        for (ledNo = 0; ledNo < kLEDS; ledNo++) {
             int index = kJPPhaseShift * (jpColor + ledNo) % 360; //* kJPPhaseShift / 2) % 360;
             jpSetPixel(ledNo, mWheel.wheel(index));
         }
@@ -149,24 +161,58 @@ public class JosPack extends Visualization {
     }
 
     void modeJPBlank() {
-
         mBurnerBoard.fillScreen(0, 0, 0);
         mBurnerBoard.flush();
     }
 
 
-    private int jpRotate = 0;
+    private int bgRotate = 0;
     void modeJPBlueGold() {
 
         int ledNo;
 
-        for (ledNo = 0; ledNo < (kLEDS1 + kLEDS2); ledNo++) {
-            int index = (jpRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
+        for (ledNo = 0; ledNo < kLEDS; ledNo++) {
+            int index = (bgRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
             jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
                     BurnerBoard.getRGB(0, 0, 255));
         }
         mBurnerBoard.flush();
-        jpRotate ++;
-        jpRotate %= 360;
+        bgRotate++;
+        bgRotate %= 360;
+    }
+
+
+    private int bpRotate = 0;
+    void modeJPBluePurple() {
+
+        int ledNo;
+
+        for (ledNo = 0; ledNo < kLEDS; ledNo++) {
+            int index = (bpRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
+            jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(41, 147, 255) :
+                    BurnerBoard.getRGB(0, 0, 255));
+        }
+        mBurnerBoard.flush();
+        bpRotate++;
+        bpRotate %= 360;
+    }
+
+    private int triRotate = 0;
+    void modeTriColor() {
+
+        int ledNo;
+
+        for (ledNo = 0; ledNo < kLEDS; ledNo++) {
+            int index = (triRotate + ledNo) % 15;
+            int rgb = index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
+                      index < 10 ? BurnerBoard.getRGB(41, 147, 255) :
+                      BurnerBoard.getRGB(0, 0, 255);
+            jpSetPixel(ledNo, rgb);
+        }
+
+        mBurnerBoard.flush();
+        triRotate++;
+        triRotate %= 360;
+
     }
 }
