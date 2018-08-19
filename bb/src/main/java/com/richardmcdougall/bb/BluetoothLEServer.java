@@ -78,7 +78,9 @@ public class BluetoothLEServer {
             return;
         }
 
-        bluetoothAdapter.setName(mBoardId.substring(0, Math.min(mBoardId.length(), 8)));
+        String name = mBoardId.substring(0, Math.min(mBoardId.length(), 8));
+        bluetoothAdapter.setName(name);
+        l("Bluetooth packet name set to: " + name);
 
         // Register for system Bluetooth events
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
@@ -220,7 +222,7 @@ public class BluetoothLEServer {
     private AdvertiseCallback mAdvertiseCallback = new AdvertiseCallback() {
         @Override
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-            l("LE Advertise Started.");
+            l("LE Advertise Started: " + settingsInEffect.toString());
         }
 
         @Override
