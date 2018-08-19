@@ -59273,19 +59273,13 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 					case 0:
 						_context3.prev = 0;
 						boards = null;
-
-						if (!isBurnerMode) {
-							_context3.next = 6;
-							break;
-						}
-
-						_context3.next = 5;
+						_context3.next = 4;
 						return regeneratorRuntime.awrap(_BBComAPIData2.default.fetchBoards());
 
-					case 5:
+					case 4:
 						boards = _context3.sent;
+						console.log(boards);
 
-					case 6:
 						if (!boards) {
 							_context3.next = 11;
 							break;
@@ -73217,6 +73211,9 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								enableEmptySections: true,
 								dataSource: dataSource,
 								renderRow: function renderRow(item) {
+									console.log("item name" + item.name);
+									console.log(_this2.props.boardData);
+
 									if (item) {
 										if (item.name) {
 											try {
@@ -73260,7 +73257,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 														background: _reactNativePlatformTouchable2.default.Ripple("blue"),
 														__source: {
 															fileName: _jsxFileName,
-															lineNumber: 61
+															lineNumber: 64
 														}
 													},
 													_react2.default.createElement(
@@ -73269,7 +73266,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 															style: _StyleSheet2.default.connectButtonTextCenter,
 															__source: {
 																fileName: _jsxFileName,
-																lineNumber: 66
+																lineNumber: 69
 															}
 														},
 														item.name
