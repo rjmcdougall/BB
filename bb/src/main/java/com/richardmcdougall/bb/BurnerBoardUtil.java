@@ -88,13 +88,13 @@ public class BurnerBoardUtil {
     */
     public static final boolean isBBPanel() {
         return (kForceBBTypePanel
+            || BOARD_TYPE.contains("Panel")
             || BOARD_ID.contains("Panel")
             || BOARD_ID.contains("cranky")
             //|| BOARD_ID.contains("grumpy")
             || BOARD_ID.contains("imx7d_pico")
         ) ? true : false;
     }
-
 
     public static final String publicNameFile = "publicName.txt";
     /*
