@@ -95,15 +95,16 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-runtime-classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-verifier" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-resources" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-support" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-apk" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-main-apk-res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaPrecompile" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/lint" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifest-checker" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/prebuild" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/reload-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/resources" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shaders" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/split-apk" />
@@ -111,7 +112,6 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/reports" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 24 Platform" jdkType="Android SDK" />
@@ -149,12 +149,12 @@
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-tasks-11.0.0" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-core-utils-25.2.0" level="project" />
     <orderEntry type="library" name="Gradle: com.facebook.fresco:imagepipeline-1.3.0" level="project" />
-    <orderEntry type="module" module-name="react-native-fs" />
-    <orderEntry type="module" module-name="react-native-ble-manager" />
     <orderEntry type="module" module-name="bugsnag-react-native" />
-    <orderEntry type="module" module-name="react-native-geolocation-service" />
-    <orderEntry type="module" module-name="react-native-wheel-picker" />
+    <orderEntry type="module" module-name="react-native-ble-manager" />
     <orderEntry type="module" module-name="react-native-maps" />
+    <orderEntry type="module" module-name="react-native-wheel-picker" />
+    <orderEntry type="module" module-name="react-native-geolocation-service" />
     <orderEntry type="module" module-name="react-native-vector-icons" />
+    <orderEntry type="module" module-name="react-native-fs" />
   </component>
 </module>
