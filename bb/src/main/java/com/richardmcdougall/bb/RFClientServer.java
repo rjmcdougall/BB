@@ -21,6 +21,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Callable;
@@ -45,8 +46,12 @@ public class RFClientServer {
     static final int [] kRemoteControlMagicNumber = new int[] {0xbb, 0x06};
     static final int kThreadSleepTime = 5000;
 
+
+    public static final int kRemoteAudio = 0;
+    public static final int kRemoteVideo = 1;
+
     // Use this to store the client packet the master needs to send to take over audio & video
-    static byte[] kMasterToClientPacket = null;
+    byte[][] kMasterToClientPacket = new byte[2][];
 
     // How long does the master need to keep communicating that it's the master (in milliseconds)?
     static final int kMasterBroadcastTime = 5 * 60 * 1000;
@@ -490,17 +495,26 @@ public class RFClientServer {
              */
 
             // Do we need to tell nearby clients who the media master is still?
-            if( kMasterBroadcastsLeft > 0 && kMasterToClientPacket != null) {
-                l( "Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
-                mRF.broadcast(kMasterToClientPacket);
-                kMasterBroadcastsLeft--;
+            if( kMasterBroadcastsLeft > 0 ) {
+                l("Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
 
-                // To make sure we don't have collissions with the following TIME broadcast, so
-                // sleep for a few ms
-                try {
-                    Thread.sleep(50);
-                } catch (Exception e) {
+                for (int i = 0; i < kMasterToClientPacket.length; i++) {
+
+                    byte [] packet = kMasterToClientPacket[i];
+                    if (packet.length > 0) {
+                        l("Resending master client packet type: " + i);
+                        mRF.broadcast(packet);
+
+                        // To make sure we don't have collissions with the following TIME broadcast, so
+                        // sleep for a few ms
+                        try {
+                            Thread.sleep(50);
+                        } catch (Exception e) {
+                        }
+                    }
                 }
+
+                kMasterBroadcastsLeft--;
             }
 
             /*
@@ -688,7 +702,7 @@ public class RFClientServer {
 
 
 
-    public void sendRemote(int cmd, long value) {
+    public void sendRemote(int cmd, long value, int type) {
 
         if (mRF == null) {
             return;
@@ -707,11 +721,13 @@ public class RFClientServer {
         int32ToPacket(clientPacket, value);
 
         // Send 10 times now, and let the supervisor thread send it periodically still
-        kMasterToClientPacket = clientPacket.toByteArray();
+        byte [] packet = clientPacket.toByteArray();
 
         for (int i = 0; i < 10; i++) {
-            mRF.broadcast(kMasterToClientPacket);
+            mRF.broadcast(packet);
         }
+
+        kMasterToClientPacket[type] = packet;
 
         // This is the amount of iterations LEFT of broadcasting the client packet.
         // When this routine is invoked again, it'll restart the iteration counter.
