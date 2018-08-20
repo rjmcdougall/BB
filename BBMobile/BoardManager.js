@@ -151,11 +151,12 @@ export default class BoardManager extends Component {
 				clearInterval(this.state.backgroundLoop);
 
 			this.setState({
-				selectedPeripheral: peripheral,
+				selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 				mediaState: StateBuilder.blankMediaState(),
 				discoveryState: Constants.DISCONNECTED,
 				backgroundLoop: null,
 			});
+
 			console.log("BoardManager: Disconnected from " + peripheral.name);
 		}
 	}
@@ -180,6 +181,12 @@ export default class BoardManager extends Component {
 
 				console.log("BoardManager: Clearing State: ");
 
+				if (this.state.selectedPeripheral)
+					if (this.state.selectedPeripheral.id != "12345"){
+						BleManager.disconnect(this.state.selectedPeripheral.id);
+						console.log("Disconnected BLE From " + this.state.selectedPeripheral.name)
+					}
+
 				this.setState({
 					selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
@@ -198,6 +205,7 @@ export default class BoardManager extends Component {
 			}
 		}
 	}
+
 
 	onNavigate(nav) {
 		this.setState({ showScreen: nav });
