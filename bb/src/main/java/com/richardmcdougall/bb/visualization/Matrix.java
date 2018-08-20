@@ -29,6 +29,7 @@ public class Matrix extends Visualization {
     public static final int kMatrix9 = 8;
     public static final int kMatrixReverse = 9;
     public static final int kMatrixMickey = 10;
+    public static final int kMatrixSync = 11;
 
     private static final int[] googleColors = {
             BurnerBoard.getRGB(60, 186, 84),
@@ -84,6 +85,7 @@ public class Matrix extends Visualization {
             switch (mode) {
                 case kMatrixBurnerColor:
                 case kMatrixReverse:
+                case kMatrixSync:
 
                     if (mBoardVisualizion.mRandom.nextInt(3) != 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
@@ -199,6 +201,7 @@ public class Matrix extends Visualization {
                     break;
 
 
+
                 default:
                     color = 0;
             }
@@ -223,6 +226,17 @@ public class Matrix extends Visualization {
                 int level = java.lang.Math.max(0, (mBoardVisualizion.getLevel() * 3) - 80);
                 mBurnerBoard.dimPixels(level);
                 break;
+
+            case kMatrixSync:
+                int syncColor =
+                        mWheel.wheel((int)(mBurnerBoard.getCurrentClock() / 5) % 360);
+                if (syncColor > 0) {
+                    mBurnerBoard.fillScreenMask(syncColor);
+
+                }
+
+                break;
+
             default:
                 break;
         }

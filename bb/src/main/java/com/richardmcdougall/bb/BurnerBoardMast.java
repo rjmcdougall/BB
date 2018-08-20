@@ -248,6 +248,26 @@ public class BurnerBoardMast extends BurnerBoard {
         mBoardScreen[pixel * 3 + 2] = b;
     }
 
+    public void fillScreenMask(int r, int g, int b) {
+        //System.out.println("Fillscreen " + r + "," + g + "," + b);
+        int x;
+        int y;
+        for (x = 0; x < mBoardWidth; x++) {
+            for (y = 0; y < mBoardHeight; y++) {
+                if (getPixel(x, y) > 0) {
+                    setPixel(x, y, r, g, b);
+                }
+            }
+        }
+    }
+
+    public int getPixel(int x, int y) {
+        int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+        int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+        int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+        return BurnerBoard.getRGB(r, g, b);
+    }
+
     public void scrollPixels(boolean down) {
 
         if (mBoardScreen == null) {

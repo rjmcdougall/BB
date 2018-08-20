@@ -187,6 +187,21 @@ public class BurnerBoard {
     public void fillScreen(int r, int g, int b) {
     }
 
+    // Fill only active pixels
+    public void fillScreenMask(int r, int g, int b) {
+    }
+
+    public void fillScreenMask(int color) {
+        int b = (color & 0xff);
+        int g = ((color & 0xff00) >> 8);
+        int r = ((color & 0xff0000) >> 16);
+        fillScreenMask(r, g, b);
+    }
+
+    public int getPixel(int x, int y) {
+        return 0;
+    }
+
     public void setOtherlightsAutomatically() {
     }
 
@@ -786,6 +801,11 @@ public class BurnerBoard {
             bitmap.copyPixelsToBuffer(mDrawBuffer);
         }
         aRGBtoBoardScreen(mDrawBuffer, mBoardScreen, mBoardScreen);
+    }
+
+    public long getCurrentClock() {
+        long curTimeStamp = mBBService.GetCurrentClock();
+        return curTimeStamp;
     }
 
 }

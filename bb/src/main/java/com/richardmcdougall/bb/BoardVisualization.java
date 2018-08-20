@@ -86,6 +86,7 @@ public class BoardVisualization {
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationMeteor;
     public Visualization mVisualizationPlayaMap;
+    public Visualization getmVisualizationSyncLights;
 
     int mBoardMode;
     Context mContext;
@@ -127,6 +128,7 @@ public class BoardVisualization {
         mVisualizationAudioBar = new AudioBar(mBurnerBoard, this);
         mVisualizationMeteor = new Meteor(mBurnerBoard, this);
         mVisualizationPlayaMap = new PlayaMap(mBurnerBoard, this);
+        getmVisualizationSyncLights = new SyncLights(mBurnerBoard, this);
 
     }
 
@@ -258,6 +260,11 @@ public class BoardVisualization {
                 mVisualizationMatrix.update(Matrix.kMatrix9);
                 break;
 
+            case "modeMatrix(kMatrixSync)":
+                frameRate = mFrameRate;
+                mVisualizationMatrix.update(Matrix.kMatrixSync);
+                break;
+
             case "modeAudioTile()":
                 frameRate = mFrameRate;
                 mVisualizationAudioTile.update(Matrix.kDefault);
@@ -334,6 +341,11 @@ public class BoardVisualization {
             case "modePlayaMap()":
                 frameRate = mFrameRate;
                 mVisualizationPlayaMap.update(Visualization.kDefault);
+                break;
+
+            case "modeSyncLights()":
+                frameRate = mFrameRate;
+                getmVisualizationSyncLights.update(Visualization.kDefault);
                 break;
 
             default:
