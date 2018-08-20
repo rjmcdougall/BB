@@ -1,0 +1,202 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+MERGED from [com.android.support.constraint:constraint-layout:1.1.2] /Users/d.wilson/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.2.aar/c32f43c4160ce098f19233121be94c26/AndroidManifest.xml:2:1-11:12
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+	package
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:3:5-45
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:1-76:12
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.WAKE_LOCK
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:4:5-68
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:4:22-65
+uses-permission#android.permission.INTERNET
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:5:5-67
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:5:22-64
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:6:5-81
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:6:22-78
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:7:5-80
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:7:22-77
+uses-permission#android.permission.RECORD_AUDIO
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:8:5-71
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:8:22-68
+uses-permission#android.permission.MODIFY_AUDIO_SETTINGS
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:9:5-80
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:9:22-77
+uses-permission#android.permission.BLUETOOTH
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:10:5-68
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:10:22-65
+uses-permission#android.permission.BLUETOOTH_ADMIN
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:11:5-74
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:11:22-71
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:12:5-79
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:12:22-76
+uses-permission#android.permission.READ_PHONE_STATE
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:13:5-75
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:13:22-72
+uses-permission#android.permission.ACCESS_FINE_LOCATION
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:14:5-79
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:14:22-76
+uses-permission#android.permission.ACCESS_COARSE_LOCATION
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:15:5-81
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:15:22-78
+uses-permission#android.permission.ACCESS_WIFI_STATE
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:18:5-76
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:18:22-73
+uses-permission#android.permission.CHANGE_WIFI_STATE
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:19:5-76
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:19:22-73
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:20:5-81
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:20:22-78
+uses-permission#android.permission.SYSTEM_ALERT_WINDOW
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:22:5-77
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:22:22-75
+uses-permission#android.permission.REORDER_TASKS
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:23:5-71
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:23:22-69
+uses-permission#com.google.android.things.permission.MANAGE_UPDATE_POLICY
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:24:5-97
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:24:22-94
+uses-permission#com.google.android.things.permission.PERFORM_UPDATE_NOW
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:25:5-95
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:25:22-92
+uses-permission#com.google.android.things.permission.REBOOT
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:26:5-83
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:26:22-80
+uses-permission#com.google.android.Manifest.permission.NETWORK_SETTINGS
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:27:5-95
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:27:22-92
+uses-feature#android.hardware.usb.host
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:29:5-62
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:29:19-59
+uses-feature#android.hardware.wifi
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:30:5-58
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:30:19-55
+application
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:32:5-73:19
+MERGED from [com.android.support.constraint:constraint-layout:1.1.2] /Users/d.wilson/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.2.aar/c32f43c4160ce098f19233121be94c26/AndroidManifest.xml:9:5-20
+MERGED from [com.android.support.constraint:constraint-layout:1.1.2] /Users/d.wilson/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.2.aar/c32f43c4160ce098f19233121be94c26/AndroidManifest.xml:9:5-20
+	android:theme
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:32:18-65
+receiver#com.richardmcdougall.bbmonitor.BBRunOnStartup
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:34:9-44:20
+	android:enabled
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:36:13-35
+	android:exported
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:37:13-36
+	android:permission
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:38:13-75
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:35:13-43
+intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.QUICKBOOT_POWERON
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:39:13-43:29
+action#android.intent.action.BOOT_COMPLETED
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:40:17-79
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:40:25-76
+action#android.intent.action.QUICKBOOT_POWERON
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:41:17-82
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:41:25-79
+uses-library#com.google.android.things
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:46:9-66
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:46:23-63
+activity#com.richardmcdougall.bbmonitor.MainActivity
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:48:9-65:20
+	android:screenOrientation
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:52:13-49
+	android:label
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:50:13-45
+	android:launchMode
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:51:13-44
+	android:configChanges
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:49:13-74
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:48:19-47
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:54:13-58:29
+action#android.intent.action.MAIN
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:55:17-69
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:55:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:57:17-77
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:57:27-74
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.DEFAULT+category:name:android.intent.category.IOT_LAUNCHER
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:59:13-64:29
+category#android.intent.category.IOT_LAUNCHER
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:62:17-81
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:62:27-78
+category#android.intent.category.DEFAULT
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:63:17-76
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:63:27-73
+service#com.richardmcdougall.bbmonitor.BBService
+ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:67:9-72:19
+	android:enabled
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:69:13-35
+	android:exported
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:70:13-36
+	android:name
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml:68:13-38
+uses-sdk
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+MERGED from [com.android.support.constraint:constraint-layout:1.1.2] /Users/d.wilson/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.2.aar/c32f43c4160ce098f19233121be94c26/AndroidManifest.xml:5:5-7:41
+MERGED from [com.android.support.constraint:constraint-layout:1.1.2] /Users/d.wilson/.gradle/caches/transforms-1/files-1.1/constraint-layout-1.1.2.aar/c32f43c4160ce098f19233121be94c26/AndroidManifest.xml:5:5-7:41
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		ADDED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
+		INJECTED from /Users/d.wilson/sourcecode/BB/bbmonitor/src/main/AndroidManifest.xml
