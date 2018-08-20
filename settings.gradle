@@ -1,1 +1,1 @@
-include ':bb', ':bbinstaller', ':bbandroid'
+include ':bb', ':bbinstaller', ':bbandroid', ':bbmonitor'

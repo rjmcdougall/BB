@@ -6,7 +6,7 @@
 #include <CmdMessenger.h>
 #include <EEPROM.h>
 
-boolean do_lowbattery_actions = false;
+boolean do_lowbattery_actions = false;. ,
 
 /*****************************************************************************
   Burner Board LED and Audio Code

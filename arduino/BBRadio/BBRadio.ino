@@ -5,13 +5,13 @@
 #include <Wire.h>
 
 
-#define LED 13
 
-/* for feather m0 
-*/
+/* for feather m0 */
+#define LED 13
 #define RFM95_CS 8
 #define RFM95_RST 4
 #define RFM95_INT 3
+
 
 
 /* for teensy 
@@ -21,6 +21,12 @@
 */
 
 
+/* for moteino 
+#define LED 9
+#define RFM95_CS 8
+#define RFM95_RST 4
+#define RFM95_INT 7
+*/
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 915.0
 
