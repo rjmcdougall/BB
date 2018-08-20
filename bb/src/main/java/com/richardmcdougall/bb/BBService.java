@@ -993,10 +993,10 @@ public class BBService extends Service {
         mMasterRemote = enable;
         if (enable) {
             mBurnerBoard.setText("Master", 2000);
-            voice.speak("I am the Master Remote", TextToSpeech.QUEUE_ADD, null, "enableMaster");
+            voice.speak( "Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
             mBurnerBoard.setText("Solo", 2000);
-            voice.speak("Disabling Master Remote", TextToSpeech.QUEUE_ADD, null, "disableMaster");
+            voice.speak("Disabling Master Remote: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
         }
     }
 
