@@ -1187,7 +1187,7 @@ public class BBService extends Service {
             l("Sending remote");
 
             String fileName = getRadioChannelInfo(index);
-            mRfClientServer.sendRemote(kRemoteAudioTrack, hashTrackName(fileName));
+            mRfClientServer.sendRemote(kRemoteAudioTrack, hashTrackName(fileName), RFClientServer.kRemoteAudio);
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             try {
                 Thread.sleep(mRfClientServer.getLatency());
@@ -1485,7 +1485,7 @@ public class BBService extends Service {
 
             String name = getVideoModeInfo(mBoardMode);
             l("Sending video remote for video " + name);
-            mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name));
+            mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             /*
             try {
