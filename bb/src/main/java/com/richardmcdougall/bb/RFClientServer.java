@@ -672,7 +672,11 @@ public class RFClientServer {
         // Value
         int32ToPacket(clientPacket, value);
 
-        mRF.broadcast(clientPacket.toByteArray());
+        // Send 10 times
+        for (int i = 0; i < 10; i++) {
+            mRF.broadcast(clientPacket.toByteArray());
+        }
+
 
     }
 

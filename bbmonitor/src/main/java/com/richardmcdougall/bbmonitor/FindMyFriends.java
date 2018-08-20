@@ -166,7 +166,8 @@ public class FindMyFriends {
             mLastRecv = System.currentTimeMillis();
             mLastHeardLocation = packet.clone();
             l("BB " + mRFAddress.boardAddressToName(address) + " strength " +
-                    sigStrength + "theirLat = " + lat + ", theirLon = " + lon);
+                    sigStrength + " theirLat = " + lat + ", theirLon = " + lon +
+            " batt " + batt + "%");
             updateBoardLocations(address, sigStrength, lat, lon, batt, false);
             return true;
         } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {

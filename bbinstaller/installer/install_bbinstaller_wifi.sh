@@ -3,7 +3,7 @@
 
 #############################################################################
 ###
-### Usage: ./installer_bbinstaller_wifh.sh [path/to/package.apk]
+### Usage: ./installer_bbinstaller_wifi.sh [path/to/package.apk]
 ###
 ### * First, connect to your board or RPI using adb
 ### * This will install the latest BB Installer (by default, $PACKAGE below)
@@ -51,13 +51,18 @@ $ADB connect $DEVICE
 echo "Configuring $DEVICE for writeable boot filesystem..."
 $ADB remount
 
+echo "Configuring $DEVICE for privilege..."
+$ADB push privapp-permissions-com.richardmcdougall.bbinstaller.xml /etc/permissions
+
 echo "Deploying BB Installer to $DEVICE..."
-$ADB install -r $PACKAGE
+$ADB shell pm uninstall com.richardmcdougall.bbinstaller
+$ADB shell rm -r /system/priv-app/com.richard*
+$ADB install -g $PACKAGE
 $ADB shell cp -rp  /data/app/com.richardmcdougall.bbinstaller* /system/priv-app
 $ADB shell pm uninstall com.richardmcdougall.bbinstaller
 
-echo "Rebooting $DEVICE..."
-$ADB reboot
+#echo "Rebooting $DEVICE..."
+#$ADB reboot
 
 #~/Library/Android/sdk/platform-tools/adb shell am startservice com.richardmcdougall.bbinstaller/.Installer
 

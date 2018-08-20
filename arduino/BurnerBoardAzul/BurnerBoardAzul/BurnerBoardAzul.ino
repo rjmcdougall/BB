@@ -7,6 +7,8 @@
 boolean do_lowbattery_actions = false;
 boolean kDisableBatteryMeter = false;
 
+#define LED_PIN 13
+
 struct TranslationMap {
                 int y;
                 int startX;
@@ -667,11 +669,14 @@ void batteryStats() {
 int getBattery8(int reg) {
   if (kDisableBatteryMeter)
     return 128;
+  digitalWrite(LED_PIN, HIGH);
   Wire.beginTransmission(BQ34Z100);
   Wire.write(reg);
   Wire.endTransmission();
   Wire.requestFrom(BQ34Z100,1);
-  return (Wire.read());
+  int value = Wire.read();
+  digitalWrite(LED_PIN, LOW);
+  return (value);
 }
 
 int getBattery16(int register1, int register2) {
@@ -679,15 +684,19 @@ int getBattery16(int register1, int register2) {
   unsigned int high;
   unsigned int high1;
   int value = -1;
-  
+
+  digitalWrite(LED_PIN, HIGH);
+
   if ((value = getBattery8(register1)) != -1) {
     low = value;
     if ((value = getBattery8(register2)) != -1) {
       high1 = value << 8;
       high1 = high1 + low;
+      digitalWrite(LED_PIN, LOW);
       return(high1);
     }
   }
+  digitalWrite(LED_PIN, LOW);
   return(-1);
 }
 
@@ -708,6 +717,7 @@ int getBatteryAll() {
 
   int value;
 
+  
   // batteryControl
   getBattery16(0x00, 0x01);
   value = getBattery16(0x00, 0x00);
@@ -780,6 +790,7 @@ int getBatteryAll() {
   if (value != -1) {
     batteryFlagsB = value;
   }
+
 
   return(batteryStateOfCharge);
 }
@@ -887,7 +898,7 @@ void drawBatteryTop() {
   // 113-114 is button
   // inside is 106-111
   
-  level = 1 + getBatteryLevel() / 19; // convert 100 to max of 7
+  level = 1 + getBatteryLevel() / 15; // convert 100 to max of 7
 
   row = 105;
 
@@ -948,6 +959,7 @@ void drawBatteryTop() {
   }
 }
 
+
 void setup() {
   char batt[16];
   
@@ -956,6 +968,10 @@ void setup() {
   Serial1.begin(115200); // Initialize Serial Monitor USB
   Serial.println("Goodnight moon!");
   Serial1.println("Goodnight moon!");
+
+  // Blinky LED
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   // Setup motor control speed limiter to no-limit
   pinMode(AUX_PIN, OUTPUT);
@@ -993,6 +1009,7 @@ uint8_t c = 0;
 // Counter to see if we check battery level
 unsigned long lastBatteryCheck = micros() - (20 * 1000000);;
 
+
 void loop() {
 
   int i;
@@ -1002,10 +1019,13 @@ void loop() {
   // Process incoming serial data, and perform callbacks
   ts = micros();
 
-  // Every 10 seconds check batter level from battery computer
-  if ((ts - lastBatteryCheck) > 10000000) {
+  // Every 30 seconds check batter level from battery computer
+//  if ((ts - lastBatteryCheck) > 300000000) {
+  if ((ts - lastBatteryCheck) > 30000000) {
     lastBatteryCheck = ts;
+    Serial1.print("Getting getBatteryAll()....");
     batteryStateOfCharge = getBatteryAll();
+    Serial1.println("done");
     if (batteryStateOfCharge >= 0) {
       // valid reading
       if (batteryStateOfCharge <= 25) {
@@ -1024,6 +1044,7 @@ void loop() {
         batteryCritical = false;
     }
     // Send upstrean to Android
+    Serial1.print("Getting getBatteryAll()....");
     OnGetBatteryLevel();
   }
   

@@ -94,7 +94,7 @@ void setup() {
 }
 
 // timing
-#define TRANSMIT_INTERVAL 5000      // interval between sending updates
+#define TRANSMIT_INTERVAL 60000      // interval between sending updates
 unsigned long lastStats; 
 
 #define MAGIC_NUMBER_LEN 2

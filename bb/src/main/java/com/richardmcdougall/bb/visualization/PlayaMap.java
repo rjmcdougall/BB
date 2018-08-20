@@ -200,8 +200,12 @@ public class PlayaMap extends Visualization {
     */
 
     // Test Man @ Bellhaven Menlo Park
-    static final double  kManLat = 37.476222;
-    static final double  kManLon = -122.1551087;
+    //static final double  kManLat = 37.476222;
+    //static final double  kManLon = -122.1551087;
+
+    // Test Man =  Shop
+    static final double  kManLat = 37.4829995;
+    static final double  kManLon = -122.1800015;
 
     static final double RMCHome9testLat = 37.4816092;
     static final double RMCHome9testLon = -122.161745;

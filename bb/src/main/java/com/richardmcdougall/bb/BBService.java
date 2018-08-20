@@ -1041,8 +1041,13 @@ public class BBService extends Service {
                     String name = getRadioChannelInfo(i);
                     long hashed = hashTrackName(name);
                     if (hashed == value) {
-                        SetRadioChannel((int)i);
-                        l("Received remote audio switch to track " + i + " (" + name + ")");
+                        l("Remote Audio " + getRadioChannel() + " -> " + i);
+                        if (getRadioChannel() != i) {
+                            SetRadioChannel((int) i);
+                            l("Received remote audio switch to track " + i + " (" + name + ")");
+                        } else {
+                            l("Ignored remote audio switch to track " + i + " (" + name + ")");
+                        }
                         break;
                     }
                 }
@@ -1053,8 +1058,13 @@ public class BBService extends Service {
                     String name = getVideoModeInfo(i);
                     long hashed = hashTrackName(name);
                     if (hashed == value) {
-                        setVideoMode((int)i);
-                        l("Received remote video switch to mode " + i + " (" + name + ")");
+                        l("Remote Video " + getVideoMode() + " -> " + i);
+                        if (getVideoMode() != i) {
+                            setVideoMode((int) i);
+                            l("Received remote video switch to mode " + i + " (" + name + ")");
+                        } else {
+                            l("Ignored remote video switch to mode " + i + " (" + name + ")");
+                        }
                         break;
                     }
                 }
@@ -1477,10 +1487,12 @@ public class BBService extends Service {
             l("Sending video remote for video " + name);
             mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name));
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
+            /*
             try {
                 Thread.sleep(mRfClientServer.getLatency());
             } catch (Exception e) {
             }
+            */
         }
 
         if (mBoardVisualization != null && mBurnerBoard != null) {
@@ -1662,12 +1674,34 @@ public class BBService extends Service {
 
     // Single press to show battery
     // Double press to show map
+    // Tripple click to toggle master
     private long lastPressed = SystemClock.elapsedRealtime();
+    private int pressCnt = 1;
     private void onBatteryButton() {
         if (mBurnerBoard != null) {
             mBurnerBoard.showBattery();
-            if ((SystemClock.elapsedRealtime() - lastPressed) < 1000) {
-                mBoardVisualization.showMap();
+            if ((SystemClock.elapsedRealtime() - lastPressed) < 600) {
+                if (pressCnt == 1) {
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (pressCnt == 2) {
+                                mBoardVisualization.showMap();
+                            } else if (pressCnt == 3) {
+                                // Toggle master mode
+                                if (mMasterRemote == true) {
+                                    enableMaster(false);
+                                } else {
+                                    enableMaster(true);
+                                }
+                            }
+                        }
+                    }, 700);
+                }
+                pressCnt++;
+            } else {
+                pressCnt = 1;
             }
         }
         lastPressed = SystemClock.elapsedRealtime();
@@ -1693,7 +1727,14 @@ public class BBService extends Service {
                         Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
                         r.play();
                     }
-                    mBurnerBoard.flashScreen(200);
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mBurnerBoard.flashScreen(400);
+
+                        }
+                    }, 3000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -108,6 +109,14 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         mContext = getApplicationContext();
 
+        l("Starting");
+
+
+        int screenSize = getResources().getConfiguration().screenLayout &
+                Configuration.SCREENLAYOUT_SIZE_MASK;
+
+
+
         startService(new Intent(getBaseContext(), BBService.class));
 
 
@@ -122,7 +131,27 @@ public class MainActivity extends Activity {
         log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
         log.setMaxLines(10);
 
-        l("test");
+
+        String toastMsg;
+        switch(screenSize) {
+            case Configuration.SCREENLAYOUT_SIZE_XLARGE:
+                toastMsg = "XL screen";
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_LARGE:
+                toastMsg = "Large screen";
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_NORMAL:
+                toastMsg = "Normal screen";
+                break;
+            case Configuration.SCREENLAYOUT_SIZE_SMALL:
+                toastMsg = "Small screen";
+                break;
+            default:
+                toastMsg = "Screen size is neither xl, large, normal or small";
+        }
+        l(toastMsg);
+
+        l("Services Started");
 
 
     }

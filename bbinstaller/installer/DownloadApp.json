@@ -1,31 +1,70 @@
 {
-	"application" : [	
+	"application": [
 		{
-		 	"URL" : "https://dl.dropboxusercontent.com/s/17lt95qov1szsbj/bb-18.apk?dl=0",
-		    	"localName" :"bb-18.apk",
-  		  	"Version" : 18
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-26.apk",
+			"localName": "bb-26.apk",
+			"Version": 26,
+			"Size": 2377040
 		},
 		{
-		 	"URL" : "https://dl.dropboxusercontent.com/s/d8inrbixtpw4btc/bb-21.apk?dl=0",
-		    	"localName" :"bb-21.apk",
-  		  	"Version" : 21
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-30.apk",
+			"localName": "bb-30.apk",
+			"Version": 30,
+			"Size": 2476951
 		},
 		{
-		 	"URL" : "https://dl.dropboxusercontent.com/s/k3izal1wl4mwqu6/bb-24.apk?dl=0",
-		    	"localName" :"bb-24.apk",
-  		  	"Version" : 24
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-31.apk",
+			"localName": "bb-31.apk",
+			"Version": 31,
+			"Size": 2476779
 		},
 		{
-		 	"URL" : "https://dl.dropboxusercontent.com/s/u81tbhhff6u0d7x/bb-26.apk?dl=0",
-		    	"localName" :"bb-26.apk",
-  		  	"Version" : 26
-		},
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-35.apk",
+			"localName": "bb-35.apk",
+			"Version": 35,
+			"Size": 2480211
+        },
 		{
-		 	"URL" : "https://dl.dropboxusercontent.com/s/u81tbhhff6u0d7x/bb-26.apk?dl=0",
-		    	"localName" :"bb-30.apk",
-  		  	"Version" : 30
-		}
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-3800.apk",
+			"localName": "bb-3800.apk",
+			"Version": 3800,
+			"Size": 2503755
+        },
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-3801.apk",
+			"localName": "bb-3801.apk",
+			"Version": 3801,
+			"Size": 2504163
+        },
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-3805.apk",
+			"localName": "bb-3805.apk",
+			"Version": 3805,
+			"Size": 2296276
+        },
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-3910.apk",
+			"localName": "bb-3910.apk",
+			"Version": 3910,
+			"Size": 2506979
+        },
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-3912.apk",
+			"localName": "bb-3912.apk",
+			"Version": 3912,
+			"Size": 2507019
+        },
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-3921.apk",
+			"localName": "bb-3921.apk",
+			"Version": 3921,
+			"Size": 2506683
+        },
+		{
+			"URL": "https://storage.googleapis.com/burner-board/BurnerBoardApps/bb-4000.apk",
+			"localName": "bb-4000.apk",
+			"Version": 4000,
+			"Size": 2299840
+        }
 	]
 }
-
-

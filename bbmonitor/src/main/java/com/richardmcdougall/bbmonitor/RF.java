@@ -221,7 +221,7 @@ public class RF {
         try {
             sPort = (UsbSerialPort) mDriver.getPorts().get(0);//Most have just one port (port 0)
             sPort.open(connection);
-            sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+            sPort.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             sPort.setDTR(true);
         } catch (IOException e) {
             l("USB: Error setting up device: " + e.getMessage());
