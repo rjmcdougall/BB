@@ -482,10 +482,10 @@ public class DownloadManager {
                         // if there is no URL, it is an algorithm and should be skipped for download.
                         // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
                         if (elm.has("URL") &&
-                            !elm.isNull("URL" ) &&
-                            elm.getString("URL" ).length() > 0 &&
-                            !mIsServer
-                        ) {
+                                !elm.isNull("URL") &&
+                                elm.getString("URL").length() > 0 &&
+                                !mIsServer
+                                ) {
                             if (!isUpToDate(elm))
                                 changedFiles.put(elm);
                         }
@@ -509,15 +509,18 @@ public class DownloadManager {
 
                 // announce completion and set the media object to the new profile
                 if (changedFiles.length() > 0) {
-                    mDM.dataDirectory = dir;
                     CleanupOldFiles();
-                    new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));
                     if (mDM.onProgressCallback != null) {
                         String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
                         Log.d(TAG, diag);
                         mDM.onProgressCallback.onVoiceCue(diag);
                     }
                 }
+
+                // Replace the directory object.
+                mDM.dataDirectory = dir;
+                new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));
+
                 return true;
 
             } catch (JSONException jse) {
@@ -559,8 +562,8 @@ public class DownloadManager {
                 String existingPN = BurnerBoardUtil.getPublicName();
 
                 Log.d(TAG, "Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
-                if( newPN != null ) {
-                    if( existingPN == null || !existingPN.equals(newPN) ) {
+                if (newPN != null) {
+                    if (existingPN == null || !existingPN.equals(newPN)) {
                         BurnerBoardUtil.setPublicName(newPN);
                         Log.d(TAG, "Public name updated to: " + newPN);
                     }
