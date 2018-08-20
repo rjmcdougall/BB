@@ -462,7 +462,15 @@ public class BluetoothLEServer {
                         BluetoothGatt.GATT_SUCCESS,
                         0,
                         masterStatus);
-            }
+            } else if (BluetoothProfile.BB_APPCOMMANDS_IPADDRESS_CHARACTERSTIC.equals(characteristic.getUuid())) {
+            l("Read IP Address Characteristic");
+            byte[] IPAddress = mBBService.getIPAddress();
+            mBluetoothGattServer.sendResponse(device,
+                    requestId,
+                    BluetoothGatt.GATT_SUCCESS,
+                    0,
+                    IPAddress);
+        }
 
             else {
                 // Invalid characteristic

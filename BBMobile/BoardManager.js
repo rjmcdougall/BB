@@ -104,7 +104,7 @@ export default class BoardManager extends Component {
 						}
 					});
 				}
-			}); 
+			});
 
 		}
 
@@ -359,12 +359,14 @@ export default class BoardManager extends Component {
 					console.log("BoardManager: Location Loop Failed:" + error);
 				}
 			}
-		}, 8000);
+		}, 15000);
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
 	async readPhoneLocationLoop() {
 
+		// android play requires data for location to work.
+		//	if (Platform.OS === "android") {
 		var phoneBackgroundTimer = setInterval(async () => {
 
 			if (this.state.mediaState) {
@@ -382,6 +384,8 @@ export default class BoardManager extends Component {
 			}
 		}, 8000);
 		this.setState({ phoneBackgroundLoop: phoneBackgroundTimer });
+		//	}
+
 	}
 
 	render() {

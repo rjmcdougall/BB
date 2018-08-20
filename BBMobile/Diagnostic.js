@@ -15,6 +15,7 @@ export default class Diagnostic extends Component {
 				<ScrollView style={{ margin: 10 }}>
 					<Text>APK Version: {this.props.mediaState.APKVersion} {"\n"}
 						Last Updated: {this.props.mediaState.APKUpdateDate} {"\n"}
+						IP Address: {this.props.mediaState.IPAddress} {"\n"}
 					</Text>
 					{
 						this.props.mediaState.logLines.map((line) => {

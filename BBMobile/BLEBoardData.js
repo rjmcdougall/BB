@@ -33,6 +33,7 @@ exports.refreshMediaState = async function (mediaState) {
 			mediaState = await this.readAudioMaster(mediaState);
 			mediaState = await this.readAppCommand(mediaState, "APKVersion");
 			mediaState = await this.readAppCommand(mediaState, "APKUpdateDate");
+			mediaState = await this.readAppCommand(mediaState, "IPAddress");
 
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: RefreshMediaState Complete: ", false);
 			return mediaState;
@@ -136,7 +137,10 @@ exports.readAppCommand = async function (mediaState, dataType) {
 			service = BLEIDs.AppCommandsService;
 			channelCharacteristic = BLEIDs.AppCommandsAPKUpdateDateCharacteristic;
 		}
-
+		else if (dataType == "IPAddress") {
+			service = BLEIDs.AppCommandsService;
+			channelCharacteristic = BLEIDs.AppCommandsIPAddressCharacteristic;
+		}
 		if (mediaState.peripheral) {
 			try {
 
@@ -158,7 +162,9 @@ exports.readAppCommand = async function (mediaState, dataType) {
 						charactersticValue = charactersticValue.slice(0, 20); // android bug
 						mediaState.APKUpdateDate = charactersticValue;
 					}
-
+					else if (dataType == "IPAddress") {
+						mediaState.IPAddress = charactersticValue;
+					}
 					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + dataType + "Value: " + charactersticValue, false);
 
 				}
@@ -329,7 +335,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 };
 
 exports.onUpdateVolume = async function (volume, mediaState) {
- 
+
 	mediaState = BLEIDs.BLELogger(mediaState, "BLE: Submitted Volume: " + volume, false);
 
 	if (mediaState.peripheral) {
@@ -478,7 +484,7 @@ exports.readLocation = async function (mediaState) {
 			if (readData) {
 				if (readData.length > 4) {
 					var lat;
-					var lon; 
+					var lon;
 					var address;
 					address = readData[2] + readData[3] * 256;
 					lat = readData[5] + readData[6] * 256 + readData[7] * 65536 + readData[8] * 16777216;
@@ -501,7 +507,7 @@ exports.readLocation = async function (mediaState) {
 						var locationDate = new Date(milliseconds).toUTCString();
 
 						// avoid crap dates because of the bits that were sent in older versions of the boards.
-						if(locationDate > new Date("January 1, 2099") || locationDate < new Date("January 1, 2000"))
+						if (locationDate > new Date("January 1, 2099") || locationDate < new Date("January 1, 2000"))
 							locationDate = null;
 
 						var title = "";
@@ -513,8 +519,10 @@ exports.readLocation = async function (mediaState) {
 
 						var boardID = "";
 						if (board) {
-							boardID = board[0].name;
-							title = board[0].name;
+							if (board[0]) {
+								boardID = board[0].name;
+								title = board[0].name;
+							}
 						}
 						else {
 							title = address.toString();

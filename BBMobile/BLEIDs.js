@@ -54,16 +54,20 @@ exports.AppCommandsService = "03c21568-111a-11e8-b642-0ed5f89f718b";
 exports.AppCommandsGTFOCharacteristic = "03c2193c-111b-11e8-b642-0ed5f89f718b";
 exports.AppCommandsAPKVersionCharacteristic = "03c2193c-111c-11e8-b642-0ed5f89f718b";
 exports.AppCommandsAPKUpdateDateCharacteristic = "03c2193c-111d-11e8-b642-0ed5f89f718b";
+exports.AppCommandsIPAddressCharacteristic = "03c2193c-111c-11aa-b642-0ed5f89f718b";
+
 UUIDs.push({ UUID: "03c21568-111a-11e8-b642-0ed5f89f718b", name: "AppCommandsService" });
 UUIDs.push({ UUID: "03c2193c-111b-11e8-b642-0ed5f89f718b", name: "AppCommandsGTFOCharacteristic" });
 UUIDs.push({ UUID: "03c2193c-111c-11e8-b642-0ed5f89f718b", name: "AppCommandsAPKVersionCharacteristic" });
 UUIDs.push({ UUID: "03c2193c-111d-11e8-b642-0ed5f89f718b", name: "AppCommandsAPKUpdateDateCharacteristic" });
+UUIDs.push({ UUID: "03c2193c-111c-11aa-b642-0ed5f89f718b", name: "AppCommandsIPAddressCharacteristic" });
 
 exports.BLELogger = function (mediaState, logText, isError) {
 	logText = this.fixErrorMessage(logText, mediaState);
 	mediaState.logLines.push({logLine: logText, isError: isError});
 	if(!mediaState.isError){
-		mediaState.isError = isError;
+		if(!logText.startsWith("BLE: IPAddressError:"))
+			mediaState.isError = isError;
 	}
 	console.log(logText);
 	return mediaState;

@@ -978,6 +978,11 @@ public class BBService extends Service {
          return String.valueOf(mVersion).getBytes();
     }
 
+    public byte[] getIPAddress() {
+
+        return String.valueOf(mIPAddress).getBytes();
+    }
+
     public byte[] getAPKUpdatedDate() {
         String apkDate = String.valueOf(mAPKUpdatedDate);
         l("apkdate: " + apkDate);

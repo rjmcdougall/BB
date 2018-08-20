@@ -49,6 +49,8 @@ export default class DiscoverController extends React.Component {
 											var foundBoard = this.props.boardData.filter((board) => {
 												if(board.name)
 													return board.name == item.name;
+												else if (board.bootName)
+													return board.bootName == item.name;
 												else
 													return false;
 											});

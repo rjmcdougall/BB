@@ -48,7 +48,7 @@
             "outDir": "${workspaceRoot}/.vscode/.react",
             "runArguments": [
                 "--device",
-                "dwilson’s iPhone"
+                "Daniel’s iPhone"
             ],
         }
         

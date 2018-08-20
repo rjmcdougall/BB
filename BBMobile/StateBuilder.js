@@ -44,6 +44,7 @@ var bEmptyMediaState = {
 	audioMaster: 0,
 	APKUpdateDate: 0,
 	APKVersion: 0,
+	IPAddress: "0.0.0.0",
 	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
