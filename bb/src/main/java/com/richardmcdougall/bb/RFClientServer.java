@@ -49,9 +49,10 @@ public class RFClientServer {
 
     public static final int kRemoteAudio = 0;
     public static final int kRemoteVideo = 1;
+    public static final int kRemoteMasterName = 2;
 
     // Use this to store the client packet the master needs to send to take over audio & video
-    byte[][] kMasterToClientPacket = new byte[2][];
+    byte[][] kMasterToClientPacket = new byte[3][];
 
     // How long does the master need to keep communicating that it's the master (in milliseconds)?
     static final int kMasterBroadcastTime = 5 * 60 * 1000;
@@ -346,8 +347,9 @@ public class RFClientServer {
         } else if (recvMagicNumber == magicNumberToInt(kRemoteControlMagicNumber)) {
             int cmd = (int) int16FromPacket(bytes);
             int value = (int) int32FromPacket(bytes);
-            d("Received Remote Control " + cmd + " " + value);
-            receiveRemoteControl(cmd, value);
+            int client = (int) int16FromPacket(bytes);
+            d("Received Remote Control " + cmd + ", " + value + " from " + client);
+            receiveRemoteControl(cmd, value, client);
         } else {
             d("packet not for sync server!");
         }
@@ -501,7 +503,7 @@ public class RFClientServer {
                 for (int i = 0; i < kMasterToClientPacket.length; i++) {
 
                     byte [] packet = kMasterToClientPacket[i];
-                    if (packet.length > 0) {
+                    if (packet != null && packet.length > 0) {
                         l("Resending master client packet type: " + i);
                         mRF.broadcast(packet);
 
@@ -707,7 +709,7 @@ public class RFClientServer {
         if (mRF == null) {
             return;
         }
-        l("Sending remote control command");
+        l("Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + mBoardAddress);
 
         ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -719,6 +721,8 @@ public class RFClientServer {
         int16ToPacket(clientPacket, cmd);
         // Value
         int32ToPacket(clientPacket, value);
+        // Client
+        int16ToPacket(clientPacket, mBoardAddress);
 
         // Send 10 times now, and let the supervisor thread send it periodically still
         byte [] packet = clientPacket.toByteArray();
@@ -733,12 +737,17 @@ public class RFClientServer {
         // When this routine is invoked again, it'll restart the iteration counter.
         kMasterBroadcastsLeft = kMasterBroadcastTime / kThreadSleepTime;
         l( "Master client packet will be sent this many more times: " + kMasterBroadcastsLeft);
-
     }
 
+    // Method to abandon rebroadcasts. Needed if a new master shows up.
+    public void disableMasterBroadcast() { kMasterBroadcastsLeft = 0; }
+
     // TODO: Put this back as a remote control packet
-    public void receiveRemoteControl(int cmd, long value) {
-        mMain.decodeRemoteControl(cmd, value);
+    public void receiveRemoteControl(int cmd, long value, int address) {
+        //l( "Received command: " + cmd + ", " + value + ", " + address);
+
+        String client = mRFAddress.boardAddressToName(address);
+        mMain.decodeRemoteControl(cmd, value, client);
     }
 
     public long getLatency() {

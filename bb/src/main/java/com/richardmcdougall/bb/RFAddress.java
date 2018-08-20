@@ -87,21 +87,21 @@ public class RFAddress {
                 board = mBBService.dlManager.dataBoards.getJSONObject(i);
                 if(board.getInt("address")==address){
                     boardId = board.getString("name");
+                    return boardId;
                 }
             }
 
-            return boardId;
+            l("Could not find board id based on " + address);
         }
         catch(JSONException e){
             l(e.getMessage());
-            return boardId;
         }
+
         catch(Exception e){
             l(e.getMessage());
-            return boardId;
         }
 
-
+        return boardId;
     }
 
     public String boardAddressToColor(int address) {
