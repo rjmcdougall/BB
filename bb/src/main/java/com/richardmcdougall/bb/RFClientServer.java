@@ -43,6 +43,18 @@ public class RFClientServer {
     static final int [] kServerSyncMagicNumber = new int[] {0xbb, 0x04};
     static final int [] kServerBeaconMagicNumber = new int[] {0xbb, 0x05};
     static final int [] kRemoteControlMagicNumber = new int[] {0xbb, 0x06};
+    static final int kThreadSleepTime = 5000;
+
+    // Use this to store the client packet the master needs to send to take over audio & video
+    static byte[] kMasterToClientPacket = null;
+
+    // How long does the master need to keep communicating that it's the master (in milliseconds)?
+    static final int kMasterBroadcastTime = 5 * 60 * 1000;
+
+    // How many iterations are LEFT for the master to tell the client? Initialize at 0 and have
+    // the value set when a master command is issued
+    int kMasterBroadcastsLeft = 0;
+
     static final int kMagicNumberLen = 2;
     private int mServerAddress = 0;
     private int mBoardAddress;
@@ -473,6 +485,29 @@ public class RFClientServer {
 
         while (true) {
 
+            /*
+                MEDIA MASTER SECTION
+             */
+
+            // Do we need to tell nearby clients who the media master is still?
+            if( kMasterBroadcastsLeft > 0 && kMasterToClientPacket != null) {
+                l( "Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
+                mRF.broadcast(kMasterToClientPacket);
+                kMasterBroadcastsLeft--;
+
+                // To make sure we don't have collissions with the following TIME broadcast, so
+                // sleep for a few ms
+                try {
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                }
+            }
+
+            /*
+                TIME SYNC MASTER SECTION
+             */
+
+            // This section is for TIME syncing. NOT media syncing!!!
             if (amServer() == false) {
                 try {
 
@@ -503,7 +538,6 @@ public class RFClientServer {
                     //l("Client UDP failed");
                 }
             } else {
-
                 d("I'm a server: broadcast Server beacon");
                 mRtt = 0;
                 mDrift = 0;
@@ -524,7 +558,7 @@ public class RFClientServer {
             }
 
             try {
-                Thread.sleep(5000);
+                Thread.sleep(kThreadSleepTime);
             } catch (Exception e) {
             }
         }
@@ -672,11 +706,17 @@ public class RFClientServer {
         // Value
         int32ToPacket(clientPacket, value);
 
-        // Send 10 times
+        // Send 10 times now, and let the supervisor thread send it periodically still
+        kMasterToClientPacket = clientPacket.toByteArray();
+
         for (int i = 0; i < 10; i++) {
-            mRF.broadcast(clientPacket.toByteArray());
+            mRF.broadcast(kMasterToClientPacket);
         }
 
+        // This is the amount of iterations LEFT of broadcasting the client packet.
+        // When this routine is invoked again, it'll restart the iteration counter.
+        kMasterBroadcastsLeft = kMasterBroadcastTime / kThreadSleepTime;
+        l( "Master client packet will be sent this many more times: " + kMasterBroadcastsLeft);
 
     }
 
