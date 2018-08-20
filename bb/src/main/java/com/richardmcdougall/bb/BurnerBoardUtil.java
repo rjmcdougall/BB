@@ -23,6 +23,10 @@ public class BurnerBoardUtil {
     // Known board types we have
     public static final String BOARD_TYPE = Build.MANUFACTURER;
 
+    // String by which to identify the Satechi remotes; it's their mac address, which always
+    // starts with DC:
+    public static final String MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX = "DC:";
+
     /* XXX TODO refactor out the string use cases and transform to constants -jib
     public static final String BB_TYPE_AZUL = "Burner Board Azul";
     public static final String BB_TYPE_CLASSIC = "Burner Board Classi";

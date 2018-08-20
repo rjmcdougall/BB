@@ -212,8 +212,13 @@ public class BluetoothRemote {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    l("adding new unpaired device: " + device.getAddress() + "-" + device.getAddress());
-                    mNewDevices.put(device.getAddress(), device);
+                    String addr = device.getAddress();
+                    if( addr.startsWith( BurnerBoardUtil.MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX ) ) {
+                        l("adding new unpaired device: " + device.getAddress() + "-" + device.getAddress());
+                        mNewDevices.put(device.getAddress(), device);
+                    } else {
+                        l( "ignoring non-media controller device: " + device.getAddress() );
+                    }
                 }
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
