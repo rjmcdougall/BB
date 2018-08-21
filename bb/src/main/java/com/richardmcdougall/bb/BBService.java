@@ -992,9 +992,17 @@ public class BBService extends Service {
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;
         if (enable) {
+            // Let everyone else know we just decided to be the master
+            // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
+            // from the client data. XXX is there a better/more useful payload?
+            mRfClientServer.sendRemote(kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
+
             mBurnerBoard.setText("Master", 2000);
             voice.speak( "Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
+            // You explicitly disabled the master. Stop any broadcasting.
+            mRfClientServer.disableMasterBroadcast();
+
             mBurnerBoard.setText("Solo", 2000);
             voice.speak("Disabling Master Remote: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
         }
@@ -1028,12 +1036,14 @@ public class BBService extends Service {
     public static final int kRemoteAudioTrack = 0x01;
     public static final int kRemoteVideoTrack = 0x02;
     public static final int kRemoteMute = 0x03;
+    public static final int kRemoteMasterName = 0x04;
 
     // TODO: Put this back as a remote control packet
     // Change value -> hash lookup
-    public void decodeRemoteControl(int cmd, long value) {
+    public void decodeRemoteControl(String client, int cmd, long value) {
 
-        l("Received remote cmd, value " + cmd + ", " + value);
+        l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
+
         switch (cmd) {
             case kRemoteAudioTrack:
 
@@ -1075,6 +1085,16 @@ public class BBService extends Service {
                     setBoardVolume((int)value);
                 }
                 break;
+            case kRemoteMasterName:
+                if( mMasterRemote ) {
+                    // This board thinks it's the master, but apparently it's no longer. Reset master
+                    // mode and follow the new master
+                    String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
+                    l( diag );
+                    voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
+                    enableMaster(false);
+                }
+
             default:
                 break;
         }
