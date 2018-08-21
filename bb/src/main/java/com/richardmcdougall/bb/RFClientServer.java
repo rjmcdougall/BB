@@ -345,11 +345,11 @@ public class RFClientServer {
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == magicNumberToInt(kRemoteControlMagicNumber)) {
+            int address = (int) int16FromPacket(bytes);
             int cmd = (int) int16FromPacket(bytes);
             int value = (int) int32FromPacket(bytes);
-            int client = (int) int16FromPacket(bytes);
-            d("Received Remote Control " + cmd + ", " + value + " from " + client);
-            receiveRemoteControl(cmd, value, client);
+            d("Received Remote Control " + cmd + ", " + value + " from " + address);
+            receiveRemoteControl(address, cmd, value);
         } else {
             d("packet not for sync server!");
         }
@@ -717,12 +717,12 @@ public class RFClientServer {
             clientPacket.write(kRemoteControlMagicNumber[i]);
         }
 
+        // Client
+        int16ToPacket(clientPacket, mBoardAddress);
         // Command
         int16ToPacket(clientPacket, cmd);
         // Value
         int32ToPacket(clientPacket, value);
-        // Client
-        int16ToPacket(clientPacket, mBoardAddress);
 
         // Send 10 times now, and let the supervisor thread send it periodically still
         byte [] packet = clientPacket.toByteArray();
@@ -743,11 +743,11 @@ public class RFClientServer {
     public void disableMasterBroadcast() { kMasterBroadcastsLeft = 0; }
 
     // TODO: Put this back as a remote control packet
-    public void receiveRemoteControl(int cmd, long value, int address) {
+    public void receiveRemoteControl(int address, int cmd, long value) {
         //l( "Received command: " + cmd + ", " + value + ", " + address);
 
         String client = mRFAddress.boardAddressToName(address);
-        mMain.decodeRemoteControl(cmd, value, client);
+        mMain.decodeRemoteControl(client, cmd, value);
     }
 
     public long getLatency() {

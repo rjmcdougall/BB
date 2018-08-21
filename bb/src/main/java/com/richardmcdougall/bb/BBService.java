@@ -1040,7 +1040,7 @@ public class BBService extends Service {
 
     // TODO: Put this back as a remote control packet
     // Change value -> hash lookup
-    public void decodeRemoteControl(int cmd, long value, String client) {
+    public void decodeRemoteControl(String client, int cmd, long value) {
 
         l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
 
