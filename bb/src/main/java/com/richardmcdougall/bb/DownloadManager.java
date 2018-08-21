@@ -555,6 +555,20 @@ public class DownloadManager {
 
                 Log.d(TAG, "Downloaded Boards JSON: " + dirTxt);
 
+                if (mDM.onProgressCallback != null) {
+                    if (mDM.dataBoards == null || dir.length() != mDM.dataBoards.length()) {
+                        Log.d(TAG, "A new board was discovered in Boards JSON.");
+                        mDM.onProgressCallback.onVoiceCue("New Boards available for syncing.");
+                    } else
+                        Log.d(TAG, "A minor change was discovered in Boards JSON.");
+                }
+
+                // got new boards.  Update!
+                mDM.dataBoards = dir;
+
+                // now that you have the media, update the directory so the board can use it.
+                new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
+
                 // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
                 Log.d(TAG, "Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
 
@@ -574,20 +588,6 @@ public class DownloadManager {
                         Log.d(TAG, "No Changes to Boards JSON.");
                         return true;
                     }
-
-                if (mDM.onProgressCallback != null) {
-                    if (mDM.dataBoards == null || dir.length() != mDM.dataBoards.length()) {
-                        Log.d(TAG, "A new board was discovered in Boards JSON.");
-                        mDM.onProgressCallback.onVoiceCue("New Boards available for syncing.");
-                    } else
-                        Log.d(TAG, "A minor change was discovered in Boards JSON.");
-                }
-
-                // got new boards.  Update!
-                mDM.dataBoards = dir;
-
-                // now that you have the media, update the directory so the board can use it.
-                new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
 
                 return true;
             } catch (JSONException jse) {
