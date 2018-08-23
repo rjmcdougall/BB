@@ -182,9 +182,9 @@ export default class BoardManager extends Component {
 				console.log("BoardManager: Clearing State: ");
 
 				if (this.state.selectedPeripheral)
-					if (this.state.selectedPeripheral.id != "12345"){
+					if (this.state.selectedPeripheral.id != "12345") {
 						BleManager.disconnect(this.state.selectedPeripheral.id);
-						console.log("Disconnected BLE From " + this.state.selectedPeripheral.name)
+						console.log("Disconnected BLE From " + this.state.selectedPeripheral.name);
 					}
 
 				this.setState({
@@ -192,7 +192,7 @@ export default class BoardManager extends Component {
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
 					discoveryState: Constants.DISCONNECTED,
-					peripherals: new Map(),
+					//peripherals: new Map(),
 					automaticallyConnect: automaticallyConnect,
 					backgroundLoop: null,
 				});
@@ -211,6 +211,7 @@ export default class BoardManager extends Component {
 		this.setState({ showScreen: nav });
 
 	}
+ 
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
 
@@ -245,7 +246,9 @@ export default class BoardManager extends Component {
 						backgroundLoop: null,
 					});
 
-					await this.startScan(true);
+					await this.connectToPeripheral(peripheral);
+
+					//await this.startScan(true);
 				}
 				catch (error) {
 					console.log("BoardManager: Connection error", error);
@@ -288,7 +291,7 @@ export default class BoardManager extends Component {
 				clearInterval(this.state.backgroundLoop);
 
 			this.setState({
-				peripherals: new Map(),
+				//	peripherals: new Map(),
 				appState: "",
 				selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 				mediaState: StateBuilder.blankMediaState(),
@@ -313,36 +316,11 @@ export default class BoardManager extends Component {
 				peripherals.set(peripheral.id, peripheral);
 
 				this.setState({ peripherals: peripherals, });
+			}
 
-				// if it is your default peripheral, connect automatically.
-				if (peripheral.name == this.state.boardName) {
-
-					this.setState({
-						selectedPeripheral: peripheral,
-					});
-
-					if (this.state.automaticallyConnect) {
-						console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
-						this.setState({ discoveryState: Constants.LOCATED });
-
-						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
-
-						var foundBoard = this.state.boardData.filter((board) => {
-							return board.name == this.state.boardName;
-						});
-						var color = foundBoard[0].color;
-
-						this.setState({
-							mediaState: mediaState,
-							discoveryState: Constants.CONNECTED,
-							boardColor: color,
-						});
-
-						// Kick off a per-second location reader 
-						await this.readLocationLoop(this.state.mediaState);
-						console.log("BoardManager: Begin Background Location Loop");
-					}
-				}
+			// if it is your default peripheral, connect automatically.
+			if (peripheral.name == this.state.boardName) {
+				await this.connectToPeripheral(peripheral)
 			}
 		}
 		catch (error) {
@@ -350,6 +328,38 @@ export default class BoardManager extends Component {
 		}
 	}
 
+	async connectToPeripheral(peripheral) {
+		try {
+			this.setState({
+				selectedPeripheral: peripheral,
+			});
+
+			if (this.state.automaticallyConnect) {
+				console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
+				this.setState({ discoveryState: Constants.LOCATED });
+
+				var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
+
+				var foundBoard = this.state.boardData.filter((board) => {
+					return board.name == this.state.boardName;
+				});
+				var color = foundBoard[0].color;
+
+				this.setState({
+					mediaState: mediaState,
+					discoveryState: Constants.CONNECTED,
+					boardColor: color,
+				});
+
+				// Kick off a per-second location reader 
+				await this.readLocationLoop(this.state.mediaState);
+				console.log("BoardManager: Begin Background Location Loop");
+			}
+		}
+		catch (error) {
+			console.log(error);
+		}
+	}
 	async readLocationLoop() {
 
 		var backgroundTimer = setInterval(async () => {
