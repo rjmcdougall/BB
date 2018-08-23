@@ -1,6 +1,6 @@
 react-native bundle --platform ios --dev true --entry-file index.js --bundle-output ios-debug.bundle --sourcemap-output ios-debug.bundle.map
 react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios-release.bundle --sourcemap-output ios-release.bundle.map
 
-bugsnag-sourcemaps upload --api-key 905bfbccb8f9a7e3749038ca1900b1b4 --app-version 2.2.1 --minified-file ios-debug.bundle --source-map ios-debug.bundle.map --minified-url "http://192.168.1.66:8081/index.bundle?platform=ios&dev=true&minify=false"
+bugsnag-sourcemaps upload --api-key 905bfbccb8f9a7e3749038ca1900b1b4 --app-version 2.2.3 --minified-file ios-debug.bundle --source-map ios-debug.bundle.map --minified-url "http://192.168.1.66:8081/index.bundle?platform=ios&dev=true&minify=false"
                                                                                                                                                                           
-bugsnag-sourcemaps upload --api-key 905bfbccb8f9a7e3749038ca1900b1b4 --app-version 2.2.1 --minified-file ios-release.bundle --source-map ios-release.bundle.map --minified-url main.jsbundle --upload-sources
+bugsnag-sourcemaps upload --api-key 905bfbccb8f9a7e3749038ca1900b1b4 --app-version 2.2.3 --minified-file ios-release.bundle --source-map ios-release.bundle.map --minified-url main.jsbundle --upload-sources
