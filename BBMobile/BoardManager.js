@@ -105,7 +105,6 @@ export default class BoardManager extends Component {
 					});
 				}
 			});
-
 		}
 
 		// if there is a default peripheral saved, scan and attempt to load that board.
@@ -117,7 +116,6 @@ export default class BoardManager extends Component {
 
 			await this.startScan(true);
 		}
-
 		this.readPhoneLocationLoop();
 	}
 
@@ -173,7 +171,6 @@ export default class BoardManager extends Component {
 		if (!this.state.scanning) {
 
 			try {
-
 				console.log("BoardManager: Clearing Interval: ");
 
 				if (this.state.backgroundLoop)
@@ -206,12 +203,10 @@ export default class BoardManager extends Component {
 		}
 	}
 
-
 	onNavigate(nav) {
 		this.setState({ showScreen: nav });
-
 	}
- 
+
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
 
@@ -299,7 +294,39 @@ export default class BoardManager extends Component {
 				discoveryState: Constants.DISCONNECTED,
 				backgroundLoop: null,
 			});
+		}
+	}
 
+	async checkForDuplicatePeripherals() {
+
+		if (this.state.peripherals) {
+			var peripherals = this.state.peripherals;
+
+			var peripheralArray = Array.from(peripherals.values());
+			var peripheralArray2 = Array.from(peripherals.values());
+			var boardToDelete;
+
+			peripheralArray.map((board) => {
+				var boardsWithDuplicates = peripheralArray2.filter((board2) => {
+					if (board.name == board2.name && board.id != board2.id) {
+						return true;
+					}
+				});
+				if (boardsWithDuplicates.length > 0) { 
+					if(boardsWithDuplicates[0].rssi < board.rssi) {
+						boardToDelete = boardsWithDuplicates[0];
+					}
+					else {
+						boardToDelete = board;
+					}
+				}
+			});
+		}
+
+		if(boardToDelete){
+			peripherals.delete(boardToDelete.id);
+			this.setState({periperals: peripherals});
+			console.log("I DELETED " + boardToDelete.name + " " + boardToDelete.id)
 		}
 	}
 
@@ -308,6 +335,7 @@ export default class BoardManager extends Component {
 
 			// add to the list of peripherals for the board picker.
 			var peripherals = this.state.peripherals;
+
 			if (!peripherals.has(peripheral.id)) {
 
 				console.log("BoardManager Found New Peripheral:" + peripheral.name);
@@ -315,12 +343,14 @@ export default class BoardManager extends Component {
 				peripheral.connected = false;
 				peripherals.set(peripheral.id, peripheral);
 
-				this.setState({ peripherals: peripherals, });
+				this.setState({ peripherals: peripherals });
 			}
+			await this.checkForDuplicatePeripherals();
+
 
 			// if it is your default peripheral, connect automatically.
 			if (peripheral.name == this.state.boardName) {
-				await this.connectToPeripheral(peripheral)
+				await this.connectToPeripheral(peripheral);
 			}
 		}
 		catch (error) {
@@ -396,7 +426,7 @@ export default class BoardManager extends Component {
 					});
 				}
 				catch (error) {
-					console.log("BoardManager: Phone Location Loop Failed:")
+					console.log("BoardManager: Phone Location Loop Failed:");
 					console.log(error);
 				}
 			}
