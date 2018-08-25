@@ -55997,14 +55997,58 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 				}, null, this, [[1, 6]]);
 			}
 		}, {
-			key: "handleDiscoverPeripheral",
-			value: function handleDiscoverPeripheral(peripheral) {
-				var peripherals;
-				return regeneratorRuntime.async(function handleDiscoverPeripheral$(_context11) {
+			key: "checkForDuplicatePeripherals",
+			value: function checkForDuplicatePeripherals() {
+				var peripherals, peripheralArray, peripheralArray2, boardToDelete;
+				return regeneratorRuntime.async(function checkForDuplicatePeripherals$(_context11) {
 					while (1) {
 						switch (_context11.prev = _context11.next) {
 							case 0:
-								_context11.prev = 0;
+								if (this.state.peripherals) {
+									peripherals = this.state.peripherals;
+									peripheralArray = Array.from(peripherals.values());
+									peripheralArray2 = Array.from(peripherals.values());
+									peripheralArray.map(function (board) {
+										var boardsWithDuplicates = peripheralArray2.filter(function (board2) {
+											if (board.name == board2.name && board.id != board2.id) {
+												return true;
+											}
+										});
+
+										if (boardsWithDuplicates.length > 0) {
+											if (boardsWithDuplicates[0].rssi < board.rssi) {
+												boardToDelete = boardsWithDuplicates[0];
+											} else {
+												boardToDelete = board;
+											}
+										}
+									});
+								}
+
+								if (boardToDelete) {
+									peripherals.delete(boardToDelete.id);
+									this.setState({
+										periperals: peripherals
+									});
+									console.log("I DELETED " + boardToDelete.name + " " + boardToDelete.id);
+								}
+
+							case 2:
+							case "end":
+								return _context11.stop();
+						}
+					}
+				}, null, this);
+			}
+		}, {
+			key: "handleDiscoverPeripheral",
+			value: function handleDiscoverPeripheral(peripheral) {
+				var peripherals;
+				return regeneratorRuntime.async(function handleDiscoverPeripheral$(_context12) {
+					while (1) {
+						switch (_context12.prev = _context12.next) {
+							case 0:
+								_context12.prev = 0;
 								peripherals = this.state.peripherals;
 
 								if (!peripherals.has(peripheral.id)) {
@@ -56016,29 +56060,33 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									});
 								}
 
+								_context12.next = 5;
+								return regeneratorRuntime.awrap(this.checkForDuplicatePeripherals());
+
+							case 5:
 								if (!(peripheral.name == this.state.boardName)) {
-									_context11.next = 6;
+									_context12.next = 8;
 									break;
 								}
 
-								_context11.next = 6;
+								_context12.next = 8;
 								return regeneratorRuntime.awrap(this.connectToPeripheral(peripheral));
 
-							case 6:
-								_context11.next = 11;
+							case 8:
+								_context12.next = 13;
 								break;
 
-							case 8:
-								_context11.prev = 8;
-								_context11.t0 = _context11["catch"](0);
-								console.log("BoardManager Found Peripheral Error:" + _context11.t0);
+							case 10:
+								_context12.prev = 10;
+								_context12.t0 = _context12["catch"](0);
+								console.log("BoardManager Found Peripheral Error:" + _context12.t0);
 
-							case 11:
+							case 13:
 							case "end":
-								return _context11.stop();
+								return _context12.stop();
 						}
 					}
-				}, null, this, [[0, 8]]);
+				}, null, this, [[0, 10]]);
 			}
 		}, {
 			key: "connectToPeripheral",
@@ -56046,17 +56094,17 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 				var _this2 = this;
 
 				var mediaState, foundBoard, color;
-				return regeneratorRuntime.async(function connectToPeripheral$(_context12) {
+				return regeneratorRuntime.async(function connectToPeripheral$(_context13) {
 					while (1) {
-						switch (_context12.prev = _context12.next) {
+						switch (_context13.prev = _context13.next) {
 							case 0:
-								_context12.prev = 0;
+								_context13.prev = 0;
 								this.setState({
 									selectedPeripheral: peripheral
 								});
 
 								if (!this.state.automaticallyConnect) {
-									_context12.next = 14;
+									_context13.next = 14;
 									break;
 								}
 
@@ -56064,11 +56112,11 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								this.setState({
 									discoveryState: _Constants2.default.LOCATED
 								});
-								_context12.next = 7;
+								_context13.next = 7;
 								return regeneratorRuntime.awrap(_StateBuilder2.default.createMediaState(this.state.selectedPeripheral));
 
 							case 7:
-								mediaState = _context12.sent;
+								mediaState = _context13.sent;
 								foundBoard = this.state.boardData.filter(function (board) {
 									return board.name == _this2.state.boardName;
 								});
@@ -56078,24 +56126,24 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									discoveryState: _Constants2.default.CONNECTED,
 									boardColor: color
 								});
-								_context12.next = 13;
+								_context13.next = 13;
 								return regeneratorRuntime.awrap(this.readLocationLoop(this.state.mediaState));
 
 							case 13:
 								console.log("BoardManager: Begin Background Location Loop");
 
 							case 14:
-								_context12.next = 19;
+								_context13.next = 19;
 								break;
 
 							case 16:
-								_context12.prev = 16;
-								_context12.t0 = _context12["catch"](0);
-								console.log(_context12.t0);
+								_context13.prev = 16;
+								_context13.t0 = _context13["catch"](0);
+								console.log(_context13.t0);
 
 							case 19:
 							case "end":
-								return _context12.stop();
+								return _context13.stop();
 						}
 					}
 				}, null, this, [[0, 16]]);
@@ -56106,47 +56154,47 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 				var _this3 = this;
 
 				var backgroundTimer;
-				return regeneratorRuntime.async(function readLocationLoop$(_context14) {
+				return regeneratorRuntime.async(function readLocationLoop$(_context15) {
 					while (1) {
-						switch (_context14.prev = _context14.next) {
+						switch (_context15.prev = _context15.next) {
 							case 0:
 								backgroundTimer = setInterval(function _callee() {
 									var mediaState;
-									return regeneratorRuntime.async(function _callee$(_context13) {
+									return regeneratorRuntime.async(function _callee$(_context14) {
 										while (1) {
-											switch (_context13.prev = _context13.next) {
+											switch (_context14.prev = _context14.next) {
 												case 0:
 													console.log("Board Manager: Location Loop");
 
 													if (!_this3.state.mediaState) {
-														_context13.next = 14;
+														_context14.next = 14;
 														break;
 													}
 
 													console.log("Board Manager: Found Media State");
-													_context13.prev = 3;
-													_context13.next = 6;
+													_context14.prev = 3;
+													_context14.next = 6;
 													return regeneratorRuntime.awrap(_BLEBoardData2.default.readLocation(_this3.state.mediaState));
 
 												case 6:
-													mediaState = _context13.sent;
+													mediaState = _context14.sent;
 													console.log("Board Manager: Called Location Update");
 
 													_this3.setState({
 														mediaState: mediaState
 													});
 
-													_context13.next = 14;
+													_context14.next = 14;
 													break;
 
 												case 11:
-													_context13.prev = 11;
-													_context13.t0 = _context13["catch"](3);
-													console.log("BoardManager: Location Loop Failed:" + _context13.t0);
+													_context14.prev = 11;
+													_context14.t0 = _context14["catch"](3);
+													console.log("BoardManager: Location Loop Failed:" + _context14.t0);
 
 												case 14:
 												case "end":
-													return _context13.stop();
+													return _context14.stop();
 											}
 										}
 									}, null, _this3, [[3, 11]]);
@@ -56157,7 +56205,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 
 							case 2:
 							case "end":
-								return _context14.stop();
+								return _context15.stop();
 						}
 					}
 				}, null, this);
@@ -56168,45 +56216,45 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 				var _this4 = this;
 
 				var phoneBackgroundTimer;
-				return regeneratorRuntime.async(function readPhoneLocationLoop$(_context16) {
+				return regeneratorRuntime.async(function readPhoneLocationLoop$(_context17) {
 					while (1) {
-						switch (_context16.prev = _context16.next) {
+						switch (_context17.prev = _context17.next) {
 							case 0:
 								phoneBackgroundTimer = setInterval(function _callee2() {
 									var mediaState;
-									return regeneratorRuntime.async(function _callee2$(_context15) {
+									return regeneratorRuntime.async(function _callee2$(_context16) {
 										while (1) {
-											switch (_context15.prev = _context15.next) {
+											switch (_context16.prev = _context16.next) {
 												case 0:
 													if (!_this4.state.mediaState) {
-														_context15.next = 13;
+														_context16.next = 13;
 														break;
 													}
 
 													console.log("Board Manager: Phone GPS: Found Media State");
-													_context15.prev = 2;
-													_context15.next = 5;
+													_context16.prev = 2;
+													_context16.next = 5;
 													return regeneratorRuntime.awrap(_StateBuilder2.default.getPhoneLocation(_this4.state.mediaState));
 
 												case 5:
-													mediaState = _context15.sent;
+													mediaState = _context16.sent;
 
 													_this4.setState({
 														mediaState: mediaState
 													});
 
-													_context15.next = 13;
+													_context16.next = 13;
 													break;
 
 												case 9:
-													_context15.prev = 9;
-													_context15.t0 = _context15["catch"](2);
+													_context16.prev = 9;
+													_context16.t0 = _context16["catch"](2);
 													console.log("BoardManager: Phone Location Loop Failed:");
-													console.log(_context15.t0);
+													console.log(_context16.t0);
 
 												case 13:
 												case "end":
-													return _context15.stop();
+													return _context16.stop();
 											}
 										}
 									}, null, _this4, [[2, 9]]);
@@ -56217,7 +56265,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 
 							case 2:
 							case "end":
-								return _context16.stop();
+								return _context17.stop();
 						}
 					}
 				}, null, this);
@@ -56261,7 +56309,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 						},
 						__source: {
 							fileName: _jsxFileName,
-							lineNumber: 440
+							lineNumber: 470
 						}
 					},
 					_react2.default.createElement(
@@ -56272,7 +56320,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 							},
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 441
+								lineNumber: 471
 							}
 						},
 						!this.props.userPrefs.isDevilsHand ? _react2.default.createElement(
@@ -56284,7 +56332,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								},
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 443
+									lineNumber: 473
 								}
 							},
 							_react2.default.createElement(_reactNative.Image, {
@@ -56295,13 +56343,13 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								source: _require(_dependencyMap[19], "./images/BurnerBoardIcon-1026.png"),
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 444
+									lineNumber: 474
 								}
 							})
 						) : _react2.default.createElement(_reactNative.View, {
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 446
+								lineNumber: 476
 							}
 						}),
 						_react2.default.createElement(
@@ -56312,14 +56360,14 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								},
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 448
+									lineNumber: 478
 								}
 							},
 							_react2.default.createElement(_BatteryController2.default, {
 								mediaState: this.state.mediaState,
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 449
+									lineNumber: 479
 								}
 							})
 						),
@@ -56332,7 +56380,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								},
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 452
+									lineNumber: 482
 								}
 							},
 							_react2.default.createElement(_reactNative.Image, {
@@ -56343,13 +56391,13 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								source: _require(_dependencyMap[19], "./images/BurnerBoardIcon-1026.png"),
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 453
+									lineNumber: 483
 								}
 							})
 						) : _react2.default.createElement(_reactNative.View, {
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 455
+								lineNumber: 485
 							}
 						})
 					),
@@ -56362,7 +56410,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 							},
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 458
+								lineNumber: 488
 							}
 						},
 						!this.props.userPrefs.isDevilsHand ? _react2.default.createElement(_LeftNav2.default, {
@@ -56371,12 +56419,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 							onPressSearchForBoards: this.onPressSearchForBoards,
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 459
+								lineNumber: 489
 							}
 						}) : _react2.default.createElement(_reactNative.View, {
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 459
+								lineNumber: 489
 							}
 						}),
 						_react2.default.createElement(
@@ -56387,7 +56435,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 								},
 								__source: {
 									fileName: _jsxFileName,
-									lineNumber: 460
+									lineNumber: 490
 								}
 							},
 							_react2.default.createElement(
@@ -56398,7 +56446,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									},
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 461
+										lineNumber: 491
 									}
 								},
 								this.state.showScreen == _Constants2.default.MEDIA_MANAGEMENT ? _react2.default.createElement(_MediaManagement2.default, {
@@ -56410,12 +56458,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									onLoadAPILocations: this.onLoadAPILocations,
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 462
+										lineNumber: 492
 									}
 								}) : _react2.default.createElement(_reactNative.View, {
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 462
+										lineNumber: 492
 									}
 								}),
 								this.state.showScreen == _Constants2.default.DIAGNOSTIC ? _react2.default.createElement(_Diagnostic2.default, {
@@ -56423,12 +56471,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									mediaState: this.state.mediaState,
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 463
+										lineNumber: 493
 									}
 								}) : _react2.default.createElement(_reactNative.View, {
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 463
+										lineNumber: 493
 									}
 								}),
 								this.state.showScreen == _Constants2.default.ADMINISTRATION ? _react2.default.createElement(_AdminManagement2.default, {
@@ -56441,12 +56489,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									onRefreshDevices: this.onRefreshDevices,
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 464
+										lineNumber: 494
 									}
 								}) : _react2.default.createElement(_reactNative.View, {
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 464
+										lineNumber: 494
 									}
 								}),
 								this.state.showScreen == _Constants2.default.MAP ? _react2.default.createElement(_MapController2.default, {
@@ -56454,12 +56502,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									mediaState: this.state.mediaState,
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 465
+										lineNumber: 495
 									}
 								}) : _react2.default.createElement(_reactNative.View, {
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 465
+										lineNumber: 495
 									}
 								}),
 								this.state.showScreen == _Constants2.default.DISCOVER ? _react2.default.createElement(_DiscoverController2.default, {
@@ -56470,12 +56518,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									onSelectPeripheral: this.onSelectPeripheral,
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 466
+										lineNumber: 496
 									}
 								}) : _react2.default.createElement(_reactNative.View, {
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 466
+										lineNumber: 496
 									}
 								})
 							),
@@ -56485,23 +56533,23 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 									style: _StyleSheet2.default.footer,
 									__source: {
 										fileName: _jsxFileName,
-										lineNumber: 468
+										lineNumber: 498
 									}
 								},
 								_react2.default.createElement(
 									_reactNativePlatformTouchable2.default,
 									{
 										onPress: function _callee3() {
-											return regeneratorRuntime.async(function _callee3$(_context17) {
+											return regeneratorRuntime.async(function _callee3$(_context18) {
 												while (1) {
-													switch (_context17.prev = _context17.next) {
+													switch (_context18.prev = _context18.next) {
 														case 0:
-															_context17.next = 2;
+															_context18.next = 2;
 															return regeneratorRuntime.awrap(_this5.startScan(true));
 
 														case 2:
 														case "end":
-															return _context17.stop();
+															return _context18.stop();
 													}
 												}
 											}, null, _this5);
@@ -56513,7 +56561,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 										background: _reactNativePlatformTouchable2.default.Ripple("blue"),
 										__source: {
 											fileName: _jsxFileName,
-											lineNumber: 469
+											lineNumber: 499
 										}
 									},
 									_react2.default.createElement(
@@ -56522,7 +56570,7 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 											style: _StyleSheet2.default.connectButtonTextCenter,
 											__source: {
 												fileName: _jsxFileName,
-												lineNumber: 479
+												lineNumber: 509
 											}
 										},
 										connectionButtonText,
@@ -56538,12 +56586,12 @@ __d(function (global, _require, module, exports, _dependencyMap) {
 							onPressSearchForBoards: this.onPressSearchForBoards,
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 483
+								lineNumber: 513
 							}
 						}) : _react2.default.createElement(_reactNative.View, {
 							__source: {
 								fileName: _jsxFileName,
-								lineNumber: 483
+								lineNumber: 513
 							}
 						})
 					)
