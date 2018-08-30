@@ -241,7 +241,7 @@ export default class BoardManager extends Component {
 						backgroundLoop: null,
 					});
 
-					await this.connectToPeripheral(peripheral);
+					await this.startScan(true);
 
 					//await this.startScan(true);
 				}
@@ -297,38 +297,39 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	async checkForDuplicatePeripherals() {
+	// async checkForDuplicatePeripherals(peripheral) {
 
-		if (this.state.peripherals) {
-			var peripherals = this.state.peripherals;
+	// 	if (this.state.peripherals) {
+	// 		var peripherals = this.state.peripherals;
 
-			var peripheralArray = Array.from(peripherals.values());
-			var peripheralArray2 = Array.from(peripherals.values());
-			var boardToDelete;
+	// 		var peripheralArray = Array.from(peripherals.values());
+	// 		var boardToDelete;
 
-			peripheralArray.map((board) => {
-				var boardsWithDuplicates = peripheralArray2.filter((board2) => {
-					if (board.name == board2.name && board.id != board2.id) {
-						return true;
-					}
-				});
-				if (boardsWithDuplicates.length > 0) { 
-					if(boardsWithDuplicates[0].rssi < board.rssi) {
-						boardToDelete = boardsWithDuplicates[0];
-					}
-					else {
-						boardToDelete = board;
-					}
-				}
-			});
-		}
+	// 		peripheralArray.filter((board) => {
+	// 			if(board.name!=peripheral.name)
+	// 				return true
+	// 			var boardsWithDuplicates = peripheralArray2.filter((board2) => {
+	// 				if (board.name == board2.name && board.id != board2.id) {
+	// 					return true;
+	// 				}
+	// 			});
+	// 			if (boardsWithDuplicates.length > 0) { 
+	// 				if(boardsWithDuplicates[0].rssi < board.rssi) {
+	// 					boardToDelete = boardsWithDuplicates[0];
+	// 				}
+	// 				else {
+	// 					boardToDelete = board;
+	// 				}
+	// 			}
+	// 		});
+	// 	}
 
-		if(boardToDelete){
-			peripherals.delete(boardToDelete.id);
-			this.setState({periperals: peripherals});
-			console.log("I DELETED " + boardToDelete.name + " " + boardToDelete.id)
-		}
-	}
+	// 	if(boardToDelete){
+	// 		peripherals.delete(boardToDelete.id);
+	// 		this.setState({periperals: peripherals});
+	// 		console.log("I DELETED " + boardToDelete.name + " " + boardToDelete.id)
+	// 	}
+	// }
 
 	async handleDiscoverPeripheral(peripheral) {
 		try {
@@ -341,11 +342,24 @@ export default class BoardManager extends Component {
 				console.log("BoardManager Found New Peripheral:" + peripheral.name);
 
 				peripheral.connected = false;
+			//	await this.checkForDuplicatePeripherals(peripheral);
+
+				var peripheralArray = Array.from(peripherals.values());
+				var peripheralExists = peripheralArray.filter((board) => {
+					if(board.name==peripheral.name)
+						return true;
+				});
+
+				if(peripheralExists.length > 0){
+					console.log("PERIPHERAL ALREADY EXISTSED" + peripheral.name)
+					peripherals.delete(peripheralExists.id);
+				}
+
 				peripherals.set(peripheral.id, peripheral);
 
 				this.setState({ peripherals: peripherals });
 			}
-			await this.checkForDuplicatePeripherals();
+			
 
 
 			// if it is your default peripheral, connect automatically.
