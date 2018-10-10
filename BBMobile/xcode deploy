@@ -1,0 +1,3 @@
+xcodebuild -workspace BBMobile.xcworkspace -configuration Release -scheme BBMobile -destina e69dd1b699b3afction id=e69dd1b699b3afc77dba73770b455f40a74ef084 -derivedDataPath build
+
+ios-deploy --bundle /Users/d.wilson/sourcecode/BB/BBMobile/ios/build/Build/Products/Release-iphoneos/BBMobile.app  --id e69dd1b699b3afc77dba73770b455f40a74ef084
