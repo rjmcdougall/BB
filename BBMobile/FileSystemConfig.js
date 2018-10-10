@@ -80,8 +80,8 @@ exports.getBoards = async function () {
 			return null;
 		}
 
-		var peripheral = JSON.parse(await RNFS.readFile(path, "utf8"));
-		return peripheral;
+		var boards = JSON.parse(await RNFS.readFile(path, "utf8"));
+		return boards;
 	}
 	catch (error) {
 		console.log("FileSystemConfig: Error: " + error);

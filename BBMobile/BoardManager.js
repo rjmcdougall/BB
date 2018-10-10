@@ -64,7 +64,7 @@ export default class BoardManager extends Component {
 			showAlert: false
 		});
 
-		var boards = await StateBuilder.getBoards(this.props.userPrefs.isBurnerMode);
+		var boards = await StateBuilder.getBoards();
 
 		if (boards) {
 			this.setState({
@@ -337,31 +337,17 @@ export default class BoardManager extends Component {
 			// add to the list of peripherals for the board picker.
 			var peripherals = this.state.peripherals;
 
-			if (!peripherals.has(peripheral.id)) {
-
+			if (!peripherals.has(peripheral.name)) {
 				console.log("BoardManager Found New Peripheral:" + peripheral.name);
-
 				peripheral.connected = false;
-			//	await this.checkForDuplicatePeripherals(peripheral);
-
-				var peripheralArray = Array.from(peripherals.values());
-				var peripheralExists = peripheralArray.filter((board) => {
-					if(board.name==peripheral.name)
-						return true;
-				});
-
-				if(peripheralExists.length > 0){
-					console.log("PERIPHERAL ALREADY EXISTSED" + peripheral.name)
-					peripherals.delete(peripheralExists.id);
-				}
-
-				peripherals.set(peripheral.id, peripheral);
-
+				peripherals.set(peripheral.name, peripheral);
 				this.setState({ peripherals: peripherals });
 			}
+			else {
+				// since we only really need the peripheral name for the list, I am not updating the device ID.
+				console.log("BoardManager Found Existing Peripheral:" + peripheral.name);
+			}
 			
-
-
 			// if it is your default peripheral, connect automatically.
 			if (peripheral.name == this.state.boardName) {
 				await this.connectToPeripheral(peripheral);
