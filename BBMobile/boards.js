@@ -322,4 +322,4 @@ exports.boards = [
 		"name": "vega",
 		"type": "board"
 	}
-]
+];
