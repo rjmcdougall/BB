@@ -1,23 +1,23 @@
 import BLEIDs from "./BLEIDs";
-import Boards from "./boards";
 
 exports.fetchBoards = async function () {
 
 	//const API = "http://www.fakeresponse.com/api/?sleep=5";
-//	const API = "https://www.burnerboard.com/boards/";
+	const API = "https://www.burnerboard.com/boards/";
 	try {
-		// var response = await fetch(API, {
-		// 	headers: {
-		// 		"Accept": "application/json",
-		// 		"Content-Type": "application/json",
-		// 	}
-		// });
-		// var boards = await response.json();
+		var response = await fetch(API, {
+			headers: {
+				"Accept": "application/json",
+				"Content-Type": "application/json",
+			}
+		});
+		var boardsText = await response.text();
+		var boardsJSON = await response.json();
 
-		var boards = Boards.boards;
-
-		console.log (boards)
-		return boards;
+		if(boardsText.length > 20) // make sure it isn't empty.
+			return boardsJSON;
+		else
+			return null;
 
 	}
 	catch (error) {
