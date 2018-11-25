@@ -11,8 +11,9 @@ exports.fetchBoards = async function () {
 				"Content-Type": "application/json",
 			}
 		});
-		var boardsText = await response.text();
+		
 		var boardsJSON = await response.json();
+		var boardsText = await JSON.stringify(boardsJSON);
 
 		if(boardsText.length > 20) // make sure it isn't empty.
 			return boardsJSON;
