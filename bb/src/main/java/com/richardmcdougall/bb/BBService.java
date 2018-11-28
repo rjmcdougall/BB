@@ -51,11 +51,14 @@ import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
 
-    public static final boolean debug = false;
+    public static final boolean debug = true;
 
     private static final String TAG = "BB.BBService";
 
@@ -120,8 +123,9 @@ public class BBService extends Service {
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
     public BluetoothLEServer mBLEServer = null;
+    public BluetoothClassicServer mBluetoothClassicServer = null;
     public A2dpSink mA2dpSink = null;
-    public BluetoothRemote mBluetoothRemote = null;
+    public BluetoothConnManager mBluetoothConnManager = null;
     private boolean mMasterRemote = false;
     private boolean mVoiceAnnouncements = false;
     public final String cpuType = Build.BOARD;
@@ -508,11 +512,116 @@ public class BBService extends Service {
             return;
         }
 
-        mBluetoothRemote = new BluetoothRemote(this, mContext);
-        if (mBluetoothRemote == null) {
-            l("startServices: null BluetoothRemote object");
+        // Start the manager for bluetooth discovery/pairing/etc,...
+        mBluetoothConnManager = new BluetoothConnManager(this, mContext);
+        if (mBluetoothConnManager == null) {
+            l("startServices: null BluetoothConnManager object");
             return;
         }
+
+        // Start the server for our Bluetooth Classic Service over SPP
+        mBluetoothClassicServer = new BluetoothClassicServer(this, mContext);
+        if (mBluetoothClassicServer == null) {
+            l("startServices: null BluetoothClassicServer object");
+            return;
+        }
+        mBluetoothClassicServer.start();
+
+        // Register getstate command on bluetooth server
+        mBluetoothClassicServer.addCallback("getstate",
+                new BluetoothClassicServer.BluetoothCallback() {
+            @Override
+            public void onConnected(String clientId) {
+                l("BBservice got media OnConnected");
+            }
+
+            @Override
+            public void onDisconnected(String clientId) {
+                l("BBservice got media onDisconnected");
+            }
+
+            @Override
+            public void OnAction(String clientId, String command, JSONObject payload) {
+                l("BBservice got getstate OnAction");
+
+                String error = null;
+
+                //String response = "got command <" + command + ">: " + payload;
+
+                JSONObject response = new JSONObject();
+
+                JSONObject media = dlManager.GetDataDirectory();
+                if (media == null) {
+                    error = "Could not get media directory (null)";
+                }
+                if (media != null) {
+                    try {
+                        JSONArray audio = media.getJSONArray("audio");
+                        JSONArray video = media.getJSONArray("video");
+                        response.put("audio", audio);
+                        response.put("video", video);
+                    } catch (Exception e) {
+                        error = "Could not get media directory: " + e.getMessage();
+                    }
+                }
+
+                JSONArray boards = dlManager.GetDataBoards();
+                if (boards == null) {
+                    error = "Could not get boards directory (null)";
+                }
+                if (boards != null) {
+                    try {
+                        response.put("boards", boards);
+                    } catch (Exception e) {
+                        error = "Could not get boards directory: " + e.getMessage();
+                    }
+                }
+
+                JSONArray btdevs = mBluetoothConnManager.getDeviceList();
+                if (btdevs == null) {
+                    error = "Could not get bt devs (null)";
+                }
+                if (btdevs != null) {
+                    try {
+                        response.put("btdevices", btdevs);
+                    } catch (Exception e) {
+                        error = "Could not get btdevs: " + e.getMessage();
+                    }
+                }
+
+                JSONArray locations = null;
+                try {
+                    locations = new JSONArray(mFindMyFriends.getBoardLocations(300));
+                } catch (Exception e) {
+                    error = "Could not get bt locations (empty)";
+                }
+                if (locations == null) {
+                    error = "Could not get bt locations (null)";
+                }
+                if (locations != null) {
+                    try {
+                        response.put("locations", locations);
+                    } catch (Exception e) {
+                        error = "Could not get locations: " + e.getMessage();
+                    }
+                }
+
+                if (error != null) {
+                    try {
+                        response.put("error", error);
+                    } catch (Exception e) {
+                    }
+                } else {
+                    try {
+                        response.put("error", "");
+                    } catch (Exception e) {
+                    }
+                }
+
+                mBluetoothClassicServer.write(response.toString().getBytes());
+            }
+        });
+
         mBLEServer = new BluetoothLEServer(this, mContext);
 
         if (mBLEServer == null) {
@@ -1596,7 +1705,7 @@ public class BBService extends Service {
     private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
 
     private void checkBattery() {
-        if (mBurnerBoard != null) {
+        if ((mBurnerBoard != null) && (mBoardVisualization != null)) {
 
             boolean announce = false;
             powerStates powerState = powerStates.STATE_DISPLAYING;

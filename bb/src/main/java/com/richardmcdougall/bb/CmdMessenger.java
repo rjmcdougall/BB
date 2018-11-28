@@ -713,7 +713,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         @Override
         public void run() {
             String msg = readLine();//readLine should be in new thread according to pipeline documentation
-            //System.out.print("processmessagerunnable\n");
+            //System.out.println("processmessagerunnable: msg =" + msg );
             if (msg != null && msg != "") {
                 streamBuffer = new ByteArrayInputStream(msg.getBytes());
                 while (streamBuffer.available() > 0) {
@@ -794,6 +794,8 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         // if command attached, we will call it
         if (lastCommandId >= 0 && ((callback = callbackList.get(lastCommandId)) != null) && ArgOk) {
             callback.CmdAction("callback cmd: " + lastCommandId);
+            //System.out.println("cmdMessenger: calling callback: ");
+
         }
 
         /*else {// If command not attached, call  callback (if attached)

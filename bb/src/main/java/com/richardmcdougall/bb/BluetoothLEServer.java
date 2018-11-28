@@ -39,7 +39,7 @@ public class BluetoothLEServer {
     public Context mContext = null;
     public BBService mBBService = null;
     String mBoardId;
-    private BluetoothRemote mBluetoothRemote = null;
+    private BluetoothConnManager mBluetoothConnManager = null;
 
     private HashMap<BluetoothDevice, Integer> mAudioInfoSelect = new HashMap<>();
     private HashMap<BluetoothDevice, Integer> mVideoInfoSelect = new HashMap<>();
@@ -62,10 +62,14 @@ public class BluetoothLEServer {
 
         mBoardId = service.getBoardId();
 
-        mBluetoothRemote = service.mBluetoothRemote;
+        mBluetoothConnManager = service.mBluetoothConnManager;
 
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
+
+        if (true) {
+            return;
+        }
 
         // We can't continue without proper Bluetooth support
         if (bluetoothAdapter == null) {
@@ -78,23 +82,25 @@ public class BluetoothLEServer {
             return;
         }
 
+        /*
         String name = mBoardId.substring(0, Math.min(mBoardId.length(), 8));
         bluetoothAdapter.setName(name);
         l("Bluetooth packet name set to: " + name);
 
-        // Register for system Bluetooth events
-        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        context.registerReceiver(mBluetoothReceiver, filter);
+        */
         if (!bluetoothAdapter.isEnabled()) {
             Log.d(TAG, "Bluetooth is currently disabled...enabling");
             bluetoothAdapter.enable();
         } else {
             l("Bluetooth enabled...starting services");
             startAdvertising();
-            startServer();
+            //startServer();
 
         }
 
+        // Register for system Bluetooth events
+        IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        //context.registerReceiver(mBluetoothReceiver, filter);
         // Register to receive button messages
         filter = new IntentFilter(BBService.ACTION_BB_VOLUME);
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
@@ -354,7 +360,7 @@ public class BluetoothLEServer {
             }  else if (BluetoothProfile.BB_BTDEVICE_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 l("Read BTDevice select characteristic");
                 byte[] BTDevices = new byte[] {0, 0};
-                BTDevices[0] = (byte) mBluetoothRemote.getDeviceCount();
+                BTDevices[0] = (byte) mBluetoothConnManager.getDeviceCount();
                 BTDevices[1] = (byte) 0;
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
@@ -399,10 +405,10 @@ public class BluetoothLEServer {
                 } else {
                     l("btinfo device not known; adding entry");
                 }
-                byte[] btInfo = BluetoothProfile.getBtdeviceInfo(mBluetoothRemote, infoselect);
+                byte[] btInfo = BluetoothProfile.getBtdeviceInfo(mBluetoothConnManager, infoselect);
                 if (btInfo[0] == 0) {
                     infoselect = 0;
-                    btInfo = BluetoothProfile.getBtdeviceInfo(mBluetoothRemote, infoselect);
+                    btInfo = BluetoothProfile.getBtdeviceInfo(mBluetoothConnManager, infoselect);
                 }
                 l("Read BT info characteristic: " + infoselect);
                 mBluetoothGattServer.sendResponse(device,
@@ -559,8 +565,8 @@ public class BluetoothLEServer {
             }  else if (BluetoothProfile.BB_BTDEVICE_INFO_CHARACTERISTIC.equals(characteristic.getUuid())) {
 
                 l("Write bt info characteristic: " + mVideoInfoSelect + " needs reply: " + responseNeeded);
-                if (mBluetoothRemote != null) {
-                    mBluetoothRemote.discoverDevices();
+                if (mBluetoothConnManager != null) {
+                    mBluetoothConnManager.discoverDevices();
                 }
 
                 if (responseNeeded) {
@@ -573,7 +579,7 @@ public class BluetoothLEServer {
             } else if (BluetoothProfile.BB_BTDEVICE_SELECT_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 String address = new String(value);
                 l("Write bt device select characteristic: " + address);
-                mBluetoothRemote.pairDevice(address);
+                mBluetoothConnManager.pairDevice(address);
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
                             requestId,

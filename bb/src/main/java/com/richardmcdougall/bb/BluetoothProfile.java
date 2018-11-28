@@ -493,7 +493,7 @@ public class BluetoothProfile {
      *      byte 1: total number of devices
      *      byte 2: byte-array of string of address
      */
-    public static byte[] getBtdeviceInfo(BluetoothRemote remote, int deviceNo) {
+    public static byte[] getBtdeviceInfo(BluetoothConnManager remote, int deviceNo) {
 
         String address = remote.getDeviceAddress(deviceNo);
         int numDevices = remote.getDeviceCount();

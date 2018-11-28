@@ -100,7 +100,9 @@ public class IoTClient {
         Log.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = mContext.getFilesDir().getAbsolutePath();
         mqttClient = new MqttAndroidClient(context, "ssl://mqtt.googleapis.com:8883",
-                deviceId, new MqttDefaultFilePersistence(filesDir));
+                //deviceId, new MqttDefaultFilePersistence(filesDir));
+        deviceId, new MemoryPersistence());
+
 
         doConnect();
 
@@ -143,8 +145,8 @@ public class IoTClient {
                             options.setPassword(jwtKey.toCharArray());
                             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
                             mqttClient.setCallback(new MqttEventCallback());
-                            mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
-                            mqttClient.setTraceEnabled(BBService.debug);
+                            //mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
+                            //mqttClient.setTraceEnabled(BBService.debug);
 
                             mqttClient.connect(options, null, new IMqttActionListener() {
 

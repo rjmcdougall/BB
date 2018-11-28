@@ -70,8 +70,6 @@ public class BurnerBoard {
     public IntBuffer mDrawBuffer = null;
 
 
-
-
     public BurnerBoard(BBService service, Context context) {
         mBBService = service;
         mContext = context;
