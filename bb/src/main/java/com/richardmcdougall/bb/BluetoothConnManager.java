@@ -59,7 +59,7 @@ public class BluetoothConnManager {
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
 
         mBoardId = service.getBoardId();
-        String name = "bt-" + mBoardId.substring(0, Math.min(mBoardId.length(), 8));
+        String name = mBoardId.substring(0, Math.min(mBoardId.length(), 8));
         mBluetoothAdapter.setName(name);
         l("Bluetooth packet name set to: " + name);
 
@@ -83,7 +83,6 @@ public class BluetoothConnManager {
         mBBService.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
 
         enableDiscoverable();
-        //startAdvertising();
         //discoverDevices();
     }
 
@@ -292,53 +291,6 @@ public class BluetoothConnManager {
         }
     };
 
-    private BluetoothLeAdvertiser mBluetoothLeAdvertiser;
-    public final static UUID kBurnerBoardUUID =
-            UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
-    /**
-     * Begin advertising over Bluetooth that this device is connectable
-     * and supports the Current Time Service.
-     */
-    private void startAdvertising() {
-        BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
-        mBluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
-        if (mBluetoothLeAdvertiser == null) {
-            l("Failed to create advertiser");
-            return;
-        }
-
-        AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-                .setConnectable(true)
-                .setTimeout(0)
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
-                .build();
-
-        AdvertiseData data = new AdvertiseData.Builder()
-                .setIncludeDeviceName(true)
-                .setIncludeTxPowerLevel(false)
-                .addServiceUuid(new ParcelUuid(kBurnerBoardUUID))
-                .build();
-
-        mBluetoothLeAdvertiser
-                .startAdvertising(settings, data, mAdvertiseCallback);
-    }
-
-    /**
-     * Callback to receive information about the advertisement process.
-     */
-    private AdvertiseCallback mAdvertiseCallback = new AdvertiseCallback() {
-        @Override
-        public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-            l("LE Advertise Started: " + settingsInEffect.toString());
-        }
-
-        @Override
-        public void onStartFailure(int errorCode) {
-
-            l("LE Advertise Failed: "+ errorCode);
-        }
-    };
 
 
 }

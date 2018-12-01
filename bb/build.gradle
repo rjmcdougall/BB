@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 4000
-        versionName "40.00"
+        versionCode 4020
+        versionName "40.20"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
@@ -81,6 +81,8 @@ dependencies {
     compile 'eu.chainfire:libsuperuser:1.0.0.+'
     compile 'net.sf.marineapi:marineapi:0.10.0'
     compileOnly 'com.google.android.things:androidthings:+'
+    //implementation 'no.nordicsemi.android:ble:2.0.0'
+    implementation 'no.nordicsemi.android:log:2.2.0'
 }
 
 

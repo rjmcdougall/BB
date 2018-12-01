@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Burner Board</string>
-    <string name="bb_hello">Burner Board</string>
+    <string name="app_name">BB</string>
+    <string name="bb_hello">BBd</string>
     <string name="bb_voltage">Voltage</string>
     <string name="bb_boardlights">Board Lights</string>
     <string name="bb_headlight">Head Light</string>

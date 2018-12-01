@@ -89,7 +89,6 @@ public class BluetoothClassicServer {
             new HashMap<>();
     private int callbackId = 0;
 
-
     // TODO: do we need per-connection contexts in callbacks?
     /**
      * Command is JSON Object with "command" as a mandatory first field
