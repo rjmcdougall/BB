@@ -226,7 +226,7 @@ public class BluetoothLEServer {
         AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
                 .setIncludeTxPowerLevel(false)
-                .addServiceUuid(new ParcelUuid(UART_SERVICE_UUID))
+                .addServiceUuid(new ParcelUuid(kBurnerBoardUUID))
                 .build();
 
         mBluetoothLeAdvertiser
