@@ -26,7 +26,7 @@ export default class BoardManager extends Component {
 
 		this.state = {
 			scanning: false,
-			peripherals: new Map(),
+			boardBleDevices: new Map(),
 			appState: "",
 			selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 			mediaState: StateBuilder.blankMediaState(),
@@ -107,7 +107,7 @@ export default class BoardManager extends Component {
 			});
 		}
 
-		// if there is a default peripheral saved, scan and attempt to load that board.
+		// if there is a default BleDevice saved, scan and attempt to load that board.
 		var config = await FileSystemConfig.getDefaultPeripheral();
 		if (config) {
 			this.setState({
@@ -141,10 +141,13 @@ export default class BoardManager extends Component {
 
 	handleDisconnectedPeripheral(data) {
 
+		console.log("BoardManager: Disconnected from " + peripheral.name);
 		let peripheral = data.peripheral;
+		// Update state 
+		var boardBleDevices = this.state.boardBleDevices;
+		boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
+		boardBleDevice.connected = Constants.DISCONNECTED;
 		if (peripheral.name == this.state.boardName) {
-			peripheral.connected = false;
-
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
 
@@ -154,8 +157,6 @@ export default class BoardManager extends Component {
 				discoveryState: Constants.DISCONNECTED,
 				backgroundLoop: null,
 			});
-
-			console.log("BoardManager: Disconnected from " + peripheral.name);
 		}
 	}
 
@@ -165,6 +166,15 @@ export default class BoardManager extends Component {
 			scanning: false
 		});
 	}
+
+	async sleep(ms: number) {
+		await this._sleep(ms);
+	}
+
+	_sleep(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
 
 	async startScan(automaticallyConnect) {
 
@@ -181,7 +191,7 @@ export default class BoardManager extends Component {
 				if (this.state.selectedPeripheral)
 					if (this.state.selectedPeripheral.id != "12345") {
 						BleManager.disconnect(this.state.selectedPeripheral.id);
-						console.log("Disconnected BLE From " + this.state.selectedPeripheral.name);
+						console.log("Disconnecting BLE From " + this.state.selectedPeripheral.name);
 					}
 
 				this.setState({
@@ -189,7 +199,7 @@ export default class BoardManager extends Component {
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
 					discoveryState: Constants.DISCONNECTED,
-					//peripherals: new Map(),
+					//boardBleDevices: new Map(),
 					automaticallyConnect: automaticallyConnect,
 					backgroundLoop: null,
 				});
@@ -210,8 +220,9 @@ export default class BoardManager extends Component {
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
 
-			if (peripheral.connected) {
+			if (peripheral.connected == Constants.CONNECTED) {
 				try {
+					console.log("Disconnecting BLE From " + peripheral.name);
 					BleManager.disconnect(peripheral.id);
 				}
 				catch (error) {
@@ -286,7 +297,7 @@ export default class BoardManager extends Component {
 				clearInterval(this.state.backgroundLoop);
 
 			this.setState({
-				//	peripherals: new Map(),
+				//	boardBleDevices: new Map(),
 				appState: "",
 				selectedPeripheral: StateBuilder.blankMediaState().peripheral,
 				mediaState: StateBuilder.blankMediaState(),
@@ -299,10 +310,10 @@ export default class BoardManager extends Component {
 
 	// async checkForDuplicatePeripherals(peripheral) {
 
-	// 	if (this.state.peripherals) {
-	// 		var peripherals = this.state.peripherals;
+	// 	if (this.state.boardBleDevices) {
+	// 		var boardBleDevices = this.state.boardBleDevices;
 
-	// 		var peripheralArray = Array.from(peripherals.values());
+	// 		var peripheralArray = Array.from(boardBleDevices.values());
 	// 		var boardToDelete;
 
 	// 		peripheralArray.filter((board) => {
@@ -325,8 +336,8 @@ export default class BoardManager extends Component {
 	// 	}
 
 	// 	if(boardToDelete){
-	// 		peripherals.delete(boardToDelete.id);
-	// 		this.setState({periperals: peripherals});
+	// 		boardBleDevices.delete(boardToDelete.id);
+	// 		this.setState({periperals: boardBleDevices});
 	// 		console.log("I DELETED " + boardToDelete.name + " " + boardToDelete.id)
 	// 	}
 	// }
@@ -334,18 +345,30 @@ export default class BoardManager extends Component {
 	async handleDiscoverPeripheral(peripheral) {
 		try {
 
-			// add to the list of peripherals for the board picker.
-			var peripherals = this.state.peripherals;
 
-			if (!peripherals.has(peripheral.name)) {
+			// update the list of boardBleDevices for the board picker.
+			var boardBleDevices = this.state.boardBleDevices;
+
+			if (!boardBleDevices.has(peripheral.id)) {
+
 				console.log("BoardManager Found New Peripheral:" + peripheral.name);
-				peripheral.connected = false;
-				peripherals.set(peripheral.name, peripheral);
-				this.setState({ peripherals: peripherals });
-			}
-			else {
-				// since we only really need the peripheral name for the list, I am not updating the device ID.
-				console.log("BoardManager Found Existing Peripheral:" + peripheral.name);
+
+				peripheral.connected = Constants.DISCONNECTED;
+			//	await this.checkForDuplicatePeripherals(peripheral);
+
+				var boardBleDeviceArray = Array.from(boardBleDevices.values());
+				var bleBoardDeviceExists = boardBleDeviceArray.filter((board) => {
+					if(board.id==peripheral.id)
+						return true;
+				});
+
+				if(bleBoardDeviceExists.length > 0){
+					console.log("BLE DEVICE ALREADY EXISTSED" + peripheral.id)
+					boardBleDevices.delete(bleBoardDeviceExists.id);
+				}
+
+				boardBleDevices.set(peripheral.id, peripheral);
+				this.setState({ boardBleDevices: boardBleDevices });
 			}
 			
 			// if it is your default peripheral, connect automatically.
@@ -359,38 +382,98 @@ export default class BoardManager extends Component {
 	}
 
 	async connectToPeripheral(peripheral) {
+		console.log("BoardManager: connectToPeripheral: " + peripheral.name);
 		try {
 			this.setState({
 				selectedPeripheral: peripheral,
 			});
 
+			// Update state 
+			var boardBleDevices = this.state.boardBleDevices;
+			boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
+
 			if (this.state.automaticallyConnect) {
-				console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
 				this.setState({ discoveryState: Constants.LOCATED });
 
-				var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
+				// rmc add conn logic here
+				if (boardBleDevice.connected == Constants.DISCONNECTED) {
+					console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
+					// Update status 
+					boardBleDevice.connected = Constants.CONNECTING;
+					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+					console.log("BLE: Connecting to device: " + boardBleDevice.id);
+					try {
+						await BleManager.connect(boardBleDevice.id);
+						bleManagerEmitter.addListener(
+							'BleManagerDidUpdateValueForCharacteristic',
+							({ value, peripheral, characteristic, service }) => {
+								// Convert bytes array to string
+								const data = bytesToString(value);
+								console.log(`Recieved ${data} for characteristic ${characteristic}`);
 
-				var foundBoard = this.state.boardData.filter((board) => {
-					return board.name == this.state.boardName;
-				});
-				var color = foundBoard[0].color;
+								// Dan: So right now this is where the JSON response dribbles in from the server.
+								// Need to connect this to BLEBOardData to fill in the response.
+							}
+						);
+						await this.sleep(1000);
+						console.log("BLE: Retreiving services");
+						await BleManager.retrieveServices(boardBleDevice.id);
+						console.log( "BLE: Retreived services:");
+						await this.sleep(3000);
+						console.log( "BLE: Setting rx notifications ");
+						await this.setNotificationRx(boardBleDevice.id);
 
-				this.setState({
-					mediaState: mediaState,
-					discoveryState: Constants.CONNECTED,
-					boardColor: color,
-				});
-
-				// Kick off a per-second location reader 
-				await this.readLocationLoop(this.state.mediaState);
-				console.log("BoardManager: Begin Background Location Loop");
+						console.log( "BLE connectToPeripheral: Now go setup and read all the state ");
+						// Now go setup and read all the state for the first time
+						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
+		
+						var foundBoard = this.state.boardData.filter((board) => {
+							return board.name == this.state.boardName;
+						});
+						var color = foundBoard[0].color;
+		
+						this.setState({
+							mediaState: mediaState,
+							discoveryState: Constants.CONNECTED,
+							boardColor: color,
+						});
+		
+						// Kick off a per-second location reader 
+						await this.readLocationLoop(this.state.mediaState);
+						console.log("BoardManager: Begin Background Location Loop");
+						// Update status 
+						boardBleDevice.connected = Constants.CONNECTED;
+						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+					} catch (error) {
+						console.log( "BLE: Error connecting: " + error);
+						// Update status 
+						boardBleDevice.connected = Constants.DISCONNECTED;
+						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+					}
+				}
 			}
 		}
 		catch (error) {
 			console.log(error);
 		}
 	}
-	async readLocationLoop() {
+
+	async setNotificationRx(peripheralId) {
+		try {
+			var success = await BleManager.startNotification(peripheralId,
+							BLEIDs.UARTservice,
+							BLEIDs.rxCharacteristic);
+			if (success == null) {
+				console.log("BLE:successfullysetnotificationonrx");
+			} else {
+				console.log("BLE:errorsettingnotificationonrx:" + success);
+			}
+			} catch(error) {
+				console.log("BLE:errorsettingnotificationonrx:" + error);
+		}
+	}
+
+	async readLocationLoop(){
 
 		var backgroundTimer = setInterval(async () => {
 			console.log("Board Manager: Location Loop");
@@ -493,7 +576,7 @@ export default class BoardManager extends Component {
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} peripherals={this.state.peripherals} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
+							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
 						<View style={StyleSheet.footer}>
 							<Touchable

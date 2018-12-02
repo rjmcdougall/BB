@@ -21,7 +21,7 @@ var bEmptyMediaState = {
 	peripheral: {
 		name: "loading...",
 		id: "12345",
-		connected: false,
+        connState: "DISCONNECTED",
 	},
 	audio: {
 		channelNo: 1,
