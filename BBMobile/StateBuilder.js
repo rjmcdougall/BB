@@ -89,6 +89,7 @@ exports.createMediaState = async function (peripheral) {
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Getting BLE Data for " + peripheral.name, false);
 		mediaState = await BLEBoardData.refreshMediaState(mediaState);
+		//mediaState = await BLEBoardData.createMediaState(mediaState);
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Gettig Boards Data from API ", false);
 		mediaState = getBoardsInternal(mediaState); // don't wait!

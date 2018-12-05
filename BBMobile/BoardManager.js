@@ -17,12 +17,16 @@ import BatteryController from "./BatteryController";
 import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
+import {Buffer} from 'buffer';
+import { bytesToString } from 'convert-string';
+import { stringToBytes } from 'convert-string';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 export default class BoardManager extends Component {
 	constructor() {
 		super();
+
 
 		this.state = {
 			scanning: false,
@@ -38,12 +42,14 @@ export default class BoardManager extends Component {
 			title: "Board Management",
 			boardData: [],
 			boardColor: "blue",
+			rxBuffers: [],
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
 		this.handleStopScan = this.handleStopScan.bind(this);
 		this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
 		this.handleAppStateChange = this.handleAppStateChange.bind(this);
+		this.handleNewData = this.handleNewData.bind(this);
 		this.onUpdateVolume = this.onUpdateVolume.bind(this);
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
 		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
@@ -57,10 +63,9 @@ export default class BoardManager extends Component {
 
 	}
 
-	async componentDidMount() {
-		AppState.addEventListener("change", this.handleAppStateChange);
+	async componentDidMount() { AppState.addEventListener("change", this.handleAppStateChange);
 
-		BleManager.start({
+		await BleManager.start({
 			showAlert: false
 		});
 
@@ -75,6 +80,7 @@ export default class BoardManager extends Component {
 		this.handlerDiscover = bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", this.handleDiscoverPeripheral);
 		this.handlerStop = bleManagerEmitter.addListener("BleManagerStopScan", this.handleStopScan);
 		this.handlerDisconnect = bleManagerEmitter.addListener("BleManagerDisconnectPeripheral", this.handleDisconnectedPeripheral);
+		this.handlerNewData = bleManagerEmitter.addListener("BleManagerDidUpdateValueForCharacteristic", this.handleNewData);
 
 		// this is a hack for android permissions. Not required for IOS.
 		if (Platform.OS === "android" && Platform.Version >= 23) {
@@ -131,31 +137,80 @@ export default class BoardManager extends Component {
 		});
 	}
 
+	handleNewData(newData) {
+		try {
+		//console.log( "BLE: newData:" + JSON.stringify(newData));
+		var rxBuffers = this.state.rxBuffers;
+		// Convert bytes array to string
+		data = newData.value;
+		characteristic = newData.characteristic;
+		var tmpData = Buffer.alloc(data.length);
+		var tmpDataLen = 0;
+		for (var i = 0; i < data.length; i++) {
+			var oneChar = data[i];
+			if (oneChar == ";".charCodeAt(0)) {
+				if (tmpData.length > 0) {
+					// Push the new bytes avail
+					tmpDataBuffer = Buffer.alloc(tmpDataLen);
+					tmpData.copy(tmpDataBuffer, 0, 0, tmpDataLen);
+					rxBuffers.push(tmpDataBuffer);
+				}
+				newMessage = Buffer.concat(rxBuffers);
+				//Execute complete command
+				var newState = JSON.parse(newMessage.toString('ascii'));
+				console.log("New Message: " + JSON.stringify(newState));
+				rxBuffers=[];
+				tmpData = Buffer.alloc(1024);
+				tmpDataLen = 0;
+			} else {
+				if (oneChar > 0) {
+					tmpData[tmpDataLen] = oneChar;
+					tmpDataLen++;
+				}
+			}
+		}
+		tmpDataBuffer = Buffer.alloc(tmpDataLen);
+		tmpData.copy(tmpDataBuffer, 0, 0, tmpDataLen);
+		if (tmpDataLen > 0) {
+			if (!rxBuffers) {
+				rxBuffers = [tmpDataBuffer];
+			} else {
+				rxBuffers.push(tmpDataBuffer);
+			}
+		}
+		//this.setState({ rxBuffers: rxBuffers });
+		} catch (error) {
+			console.log( "BLE:handleNewData error: " + error);
+		}
+	}	
+
 	componentWillUnmount() {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
 		this.handlerDisconnect.remove();
+		this.handlerNewData.remove();
 		if (this.state.backgroundLoop)
 			clearInterval(this.state.backgroundLoop);
 	}
 
 	handleDisconnectedPeripheral(data) {
 
-		console.log("BoardManager: Disconnected from " + peripheral.name);
 		let peripheral = data.peripheral;
+		console.log("BoardManager: Disconnected from " + JSON.stringify(peripheral));
 		// Update state 
 		var boardBleDevices = this.state.boardBleDevices;
 		boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
-		boardBleDevice.connected = Constants.DISCONNECTED;
+		if (boardBleDevice != null) {
+			boardBleDevice.connected = Constants.DISCONNECTED;
+		}
 		if (peripheral.name == this.state.boardName) {
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
-
 			this.setState({
-				selectedPeripheral: StateBuilder.blankMediaState().peripheral,
-				mediaState: StateBuilder.blankMediaState(),
-				discoveryState: Constants.DISCONNECTED,
-				backgroundLoop: null,
+			selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+			mediaState: StateBuilder.blankMediaState(),
+			discoveryState: Constants.DISCONNECTED,
+			backgroundLoop: null,
 			});
 		}
 	}
@@ -383,14 +438,14 @@ export default class BoardManager extends Component {
 
 	async connectToPeripheral(peripheral) {
 		console.log("BoardManager: connectToPeripheral: " + peripheral.name);
-		try {
-			this.setState({
-				selectedPeripheral: peripheral,
-			});
 
 			// Update state 
 			var boardBleDevices = this.state.boardBleDevices;
 			boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
+			try {
+				this.setState({
+					selectedPeripheral: boardBleDevice,
+				});
 
 			if (this.state.automaticallyConnect) {
 				this.setState({ discoveryState: Constants.LOCATED });
@@ -401,31 +456,21 @@ export default class BoardManager extends Component {
 					// Update status 
 					boardBleDevice.connected = Constants.CONNECTING;
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+					await BleManager.stopScan();
 					console.log("BLE: Connecting to device: " + boardBleDevice.id);
 					try {
 						await BleManager.connect(boardBleDevice.id);
-						bleManagerEmitter.addListener(
-							'BleManagerDidUpdateValueForCharacteristic',
-							({ value, peripheral, characteristic, service }) => {
-								// Convert bytes array to string
-								const data = bytesToString(value);
-								console.log(`Recieved ${data} for characteristic ${characteristic}`);
-
-								// Dan: So right now this is where the JSON response dribbles in from the server.
-								// Need to connect this to BLEBOardData to fill in the response.
-							}
-						);
-						await this.sleep(1000);
 						console.log("BLE: Retreiving services");
-						await BleManager.retrieveServices(boardBleDevice.id);
-						console.log( "BLE: Retreived services:");
-						await this.sleep(3000);
+						var svcs = await BleManager.retrieveServices(boardBleDevice.id);
+						console.log( "BLE: Retreived services:" + JSON.stringify(svcs));
 						console.log( "BLE: Setting rx notifications ");
-						await this.setNotificationRx(boardBleDevice.id);
-
+						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
+						this.setNotificationRx(boardBleDevice.id);
+						// Sleep until it's done (guess)
+						await this.sleep(500);
 						console.log( "BLE connectToPeripheral: Now go setup and read all the state ");
 						// Now go setup and read all the state for the first time
-						var mediaState = await StateBuilder.createMediaState(this.state.selectedPeripheral);
+						var mediaState = await StateBuilder.createMediaState(boardBleDevice);
 		
 						var foundBoard = this.state.boardData.filter((board) => {
 							return board.name == this.state.boardName;

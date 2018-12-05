@@ -9,10 +9,9 @@ exports.createMediaState = async function (peripheral) {
 	try {
 		var mediaState = StateBuilder.blankMediaState();
 		mediaState.peripheral = peripheral;
-		mediaState.connState = "DISCONNECTED";
-		mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting BLE Data for " + peripheral.name, false);
+		mediaState = BLEIDs.BLELogger(mediaState, "BLE: createMediaState Getting BLE Data for " + peripheral.name, false);
 		return await this.refreshMediaState(mediaState);
-await sleep(3000);
+		await sleep(3000);
 	}
 	catch (error) {
 		//console.log("BLE: " + BLEIDs.fixErrorMessage(error));
@@ -22,6 +21,7 @@ await sleep(3000);
 
 exports.refreshMediaState = async function (mediaState) {
 
+	mediaState = BLEIDs.BLELogger(mediaState, "BLE: refreshMediaState Getting state ", false);
 	if (mediaState.peripheral) {
 		try {
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting state ", false);
@@ -61,31 +61,7 @@ exports.getRemoteJson = async function (mediaState, command) {
 		return mediaState;
 	}
 
-	// Get Response JSON Payload
-	if (mediaState.peripheral) {
-		if (mediaState.peripheral) {
-		mediaState = BLEIDs.BLELogger(mediaState, "BLE: command" + command, false);
-			try {
-
-				var readData = await BleManager.read(mediaState.peripheral.id,
-					BLEIDs.UARTservice,
-					BLEIDs.rxCharacteristic);
-
-				if (readData) {
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read command" + command + ": " + readData, false);
-				}
-				else
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: Read " + command + ": returned Null", true);
-
-			}
-			catch (error) {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLE: " + command + " read command error: " + error, true);
-			}
-			return mediaState;
-		}
-		else
-			return mediaState;
-	}
+	return mediaState;
 };
 
 
@@ -98,15 +74,16 @@ sendCommand = async function (mediaState, command) {
 			await BleManager.write(mediaState.peripheral.id,
 				BLEIDs.UARTservice,
 				BLEIDs.txCharacteristic,
-				data);
+				data, 
+				18); // MTU Size
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: successfully sent " + command, false);
+			return true;
 		}
 		catch (error) {
 			mediaState.peripheral.connected = false;
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: getstate: " + error, true);
 			return false;
 		}
-		return true;
 	}
 	else
 		return false;
