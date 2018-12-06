@@ -18,14 +18,16 @@ export default class DiscoverController extends React.Component {
 	render() {
 
 		try {
-			const list = Array.from(this.props.peripherals.values());
+			const list = Array.from(this.props.boardBleDevices.values());
 			const dataSource = ds.cloneWithRows(list);
 
 			return (
 				<View style={{ flex: 1, margin: 30 }}>
 					<Touchable
 						onPress={async () => {
-							await this.props.startScan(false);
+//rmc
+
+							//await this.props.startScan(false);
 						}}
 						style={StyleSheet.button}
 						background={Touchable.Ripple("blue")}>

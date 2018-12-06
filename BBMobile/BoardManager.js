@@ -148,6 +148,7 @@ export default class BoardManager extends Component {
 		var tmpDataLen = 0;
 		for (var i = 0; i < data.length; i++) {
 			var oneChar = data[i];
+			// Do we have the end-of-json delimeter?
 			if (oneChar == ";".charCodeAt(0)) {
 				if (tmpData.length > 0) {
 					// Push the new bytes avail
@@ -156,13 +157,15 @@ export default class BoardManager extends Component {
 					rxBuffers.push(tmpDataBuffer);
 				}
 				newMessage = Buffer.concat(rxBuffers);
-				//Execute complete command
 				var newState = JSON.parse(newMessage.toString('ascii'));
 				console.log("New Message: " + JSON.stringify(newState));
+				// Setup the app-specific mediaState structure
+				this.setState({ mediaState: BLEBoardData.updateMediaState(this.state.mediaState, newState) });
 				rxBuffers=[];
 				tmpData = Buffer.alloc(1024);
 				tmpDataLen = 0;
 			} else {
+				// Add characters to buffer
 				if (oneChar > 0) {
 					tmpData[tmpDataLen] = oneChar;
 					tmpDataLen++;
@@ -467,11 +470,12 @@ export default class BoardManager extends Component {
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
 						this.setNotificationRx(boardBleDevice.id);
 						// Sleep until it's done (guess)
-						await this.sleep(500);
+						await this.sleep(1000);
 						console.log( "BLE connectToPeripheral: Now go setup and read all the state ");
 						// Now go setup and read all the state for the first time
 						var mediaState = await StateBuilder.createMediaState(boardBleDevice);
-		
+	
+						/*	
 						var foundBoard = this.state.boardData.filter((board) => {
 							return board.name == this.state.boardName;
 						});
@@ -482,6 +486,7 @@ export default class BoardManager extends Component {
 							discoveryState: Constants.CONNECTED,
 							boardColor: color,
 						});
+						*/
 		
 						// Kick off a per-second location reader 
 						await this.readLocationLoop(this.state.mediaState);

@@ -7,6 +7,9 @@ import StyleSheet from "./StyleSheet";
 
 var PickerItem = Picker.Item;
 
+
+
+
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
@@ -14,42 +17,50 @@ export default class TrackController extends Component {
 		if (this.props.mediaType == "Audio") {
 			this.state = {
 				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-				selectedTrack: props.mediaState.audio.channelNo,
+				selectedTrack: props.mediaState.state.audioChannelNo,
 			};
 		}
 		else if (this.props.mediaType == "Video") {
 			this.state = {
 				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-				selectedTrack: props.mediaState.video.channelNo,
+				selectedTrack: props.mediaState.state.videoChannelNo,
 			};
 		}
-
-
 	}
 
 	UNSAFE_componentWillReceiveProps(nextProps) {
 		if (this.props.mediaType == "Audio") {
 			this.setState({
-				selectedTrack: nextProps.mediaState.audio.channelNo
+				selectedTrack: nextProps.mediaState.state.audioChannelNo
 			});
 		}
 		else if (this.props.mediaType == "Video") {
 			this.setState({
-				selectedTrack: nextProps.mediaState.video.channelNo
+				selectedTrack: nextProps.mediaState.state.videoChannelNo
 			});
 		}
+	}
+
+	findTrackNo(tracks, val) {
+		return tracks.find(function(item, i) {
+			if(item.localName === val){
+			index = i;
+			return i;
+			}
+		});
 	}
 
 	render() {
 		var tracks = null;
 
 		if (this.props.mediaType == "Audio")
-			tracks = this.props.mediaState.audio.channels;
+			tracks = this.props.mediaState.audio;
 		else if (this.props.mediaType == "Video")
-			tracks = this.props.mediaState.video.channels;
+			tracks = this.props.mediaState.video;
 
-		if (tracks.length > 1)
-			tracks = tracks.slice(1, tracks.length);
+		//if (tracks.length > 1)
+	//		tracks = tracks.localName.slice(1, tracks.length);
+		console.log("hello");
 
 		return (
 
@@ -84,8 +95,8 @@ export default class TrackController extends Component {
 
 							}}>
 
-							{tracks.map((track) => (
-								<PickerItem label={track.channelInfo} value={track.channelNo} key={track.channelNo} />
+							{tracks.map((elem, index) => (
+								<PickerItem label={elem.localName} value={index} key={index} />
 							))}
 
 						</Picker>

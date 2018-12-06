@@ -23,28 +23,19 @@ var bEmptyMediaState = {
 		id: "12345",
         connState: "DISCONNECTED",
 	},
-	audio: {
-		channelNo: 1,
-		maxChannel: 1,
-		volume: 0,
-		channels:
-			[null, { channelNo: 1, channelInfo: "loading..." }]
+	//audio: [null, { channelNo: 1, channelInfo: "loading..." }],
+	audio: [{ localName: "loading..." }],
+	video: [{ localName: "loading..." }],
+	device: [{ name: "loading...", address: "loading...", isPaired: false, }],
+    state: {
+		audioChannelNo: 0,
+		videoChannelNo: 0,
+		battery: 0,
+		audioMaster: 0,
+		APKUpdateDate: 0,
+		APKVersion: 0,
+		IPAddress: "0.0.0.0",
 	},
-	video: {
-		channelNo: 1,
-		maxChannel: 1,
-		channels: [null, { channelNo: 1, channelInfo: "loading..." }]
-	},
-	device: {
-		deviceNo: 1,
-		maxDevice: 1,
-		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
-	},
-	battery: 0,
-	audioMaster: 0,
-	APKUpdateDate: 0,
-	APKVersion: 0,
-	IPAddress: "0.0.0.0",
 	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,

@@ -11,7 +11,6 @@ exports.createMediaState = async function (peripheral) {
 		mediaState.peripheral = peripheral;
 		mediaState = BLEIDs.BLELogger(mediaState, "BLE: createMediaState Getting BLE Data for " + peripheral.name, false);
 		return await this.refreshMediaState(mediaState);
-		await sleep(3000);
 	}
 	catch (error) {
 		//console.log("BLE: " + BLEIDs.fixErrorMessage(error));
@@ -25,14 +24,14 @@ exports.refreshMediaState = async function (mediaState) {
 	if (mediaState.peripheral) {
 		try {
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting state ", false);
-			mediaState = await this.getRemoteJson(mediaState, "getstate");
+			if (await sendCommand(mediaState, "getall", "") == false) {
+				return mediaState;
+			}
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: RefreshMediaState Complete: ", false);
-			await sleep(3000);
 			return mediaState;
 		}
 		catch (error) {
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Refresh Media Error: " + error, true);
-			await sleep(10000);
 			return mediaState;
 		}
 	}
@@ -40,6 +39,28 @@ exports.refreshMediaState = async function (mediaState) {
 		return mediaState;
 	}
 };
+
+exports.updateMediaState = function (mediaState, newMedia) {
+	if (newMedia.boards) {
+		mediaState.boards = newMedia.boards;
+	}
+	if (newMedia.video) {
+		mediaState.video = newMedia.video;
+	}
+	if (newMedia.audio) {
+		mediaState.audio = newMedia.audio;
+	}
+	if (newMedia.state) {
+		mediaState.state = newMedia.state;
+	}
+	if (newMedia.locations) {
+		mediaState.locations = newMedia.state;
+	}
+	if (newMedia.battery) {
+		mediaState.battery = newMedia.battery;
+	}
+	return mediaState
+}
 
 async function sleep(ms: number) {
 await _sleep(ms);
@@ -57,20 +78,20 @@ exports.refreshDevices = async function (mediaState) {
 
 exports.getRemoteJson = async function (mediaState, command) {
 
-	if (await sendCommand(mediaState, command) == false) {
-		return mediaState;
-	}
 
 	return mediaState;
 };
 
 
-sendCommand = async function (mediaState, command) {
+sendCommand = async function (mediaState, command, arg) {
 // Send request command
+	if (!arg) {
+		arg = "";
+	}
 	if (mediaState.peripheral) {
 		mediaState = BLEIDs.BLELogger(mediaState, "BLE: send command " + command + "on device " + mediaState.peripheral.id, false);
 		try {
-			const data = stringToBytes('{command:"' + command + '"};\n');
+			const data = stringToBytes('{command:"' + command + '", arg:"' + arg + '"};\n');
 			await BleManager.write(mediaState.peripheral.id,
 				BLEIDs.UARTservice,
 				BLEIDs.txCharacteristic,
@@ -90,49 +111,40 @@ sendCommand = async function (mediaState, command) {
 }
 
 exports.setTrack = async function (mediaState, mediaType, idx) {
-
-var service = "";
-var channelCharacteristic = "";
-var channelNo;
-var trackNo = parseInt(idx);
-
-if (mediaType == "Audio") {
-channelNo = [mediaState.audio.channels[trackNo].channelNo];
-}
-else if (mediaType == "Device") {
-channelNo = bin.stringToBytes(mediaState.device.devices[trackNo].deviceInfo);
-}
-else {
-channelNo = [mediaState.video.channels[trackNo].channelNo];
-}
+	// Remote channel numbers are 0..n, local app is 1..n;
+	if (idx > 0) {
+		var trackNo = parseInt(idx) - 1;
+	} else {
+		console.log("setTrack: invalid track number: " + idx);
+		return;
+	}
+	sendCommand(mediaType, channelNo);
 	return mediaState;
 }
 
 exports.onUpdateVolume = async function (volume, mediaState) {
-		return mediaState;
+	sendCommand("volume", volume);
+	return mediaState;
 };
 
 exports.readVolume = async function (mediaState) {
-		mediaState.audio.volume = 0;
 		return mediaState;
 };
 
 exports.onGTFO = async function (value, mediaState) {
-
+	sendCommand("gtfo", value);
 	mediaState = BLEIDs.BLELogger(mediaState, "BLE: GTFO submitted value: " + value, false);
 	return mediaState;
 };
 
 exports.onEnableMaster = async function (value, mediaState) {
-
-		return mediaState;
+	sendCommand("master", value);
+	return mediaState;
 };
 
 
 exports.readLocation = async function (mediaState) {
-
 		return mediaState;
-
 };
 
 
