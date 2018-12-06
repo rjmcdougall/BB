@@ -129,7 +129,7 @@ public class BBService extends Service {
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
     public BluetoothLEServer mBLEServer = null;
-    public BluetoothClassicServer mBluetoothClassicServer = null;
+    public BluetoothCommands mBluetoothCommands = null;
     public A2dpSink mA2dpSink = null;
     public BluetoothConnManager mBluetoothConnManager = null;
     private boolean mMasterRemote = false;
@@ -147,6 +147,8 @@ public class BBService extends Service {
     public String mIPAddress = null;
 
     TextToSpeech voice;
+
+
 
     private BBService.usbReceiver mUsbReceiver = new BBService.usbReceiver();
 
@@ -351,6 +353,7 @@ public class BBService extends Service {
         };
 
 
+
         HandlerThread mHandlerThread = null;
         mHandlerThread = new HandlerThread("BBServiceHandlerThread");
         mHandlerThread.start();
@@ -453,6 +456,21 @@ public class BBService extends Service {
         voice.shutdown();
     }
 
+    public boolean isMaster() {
+        return mMasterRemote;
+    }
+
+    public String getAPKUpdatedDate() {
+        return mAPKUpdatedDate.toString();
+    }
+
+    public String getVersion() {
+        return String.valueOf(mVersion);
+    }
+
+    public String getIPAddress() {
+        return mIPAddress;
+    }
 
     /**
      * Handle action Foo in the provided background thread with the provided
@@ -538,105 +556,11 @@ public class BBService extends Service {
             return;
         }
 
-        // Register getstate command on bluetooth server
-        mBLEServer.addCallback("getstate",
-                new BluetoothLEServer.BLECallback() {
-                    @Override
-                    public void onConnected(String clientId) {
-                        l("BBservice got media OnConnected");
-                    }
+        if (mBLEServer == null) {
+            l("startServices: null BLE object");
+            return;
+        }
 
-                    @Override
-                    public void onDisconnected(String clientId) {
-                        l("BBservice got media onDisconnected");
-                    }
-
-                    @Override
-                    public void OnAction(String clientId, BluetoothDevice device,
-                                         String command, JSONObject payload) {
-                        l("BBservice got getstate OnAction");
-
-                        String error = null;
-
-                        //String response = "got command <" + command + ">: " + payload;
-
-                        JSONObject response = new JSONObject();
-
-                        JSONObject media = dlManager.GetDataDirectory();
-                        if (media == null) {
-                            error = "Could not get media directory (null)";
-                        }
-                        if (media != null) {
-                            try {
-                                JSONArray audio = media.getJSONArray("audio");
-                                JSONArray video = media.getJSONArray("video");
-                                response.put("audio", audio);
-                                response.put("video", video);
-                            } catch (Exception e) {
-                                error = "Could not get media directory: " + e.getMessage();
-                            }
-                        }
-
-                        JSONArray boards = dlManager.GetDataBoards();
-                        if (boards == null) {
-                            error = "Could not get boards directory (null)";
-                        }
-                        if (boards != null) {
-                            try {
-                                response.put("boards", boards);
-                            } catch (Exception e) {
-                                error = "Could not get boards directory: " + e.getMessage();
-                            }
-                        }
-
-                        JSONArray btdevs = mBluetoothConnManager.getDeviceList();
-                        if (btdevs == null) {
-                            error = "Could not get bt devs (null)";
-                        }
-                        if (btdevs != null) {
-                            try {
-                                response.put("btdevices", btdevs);
-                            } catch (Exception e) {
-                                error = "Could not get btdevs: " + e.getMessage();
-                            }
-                        }
-
-                        JSONArray locations = null;
-                        try {
-                            locations = new JSONArray(mFindMyFriends.getBoardLocations(300));
-                        } catch (Exception e) {
-                            error = "Could not get bt locations (empty)";
-                        }
-                        if (locations == null) {
-                            error = "Could not get bt locations (null)";
-                        }
-                        if (locations != null) {
-                            try {
-                                response.put("locations", locations);
-                            } catch (Exception e) {
-                                error = "Could not get locations: " + e.getMessage();
-                            }
-                        }
-
-                        if (error != null) {
-                            try {
-                                response.put("error", error);
-                            } catch (Exception e) {
-                            }
-                        } else {
-                            try {
-                                response.put("error", "");
-                            } catch (Exception e) {
-                            }
-                        }
-                        // Send payload back to requesting device
-                        mBLEServer.tx(device, response.toString().getBytes());
-
-                        l("BBservice done getstate OnAction");
-
-                    }
-
-                });
         //mA2dpSink = new A2dpSink(this, mContext);
 
         mRadio = new RF(this, mContext);
@@ -657,6 +581,16 @@ public class BBService extends Service {
         }
 
         mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
+
+
+        mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
+                mBluetoothConnManager, mFindMyFriends);
+
+        if (mBluetoothCommands == null) {
+            l("startServices: null mBluetoothCommands object");
+            return;
+        }
+        mBluetoothCommands.init();
 
     }
 
@@ -1073,32 +1007,6 @@ public class BBService extends Service {
 
     }
 
-    public byte[] getAudioSyncStats() {
-        return new byte[] {1,2,3,4,5,6,7,8};
-    }
-
-    public byte[] getMasterStatus() {
-        byte[] masterStatus = {0};
-        masterStatus[0] = (byte)(mMasterRemote?1:0);
-        return  masterStatus;
-    }
-
-
-    public byte[] getAPKVersion() {
-
-         return String.valueOf(mVersion).getBytes();
-    }
-
-    public byte[] getIPAddress() {
-
-        return String.valueOf(mIPAddress).getBytes();
-    }
-
-    public byte[] getAPKUpdatedDate() {
-        String apkDate = String.valueOf(mAPKUpdatedDate);
-        l("apkdate: " + apkDate);
-        return apkDate.substring(0, Math.min(apkDate.length(), 16)).getBytes();
-    }
 
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;

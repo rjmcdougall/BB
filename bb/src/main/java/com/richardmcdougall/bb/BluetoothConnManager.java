@@ -20,6 +20,8 @@ import android.util.Log;
 import org.json.JSONArray;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -196,19 +198,51 @@ public class BluetoothConnManager {
         // TODO
     };
 
+	// Data structure we'll return in JSON to the app
+	public static class BluetoothDeviceEntry {
+		String name;
+		String address;
+		boolean paired;
 
+        private BluetoothDeviceEntry(
+                String name,
+                String address,
+				boolean paired) {
+            this.name = name;
+            this.address = address;
+            this.paired = paired;
+        }
+    }
+
+	// Create device list in JSON format for app use
     public JSONArray getDeviceList() {
+		HashMap<String, BluetoothDeviceEntry> deviceList = new HashMap<>();
+        for (String address: mPairedDevices.keySet()) {
+            BluetoothDevice device = mPairedDevices.get(address);
+            if (device != null) {
+                BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
+                        device.getAddress(), true);
+                deviceList.put(address, d);
+            }
+        }
+        for (String address: mNewDevices.keySet()) {
+            BluetoothDevice device = mPairedDevices.get(address);
+            if (device != null) {
+                BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
+                        device.getAddress(), false);
+                deviceList.put(address, d);
+            }
+        }
         JSONArray list = null;
         try {
-            list = new JSONArray(mNewDevices);
+            list = new JSONArray(deviceList.values());
         } catch (Exception e) {
+			l("Error creating device list");
+			return null;
         }
         return (list);
     }
 
-    public int getDeviceCount() {
-        return (mNewDevices.size() + mPairedDevices.size());
-    }
 
     // Get devices indexed starting at zero
     // First character is P or blank for pairing status

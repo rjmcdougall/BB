@@ -443,8 +443,9 @@ public class BluetoothLEServer {
                                              BluetoothGattDescriptor descriptor,
                                              boolean preparedWrite, boolean responseNeeded,
                                              int offset, byte[] value) {
+            Log.d(TAG, "Tx descriptor write " + descriptor.toString() + ", offset: " + offset + ", " + new String(value));
+
             if (CCCD.equals(descriptor.getUuid())) {
-                Log.d(TAG, "Tx descriptor write, offset: " + offset + ", " + new String(value));
                 byte[] returnValue;
                 if (mRegisteredDevices.contains(device)) {
                     returnValue = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
@@ -459,7 +460,7 @@ public class BluetoothLEServer {
                         0,
                         returnValue);
             } else {
-                l("Unknown descriptor read request");
+                l("Unknown descriptor write request");
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_FAILURE,
