@@ -16,14 +16,14 @@ export default class TrackController extends Component {
 
 		if (this.props.mediaType == "Audio") {
 			this.state = {
-				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-				selectedTrack: props.mediaState.state.audioChannelNo,
+				tracks: [{ localName: "loading..." }],
+				selectedTrack: 9999,//props.mediaState.state.audioChannelNo,
 			};
 		}
 		else if (this.props.mediaType == "Video") {
 			this.state = {
-				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-				selectedTrack: props.mediaState.state.videoChannelNo,
+				tracks: [{ localname: "loading..." }],
+				selectedTrack: 9999,// props.mediaState.state.videoChannelNo,
 			};
 		}
 	}
@@ -60,7 +60,8 @@ export default class TrackController extends Component {
 
 		//if (tracks.length > 1)
 	//		tracks = tracks.localName.slice(1, tracks.length);
-		console.log("hello");
+		console.log("TrackController: " + this.props.mediaType);
+		tracks.map((elem, index) => { console.log(index + ": " + (elem.algorithm?elem.algorithm:elem.localName))});
 
 		return (
 
@@ -96,7 +97,7 @@ export default class TrackController extends Component {
 							}}>
 
 							{tracks.map((elem, index) => (
-								<PickerItem label={elem.localName} value={index} key={index} />
+								<PickerItem label={elem.algorithm?elem.algorithm:elem.localName} value={index} key={index} />
 							))}
 
 						</Picker>

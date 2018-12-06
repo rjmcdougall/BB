@@ -28,8 +28,8 @@ var bEmptyMediaState = {
 	video: [{ localName: "loading..." }],
 	device: [{ name: "loading...", address: "loading...", isPaired: false, }],
     state: {
-		audioChannelNo: 0,
-		videoChannelNo: 0,
+		audioChannelNo: 9999,
+		videoChannelNo: 9999,
 		battery: 0,
 		audioMaster: 0,
 		APKUpdateDate: 0,

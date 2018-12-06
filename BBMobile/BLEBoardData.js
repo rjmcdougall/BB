@@ -40,34 +40,34 @@ exports.refreshMediaState = async function (mediaState) {
 	}
 };
 
+
+// Upload the JSON from the brain to the local mediaState
 exports.updateMediaState = function (mediaState, newMedia) {
 	if (newMedia.boards) {
+		console.log("updated boards");
 		mediaState.boards = newMedia.boards;
 	}
 	if (newMedia.video) {
+		console.log("updated video");
 		mediaState.video = newMedia.video;
 	}
 	if (newMedia.audio) {
+		console.log("updated audio");
 		mediaState.audio = newMedia.audio;
 	}
 	if (newMedia.state) {
+		console.log("updated state");
 		mediaState.state = newMedia.state;
 	}
 	if (newMedia.locations) {
+		console.log("updated locations");
 		mediaState.locations = newMedia.state;
 	}
 	if (newMedia.battery) {
+		console.log("updated battery");
 		mediaState.battery = newMedia.battery;
 	}
 	return mediaState
-}
-
-async function sleep(ms: number) {
-await _sleep(ms);
-}
-
-function _sleep(ms: number) {
-return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 exports.refreshDevices = async function (mediaState) {
@@ -75,13 +75,6 @@ exports.refreshDevices = async function (mediaState) {
 	mediaState = await this.loadDevices(mediaState);
 	return mediaState;
 };
-
-exports.getRemoteJson = async function (mediaState, command) {
-
-
-	return mediaState;
-};
-
 
 sendCommand = async function (mediaState, command, arg) {
 // Send request command
@@ -111,14 +104,8 @@ sendCommand = async function (mediaState, command, arg) {
 }
 
 exports.setTrack = async function (mediaState, mediaType, idx) {
-	// Remote channel numbers are 0..n, local app is 1..n;
-	if (idx > 0) {
-		var trackNo = parseInt(idx) - 1;
-	} else {
-		console.log("setTrack: invalid track number: " + idx);
-		return;
-	}
-	sendCommand(mediaType, channelNo);
+	// Remote channel numbers are 0..n
+	sendCommand(mediaType, idx);
 	return mediaState;
 }
 

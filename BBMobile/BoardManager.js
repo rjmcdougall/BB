@@ -463,9 +463,12 @@ export default class BoardManager extends Component {
 					console.log("BLE: Connecting to device: " + boardBleDevice.id);
 					try {
 						await BleManager.connect(boardBleDevice.id);
+						console.log("BLE: Connected");
+						await this.sleep(1000);
 						console.log("BLE: Retreiving services");
 						var svcs = await BleManager.retrieveServices(boardBleDevice.id);
 						console.log( "BLE: Retreived services:" + JSON.stringify(svcs));
+						await this.sleep(1000);
 						console.log( "BLE: Setting rx notifications ");
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
 						this.setNotificationRx(boardBleDevice.id);
