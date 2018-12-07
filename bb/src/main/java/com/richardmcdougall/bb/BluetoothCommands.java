@@ -20,20 +20,6 @@ public class BluetoothCommands {
     BluetoothLEServer mBLEServer;
     BluetoothConnManager mBluetoothConnManager;
     public FindMyFriends mFindMyFriends = null;
-
-
-    // Data structure we'll return in JSON to the app
-    public static class stateMessage {
-        int audioChannelNo;
-        int videoChannelNo;
-        int deviceNo;
-        int battery;
-        boolean audioMaster;
-        String APKUpdateDate;
-        String APKVersion;
-        String IPAddress;
-    }
-
     private Handler mHandler;
 
     public BluetoothCommands(BBService service, Context context, BluetoothLEServer ble,
@@ -54,23 +40,18 @@ public class BluetoothCommands {
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
-                        l("BBservice got media OnConnected");
                     }
 
                     @Override
                     public void onDisconnected(String clientId) {
-                        l("BBservice got media onDisconnected");
                     }
 
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        l("BBservice got getstate OnAction");
+                        l("BBservice got getall OnAction");
 
                         String error = null;
-
-                        //String response = "got command <" + command + ">: " + payload;
-
                         JSONObject response = new JSONObject();
 
                         try {
@@ -169,69 +150,63 @@ public class BluetoothCommands {
                         mBLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
-                        l("BBservice done getstate OnAction");
+                        l("BBservice done getall command");
 
                     }
 
                 });
 
-        // Register getstate command on bluetooth server
+        // Register Volume command on bluetooth server
         mBLEServer.addCallback("Volume",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
-                        l("BBservice got media OnConnected");
                     }
 
                     @Override
                     public void onDisconnected(String clientId) {
-                        l("BBservice got media onDisconnected");
                     }
 
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        l("BBservice got Volume OnAction");
+                        l("BBservice got Volume command");
                     }
                 });
 
-        // Register getstate command on bluetooth server
+        // Register Audio command on bluetooth server
         mBLEServer.addCallback("Audio",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
-                        l("BBservice got media OnConnected");
                     }
 
                     @Override
                     public void onDisconnected(String clientId) {
-                        l("BBservice got media onDisconnected");
                     }
 
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        l("BBservice got Audio OnAction");
+                        l("BBservice got Audio command");
                     }
                 });
 
-        // Register getstate command on bluetooth server
+        // Register Video command on bluetooth server
         mBLEServer.addCallback("Video",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
-                        l("BBservice got media OnConnected");
                     }
 
                     @Override
                     public void onDisconnected(String clientId) {
-                        l("BBservice got media onDisconnected");
                     }
 
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        l("BBservice got Video OnAction");
+                        l("BBservice got Video command");
                     }
                 });
     }
