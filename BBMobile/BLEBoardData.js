@@ -3,7 +3,10 @@ import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
 import { bin } from "charenc";
 import StateBuilder from "./StateBuilder";
+import Constants from "./Constants";
 import { stringToBytes } from 'convert-string';
+var AsyncLock = require('async-lock');
+var lock = new AsyncLock();
 
 exports.createMediaState = async function (peripheral) {
 	try {
@@ -76,30 +79,41 @@ exports.updateMediaState = function (mediaState, newMedia) {
 	return mediaState
 }
 
-sendCommand = async function (mediaState, command, arg) {
+
+
+sendCommand = function (mediaState, command, arg) {
 	// console.log("BLE: sendCommand: periperheral: " + JSON.stringify(mediaState.connectedPeripheral));
 	// Send request command
-	if (mediaState.connectedPeripheral) {
-		console.log("BLE: send command " + command + " " + arg + "on device " + mediaState.connectedPeripheral.id);
-		mediaState = BLEIDs.BLELogger(mediaState, "BLE: send command " + command + "on device " + mediaState.connectedPeripheral.id, false);
-		try {
-			const data = stringToBytes('{command:"' + command + '", arg:"' + arg + '"};\n');
-			await BleManager.write(mediaState.connectedPeripheral.id,
-				BLEIDs.UARTservice,
-				BLEIDs.txCharacteristic,
-				data, 
-				18); // MTU Size
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: successfully sent " + command, false);
+	if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
+		console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
+		mediaState = BLEIDs.BLELogger(mediaState, "BLE: send command " + command +   "on device " + mediaState.connectedPeripheral.id, false);
+		lock.acquire('send', function(done) {
+			 // async work
+			try {
+				const data = stringToBytes('{command:"' + command + '", arg:"' + arg + '"};\n');
+				BleManager.write(mediaState.connectedPeripheral.id,
+					BLEIDs.UARTservice,
+					BLEIDs.txCharacteristic,
+					data, 
+					18); // MTU Size
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: successfully sent " + command, false);
+			}
+			catch (error) {
+				console.log("BLE: send command " + command + " " + arg + " failed on device " + mediaState.connectedPeripheral.id);
+				mediaState.connectedPeripheral.connected = false;
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: getstate: " + error, true);
+			}
+			done();
+		}, function() {
+			// lock released
+			console.log("BLE: send command " + command + " " + arg + " done on device " + mediaState.connectedPeripheral.id);
 			return true;
-		}
-		catch (error) {
-			mediaState.connectedPeripheral.connected = false;
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: getstate: " + error, true);
-			return false;
-		}
+		});
 	}
-	else
+	else {
+		console.log("BLE: send command peripheral" + JSON.stringify(mediaState.connectedPeripheral.id));
 		return false;
+	}
 }
 
 exports.setTrack = async function (mediaState, mediaType, idx) {

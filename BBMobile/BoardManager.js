@@ -36,7 +36,6 @@ export default class BoardManager extends Component {
 			mediaState: StateBuilder.blankMediaState(),
 			locationState: "",
 			showScreen: Constants.MEDIA_MANAGEMENT,
-			discoveryState: Constants.DISCONNECTED,
 			automaticallyConnect: true,
 			backgroundLoop: null,
 			title: "Board Management",
@@ -185,6 +184,9 @@ export default class BoardManager extends Component {
 		}
 		} catch (error) {
 			console.log( "BLE:handleNewData error: " + error);
+			console.log( "BLE:handleNewData message: " + newMessage);
+			rxBuffers=[];
+			this.setState({ rxBuffers: rxBuffers });
 		}
 	}	
 
@@ -203,17 +205,18 @@ export default class BoardManager extends Component {
 		console.log("BoardManager: Disconnected from " + JSON.stringify(peripheral));
 		// Update state 
 		var boardBleDevices = this.state.boardBleDevices;
-		boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
-		if (boardBleDevice != null) {
-			boardBleDevice.connected = Constants.DISCONNECTED;
+		dev = this.state.boardBleDevices.get(peripheral);
+		if (dev != null) {
+			console.log("BoardManager: Disconnected from " + JSON.stringify(dev));
+			dev.connected = Constants.DISCONNECTED;
 		}
-		if (peripheral.name == this.state.boardName) {
+		if (peripheral == this.state.connectedPeripheral.id) {
+			console.log("BoardManager: our dev Disconnected from " + JSON.stringify(dev));
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
 			this.setState({
-			//connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+			//connectedPeripheral: dev,
 			mediaState: StateBuilder.blankMediaState(),
-			discoveryState: Constants.DISCONNECTED,
 			backgroundLoop: null,
 			});
 		}
@@ -257,7 +260,6 @@ export default class BoardManager extends Component {
 					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
-					discoveryState: Constants.DISCONNECTED,
 					//boardBleDevices: new Map(),
 					automaticallyConnect: automaticallyConnect,
 					backgroundLoop: null,
@@ -278,6 +280,7 @@ export default class BoardManager extends Component {
 
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
+		console.log("onSelectPeripheral " + JSON.stringify(peripheral));
 
 			if (peripheral.connected == Constants.CONNECTED) {
 				try {
@@ -306,7 +309,6 @@ export default class BoardManager extends Component {
 						mediaState: StateBuilder.blankMediaState(),
 						showScreen: Constants.MEDIA_MANAGEMENT,
 						boardName: boardName,
-						discoveryState: Constants.DISCONNECTED,
 						scanning: false,
 						backgroundLoop: null,
 					});
@@ -366,7 +368,6 @@ export default class BoardManager extends Component {
 				connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 				mediaState: StateBuilder.blankMediaState(),
 				showScreen: Constants.DISCOVER,
-				discoveryState: Constants.DISCONNECTED,
 				backgroundLoop: null,
 			});
 		}
@@ -457,7 +458,6 @@ export default class BoardManager extends Component {
 				});
 
 			if (this.state.automaticallyConnect) {
-				this.setState({ discoveryState: Constants.LOCATED });
 
 				// rmc add conn logic here
 				if (boardBleDevice.connected == Constants.DISCONNECTED) {
@@ -467,9 +467,10 @@ export default class BoardManager extends Component {
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 					await BleManager.stopScan();
 					console.log("BLE: Connecting to device: " + boardBleDevice.id);
+					let connstatus
 					try {
-						connected = await BleManager.connect(boardBleDevice.id);
-						console.log("BLE: Connected: " + connected);
+						connstatus = await BleManager.connect(boardBleDevice.id);
+						console.log("BLE: Connected: " + connstatus);
 						await this.sleep(1000);
 						console.log("BLE: Retreiving services");
 						var svcs = await BleManager.retrieveServices(boardBleDevice.id);
@@ -480,6 +481,9 @@ export default class BoardManager extends Component {
 						this.setNotificationRx(boardBleDevice.id);
 						// Sleep until it's done (guess)
 						await this.sleep(1000);
+						// Update status 
+						boardBleDevice.connected = Constants.CONNECTED;
+						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 						console.log( "BLE connectToPeripheral: Now go setup and read all the state ");
 						// Now go setup and read all the state for the first time
 						//var mediaState = await StateBuilder.createMediaState(boardBleDevice);
@@ -501,9 +505,6 @@ export default class BoardManager extends Component {
 						// Kick off a per-second location reader 
 						await this.readLocationLoop(this.state.mediaState);
 						console.log("BoardManager: Begin Background Location Loop");
-						// Update status 
-						boardBleDevice.connected = Constants.CONNECTED;
-						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 						this.setState({ mediaState: mediaState});
 					} catch (error) {
 						console.log( "BLE: Error connecting: " + error);
@@ -587,28 +588,38 @@ export default class BoardManager extends Component {
 		var enableControls = "none";
 		var connectionButtonText = "";
 		var boardName = "board";
+		
 		if (this.state.boardName)
 			boardName = this.state.boardName;
 
-		switch (this.state.discoveryState) {
-			case Constants.DISCONNECTED:
-				color = "#fff";
-				enableControls = "none";
-				connectionButtonText = "Connect to " + boardName;
-				break;
-			case Constants.LOCATED:
-				color = "yellow";
-				enableControls = "none";
-				connectionButtonText = "Located " + boardName;
-				break;
-			case Constants.CONNECTED:
-				if (!this.state.mediaState.isError)
-					color = "green";
-				else
-					color = "red";
-				enableControls = "auto";
-				connectionButtonText = "Connected To " + boardName;
-				break;
+		if (this.state.connectedPeripheral) {
+
+			connected = this.state.connectedPeripheral.connected;
+
+			if (!connected) {
+				connected = Constants.DISCONNECTED;
+			}
+
+			switch (connected) {
+				case Constants.DISCONNECTED:
+					color = "#fff";
+					enableControls = "none";
+					connectionButtonText = "Connect to " + boardName;
+					break;
+				case Constants.CONNECTING:
+					color = "yellow";
+					enableControls = "none";
+					connectionButtonText = "Located " + boardName;
+					break;
+				case Constants.CONNECTED:
+					if (!this.state.mediaState.isError)
+						color = "green";
+					else
+						color = "red";
+					enableControls = "auto";
+					connectionButtonText = "Connected To " + boardName;
+					break;
+			}
 		}
 
 		return (
