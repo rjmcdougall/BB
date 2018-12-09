@@ -7,9 +7,15 @@ import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
+
 import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
+
+import org.json.JSONArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -428,6 +434,31 @@ public class FindMyFriends {
     public List<boardLocation> getBoardLocations(int age) {
         List<boardLocation> list = new ArrayList<boardLocation>(mBoardLocations.values());
         return list;
+    }
+
+    // Create device list in JSON format for app use
+    public JSONArray getBoardLocationsJSON(int age) {
+        JsonArray list = null;
+        List<boardLocation> locs  = getBoardLocations(age);
+        try {
+            //list = new JSONArray(valuesList);
+            list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocation>>() {}.getType());
+        } catch (Exception e) {
+            l("Error creating device list");
+            return null;
+        }
+
+        JSONArray json = null;
+        try {
+            json = new JSONArray(list.toString());
+        } catch (Exception e)  {
+            l("Cannot convert devices to json: " + e.getMessage());
+        }
+
+        l("devJson1: " + list.toString());
+        l("devJson2: " + json.toString());
+
+        return (json);
     }
 
     public String getBoardColor(int address) {

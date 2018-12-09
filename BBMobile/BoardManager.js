@@ -32,7 +32,7 @@ export default class BoardManager extends Component {
 			scanning: false,
 			boardBleDevices: new Map(),
 			appState: "",
-			selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+			connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 			mediaState: StateBuilder.blankMediaState(),
 			locationState: "",
 			showScreen: Constants.MEDIA_MANAGEMENT,
@@ -157,11 +157,13 @@ export default class BoardManager extends Component {
 					rxBuffers.push(tmpDataBuffer);
 				}
 				newMessage = Buffer.concat(rxBuffers);
+				//console.log("New Message: " + newMessage);
 				var newState = JSON.parse(newMessage.toString('ascii'));
-				console.log("New Message: " + JSON.stringify(newState));
+				//console.log("New Message: " + JSON.stringify(newState));
 				// Setup the app-specific mediaState structure
 				this.setState({ mediaState: BLEBoardData.updateMediaState(this.state.mediaState, newState) });
 				rxBuffers=[];
+				this.setState({ rxBuffers: rxBuffers });
 				tmpData = Buffer.alloc(1024);
 				tmpDataLen = 0;
 			} else {
@@ -181,7 +183,6 @@ export default class BoardManager extends Component {
 				rxBuffers.push(tmpDataBuffer);
 			}
 		}
-		//this.setState({ rxBuffers: rxBuffers });
 		} catch (error) {
 			console.log( "BLE:handleNewData error: " + error);
 		}
@@ -210,7 +211,7 @@ export default class BoardManager extends Component {
 			if (this.state.backgroundLoop)
 				clearInterval(this.state.backgroundLoop);
 			this.setState({
-			selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+			//connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 			mediaState: StateBuilder.blankMediaState(),
 			discoveryState: Constants.DISCONNECTED,
 			backgroundLoop: null,
@@ -246,14 +247,14 @@ export default class BoardManager extends Component {
 
 				console.log("BoardManager: Clearing State: ");
 
-				if (this.state.selectedPeripheral)
-					if (this.state.selectedPeripheral.id != "12345") {
-						BleManager.disconnect(this.state.selectedPeripheral.id);
-						console.log("Disconnecting BLE From " + this.state.selectedPeripheral.name);
+				if (this.state.connectedPeripheral)
+					if (this.state.connectedPeripheral.id != "12345") {
+						BleManager.disconnect(this.state.connectedPeripheral.id);
+						console.log("Disconnecting BLE From " + this.state.connectedPeripheral.name);
 					}
 
 				this.setState({
-					selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
 					discoveryState: Constants.DISCONNECTED,
@@ -301,7 +302,7 @@ export default class BoardManager extends Component {
 						clearInterval(this.state.backgroundLoop);
 
 					this.setState({
-						selectedPeripheral: peripheral,
+						connectedPeripheral: peripheral,
 						mediaState: StateBuilder.blankMediaState(),
 						showScreen: Constants.MEDIA_MANAGEMENT,
 						boardName: boardName,
@@ -328,12 +329,17 @@ export default class BoardManager extends Component {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(value, this.state.mediaState) });
 	}
 	async onSelectAudioTrack(idx) {
+		console.log("onSelectAudioTrack " + idx + " " + JSON.stringify(this.state.mediaState.connectedPeripheral));
+		this.state.mediaState.state.audioChannelNo = idx;
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
 	}
 	async onSelectVideoTrack(idx) {
+		console.log("onSelectVideoTrack " + idx);
+		this.state.mediaState.state.videoChannelNo = idx;
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
 	}
 	async onSelectDevice(idx) {
+		console.log("onSelectDevice " + idx);
 		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
 	}
 	async onRefreshDevices() {
@@ -345,7 +351,7 @@ export default class BoardManager extends Component {
 		if (!this.state.scanning) {
 
 			try {
-				await BleManager.disconnect(this.state.selectedPeripheral.id);
+				await BleManager.disconnect(this.state.connectedPeripheral.id);
 			}
 			catch (error) {
 				console.log("BoardManager: Pressed Search For Boards: " + error);
@@ -357,7 +363,7 @@ export default class BoardManager extends Component {
 			this.setState({
 				//	boardBleDevices: new Map(),
 				appState: "",
-				selectedPeripheral: StateBuilder.blankMediaState().peripheral,
+				connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 				mediaState: StateBuilder.blankMediaState(),
 				showScreen: Constants.DISCOVER,
 				discoveryState: Constants.DISCONNECTED,
@@ -447,7 +453,7 @@ export default class BoardManager extends Component {
 			boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
 			try {
 				this.setState({
-					selectedPeripheral: boardBleDevice,
+					connectedPeripheral: boardBleDevice,
 				});
 
 			if (this.state.automaticallyConnect) {
@@ -462,8 +468,8 @@ export default class BoardManager extends Component {
 					await BleManager.stopScan();
 					console.log("BLE: Connecting to device: " + boardBleDevice.id);
 					try {
-						await BleManager.connect(boardBleDevice.id);
-						console.log("BLE: Connected");
+						connected = await BleManager.connect(boardBleDevice.id);
+						console.log("BLE: Connected: " + connected);
 						await this.sleep(1000);
 						console.log("BLE: Retreiving services");
 						var svcs = await BleManager.retrieveServices(boardBleDevice.id);
@@ -476,7 +482,8 @@ export default class BoardManager extends Component {
 						await this.sleep(1000);
 						console.log( "BLE connectToPeripheral: Now go setup and read all the state ");
 						// Now go setup and read all the state for the first time
-						var mediaState = await StateBuilder.createMediaState(boardBleDevice);
+						//var mediaState = await StateBuilder.createMediaState(boardBleDevice);
+						var mediaState = await BLEBoardData.createMediaState(boardBleDevice);
 	
 						/*	
 						var foundBoard = this.state.boardData.filter((board) => {
@@ -497,8 +504,10 @@ export default class BoardManager extends Component {
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+						this.setState({ mediaState: mediaState});
 					} catch (error) {
 						console.log( "BLE: Error connecting: " + error);
+						console.log( "BLE: Error connecting: bledevice = " + JSON.stringify(boardBleDevice));
 						// Update status 
 						boardBleDevice.connected = Constants.DISCONNECTED;
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);

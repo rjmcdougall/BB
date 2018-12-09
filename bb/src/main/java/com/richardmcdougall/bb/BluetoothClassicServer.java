@@ -31,7 +31,6 @@ public class BluetoothClassicServer {
     private Context mContext;
     private ConnectedThread mConnectedThread;
     private AcceptThread mSecureAcceptThread;
-
     private BluetoothAdapter mAdapter;
 
     // Name for the SDP record when creating server socket
@@ -52,7 +51,6 @@ public class BluetoothClassicServer {
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
-
 
     public BluetoothClassicServer(BBService bbservice, Context context) {
         mContext = context;

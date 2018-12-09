@@ -13,18 +13,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.ParcelUuid;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-
 /*
  * Setup Bluetooth services:
  *
@@ -214,12 +214,39 @@ public class BluetoothConnManager {
         }
     }
 
-	// Create device list in JSON format for app use
-    public JSONArray getDeviceList() {
+    // Create device list in JSON format for app use
+    public JSONArray getDeviceListJSON() {
+        JsonArray list = null;
+        HashMap<String, BluetoothDeviceEntry> dl = getDeviceList();
+        ArrayList<BluetoothDeviceEntry> valuesList = new ArrayList<BluetoothDeviceEntry>(dl.values());
+        try {
+            //list = new JSONArray(valuesList);
+            list = (JsonArray) new Gson().toJsonTree(valuesList, new TypeToken<ArrayList<BluetoothDeviceEntry>>() {}.getType());
+        } catch (Exception e) {
+            l("Error creating device list");
+            return null;
+        }
+
+        JSONArray json = null;
+        try {
+            json = new JSONArray(list.toString());
+        } catch (Exception e)  {
+            l("Cannot convert devices to json: " + e.getMessage());
+        }
+
+        l("devJson1: " + list.toString());
+        l("devJson2: " + json.toString());
+
+        return (json);
+    }
+
+    // Create device list
+    public HashMap<String, BluetoothDeviceEntry> getDeviceList() {
 		HashMap<String, BluetoothDeviceEntry> deviceList = new HashMap<>();
         for (String address: mPairedDevices.keySet()) {
             BluetoothDevice device = mPairedDevices.get(address);
             if (device != null) {
+                l("found paired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), true);
                 deviceList.put(address, d);
@@ -228,19 +255,27 @@ public class BluetoothConnManager {
         for (String address: mNewDevices.keySet()) {
             BluetoothDevice device = mPairedDevices.get(address);
             if (device != null) {
+                l("found unpaired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), false);
                 deviceList.put(address, d);
             }
         }
-        JSONArray list = null;
-        try {
-            list = new JSONArray(deviceList.values());
-        } catch (Exception e) {
-			l("Error creating device list");
-			return null;
+        return (deviceList);
+    }
+
+    public void togglePairDevice(String address) {
+        HashMap<String, BluetoothDeviceEntry> devices = getDeviceList();
+        BluetoothDeviceEntry device;
+        if ((device = devices.get(address)) != null) {
+            if (device.paired) {
+                l("unpairing " + address);
+                unpairDevice(address);
+            } else {
+                l("pairing " + address);
+                pairDevice(address);
+            }
         }
-        return (list);
     }
 
 

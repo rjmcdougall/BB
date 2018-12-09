@@ -17,18 +17,19 @@ export default class TrackController extends Component {
 		if (this.props.mediaType == "Audio") {
 			this.state = {
 				tracks: [{ localName: "loading..." }],
-				selectedTrack: 9999,//props.mediaState.state.audioChannelNo,
+				selectedTrack: props.mediaState.state.audioChannelNo,
 			};
 		}
 		else if (this.props.mediaType == "Video") {
 			this.state = {
 				tracks: [{ localname: "loading..." }],
-				selectedTrack: 9999,// props.mediaState.state.videoChannelNo,
+				selectedTrack: props.mediaState.state.videoChannelNo,
 			};
 		}
 	}
 
 	UNSAFE_componentWillReceiveProps(nextProps) {
+		//console.log("trackcontroller props: " + JSON.stringify(this.props.mediaState.connectedPeripheral));
 		if (this.props.mediaType == "Audio") {
 			this.setState({
 				selectedTrack: nextProps.mediaState.state.audioChannelNo
@@ -60,8 +61,8 @@ export default class TrackController extends Component {
 
 		//if (tracks.length > 1)
 	//		tracks = tracks.localName.slice(1, tracks.length);
-		console.log("TrackController: " + this.props.mediaType);
-		tracks.map((elem, index) => { console.log(index + ": " + (elem.algorithm?elem.algorithm:elem.localName))});
+		//console.log("TrackController: " + this.props.mediaType);
+		//tracks.map((elem, index) => { console.log(index + ": " + (elem.algorithm?elem.algorithm:elem.localName))});
 
 		return (
 
@@ -81,6 +82,7 @@ export default class TrackController extends Component {
 							selectedValue={this.state.selectedTrack}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (value) => {
+								//console.log("TrackController: onValueChange: " + value);
 
 								if (tracks[0] == "loading...") {
 									console.log("TrackController: dont call update if its a component load");

@@ -108,15 +108,7 @@ public class BluetoothLEServer {
         // Register for system Bluetooth events
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         //context.registerReceiver(mBluetoothReceiver, filter);
-        // Register to receive button messages
-        filter = new IntentFilter(BBService.ACTION_BB_VOLUME);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
-        filter = new IntentFilter(BBService.ACTION_BB_AUDIOCHANNEL);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
-        filter = new IntentFilter(BBService.ACTION_BB_VIDEOMODE);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
-        filter = new IntentFilter(BBService.ACTION_BB_LOCATION);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+
     }
 
 
@@ -175,32 +167,17 @@ public class BluetoothLEServer {
     private final HashMap<BluetoothDevice, ByteArrayOutputStream> mReceiveBuffers = new HashMap<>();
 
     public void tx(BluetoothDevice device, final byte[] data) {
-
         ByteArrayInputStream buffer = new ByteArrayInputStream(data);
         byte [] txBuf = new byte[20];
-
-        while (buffer.read(txBuf,0, 18) > 0) {
-            mTxCharacteristic.setValue(txBuf);
-            l("Notifying...");
+        int nBytes;
+        while ((nBytes = buffer.read(txBuf,0, 18)) > 0) {
+            byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
+            mTxCharacteristic.setValue(sendBuf);
+            //l("Notifying...");
             boolean status = mBluetoothGattServer.notifyCharacteristicChanged(device,
                     mTxCharacteristic, false);
-            l("notify: " + status);
+            //l("notify: " + status);
         }
-
-        /*
-        PipedOutputStream TxStream = mTransmitOutput.get(device);
-        l("Queuing write bytes " + new String(data));
-        l("Notifying...");
-        mTxCharacteristic.setValue("test");
-        boolean status = mBluetoothGattServer.notifyCharacteristicChanged(device,
-                mTxCharacteristic, false);
-        l("notify: " + status);
-        try {
-            TxStream.write(data);
-        } catch (Exception e) {
-            l("Error queuing write bytes " + new String(data));
-        }
-        */
     }
 
 
@@ -557,23 +534,6 @@ public class BluetoothLEServer {
                 mHandler.post(runnable);
             } else {
                 runnable.run();
-            }
-        }
-    };
-
-    // We use this to catch the board events
-    private final BroadcastReceiver mBBEventReciever = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            final String TAG = "mBBEventReciever";
-
-            String action = intent.getAction();
-
-            Log.d(TAG, "onReceive entered:" + action);
-
-            if (BBService.ACTION_BB_VOLUME.equals(action)) {
-                Log.d(TAG, "Got volume");
-                float volume = (float) intent.getSerializableExtra("volume");
-
             }
         }
     };

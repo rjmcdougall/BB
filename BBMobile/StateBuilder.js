@@ -18,7 +18,7 @@ var bEmptyUserPrefs = {
 };
 
 var bEmptyMediaState = {
-	peripheral: {
+	connectedPeripheral: {
 		name: "loading...",
 		id: "12345",
         connState: "DISCONNECTED",
@@ -30,6 +30,7 @@ var bEmptyMediaState = {
     state: {
 		audioChannelNo: 9999,
 		videoChannelNo: 9999,
+		volume: 0,
 		battery: 0,
 		audioMaster: 0,
 		APKUpdateDate: 0,
@@ -76,7 +77,7 @@ function mblankMediaState() {
 exports.createMediaState = async function (peripheral) {
 	try {
 		var mediaState = mblankMediaState();
-		mediaState.peripheral = peripheral;
+		mediaState.connectedPeripheral = peripheral;
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Getting BLE Data for " + peripheral.name, false);
 		mediaState = await BLEBoardData.refreshMediaState(mediaState);

@@ -752,7 +752,8 @@ public class BBService extends Service {
 
     public int getCurrentBoardVol() {
         int v = getAndroidVolumePercent();
-        return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
+        //return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
+        return (v); // dkw not sure what 127 is for.
     }
 
     public int getBoardVolumePercent() {

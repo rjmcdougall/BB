@@ -16,8 +16,10 @@ public class BurnerBoardUtil {
 
 
     /* Step one to make WiFi configurable is to pull out the strings */
-    public static final String WIFI_SSID = "burnerboard";
-    public static final String WIFI_PASS = "firetruck";
+//    public static final String WIFI_SSID = "burnerboard";
+//    public static final String WIFI_PASS = "firetruck";
+    public static final String WIFI_SSID = "GoogleGuest";
+    public static final String WIFI_PASS = "";
 
 
     // Known board types we have
