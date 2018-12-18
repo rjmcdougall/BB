@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "37A431AE2CCFF176F6099244601A23B2"
+               BlueprintIdentifier = "F12C0D0DBF4202F254F50BC3A0279187"
                BlueprintName = "yoga"
                ReferencedContainer = "container:Pods.xcodeproj"
                BuildableName = "libyoga.a">

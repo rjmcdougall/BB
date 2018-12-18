@@ -1,9 +1,9 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - BugsnagReactNative (2.10.2):
-    - BugsnagReactNative/Core (= 2.10.2)
+  - BugsnagReactNative (2.12.4):
+    - BugsnagReactNative/Core (= 2.12.4)
     - React
-  - BugsnagReactNative/Core (2.10.2):
+  - BugsnagReactNative/Core (2.12.4):
     - React
   - DoubleConversion (1.1.5)
   - Folly (2016.09.26.00):
@@ -34,11 +34,11 @@ PODS:
     - GoogleMaps/Base
   - React (0.54.4):
     - React/Core (= 0.54.4)
-  - react-native-google-maps (0.21.0):
+  - react-native-google-maps (0.22.1):
     - Google-Maps-iOS-Utils (= 2.1.0)
     - GoogleMaps (= 2.5.0)
     - React
-  - react-native-maps (0.21.0):
+  - react-native-maps (0.22.1):
     - React
   - React/Core (0.54.4):
     - yoga (= 0.54.4.React)
@@ -85,7 +85,7 @@ PODS:
     - React/Core
     - React/fishhook
     - React/RCTBlob
-  - RNVectorIcons (4.6.0):
+  - RNVectorIcons (6.1.0):
     - React
   - yoga (0.54.4.React)
 
@@ -115,7 +115,7 @@ DEPENDENCIES:
   - yoga (from `../node_modules/react-native/ReactCommon/yoga/yoga.podspec`)
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  https://github.com/cocoapods/specs.git:
     - boost-for-react-native
     - Google-Maps-iOS-Utils
     - GoogleMaps
@@ -149,11 +149,11 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: c32891ff472eaaa1fca032beedafa1a013af7875
   GoogleMaps: c087b8e5dfe87ca6ebf59adb9b4894a4146bec4f
   React: c237e42de9c70e5cac6eeb52b4cfd3a0910c1f00
-  react-native-google-maps: 2cfe3b01f8422c7dae51d8764139fd70f888cfce
+  react-native-google-maps: b946d62e25dc66097921ed82520e45b0b081768a
   react-native-maps: 066c2afcc89e18726377bcc685315f989ca22449
-  RNVectorIcons: c0dbfbf6068fefa240c37b0f71bd03b45dddac44
+  RNVectorIcons: 8c52e1e8da1153613fdef44748e865c25556cb9c
   yoga: 55da126afc384965b96bff46652464373b330add
 
 PODFILE CHECKSUM: 5326b9e92b437c02a0ad6d9c1e8b8ef42258bf00
 
-COCOAPODS: 1.5.0
+COCOAPODS: 1.5.3
