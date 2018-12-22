@@ -144,7 +144,7 @@
     <orderEntry type="library" name="Gradle: com.android.support:support-core-ui-25.2.0" level="project" />
     <orderEntry type="library" name="Gradle: com.facebook.fbui.textlayoutbuilder:staticlayout-proxy:1.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-v4-25.2.0" level="project" />
-    <orderEntry type="library" name="Gradle: com.facebook.react:react-native-0.54.4" level="project" />
+    <orderEntry type="library" name="Gradle: com.facebook.react:react-native-0.55.4" level="project" />
     <orderEntry type="library" name="Gradle: com.bugsnag:bugsnag-android-4.9.3" level="project" />
     <orderEntry type="library" name="Gradle: com.squareup.okhttp3:okhttp-urlconnection:3.6.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.gms:play-services-tasks-11.0.0" level="project" />
