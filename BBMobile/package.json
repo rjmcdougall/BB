@@ -28,7 +28,7 @@
     "react-native-cli": "^2.0.1",
     "react-native-flip-toggle-button": "^1.0.5",
     "react-native-fs": "^2.13.3",
-    "react-native-geolocation-service": "^1.1.0",
+    "react-native-geolocation-service": "2.0.0",
     "react-native-maps": "0.21.0",
     "react-native-modal-dropdown": "^0.6.2",
     "react-native-platform-touchable": "^1.1.1",
