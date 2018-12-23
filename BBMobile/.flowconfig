@@ -1,3 +1,21 @@
+Skip to content
+ 
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+ @danielkeithw Sign out
+55
+1,003 30 ncuillery/rn-diff
+ Code  Issues 8  Pull requests 0  Projects 0  Wiki  Insights
+rn-diff/RnDiffApp/.flowconfig
+d3d7619  on Sep 18
+@pvinis pvinis Output version 0.57.0 [MANUAL]
+@ncuillery @pvinis @ryankask
+      
+71 lines (54 sloc)  2.25 KB
 [ignore]
 ; We fork some components by platform
 .*/*[.]android.js
@@ -28,6 +46,9 @@ node_modules/react-native/flow-github/
 
 [options]
 emoji=true
+
+esproposal.optional_chaining=enable
+esproposal.nullish_coalescing=enable
 
 module.system=haste
 module.system.haste.use_name_reducers=true
@@ -64,4 +85,17 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 suppress_comment=\\(.\\|\n\\)*\\$FlowExpectedError
 
 [version]
-^0.75.0
+^0.78.0
+© 2018 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Press h to open a hovercard with more details.
