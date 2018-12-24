@@ -105,7 +105,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        ndk {
+          ndk {
             abiFilters "armeabi-v7a", "x86"
         }
     }
@@ -116,7 +116,7 @@ android {
             universalApk false  // If true, also generate a universal APK
             include "armeabi-v7a", "x86"
         }
-    }
+    }    
     buildTypes {
         release {
             minifyEnabled enableProguardInReleaseBuilds
@@ -139,13 +139,13 @@ android {
 }
 
 dependencies {
-    compile project(':bugsnag-react-native')
-    compile project(':react-native-geolocation-service')
-    compile project(':react-native-wheel-picker')
-    compile project(':react-native-vector-icons')
-    compile project(':react-native-maps')
-    compile project(':react-native-fs')
-    compile project(':react-native-ble-manager')
+    implementation project(':bugsnag-react-native')
+    implementation project(':react-native-geolocation-service')
+    implementation project(':react-native-wheel-picker')
+    implementation project(':react-native-vector-icons')
+    implementation project(':react-native-maps')
+    implementation project(':react-native-fs')
+    implementation project(':react-native-ble-manager')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation "com.facebook.react:react-native:+"  // From node_modules

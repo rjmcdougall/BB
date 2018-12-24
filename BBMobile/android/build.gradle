@@ -30,17 +30,16 @@ allprojects {
         }
         google()
     }
-}
-ext {
-    googlePlayServicesVersion = "11.0.0"
-}
-ext {
+    ext {
+        googlePlayServicesVersion = "11.0.0"
         buildToolsVersion = "27.0.3"
         minSdkVersion = 19
         compileSdkVersion = 27
         targetSdkVersion = 26
         supportLibVersion = "27.1.1"
+    }
 }
+
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.4'
