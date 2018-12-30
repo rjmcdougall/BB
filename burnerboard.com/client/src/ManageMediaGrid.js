@@ -308,7 +308,7 @@ class ManageMediaGrid extends React.Component {
     }
 
     isSelected(id) {
-        this.state.selected.indexOf(id) !== -1;
+        return this.state.selected.indexOf(id) !== -1;
     }
 
     async onDelete() {

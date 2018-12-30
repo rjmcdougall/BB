@@ -188,7 +188,7 @@ export default class BBApp extends Component {
 
 		this.reloadOnExpiration();
 
-		let newSelected = [id];
+		let newSelected = id;
 		this.setState({ profileSelected: newSelected });
 	}
 
