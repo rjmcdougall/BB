@@ -136,7 +136,7 @@ class GlobalMenu extends React.Component {
 							}
 						</MenuList>
 
-						{(this.props.profileNames.length > 0 || this.props.globalProfileNames > 0) ?
+						{(this.props.profileNames.length > 0 || this.props.globalProfileNames.length > 0) ?
 							<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
 								{
 									this.props.profileNames.map(item => {
