@@ -1,6 +1,6 @@
 const constants = require("./Constants");
-const BigQuery = require("@google-cloud/bigquery");
-const bigquery = BigQuery({
+const {BigQuery} = require("@google-cloud/bigquery");
+const bigquery = new BigQuery({
 	projectId: constants.PROJECT_ID
 });
 
