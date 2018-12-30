@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@google-cloud/bigquery": "^2.0.5",
-    "@google-cloud/datastore": "^1.4.1",
+    "@google-cloud/datastore": "^2.0.0",
     "@google-cloud/storage": "^1.7.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "~1.4.3",
