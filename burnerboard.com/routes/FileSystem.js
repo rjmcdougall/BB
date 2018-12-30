@@ -1,6 +1,6 @@
 const constants = require("./Constants");
-const Storage = require("@google-cloud/storage");
-const storage = Storage();
+const {Storage} = require("@google-cloud/storage");
+const storage = new Storage();
 const google = require("googleapis");
 const drive = google.drive("v2");
 const bucket = storage.bucket("burner-board");
