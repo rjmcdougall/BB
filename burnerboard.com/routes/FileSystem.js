@@ -411,8 +411,8 @@ exports.getDurationMP3 = async function (boardID, profileID) {
 				console.log("Successfully re-encoded audio.");
 				console.log(JSON.stringify(data));
 
-				var a = duration.split(":");
-				var seconds = (a[0] * 60 * 60) + (a[1] * 60) + (a[2]); 
+				var seconds = getSeconds(duration);
+
 				resolve(seconds);
 			})
 			.on("error", (err, stdout, stderr) => {
