@@ -214,14 +214,15 @@ export default class BBApp extends Component {
 			});
 
 			var data = await res.json();
-
+			console.log("data after post")
+			console.log(data)
 			var activeProfiles = [{
-				profile: data.profile,
-				isProfileGlobal: data.isProfileGlobal
+				profile: data[0].profile,
+				isProfileGlobal: data[0].isProfileGlobal
 			},
 			{
-				profile: data.profile2,
-				isProfileGlobal: data.isProfileGlobal2
+				profile: data[0].profile2,
+				isProfileGlobal: data[0].isProfileGlobal2
 			},
 			];
 
@@ -343,6 +344,9 @@ export default class BBApp extends Component {
 				isProfileGlobal: data[0].isProfileGlobal2
 			},
 			];
+
+			console.log("actie profiles")
+			console.log(activeProfiles)
 
 			//get a list of available profiles
 			API = "/boards/" + selectedBoard + "/profiles/";

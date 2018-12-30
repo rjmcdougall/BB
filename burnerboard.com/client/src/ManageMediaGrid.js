@@ -433,7 +433,7 @@ class ManageMediaGrid extends React.Component {
 ManageMediaGrid.propTypes = {
     classes: PropTypes.object.isRequired,
     currentBoard: PropTypes.string,
-    currentProfile: PropTypes.currentProfile,
+    currentProfile: PropTypes.string,
 };
 
 export default withStyles(styles)(ManageMediaGrid);
