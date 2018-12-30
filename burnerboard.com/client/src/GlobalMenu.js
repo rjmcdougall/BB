@@ -136,6 +136,7 @@ class GlobalMenu extends React.Component {
 							}
 						</MenuList>
 
+						{/* // || this.props.activeProfiles[1].profile === item.profile_name */}
 						{(this.props.profileNames.length > 0 || this.props.globalProfileNames.length > 0) ?
 							<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showProfiles: !this.state.showProfiles })}>Profiles</ListSubheader>} className={classes.list} >
 								{
@@ -144,7 +145,7 @@ class GlobalMenu extends React.Component {
 											key={"profile-" + item.profile_name}
 											selected={item.profile_name === this.props.currentProfile}
 											style={{ display: this.state.showProfiles ? "block" : "none" }} >
-											{((this.props.activeProfiles[0].profile === item.profile_name || this.props.activeProfiles[1].profile === item.profile_name)) ? <CheckCircle /> : ""}
+											{((this.props.activeProfiles[0].profile === item.profile_name)) ? <CheckCircle/> : ""}
 											&nbsp; {item.profile_name}
 										</MenuItem>);
 									})
@@ -157,7 +158,7 @@ class GlobalMenu extends React.Component {
 												key={"globalProfile-" + item.profile_name}
 												selected={item.profile_name === this.props.currentProfile}
 												style={{ display: this.state.showProfiles ? "block" : "none" }}>
-												{((this.props.activeProfiles[0].profile === item.profile_name || this.props.activeProfiles[1].profile === item.profile_name)) ? <CheckCircle /> : ""}
+												{((this.props.activeProfiles[0].profile === item.profile_name )) ? <CheckCircle /> : ""}
 												&nbsp; {item.profile_name} &nbsp;<MenuGlobal />
 											</MenuItem>);
 									})

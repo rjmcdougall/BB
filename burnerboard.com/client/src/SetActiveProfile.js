@@ -39,11 +39,12 @@ class SetActiveProfile extends React.Component {
 	}
 
 	profileToDeactivate() {
-		if (this.props.activeProfiles[0].profile == null) {
-			return this.props.activeProfiles[0].profile;
+		if (this.props.activeProfiles[1].profile == null) {
+			return "nothing"
 		}
 		else {
-			return this.props.activeProfiles[1].profile;
+			return this.props.activeProfiles[0].profile;
+			//return this.props.activeProfiles[1].profile;
 		}
 
 	}

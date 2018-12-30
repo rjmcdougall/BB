@@ -13,14 +13,13 @@ exports.activateBoardProfile = async function (boardID, profileID, isProfileGlob
 	try {
 		var results = await datastore.runQuery(boardQuery);
 
-		if(!profileID || profileID == ""){
-			results[0][0].profile = profileID;
-			results[0][0].isProfileGlobal = isProfileGlobal;
-		}
-		else {
-			results[0][0].profile2 = profileID;
-			results[0][0].isProfileGlobal2 = isProfileGlobal;	
-		}
+		// set profile 1 to profile 2
+		results[0][0].profile2 = results[0][0].profile;
+		results[0][0].isProfileGlobal2 = results[0][0].isProfileGlobal;	
+
+		// set new profile to profile 1
+		results[0][0].profile = profileID;
+		results[0][0].isProfileGlobal = isProfileGlobal;
 
 		await datastore.update(results[0]);
 		return results[0];
