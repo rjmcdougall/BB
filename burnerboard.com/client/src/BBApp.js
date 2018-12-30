@@ -412,15 +412,15 @@ export default class BBApp extends Component {
 				break;
 			case "AppBody-ReorderAudio":
 				if (this.state.currentProfileIsGlobal)
-					appBody = <MediaList mediaType="audio" currentProfile={this.state.currentProfile} />;
+					appBody = <MediaList key="audio1" mediaType="audio" currentProfile={this.state.currentProfile} />;
 				else
-					appBody = <MediaList mediaType="audio" currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+					appBody = <MediaList key="audio2" mediaType="audio" currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
 				break;
 			case "AppBody-ReorderVideo":
 				if (this.state.currentProfileIsGlobal)
-					appBody = <MediaList mediaType="video" currentProfile={this.state.currentProfile} />;
+					appBody = <MediaList key="video1" mediaType="video" currentProfile={this.state.currentProfile} />;
 				else
-					appBody = <MediaList mediaType="video" currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
+					appBody = <MediaList key="video2" mediaType="video" currentBoard={this.state.currentBoard} currentProfile={this.state.currentProfile} />;
 				break;
 			case "AppBody-LoadFromGDrive":
 				if (this.state.currentProfileIsGlobal)
