@@ -3,19 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "ajv": "^6.6.2",
     "load-script": "^1.0.0",
     "material-ui": "^1.0.0-beta.29",
     "material-ui-icons": "^1.0.0-beta.36",
-    "pondjs": "^0.8.8",
-    "react": "^16.3.2",
+    "pondjs": "^0.8.9",
+    "react": "^16.7.0",
     "react-beautiful-dnd": "^3.0.0",
     "react-center": "^1.1.1",
-    "react-dom": "^16.3.2",
+    "react-dom": "^16.7.0",
     "react-google-login": "^3.2.1",
-    "react-https-redirect": "^1.0.10",
+    "react-https-redirect": "^1.0.11",
     "react-scripts": "^1.1.4",
-    "react-spinners": "^0.2.5",
-    "react-timeseries-charts": "^0.13.1"
+    "react-spinners": "^0.4.8",
+    "react-timeseries-charts": "^0.15.5"
   },
   "scripts": {
     "start": "react-scripts start",
