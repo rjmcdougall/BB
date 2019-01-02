@@ -1,7 +1,7 @@
 const constants = require("./Constants");
-const {Storage} = require("@google-cloud/storage");
+const { Storage } = require("@google-cloud/storage");
 const storage = new Storage();
-const google = require("googleapis");
+const { google } = require('googleapis');
 const drive = google.drive("v2");
 const bucket = storage.bucket("burner-board");
 const ffmpegPath = require("ffmpeg-static").path;
@@ -38,9 +38,9 @@ exports.getGDriveMetadata = async function (fileId, oauthToken) {
 				return reject(err);
 			else {
 				fileAttributes = {
-					fileSize: parseInt(jsonContent.fileSize),
-					mimeType: jsonContent.mimeType,
-					title: jsonContent.title,
+					fileSize: parseInt(jsonContent.data.fileSize),
+					mimeType: jsonContent.data.mimeType,
+					title: jsonContent.data.title,
 					songDuration: 0,
 				};
 				resolve();
@@ -60,12 +60,12 @@ exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken
 			fileId: fileId,
 			"access_token": oauthToken,
 			alt: "media"
-		}, { encoding: null }, function (err, content) {
+		}, { responseType: 'stream' }, function (err, content) {
 
 			if (err)
 				return reject(err);
 			else {
-				// now get the real file and save it.
+
 				var filePath = module.filePath(boardID, profileID);
 
 				var file3 = bucket.file(filePath);
@@ -80,8 +80,13 @@ exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken
 					.on("finish", () => {
 						file3.makePublic();
 						return resolve();
+					});
+
+				content.data
+					.on('error', err => {
+						return reject(err);
 					})
-					.end(content);
+					.pipe(fileStream3);
 			}
 		});
 	});
@@ -115,7 +120,7 @@ exports.addGDriveFile = async function (boardID, profileID, fileId, oauthToken) 
 		await this.getDriveContent(boardID, profileID, fileId, oauthToken);
 
 		// duration is jacked.  two different approaches.
-		if(filePath.endsWith(".mp4") || filePath.endsWith(".m4a"))
+		if (filePath.endsWith(".mp4") || filePath.endsWith(".m4a"))
 			fileAttributes.songDuration = Math.floor(await this.getDurationMP4(boardID, profileID));
 		else // mp3
 			fileAttributes.songDuration = Math.floor(await this.getDurationMP3(boardID, profileID));
@@ -381,7 +386,7 @@ exports.getDurationMP4 = async function (boardID, profileID, fileName) {
 
 exports.getDurationMP3 = async function (boardID, profileID) {
 
-	var duration = 0;  
+	var duration = 0;
 	var filePath = this.filePath(boardID, profileID);
 
 	var file = bucket.file(filePath);
@@ -421,6 +426,6 @@ exports.getDurationMP3 = async function (boardID, profileID) {
 				console.error("stderr:", stderr);
 				reject(err);
 			})
-			.pipe(remoteWriteStream, { end: true });  
+			.pipe(remoteWriteStream, { end: true });
 	});
 };
