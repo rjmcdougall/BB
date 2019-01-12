@@ -22,15 +22,15 @@ export default class VolumeController extends React.Component {
 
 				}}>
 					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>Volume</Text></View>
-					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>{this.props.mediaState.audio.volume}</Text></View>
+					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>{this.props.mediaState.state.volume}</Text></View>
 				</View>
 				<View style={{ flex: 1, height: 40, margin: 20 }}>
-					<Slider value={this.props.mediaState.audio.volume}
+					<Slider value={this.props.mediaState.state.volume}
 						trackStyle={StyleSheet.sliderTrack}
 						thumbStyle={StyleSheet.sliderThumb}
 						minimumTrackTintColor="blue"
 						onSlidingComplete={async (value) => {
-							try { 
+							try {
 								await this.onUpdateVolume(value);
 							}
 							catch (error) {

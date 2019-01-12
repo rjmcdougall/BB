@@ -32,7 +32,7 @@ export default class AdminManagement extends Component {
 		var masterText;
 		var backgroundColor;
 
-		if (this.props.mediaState.audioMaster == 0) {
+		if (this.props.mediaState.state.audioMaster == 0) {
 			masterText = "Enable Master";
 			backgroundColor = "skyblue";
 		}
@@ -60,7 +60,7 @@ export default class AdminManagement extends Component {
 						<Touchable
 							onPress={async () => {
 
-								if (this.props.mediaState.audioMaster == 0)
+								if (this.props.mediaState.state.audioMaster == 0)
 									this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.props.mediaState) });
 								else
 									this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.props.mediaState) });

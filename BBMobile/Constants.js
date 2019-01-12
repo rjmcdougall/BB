@@ -2,6 +2,7 @@
 exports.DISCONNECTED = "Disconnected";
 exports.LOCATED = "Located";
 exports.CONNECTED = "Connected";
+exports.CONNECTING = "Connecting";
 
 // The Screens
 exports.DISCOVER = "Discover";

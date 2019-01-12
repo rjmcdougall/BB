@@ -7,49 +7,62 @@ import StyleSheet from "./StyleSheet";
 
 var PickerItem = Picker.Item;
 
+
+
+
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
 
 		if (this.props.mediaType == "Audio") {
 			this.state = {
-				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-				selectedTrack: props.mediaState.audio.channelNo,
+				tracks: [{ localName: "loading..." }],
+				selectedTrack: props.mediaState.state.audioChannelNo,
 			};
 		}
 		else if (this.props.mediaType == "Video") {
 			this.state = {
-				tracks: [null, { channelNo: 1, channelInfo: "loading..." }],
-				selectedTrack: props.mediaState.video.channelNo,
+				tracks: [{ localname: "loading..." }],
+				selectedTrack: props.mediaState.state.videoChannelNo,
 			};
 		}
-
-
 	}
 
 	UNSAFE_componentWillReceiveProps(nextProps) {
+		//console.log("trackcontroller props: " + JSON.stringify(this.props.mediaState.connectedPeripheral));
 		if (this.props.mediaType == "Audio") {
 			this.setState({
-				selectedTrack: nextProps.mediaState.audio.channelNo
+				selectedTrack: nextProps.mediaState.state.audioChannelNo
 			});
 		}
 		else if (this.props.mediaType == "Video") {
 			this.setState({
-				selectedTrack: nextProps.mediaState.video.channelNo
+				selectedTrack: nextProps.mediaState.state.videoChannelNo
 			});
 		}
+	}
+
+	findTrackNo(tracks, val) {
+		return tracks.find(function (item, i) {
+			if (item.localName === val) {
+				index = i;
+				return i;
+			}
+		});
 	}
 
 	render() {
 		var tracks = null;
 
 		if (this.props.mediaType == "Audio")
-			tracks = this.props.mediaState.audio.channels;
+			tracks = this.props.mediaState.audio;
 		else if (this.props.mediaType == "Video")
-			tracks = this.props.mediaState.video.channels;
+			tracks = this.props.mediaState.video;
 
-		if (tracks.length > 1)
-			tracks = tracks.slice(1, tracks.length);
+		//if (tracks.length > 1)
+		//		tracks = tracks.localName.slice(1, tracks.length);
+		//console.log("TrackController: " + this.props.mediaType);
+		//tracks.map((elem, index) => { console.log(index + ": " + (elem.algorithm?elem.algorithm:elem.localName))});
 
 		return (
 
@@ -69,6 +82,7 @@ export default class TrackController extends Component {
 							selectedValue={this.state.selectedTrack}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (value) => {
+								//console.log("TrackController: onValueChange: " + value);
 
 								if (tracks[0] == "loading...") {
 									console.log("TrackController: dont call update if its a component load");
@@ -84,8 +98,8 @@ export default class TrackController extends Component {
 
 							}}>
 
-							{tracks.map((track) => (
-								<PickerItem label={track.channelInfo} value={track.channelNo} key={track.channelNo} />
+							{tracks.map((elem, index) => (
+								<PickerItem label={elem.algorithm ? elem.algorithm : elem.localName} value={index} key={index} />
 							))}
 
 						</Picker>

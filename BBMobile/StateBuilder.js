@@ -18,33 +18,25 @@ var bEmptyUserPrefs = {
 };
 
 var bEmptyMediaState = {
-	peripheral: {
+	connectedPeripheral: {
 		name: "loading...",
 		id: "12345",
-		connected: false,
+		connState: "DISCONNECTED",
 	},
-	audio: {
-		channelNo: 1,
-		maxChannel: 1,
+	//audio: [null, { channelNo: 1, channelInfo: "loading..." }],
+	audio: [{ localName: "loading..." }],
+	video: [{ localName: "loading..." }],
+	device: [{ name: "loading...", address: "loading...", isPaired: false, }],
+	state: {
+		audioChannelNo: 9999,
+		videoChannelNo: 9999,
 		volume: 0,
-		channels:
-			[null, { channelNo: 1, channelInfo: "loading..." }]
+		battery: 0,
+		audioMaster: 0,
+		APKUpdateDate: 0,
+		APKVersion: 0,
+		IPAddress: "0.0.0.0",
 	},
-	video: {
-		channelNo: 1,
-		maxChannel: 1,
-		channels: [null, { channelNo: 1, channelInfo: "loading..." }]
-	},
-	device: {
-		deviceNo: 1,
-		maxDevice: 1,
-		devices: [{ deviceNo: 1, deviceInfo: "loading...", deviceLabel: "loading...", isPaired: false, }]
-	},
-	battery: 0,
-	audioMaster: 0,
-	APKUpdateDate: 0,
-	APKVersion: 0,
-	IPAddress: "0.0.0.0",
 	region: {
 		latitude: 37.78825,
 		longitude: -122.4324,
@@ -85,10 +77,11 @@ function mblankMediaState() {
 exports.createMediaState = async function (peripheral) {
 	try {
 		var mediaState = mblankMediaState();
-		mediaState.peripheral = peripheral;
+		mediaState.connectedPeripheral = peripheral;
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Getting BLE Data for " + peripheral.name, false);
 		mediaState = await BLEBoardData.refreshMediaState(mediaState);
+		//mediaState = await BLEBoardData.createMediaState(mediaState);
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Gettig Boards Data from API ", false);
 		mediaState = getBoardsInternal(mediaState); // don't wait!
@@ -114,11 +107,11 @@ async function getBoardsInternal(mediaState) {
 exports.getBoards = async function () {
 	try {
 		var boards = null;
- 
+
 		boards = await BBComAPIData.fetchBoards();
 
 		console.log(boards);
-		
+
 		if (boards) {
 			await FileSystemConfig.setBoards(boards);
 		}
@@ -185,7 +178,7 @@ function checkPhoneLocation() {
 			(error) => {
 				reject(error);
 			},
-			{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }, );
+			{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 });
 	});
 }
 
