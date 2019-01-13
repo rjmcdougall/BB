@@ -1,18 +1,2 @@
-runtime: nodejs
-env: flex
-
-manual_scaling:
-  instances: 1
-
-resources:
-  cpu: .5
-  memory_gb: 0.9
-  disk_size_gb: 10
-
-liveness_check:
-  check_interval_sec: 200
-
-env_variables:
-
-#  GCLOUD_STORAGE_BUCKET: 'burner-board'
-#  GCLOUD_PROJECT: "burner-board"
+runtime: nodejs10 # For Node.js 8, use runtime: nodejs8
+instance_class: F4_1G
