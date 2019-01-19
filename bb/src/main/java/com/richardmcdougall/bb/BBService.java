@@ -24,6 +24,7 @@ import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -40,6 +41,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
 import java.net.InetAddress;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
 
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -51,11 +54,17 @@ import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import no.nordicsemi.android.log.LogSession;
+import no.nordicsemi.android.log.Logger;
+
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
 
-    public static final boolean debug = false;
+    public static final boolean debug = true;
 
     private static final String TAG = "BB.BBService";
 
@@ -120,8 +129,9 @@ public class BBService extends Service {
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
     public BluetoothLEServer mBLEServer = null;
+    public BluetoothCommands mBluetoothCommands = null;
     public A2dpSink mA2dpSink = null;
-    public BluetoothRemote mBluetoothRemote = null;
+    public BluetoothConnManager mBluetoothConnManager = null;
     private boolean mMasterRemote = false;
     private boolean mVoiceAnnouncements = false;
     public final String cpuType = Build.BOARD;
@@ -137,6 +147,8 @@ public class BBService extends Service {
     public String mIPAddress = null;
 
     TextToSpeech voice;
+
+
 
     private BBService.usbReceiver mUsbReceiver = new BBService.usbReceiver();
 
@@ -341,6 +353,7 @@ public class BBService extends Service {
         };
 
 
+
         HandlerThread mHandlerThread = null;
         mHandlerThread = new HandlerThread("BBServiceHandlerThread");
         mHandlerThread.start();
@@ -443,6 +456,21 @@ public class BBService extends Service {
         voice.shutdown();
     }
 
+    public boolean isMaster() {
+        return mMasterRemote;
+    }
+
+    public String getAPKUpdatedDate() {
+        return mAPKUpdatedDate.toString();
+    }
+
+    public String getVersion() {
+        return String.valueOf(mVersion);
+    }
+
+    public String getIPAddress() {
+        return mIPAddress;
+    }
 
     /**
      * Handle action Foo in the provided background thread with the provided
@@ -508,27 +536,34 @@ public class BBService extends Service {
             return;
         }
 
-        mBluetoothRemote = new BluetoothRemote(this, mContext);
-        if (mBluetoothRemote == null) {
-            l("startServices: null BluetoothRemote object");
+        // Start the manager for bluetooth discovery/pairing/etc,...
+
+        mBluetoothConnManager = new BluetoothConnManager(this, mContext);
+        if (mBluetoothConnManager == null) {
+            l("startServices: null BluetoothConnManager object");
             return;
         }
+
+
         mBLEServer = new BluetoothLEServer(this, mContext);
+        if (mBLEServer == null) {
+            l("startServices: null BLE object");
+            return;
+        }
 
         if (mBLEServer == null) {
             l("startServices: null BLE object");
             return;
         }
 
-        mA2dpSink = new A2dpSink(this, mContext);
-
         if (mBLEServer == null) {
             l("startServices: null BLE object");
             return;
         }
+
+        //mA2dpSink = new A2dpSink(this, mContext);
 
         mRadio = new RF(this, mContext);
-
         if (mRadio == null) {
             l("startServices: null RF object");
             return;
@@ -546,6 +581,16 @@ public class BBService extends Service {
         }
 
         mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
+
+
+        mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
+                mBluetoothConnManager, mFindMyFriends);
+
+        if (mBluetoothCommands == null) {
+            l("startServices: null mBluetoothCommands object");
+            return;
+        }
+        mBluetoothCommands.init();
 
     }
 
@@ -707,7 +752,8 @@ public class BBService extends Service {
 
     public int getCurrentBoardVol() {
         int v = getAndroidVolumePercent();
-        return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
+        //return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
+        return (v); // dkw not sure what 127 is for.
     }
 
     public int getBoardVolumePercent() {
@@ -962,32 +1008,6 @@ public class BBService extends Service {
 
     }
 
-    public byte[] getAudioSyncStats() {
-        return new byte[] {1,2,3,4,5,6,7,8};
-    }
-
-    public byte[] getMasterStatus() {
-        byte[] masterStatus = {0};
-        masterStatus[0] = (byte)(mMasterRemote?1:0);
-        return  masterStatus;
-    }
-
-
-    public byte[] getAPKVersion() {
-
-         return String.valueOf(mVersion).getBytes();
-    }
-
-    public byte[] getIPAddress() {
-
-        return String.valueOf(mIPAddress).getBytes();
-    }
-
-    public byte[] getAPKUpdatedDate() {
-        String apkDate = String.valueOf(mAPKUpdatedDate);
-        l("apkdate: " + apkDate);
-        return apkDate.substring(0, Math.min(apkDate.length(), 16)).getBytes();
-    }
 
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;
@@ -1596,7 +1616,7 @@ public class BBService extends Service {
     private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
 
     private void checkBattery() {
-        if (mBurnerBoard != null) {
+        if ((mBurnerBoard != null) && (mBoardVisualization != null)) {
 
             boolean announce = false;
             powerStates powerState = powerStates.STATE_DISPLAYING;
