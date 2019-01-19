@@ -801,27 +801,27 @@ public class BurnerBoardClassic extends BurnerBoard {
                 rowPixels[4]= 0;
                 rowPixels[4]= 33;
                 */
-            setRow(y, rowPixels);
-            //update();
-        }
-
-
-        for (int x = 0; x < kOtherLights; x++) {
-            int[] otherPixels = new int[mBoardSideLights * 3];
-            for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
-                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
-                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
-                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_GREEN)] =
-                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)];
-                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_BLUE)] =
-                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)];
+                setRow(y, rowPixels);
+                //update();
             }
-            setOtherlight(x, otherPixels);
+
+
+            for (int x = 0; x < kOtherLights; x++) {
+                int[] otherPixels = new int[mBoardSideLights * 3];
+                for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
+                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
+                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_GREEN)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)];
+                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_BLUE)] =
+                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)];
+                }
+                setOtherlight(x, otherPixels);
+            }
+            setOtherlightsAutomatically();
+            update();
+            flush2Board();
+
         }
-        setOtherlightsAutomatically();
-        update();
-        flush2Board();
-
     }
-
 }
