@@ -84,7 +84,7 @@ public class BluetoothConnManager {
         // Register for broadcasts when discovery has finished
         mBBService.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
 
-        enableDiscoverable();
+      //  enableDiscoverable();
         //discoverDevices();
     }
 
