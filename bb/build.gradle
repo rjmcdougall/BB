@@ -81,6 +81,8 @@ dependencies {
     implementation 'eu.chainfire:libsuperuser:1.0.0.+'
     implementation 'net.sf.marineapi:marineapi:0.10.0'
     compileOnly 'com.google.android.things:androidthings:+'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'no.nordicsemi.android:log-timber:2.2.0'
 }
 
 
