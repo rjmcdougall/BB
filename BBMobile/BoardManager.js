@@ -202,7 +202,6 @@ export default class BoardManager extends Component {
 		let peripheral = data.peripheral;
 		console.log("BoardManager: Disconnected from " + JSON.stringify(peripheral));
 		// Update state 
-		var boardBleDevices = this.state.boardBleDevices;
 		dev = this.state.boardBleDevices.get(peripheral);
 		if (dev != null) {
 			console.log("BoardManager: Disconnected from " + JSON.stringify(dev));
@@ -258,7 +257,7 @@ export default class BoardManager extends Component {
 					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
-					//boardBleDevices: new Map(),
+					boardBleDevices: new Map(),
 					automaticallyConnect: automaticallyConnect,
 					backgroundLoop: null,
 				});
@@ -313,7 +312,6 @@ export default class BoardManager extends Component {
 
 					await this.startScan(true);
 
-					//await this.startScan(true);
 				}
 				catch (error) {
 					console.log("BoardManager: Connection error", error);
@@ -370,44 +368,9 @@ export default class BoardManager extends Component {
 			});
 		}
 	}
-
-	// async checkForDuplicatePeripherals(peripheral) {
-
-	// 	if (this.state.boardBleDevices) {
-	// 		var boardBleDevices = this.state.boardBleDevices;
-
-	// 		var peripheralArray = Array.from(boardBleDevices.values());
-	// 		var boardToDelete;
-
-	// 		peripheralArray.filter((board) => {
-	// 			if(board.name!=peripheral.name)
-	// 				return true
-	// 			var boardsWithDuplicates = peripheralArray2.filter((board2) => {
-	// 				if (board.name == board2.name && board.id != board2.id) {
-	// 					return true;
-	// 				}
-	// 			});
-	// 			if (boardsWithDuplicates.length > 0) { 
-	// 				if(boardsWithDuplicates[0].rssi < board.rssi) {
-	// 					boardToDelete = boardsWithDuplicates[0];
-	// 				}
-	// 				else {
-	// 					boardToDelete = board;
-	// 				}
-	// 			}
-	// 		});
-	// 	}
-
-	// 	if(boardToDelete){
-	// 		boardBleDevices.delete(boardToDelete.id);
-	// 		this.setState({periperals: boardBleDevices});
-	// 		console.log("I DELETED " + boardToDelete.name + " " + boardToDelete.id)
-	// 	}
-	// }
-
+ 
 	async handleDiscoverPeripheral(peripheral) {
 		try {
-
 
 			// update the list of boardBleDevices for the board picker.
 			var boardBleDevices = this.state.boardBleDevices;
@@ -463,16 +426,13 @@ export default class BoardManager extends Component {
 					// Update status 
 					boardBleDevice.connected = Constants.CONNECTING;
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
-					await BleManager.stopScan();
 					console.log("BLE: Connecting to device: " + boardBleDevice.id);
-					let connstatus
+
 					try {
-						connstatus = await BleManager.connect(boardBleDevice.id);
-						console.log("BLE: Connected: " + connstatus);
+						await BleManager.connect(boardBleDevice.id);
 						await this.sleep(1000);
 						console.log("BLE: Retreiving services");
-						var svcs = await BleManager.retrieveServices(boardBleDevice.id);
-						console.log("BLE: Retreived services:" + JSON.stringify(svcs));
+						await BleManager.retrieveServices(boardBleDevice.id);
 						await this.sleep(1000);
 						console.log("BLE: Setting rx notifications ");
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
@@ -484,7 +444,6 @@ export default class BoardManager extends Component {
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 						console.log("BLE connectToPeripheral: Now go setup and read all the state ");
 						// Now go setup and read all the state for the first time
-						//var mediaState = await StateBuilder.createMediaState(boardBleDevice);
 						var mediaState = await BLEBoardData.createMediaState(boardBleDevice);
 
 						/*	
