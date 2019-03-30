@@ -155,7 +155,7 @@ export default class BoardManager extends Component {
 					}
 					newMessage = Buffer.concat(rxBuffers);
 					var newState = JSON.parse(newMessage.toString('ascii'));
-					
+
 					// Setup the app-specific mediaState structure
 					this.setState({ mediaState: BLEBoardData.updateMediaState(this.state.mediaState, newState) });
 					rxBuffers = [];
@@ -206,15 +206,17 @@ export default class BoardManager extends Component {
 			console.log("BoardManager: Disconnected from " + JSON.stringify(dev));
 			dev.connected = Constants.DISCONNECTED;
 		}
-		if (peripheral == this.state.connectedPeripheral.id) {
-			console.log("BoardManager: our dev Disconnected from " + JSON.stringify(dev));
-			if (this.state.backgroundLoop)
-				clearInterval(this.state.backgroundLoop);
-			this.setState({
-				//connectedPeripheral: dev,
-				mediaState: StateBuilder.blankMediaState(),
-				backgroundLoop: null,
-			});
+		if (this.state.connectedPeripheral) {
+			if (peripheral == this.state.connectedPeripheral.id) {
+				console.log("BoardManager: our dev Disconnected from " + JSON.stringify(dev));
+				if (this.state.backgroundLoop)
+					clearInterval(this.state.backgroundLoop);
+				this.setState({
+					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+					mediaState: StateBuilder.blankMediaState(),
+					backgroundLoop: null,
+				});
+			}
 		}
 	}
 
@@ -246,7 +248,7 @@ export default class BoardManager extends Component {
 
 				if (this.state.connectedPeripheral)
 					if (this.state.connectedPeripheral.id != "12345") {
-						BleManager.disconnect(this.state.connectedPeripheral.id);
+						await BleManager.disconnect(this.state.connectedPeripheral.id);
 						console.log("Disconnecting BLE From " + this.state.connectedPeripheral.name);
 					}
 
@@ -279,38 +281,36 @@ export default class BoardManager extends Component {
 			if (peripheral.connected == Constants.CONNECTED) {
 				try {
 					console.log("Disconnecting BLE From " + peripheral.name);
-					BleManager.disconnect(peripheral.id);
+					await BleManager.disconnect(peripheral.id);
 				}
 				catch (error) {
 					console.log("BoardManager: Failed to Disconnect" + error);
 				}
-			} else {
-				try {
-					// store default in filesystem.
-					await FileSystemConfig.setDefaultPeripheral(peripheral);
-
-					var boardName = peripheral.name;
-
-					await BleManager.stopScan();
-
-					if (this.state.backgroundLoop)
-						clearInterval(this.state.backgroundLoop);
-
-					this.setState({
-						connectedPeripheral: peripheral,
-						mediaState: StateBuilder.blankMediaState(),
-						showScreen: Constants.MEDIA_MANAGEMENT,
-						boardName: boardName,
-						scanning: false,
-						backgroundLoop: null,
-					});
-
-					await this.startScan(true);
-				}
-				catch (error) {
-					console.log("BoardManager: Connection error", error);
-				}
 			}
+			try {
+				// store default in filesystem.
+				await FileSystemConfig.setDefaultPeripheral(peripheral);
+
+				var boardName = peripheral.name;
+
+				if (this.state.backgroundLoop)
+					clearInterval(this.state.backgroundLoop);
+
+				this.setState({
+					connectedPeripheral: peripheral,
+					mediaState: StateBuilder.blankMediaState(),
+					showScreen: Constants.MEDIA_MANAGEMENT,
+					boardName: boardName,
+					scanning: false,
+					backgroundLoop: null,
+				});
+
+				await this.startScan(true);
+			}
+			catch (error) {
+				console.log("BoardManager: Connection error", error);
+			}
+
 		}
 	}
 
@@ -374,7 +374,6 @@ export default class BoardManager extends Component {
 				console.log("BoardManager Found New Peripheral:" + peripheral.name);
 
 				peripheral.connected = Constants.DISCONNECTED;
-				//	await this.checkForDuplicatePeripherals(peripheral);
 
 				var boardBleDeviceArray = Array.from(boardBleDevices.values());
 				var bleBoardDeviceExists = boardBleDeviceArray.filter((board) => {
@@ -416,7 +415,7 @@ export default class BoardManager extends Component {
 
 				if (boardBleDevice.connected == Constants.DISCONNECTED) {
 					console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
-					
+
 					// Update status 
 					boardBleDevice.connected = Constants.CONNECTING;
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
@@ -596,7 +595,9 @@ export default class BoardManager extends Component {
 						<View style={StyleSheet.footer}>
 							<Touchable
 								onPress={async () => {
+
 									await this.startScan(true);
+
 								}
 								}
 								style={{
