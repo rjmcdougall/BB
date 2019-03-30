@@ -30,12 +30,11 @@ exports.refreshMediaState = async function (mediaState) {
 	return mediaState;
 };
 
-
 // Upload the JSON from the brain to the local mediaState
 exports.updateMediaState = function (mediaState, newMedia) {
 	console.log("BLE: new update from brain");
 	if (newMedia.boards) {
-		console.log("BLE: updated boards: " + JSON.stringify(newMedia.boards));
+		console.log("BLE: updated boards");
 		mediaState.boards = newMedia.boards;
 	}
 	if (newMedia.video) {
@@ -66,7 +65,6 @@ exports.updateMediaState = function (mediaState, newMedia) {
 }
 
 sendCommand = function (mediaState, command, arg) {
-	// console.log("BLE: sendCommand: periperheral: " + JSON.stringify(mediaState.connectedPeripheral));
 	// Send request command
 	if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
 		console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
@@ -132,7 +130,6 @@ exports.onEnableMaster = async function (value, mediaState) {
 	return mediaState;
 };
 
-
 exports.readLocation = async function (mediaState) {
 	// Get locations for last 10 mins
 	sendCommand(mediaState, "Location", 600);
@@ -146,8 +143,6 @@ exports.createMediaState = async function (peripheral) {
 
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Getting BLE Data for " + peripheral.name, false);
 		mediaState = await this.refreshMediaState(mediaState);
-		//mediaState = await BLEBoardData.createMediaState(mediaState);
-
 		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Gettig Boards Data from API ", false);
 
 		var boards = await StateBuilder.getBoards();

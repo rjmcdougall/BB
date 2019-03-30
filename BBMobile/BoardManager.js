@@ -154,9 +154,8 @@ export default class BoardManager extends Component {
 						rxBuffers.push(tmpDataBuffer);
 					}
 					newMessage = Buffer.concat(rxBuffers);
-					//console.log("New Message: " + newMessage);
 					var newState = JSON.parse(newMessage.toString('ascii'));
-					//console.log("New Message: " + JSON.stringify(newState));
+					
 					// Setup the app-specific mediaState structure
 					this.setState({ mediaState: BLEBoardData.updateMediaState(this.state.mediaState, newState) });
 					rxBuffers = [];
@@ -234,11 +233,9 @@ export default class BoardManager extends Component {
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
-
 	async startScan(automaticallyConnect) {
 
 		if (!this.state.scanning) {
-
 			try {
 				console.log("BoardManager: Clearing Interval: ");
 
@@ -288,9 +285,7 @@ export default class BoardManager extends Component {
 					console.log("BoardManager: Failed to Disconnect" + error);
 				}
 			} else {
-
 				try {
-
 					// store default in filesystem.
 					await FileSystemConfig.setDefaultPeripheral(peripheral);
 
@@ -311,7 +306,6 @@ export default class BoardManager extends Component {
 					});
 
 					await this.startScan(true);
-
 				}
 				catch (error) {
 					console.log("BoardManager: Connection error", error);
@@ -368,7 +362,7 @@ export default class BoardManager extends Component {
 			});
 		}
 	}
- 
+
 	async handleDiscoverPeripheral(peripheral) {
 		try {
 
@@ -420,9 +414,9 @@ export default class BoardManager extends Component {
 
 			if (this.state.automaticallyConnect) {
 
-				// rmc add conn logic here
 				if (boardBleDevice.connected == Constants.DISCONNECTED) {
 					console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
+					
 					// Update status 
 					boardBleDevice.connected = Constants.CONNECTING;
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
@@ -435,34 +429,25 @@ export default class BoardManager extends Component {
 						await BleManager.retrieveServices(boardBleDevice.id);
 						await this.sleep(1000);
 						console.log("BLE: Setting rx notifications ");
+
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
 						this.setNotificationRx(boardBleDevice.id);
 						// Sleep until it's done (guess)
 						await this.sleep(1000);
+
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 						console.log("BLE connectToPeripheral: Now go setup and read all the state ");
+
 						// Now go setup and read all the state for the first time
 						var mediaState = await BLEBoardData.createMediaState(boardBleDevice);
-
-						/*	
-						var foundBoard = this.state.boardData.filter((board) => {
-							return board.name == this.state.boardName;
-						});
-						var color = foundBoard[0].color;
-		
-						this.setState({
-							mediaState: mediaState,
-							discoveryState: Constants.CONNECTED,
-							boardColor: color,
-						});
-						*/
 
 						// Kick off a per-second location reader 
 						await this.readLocationLoop(this.state.mediaState);
 						console.log("BoardManager: Begin Background Location Loop");
 						this.setState({ mediaState: mediaState });
+
 					} catch (error) {
 						console.log("BLE: Error connecting: " + error);
 						console.log("BLE: Error connecting: bledevice = " + JSON.stringify(boardBleDevice));
