@@ -1,25 +1,11 @@
 
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
-import { bin } from "charenc";
 import StateBuilder from "./StateBuilder";
 import Constants from "./Constants";
 import { stringToBytes } from 'convert-string';
 var AsyncLock = require('async-lock');
 var lock = new AsyncLock();
-
-exports.createMediaState = async function (peripheral) {
-	try {
-		var mediaState = StateBuilder.blankMediaState();
-		mediaState.connectedPeripheral = peripheral;
-		mediaState = BLEIDs.BLELogger(mediaState, "BLE: createMediaState Getting BLE Data for " + peripheral.name, false);
-		return await this.refreshMediaState(mediaState);
-	}
-	catch (error) {
-		//console.log("BLE: " + BLEIDs.fixErrorMessage(error));
-		console.log("BLE: " + error);
-	}
-};
 
 exports.refreshMediaState = async function (mediaState) {
 
@@ -78,8 +64,6 @@ exports.updateMediaState = function (mediaState, newMedia) {
 	}
 	return mediaState
 }
-
-
 
 sendCommand = function (mediaState, command, arg) {
 	// console.log("BLE: sendCommand: periperheral: " + JSON.stringify(mediaState.connectedPeripheral));
@@ -155,6 +139,25 @@ exports.readLocation = async function (mediaState) {
 	return mediaState;
 };
 
+exports.createMediaState = async function (peripheral) {
+	try {
+		var mediaState = StateBuilder.blankMediaState();
+		mediaState.connectedPeripheral = peripheral;
 
+		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Getting BLE Data for " + peripheral.name, false);
+		mediaState = await this.refreshMediaState(mediaState);
+		//mediaState = await BLEBoardData.createMediaState(mediaState);
+
+		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Gettig Boards Data from API ", false);
+
+		var boards = await StateBuilder.getBoards();
+		mediaState.boards = boards;
+
+		return mediaState;
+	}
+	catch (error) {
+		console.log("StateBuilder: " + BLEIDs.fixErrorMessage(error));
+	}
+};
 
 

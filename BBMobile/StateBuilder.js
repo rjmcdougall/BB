@@ -1,8 +1,6 @@
 
 import FileSystemConfig from "./FileSystemConfig";
 import BBComAPIData from "./BBComAPIData";
-import BLEIDs from "./BLEIDs";
-import BLEBoardData from "./BLEBoardData";
 import Geolocation from "react-native-geolocation-service";
 
 var bEmptyUserPrefs = {
@@ -69,41 +67,7 @@ function mblankUserPrefs() {
 exports.blankMediaState = function () {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
 };
-
-function mblankMediaState() {
-	return JSON.parse(JSON.stringify(bEmptyMediaState));
-}
-
-exports.createMediaState = async function (peripheral) {
-	try {
-		var mediaState = mblankMediaState();
-		mediaState.connectedPeripheral = peripheral;
-
-		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Getting BLE Data for " + peripheral.name, false);
-		mediaState = await BLEBoardData.refreshMediaState(mediaState);
-		//mediaState = await BLEBoardData.createMediaState(mediaState);
-
-		mediaState = BLEIDs.BLELogger(mediaState, "StateBuilder: Gettig Boards Data from API ", false);
-		mediaState = getBoardsInternal(mediaState); // don't wait!
-
-		return mediaState;
-	}
-	catch (error) {
-		console.log("StateBuilder: " + BLEIDs.fixErrorMessage(error));
-	}
-};
-
-async function getBoardsInternal(mediaState) {
-	try {
-		var boards = await module.exports.getBoards();
-		mediaState.boards = boards;
-	}
-	catch (error) {
-		console.log("StateBuilder: " + error);
-	}
-	return mediaState;
-}
-
+ 
 exports.getBoards = async function () {
 	try {
 		var boards = null;
