@@ -153,7 +153,7 @@ public class BluetoothCommands {
 
                 });
 
-        // Register Volume command on bluetooth server
+        // Register Enable Master command on bluetooth server
         mBLEServer.addCallback("EnableMaster",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -178,6 +178,33 @@ public class BluetoothCommands {
                         sendStateResponse(command, device);
                     }
                 });
+
+        // Register GTFO command on bluetooth server
+        mBLEServer.addCallback("EnableGTFO",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got EnableGTFO command:" + payload.toString());
+                        try {
+                            boolean isGTFO = payload.getBoolean("arg");
+                            mBBService.enableGTFO(isGTFO);
+
+                        } catch (Exception e) {
+                            l("error setting EnableGTFO: " + e.getMessage());
+                        }
+                        sendStateResponse(command, device);
+                    }
+                });
+
 
         // Register Volume command on bluetooth server
         mBLEServer.addCallback("Volume",
@@ -366,6 +393,7 @@ public class BluetoothCommands {
             state.put("APKUpdateDate", mBBService.getAPKUpdatedDate());
             state.put("APKVersion", mBBService.getVersion());
             state.put("IPAddress", mBBService.getIPAddress());
+            state.put("GTFO", mBBService.isGTFO());
         } catch (Exception e) {
             l("Could not get state: " + e.getMessage());
         }

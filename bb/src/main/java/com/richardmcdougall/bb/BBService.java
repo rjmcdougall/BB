@@ -135,6 +135,7 @@ public class BBService extends Service {
     private boolean mMasterRemote = false;
     private boolean mVoiceAnnouncements = false;
     public final String cpuType = Build.BOARD;
+    private boolean mGTFO = false;
 
     private int statePeers = 0;
     private long stateReplies = 0;
@@ -458,6 +459,10 @@ public class BBService extends Service {
 
     public boolean isMaster() {
         return mMasterRemote;
+    }
+
+    public boolean isGTFO() {
+        return mGTFO;
     }
 
     public String getAPKUpdatedDate() {
@@ -1028,29 +1033,25 @@ public class BBService extends Service {
         }
     }
 
-    private boolean bGTFO = true;
     private int stashedAndroidVolumePercent;
 
-    public void GTFO() {
+    public void enableGTFO(boolean enable) {
 
-        if(bGTFO){
-            bGTFO = false;
+        mGTFO = enable;
+        if(enable){
+
             mBoardVisualization.inhibitGTFO(true);
             mBurnerBoard.setText90("Get The Fuck Off!", 5000);
             mediaPlayer.setVolume(0,0);
             stashedAndroidVolumePercent = getAndroidVolumePercent();
             setAndroidVolumePercent(100);
             voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD,null , "GTFO");
-
-
         }
         else {
-            bGTFO=true;
             mBoardVisualization.inhibitGTFO(false);
             setAndroidVolumePercent(stashedAndroidVolumePercent);
             mediaPlayer.setVolume(1,1);
         }
-
     }
 
     public static final int kRemoteAudioTrack = 0x01;

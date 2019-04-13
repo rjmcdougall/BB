@@ -40,6 +40,16 @@ export default class AdminManagement extends Component {
 			masterText = "Disable Master";
 			backgroundColor = "green";
 		}
+
+		if (this.props.mediaState.state.GTFO == 0) {
+			GTFOText = "Enable GTFO";
+			GTFOBackgroundColor = "skyblue";
+		}
+		else {
+			GTFOText = "Disable GTFO";
+			GTFOBackgroundColor = "green";
+		}
+
 		//
 		return (
 			<View style={StyleSheet.container}>
@@ -49,11 +59,17 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await BLEBoardData.onGTFO(1, this.props.mediaState);
+
+								if (this.props.mediaState.state.GTFO == false)
+									this.setState({ mediaState: await BLEBoardData.onEnableGTFO(true, this.props.mediaState) });
+								else
+									this.setState({ mediaState: await BLEBoardData.onEnableGTFO(false, this.props.mediaState) });
+
 								return true;
 							}}
+							style={[{ backgroundColor: GTFOBackgroundColor }]}
 							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> GTFO </Text>
+							<Text style={StyleSheet.buttonTextCenter}> {GTFOText} </Text>
 						</Touchable>
 					</View>
 					<View style={StyleSheet.button}>
