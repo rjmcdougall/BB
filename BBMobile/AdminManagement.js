@@ -61,9 +61,9 @@ export default class AdminManagement extends Component {
 							onPress={async () => {
 
 								if (this.props.mediaState.state.audioMaster == 0)
-									this.setState({ mediaState: await BLEBoardData.onEnableMaster(1, this.props.mediaState) });
+									this.setState({ mediaState: await BLEBoardData.onEnableMaster("true", this.props.mediaState) });
 								else
-									this.setState({ mediaState: await BLEBoardData.onEnableMaster(0, this.props.mediaState) });
+									this.setState({ mediaState: await BLEBoardData.onEnableMaster("false", this.props.mediaState) });
 
 								return true;
 							}}

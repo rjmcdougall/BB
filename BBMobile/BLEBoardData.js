@@ -126,7 +126,7 @@ exports.onGTFO = async function (value, mediaState) {
 };
 
 exports.onEnableMaster = async function (value, mediaState) {
-	sendCommand(mediaState, "Master", value);
+	sendCommand(mediaState, "EnableMaster", value);
 	return mediaState;
 };
 

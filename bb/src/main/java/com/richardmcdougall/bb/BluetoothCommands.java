@@ -154,6 +154,32 @@ public class BluetoothCommands {
                 });
 
         // Register Volume command on bluetooth server
+        mBLEServer.addCallback("EnableMaster",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got EnableMaster command:" + payload.toString());
+                        try {
+                            boolean isMaster = payload.getBoolean("arg");
+                            mBBService.enableMaster(isMaster);
+
+                        } catch (Exception e) {
+                            l("error setting Master: " + e.getMessage());
+                        }
+                        sendStateResponse(command, device);
+                    }
+                });
+
+        // Register Volume command on bluetooth server
         mBLEServer.addCallback("Volume",
                 new BluetoothLEServer.BLECallback() {
                     @Override
