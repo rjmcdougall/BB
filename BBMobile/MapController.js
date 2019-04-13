@@ -56,12 +56,12 @@ export default class MapController extends React.Component {
 
 							return (
 								<MapView.Marker
-									key={marker.title}
+									key={marker.board}
 									coordinate={{
 										latitude: marker.latitude,
 										longitude: marker.longitude
 									}}
-									title={marker.title}
+									title={marker.board}
 									pinColor={pinColor}
 								/>
 							);

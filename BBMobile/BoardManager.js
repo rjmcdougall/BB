@@ -401,7 +401,6 @@ export default class BoardManager extends Component {
 	}
 
 	async connectToPeripheral(peripheral) {
-		console.log("BoardManager: connectToPeripheral: " + peripheral.name);
 
 		// Update state 
 		var boardBleDevices = this.state.boardBleDevices;
@@ -505,7 +504,6 @@ export default class BoardManager extends Component {
 		var phoneBackgroundTimer = setInterval(async () => {
 
 			if (this.state.mediaState) {
-				console.log("Board Manager: Phone GPS: Found Media State");
 				try {
 					var mediaState = await StateBuilder.getPhoneLocation(this.state.mediaState);
 					this.setState({

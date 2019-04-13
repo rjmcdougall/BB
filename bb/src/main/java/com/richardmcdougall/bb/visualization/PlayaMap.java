@@ -102,7 +102,7 @@ public class PlayaMap extends Visualization {
                 //l("plot board " + boardLocation.address + "," + " color = " + color);
 
                 if (flashColor(updateCnt, location.address)) {
-                    plotBoard(location.lat, location.lon,
+                    plotBoard(location.latitude, location.longitude,
                             BurnerBoard.getRGB(boardColor.r,
                                     boardColor.g,
                                     boardColor.b));

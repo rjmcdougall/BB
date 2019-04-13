@@ -44,8 +44,7 @@ exports.fetchLocations = async function (mediaState) {
 
 		mediaState.apiLocations = apiLocations.map((board) => {
 			return {
-				title: board.board,
-				boardId: board.board,
+				board: board.board,
 				latitude: board.lat,
 				longitude: board.lon,
 				dateTime:  board.time,

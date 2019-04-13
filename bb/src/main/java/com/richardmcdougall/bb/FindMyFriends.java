@@ -335,7 +335,6 @@ public class FindMyFriends {
         for (int addr: mBoardLocations.keySet()) {
             if (keyNo == getLoc) {
                 boardLocation loc = mBoardLocations.get(addr);
-                lastHeardLocation = loc.lastheardLocaton;
                 lastHeardDate = BigInteger.valueOf(loc.lastHeardDate/60000);
                 address = addr;
                // boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
@@ -369,10 +368,10 @@ public class FindMyFriends {
         public int address;
         public int sigStrength;
         public long lastHeard;
-        public byte[] lastheardLocaton;
-        public double lat;
-        public double lon;
+        public double latitude;
+        public double longitude;
         public long lastHeardDate;
+        public String board;
     }
     private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
 
@@ -381,21 +380,20 @@ public class FindMyFriends {
         boardLocation loc = new boardLocation();
         loc.address = address;
         loc.lastHeard = SystemClock.elapsedRealtime();
-        loc.lastheardLocaton = locationPacket.clone();
         loc.sigStrength = sigstrength;
         loc.lastHeardDate = System.currentTimeMillis();
-        loc.lat = lat;
-        loc.lon = lon;
+        loc.latitude = lat;
+        loc.longitude = lon;
         mBoardLocations.put(address, loc);
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);
-            d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard) + ", bytes: " + bytesToHex(l.lastheardLocaton));
+            d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
         }
     }
 
     private void addTestBoardLocations() {
 
-        //updateBoardLocations(41, -53, 37.476222, -122.1551087, "testdata".getBytes());
+        updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
     }
 
     // Pull one location from the list of recent locations
@@ -441,6 +439,9 @@ public class FindMyFriends {
         JsonArray list = null;
         List<boardLocation> locs  = getBoardLocations(age);
         try {
+            for (boardLocation b : locs){
+                b.board = mRFAddress.boardAddressToName(b.address);
+            }
             //list = new JSONArray(valuesList);
             list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocation>>() {}.getType());
         } catch (Exception e) {
