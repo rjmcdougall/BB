@@ -51,7 +51,8 @@ exports.updateMediaState = function (mediaState, newMedia) {
 	}
 	if (newMedia.btdevices) {
 		console.log("BLE: updated btdevices: " + JSON.stringify(newMedia.btdevices));
-		mediaState.devices = newMedia.btdevices;
+		if(newMedia.btdevices.length>0)
+			mediaState.devices = newMedia.btdevices;
 	}
 	if (newMedia.locations) {
 		console.log("BLE: updated locations: " + JSON.stringify(newMedia.locations));
@@ -106,7 +107,7 @@ exports.setTrack = async function (mediaState, mediaType, idx) {
 }
 
 exports.refreshDevices = async function (mediaState) {
-	sendCommand(mediaState, "BTScan", volume);
+	sendCommand(mediaState, "BTScan", null);
 	return mediaState;
 };
 

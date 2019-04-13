@@ -24,7 +24,7 @@ var bEmptyMediaState = {
 	//audio: [null, { channelNo: 1, channelInfo: "loading..." }],
 	audio: [{ localName: "loading..." }],
 	video: [{ localName: "loading..." }],
-	device: [{ name: "loading...", address: "loading...", isPaired: false, }],
+	devices: [{ name: "loading...", address: "loading...", isPaired: false, }],
 	state: {
 		audioChannelNo: 9999,
 		videoChannelNo: 9999,
