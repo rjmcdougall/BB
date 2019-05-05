@@ -1,8 +1,8 @@
 //connection states.
 exports.DISCONNECTED = "Disconnected";
-exports.LOCATED = "Located";
 exports.CONNECTED = "Connected";
 exports.CONNECTING = "Connecting";
+exports.LOADED = "Loaded";
 
 // The Screens
 exports.DISCOVER = "Discover";

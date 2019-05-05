@@ -155,7 +155,7 @@ export default class BoardManager extends Component {
 					}
 					newMessage = Buffer.concat(rxBuffers);
 					var newState = JSON.parse(newMessage.toString('ascii'));
-
+					console.log(newState);
 					// Setup the app-specific mediaState structure
 					this.setState({ mediaState: BLEBoardData.updateMediaState(this.state.mediaState, newState) });
 					rxBuffers = [];
@@ -539,31 +539,33 @@ export default class BoardManager extends Component {
 				connected = Constants.DISCONNECTED;
 			}
 
-			switch (connected) {
-				case Constants.DISCONNECTED:
-					color = "#fff";
-					enableControls = "none";
-					connectionButtonText = "Connect to " + boardName;
-					break;
-				case Constants.LOCATED:
-					color = "yellow";
-					enableControls = "none";
-					connectionButtonText = "Located " + boardName;
-					break;
-				case Constants.CONNECTING:
-					color = "yellow";
-					enableControls = "none";
-					connectionButtonText = "Connecting To " + boardName;
-					break;
-				case Constants.CONNECTED:
-					if (!this.state.mediaState.isError)
-						color = "green";
-					else
-						color = "red";
-					enableControls = "auto";
-					connectionButtonText = "Connected To " + boardName;
-					break;
+			if (this.state.mediaState.video.localName != "loading..."
+				&& this.state.mediaState.audio.localName != "loading..."
+				&& this.state.mediaState.state.volume != 0) {
+				color = "green";
+				enableControls = "auto";
+				connectionButtonText = "Loaded " + boardName; 
 			}
+			else {
+				switch (connected) {
+					case Constants.DISCONNECTED:
+						color = "#fff";
+						enableControls = "none";
+						connectionButtonText = "Connect to " + boardName;
+						break;
+					case Constants.CONNECTING:
+						color = "yellow";
+						enableControls = "none";
+						connectionButtonText = "Connecting To " + boardName;
+						break;
+					case Constants.CONNECTED:
+						color = "yellow";
+						enableControls = "none";
+						connectionButtonText = "Connected To " + boardName;
+						break;
+				}
+			}
+
 		}
 
 		return (
