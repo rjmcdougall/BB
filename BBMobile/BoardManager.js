@@ -544,7 +544,7 @@ export default class BoardManager extends Component {
 				&& this.state.mediaState.state.volume != 0) {
 				color = "green";
 				enableControls = "auto";
-				connectionButtonText = "Loaded " + boardName; 
+				connectionButtonText = "Loaded " + boardName;
 			}
 			else {
 				switch (connected) {
@@ -567,6 +567,13 @@ export default class BoardManager extends Component {
 			}
 
 		}
+		else {
+			color = "#fff";
+			enableControls = "none";
+			connectionButtonText = "Select Board";
+		}
+
+
 
 		return (
 			<View style={{ flex: 1 }}>
