@@ -25,9 +25,7 @@ export default class DiscoverController extends React.Component {
 				<View style={{ flex: 1, margin: 30 }}>
 					<Touchable
 						onPress={async () => {
-							//rmc
-
-							//await this.props.startScan(false);
+							await this.props.startScan(false);
 						}}
 						style={StyleSheet.button}
 						background={Touchable.Ripple("blue")}>

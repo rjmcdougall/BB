@@ -545,10 +545,15 @@ export default class BoardManager extends Component {
 					enableControls = "none";
 					connectionButtonText = "Connect to " + boardName;
 					break;
-				case Constants.CONNECTING:
+				case Constants.LOCATED:
 					color = "yellow";
 					enableControls = "none";
 					connectionButtonText = "Located " + boardName;
+					break;
+				case Constants.CONNECTING:
+					color = "yellow";
+					enableControls = "none";
+					connectionButtonText = "Connecting To " + boardName;
 					break;
 				case Constants.CONNECTED:
 					if (!this.state.mediaState.isError)
