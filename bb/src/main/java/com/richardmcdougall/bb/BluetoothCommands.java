@@ -69,34 +69,52 @@ public class BluetoothCommands {
                             error = "Could not insert command: " + e.getMessage();
                         }
 
-                        // Add audio + video media lists
+                        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
                         JSONObject media = mBBService.dlManager.GetDataDirectory();
                         if (media == null) {
                             error = "Could not get media directory (null)";
                         }
                         if (media != null) {
                             try {
+
                                 JSONArray audio = media.getJSONArray("audio");
-                                JSONArray video = media.getJSONArray("video");
+                                for (int i = 0; i < audio.length(); i++) {
+                                    JSONObject a = audio.getJSONObject(i);
+                                    if(a.has("URL"))  a.remove("URL");
+                                    if(a.has("ordinal"))  a.remove("ordinal");
+                                    if(a.has("Size"))   a.remove("Size");
+                                    if(a.has("Length"))  a.remove("Length");
+                                }
                                 response.put("audio", audio);
+
+                                JSONArray video = media.getJSONArray("video");
+                                for (int i = 0; i < video.length(); i++) {
+                                    JSONObject v = video.getJSONObject(i);
+                                    if(v.has("URL")) v.remove("URL");
+                                    if(v.has("ordinal"))v.remove("ordinal");
+                                    if(v.has("Size"))v.remove("Size");
+                                    if(v.has("SpeachCue"))v.remove("SpeachCue");
+                                    if(v.has( "Length"))v.remove( "Length");
+                                }
                                 response.put("video", video);
+
                             } catch (Exception e) {
                                 error = "Could not get media directory: " + e.getMessage();
                             }
                         }
 
-                        // Add board list
-                        JSONArray boards = mBBService.dlManager.GetDataBoards();
-                        if (boards == null) {
-                            error = "Could not get boards directory (null)";
-                        }
-                        if (boards != null) {
-                            try {
-                                response.put("boards", boards);
-                            } catch (Exception e) {
-                                error = "Could not get boards directory: " + e.getMessage();
-                            }
-                        }
+                        // DKW skip this because the app does not need it.  It is very verbose.
+//                        JSONArray boards = mBBService.dlManager.GetDataBoards();
+//                        if (boards == null) {
+//                            error = "Could not get boards directory (null)";
+//                        }
+//                        if (boards != null) {
+//                            try {
+//                                response.put("boards", boards);
+//                            } catch (Exception e) {
+//                                error = "Could not get boards directory: " + e.getMessage();
+//                            }
+//                        }
 
                         // Bluetooth devices
                         JSONArray btdevs = getBTDevs();
