@@ -166,7 +166,7 @@ public class BluetoothLEServer {
     private final HashMap<BluetoothDevice, PipedOutputStream> mTransmitOutput = new HashMap<>();
     private final HashMap<BluetoothDevice, ByteArrayOutputStream> mReceiveBuffers = new HashMap<>();
 
-    public void tx(BluetoothDevice device, final byte[] data) {
+   public void tx(BluetoothDevice device, final byte[] data) {
         ByteArrayInputStream buffer = new ByteArrayInputStream(data);
         byte [] txBuf = new byte[20];
         int nBytes;
@@ -174,6 +174,13 @@ public class BluetoothLEServer {
             byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
             mTxCharacteristic.setValue(sendBuf);
             //l("Notifying...");
+
+            // PREVENT BUFFER ISSUES / OVERFLOW
+            try {
+                Thread.sleep(15,0);
+            } catch (Exception e) {
+            }
+            
             boolean status = mBluetoothGattServer.notifyCharacteristicChanged(device,
                     mTxCharacteristic, false);
             //l("notify: " + status);
