@@ -1,2 +1,5 @@
 runtime: nodejs10 # For Node.js 8, use runtime: nodejs8
 instance_class: F4_1G
+
+automatic_scaling:  
+ max_instances: 1
