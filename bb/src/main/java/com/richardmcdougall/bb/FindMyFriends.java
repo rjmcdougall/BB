@@ -393,7 +393,7 @@ public class FindMyFriends {
 
     private void addTestBoardLocations() {
 
-        updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
+     //   updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
     }
 
     // Pull one location from the list of recent locations
