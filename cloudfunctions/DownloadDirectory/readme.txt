@@ -1,0 +1,1 @@
+gcloud functions deploy boards --runtime nodejs8 --trigger-http --entry-point app

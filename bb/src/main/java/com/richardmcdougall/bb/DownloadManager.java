@@ -452,7 +452,8 @@ public class DownloadManager {
         public boolean GetNewDirectory() {
 
             try {
-                String DirectoryURL = "https://burnerboard.com/boards/" + mBoardId + "/DownloadDirectoryJSON";
+
+                String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId + "/DownloadDirectoryJSON";
                 DirectoryURL = encodeURL(DirectoryURL);
 
                 long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
@@ -537,7 +538,7 @@ public class DownloadManager {
             try {
 
                 String dataDir = mDM.mFilesDir;
-                String DirectoryURL = "https://burnerboard.com/boards/";
+                String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
 
                 Log.d(TAG, DirectoryURL);
 
