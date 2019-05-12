@@ -77,7 +77,7 @@ public class BluetoothCommands {
                         if (media != null) {
                             try {
 
-                                JSONArray audio = media.getJSONArray("audio");
+                                JSONArray audio = new JSONArray(media.getJSONArray("audio").toString()) ;
                                 for (int i = 0; i < audio.length(); i++) {
                                     JSONObject a = audio.getJSONObject(i);
                                     if(a.has("URL"))  a.remove("URL");
@@ -87,7 +87,7 @@ public class BluetoothCommands {
                                 }
                                 response.put("audio", audio);
 
-                                JSONArray video = media.getJSONArray("video");
+                                JSONArray video = new JSONArray(media.getJSONArray("video").toString());
                                 for (int i = 0; i < video.length(); i++) {
                                     JSONObject v = video.getJSONObject(i);
                                     if(v.has("URL")) v.remove("URL");
