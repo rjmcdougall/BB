@@ -299,7 +299,7 @@ public class DownloadManager {
                     fileOutput.write(buffer, 0, bufferLength);
                     downloadSize += bufferLength;
 
-                    if (mDM.onProgressCallback != null) {
+                    if (mDM.onProgressCallback != null && progressName != "Boards JSON" && progressName != "Directory") {
                         mDM.onProgressCallback.onProgress(progressName, fileSize, downloadSize);
 
                     }
@@ -455,74 +455,81 @@ public class DownloadManager {
 
                 String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId + "/DownloadDirectoryJSON";
                 DirectoryURL = encodeURL(DirectoryURL);
+                boolean returnValue = false;
 
                 long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
                 if (ddsz < 0) {
                     Log.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
-                    return false;
+                    returnValue  = false;
                 }
 
-                Log.d(TAG, "Reading Directory from " + DirectoryURL);
+                if(!returnValue) {
+                    Log.d(TAG, "Reading Directory from " + DirectoryURL);
 
-                new File(mDM.mFilesDir, "tmp").renameTo(new File(mDM.mFilesDir, "directory.json.tmp"));
+                    new File(mDM.mFilesDir, "tmp").renameTo(new File(mDM.mFilesDir, "directory.json.tmp"));
 
-                String dirTxt = LoadTextFile("directory.json.tmp");
-                JSONObject dir = new JSONObject(dirTxt);
-                String[] dTypes = new String[]{"audio", "video"};
-                JSONArray changedFiles = new JSONArray();
+                    String dirTxt = LoadTextFile("directory.json.tmp");
+                    JSONObject dir = new JSONObject(dirTxt);
+                    String[] dTypes = new String[]{"audio", "video"};
+                    JSONArray changedFiles = new JSONArray();
 
-                Log.d(TAG, "Downloaded JSON: " + dirTxt);
+                    Log.d(TAG, "Downloaded JSON: " + dirTxt);
 
-                // determine changes
-                for (int i = 0; i < dTypes.length; i++) {
-                    JSONArray tList = dir.getJSONArray(dTypes[i]);
-                    for (int j = 0; j < tList.length(); j++) {
+                    // determine changes
+                    for (int i = 0; i < dTypes.length; i++) {
+                        JSONArray tList = dir.getJSONArray(dTypes[i]);
+                        for (int j = 0; j < tList.length(); j++) {
 
-                        JSONObject elm = tList.getJSONObject(j);
+                            JSONObject elm = tList.getJSONObject(j);
 
-                        // if there is no URL, it is an algorithm and should be skipped for download.
-                        // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
-                        if (elm.has("URL") &&
-                                !elm.isNull("URL") &&
-                                elm.getString("URL").length() > 0 &&
-                                !mIsServer
-                                ) {
-                            if (!isUpToDate(elm))
-                                changedFiles.put(elm);
+                            // if there is no URL, it is an algorithm and should be skipped for download.
+                            // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
+                            if (elm.has("URL") &&
+                                    !elm.isNull("URL") &&
+                                    elm.getString("URL").length() > 0 &&
+                                    !mIsServer
+                                    ) {
+                                if (!isUpToDate(elm))
+                                    changedFiles.put(elm);
+                            }
                         }
                     }
-                }
 
-                // announce changes
-                if (changedFiles.length() > 0) {
-                    if (mDM.onProgressCallback != null)
-                        mDM.onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
-                } else {
-                    Log.d(TAG, "No Changes to Directory JSON.");
-                    return false;
-                }
+                    // announce changes
+                    if (changedFiles.length() > 0) {
+                        if (mDM.onProgressCallback != null)
+                            mDM.onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
+                    } else {
+                        Log.d(TAG, "No Changes to Directory JSON.");
+                        returnValue = true;
+                    }
 
-                // download changes
-                for (int j = 0; j < changedFiles.length(); j++) {
-                    JSONObject elm = changedFiles.getJSONObject(j);
-                    replaceFile(elm);
-                }
+                    if(!returnValue) {
+                        // download changes
+                        for (int j = 0; j < changedFiles.length(); j++) {
+                            JSONObject elm = changedFiles.getJSONObject(j);
+                            replaceFile(elm);
+                        }
 
-                // announce completion and set the media object to the new profile
-                if (changedFiles.length() > 0) {
-                    CleanupOldFiles();
-                    if (mDM.onProgressCallback != null) {
-                        String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
-                        Log.d(TAG, diag);
-                        mDM.onProgressCallback.onVoiceCue(diag);
+                        // announce completion and set the media object to the new profile
+                        if (changedFiles.length() > 0) {
+                            CleanupOldFiles();
+                            if (mDM.onProgressCallback != null) {
+                                String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
+                                Log.d(TAG, diag);
+                                mDM.onProgressCallback.onVoiceCue(diag);
+                            }
+                        }
+
+                        // Replace the directory object.
+                        mDM.dataDirectory = dir;
+                        new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));
+
+                        returnValue = true;
                     }
                 }
 
-                // Replace the directory object.
-                mDM.dataDirectory = dir;
-                new File(mDM.mFilesDir, "directory.json.tmp").renameTo(new File(mDM.mFilesDir, "directory.json"));
-
-                return true;
+                return returnValue;
 
             } catch (JSONException jse) {
                 Log.d(TAG, "Error " + jse.getMessage());
@@ -539,6 +546,7 @@ public class DownloadManager {
 
                 String dataDir = mDM.mFilesDir;
                 String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
+                boolean returnValue = false;
 
                 Log.d(TAG, DirectoryURL);
 
@@ -546,51 +554,54 @@ public class DownloadManager {
 
                 if (ddsz < 0) {
                     Log.d(TAG, "Unable to Download Boards JSON.  Sleeping for 5 seconds. ");
-                    return false;
+                    returnValue = false;
                 }
 
-                new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
+                if(!returnValue){
+                    new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
 
-                String dirTxt = LoadTextFile("boards.json.tmp");
-                JSONArray dir = new JSONArray(dirTxt);
+                    String dirTxt = LoadTextFile("boards.json.tmp");
+                    JSONArray dir = new JSONArray(dirTxt);
 
-                Log.d(TAG, "Downloaded Boards JSON: " + dirTxt);
+                    Log.d(TAG, "Downloaded Boards JSON: " + dirTxt);
 
-                if (mDM.onProgressCallback != null) {
-                    if (mDM.dataBoards == null || dir.length() != mDM.dataBoards.length()) {
-                        Log.d(TAG, "A new board was discovered in Boards JSON.");
-                        mDM.onProgressCallback.onVoiceCue("New Boards available for syncing.");
-                    } else
-                        Log.d(TAG, "A minor change was discovered in Boards JSON.");
-                }
-
-                // got new boards.  Update!
-                mDM.dataBoards = dir;
-
-                // now that you have the media, update the directory so the board can use it.
-                new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
-
-                // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
-                Log.d(TAG, "Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
-
-                String newPN = GetgetPublicName(BurnerBoardUtil.DEVICE_ID);
-                String existingPN = BurnerBoardUtil.getPublicName();
-
-                Log.d(TAG, "Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
-                if (newPN != null) {
-                    if (existingPN == null || !existingPN.equals(newPN)) {
-                        BurnerBoardUtil.setPublicName(newPN);
-                        Log.d(TAG, "Public name updated to: " + newPN);
-                    }
-                }
-
-                if (mDM.dataBoards != null)
-                    if (dir.toString().length() == mDM.dataBoards.toString().length()) {
-                        Log.d(TAG, "No Changes to Boards JSON.");
-                        return true;
+                    if (mDM.onProgressCallback != null) {
+                        if (mDM.dataBoards == null || dir.length() != mDM.dataBoards.length()) {
+                            Log.d(TAG, "A new board was discovered in Boards JSON.");
+                            mDM.onProgressCallback.onVoiceCue("New Boards available for syncing.");
+                        } else
+                            Log.d(TAG, "A minor change was discovered in Boards JSON.");
                     }
 
-                return true;
+                    // got new boards.  Update!
+                    mDM.dataBoards = dir;
+
+                    // now that you have the media, update the directory so the board can use it.
+                    new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
+
+                    // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
+                    Log.d(TAG, "Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
+
+                    String newPN = GetgetPublicName(BurnerBoardUtil.DEVICE_ID);
+                    String existingPN = BurnerBoardUtil.getPublicName();
+
+                    Log.d(TAG, "Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
+                    if (newPN != null) {
+                        if (existingPN == null || !existingPN.equals(newPN)) {
+                            BurnerBoardUtil.setPublicName(newPN);
+                            Log.d(TAG, "Public name updated to: " + newPN);
+                        }
+                    }
+
+                    if (mDM.dataBoards != null)
+                        if (dir.toString().length() == mDM.dataBoards.toString().length()) {
+                            Log.d(TAG, "No Changes to Boards JSON.");
+                            returnValue = true;
+                        }
+                }
+
+
+                return returnValue;
             } catch (JSONException jse) {
                 Log.d(TAG, "Error " + jse.getMessage());
                 return false;
