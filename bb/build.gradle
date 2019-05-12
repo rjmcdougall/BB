@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 23
 
-        versionCode 4000
-        versionName "40.00"
+        versionCode 5000
+        versionName "5000"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
@@ -84,6 +84,4 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'no.nordicsemi.android:log-timber:2.2.0'
 }
-
-
 
