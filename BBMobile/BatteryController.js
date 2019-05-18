@@ -10,7 +10,7 @@ export default class BatteryController extends React.Component {
 	}
 	render() {
 
-		var battery = this.props.mediaState.battery/100.0;
+		var battery = this.props.mediaState.state.battery/100.0;
 		var barColor;
 		if (battery <= .2)
 			barColor = "red";
