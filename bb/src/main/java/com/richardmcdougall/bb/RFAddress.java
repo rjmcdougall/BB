@@ -35,29 +35,23 @@ public class RFAddress {
 
         try {
 
-            if(mBBService.dlManager==null) {
+            if (mBBService.dlManager == null) {
                 l("Could not find board address data");
-                return myAddress;
-            }
-            if(mBBService.dlManager.dataBoards==null) {
+            } else if (mBBService.dlManager.dataBoards == null) {
                 l("Could not find board address data");
-                return myAddress;
-            }
-
-            for (int i=0; i < mBBService.dlManager.dataBoards.length(); i++) {
-                board = mBBService.dlManager.dataBoards.getJSONObject(i);
-                if(board.getString("name").equals(boardId)){
-                    myAddress = board.getInt("address");
+            } else {
+                for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
+                    board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                    if (board.getString("name").equals(boardId)) {
+                        myAddress = board.getInt("address");
+                    }
                 }
             }
-
             return myAddress;
-        }
-        catch(JSONException e){
+        } catch (JSONException e) {
             l(e.getMessage());
             return myAddress;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             l(e.getMessage());
             return myAddress;
         }
@@ -74,30 +68,24 @@ public class RFAddress {
 
         try {
 
-            if(mBBService.dlManager==null) {
+            if (mBBService.dlManager == null) {
                 l("Could not find board name data");
-                return boardId;
-            }
-            if(mBBService.dlManager.dataBoards==null) {
+            } else if (mBBService.dlManager.dataBoards == null) {
                 l("Could not find board name data");
-                return boardId;
-            }
-
-            for (int i=0; i < mBBService.dlManager.dataBoards.length(); i++) {
-                board = mBBService.dlManager.dataBoards.getJSONObject(i);
-                if(board.getInt("address")==address){
-                    boardId = board.getString("name");
-                    return boardId;
+            } else {
+                for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
+                    board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                    if (board.getInt("address") == address) {
+                        boardId = board.getString("name");
+                    }
                 }
             }
 
-            l("Could not find board id based on " + address);
-        }
-        catch(JSONException e){
-            l(e.getMessage());
-        }
+            return boardId;
 
-        catch(Exception e){
+        } catch (JSONException e) {
+            l(e.getMessage());
+        } catch (Exception e) {
             l(e.getMessage());
         }
 
@@ -111,29 +99,24 @@ public class RFAddress {
 
         try {
 
-            if(mBBService.dlManager == null) {
+            if (mBBService.dlManager == null) {
                 l("Could not find board color data");
-                return boardColor;
-            }
-            if(mBBService.dlManager.dataBoards == null) {
+            } else if (mBBService.dlManager.dataBoards == null) {
                 l("Could not find board color data");
-                return boardColor;
-            }
-
-            for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
-                board = mBBService.dlManager.dataBoards.getJSONObject(i);
-                if(board.getInt("address") == address){
-                    boardColor = board.getString("color");
+            } else {
+                for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
+                    board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                    if (board.getInt("address") == address) {
+                        boardColor = board.getString("color");
+                    }
                 }
             }
 
             return boardColor;
-        }
-        catch(JSONException e){
+        } catch (JSONException e) {
             l(e.getMessage());
             return boardColor;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             l(e.getMessage());
             return boardColor;
         }

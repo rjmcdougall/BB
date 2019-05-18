@@ -56,30 +56,37 @@ public class RF {
 
 
     public RF(BBService service, Context context) {
-        mBBService = service;
-        mContext = context;
-        // Register to receive attach/detached messages that are proxied from MainActivity
-        IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        mBBService.registerReceiver(mUsbReceiver, filter);
-        filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-        mBBService.registerReceiver(mUsbReceiver, filter);
-        mRFAddress = new RFAddress(service, context);
-        initUsb();
-        mGps = new Gps(mBBService, mContext);
-        mGps.attach( new Gps.GpsEvents() {
-            public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
-                d("Radio Time: " + time.toString());
-                if (mRadioCallback != null) {
-                    mRadioCallback.timeEvent(time);
-                }
-            };
-            public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
-                d("Radio Position: " + gps.toString());
-                if (mRadioCallback != null) {
-                    mRadioCallback.GPSevent(gps);
-                }
-            };
-        });
+        try {
+            mBBService = service;
+            mContext = context;
+            // Register to receive attach/detached messages that are proxied from MainActivity
+            IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
+            mBBService.registerReceiver(mUsbReceiver, filter);
+            filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
+            mBBService.registerReceiver(mUsbReceiver, filter);
+            mRFAddress = new RFAddress(service, context);
+            initUsb();
+            mGps = new Gps(mBBService, mContext);
+            mGps.attach( new Gps.GpsEvents() {
+                public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
+                    d("Radio Time: " + time.toString());
+                    if (mRadioCallback != null) {
+                        mRadioCallback.timeEvent(time);
+                    }
+                };
+                public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
+                    d("Radio Position: " + gps.toString());
+                    if (mRadioCallback != null) {
+                        mRadioCallback.GPSevent(gps);
+                    }
+                };
+            });
+        }
+        catch(Exception e){
+            l(e.getMessage());
+        }
+
+        l("GPS Constructor Completed");
     }
 
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
