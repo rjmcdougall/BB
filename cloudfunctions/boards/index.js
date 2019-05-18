@@ -20,6 +20,18 @@ app.get("/", async function (req, res, next) {
 	}
 });
 
+app.get("/locations/", async function (req, res, next) {
+
+	const BatteryQueries = require("./BatteryQueries");
+	try {
+		var i = await BatteryQueries.queryBoardLocations();
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
 app.get("/:boardID/DownloadDirectoryJSON", async function (req, res, next) {
 	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	var boardID = req.params.boardID;
