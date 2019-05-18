@@ -9,7 +9,7 @@ app.listen(PORT, () => {
 });
 
 app.get("/", async function (req, res, next) {
-
+	console.log(req.protocol + "://"+ req.get('Host') + req.url);
 	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
         var i = await DownloadDirectoryDS.listBoards(null);
@@ -21,7 +21,7 @@ app.get("/", async function (req, res, next) {
 });
 
 app.get("/locations/", async function (req, res, next) {
-
+	console.log(req.protocol + "://"+ req.get('Host') + req.url);
 	const BatteryQueries = require("./BatteryQueries");
 	try {
 		var i = await BatteryQueries.queryBoardLocations();
@@ -33,6 +33,7 @@ app.get("/locations/", async function (req, res, next) {
 });
 
 app.get("/:boardID/DownloadDirectoryJSON", async function (req, res, next) {
+	console.log(req.protocol + "://"+ req.get('Host') + req.url);
 	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	var boardID = req.params.boardID;
 	var result = [];
