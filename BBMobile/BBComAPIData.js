@@ -11,7 +11,7 @@ exports.fetchBoards = async function () {
 				"Accept": "application/json",
 				"Content-Type": "application/json",
 			}
-		});
+		}, 2000);
 
 		var boardsJSON = await response.json();
 		var boardsText = await JSON.stringify(boardsJSON);
@@ -28,8 +28,8 @@ exports.fetchBoards = async function () {
 	}
 };
 
-async function advFetch (url, headers) {
-	const TIMEOUT = 2000;
+async function advFetch (url, headers, timeout) {
+	const TIMEOUT = timeout;
 	let didTimeOut = false;
 
 	return new Promise(function (resolve, reject) {
@@ -64,7 +64,7 @@ exports.fetchLocations = async function (mediaState) {
 				"Accept": "application/json",
 				"Content-Type": "application/json",
 			}
-		});
+		},5000);
 
 		var apiLocations = await response.json();
 
