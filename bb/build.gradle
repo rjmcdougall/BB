@@ -1,4 +1,4 @@
-5001apply plugin: 'com.android.application'
+apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
