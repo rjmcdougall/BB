@@ -3,8 +3,8 @@ import BLEIDs from "./BLEIDs";
 exports.fetchBoards = async function () {
 
 	//const API = "http://www.fakeresponse.com/api/?sleep=5";
-	//const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
-	const API = "https://www.burnerboard.com/boards/";
+	const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
+	//const API = "https://www.burnerboard.com/boards/";
 	try {
 		var response = await advFetch(API, {
 			headers: {
