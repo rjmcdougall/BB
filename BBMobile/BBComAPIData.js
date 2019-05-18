@@ -56,7 +56,7 @@ async function advFetch (url, headers, timeout) {
 exports.fetchLocations = async function (mediaState) {
 
 	//const API = "http://192.168.1.66:3001/boards/locations/";
-	const API = "https://www.burnerboard.com/boards/locations/";
+	const API = "https://us-central1-burner-board.cloudfunctions.net/boards/locations/";
 
 	try {
 		var response = await advFetch(API, {
