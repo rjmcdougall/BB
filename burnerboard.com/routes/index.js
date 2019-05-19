@@ -8,15 +8,7 @@ var UserStore = require("./UserStore");
 router.use(bodyParser.json());
 
 router.use(async function (req, res, next) {
-
-	var excludeEndsWith = ["/DownloadDirectoryJSON","/boards/","/boards/locations/"];
-
-	var exclude = excludeEndsWith.filter((item) => {
-		return req.path.endsWith(item);
-	});
-
-	if (!(exclude.length>0 && req.path.startsWith("/boards/"))) {
-
+ 
 		var JWT = req.headers["authorization"].replace("Bearer ", "");
 
 		if (JWT) {
@@ -32,9 +24,6 @@ router.use(async function (req, res, next) {
 			success: false,
 			message: "No token provided."
 		});
-	}
-	else
-		next();
 
 });
 
