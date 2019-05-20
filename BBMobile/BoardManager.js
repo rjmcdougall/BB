@@ -315,7 +315,7 @@ export default class BoardManager extends Component {
 	}
 
 	async onLoadAPILocations() {
-		this.setState({ mediaState: await await BBComAPIData.fetchLocations(this.state.mediaState) });
+		this.setState({ mediaState: await BBComAPIData.fetchLocations(this.state.mediaState) });
 	}
 	async onUpdateVolume(value) {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(value, this.state.mediaState) });

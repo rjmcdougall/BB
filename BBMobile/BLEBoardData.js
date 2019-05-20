@@ -121,10 +121,6 @@ exports.onUpdateVolume = async function (volume, mediaState) {
 	return mediaState;
 };
 
-exports.readVolume = async function (mediaState) {
-	return mediaState;
-};
-
 exports.onEnableGTFO = async function (value, mediaState) {
 	sendCommand(mediaState, "EnableGTFO", value);
 	mediaState = BLEIDs.BLELogger(mediaState, "BLE: GTFO submitted value: " + value, false);
