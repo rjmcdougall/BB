@@ -13,8 +13,6 @@ export default class DeviceController extends Component {
 		};
 
 		this.onSelectTrack = this.props.onSelectTrack.bind(this);
-		if (this.props.refreshFunction)
-			this.refreshFunction = this.props.refreshFunction.bind(this);
 	}
 
 	render() {
@@ -45,9 +43,7 @@ export default class DeviceController extends Component {
 				<View style={StyleSheet.button}>
 					<Touchable
 						onPress={async () => {
-
-							this.setState({ mediaState: await this.props.refreshFunction() });
-
+							this.props.sendCommand(this.props.mediaState, "BTScan", null)
 							return true;
 						}}
 						background={Touchable.Ripple("blue")}>
@@ -64,7 +60,7 @@ DeviceController.propTypes = {
 	mediaType: PropTypes.string,
 	mediaState: PropTypes.object,
 	onSelectTrack: PropTypes.func,
-	refreshFunction: PropTypes.func,
+	sendCommand: PropTypes.func,
 	displayRefreshButton: PropTypes.bool,
 };
 

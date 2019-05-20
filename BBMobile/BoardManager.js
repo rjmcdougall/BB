@@ -3,7 +3,6 @@ import { View, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, 
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
 import FileSystemConfig from "./FileSystemConfig";
-import BLEBoardData from "./BLEBoardData";
 import MediaManagement from "./MediaManagement";
 import AdminManagement from "./AdminManagement";
 import Diagnostic from "./Diagnostic";
@@ -49,13 +48,8 @@ export default class BoardManager extends Component {
 		this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
 		this.handleAppStateChange = this.handleAppStateChange.bind(this);
 		this.handleNewData = this.handleNewData.bind(this);
-		this.onEnableGTFO = this.onEnableGTFO.bind(this);
-		this.onEnableMaster = this.onEnableMaster.bind(this);
-		this.onUpdateVolume = this.onUpdateVolume.bind(this);
+		this.sendCommand = this.sendCommand.bind(this);
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
-		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
-		this.onSelectDevice = this.onSelectDevice.bind(this);
-		this.onRefreshDevices = this.onRefreshDevices.bind(this);
 		this.onLoadAPILocations = this.onLoadAPILocations.bind(this);
 		this.onPressSearchForBoards = this.onPressSearchForBoards.bind(this);
 		this.onNavigate = this.onNavigate.bind(this);
@@ -434,19 +428,6 @@ export default class BoardManager extends Component {
 			return false;
 		}
 	}
-
-	onUpdateVolume = async function (volume) {
-		this.sendCommand(this.state.mediaState, "Volume", volume);
-	};
-	onEnableGTFO = async function (value) {
-		this.sendCommand(this.state.mediaState, "EnableGTFO", value);
-	};
-	onRefreshDevices = async function () {
-		this.sendCommand(this.state.mediaState, "BTScan", null);
-	}
-	onEnableMaster = async function (value) {
-		this.sendCommand(this.state.mediaState, "EnableMaster", value);
-	};
 	onSelectAudioTrack = async function (idx) {
 		this.sendCommand(this.state.mediaState, "Audio", idx);
 	}
@@ -454,15 +435,7 @@ export default class BoardManager extends Component {
 	async onLoadAPILocations() {
 		this.setState({ mediaState: await BBComAPIData.fetchLocations(this.state.mediaState) });
 	}
-	async onSelectVideoTrack(idx) {
-		this.sendCommand(this.state.mediaState, "Video", idx);
-
-	}
-	async onSelectDevice(idx) {
-		this.sendCommand(this.state.mediaState, "Device", idx);
-	}
-
-
+ 
 	async onPressSearchForBoards() {
 
 		if (!this.state.scanning) {
@@ -716,9 +689,9 @@ export default class BoardManager extends Component {
 					{(!this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
-							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} onEnableMaster={this.onEnableMaster} onEnableGTFO={this.onEnableGTFO} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>

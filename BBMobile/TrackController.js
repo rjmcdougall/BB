@@ -7,9 +7,6 @@ import StyleSheet from "./StyleSheet";
 
 var PickerItem = Picker.Item;
 
-
-
-
 export default class TrackController extends Component {
 	constructor(props) {
 		super(props);
@@ -94,7 +91,7 @@ export default class TrackController extends Component {
 								}
 
 								this.setState({ selectedTrack: value });
-								await this.props.onSelectTrack(value);
+								this.props.sendCommand(this.props.mediaState, this.props.mediaType, value); 
 
 							}}>
 

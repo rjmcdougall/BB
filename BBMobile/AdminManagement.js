@@ -7,7 +7,6 @@ import {
 } from "react-native";
 
 import DeviceController from "./DeviceController";
-import BLEBoardData from "./BLEBoardData";
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
@@ -21,12 +20,6 @@ export default class AdminManagement extends Component {
 		this.state = {
 			isActive: false
 		};
-
-		this.onSelectDevice = this.props.onSelectDevice.bind(this);
-		this.onRefreshDevices = this.props.onRefreshDevices.bind(this);
-		this.onEnableMaster = this.props.onEnableMaster.bind(this);
-		this.onEnableGTFO = this.props.onEnableGTFO.bind(this);
-				
 	}
 
 	render() {
@@ -56,17 +49,12 @@ export default class AdminManagement extends Component {
 		return (
 			<View style={StyleSheet.container}>
 				<ScrollView>
-					<DeviceController onSelectTrack={this.onSelectDevice} mediaState={this.props.mediaState} mediaType="Device" refreshFunction={this.props.onRefreshDevices} />
+					<DeviceController onSelectTrack={(value) => this.props.sendCommand(this.props.mediaState, "Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 10 }}></View>
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-
-								if (this.props.mediaState.state.GTFO == false)
-									this.props.onEnableGTFO(true);
-								else
-									this.props.onEnableGTFO(false);
-
+								this.props.sendCommand(this.props.mediaState, "EnableGTFO", !this.props.mediaState.state.GTFO);
 								return true;
 							}}
 							style={[{ backgroundColor: GTFOBackgroundColor }]}
@@ -77,12 +65,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-
-								if (this.props.mediaState.state.audioMaster == 0)
-									this.props.onEnableMaster("true");
-								else
-									this.props.onEnableMaster("false");
-
+								this.props.sendCommand(this.props.mediaState,  "EnableMaster", !this.props.mediaState.state.audioMaster);
 								return true;
 							}}
 							style={[{ backgroundColor: backgroundColor }]}
@@ -249,12 +232,10 @@ AdminManagement.propTypes = {
 	mediaState: PropTypes.object,
 	locationState: PropTypes.object,
 	pointerEvents: PropTypes.string,
-	onSelectDevice: PropTypes.func,
-	onRefreshDevices: PropTypes.func,
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
 	onLoadAPILocations: PropTypes.func,
 	omEnableMaster: PropTypes.func,
-	onEnableGTFO: PropTypes.func
+	sendCommand: PropTypes.func
 };
 

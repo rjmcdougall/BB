@@ -7,8 +7,6 @@ import Slider from "react-native-slider";
 export default class VolumeController extends React.Component {
 	constructor(props) {
 		super(props);
-
-		this.onUpdateVolume = this.props.onUpdateVolume.bind(this);
 	}
 
 	render() {
@@ -29,9 +27,9 @@ export default class VolumeController extends React.Component {
 						trackStyle={StyleSheet.sliderTrack}
 						thumbStyle={StyleSheet.sliderThumb}
 						minimumTrackTintColor="blue"
-						onSlidingComplete={async (value) => {
+						onSlidingComplete={async (volume) => {
 							try {
-								await this.onUpdateVolume(value);
+								this.props.sendCommand(this.props.mediaState, "Volume", volume);
 							}
 							catch (error) {
 								console.log("VolumeController Error: " + error);
@@ -46,6 +44,6 @@ export default class VolumeController extends React.Component {
 
 VolumeController.propTypes = {
 	mediaState: PropTypes.object,
-	onUpdateVolume: PropTypes.func,
+	sendCommand: PropTypes.func,
 };
 
