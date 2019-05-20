@@ -24,7 +24,9 @@ export default class AdminManagement extends Component {
 
 		this.onSelectDevice = this.props.onSelectDevice.bind(this);
 		this.onRefreshDevices = this.props.onRefreshDevices.bind(this);
-
+		this.onEnableMaster = this.props.onEnableMaster.bind(this);
+		this.onEnableGTFO = this.props.onEnableGTFO.bind(this);
+				
 	}
 
 	render() {
@@ -61,9 +63,9 @@ export default class AdminManagement extends Component {
 							onPress={async () => {
 
 								if (this.props.mediaState.state.GTFO == false)
-									this.setState({ mediaState: await BLEBoardData.onEnableGTFO(true, this.props.mediaState) });
+									this.props.onEnableGTFO(true);
 								else
-									this.setState({ mediaState: await BLEBoardData.onEnableGTFO(false, this.props.mediaState) });
+									this.props.onEnableGTFO(false);
 
 								return true;
 							}}
@@ -77,9 +79,9 @@ export default class AdminManagement extends Component {
 							onPress={async () => {
 
 								if (this.props.mediaState.state.audioMaster == 0)
-									this.setState({ mediaState: await BLEBoardData.onEnableMaster("true", this.props.mediaState) });
+									this.props.onEnableMaster("true");
 								else
-									this.setState({ mediaState: await BLEBoardData.onEnableMaster("false", this.props.mediaState) });
+									this.props.onEnableMaster("false");
 
 								return true;
 							}}
@@ -252,5 +254,7 @@ AdminManagement.propTypes = {
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
 	onLoadAPILocations: PropTypes.func,
+	omEnableMaster: PropTypes.func,
+	onEnableGTFO: PropTypes.func
 };
 

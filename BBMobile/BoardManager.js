@@ -46,6 +46,8 @@ export default class BoardManager extends Component {
 		this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
 		this.handleAppStateChange = this.handleAppStateChange.bind(this);
 		this.handleNewData = this.handleNewData.bind(this);
+		this.onEnableGTFO = this.onEnableGTFO.bind(this);
+		this.onEnableMaster = this.onEnableMaster.bind(this);
 		this.onUpdateVolume = this.onUpdateVolume.bind(this);
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
 		this.onSelectVideoTrack = this.onSelectVideoTrack.bind(this);
@@ -319,6 +321,12 @@ export default class BoardManager extends Component {
 	}
 	async onUpdateVolume(value) {
 		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(value, this.state.mediaState) });
+	}
+	async onEnableGTFO(value) {
+		this.setState({ mediaState: await BLEBoardData.onEnableGTFO(value, this.state.mediaState) });
+	}	
+	async onEnableMaster(value) {
+		this.setState({ mediaState: await BLEBoardData.onEnableMaster(value, this.state.mediaState) });
 	}
 	async onSelectAudioTrack(idx) {
 		console.log("onSelectAudioTrack " + idx + " " + JSON.stringify(this.state.mediaState.connectedPeripheral));
@@ -600,7 +608,7 @@ export default class BoardManager extends Component {
 						<View style={{ flex: 1 }}>
 							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} onUpdateVolume={this.onUpdateVolume} onSelectAudioTrack={this.onSelectAudioTrack} onSelectVideoTrack={this.onSelectVideoTrack} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} onEnableMaster={this.onEnableMaster} onEnableGTFO={this.onEnableGTFO} onSelectDevice={this.onSelectDevice} onRefreshDevices={this.onRefreshDevices} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
