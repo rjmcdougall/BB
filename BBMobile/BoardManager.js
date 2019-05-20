@@ -316,36 +316,34 @@ export default class BoardManager extends Component {
 		}
 	}
 
+	onUpdateVolume = async function (volume) {
+		BLEBoardData.sendCommand(this.state.mediaState, "Volume", volume);
+	};
+	onEnableGTFO = async function (value) {
+		BLEBoardData.sendCommand(this.state.mediaState, "EnableGTFO", value);  
+	};
+	onRefreshDevices = async function() {
+		BLEBoardData.sendCommand(this.state.mediaState, "BTScan", null);
+	}
+	onEnableMaster = async function (value) {
+		BLEBoardData.sendCommand(this.state.mediaState, "EnableMaster", value);
+	};
+	onSelectAudioTrack = async function (idx) {
+		BLEBoardData.sendCommand(this.state.mediaState, "Audio", idx);
+	}
+
 	async onLoadAPILocations() {
 		this.setState({ mediaState: await BBComAPIData.fetchLocations(this.state.mediaState) });
 	}
-	async onUpdateVolume(value) {
-		this.setState({ mediaState: await BLEBoardData.onUpdateVolume(value, this.state.mediaState) });
-	}
-	async onEnableGTFO(value) {
-		this.setState({ mediaState: await BLEBoardData.onEnableGTFO(value, this.state.mediaState) });
-	}	
-	async onEnableMaster(value) {
-		this.setState({ mediaState: await BLEBoardData.onEnableMaster(value, this.state.mediaState) });
-	}
-	async onSelectAudioTrack(idx) {
-		console.log("onSelectAudioTrack " + idx + " " + JSON.stringify(this.state.mediaState.connectedPeripheral));
-		this.state.mediaState.state.audioChannelNo = idx;
-		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Audio", idx) });
-	}
 	async onSelectVideoTrack(idx) {
-		console.log("onSelectVideoTrack " + idx);
-		this.state.mediaState.state.videoChannelNo = idx;
-		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Video", idx) });
+		BLEBoardData.sendCommand(this.state.mediaState, "Video", idx);
+
 	}
 	async onSelectDevice(idx) {
-		console.log("onSelectDevice " + idx);
-		this.setState({ mediaState: await BLEBoardData.setTrack(this.state.mediaState, "Device", idx) });
-	}
-	async onRefreshDevices() {
-		this.setState({ mediaState: await BLEBoardData.refreshDevices(this.state.mediaState) });
+		BLEBoardData.sendCommand(this.state.mediaState, "Device", idx);
 	}
 
+ 
 	async onPressSearchForBoards() {
 
 		if (!this.state.scanning) {
@@ -483,19 +481,12 @@ export default class BoardManager extends Component {
 			console.log("BLE:errorsettingnotificationonrx:" + error);
 		}
 	}
-
 	async readLocationLoop() {
 
 		var backgroundTimer = setInterval(async () => {
-			console.log("Board Manager: Location Loop");
 			if (this.state.mediaState) {
-				console.log("Board Manager: Found Media State");
 				try {
-					var mediaState = await BLEBoardData.readLocation(this.state.mediaState);
-					console.log("Board Manager: Called Location Update");
-					this.setState({
-						mediaState: mediaState,
-					});
+					BLEBoardData.sendCommand(this.state.mediaState, "Location", 600);
 				}
 				catch (error) {
 					console.log("BoardManager: Location Loop Failed:" + error);

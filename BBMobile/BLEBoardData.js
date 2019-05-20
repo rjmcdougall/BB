@@ -12,7 +12,7 @@ exports.refreshMediaState = async function (mediaState) {
 	if (mediaState.connectedPeripheral) {
 		try {
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: requesting state ", false);
-			if (await sendCommand(mediaState, "getall", "") == false) {
+			if (await module.exports.sendCommand(mediaState, "getall", "") == false) {
 				return mediaState;
 			}
 			return mediaState;
@@ -70,7 +70,7 @@ exports.updateMediaState = function (mediaState, newMedia) {
 	return mediaState
 }
 
-sendCommand = function (mediaState, command, arg) {
+exports.sendCommand = function (mediaState, command, arg) {
 	// Send request command
 	if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
 		console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
@@ -103,40 +103,10 @@ sendCommand = function (mediaState, command, arg) {
 		return false;
 	}
 }
+ 
 
-exports.setTrack = async function (mediaState, mediaType, idx) {
-	console.log("BLE: setTrack: " + mediaType + " " + idx);
-	// Remote channel numbers are 0..n
-	sendCommand(mediaState, mediaType, idx);
-	return mediaState;
-}
 
-exports.refreshDevices = async function (mediaState) {
-	sendCommand(mediaState, "BTScan", null);
-	return mediaState;
-};
 
-exports.onUpdateVolume = async function (volume, mediaState) {
-	sendCommand(mediaState, "Volume", volume);
-	return mediaState;
-};
-
-exports.onEnableGTFO = async function (value, mediaState) {
-	sendCommand(mediaState, "EnableGTFO", value);
-	mediaState = BLEIDs.BLELogger(mediaState, "BLE: GTFO submitted value: " + value, false);
-	return mediaState;
-};
-
-exports.onEnableMaster = async function (value, mediaState) {
-	sendCommand(mediaState, "EnableMaster", value);
-	return mediaState;
-};
-
-exports.readLocation = async function (mediaState) {
-	// Get locations for last 10 mins
-	sendCommand(mediaState, "Location", 600);
-	return mediaState;
-};
 
 exports.createMediaState = async function (peripheral) {
 	try {
