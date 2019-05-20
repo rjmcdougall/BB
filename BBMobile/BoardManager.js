@@ -18,6 +18,9 @@ import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
 import { Buffer } from 'buffer';
+var AsyncLock = require('async-lock');
+var lock = new AsyncLock();
+import { stringToBytes } from 'convert-string';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -159,7 +162,7 @@ export default class BoardManager extends Component {
 					var newState = JSON.parse(newMessage.toString('ascii'));
 					console.log(newState);
 					// Setup the app-specific mediaState structure
-					this.setState({ mediaState: BLEBoardData.updateMediaState(this.state.mediaState, newState) });
+					this.setState({ mediaState: this.updateMediaState(this.state.mediaState, newState) });
 					rxBuffers = [];
 					this.setState({ rxBuffers: rxBuffers });
 					tmpData = Buffer.alloc(1024);
@@ -316,34 +319,150 @@ export default class BoardManager extends Component {
 		}
 	}
 
+
+	// Upload the JSON from the brain to the local mediaState
+	updateMediaState = function (mediaState, newMedia) {
+		console.log("BLE: new update from brain");
+		if (newMedia.boards) {
+			console.log("BLE: updated boards");
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated boards", false);
+			mediaState.boards = newMedia.boards;
+		}
+		if (newMedia.video) {
+			console.log("BLE: updated video: " + JSON.stringify(newMedia.video));
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated video", false);
+			mediaState.video = newMedia.video;
+		}
+		if (newMedia.audio) {
+			console.log("BLE: updated audio: " + JSON.stringify(newMedia.audio));
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated audio", false);
+			mediaState.audio = newMedia.audio;
+		}
+		if (newMedia.state) {
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated state", false);
+			console.log("BLE: updated state: " + JSON.stringify(newMedia.state));
+			mediaState.state = newMedia.state;
+		}
+		if (newMedia.btdevices) {
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated devices", false);
+			console.log("BLE: updated btdevices: " + JSON.stringify(newMedia.btdevices));
+			if (newMedia.btdevices.length > 0)
+				mediaState.devices = newMedia.btdevices;
+		}
+		if (newMedia.locations) {
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated locations", false);
+			console.log("BLE: updated locations: " + JSON.stringify(newMedia.locations));
+			mediaState.locations = newMedia.locations;
+		}
+		if (newMedia.battery) {
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated battery", false);
+			console.log("BLE: updated battery: " + JSON.stringify(newMedia.battery));
+			mediaState.battery = newMedia.battery;
+		}
+		return mediaState
+	}
+
+	createMediaState = async function (peripheral) {
+		try {
+			var mediaState = StateBuilder.blankMediaState();
+			mediaState.connectedPeripheral = peripheral;
+
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting BLE Data for " + peripheral.name, false);
+			mediaState = await this.refreshMediaState(mediaState);
+
+			mediaState = BLEIDs.BLELogger(mediaState, "API: Gettig Boards Data", false);
+			var boards = await StateBuilder.getBoards();
+			mediaState.boards = boards;
+
+			return mediaState;
+		}
+		catch (error) {
+			console.log("StateBuilder: " + BLEIDs.fixErrorMessage(error));
+		}
+	};
+
+	refreshMediaState = async function (mediaState) {
+
+		if (mediaState.connectedPeripheral) {
+			try {
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: requesting state ", false);
+				if (await this.sendCommand(mediaState, "getall", "") == false) {
+					return mediaState;
+				}
+				return mediaState;
+			}
+			catch (error) {
+				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Refresh Media Error: " + error, true);
+				return mediaState;
+			}
+		}
+		else {
+			return mediaState;
+		}
+	};
+
+	sendCommand = function (mediaState, command, arg) {
+		// Send request command
+		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
+			console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
+			mediaState = BLEIDs.BLELogger(mediaState, "BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
+			lock.acquire('send', function (done) {
+				// async work
+				try {
+					const data = stringToBytes('{command:"' + command + '", arg:"' + arg + '"};\n');
+					BleManager.write(mediaState.connectedPeripheral.id,
+						BLEIDs.UARTservice,
+						BLEIDs.txCharacteristic,
+						data,
+						18); // MTU Size
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: successfully requested " + command, false);
+				}
+				catch (error) {
+					console.log("BLE: send command " + command + " " + arg + " failed on device " + mediaState.connectedPeripheral.id);
+					mediaState.connectedPeripheral.connected = false;
+					mediaState = BLEIDs.BLELogger(mediaState, "BLE: getstate: " + error, true);
+				}
+				done();
+			}, function () {
+				// lock released
+				console.log("BLE: send command " + command + " " + arg + " done on device " + mediaState.connectedPeripheral.id);
+				return true;
+			});
+		}
+		else {
+			console.log("BLE: send command peripheral" + JSON.stringify(mediaState.connectedPeripheral.id));
+			return false;
+		}
+	}
+
 	onUpdateVolume = async function (volume) {
-		BLEBoardData.sendCommand(this.state.mediaState, "Volume", volume);
+		this.sendCommand(this.state.mediaState, "Volume", volume);
 	};
 	onEnableGTFO = async function (value) {
-		BLEBoardData.sendCommand(this.state.mediaState, "EnableGTFO", value);  
+		this.sendCommand(this.state.mediaState, "EnableGTFO", value);
 	};
-	onRefreshDevices = async function() {
-		BLEBoardData.sendCommand(this.state.mediaState, "BTScan", null);
+	onRefreshDevices = async function () {
+		this.sendCommand(this.state.mediaState, "BTScan", null);
 	}
 	onEnableMaster = async function (value) {
-		BLEBoardData.sendCommand(this.state.mediaState, "EnableMaster", value);
+		this.sendCommand(this.state.mediaState, "EnableMaster", value);
 	};
 	onSelectAudioTrack = async function (idx) {
-		BLEBoardData.sendCommand(this.state.mediaState, "Audio", idx);
+		this.sendCommand(this.state.mediaState, "Audio", idx);
 	}
 
 	async onLoadAPILocations() {
 		this.setState({ mediaState: await BBComAPIData.fetchLocations(this.state.mediaState) });
 	}
 	async onSelectVideoTrack(idx) {
-		BLEBoardData.sendCommand(this.state.mediaState, "Video", idx);
+		this.sendCommand(this.state.mediaState, "Video", idx);
 
 	}
 	async onSelectDevice(idx) {
-		BLEBoardData.sendCommand(this.state.mediaState, "Device", idx);
+		this.sendCommand(this.state.mediaState, "Device", idx);
 	}
 
- 
+
 	async onPressSearchForBoards() {
 
 		if (!this.state.scanning) {
@@ -445,7 +564,7 @@ export default class BoardManager extends Component {
 						console.log("BLE connectToPeripheral: Now go setup and read all the state ");
 
 						// Now go setup and read all the state for the first time
-						var mediaState = await BLEBoardData.createMediaState(boardBleDevice);
+						var mediaState = await this.createMediaState(boardBleDevice);
 
 						// Kick off a per-second location reader 
 						await this.readLocationLoop(this.state.mediaState);
@@ -486,7 +605,7 @@ export default class BoardManager extends Component {
 		var backgroundTimer = setInterval(async () => {
 			if (this.state.mediaState) {
 				try {
-					BLEBoardData.sendCommand(this.state.mediaState, "Location", 600);
+					this.sendCommand(this.state.mediaState, "Location", 600);
 				}
 				catch (error) {
 					console.log("BoardManager: Location Loop Failed:" + error);
