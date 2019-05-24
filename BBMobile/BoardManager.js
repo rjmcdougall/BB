@@ -33,13 +33,10 @@ export default class BoardManager extends Component {
 			appState: "",
 			connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 			mediaState: StateBuilder.blankMediaState(),
-			locationState: "",
 			showScreen: Constants.MEDIA_MANAGEMENT,
 			automaticallyConnect: true,
 			backgroundLoop: null,
-			title: "Board Management",
 			boardData: [],
-			boardColor: "blue",
 			rxBuffers: [],
 		};
 
