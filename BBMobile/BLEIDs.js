@@ -31,10 +31,10 @@ exports.BLELogger = function (mediaState, logText, isError) {
 exports.fixErrorMessage = function (logText, mediaState) {
 	return logText;
 	// DKW NEED TO CHECK THIS!!! LOG IS UNUSABLE
-	for (var i = 0; i < UUIDs.length; i++) {
-		logText = logText.replace("UUID " + UUIDs[i].UUID, UUIDs[i].name);
-	}
-	logText = logText.replace(mediaState.peripheral.id, mediaState.peripheral.name);
+	// for (var i = 0; i < UUIDs.length; i++) {
+	// 	logText = logText.replace("UUID " + UUIDs[i].UUID, UUIDs[i].name);
+	// }
+	// logText = logText.replace(mediaState.peripheral.id, mediaState.peripheral.name);
 
-	return logText;
+	// return logText;
 };

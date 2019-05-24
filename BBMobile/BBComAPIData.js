@@ -35,7 +35,7 @@ async function advFetch (url, headers, timeout) {
 	return new Promise(function (resolve, reject) {
 		const timeout = setTimeout(() => {
 			didTimeOut = true;
-			reject(new Error('Request timed out'));
+			reject(new Error("Request timed out"));
 		}, TIMEOUT);
 
 		fetch(url, headers).then(function (response) {
@@ -50,7 +50,7 @@ async function advFetch (url, headers, timeout) {
 				}
 				reject(err);
 			});
-	})
+	});
 }
 
 exports.fetchLocations = async function (mediaState) {

@@ -66,7 +66,7 @@ const makePoint = c => {
 		latitude: latitude,
 		longitude: longitude
 	});
-}
+};
 
 const makeLine = l => l.map(makePoint);
 
@@ -144,6 +144,10 @@ Geojson.propTypes = {
 	geojson: PropTypes.object,
 	userPrefs: PropTypes.object,
 	title: PropTypes.string,
+	pinColor: PropTypes.string,
+	strokeColor: PropTypes.string,
+	fillColor: PropTypes.string,
+	strokeWidth: PropTypes.number,
 };
 
 

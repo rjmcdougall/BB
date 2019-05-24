@@ -42,7 +42,6 @@ export default class TrackController extends Component {
 	findTrackNo(tracks, val) {
 		return tracks.find(function (item, i) {
 			if (item.localName === val) {
-				index = i;
 				return i;
 			}
 		});
@@ -117,4 +116,5 @@ TrackController.propTypes = {
 	onSelectTrack: PropTypes.func,
 	refreshFunction: PropTypes.func,
 	displayRefreshButton: PropTypes.bool,
+	sendCommand: PropTypes.func,
 };

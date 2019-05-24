@@ -16,10 +16,10 @@ import BatteryController from "./BatteryController";
 import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
-import { Buffer } from 'buffer';
-var AsyncLock = require('async-lock');
+import { Buffer } from "buffer";
+var AsyncLock = require("async-lock");
 var lock = new AsyncLock();
-import { stringToBytes } from 'convert-string';
+import { stringToBytes } from "convert-string";
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
@@ -138,8 +138,7 @@ export default class BoardManager extends Component {
 			//console.log( "BLE: newData:" + JSON.stringify(newData));
 			var rxBuffers = this.state.rxBuffers;
 			// Convert bytes array to string
-			data = newData.value;
-			characteristic = newData.characteristic;
+			var data = newData.value;
 			var tmpData = Buffer.alloc(data.length);
 			var tmpDataLen = 0;
 			for (var i = 0; i < data.length; i++) {
@@ -148,12 +147,12 @@ export default class BoardManager extends Component {
 				if (oneChar == ";".charCodeAt(0)) {
 					if (tmpData.length > 0) {
 						// Push the new bytes avail
-						tmpDataBuffer = Buffer.alloc(tmpDataLen);
+						var tmpDataBuffer = Buffer.alloc(tmpDataLen);
 						tmpData.copy(tmpDataBuffer, 0, 0, tmpDataLen);
 						rxBuffers.push(tmpDataBuffer);
 					}
-					newMessage = Buffer.concat(rxBuffers);
-					var newState = JSON.parse(newMessage.toString('ascii'));
+					var newMessage = Buffer.concat(rxBuffers);
+					var newState = JSON.parse(newMessage.toString("ascii"));
 					console.log(newState);
 					// Setup the app-specific mediaState structure
 					this.setState({ mediaState: this.updateMediaState(this.state.mediaState, newState) });
@@ -200,7 +199,7 @@ export default class BoardManager extends Component {
 		let peripheral = data.peripheral;
 		console.log("BoardManager: Disconnected from " + JSON.stringify(peripheral));
 		// Update state 
-		dev = this.state.boardBleDevices.get(peripheral);
+		var dev = this.state.boardBleDevices.get(peripheral);
 		if (dev != null) {
 			console.log("BoardManager: Disconnected from " + JSON.stringify(dev));
 			dev.connected = Constants.DISCONNECTED;
@@ -353,7 +352,7 @@ export default class BoardManager extends Component {
 			console.log("BLE: updated battery: " + JSON.stringify(newMedia.battery));
 			mediaState.battery = newMedia.battery;
 		}
-		return mediaState
+		return mediaState;
 	}
 
 	createMediaState = async function (peripheral) {
@@ -400,10 +399,10 @@ export default class BoardManager extends Component {
 		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
 			console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
 			mediaState = BLEIDs.BLELogger(mediaState, "BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
-			lock.acquire('send', function (done) {
+			lock.acquire("send", function (done) {
 				// async work
 				try {
-					const data = stringToBytes('{command:"' + command + '", arg:"' + arg + '"};\n');
+					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
 					BleManager.write(mediaState.connectedPeripheral.id,
 						BLEIDs.UARTservice,
 						BLEIDs.txCharacteristic,
@@ -480,7 +479,7 @@ export default class BoardManager extends Component {
 				});
 
 				if (bleBoardDeviceExists.length > 0) {
-					console.log("BLE DEVICE ALREADY EXISTSED" + peripheral.id)
+					console.log("BLE DEVICE ALREADY EXISTSED" + peripheral.id);
 					boardBleDevices.delete(bleBoardDeviceExists.id);
 				}
 
@@ -502,7 +501,7 @@ export default class BoardManager extends Component {
 
 		// Update state 
 		var boardBleDevices = this.state.boardBleDevices;
-		boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
+		var boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
 		try {
 			this.setState({
 				connectedPeripheral: boardBleDevice,
@@ -624,7 +623,7 @@ export default class BoardManager extends Component {
 
 		if (this.state.connectedPeripheral) {
 
-			connected = this.state.connectedPeripheral.connected;
+			var connected = this.state.connectedPeripheral.connected;
 
 			if (!connected) {
 				connected = Constants.DISCONNECTED;

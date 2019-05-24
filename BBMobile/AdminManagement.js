@@ -26,7 +26,8 @@ export default class AdminManagement extends Component {
 
 		var masterText;
 		var backgroundColor;
-
+		var GTFOText;
+		var GTFOBackgroundColor;
 		if (this.props.mediaState.state.audioMaster == 0) {
 			masterText = "Enable Master";
 			backgroundColor = "skyblue";

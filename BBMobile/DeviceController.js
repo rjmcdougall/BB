@@ -18,7 +18,7 @@ export default class DeviceController extends Component {
 	render() {
 
  
-		devs = this.props.mediaState.devices.map(a => a.address);
+		var devs = this.props.mediaState.devices.map(a => a.address);
 
 		return (
 
@@ -43,7 +43,7 @@ export default class DeviceController extends Component {
 				<View style={StyleSheet.button}>
 					<Touchable
 						onPress={async () => {
-							this.props.sendCommand(this.props.mediaState, "BTScan", null)
+							this.props.sendCommand(this.props.mediaState, "BTScan", null);
 							return true;
 						}}
 						background={Touchable.Ripple("blue")}>

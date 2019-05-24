@@ -32,7 +32,6 @@ MediaManagement.propTypes = {
 	mediaState: PropTypes.object,
 	pointerEvents: PropTypes.string,
 	sendCommand: PropTypes.func,
-	sendCommand: PropTypes.func,
 	onLoadAPILocations: PropTypes.func,
 };
 
