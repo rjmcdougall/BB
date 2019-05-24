@@ -18,7 +18,7 @@ export default class Diagnostic extends Component {
 						IP Address: {this.props.mediaState.state.IPAddress} {"\n"}
 					</Text>
 					{
-						this.props.mediaState.logLines.map((line) => {
+						this.props.logLines.map((line) => {
 							var color = "white";
 							if (line.isError)
 								color = "red";
@@ -33,9 +33,11 @@ export default class Diagnostic extends Component {
 }
 Diagnostic.propTypes = {
 	mediaState: PropTypes.object,
+	logLines: PropTypes.array,
 };
 
 Diagnostic.defaultProps = {
 	mediaState: StateBuilder.blankMediaState(),
+	logLines: StateBuilder.blankLogLines(),
 };
 

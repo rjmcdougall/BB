@@ -8,7 +8,6 @@ import AdminManagement from "./AdminManagement";
 import Diagnostic from "./Diagnostic";
 import Touchable from "react-native-platform-touchable";
 import StateBuilder from "./StateBuilder";
-import BBComAPIData from "./BBComAPIData";
 import Constants from "./Constants";
 import LeftNav from "./LeftNav";
 import MapController from "./MapController";
@@ -38,6 +37,7 @@ export default class BoardManager extends Component {
 			backgroundLoop: null,
 			boardData: [],
 			rxBuffers: [],
+			logLines: StateBuilder.blankLogLines(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -309,44 +309,43 @@ export default class BoardManager extends Component {
 		}
 	}
 
-
 	// Upload the JSON from the brain to the local mediaState
 	updateMediaState = function (mediaState, newMedia) {
 		console.log("BLE: new update from brain");
 		if (newMedia.boards) {
 			console.log("BLE: updated boards");
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated boards", false);
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated boards", isError: false }) });
 			mediaState.boards = newMedia.boards;
 		}
 		if (newMedia.video) {
 			console.log("BLE: updated video: " + JSON.stringify(newMedia.video));
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated video", false);
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated video", isError: false }) });
 			mediaState.video = newMedia.video;
 		}
 		if (newMedia.audio) {
 			console.log("BLE: updated audio: " + JSON.stringify(newMedia.audio));
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated audio", false);
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated audio", isError: false }) });
 			mediaState.audio = newMedia.audio;
 		}
 		if (newMedia.state) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated state", false);
 			console.log("BLE: updated state: " + JSON.stringify(newMedia.state));
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated state", isError: false }) });
 			mediaState.state = newMedia.state;
 		}
 		if (newMedia.btdevices) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated devices", false);
 			console.log("BLE: updated btdevices: " + JSON.stringify(newMedia.btdevices));
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated devices", isError: false }) });
 			if (newMedia.btdevices.length > 0)
 				mediaState.devices = newMedia.btdevices;
 		}
 		if (newMedia.locations) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated locations", false);
 			console.log("BLE: updated locations: " + JSON.stringify(newMedia.locations));
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated locations", isError: false }) });
 			mediaState.locations = newMedia.locations;
 		}
 		if (newMedia.battery) {
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: updated battery", false);
 			console.log("BLE: updated battery: " + JSON.stringify(newMedia.battery));
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated battery", isError: false }) });
 			mediaState.battery = newMedia.battery;
 		}
 		return mediaState;
@@ -357,10 +356,10 @@ export default class BoardManager extends Component {
 			var mediaState = StateBuilder.blankMediaState();
 			mediaState.connectedPeripheral = peripheral;
 
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: Getting BLE Data for " + peripheral.name, false);
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: Getting BLE Data for " + peripheral.name, isError: false }) });
 			mediaState = await this.refreshMediaState(mediaState);
 
-			mediaState = BLEIDs.BLELogger(mediaState, "API: Gettig Boards Data", false);
+			this.setState({ logLines: this.state.logLines.push({ logLine: "API: Gettig Boards Data", isError: false }) });
 			var boards = await StateBuilder.getBoards();
 			mediaState.boards = boards;
 
@@ -375,14 +374,14 @@ export default class BoardManager extends Component {
 
 		if (mediaState.connectedPeripheral) {
 			try {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLE: requesting state ", false);
+				this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: requesting state ", isError: false }) });
 				if (await this.sendCommand(mediaState, "getall", "") == false) {
 					return mediaState;
 				}
 				return mediaState;
 			}
 			catch (error) {
-				mediaState = BLEIDs.BLELogger(mediaState, "BLE: Refresh Media Error: " + error, true);
+				this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: Refresh Media Error: " + error, isError: true }) });
 				return mediaState;
 			}
 		}
@@ -395,7 +394,8 @@ export default class BoardManager extends Component {
 		// Send request command
 		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
 			console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
-			mediaState = BLEIDs.BLELogger(mediaState, "BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
+			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, isError: false }) });
+
 			lock.acquire("send", function (done) {
 				// async work
 				try {
@@ -405,12 +405,14 @@ export default class BoardManager extends Component {
 						BLEIDs.txCharacteristic,
 						data,
 						18); // MTU Size
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: successfully requested " + command, false);
+
+					this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: successfully requested " + command, isError: false }) });
+
 				}
 				catch (error) {
 					console.log("BLE: send command " + command + " " + arg + " failed on device " + mediaState.connectedPeripheral.id);
 					mediaState.connectedPeripheral.connected = false;
-					mediaState = BLEIDs.BLELogger(mediaState, "BLE: getstate: " + error, true);
+					this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: getstate: " + error, isError: true }) });
 				}
 				done();
 			}, function () {
@@ -431,7 +433,7 @@ export default class BoardManager extends Component {
 	async onLoadAPILocations() {
 		this.setState({ mediaState: await BBComAPIData.fetchLocations(this.state.mediaState) });
 	}
- 
+
 	async onPressSearchForBoards() {
 
 		if (!this.state.scanning) {
@@ -608,6 +610,93 @@ export default class BoardManager extends Component {
 
 	}
 
+
+	async fetchBoards() {
+		//const API = "http://www.fakeresponse.com/api/?sleep=5";
+		const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
+		//const API = "https://www.burnerboard.com/boards/";
+		try {
+			var response = await advFetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+				}
+			}, 2000);
+
+			var boardsJSON = await response.json();
+			var boardsText = await JSON.stringify(boardsJSON);
+
+			if (boardsText.length > 20) // make sure it isn't empty.
+				return boardsJSON;
+			else
+				return null;
+
+		}
+		catch (error) {
+			console.log(error);
+			return null;
+		}
+	};
+
+	async advFetch(url, headers, timeout) {
+		const TIMEOUT = timeout;
+		let didTimeOut = false;
+
+		return new Promise(function (resolve, reject) {
+			const timeout = setTimeout(() => {
+				didTimeOut = true;
+				reject(new Error("Request timed out"));
+			}, TIMEOUT);
+
+			fetch(url, headers).then(function (response) {
+				clearTimeout(timeout);
+				if (!didTimeOut) {
+					resolve(response);
+				}
+			})
+				.catch(function (err) {
+					if (didTimeOut) {
+						return;
+					}
+					reject(err);
+				});
+		});
+	}
+
+	async fetchLocations(mediaState) {
+
+		//const API = "http://192.168.1.66:3001/boards/locations/";
+		const API = "https://us-central1-burner-board.cloudfunctions.net/boards/locations/";
+
+		try {
+			var response = await this.advFetch(API, {
+				headers: {
+					"Accept": "application/json",
+					"Content-Type": "application/json",
+				}
+			}, 5000);
+
+			var apiLocations = await response.json();
+
+			mediaState.apiLocations = apiLocations.map((board) => {
+				return {
+					board: board.board,
+					latitude: board.lat,
+					longitude: board.lon,
+					dateTime: board.time,
+				};
+			});
+			
+			this.setState({ logLines: this.state.logLines.push({ logLine:  "API: Locations Fetch Found " + mediaState.apiLocations.length + " boards", isError: false }) });
+			
+			return mediaState;
+		}
+		catch (error) {
+			this.setState({ logLines: this.state.logLines.push({ logLine:  "API: Locations: " + error, isError: true }) });
+
+			return mediaState;
+		}
+	};
 	render() {
 
 		var color = "#fff";
@@ -686,7 +775,7 @@ export default class BoardManager extends Component {
 					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
 							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} mediaState={this.state.mediaState} /> : <View></View>}
+							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}

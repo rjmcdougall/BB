@@ -1,7 +1,7 @@
 
 import FileSystemConfig from "./FileSystemConfig";
-import BBComAPIData from "./BBComAPIData";
 import Geolocation from "react-native-geolocation-service";
+import BoardManager from "./BoardManager";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
@@ -14,6 +14,8 @@ var bEmptyUserPrefs = {
 		longitude: -119.20660000000001,
 	}
 };
+
+var bEmptyLogLines = [{ logLine: "", isError: false }]
 
 var bEmptyMediaState = {
 	connectedPeripheral: {
@@ -46,7 +48,6 @@ var bEmptyMediaState = {
 	locations: [], // [{"board":"unknown","latitude":37.476222,"longitude":-122.1551087,"address":41,"lastHeard":811071,"lastHeardDate":1555174780789,"sigStrength":-53}]
 	apiLocations: [], //[{board: "sexy", latitude: 37.759305, longitude: -122.450425, dateTime: "2019-04-02T04:50:31.488000"}]
 	isError: false,
-	logLines: [{ logLine: "", isError: false }],
 	boards: [{ name: "none", address: 1234 }], //    { "color": "coral", "address": 42424, "isProfileGlobal": true, "profile": "Small-Testing","name": "BLUE DASH M2",  "type": "tester"},
 	phoneLocation: {
 		latitude: 0,
@@ -56,14 +57,12 @@ var bEmptyMediaState = {
 	}
 };
 
-
+exports.blankLogLines = function () {
+	return JSON.parse(JSON.stringify(bEmptyLogLines));
+};
 exports.blankUserPrefs = function () {
 	return JSON.parse(JSON.stringify(bEmptyUserPrefs));
 };
-
-function mblankUserPrefs() {
-	return JSON.parse(JSON.stringify(bEmptyUserPrefs));
-}
 
 exports.blankMediaState = function () {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
@@ -73,7 +72,7 @@ exports.getBoards = async function () {
 	try {
 		var boards = null;
 
-		boards = await BBComAPIData.fetchBoards();
+		boards = await BoardManager.fetchBoards();
 
 		console.log(boards);
 
@@ -108,10 +107,10 @@ exports.getUserPrefs = async function () {
 				&& userPrefs.includeMeOnMap != null)
 				return userPrefs;
 			else
-				return mblankUserPrefs();
+				return module.exports.blankUserPrefs();
 		}
 		else {
-			return mblankUserPrefs();
+			return module.exports.blankUserPrefs();
 		}
 	}
 	catch (error) {
