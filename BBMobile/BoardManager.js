@@ -52,7 +52,6 @@ export default class BoardManager extends Component {
 		this.onNavigate = this.onNavigate.bind(this);
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
 		this.startScan = this.startScan.bind(this);
-
 	}
 
 	async componentDidMount() {
@@ -62,7 +61,7 @@ export default class BoardManager extends Component {
 			showAlert: false
 		});
 
-		var boards = await StateBuilder.getBoards();
+		var boards = await this.getBoards();
 
 		if (boards) {
 			this.setState({
@@ -310,92 +309,94 @@ export default class BoardManager extends Component {
 	}
 
 	// Upload the JSON from the brain to the local mediaState
-	updateMediaState = function (mediaState, newMedia) {
+	updateMediaState(mediaState, newMedia) {
 		console.log("BLE: new update from brain");
 		if (newMedia.boards) {
-			console.log("BLE: updated boards");
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated boards", isError: false }) });
+			this.l("BLE: updated boards", false);
 			mediaState.boards = newMedia.boards;
 		}
 		if (newMedia.video) {
-			console.log("BLE: updated video: " + JSON.stringify(newMedia.video));
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated video", isError: false }) });
+			this.l("BLE: updated video", false);
 			mediaState.video = newMedia.video;
 		}
 		if (newMedia.audio) {
-			console.log("BLE: updated audio: " + JSON.stringify(newMedia.audio));
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated audio", isError: false }) });
+			this.l("BLE: updated audio", false);
 			mediaState.audio = newMedia.audio;
 		}
 		if (newMedia.state) {
-			console.log("BLE: updated state: " + JSON.stringify(newMedia.state));
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated state", isError: false }) });
+			this.l("BLE: updated state", false);
 			mediaState.state = newMedia.state;
 		}
 		if (newMedia.btdevices) {
-			console.log("BLE: updated btdevices: " + JSON.stringify(newMedia.btdevices));
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated devices", isError: false }) });
+			this.l("BLE: updated devices", false);
 			if (newMedia.btdevices.length > 0)
 				mediaState.devices = newMedia.btdevices;
 		}
 		if (newMedia.locations) {
-			console.log("BLE: updated locations: " + JSON.stringify(newMedia.locations));
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated locations", isError: false }) });
+			this.l("BLE: updated locations", false);
 			mediaState.locations = newMedia.locations;
 		}
 		if (newMedia.battery) {
-			console.log("BLE: updated battery: " + JSON.stringify(newMedia.battery));
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: updated battery", isError: false }) });
+			this.l("BLE: updated battery", false);
 			mediaState.battery = newMedia.battery;
 		}
 		return mediaState;
 	}
 
-	createMediaState = async function (peripheral) {
+	async createMediaState(peripheral) {
 		try {
 			var mediaState = StateBuilder.blankMediaState();
 			mediaState.connectedPeripheral = peripheral;
 
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: Getting BLE Data for " + peripheral.name, isError: false }) });
+			this.l("BLE: Getting BLE Data for " + peripheral.name, false);
 			mediaState = await this.refreshMediaState(mediaState);
 
-			this.setState({ logLines: this.state.logLines.push({ logLine: "API: Gettig Boards Data", isError: false }) });
-			var boards = await StateBuilder.getBoards();
+			this.l("API: Gettig Boards Data", false);
+			var boards = await this.getBoards();
 			mediaState.boards = boards;
 
 			return mediaState;
 		}
 		catch (error) {
-			console.log("StateBuilder: " + BLEIDs.fixErrorMessage(error));
+			console.log("StateBuilder: " + error);
 		}
-	};
+	}
 
-	refreshMediaState = async function (mediaState) {
+	l(logLine, isError) {
+		if (logLine != null && isError != null) {
+			var logArray = this.state.logLines;
+			logArray.push({ logLine: logLine, isError: isError });
+			this.setState({ logLines: logArray });
+		}
+	}
+
+	async refreshMediaState(mediaState) {
 
 		if (mediaState.connectedPeripheral) {
 			try {
-				this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: requesting state ", isError: false }) });
+				this.l("BLE: requesting state ", false);
 				if (await this.sendCommand(mediaState, "getall", "") == false) {
 					return mediaState;
 				}
 				return mediaState;
 			}
 			catch (error) {
-				this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: Refresh Media Error: " + error, isError: true }) });
+
+				this.l("BLE: Refresh Media Error: " + error, true);
 				return mediaState;
 			}
 		}
 		else {
 			return mediaState;
 		}
-	};
+	}
 
-	sendCommand = function (mediaState, command, arg) {
+	sendCommand(mediaState, command, arg) {
 		// Send request command
 		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
-			console.log("BLE: send command " + command + " " + arg + " on device " + mediaState.connectedPeripheral.id);
-			this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, isError: false }) });
+			this.l("BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
 
+			var bm = this;
 			lock.acquire("send", function (done) {
 				// async work
 				try {
@@ -406,13 +407,12 @@ export default class BoardManager extends Component {
 						data,
 						18); // MTU Size
 
-					this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: successfully requested " + command, isError: false }) });
+					bm.l("BLE: successfully requested " + command, false);
 
 				}
 				catch (error) {
-					console.log("BLE: send command " + command + " " + arg + " failed on device " + mediaState.connectedPeripheral.id);
 					mediaState.connectedPeripheral.connected = false;
-					this.setState({ logLines: this.state.logLines.push({ logLine: "BLE: getstate: " + error, isError: true }) });
+					bm.l("BLE: getstate: " + error, true);
 				}
 				done();
 			}, function () {
@@ -431,7 +431,7 @@ export default class BoardManager extends Component {
 	}
 
 	async onLoadAPILocations() {
-		this.setState({ mediaState: await BBComAPIData.fetchLocations(this.state.mediaState) });
+		this.setState({ mediaState: await this.fetchLocations(this.state.mediaState) });
 	}
 
 	async onPressSearchForBoards() {
@@ -536,11 +536,11 @@ export default class BoardManager extends Component {
 
 						// Now go setup and read all the state for the first time
 						var mediaState = await this.createMediaState(boardBleDevice);
+						this.setState({ mediaState: mediaState });
 
 						// Kick off a per-second location reader 
-						await this.readLocationLoop(this.state.mediaState);
 						console.log("BoardManager: Begin Background Location Loop");
-						this.setState({ mediaState: mediaState });
+						await this.readLocationLoop(this.state.mediaState);
 
 					} catch (error) {
 						console.log("BLE: Error connecting: " + error);
@@ -611,12 +611,38 @@ export default class BoardManager extends Component {
 	}
 
 
+	async getBoards() {
+		try {
+			var boards = null;
+
+			boards = await this.fetchBoards();
+
+			console.log(boards);
+
+			if (boards) {
+				await FileSystemConfig.setBoards(boards);
+			}
+			else {
+				boards = await this.getBoards();
+			}
+
+			if (boards)
+				return boards;
+			else
+				return null;
+		}
+		catch (error) {
+			console.log("StateBuilder: Error: " + error);
+		}
+		return boards;
+	}
+
 	async fetchBoards() {
 		//const API = "http://www.fakeresponse.com/api/?sleep=5";
 		const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
 		//const API = "https://www.burnerboard.com/boards/";
 		try {
-			var response = await advFetch(API, {
+			var response = await this.advFetch(API, {
 				headers: {
 					"Accept": "application/json",
 					"Content-Type": "application/json",
@@ -636,7 +662,7 @@ export default class BoardManager extends Component {
 			console.log(error);
 			return null;
 		}
-	};
+	}
 
 	async advFetch(url, headers, timeout) {
 		const TIMEOUT = timeout;
@@ -686,17 +712,17 @@ export default class BoardManager extends Component {
 					dateTime: board.time,
 				};
 			});
-			
-			this.setState({ logLines: this.state.logLines.push({ logLine:  "API: Locations Fetch Found " + mediaState.apiLocations.length + " boards", isError: false }) });
-			
-			return mediaState;
-		}
-		catch (error) {
-			this.setState({ logLines: this.state.logLines.push({ logLine:  "API: Locations: " + error, isError: true }) });
+
+			this.l("API: Locations Fetch Found " + mediaState.apiLocations.length + " boards", false);
 
 			return mediaState;
 		}
-	};
+		catch (error) {
+			this.l("API: Locations: " + error, true);
+
+			return mediaState;
+		}
+	}
 	render() {
 
 		var color = "#fff";

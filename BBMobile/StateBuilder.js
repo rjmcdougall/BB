@@ -15,7 +15,7 @@ var bEmptyUserPrefs = {
 	}
 };
 
-var bEmptyLogLines = [{ logLine: "", isError: false }]
+var bEmptyLogLines = [{ logLine: "", isError: false }];
 
 var bEmptyMediaState = {
 	connectedPeripheral: {
@@ -66,32 +66,6 @@ exports.blankUserPrefs = function () {
 
 exports.blankMediaState = function () {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
-};
- 
-exports.getBoards = async function () {
-	try {
-		var boards = null;
-
-		boards = await BoardManager.fetchBoards();
-
-		console.log(boards);
-
-		if (boards) {
-			await FileSystemConfig.setBoards(boards);
-		}
-		else {
-			boards = await FileSystemConfig.getBoards();
-		}
-
-		if (boards)
-			return boards;
-		else
-			return null;
-	}
-	catch (error) {
-		console.log("StateBuilder: Error: " + error);
-	}
-	return boards;
 };
 
 exports.getUserPrefs = async function () {

@@ -21,11 +21,11 @@
   "dependencies": {
     "async-lock": "^1.2.0",
     "buffer": "^5.2.1",
-    "bugsnag-react-native": "^2.17.1",
+    "bugsnag-react-native": "^2.19.1",
     "charenc": "0.0.2",
     "convert-string": "^0.1.0",
     "react": "16.8.6",
-    "react-native": "^0.59.5",
+    "react-native": "^0.59.8",
     "react-native-animated-bar": "^0.2.0",
     "react-native-ble-manager": "^6.6.4",
     "react-native-cli": "^2.0.1",
