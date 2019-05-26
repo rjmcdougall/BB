@@ -78,13 +78,13 @@ export default class BoardManager extends Component {
 		if (Platform.OS === "android" && Platform.Version >= 23) {
 			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
 				if (result) {
-					console.log("BoardManager: Permission is OK");
+					this.l("Permission is OK", false, null);
 				} else {
 					PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
 						if (result) {
-							console.log("BoardManager: User accept");
+							this.l("User accept", false, null);
 						} else {
-							console.log("BoardManager: User refuse");
+							this.l("User refuse", true, null);
 						}
 					});
 				}
@@ -92,13 +92,13 @@ export default class BoardManager extends Component {
 
 			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
 				if (result) {
-					console.log("BoardManager: Permission is OK");
+					this.l("Permission is OK", false, null);
 				} else {
 					PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
 						if (result) {
-							console.log("BoardManager: User accept");
+							this.l("User accept", false, null);
 						} else {
-							console.log("BoardManager: User refuse");
+							this.l("User refuse", true, null);
 						}
 					});
 				}
@@ -119,9 +119,9 @@ export default class BoardManager extends Component {
 
 	handleAppStateChange(nextAppState) {
 		if (this.state.appState.match(/inactive|background/) && nextAppState === "active") {
-			console.log("BoardManager: App has come to the foreground!");
+			console.log("App has come to the foreground!");
 			BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
-				console.log("BoardManager: Connected boards: " + peripheralsArray.length);
+				console.log("Connected boards: " + peripheralsArray.length);
 			});
 		}
 		this.setState({
@@ -131,7 +131,7 @@ export default class BoardManager extends Component {
 
 	handleNewData(newData) {
 		try {
-			//console.log( "BLE: newData:" + JSON.stringify(newData));
+
 			var rxBuffers = this.state.rxBuffers;
 			// Convert bytes array to string
 			var data = newData.value;
@@ -149,7 +149,7 @@ export default class BoardManager extends Component {
 					}
 					var newMessage = Buffer.concat(rxBuffers);
 					var newState = JSON.parse(newMessage.toString("ascii"));
-					console.log(newState);
+					this.l("new data", false, newState);
 					// Setup the app-specific mediaState structure
 					this.setState({ mediaState: this.updateMediaState(this.state.mediaState, newState) });
 					rxBuffers = [];
@@ -174,8 +174,7 @@ export default class BoardManager extends Component {
 				}
 			}
 		} catch (error) {
-			console.log("BLE:handleNewData error: " + error);
-			console.log("BLE:handleNewData message: " + newMessage);
+			this.l("handleNewData error: " + error, true, newMessage);
 			rxBuffers = [];
 			this.setState({ rxBuffers: rxBuffers });
 		}
@@ -193,16 +192,16 @@ export default class BoardManager extends Component {
 	handleDisconnectedPeripheral(data) {
 
 		let peripheral = data.peripheral;
-		console.log("BoardManager: Disconnected from " + JSON.stringify(peripheral));
+
 		// Update state 
 		var dev = this.state.boardBleDevices.get(peripheral);
 		if (dev != null) {
-			console.log("BoardManager: Disconnected from " + JSON.stringify(dev));
+			this.l("Disconnected from " + peripheral.name, false, dev);
 			dev.connected = Constants.DISCONNECTED;
 		}
 		if (this.state.connectedPeripheral) {
 			if (peripheral == this.state.connectedPeripheral.id) {
-				console.log("BoardManager: our dev Disconnected from " + JSON.stringify(dev));
+				this.l("our dev Disconnected from " + peripheral.name, false, dev);
 				if (this.state.backgroundLoop)
 					clearInterval(this.state.backgroundLoop);
 				this.setState({
@@ -215,7 +214,7 @@ export default class BoardManager extends Component {
 	}
 
 	handleStopScan() {
-		console.log("BoardManager: Scan is stopped");
+		this.l("Scan is stopped", false, null);
 		this.setState({
 			scanning: false
 		});
@@ -233,17 +232,13 @@ export default class BoardManager extends Component {
 
 		if (!this.state.scanning) {
 			try {
-				console.log("BoardManager: Clearing Interval: ");
 
 				if (this.state.backgroundLoop)
 					clearInterval(this.state.backgroundLoop);
 
-				console.log("BoardManager: Clearing State: ");
-
 				if (this.state.connectedPeripheral)
 					if (this.state.connectedPeripheral.id != "12345") {
 						await BleManager.disconnect(this.state.connectedPeripheral.id);
-						console.log("Disconnecting BLE From " + this.state.connectedPeripheral.name);
 					}
 
 				this.setState({
@@ -255,11 +250,11 @@ export default class BoardManager extends Component {
 					backgroundLoop: null,
 				});
 
-				console.log("BoardManager: Scanning with automatic connect: " + automaticallyConnect);
+				this.l("Scanning with automatic connect: " + automaticallyConnect, false, null);
 				await BleManager.scan([BLEIDs.bbUUID], 5, true);
 			}
 			catch (error) {
-				console.log("BoardManager: Failed to Scan: " + error);
+				this.l("Failed to Scan: " + error, true, null);
 			}
 		}
 	}
@@ -270,15 +265,14 @@ export default class BoardManager extends Component {
 
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
-			console.log("onSelectPeripheral " + JSON.stringify(peripheral));
 
 			if (peripheral.connected == Constants.CONNECTED) {
 				try {
-					console.log("Disconnecting BLE From " + peripheral.name);
+					this.l("Disconnecting BLE From " + peripheral.name, false, null);
 					await BleManager.disconnect(peripheral.id);
 				}
 				catch (error) {
-					console.log("BoardManager: Failed to Disconnect" + error);
+					this.l("Failed to Disconnect" + error, true, null);
 				}
 			}
 			try {
@@ -302,7 +296,7 @@ export default class BoardManager extends Component {
 				await this.startScan(true);
 			}
 			catch (error) {
-				console.log("BoardManager: Connection error", error);
+				this.l("Connection error" + error, true, null);
 			}
 
 		}
@@ -310,34 +304,34 @@ export default class BoardManager extends Component {
 
 	// Upload the JSON from the brain to the local mediaState
 	updateMediaState(mediaState, newMedia) {
-		console.log("BLE: new update from brain");
+
 		if (newMedia.boards) {
-			this.l("BLE: updated boards", false);
+			this.l(" updated boards", false, null);
 			mediaState.boards = newMedia.boards;
 		}
 		if (newMedia.video) {
-			this.l("BLE: updated video", false);
+			this.l("updated video", false, null);
 			mediaState.video = newMedia.video;
 		}
 		if (newMedia.audio) {
-			this.l("BLE: updated audio", false);
+			this.l("updated audio", false, null);
 			mediaState.audio = newMedia.audio;
 		}
 		if (newMedia.state) {
-			this.l("BLE: updated state", false);
+			this.l("updated state", false, null);
 			mediaState.state = newMedia.state;
 		}
 		if (newMedia.btdevices) {
-			this.l("BLE: updated devices", false);
+			this.l("updated devices", false, null);
 			if (newMedia.btdevices.length > 0)
 				mediaState.devices = newMedia.btdevices;
 		}
 		if (newMedia.locations) {
-			this.l("BLE: updated locations", false);
+			this.l("updated locations", false, null);
 			mediaState.locations = newMedia.locations;
 		}
 		if (newMedia.battery) {
-			this.l("BLE: updated battery", false);
+			this.l("updated battery", false, null);
 			mediaState.battery = newMedia.battery;
 		}
 		return mediaState;
@@ -348,24 +342,26 @@ export default class BoardManager extends Component {
 			var mediaState = StateBuilder.blankMediaState();
 			mediaState.connectedPeripheral = peripheral;
 
-			this.l("BLE: Getting BLE Data for " + peripheral.name, false);
+			this.l("Getting BLE Data for " + peripheral.name, false, null);
 			mediaState = await this.refreshMediaState(mediaState);
 
-			this.l("API: Gettig Boards Data", false);
+			this.l("Gettig Boards Data", false, null);
 			var boards = await this.getBoards();
 			mediaState.boards = boards;
 
 			return mediaState;
 		}
 		catch (error) {
-			console.log("StateBuilder: " + error);
+			this.l("StateBuilder: " + error, true, null);
 		}
 	}
 
-	l(logLine, isError) {
+	l(logLine, isError, body) {
 		if (logLine != null && isError != null) {
 			var logArray = this.state.logLines;
-			logArray.push({ logLine: logLine, isError: isError });
+			logArray.push({ logLine: logLine, isError: isError, body: body });
+			console.log(logLine);
+			if(body!=null) console.log(body);
 			this.setState({ logLines: logArray });
 		}
 	}
@@ -374,7 +370,7 @@ export default class BoardManager extends Component {
 
 		if (mediaState.connectedPeripheral) {
 			try {
-				this.l("BLE: requesting state ", false);
+				this.l("requesting state ", false, null);
 				if (await this.sendCommand(mediaState, "getall", "") == false) {
 					return mediaState;
 				}
@@ -382,7 +378,7 @@ export default class BoardManager extends Component {
 			}
 			catch (error) {
 
-				this.l("BLE: Refresh Media Error: " + error, true);
+				this.l("Refresh Media Error: " + error, true);
 				return mediaState;
 			}
 		}
@@ -394,7 +390,7 @@ export default class BoardManager extends Component {
 	sendCommand(mediaState, command, arg) {
 		// Send request command
 		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
-			this.l("BLE: send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
+			this.l("send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
 
 			var bm = this;
 			lock.acquire("send", function (done) {
@@ -407,22 +403,21 @@ export default class BoardManager extends Component {
 						data,
 						18); // MTU Size
 
-					bm.l("BLE: successfully requested " + command, false);
+					bm.l("successfully requested " + command, false);
 
 				}
 				catch (error) {
 					mediaState.connectedPeripheral.connected = false;
-					bm.l("BLE: getstate: " + error, true);
+					bm.l("getstate: " + error, true);
 				}
 				done();
 			}, function () {
 				// lock released
-				console.log("BLE: send command " + command + " " + arg + " done on device " + mediaState.connectedPeripheral.id);
+				bm.l("send command " + command + " " + arg + " done on device " + mediaState.connectedPeripheral.name, false, null);
 				return true;
 			});
 		}
 		else {
-			console.log("BLE: send command peripheral" + JSON.stringify(mediaState.connectedPeripheral.id));
 			return false;
 		}
 	}
@@ -442,7 +437,7 @@ export default class BoardManager extends Component {
 				await BleManager.disconnect(this.state.connectedPeripheral.id);
 			}
 			catch (error) {
-				console.log("BoardManager: Pressed Search For Boards: " + error);
+				this.l("Pressed Search For Boards: " + error, true, null);
 			}
 
 			if (this.state.backgroundLoop)
@@ -467,7 +462,7 @@ export default class BoardManager extends Component {
 
 			if (!boardBleDevices.has(peripheral.id)) {
 
-				console.log("BoardManager Found New Peripheral:" + peripheral.name);
+				this.l("BoardManager Found New Peripheral:" + peripheral.name, false, null);
 
 				peripheral.connected = Constants.DISCONNECTED;
 
@@ -478,7 +473,6 @@ export default class BoardManager extends Component {
 				});
 
 				if (bleBoardDeviceExists.length > 0) {
-					console.log("BLE DEVICE ALREADY EXISTSED" + peripheral.id);
 					boardBleDevices.delete(bleBoardDeviceExists.id);
 				}
 
@@ -492,7 +486,7 @@ export default class BoardManager extends Component {
 			}
 		}
 		catch (error) {
-			console.log("BoardManager Found Peripheral Error:" + error);
+			this.l("BoardManager Found Peripheral Error:" + error, true, null);
 		}
 	}
 
@@ -509,20 +503,18 @@ export default class BoardManager extends Component {
 			if (this.state.automaticallyConnect) {
 
 				if (boardBleDevice.connected == Constants.DISCONNECTED) {
-					console.log("BoardManager: Automatically Connecting To: " + peripheral.name);
+					this.l("Automatically Connecting To: " + peripheral.name, false, null);
 
 					// Update status 
 					boardBleDevice.connected = Constants.CONNECTING;
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
-					console.log("BLE: Connecting to device: " + boardBleDevice.id);
 
 					try {
 						await BleManager.connect(boardBleDevice.id);
 						await this.sleep(1000);
-						console.log("BLE: Retreiving services");
+						this.l("Retreiving services", false, null);
 						await BleManager.retrieveServices(boardBleDevice.id);
 						await this.sleep(1000);
-						console.log("BLE: Setting rx notifications ");
 
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
 						this.setNotificationRx(boardBleDevice.id);
@@ -532,19 +524,18 @@ export default class BoardManager extends Component {
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
-						console.log("BLE connectToPeripheral: Now go setup and read all the state ");
 
 						// Now go setup and read all the state for the first time
 						var mediaState = await this.createMediaState(boardBleDevice);
 						this.setState({ mediaState: mediaState });
 
 						// Kick off a per-second location reader 
-						console.log("BoardManager: Begin Background Location Loop");
+						this.l("Begin Background Location Loop", false, null);
 						await this.readLocationLoop(this.state.mediaState);
 
 					} catch (error) {
-						console.log("BLE: Error connecting: " + error);
-						console.log("BLE: Error connecting: bledevice = " + JSON.stringify(boardBleDevice));
+						this.l("Error connecting: " + error, true, null);
+
 						// Update status 
 						boardBleDevice.connected = Constants.DISCONNECTED;
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
@@ -553,22 +544,22 @@ export default class BoardManager extends Component {
 			}
 		}
 		catch (error) {
-			console.log(error);
+			this.l(error, true, null);
 		}
 	}
 
 	async setNotificationRx(peripheralId) {
 		try {
-			var success = await BleManager.startNotification(peripheralId,
+			var e = await BleManager.startNotification(peripheralId,
 				BLEIDs.UARTservice,
 				BLEIDs.rxCharacteristic);
-			if (success == null) {
-				console.log("BLE:successfullysetnotificationonrx");
+			if (e == null) {
+				this.l("successfully set notificationon rx", false);
 			} else {
-				console.log("BLE:errorsettingnotificationonrx:" + success);
+				this.l("error " + e, true, null);
 			}
 		} catch (error) {
-			console.log("BLE:errorsettingnotificationonrx:" + error);
+			this.l("errorsettingnotificationonrx:" + error, true, null);
 		}
 	}
 	async readLocationLoop() {
@@ -579,7 +570,7 @@ export default class BoardManager extends Component {
 					this.sendCommand(this.state.mediaState, "Location", 600);
 				}
 				catch (error) {
-					console.log("BoardManager: Location Loop Failed:" + error);
+					this.l("Location Loop Failed:" + error, true, null);
 				}
 			}
 		}, 15000);
@@ -600,8 +591,7 @@ export default class BoardManager extends Component {
 					});
 				}
 				catch (error) {
-					console.log("BoardManager: Phone Location Loop Failed:");
-					console.log(error);
+					this.l("Phone Location Loop Failed: " + error, true, null);
 				}
 			}
 		}, 8000);
@@ -617,8 +607,6 @@ export default class BoardManager extends Component {
 
 			boards = await this.fetchBoards();
 
-			console.log(boards);
-
 			if (boards) {
 				await FileSystemConfig.setBoards(boards);
 			}
@@ -632,7 +620,7 @@ export default class BoardManager extends Component {
 				return null;
 		}
 		catch (error) {
-			console.log("StateBuilder: Error: " + error);
+			this.l("StateBuilder: Error: " + error, true, null);
 		}
 		return boards;
 	}
@@ -659,7 +647,7 @@ export default class BoardManager extends Component {
 
 		}
 		catch (error) {
-			console.log(error);
+			this.l("fetch boards " + error, true, null);
 			return null;
 		}
 	}
@@ -713,12 +701,12 @@ export default class BoardManager extends Component {
 				};
 			});
 
-			this.l("API: Locations Fetch Found " + mediaState.apiLocations.length + " boards", false);
+			this.l("Locations Fetch Found " + mediaState.apiLocations.length + " boards", false);
 
 			return mediaState;
 		}
 		catch (error) {
-			this.l("API: Locations: " + error, true);
+			this.l("Locations: " + error, true);
 
 			return mediaState;
 		}
