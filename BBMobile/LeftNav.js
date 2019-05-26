@@ -41,6 +41,15 @@ export default class LeftNav extends React.Component {
 						<Icon name="settings" size={40} color="black" />
 					</Touchable>
 				</View>
+				<View style={[{ backgroundColor: this.props.showScreen == Constants.APP_MANAGEMENT  ? "green" : "lightblue" }]}>
+					<Touchable
+						onPress={async () => {
+							this.props.onNavigate(Constants.APP_MANAGEMENT);
+						}}
+						style={StyleSheet.icon}>
+						<Icon name="cellphone" size={40} color="black" />
+					</Touchable>
+				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.DIAGNOSTIC ? "green" : "lightblue" }]}>
 					<Touchable
 						onPress={async () => {

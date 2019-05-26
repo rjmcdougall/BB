@@ -10,4 +10,4 @@ exports.MEDIA_MANAGEMENT = "Media Management";
 exports.ADMINISTRATION = "Administration";
 exports.DIAGNOSTIC = "Diagnostic";
 exports.MAP = "Map";
-
+exports.APP_MANAGEMENT = "App";
