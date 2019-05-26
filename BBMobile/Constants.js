@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 //connection states.
 exports.DISCONNECTED = "Disconnected";
 exports.CONNECTED = "Connected";
@@ -20,5 +21,31 @@ exports.AUDIOPREFIX = "Audio_";
 exports.VIDEOPREFIX = "Video_";
 exports.BTDEVICESPREFIX = "BTDevice_";
 
-//Other
-exports.LOCATION_CHECK_INTERVAL = 15000;
+//wait lengths may vary depending on BLE stability and the RN component
+exports.LOCATION_CHECK_INTERVAL = function () {
+	if (Platform.OS == "android")
+		return 15000;
+	else
+		return 8000;
+};
+
+exports.CONNECT_SLEEP = function () {
+	if (Platform.OS == "android")
+		return 1000;
+	else
+		return 0;
+};
+
+exports.RETRIEVE_SERVICES_SLEEP = function () {
+	if (Platform.OS == "android")
+		return 1000;
+	else
+		return 0;
+};
+
+exports.SET_NOTIFICATIONS_SLEEP = function () {
+	if (Platform.OS == "android")
+		return 1000;
+	else
+		return 0;
+};

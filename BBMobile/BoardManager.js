@@ -23,6 +23,8 @@ import { stringToBytes } from "convert-string";
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
+
 export default class BoardManager extends Component {
 	constructor() {
 		super();
@@ -190,7 +192,7 @@ export default class BoardManager extends Component {
 			clearInterval(this.state.backgroundLoop);
 	}
 
-	handleDisconnectedPeripheral(data) {
+	async handleDisconnectedPeripheral(data) {
 
 		let peripheral = data.peripheral;
 
@@ -202,7 +204,7 @@ export default class BoardManager extends Component {
 		}
 		if (this.state.connectedPeripheral) {
 			if (peripheral == this.state.connectedPeripheral.id) {
-				this.l("our dev Disconnected from " + dev.name, false, dev);
+				this.l("Disconnected from active peripheral", false, dev);
 				if (this.state.backgroundLoop)
 					clearInterval(this.state.backgroundLoop);
 				this.setState({
@@ -306,36 +308,42 @@ export default class BoardManager extends Component {
 	// Upload the JSON from the brain to the local mediaState
 	updateMediaState(mediaState, newMedia) {
 
-		if (newMedia.boards) {
-			this.l(" updated boards", false, newMedia.boards);
-			Cache.set(Constants.BOARDS, newMedia.boards);
-			this.setState({boardData: newMedia.boards});
-		}
-		if (newMedia.video) {
-			this.l("updated video", false, newMedia.video);
-			mediaState.video = newMedia.video;
-			Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
-		}
-		if (newMedia.audio) {
-			this.l("updated audio", false, newMedia.audio);
-			Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
-			mediaState.audio = newMedia.audio;
-		}
-		if (newMedia.state) {
-			this.l("updated state", false, newMedia.state);
-			mediaState.state = newMedia.state;
-		}
-		if (newMedia.btdevices) {
-			this.l("updated devices", false, newMedia.btdevices);
-			Cache.set(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name, newMedia.btdevices);
-			if (newMedia.btdevices.length > 0){
-				mediaState.devices = newMedia.btdevices;
+		try {
+			if (newMedia.boards) {
+				this.l(" updated boards", false, newMedia.boards);
+				Cache.set(Constants.BOARDS, newMedia.boards);
+				this.setState({ boardData: newMedia.boards });
+			}
+			if (newMedia.video) {
+				this.l("updated video", false, newMedia.video);
+				mediaState.video = newMedia.video;
+				Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
+			}
+			if (newMedia.audio) {
+				this.l("updated audio", false, newMedia.audio);
+				Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
+				mediaState.audio = newMedia.audio;
+			}
+			if (newMedia.state) {
+				this.l("updated state", false, newMedia.state);
+				mediaState.state = newMedia.state;
+			}
+			if (newMedia.btdevices) {
+				this.l("updated devices", false, newMedia.btdevices);
+				Cache.set(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name, newMedia.btdevices);
+				if (newMedia.btdevices.length > 0) {
+					mediaState.devices = newMedia.btdevices;
+				}
+			}
+			if (newMedia.locations) {
+				this.l("updated locations", false, null);
+				mediaState.locations = newMedia.locations;
 			}
 		}
-		if (newMedia.locations) {
-			this.l("updated locations", false, null);
-			mediaState.locations = newMedia.locations;
+		catch (error) {
+			this.l("Error Updating Media State " + error, true, null);
 		}
+
 		return mediaState;
 	}
 
@@ -350,7 +358,7 @@ export default class BoardManager extends Component {
 			return mediaState;
 		}
 		catch (error) {
-			this.l("StateBuilder: " + error, true, null);
+			this.l("Error creating media state " + error, true, null);
 		}
 	}
 
@@ -359,7 +367,7 @@ export default class BoardManager extends Component {
 			var logArray = this.state.logLines;
 			logArray.push({ logLine: logLine, isError: isError, body: body });
 			console.log(logLine);
-			if(body!=null) console.log(body);
+			if (body != null) console.log(body);
 			this.setState({ logLines: logArray });
 		}
 	}
@@ -374,7 +382,7 @@ export default class BoardManager extends Component {
 				var boards = await Cache.get(Constants.BOARDS);
 				var btdevices = await Cache.get(Constants.BTDEVICESPREFIX + mediaState.connectedPeripheral.name);
 
-				if(audio != null && video != null){
+				if (audio != null && video != null) {
 
 					this.l("AV found in cache, skipping", false, audio.concat(video));
 					mediaState.audio = audio;
@@ -389,7 +397,7 @@ export default class BoardManager extends Component {
 				else {
 					if (await this.sendCommand(mediaState, "getall", "") == false) {
 						return mediaState;
-					}					
+					}
 				}
 
 				return mediaState;
@@ -529,15 +537,15 @@ export default class BoardManager extends Component {
 
 					try {
 						await BleManager.connect(boardBleDevice.id);
-						await this.sleep(1000);
+						await this.sleep(Constants.CONNECT_SLEEP());
 						this.l("Retreiving services", false, null);
 						await BleManager.retrieveServices(boardBleDevice.id);
-						await this.sleep(1000);
+						await this.sleep(Constants.RETRIEVE_SERVICES_SLEEP());
 
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
 						this.setNotificationRx(boardBleDevice.id);
 						// Sleep until it's done (guess)
-						await this.sleep(500);
+						await this.sleep(Constants.SET_NOTIFICATIONS_SLEEP());
 
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
@@ -591,7 +599,7 @@ export default class BoardManager extends Component {
 					this.l("Location Loop Failed:" + error, true, null);
 				}
 			}
-		}, Constants.LOCATION_CHECK_INTERVAL);
+		}, Constants.LOCATION_CHECK_INTERVAL());
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
@@ -612,38 +620,11 @@ export default class BoardManager extends Component {
 					this.l("Phone Location Loop Failed: " + error, true, null);
 				}
 			}
-		}, 8000);
+		}, Constants.LOCATION_CHECK_INTERVAL());
 		this.setState({ phoneBackgroundLoop: phoneBackgroundTimer });
 		//	}
 
 	}
- 
-	// async fetchBoards() {
-	// 	//const API = "http://www.fakeresponse.com/api/?sleep=5";
-	// 	const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
-	// 	//const API = "https://www.burnerboard.com/boards/";
-	// 	try {
-	// 		var response = await this.advFetch(API, {
-	// 			headers: {
-	// 				"Accept": "application/json",
-	// 				"Content-Type": "application/json",
-	// 			}
-	// 		}, 2000);
-
-	// 		var boardsJSON = await response.json();
-	// 		var boardsText = await JSON.stringify(boardsJSON);
-
-	// 		if (boardsText.length > 20) // make sure it isn't empty.
-	// 			return boardsJSON;
-	// 		else
-	// 			return null;
-
-	// 	}
-	// 	catch (error) {
-	// 		this.l("fetch boards " + error, true, null);
-	// 		return null;
-	// 	}
-	// }
 
 	async advFetch(url, headers, timeout) {
 		const TIMEOUT = timeout;
