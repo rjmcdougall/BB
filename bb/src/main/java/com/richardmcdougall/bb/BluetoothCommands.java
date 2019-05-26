@@ -103,18 +103,28 @@ public class BluetoothCommands {
                             }
                         }
 
-                        // DKW skip this because the app does not need it.  It is very verbose.
-//                        JSONArray boards = mBBService.dlManager.GetDataBoards();
-//                        if (boards == null) {
-//                            error = "Could not get boards directory (null)";
-//                        }
-//                        if (boards != null) {
-//                            try {
-//                                response.put("boards", boards);
-//                            } catch (Exception e) {
-//                                error = "Could not get boards directory: " + e.getMessage();
-//                            }
-//                        }
+                         JSONArray boards = mBBService.dlManager.GetDataBoards();
+                        if (boards == null) {
+                            error = "Could not get boards directory (null)";
+                        }
+                        if (boards != null) {
+                            try {
+
+                                JSONArray boards2 = new JSONArray(boards.toString()) ;
+                                for (int i = 0; i < boards2.length(); i++) {
+                                    JSONObject a = boards2.getJSONObject(i);
+                                    if(a.has("address"))  a.remove("address");
+                                    if(a.has("isProfileGlobal"))  a.remove("isProfileGlobal");
+                                    if(a.has("profile"))   a.remove("profile");
+                                    if(a.has("isProfileGlobal2"))  a.remove("isProfileGlobal2");
+                                    if(a.has("profile2"))   a.remove("profile2");
+                                   if(a.has("type"))  a.remove("type");
+                                }
+                                response.put("boards", boards2);
+                            } catch (Exception e) {
+                                error = "Could not get boards directory: " + e.getMessage();
+                            }
+                        }
 
                         // Bluetooth devices
                         JSONArray btdevs = getBTDevs();

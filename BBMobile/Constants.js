@@ -18,6 +18,7 @@ exports.BOARDS = "Boards";
 exports.USER_PREFS = "UserPrefs";
 exports.AUDIOPREFIX = "Audio_";
 exports.VIDEOPREFIX = "Video_";
+exports.BTDEVICESPREFIX = "BTDevice_";
 
 //Other
-exports.LOCATION_CHECK_INTERVAL = 8000;
+exports.LOCATION_CHECK_INTERVAL = 15000;

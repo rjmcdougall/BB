@@ -62,7 +62,7 @@ export default class BoardManager extends Component {
 			showAlert: false
 		});
 
-		var boards = await this.getBoards();
+		var boards = await Cache.get(Constants.BOARDS);
 
 		if (boards) {
 			this.setState({
@@ -307,35 +307,34 @@ export default class BoardManager extends Component {
 	updateMediaState(mediaState, newMedia) {
 
 		if (newMedia.boards) {
-			this.l(" updated boards", false, null);
-			mediaState.boards = newMedia.boards;
+			this.l(" updated boards", false, newMedia.boards);
+			Cache.set(Constants.BOARDS, newMedia.boards);
+			this.setState({boardData: newMedia.boards});
 		}
 		if (newMedia.video) {
-			this.l("updated video", false, null);
+			this.l("updated video", false, newMedia.video);
 			mediaState.video = newMedia.video;
 			Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
 		}
 		if (newMedia.audio) {
-			this.l("updated audio", false, null);
+			this.l("updated audio", false, newMedia.audio);
 			Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 			mediaState.audio = newMedia.audio;
 		}
 		if (newMedia.state) {
-			this.l("updated state", false, null);
+			this.l("updated state", false, newMedia.state);
 			mediaState.state = newMedia.state;
 		}
 		if (newMedia.btdevices) {
-			this.l("updated devices", false, null);
-			if (newMedia.btdevices.length > 0)
+			this.l("updated devices", false, newMedia.btdevices);
+			Cache.set(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name, newMedia.btdevices);
+			if (newMedia.btdevices.length > 0){
 				mediaState.devices = newMedia.btdevices;
+			}
 		}
 		if (newMedia.locations) {
 			this.l("updated locations", false, null);
 			mediaState.locations = newMedia.locations;
-		}
-		if (newMedia.battery) {
-			this.l("updated battery", false, null);
-			mediaState.battery = newMedia.battery;
 		}
 		return mediaState;
 	}
@@ -347,10 +346,6 @@ export default class BoardManager extends Component {
 
 			this.l("Getting BLE Data for " + peripheral.name, false, null);
 			mediaState = await this.refreshMediaState(mediaState);
-
-			this.l("Gettig Boards Data", false, null);
-			var boards = await this.getBoards();
-			mediaState.boards = boards;
 
 			return mediaState;
 		}
@@ -376,12 +371,17 @@ export default class BoardManager extends Component {
 				this.l("requesting media state ", false, null);
 				var audio = await Cache.get(Constants.AUDIOPREFIX + mediaState.connectedPeripheral.name);
 				var video = await Cache.get(Constants.VIDEOPREFIX + mediaState.connectedPeripheral.name);
+				var boards = await Cache.get(Constants.BOARDS);
+				var btdevices = await Cache.get(Constants.BTDEVICESPREFIX + mediaState.connectedPeripheral.name);
 
 				if(audio != null && video != null){
 
 					this.l("AV found in cache, skipping", false, audio.concat(video));
 					mediaState.audio = audio;
 					mediaState.video = video;
+					mediaState.boards = boards;
+					mediaState.devices = btdevices;
+
 					if (await this.sendCommand(mediaState, "Location", "") == false) {
 						return mediaState;
 					}
@@ -617,58 +617,33 @@ export default class BoardManager extends Component {
 		//	}
 
 	}
+ 
+	// async fetchBoards() {
+	// 	//const API = "http://www.fakeresponse.com/api/?sleep=5";
+	// 	const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
+	// 	//const API = "https://www.burnerboard.com/boards/";
+	// 	try {
+	// 		var response = await this.advFetch(API, {
+	// 			headers: {
+	// 				"Accept": "application/json",
+	// 				"Content-Type": "application/json",
+	// 			}
+	// 		}, 2000);
 
+	// 		var boardsJSON = await response.json();
+	// 		var boardsText = await JSON.stringify(boardsJSON);
 
-	async getBoards() {
-		try {
-			var boards = null;
+	// 		if (boardsText.length > 20) // make sure it isn't empty.
+	// 			return boardsJSON;
+	// 		else
+	// 			return null;
 
-			boards = await this.fetchBoards();
-
-			if (boards) {
-				await Cache.set(Constants.BOARDS, boards);
-			}
-			else {
-				boards = await this.getBoards();
-			}
-
-			if (boards)
-				return boards;
-			else
-				return null;
-		}
-		catch (error) {
-			this.l("StateBuilder: Error: " + error, true, null);
-		}
-		return boards;
-	}
-
-	async fetchBoards() {
-		//const API = "http://www.fakeresponse.com/api/?sleep=5";
-		const API = "https://us-central1-burner-board.cloudfunctions.net/boards";
-		//const API = "https://www.burnerboard.com/boards/";
-		try {
-			var response = await this.advFetch(API, {
-				headers: {
-					"Accept": "application/json",
-					"Content-Type": "application/json",
-				}
-			}, 2000);
-
-			var boardsJSON = await response.json();
-			var boardsText = await JSON.stringify(boardsJSON);
-
-			if (boardsText.length > 20) // make sure it isn't empty.
-				return boardsJSON;
-			else
-				return null;
-
-		}
-		catch (error) {
-			this.l("fetch boards " + error, true, null);
-			return null;
-		}
-	}
+	// 	}
+	// 	catch (error) {
+	// 		this.l("fetch boards " + error, true, null);
+	// 		return null;
+	// 	}
+	// }
 
 	async advFetch(url, headers, timeout) {
 		const TIMEOUT = timeout;
