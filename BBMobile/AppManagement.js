@@ -44,9 +44,9 @@ export default class AppManagement extends Component {
 							sliderOffColor="black"
 							buttonOnColor="lightblue"
 							buttonOffColor="lightblue"
-							onToggle={async (value) => {
+							onToggle={(value) => {
 								this.props.userPrefs.isDevilsHand = value;
-								await this.props.setUserPrefs(this.props.userPrefs);
+								this.props.setUserPrefs(this.props.userPrefs);
 							}}
 						/>
 					</View>
@@ -67,9 +67,9 @@ export default class AppManagement extends Component {
 							sliderOffColor="black"
 							buttonOnColor="lightblue"
 							buttonOffColor="lightblue"
-							onToggle={async (value) => {
+							onToggle={(value) => {
 								this.props.userPrefs.includeMeOnMap = value;
-								await this.props.setUserPrefs(this.props.userPrefs);
+								this.props.setUserPrefs(this.props.userPrefs);
 							}}
 						/>
 					</View>
@@ -91,13 +91,13 @@ export default class AppManagement extends Component {
 							sliderOffColor="black"
 							buttonOnColor="lightblue"
 							buttonOffColor="lightblue"
-							onToggle={async (value) => {
+							onToggle={(value) => {
 								this.props.userPrefs.isBurnerMode = value;
 								if (value == true) {
 									this.props.userPrefs.wifiLocations = false; // turn off wifi also
-									await this.props.onLoadAPILocations();
+									this.props.onLoadAPILocations();
 								}
-								await this.props.setUserPrefs(this.props.userPrefs);
+								this.props.setUserPrefs(this.props.userPrefs);
 							}}
 						/>
 					</View>
@@ -119,9 +119,9 @@ export default class AppManagement extends Component {
 								sliderOffColor="black"
 								buttonOnColor="lightblue"
 								buttonOffColor="lightblue"
-								onToggle={async (value) => {
+								onToggle={(value) => {
 									this.props.userPrefs.mapPoints = value;
-									await this.props.setUserPrefs(this.props.userPrefs);
+									this.props.setUserPrefs(this.props.userPrefs);
 								}}
 							/>
 						</View>
@@ -149,10 +149,10 @@ export default class AppManagement extends Component {
 								sliderOffColor="black"
 								buttonOnColor="lightblue"
 								buttonOffColor="lightblue"
-								onToggle={async (value) => {
+								onToggle={(value) => {
 									this.props.userPrefs.wifiLocations = value;
-									await this.props.onLoadAPILocations();
-									await this.props.setUserPrefs(this.props.userPrefs);
+									this.props.onLoadAPILocations();
+									this.props.setUserPrefs(this.props.userPrefs);
 								}}
 							/>
 						</View>
@@ -163,7 +163,7 @@ export default class AppManagement extends Component {
 								onPress={async () => {
 									var supported = await Linking.canOpenURL("https://burnerboard.com");
 									if (supported) {
-										await Linking.openURL("https://burnerboard.com");
+										Linking.openURL("https://burnerboard.com");
 									} else {
 										console.log("Don't know how to open URI: " + "https://burnerboard.com");
 									}
