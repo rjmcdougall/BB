@@ -204,7 +204,7 @@ export default class BoardManager extends Component {
 		}
 		if (this.state.connectedPeripheral) {
 			if (peripheral == this.state.connectedPeripheral.id) {
-				this.l("Disconnected from active peripheral", false, dev);
+				this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime)/1000) + " seconds" , true, dev);
 				if (this.state.backgroundLoop)
 					clearInterval(this.state.backgroundLoop);
 				this.setState({
@@ -549,6 +549,7 @@ export default class BoardManager extends Component {
 
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
+//						boardBleDevice.connectionStartTime = new Date();
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 
 						// Now go setup and read all the state for the first time
@@ -604,7 +605,6 @@ export default class BoardManager extends Component {
 	}
 
 	async readPhoneLocationLoop() {
-
 		// android play requires data for location to work.
 		//	if (Platform.OS === "android") {
 		var phoneBackgroundTimer = setInterval(async () => {
@@ -734,7 +734,7 @@ export default class BoardManager extends Component {
 		else {
 			color = "#fff";
 			enableControls = "none";
-			connectionButtonText = "Select Board";
+			connectionButtonText = "Select Board";			
 		}
 
 
