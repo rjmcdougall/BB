@@ -453,8 +453,8 @@ public class DownloadManager {
 
             try {
 
-                String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId + "/DownloadDirectoryJSON";
-                DirectoryURL = encodeURL(DirectoryURL);
+                String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId;
+                DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + mVersion ;
                 boolean returnValue = false;
 
                 long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
