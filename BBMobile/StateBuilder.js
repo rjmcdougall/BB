@@ -1,7 +1,7 @@
 
 import FileSystemConfig from "./FileSystemConfig";
 import Geolocation from "react-native-geolocation-service";
-import BoardManager from "./BoardManager";
+import Constants from "./Constants";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
@@ -70,7 +70,7 @@ exports.blankMediaState = function () {
 
 exports.getUserPrefs = async function () {
 	try {
-		var userPrefs = await FileSystemConfig.getUserPrefs();
+		var userPrefs = await FileSystemConfig.getCache(Constants.USER_PREFS);
 
 		if (userPrefs) {
 			if (userPrefs.mapPoints != null
@@ -91,13 +91,7 @@ exports.getUserPrefs = async function () {
 		console.log("StateBuilder: " + error);
 	}
 };
-
-exports.setUserPrefs = async function (userPrefs) {
-	console.log("SET user prefs");
-	console.log(userPrefs);
-	await FileSystemConfig.setUserPrefs(userPrefs);
-};
-
+ 
 exports.getPhoneLocation = async function (mediaState) {
 	mediaState.phoneLocation = await checkPhoneLocation();
 	return mediaState;

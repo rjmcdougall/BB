@@ -107,7 +107,7 @@ export default class BoardManager extends Component {
 		}
 
 		// if there is a default BleDevice saved, scan and attempt to load that board.
-		var config = await FileSystemConfig.getDefaultPeripheral();
+		var config = await FileSystemConfig.getCache(Constants.DEFAULT_PERIPHERAL);
 		if (config) {
 			this.setState({
 				boardName: config.name,
@@ -278,7 +278,7 @@ export default class BoardManager extends Component {
 			}
 			try {
 				// store default in filesystem.
-				await FileSystemConfig.setDefaultPeripheral(peripheral);
+				await FileSystemConfig.setCachec(Constants.DEFAULT_PERIPHERAL, peripheral);
 
 				var boardName = peripheral.name;
 
@@ -609,7 +609,7 @@ export default class BoardManager extends Component {
 			boards = await this.fetchBoards();
 
 			if (boards) {
-				await FileSystemConfig.setBoards(boards);
+				await FileSystemConfig.setCache(Constants.BOARDS, boards);
 			}
 			else {
 				boards = await this.getBoards();
