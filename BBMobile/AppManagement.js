@@ -11,6 +11,7 @@ import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
 import FlipToggle from "react-native-flip-toggle-button";
 import ManLocationController from "./ManLocationController";
+import Cache from "./Cache";
 
 export default class AppManagement extends Component {
 	constructor(props) {
@@ -174,6 +175,17 @@ export default class AppManagement extends Component {
 							</Touchable>
 						</View>
 						: <View></View>}
+					<View style={StyleSheet.button}>
+						<Touchable
+							onPress={async () => {
+								await Cache.clear();
+								return true;
+							}}
+							style={[{ backgroundColor: "skyblue" }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={StyleSheet.buttonTextCenter}> Clear Cache </Text>
+						</Touchable>
+					</View>
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>

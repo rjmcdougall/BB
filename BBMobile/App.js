@@ -1,7 +1,7 @@
 import React from "react";
 import BoardManager from "./BoardManager";
 import StateBuilder from "./StateBuilder";
-import FileSystemConfig from "./FileSystemConfig";
+import Cache from "./Cache";
 import Constants from "./Constants";
 
 //import { Client } from "bugsnag-react-native";
@@ -23,7 +23,7 @@ export default class App extends React.Component {
 
 	async componentDidMount() {
 
-		var p = await FileSystemConfig.getCache(Constants.USER_PREFS);
+		var p = await Cache.get(Constants.USER_PREFS);
 
 		if(p){
 			this.setState({
@@ -34,7 +34,7 @@ export default class App extends React.Component {
  
 	async setUserPrefs(userPrefs) {
 
-		await FileSystemConfig.setCache(Constants.USER_PREFS, userPrefs);
+		await Cache.set(Constants.USER_PREFS, userPrefs);
 
 		this.setState({
 			userPrefs: userPrefs, 

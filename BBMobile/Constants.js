@@ -18,3 +18,6 @@ exports.BOARDS = "Boards";
 exports.USER_PREFS = "UserPrefs";
 exports.AUDIOPREFIX = "Audio_";
 exports.VIDEOPREFIX = "Video_";
+
+//Other
+exports.LOCATION_CHECK_INTERVAL = 8000;

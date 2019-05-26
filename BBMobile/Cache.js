@@ -1,6 +1,6 @@
 import RNFS from "react-native-fs";
  
-exports.getCache = async function (key) {
+exports.get = async function (key) {
 	// create a path you want to write to
 	var path = RNFS.DocumentDirectoryPath + "/" + key;
 
@@ -20,11 +20,11 @@ exports.getCache = async function (key) {
 		return value;
 	}
 	catch (error) {
-		console.log("FileSystemConfig: Error: " + error);
+		console.log("Error: " + error);
 	}
 };
 
-exports.setCache = async function (key, value) {
+exports.set = async function (key, value) {
 	// create a path you want to write to
 	var path = RNFS.DocumentDirectoryPath + "/" + key;
 
@@ -43,7 +43,20 @@ exports.setCache = async function (key, value) {
 		await RNFS.writeFile(path, JSON.stringify(value), "utf8");
 	}
 	catch (error) {
-		console.log("FileSystemConfig: Error: " + error);
+		console.log("Error: " + error);
 	}
 };
- 
+
+exports.clear = async function () {
+	try {
+		var dir = await RNFS.readDir(RNFS.DocumentDirectoryPath);
+		dir.map(async (item) => {
+			var path = RNFS.DocumentDirectoryPath + "/" + item.name;
+			await RNFS.unlink(path);
+			console.log(item.name + " Found in Cache, Deleting");
+		}) ;
+	}
+	catch (error) {
+		console.log("Error: " + error);
+	}
+};

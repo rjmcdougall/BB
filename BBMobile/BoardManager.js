@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { View, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, AppState, Text, Image, } from "react-native";
 import BleManager from "react-native-ble-manager";
 import BLEIDs from "./BLEIDs";
-import FileSystemConfig from "./FileSystemConfig";
+import Cache from "./Cache";
 import MediaManagement from "./MediaManagement";
 import AdminManagement from "./AdminManagement";
 import AppManagement from "./AppManagement";
@@ -107,7 +107,7 @@ export default class BoardManager extends Component {
 		}
 
 		// if there is a default BleDevice saved, scan and attempt to load that board.
-		var config = await FileSystemConfig.getCache(Constants.DEFAULT_PERIPHERAL);
+		var config = await Cache.get(Constants.DEFAULT_PERIPHERAL);
 		if (config) {
 			this.setState({
 				boardName: config.name,
@@ -197,12 +197,12 @@ export default class BoardManager extends Component {
 		// Update state 
 		var dev = this.state.boardBleDevices.get(peripheral);
 		if (dev != null) {
-			this.l("Disconnected from " + peripheral.name, false, dev);
+			this.l("Disconnected from " + dev.name, false, dev);
 			dev.connected = Constants.DISCONNECTED;
 		}
 		if (this.state.connectedPeripheral) {
 			if (peripheral == this.state.connectedPeripheral.id) {
-				this.l("our dev Disconnected from " + peripheral.name, false, dev);
+				this.l("our dev Disconnected from " + dev.name, false, dev);
 				if (this.state.backgroundLoop)
 					clearInterval(this.state.backgroundLoop);
 				this.setState({
@@ -278,7 +278,7 @@ export default class BoardManager extends Component {
 			}
 			try {
 				// store default in filesystem.
-				await FileSystemConfig.setCache(Constants.DEFAULT_PERIPHERAL, peripheral);
+				await Cache.set(Constants.DEFAULT_PERIPHERAL, peripheral);
 
 				var boardName = peripheral.name;
 
@@ -313,11 +313,11 @@ export default class BoardManager extends Component {
 		if (newMedia.video) {
 			this.l("updated video", false, null);
 			mediaState.video = newMedia.video;
-			FileSystemConfig.setCache(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
+			Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
 		}
 		if (newMedia.audio) {
 			this.l("updated audio", false, null);
-			FileSystemConfig.setCache(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
+			Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 			mediaState.audio = newMedia.audio;
 		}
 		if (newMedia.state) {
@@ -374,12 +374,12 @@ export default class BoardManager extends Component {
 		if (mediaState.connectedPeripheral) {
 			try {
 				this.l("requesting media state ", false, null);
-				var audio = await FileSystemConfig.getCache(Constants.AUDIOPREFIX + mediaState.connectedPeripheral.name);
-				var video = await FileSystemConfig.getCache(Constants.VIDEOPREFIX + mediaState.connectedPeripheral.name);
+				var audio = await Cache.get(Constants.AUDIOPREFIX + mediaState.connectedPeripheral.name);
+				var video = await Cache.get(Constants.VIDEOPREFIX + mediaState.connectedPeripheral.name);
 
 				if(audio != null && video != null){
 
-					this.l("AV found in cache, skipping", false, null);
+					this.l("AV found in cache, skipping", false, audio.concat(video));
 					mediaState.audio = audio;
 					mediaState.video = video;
 					if (await this.sendCommand(mediaState, "Location", "") == false) {
@@ -591,7 +591,7 @@ export default class BoardManager extends Component {
 					this.l("Location Loop Failed:" + error, true, null);
 				}
 			}
-		}, 15000);
+		}, Constants.LOCATION_CHECK_INTERVAL);
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
@@ -626,7 +626,7 @@ export default class BoardManager extends Component {
 			boards = await this.fetchBoards();
 
 			if (boards) {
-				await FileSystemConfig.setCache(Constants.BOARDS, boards);
+				await Cache.set(Constants.BOARDS, boards);
 			}
 			else {
 				boards = await this.getBoards();
@@ -749,7 +749,7 @@ export default class BoardManager extends Component {
 
 			if (this.state.mediaState.video.localName != "loading..."
 				&& this.state.mediaState.audio.localName != "loading..."
-				&& this.state.mediaState.state.volume != 0) {
+				&& this.state.mediaState.state.volume != -1) {
 				color = "green";
 				enableControls = "auto";
 				connectionButtonText = "Loaded " + boardName;

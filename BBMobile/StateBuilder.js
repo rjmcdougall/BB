@@ -27,7 +27,7 @@ var bEmptyMediaState = {
 	state: {
 		audioChannelNo: 9999,
 		videoChannelNo: 9999,
-		volume: 0,
+		volume: -1,
 		battery: 0,
 		audioMaster: 0,
 		APKUpdateDate: 0,
