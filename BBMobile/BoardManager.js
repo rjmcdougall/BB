@@ -537,7 +537,7 @@ export default class BoardManager extends Component {
 						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
 						this.setNotificationRx(boardBleDevice.id);
 						// Sleep until it's done (guess)
-						await this.sleep(1000);
+						await this.sleep(500);
 
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
