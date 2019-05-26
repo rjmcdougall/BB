@@ -16,3 +16,5 @@ exports.APP_MANAGEMENT = "App";
 exports.DEFAULT_PERIPHERAL = "DefaultPeripheral";
 exports.BOARDS = "Boards";
 exports.USER_PREFS = "UserPrefs";
+exports.AUDIOPREFIX = "Audio_";
+exports.VIDEOPREFIX = "Video_";

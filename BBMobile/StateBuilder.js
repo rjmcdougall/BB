@@ -1,7 +1,4 @@
-
-import FileSystemConfig from "./FileSystemConfig";
 import Geolocation from "react-native-geolocation-service";
-import Constants from "./Constants";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
@@ -68,30 +65,6 @@ exports.blankMediaState = function () {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
 };
 
-exports.getUserPrefs = async function () {
-	try {
-		var userPrefs = await FileSystemConfig.getCache(Constants.USER_PREFS);
-
-		if (userPrefs) {
-			if (userPrefs.mapPoints != null
-				&& userPrefs.isBurnerMode != null
-				&& userPrefs.isDevilsHand != null
-				&& userPrefs.wifiLocations != null
-				&& userPrefs.man != null
-				&& userPrefs.includeMeOnMap != null)
-				return userPrefs;
-			else
-				return module.exports.blankUserPrefs();
-		}
-		else {
-			return module.exports.blankUserPrefs();
-		}
-	}
-	catch (error) {
-		console.log("StateBuilder: " + error);
-	}
-};
- 
 exports.getPhoneLocation = async function (mediaState) {
 	mediaState.phoneLocation = await checkPhoneLocation();
 	return mediaState;

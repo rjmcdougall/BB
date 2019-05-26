@@ -278,7 +278,7 @@ export default class BoardManager extends Component {
 			}
 			try {
 				// store default in filesystem.
-				await FileSystemConfig.setCachec(Constants.DEFAULT_PERIPHERAL, peripheral);
+				await FileSystemConfig.setCache(Constants.DEFAULT_PERIPHERAL, peripheral);
 
 				var boardName = peripheral.name;
 
@@ -313,9 +313,11 @@ export default class BoardManager extends Component {
 		if (newMedia.video) {
 			this.l("updated video", false, null);
 			mediaState.video = newMedia.video;
+			FileSystemConfig.setCache(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
 		}
 		if (newMedia.audio) {
 			this.l("updated audio", false, null);
+			FileSystemConfig.setCache(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 			mediaState.audio = newMedia.audio;
 		}
 		if (newMedia.state) {
@@ -371,10 +373,25 @@ export default class BoardManager extends Component {
 
 		if (mediaState.connectedPeripheral) {
 			try {
-				this.l("requesting state ", false, null);
-				if (await this.sendCommand(mediaState, "getall", "") == false) {
-					return mediaState;
+				this.l("requesting media state ", false, null);
+				var audio = await FileSystemConfig.getCache(Constants.AUDIOPREFIX + mediaState.connectedPeripheral.name);
+				var video = await FileSystemConfig.getCache(Constants.VIDEOPREFIX + mediaState.connectedPeripheral.name);
+
+				if(audio != null && video != null){
+
+					this.l("AV found in cache, skipping", false, null);
+					mediaState.audio = audio;
+					mediaState.video = video;
+					if (await this.sendCommand(mediaState, "Location", "") == false) {
+						return mediaState;
+					}
 				}
+				else {
+					if (await this.sendCommand(mediaState, "getall", "") == false) {
+						return mediaState;
+					}					
+				}
+
 				return mediaState;
 			}
 			catch (error) {
