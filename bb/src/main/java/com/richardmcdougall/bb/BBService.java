@@ -342,9 +342,9 @@ public class BBService extends Service {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    voice.speak("Downloading " + file + ", " + String.valueOf(percent) + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
                     lastTextTime = curTime;
-                    l(String.format("Downloading %02x%% %s", bytesDownloaded * 100 / fileSize, file));
+                    l("Downloading " + file + ", " + percent + " Percent");
                 }
             }
 
