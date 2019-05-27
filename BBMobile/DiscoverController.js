@@ -3,6 +3,7 @@ import { View, Text, ScrollView, ListView } from "react-native";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
+
 // import { Client } from "bugsnag-react-native";
 // const bugsnag = new Client("905bfbccb8f9a7e3749038ca1900b1b4");
 
@@ -61,7 +62,15 @@ export default class DiscoverController extends React.Component {
 
 											return (
 												<Touchable
-													onPress={async () => await this.props.onSelectPeripheral(item)}
+													onPress={async () => {
+														try {
+															await this.props.onSelectPeripheral(item);
+														}
+														catch (error) {
+															console.log(error);
+														}
+													}
+													}
 													style={[StyleSheet.button, { height: 50, backgroundColor: color }]}
 
 													background={Touchable.Ripple("blue")}>
@@ -70,14 +79,10 @@ export default class DiscoverController extends React.Component {
 											);
 										}
 										catch (error) {
-											//bugsnag.notify(error);
+											console.log(error);
 										}
 									}
 								}
-
-
-
-
 							}}
 						/>
 					</ScrollView>

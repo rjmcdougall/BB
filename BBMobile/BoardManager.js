@@ -196,24 +196,30 @@ export default class BoardManager extends Component {
 
 		let peripheral = data.peripheral;
 
-		// Update state 
-		var dev = this.state.boardBleDevices.get(peripheral);
-		if (dev != null) {
-			this.l("Disconnected from " + dev.name, false, dev);
-			dev.connected = Constants.DISCONNECTED;
-		}
-		if (this.state.connectedPeripheral) {
-			if (peripheral == this.state.connectedPeripheral.id) {
-				this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime)/1000) + " seconds" , true, dev);
-				if (this.state.backgroundLoop)
-					clearInterval(this.state.backgroundLoop);
-				this.setState({
-					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
-					mediaState: StateBuilder.blankMediaState(),
-					backgroundLoop: null,
-				});
+		try {
+			// Update state 
+			var dev = this.state.boardBleDevices.get(peripheral);
+			if (dev != null) {
+				this.l("Disconnected from " + dev.name, false, dev);
+				dev.connected = Constants.DISCONNECTED;
+			}
+			if (this.state.connectedPeripheral) {
+				if (peripheral == this.state.connectedPeripheral.id) {
+					this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime)/1000) + " seconds" , true, dev);
+					if (this.state.backgroundLoop)
+						clearInterval(this.state.backgroundLoop);
+					this.setState({
+						connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+						mediaState: StateBuilder.blankMediaState(),
+						backgroundLoop: null,
+					});
+				}
 			}
 		}
+		catch (error) {
+			this.l("Disconnect Error ", true, data);
+		}
+
 	}
 
 	handleStopScan() {
@@ -461,22 +467,21 @@ export default class BoardManager extends Component {
 
 			try {
 				await BleManager.disconnect(this.state.connectedPeripheral.id);
+				if (this.state.backgroundLoop)
+					clearInterval(this.state.backgroundLoop);
+
+				this.setState({
+					//	boardBleDevices: new Map(),
+					appState: "",
+					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+					mediaState: StateBuilder.blankMediaState(),
+					showScreen: Constants.DISCOVER,
+					backgroundLoop: null,
+				});			
 			}
 			catch (error) {
 				this.l("Pressed Search For Boards: " + error, true, null);
 			}
-
-			if (this.state.backgroundLoop)
-				clearInterval(this.state.backgroundLoop);
-
-			this.setState({
-				//	boardBleDevices: new Map(),
-				appState: "",
-				connectedPeripheral: StateBuilder.blankMediaState().peripheral,
-				mediaState: StateBuilder.blankMediaState(),
-				showScreen: Constants.DISCOVER,
-				backgroundLoop: null,
-			});
 		}
 	}
 
@@ -586,7 +591,7 @@ export default class BoardManager extends Component {
 				this.l("error " + e, true, null);
 			}
 		} catch (error) {
-			this.l("errorsettingnotificationonrx:" + error, true, null);
+			this.l("error setting notification on rx:" + error, true, null);
 		}
 	}
 	async readLocationLoop() {
@@ -772,9 +777,12 @@ export default class BoardManager extends Component {
 						<View style={StyleSheet.footer}>
 							<Touchable
 								onPress={async () => {
-
-									await this.startScan(true);
-
+									try {
+										await this.startScan(true);
+									}
+									catch (error) {
+										this.l("Failed to Connext " + error);
+									}
 								}
 								}
 								style={{
