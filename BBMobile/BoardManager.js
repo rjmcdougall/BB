@@ -667,7 +667,7 @@ export default class BoardManager extends Component {
 					"Accept": "application/json",
 					"Content-Type": "application/json",
 				}
-			}, 5000);
+			}, 10000);
 
 			var apiLocations = await response.json();
 

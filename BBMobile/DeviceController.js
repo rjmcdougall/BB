@@ -28,7 +28,7 @@ export default class DeviceController extends Component {
 					flexDirection: "row",
 				}}>
 					<View style={{ height: 40 }}>
-						<Text style={StyleSheet.rowText}>Devices</Text></View>
+						<Text style={StyleSheet.rowText}>Connect to Hitachi Button</Text></View>
 				</View>
 				<View style={{ height: 40 }}>
 					<ModalDropdown options={devs}
@@ -47,7 +47,7 @@ export default class DeviceController extends Component {
 							return true;
 						}}
 						background={Touchable.Ripple("blue")}>
-						<Text style={StyleSheet.buttonTextCenter}> Refresh BT Devices
+						<Text style={StyleSheet.buttonTextCenter}> Scan for Buttons
 						</Text>
 					</Touchable>
 				</View>

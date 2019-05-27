@@ -21,25 +21,19 @@ export default class AdminManagement extends Component {
 
 	render() {
 
-		var masterText;
 		var backgroundColor;
-		var GTFOText;
 		var GTFOBackgroundColor;
 		if (this.props.mediaState.state.audioMaster == 0) {
-			masterText = "Enable Master";
 			backgroundColor = "skyblue";
 		}
 		else {
-			masterText = "Disable Master";
 			backgroundColor = "green";
 		}
 
 		if (this.props.mediaState.state.GTFO == 0) {
-			GTFOText = "Enable GTFO";
 			GTFOBackgroundColor = "skyblue";
 		}
 		else {
-			GTFOText = "Disable GTFO";
 			GTFOBackgroundColor = "green";
 		}
 
@@ -47,7 +41,6 @@ export default class AdminManagement extends Component {
 		return (
 			<View style={StyleSheet.container}>
 				<ScrollView>
-					<DeviceController onSelectTrack={(value) => this.props.sendCommand(this.props.mediaState, "Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 10 }}></View>
 					<View style={StyleSheet.button}>
 						<Touchable
@@ -57,9 +50,10 @@ export default class AdminManagement extends Component {
 							}}
 							style={[{ backgroundColor: GTFOBackgroundColor }]}
 							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> {GTFOText} </Text>
+							<Text style={StyleSheet.buttonTextCenter}> GTFO </Text>
 						</Touchable>
 					</View>
+					<View style={{ height: 10 }}></View>
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
@@ -68,10 +62,12 @@ export default class AdminManagement extends Component {
 							}}
 							style={[{ backgroundColor: backgroundColor }]}
 							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> {masterText}
+							<Text style={StyleSheet.buttonTextCenter}> Audio Master
 							</Text>
 						</Touchable>
 					</View>
+					<View style={{ height: 50 }}></View>
+					<DeviceController onSelectTrack={(value) => this.props.sendCommand(this.props.mediaState, "Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>
