@@ -14,28 +14,55 @@ export default class TrackController extends Component {
 		if (this.props.mediaType == "Audio") {
 			this.state = {
 				tracks: [{ localName: "loading..." }],
-				selectedTrack: props.mediaState.state.audioChannelNo,
+				selectedTrack: 29999,
 			};
 		}
 		else if (this.props.mediaType == "Video") {
 			this.state = {
 				tracks: [{ localname: "loading..." }],
-				selectedTrack: props.mediaState.state.videoChannelNo,
+				selectedTrack: 29999,
 			};
 		}
 	}
 
-	UNSAFE_componentWillReceiveProps(nextProps) {
-		//console.log("trackcontroller props: " + JSON.stringify(this.props.mediaState.connectedPeripheral));
-		if (this.props.mediaType == "Audio") {
-			this.setState({
-				selectedTrack: nextProps.mediaState.state.audioChannelNo
-			});
+	static getDerivedStateFromProps(props, state) {
+		if (props.mediaType == "Audio") {
+			// if the state track has never been set before.
+			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
+				// if the props track is a real track.
+				if (props.mediaState.state.audioChannelNo<9999){
+					console.log(props.mediaState.state.audioChannelNo + "Found Audio for the first time!!!");
+					return {
+						selectedTrack: props.mediaState.state.audioChannelNo,
+						tracks: props.mediaState.audio,
+					};
+				}
+				else {
+					return state;
+				}				
+			}
+			else {
+				return state;
+			}
 		}
-		else if (this.props.mediaType == "Video") {
-			this.setState({
-				selectedTrack: nextProps.mediaState.state.videoChannelNo
-			});
+		else if (props.mediaType == "Video") {
+			// if the state track has never been set before.
+			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
+				// if the props track is a real track.
+				if (props.mediaState.state.videoChannelNo<9999){
+					console.log(props.mediaState.state.videoChannelNo + "Found video for the first time!!!");
+					return {
+						selectedTrack: props.mediaState.state.videoChannelNo,
+						tracks: props.mediaState.video,
+					};
+				}
+				else {
+					return state;
+				}				
+			}
+			else {
+				return state;
+			}
 		}
 	}
 
@@ -48,17 +75,6 @@ export default class TrackController extends Component {
 	}
 
 	render() {
-		var tracks = null;
-
-		if (this.props.mediaType == "Audio")
-			tracks = this.props.mediaState.audio;
-		else if (this.props.mediaType == "Video")
-			tracks = this.props.mediaState.video;
-
-		//if (tracks.length > 1)
-		//		tracks = tracks.localName.slice(1, tracks.length);
-		//console.log("TrackController: " + this.props.mediaType);
-		//tracks.map((elem, index) => { console.log(index + ": " + (elem.algorithm?elem.algorithm:elem.localName))});
 
 		return (
 
@@ -78,9 +94,8 @@ export default class TrackController extends Component {
 							selectedValue={this.state.selectedTrack}
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (value) => {
-								//console.log("TrackController: onValueChange: " + value);
 
-								if (tracks[0] == "loading...") {
+								if (this.state.tracks[0] == "loading...") {
 									console.log("TrackController: dont call update if its a component load");
 									return;
 								}
@@ -90,11 +105,11 @@ export default class TrackController extends Component {
 								}
 
 								this.setState({ selectedTrack: value });
-								this.props.sendCommand(this.props.mediaState, this.props.mediaType, value); 
+								this.props.sendCommand(this.props.mediaState, this.props.mediaType, value);
 
 							}}>
 
-							{tracks.map((elem, index) => (
+							{this.state.tracks.map((elem, index) => (
 								<PickerItem label={elem.algorithm ? elem.algorithm : elem.localName} value={index} key={index} />
 							))}
 

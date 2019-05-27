@@ -554,7 +554,7 @@ export default class BoardManager extends Component {
 
 						// Update status 
 						boardBleDevice.connected = Constants.CONNECTED;
-//						boardBleDevice.connectionStartTime = new Date();
+						boardBleDevice.connectionStartTime = new Date();
 						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 
 						// Now go setup and read all the state for the first time
