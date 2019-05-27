@@ -16,7 +16,7 @@ export default class LeftNav extends React.Component {
 			<View style={{ width: 50, backgroundColor: "powderblue", margin: 2 }}>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.MEDIA_MANAGEMENT ? "green" : "lightblue" }]}>
 					<Touchable
-						onPress={async () => {
+						onPress={() => {
 							this.props.onNavigate(Constants.MEDIA_MANAGEMENT);
 						}}
 						style={StyleSheet.icon}>
@@ -25,7 +25,7 @@ export default class LeftNav extends React.Component {
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.MAP ? "green" : "lightblue" }]}>
 					<Touchable
-						onPress={async () => {
+						onPress={() => {
 							this.props.onNavigate(Constants.MAP);
 						}}
 						style={StyleSheet.icon}>
@@ -34,7 +34,7 @@ export default class LeftNav extends React.Component {
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.ADMINISTRATION ? "green" : "lightblue" }]}>
 					<Touchable
-						onPress={async () => {
+						onPress={() => {
 							this.props.onNavigate(Constants.ADMINISTRATION);
 						}}
 						style={StyleSheet.icon}>
@@ -43,7 +43,7 @@ export default class LeftNav extends React.Component {
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.APP_MANAGEMENT  ? "green" : "lightblue" }]}>
 					<Touchable
-						onPress={async () => {
+						onPress={() => {
 							this.props.onNavigate(Constants.APP_MANAGEMENT);
 						}}
 						style={StyleSheet.icon}>
@@ -52,7 +52,7 @@ export default class LeftNav extends React.Component {
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.DIAGNOSTIC ? "green" : "lightblue" }]}>
 					<Touchable
-						onPress={async () => {
+						onPress={() => {
 							this.props.onNavigate(Constants.DIAGNOSTIC);
 						}}
 						style={StyleSheet.icon}>
@@ -61,7 +61,7 @@ export default class LeftNav extends React.Component {
 				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.DISCOVER ? "green" : "lightblue" }]}>
 					<Touchable
-						onPress={async () => {
+						onPress={ () => {
 							this.props.onNavigate(Constants.DISCOVER);
 						}}
 						style={StyleSheet.icon}>

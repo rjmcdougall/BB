@@ -9,7 +9,6 @@ import {
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
-import FlipToggle from "react-native-flip-toggle-button";
 import ManLocationController from "./ManLocationController";
 import Cache from "./Cache";
 
