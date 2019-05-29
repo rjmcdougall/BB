@@ -4,9 +4,6 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
 
-// import { Client } from "bugsnag-react-native";
-// const bugsnag = new Client("905bfbccb8f9a7e3749038ca1900b1b4");
-
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
 });
@@ -90,7 +87,7 @@ export default class DiscoverController extends React.Component {
 			);
 		}
 		catch (error) {
-			//bugsnag.notify(error);
+			console.log(error);
 		}
 
 	}

@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BBMobile.iml" filepath="$PROJECT_DIR$/BBMobile.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../node_modules/bugsnag-react-native/android/bugsnag-react-native.iml" filepath="$PROJECT_DIR$/../node_modules/bugsnag-react-native/android/bugsnag-react-native.iml" />
       <module fileurl="file://$PROJECT_DIR$/../node_modules/react-native-ble-manager/android/react-native-ble-manager.iml" filepath="$PROJECT_DIR$/../node_modules/react-native-ble-manager/android/react-native-ble-manager.iml" />
       <module fileurl="file://$PROJECT_DIR$/../node_modules/react-native-fs/android/react-native-fs.iml" filepath="$PROJECT_DIR$/../node_modules/react-native-fs/android/react-native-fs.iml" />
       <module fileurl="file://$PROJECT_DIR$/../node_modules/react-native-geolocation-service/android/react-native-geolocation-service.iml" filepath="$PROJECT_DIR$/../node_modules/react-native-geolocation-service/android/react-native-geolocation-service.iml" />

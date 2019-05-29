@@ -3,16 +3,10 @@ import BoardManager from "./BoardManager";
 import StateBuilder from "./StateBuilder";
 import Cache from "./Cache";
 import Constants from "./Constants";
-
-//import { Client } from "bugsnag-react-native";
-//const bugsnag = new Client("905bfbccb8f9a7e3749038ca1900b1b4");
-
 export default class App extends React.Component {
 
 	constructor() {
 		super();
-
-		//bugsnag.notify(new Error("App Loaded"));
 
 		this.state = {
 			userPrefs: StateBuilder.blankUserPrefs()

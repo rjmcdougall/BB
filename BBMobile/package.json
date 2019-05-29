@@ -22,7 +22,6 @@
     "@mapbox/react-native-mapbox-gl": "https://github.com/nitaliano/react-native-mapbox-gl/tarball/master",
     "async-lock": "^1.2.0",
     "buffer": "^5.2.1",
-    "bugsnag-react-native": "^2.19.1",
     "charenc": "0.0.2",
     "convert-string": "^0.1.0",
     "react": "^16.8.6",

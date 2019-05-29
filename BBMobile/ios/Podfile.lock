@@ -1,10 +1,5 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - BugsnagReactNative (2.19.1):
-    - BugsnagReactNative/Core (= 2.19.1)
-    - React
-  - BugsnagReactNative/Core (2.19.1):
-    - React
   - DoubleConversion (1.1.6)
   - Folly (2018.10.22.00):
     - boost-for-react-native
@@ -73,7 +68,6 @@ PODS:
   - yoga (0.59.8.React)
 
 DEPENDENCIES:
-  - BugsnagReactNative (from `../node_modules/bugsnag-react-native`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -99,8 +93,6 @@ SPEC REPOS:
     - boost-for-react-native
 
 EXTERNAL SOURCES:
-  BugsnagReactNative:
-    :path: "../node_modules/bugsnag-react-native"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   Folly:
@@ -118,7 +110,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  BugsnagReactNative: 0b7626917d3612281d07aea84e5041f123290fee
   DoubleConversion: bb338842f62ab1d708ceb63ec3d999f0f3d98ecd
   Folly: de497beb10f102453a1afa9edbf8cf8a251890de
   glog: aefd1eb5dda2ab95ba0938556f34b98e2da3a60d
@@ -127,6 +118,6 @@ SPEC CHECKSUMS:
   RNVectorIcons: 8c52e1e8da1153613fdef44748e865c25556cb9c
   yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
 
-PODFILE CHECKSUM: 489076470487f1f6ef01f62e3fc285e2f7076d25
+PODFILE CHECKSUM: 44f430fe5a5a4ccb9e043d14f2d911ca71c4de23
 
 COCOAPODS: 1.5.3

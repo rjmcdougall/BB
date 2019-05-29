@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "8E68621E49AD0718E584945C5FF4DEEE"
+               BlueprintIdentifier = "D23516EA64851EF0B0B17454B7249F49"
                BlueprintName = "react-native-mapbox-gl"
                ReferencedContainer = "container:Pods.xcodeproj"
                BuildableName = "libreact-native-mapbox-gl.a">

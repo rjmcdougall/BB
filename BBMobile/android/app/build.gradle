@@ -139,7 +139,6 @@ android {
 }
 
 dependencies {
-    implementation project(':bugsnag-react-native')
     implementation project(':react-native-geolocation-service')
     implementation project(':react-native-wheel-picker')
     implementation project(':react-native-vector-icons')
@@ -156,4 +155,3 @@ task copyDownloadableDepsToLibs(type: Copy) {
     from configurations.compile
     into 'libs'
 }
-apply plugin: 'com.bugsnag.android.gradle' // apply on last line

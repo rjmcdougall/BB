@@ -32,7 +32,6 @@ target 'BBMobile' do
   pod 'Folly', :podspec => "#{rn_path}/third-party-podspecs/Folly.podspec"
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
-  pod 'BugsnagReactNative', :path => '../node_modules/bugsnag-react-native'
  # Mapbox
  pod 'react-native-mapbox-gl', :path => '../node_modules/@mapbox/react-native-mapbox-gl'
 end
