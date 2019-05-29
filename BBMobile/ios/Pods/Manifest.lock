@@ -34,13 +34,13 @@ PODS:
     - GoogleMaps/Base
   - React (0.59.8):
     - React/Core (= 0.59.8)
-  - react-native-google-maps (0.22.1):
+  - react-native-google-maps (0.24.2):
     - Google-Maps-iOS-Utils (= 2.1.0)
     - GoogleMaps (= 2.5.0)
     - React
   - react-native-mapbox-gl (6.1.4):
     - React
-  - react-native-maps (0.22.1):
+  - react-native-maps (0.24.2):
     - React
   - React/Core (0.59.8):
     - yoga (= 0.59.8.React)
@@ -95,7 +95,7 @@ PODS:
     - React/Core
     - React/fishhook
     - React/RCTBlob
-  - RNVectorIcons (6.1.0):
+  - RNVectorIcons (6.4.2):
     - React
   - yoga (0.59.8.React)
 
@@ -162,9 +162,9 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: c32891ff472eaaa1fca032beedafa1a013af7875
   GoogleMaps: c087b8e5dfe87ca6ebf59adb9b4894a4146bec4f
   React: 1d605e098d69bdf08960787f3446f0a9dc2e2ccf
-  react-native-google-maps: b946d62e25dc66097921ed82520e45b0b081768a
+  react-native-google-maps: 77af0fa3b5325c72c107d054677911f6e6170496
   react-native-mapbox-gl: b42480060cdcc515dfa3d8e403fb4dd32466a1b9
-  react-native-maps: 066c2afcc89e18726377bcc685315f989ca22449
+  react-native-maps: bb480348a3fe1e5a811fed1ba3387b329161c5cc
   RNVectorIcons: 8c52e1e8da1153613fdef44748e865c25556cb9c
   yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
 

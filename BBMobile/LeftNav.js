@@ -32,15 +32,6 @@ export default class LeftNav extends React.Component {
 						<Icon name="map-marker-multiple" size={40} color="black" />
 					</Touchable>
 				</View>
-				<View style={[{ backgroundColor: this.props.showScreen == Constants.MAP2 ? "green" : "lightblue" }]}>
-					<Touchable
-						onPress={() => {
-							this.props.onNavigate(Constants.MAP2);
-						}}
-						style={StyleSheet.icon}>
-						<Icon name="map-marker-multiple" size={40} color="black" />
-					</Touchable>
-				</View>
 				<View style={[{ backgroundColor: this.props.showScreen == Constants.ADMINISTRATION ? "green" : "lightblue" }]}>
 					<Touchable
 						onPress={() => {

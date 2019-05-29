@@ -12,7 +12,6 @@ import StateBuilder from "./StateBuilder";
 import Constants from "./Constants";
 import LeftNav from "./LeftNav";
 import MapController from "./MapController";
-import MapController2 from "./MapController2";
 import BatteryController from "./BatteryController";
 import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
@@ -773,7 +772,6 @@ export default class BoardManager extends Component {
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
 							{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
 							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP2) ? <MapController2 userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
 						<View style={StyleSheet.footer}>
