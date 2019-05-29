@@ -7,7 +7,6 @@ import com.bugsnag.BugsnagReactNative;
 import com.agontuk.RNFusedLocation.RNFusedLocationPackage;
 import com.zyu.ReactNativeWheelPickerPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
-import com.airbnb.android.react.maps.MapsPackage;
 import com.rnfs.RNFSPackage;
 import it.innove.BleManagerPackage;
 //import com.polidea.reactnativeble.BlePackage;
@@ -35,7 +34,6 @@ public class MainApplication extends Application implements ReactApplication {
             new RNFusedLocationPackage(),
             new ReactNativeWheelPickerPackage(),
             new VectorIconsPackage(),
-            new MapsPackage(),
             new RNFSPackage(),
             new BleManagerPackage()
             //new BlePackage()

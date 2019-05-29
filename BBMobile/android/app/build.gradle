@@ -143,7 +143,6 @@ dependencies {
     implementation project(':react-native-geolocation-service')
     implementation project(':react-native-wheel-picker')
     implementation project(':react-native-vector-icons')
-    implementation project(':react-native-maps')
     implementation project(':react-native-fs')
     implementation project(':react-native-ble-manager')
     implementation fileTree(dir: "libs", include: ["*.jar"])
