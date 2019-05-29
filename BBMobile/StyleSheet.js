@@ -76,6 +76,20 @@ export default StyleSheet.create({
 		height: 20,
 		borderRadius: 5,
 		backgroundColor: "green",
+	},
+	annotationContainer: {
+		width: 30,
+		height: 30,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: 'white',
+		borderRadius: 15
+	},
+	annotationFill: {
+		width: 30,
+		height: 30,
+		borderRadius: 15,
+		backgroundColor: 'blue',
+		transform: [{ scale: 0.6 }]
 	}
-
 });

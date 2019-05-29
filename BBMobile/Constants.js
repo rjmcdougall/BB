@@ -12,6 +12,7 @@ exports.ADMINISTRATION = "Administration";
 exports.DIAGNOSTIC = "Diagnostic";
 exports.MAP = "Map";
 exports.APP_MANAGEMENT = "App";
+exports.MAP2 = "Map2";
 
 //The Cache Items
 exports.DEFAULT_PERIPHERAL = "DefaultPeripheral";

@@ -39,7 +39,8 @@ target 'BBMobile' do
   pod 'Google-Maps-iOS-Utils' # Remove this line if you don't want to support GoogleMaps on iOS
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
   pod 'BugsnagReactNative', :path => '../node_modules/bugsnag-react-native'
- 
+ # Mapbox
+ pod 'react-native-mapbox-gl', :path => '../node_modules/@mapbox/react-native-mapbox-gl'
 end
 
 post_install do |installer|

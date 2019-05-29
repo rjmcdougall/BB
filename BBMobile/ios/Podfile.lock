@@ -38,6 +38,8 @@ PODS:
     - Google-Maps-iOS-Utils (= 2.1.0)
     - GoogleMaps (= 2.5.0)
     - React
+  - react-native-mapbox-gl (6.1.4):
+    - React
   - react-native-maps (0.22.1):
     - React
   - React/Core (0.59.8):
@@ -105,6 +107,7 @@ DEPENDENCIES:
   - Google-Maps-iOS-Utils
   - GoogleMaps
   - react-native-google-maps (from `../node_modules/react-native-maps`)
+  - "react-native-mapbox-gl (from `../node_modules/@mapbox/react-native-mapbox-gl`)"
   - react-native-maps (from `../node_modules/react-native-maps`)
   - React/Core (from `../node_modules/react-native`)
   - React/CxxBridge (from `../node_modules/react-native`)
@@ -141,6 +144,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native"
   react-native-google-maps:
     :path: "../node_modules/react-native-maps"
+  react-native-mapbox-gl:
+    :path: "../node_modules/@mapbox/react-native-mapbox-gl"
   react-native-maps:
     :path: "../node_modules/react-native-maps"
   RNVectorIcons:
@@ -158,10 +163,11 @@ SPEC CHECKSUMS:
   GoogleMaps: c087b8e5dfe87ca6ebf59adb9b4894a4146bec4f
   React: 1d605e098d69bdf08960787f3446f0a9dc2e2ccf
   react-native-google-maps: b946d62e25dc66097921ed82520e45b0b081768a
+  react-native-mapbox-gl: b42480060cdcc515dfa3d8e403fb4dd32466a1b9
   react-native-maps: 066c2afcc89e18726377bcc685315f989ca22449
   RNVectorIcons: 8c52e1e8da1153613fdef44748e865c25556cb9c
   yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
 
-PODFILE CHECKSUM: 5326b9e92b437c02a0ad6d9c1e8b8ef42258bf00
+PODFILE CHECKSUM: 694116655d430e75f37a41486b9d1266b876474a
 
 COCOAPODS: 1.5.3
