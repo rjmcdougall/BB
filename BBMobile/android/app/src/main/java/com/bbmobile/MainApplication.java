@@ -8,11 +8,11 @@ import com.zyu.ReactNativeWheelPickerPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.rnfs.RNFSPackage;
 import it.innove.BleManagerPackage;
-//import com.polidea.reactnativeble.BlePackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
+import com.mapbox.rctmgl.RCTMGLPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,8 +33,8 @@ public class MainApplication extends Application implements ReactApplication {
             new ReactNativeWheelPickerPackage(),
             new VectorIconsPackage(),
             new RNFSPackage(),
-            new BleManagerPackage()
-            //new BlePackage()
+            new BleManagerPackage(),
+            new RCTMGLPackage()
       );
     }
 
