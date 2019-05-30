@@ -3,6 +3,7 @@ import { View, Text, ScrollView, ListView } from "react-native";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
+import StateBuilder from "./StateBuilder";
 
 const ds = new ListView.DataSource({
 	rowHasChanged: (r1, r2) => r1 !== r2
@@ -18,6 +19,8 @@ export default class DiscoverController extends React.Component {
 		try {
 			const list = Array.from(this.props.boardBleDevices.values());
 			const dataSource = ds.cloneWithRows(list);
+
+			DC = this;
 
 			return (
 				<View style={{ flex: 1, margin: 30 }}>
@@ -41,21 +44,8 @@ export default class DiscoverController extends React.Component {
 								if (item) {
 									if (item.name) {
 										try {
-											var foundBoard = this.props.boardData.filter((board) => {
-												if (board.name)
-													return board.name == item.name;
-												else if (board.bootName)
-													return board.bootName == item.name;
-												else
-													return false;
-											});
-
-											var color = "whitesmoke";
-											if (foundBoard[0]) {
-												if (foundBoard[0].color) {
-													color = foundBoard[0].color;
-												}
-											}
+ 
+											color = StateBuilder.boardColor(item.name, DC.props.boardData)
 
 											return (
 												<Touchable

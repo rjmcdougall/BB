@@ -191,3 +191,23 @@ exports.getBoundsForCoordinates = function (points) {
 	return bound;
 };
 
+exports.boardColor = function (item, boardData) {
+	 
+	var color = "whitesmoke";
+
+	var foundBoard = boardData.filter((board) => {
+		if (board.name)
+			return board.name == item;
+		else if (board.bootName)
+			return board.bootName == item;
+		else
+			return false;
+	});
+ 
+	if (foundBoard[0]) {
+		if (foundBoard[0].color) {
+			color = foundBoard[0].color;
+		}
+	}
+	return color;
+}
