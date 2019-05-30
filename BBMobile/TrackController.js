@@ -19,7 +19,7 @@ export default class TrackController extends Component {
 		}
 		else if (this.props.mediaType == "Video") {
 			this.state = {
-				tracks: [{ localname: "loading..." }],
+				tracks: [{ localName: "loading..." }],
 				selectedTrack: 29999,
 			};
 		}
