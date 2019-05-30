@@ -19,6 +19,7 @@
     "ios": "react-native-scripts ios"
   },
   "dependencies": {
+    "@mapbox/geo-viewport": "^0.4.0",
     "@mapbox/react-native-mapbox-gl": "https://github.com/nitaliano/react-native-mapbox-gl/tarball/master",
     "async-lock": "^1.2.0",
     "buffer": "^5.2.1",

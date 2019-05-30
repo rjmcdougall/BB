@@ -11,7 +11,8 @@ import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
 import ManLocationController from "./ManLocationController";
 import Cache from "./Cache";
-
+import Mapbox from "@mapbox/react-native-mapbox-gl";
+import Constants from "./Constants"
 export default class AppManagement extends Component {
 	constructor(props) {
 		super(props);
@@ -19,6 +20,9 @@ export default class AppManagement extends Component {
 		this.state = {
 			isActive: false
 		};
+
+		this.progressListener = this.progressListener.bind(this);
+		this.errorListener = this.errorListener.bind(this);
 	}
 
 	async sleep(ms) {
@@ -30,23 +34,39 @@ export default class AppManagement extends Component {
 	}
 
 	async clearCache() {
-		this.setState({cacheButton: "green"});
+		this.setState({ cacheButton: "green" });
 		await Cache.clear();
 		await this.sleep(500);
-		this.setState({cacheButton: "skyblue"});
+		this.setState({ cacheButton: "skyblue" });
 	}
 
-	
-	async bbCom(){
-		this.setState({bbComButton: "green"});
+	async componentDidMount() {
+		console.log(await Mapbox.offlineManager.getPacks());
+		this.setState({ downloaded: await Mapbox.offlineManager.getPack("Playa") });
+	}
+
+	progressListener(offlineRegion, offlineRegionStatus) {
+		this.setState({
+			name: offlineRegion.name,
+			downloadPercentage: offlineRegionStatus.percentage,
+			buttonDisabled: true,
+		});
+	}
+
+	errorListener(error) {
+		console.log(error);
+	}
+
+	async bbCom() {
+		this.setState({ bbComButton: "green" });
 		var supported = await Linking.canOpenURL("https://burnerboard.com");
 		if (supported) {
 			await this.sleep(500);
 			Linking.openURL("https://burnerboard.com");
 		} else {
 			console.log("Don't know how to open URI: " + "https://burnerboard.com");
-		} 
-		this.setState({bbComButton: "skyblue"});
+		}
+		this.setState({ bbComButton: "skyblue" });
 	}
 	render() {
 
@@ -91,6 +111,25 @@ export default class AppManagement extends Component {
 			leftHandBackgroundColor = "green";
 		}
 
+		var downloadText
+
+		if (this.state.downloaded)
+			downloadText = "Playa Map Downloaded";
+		else if (this.state.downloadPercentage)
+			downloadText = "Downloading " + this.state.downloadPercentage;
+		else
+			downloadText = "Download Playa Map";
+
+		var downloadBackgroundColor;
+		if (this.state.downloaded)
+			downloadBackgroundColor = "green";
+		else if (this.state.downloadPercentage == 100)
+			downloadBackgroundColor = "green";
+		else
+			downloadBackgroundColor = "skyblue";
+
+		var AM = this;
+
 		return (
 			<View style={StyleSheet.container}>
 				<ScrollView>
@@ -116,18 +155,7 @@ export default class AppManagement extends Component {
 							}}
 							style={[{ backgroundColor: wifiBackgroundColor }]}
 							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> Radio Locations </Text>
-						</Touchable>
-					</View>
-					<View style={{ height: 10 }}></View>
-					<View style={StyleSheet.button}>
-						<Touchable
-							onPress={async () => {
-								await this.bbCom();
-							}}
-							style={[{ backgroundColor: this.state.bbComButton}]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}>Go To BB.Com</Text>
+							<Text style={StyleSheet.buttonTextCenter}> Cloud Locations </Text>
 						</Touchable>
 					</View>
 					<View style={{ height: 10 }}></View>
@@ -136,7 +164,7 @@ export default class AppManagement extends Component {
 							onPress={async () => {
 								await this.clearCache();
 							}}
-							style={[{ backgroundColor: this.state.cacheButton}]}
+							style={[{ backgroundColor: this.state.cacheButton }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Clear Cache </Text>
 						</Touchable>
@@ -154,41 +182,35 @@ export default class AppManagement extends Component {
 						</Touchable>
 					</View>
 					<View style={{ height: 10 }}></View>
-					<View style={StyleSheet.button}>
+					<View style={StyleSheet.button} pointerEvents={this.state.downloaded||this.state.buttonDisabled ? "none" : "auto"}>
 						<Touchable
 							onPress={() => {
-								this.props.userPrefs.isBurnerMode = !this.props.userPrefs.isBurnerMode;
-								if (this.props.userPrefs.isBurnerMode == true) {
-									this.props.userPrefs.wifiLocations = false; // turn off wifi also
-									this.props.onLoadAPILocations();
-								}
-								this.props.setUserPrefs(this.props.userPrefs);
+
+								Mapbox.offlineManager.createPack({
+									name: "Playa",
+									styleURL: Mapbox.StyleURL.Street,
+									minZoom: 5,
+									maxZoom: 20,
+									bounds: Constants.PLAYA_BOUNDS()
+								}, AM.progressListener, AM.errorListener)
 							}}
-							style={[{ backgroundColor: burnerModeBackgroundColor }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> Burner Mode </Text>
+							style={[{ backgroundColor: downloadBackgroundColor }]}
+							background={Touchable.Ripple("blue")}
+							 >
+							<Text style={StyleSheet.buttonTextCenter}>{downloadText}</Text>
 						</Touchable>
 					</View>
 					<View style={{ height: 10 }}></View>
-					{(this.props.userPrefs.isBurnerMode) ?
-						<View style={StyleSheet.button}>
-							<Touchable
-								onPress={() => {
-									this.props.userPrefs.mapPoints = !this.props.userPrefs.mapPoints;
-									this.props.setUserPrefs(this.props.userPrefs);
-								}}
-								style={[{ backgroundColor: mapPointsBackgroundColor }]}
-								background={Touchable.Ripple("blue")}>
-								<Text style={StyleSheet.buttonTextCenter}> Map Details </Text>
-							</Touchable>
-						</View>
-						: <View></View>}
-					<View style={{ height: 10 }}></View>
-					{(this.props.userPrefs.isBurnerMode) ?
-						<View>
-							<ManLocationController setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} />
-						</View>
-						: <View></View>}
+					<View style={StyleSheet.button}>
+						<Touchable
+							onPress={async () => {
+								await this.bbCom();
+							}}
+							style={[{ backgroundColor: this.state.bbComButton }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={StyleSheet.buttonTextCenter}>Go To BB.Com</Text>
+						</Touchable>
+					</View>
 					<View style={{ height: 10 }}></View>
 				</ScrollView>
 			</View>

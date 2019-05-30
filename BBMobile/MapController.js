@@ -5,7 +5,7 @@ import StateBuilder from "./StateBuilder";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
- 
+import Constants from "./Constants";
 Mapbox.setAccessToken(
 	"sk.eyJ1IjoiZGFuaWVsa2VpdGh3IiwiYSI6ImNqdzhlbHUwZTJvdmUzenFramFmMTQ4bXIifQ.9EXJnBcsrsKyS-veb_dlNg"
 );
@@ -28,7 +28,7 @@ export default class MapController extends Component {
 		if (this.props.userPrefs.includeMeOnMap)
 			locations = [...locations, this.props.mediaState.phoneLocation];
 
-
+		//		var boundsArray = Constants.PLAYA_BOUNDS();
 		if (this.state.autoZoom == true && (locations.length > 0))
 			bound = StateBuilder.getBoundsForCoordinates(locations);
 		else
@@ -44,7 +44,7 @@ export default class MapController extends Component {
 					style={StyleSheet.container}
 					visibleCoordinateBounds={bound}>
 					{locations.map(marker => {
-						var bgColor = StateBuilder.boardColor(marker.board, MP.props.mediaState.boards) ;
+						var bgColor = StateBuilder.boardColor(marker.board, MP.props.mediaState.boards);
 						return (
 							<Mapbox.PointAnnotation
 								key={marker.board}
@@ -52,7 +52,7 @@ export default class MapController extends Component {
 								title={marker.board}
 								coordinate={[marker.longitude, marker.latitude]}>
 								<View style={StyleSheet.annotationContainer}>
-									<View style={[StyleSheet.annotationFill, {backgroundColor: bgColor }]}  />
+									<View style={[StyleSheet.annotationFill, { backgroundColor: bgColor }]} />
 								</View>
 								<Mapbox.Callout title={marker.board} />
 							</Mapbox.PointAnnotation>
