@@ -62,7 +62,7 @@ export default class AdminManagement extends Component {
 							}}
 							style={[{ backgroundColor: backgroundColor }]}
 							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> Audio Master
+							<Text style={StyleSheet.buttonTextCenter}> Master Remote
 							</Text>
 						</Touchable>
 					</View>
