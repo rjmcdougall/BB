@@ -83,7 +83,7 @@ export default class BoardManager extends Component {
 				if (result) {
 					this.l("Permission is OK", false, null);
 				} else {
-					PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+					PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
 						if (result) {
 							this.l("User accept", false, null);
 						} else {
@@ -97,7 +97,7 @@ export default class BoardManager extends Component {
 				if (result) {
 					this.l("Permission is OK", false, null);
 				} else {
-					PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
+					PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
 						if (result) {
 							this.l("User accept", false, null);
 						} else {
