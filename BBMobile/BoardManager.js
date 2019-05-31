@@ -205,7 +205,7 @@ export default class BoardManager extends Component {
 			}
 			if (this.state.connectedPeripheral) {
 				if (peripheral == this.state.connectedPeripheral.id) {
-					this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime)/1000) + " seconds" , true, dev);
+					this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime) / 1000) + " seconds", true, dev);
 					if (this.state.backgroundLoop)
 						clearInterval(this.state.backgroundLoop);
 					this.setState({
@@ -361,7 +361,7 @@ export default class BoardManager extends Component {
 			this.l("Getting BLE Data for " + peripheral.name, false, null);
 			mediaState = await this.refreshMediaState(mediaState);
 
-			return mediaState;
+			return mediaState;	 
 		}
 		catch (error) {
 			this.l("Error creating media state " + error, true, null);
@@ -477,7 +477,7 @@ export default class BoardManager extends Component {
 					mediaState: StateBuilder.blankMediaState(),
 					showScreen: Constants.DISCOVER,
 					backgroundLoop: null,
-				});			
+				});
 			}
 			catch (error) {
 				this.l("Pressed Search For Boards: " + error, true, null);
@@ -739,7 +739,7 @@ export default class BoardManager extends Component {
 		else {
 			color = "#fff";
 			enableControls = "none";
-			connectionButtonText = "Select Board";			
+			connectionButtonText = "Select Board";
 		}
 
 
