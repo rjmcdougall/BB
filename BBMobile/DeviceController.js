@@ -43,8 +43,14 @@ export default class DeviceController extends Component {
 				<View style={StyleSheet.button}>
 					<Touchable
 						onPress={async () => {
-							this.props.sendCommand(this.props.mediaState, "BTScan", null);
-							return true;
+							try {
+								await this.props.sendCommand(this.props.mediaState, "BTScan", null);
+								return true;
+							}
+							catch (error) {
+								console.log(error);
+							}
+
 						}}
 						background={Touchable.Ripple("blue")}>
 						<Text style={StyleSheet.buttonTextCenter}> Scan for Buttons

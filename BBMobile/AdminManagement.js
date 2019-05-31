@@ -45,7 +45,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								this.props.sendCommand(this.props.mediaState, "EnableGTFO", !this.props.mediaState.state.GTFO);
+								await this.props.sendCommand(this.props.mediaState, "EnableGTFO", !this.props.mediaState.state.GTFO);
 								return true;
 							}}
 							style={[{ backgroundColor: GTFOBackgroundColor }]}
@@ -57,7 +57,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								this.props.sendCommand(this.props.mediaState,  "EnableMaster", !this.props.mediaState.state.audioMaster);
+								await this.props.sendCommand(this.props.mediaState,  "EnableMaster", !this.props.mediaState.state.audioMaster);
 								return true;
 							}}
 							style={[{ backgroundColor: backgroundColor }]}
@@ -67,7 +67,7 @@ export default class AdminManagement extends Component {
 						</Touchable>
 					</View>
 					<View style={{ height: 50 }}></View>
-					<DeviceController onSelectTrack={(value) => this.props.sendCommand(this.props.mediaState, "Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
+					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand(this.props.mediaState, "Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>

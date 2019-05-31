@@ -108,17 +108,22 @@ export default class TrackController extends Component {
 							itemStyle={{ color: "black", fontWeight: "bold", fontSize: 26, height: 140 }}
 							onValueChange={async (value) => {
 
-								if (this.state.tracks[0] == "loading...") {
-									console.log("TrackController: dont call update if its a component load");
-									return;
+								try {
+									if (this.state.tracks[0] == "loading..." || this.state.tracks[0] == null) {
+										console.log("TrackController: dont call update if its a component load");
+										return;
+									}
+									if (this.state.selectedTrack == value) {
+										console.log("TrackController: dont call update if its not a real change");
+										return;
+									}
+	
+									this.setState({ selectedTrack: value });
+									await this.props.sendCommand(this.props.mediaState, this.props.mediaType, value);	
 								}
-								if (this.state.selectedTrack == value) {
-									console.log("TrackController: dont call update if its not a real change");
-									return;
+								catch(error) {
+									console.log(error);
 								}
-
-								this.setState({ selectedTrack: value });
-								this.props.sendCommand(this.props.mediaState, this.props.mediaType, value);
 
 							}}>
 

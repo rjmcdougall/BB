@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { View, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, AppState, Text, Image, } from "react-native";
 import BleManager from "react-native-ble-manager";
-import BLEIDs from "./BLEIDs";
 import Cache from "./Cache";
 import MediaManagement from "./MediaManagement";
 import AdminManagement from "./AdminManagement";
@@ -260,7 +259,7 @@ export default class BoardManager extends Component {
 				});
 
 				this.l("Scanning with automatic connect: " + automaticallyConnect, false, null);
-				await BleManager.scan([BLEIDs.bbUUID], 5, true);
+				await BleManager.scan([Constants.bbUUID], 5, true);
 			}
 			catch (error) {
 				this.l("Failed to Scan: " + error, true, null);
@@ -419,19 +418,19 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	sendCommand(mediaState, command, arg) {
+	async sendCommand(mediaState, command, arg) {
 		// Send request command
 		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
 			this.l("send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
 
 			var bm = this;
-			lock.acquire("send", function (done) {
+			lock.acquire("send", async function (done) {
 				// async work
 				try {
 					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
-					BleManager.write(mediaState.connectedPeripheral.id,
-						BLEIDs.UARTservice,
-						BLEIDs.txCharacteristic,
+					await BleManager.write(mediaState.connectedPeripheral.id,
+						Constants.UARTservice,
+						Constants.txCharacteristic,
 						data,
 						18); // MTU Size
 
@@ -454,7 +453,7 @@ export default class BoardManager extends Component {
 		}
 	}
 	onSelectAudioTrack = async function (idx) {
-		this.sendCommand(this.state.mediaState, "Audio", idx);
+		await this.sendCommand(this.state.mediaState, "Audio", idx);
 	}
 
 	async onLoadAPILocations() {
@@ -583,8 +582,8 @@ export default class BoardManager extends Component {
 	async setNotificationRx(peripheralId) {
 		try {
 			var e = await BleManager.startNotification(peripheralId,
-				BLEIDs.UARTservice,
-				BLEIDs.rxCharacteristic);
+				Constants.UARTservice,
+				Constants.rxCharacteristic);
 			if (e == null) {
 				this.l("successfully set notificationon rx", false);
 			} else {
@@ -599,7 +598,7 @@ export default class BoardManager extends Component {
 		var backgroundTimer = setInterval(async () => {
 			if (this.state.mediaState) {
 				try {
-					this.sendCommand(this.state.mediaState, "Location", 600);
+					await this.sendCommand(this.state.mediaState, "Location", 600);
 				}
 				catch (error) {
 					this.l("Location Loop Failed:" + error, true, null);
