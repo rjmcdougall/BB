@@ -20,25 +20,9 @@ export default class AdminManagement extends Component {
 	}
 
 	render() {
-
-		var backgroundColor;
-		var GTFOBackgroundColor;
+ 
 		var blockMasterBackgroundColor;
-
-		if (this.props.mediaState.state.audioMaster == 0) {
-			backgroundColor = "skyblue";
-		}
-		else {
-			backgroundColor = "green";
-		}
-
-		if (this.props.mediaState.state.GTFO == 0) {
-			GTFOBackgroundColor = "skyblue";
-		}
-		else {
-			GTFOBackgroundColor = "green";
-		}
-
+ 
 		if (this.props.mediaState.state.blockMaster == null) {
 			blockMasterBackgroundColor = "grey";
 		}
@@ -62,7 +46,7 @@ export default class AdminManagement extends Component {
 								await this.props.sendCommand(this.props.mediaState, "EnableGTFO", !this.props.mediaState.state.GTFO);
 								return true;
 							}}
-							style={[{ backgroundColor: GTFOBackgroundColor }]}
+							style={[{ backgroundColor: (this.props.mediaState.state.GTFO) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> GTFO </Text>
 						</Touchable>
@@ -74,7 +58,7 @@ export default class AdminManagement extends Component {
 								await this.props.sendCommand(this.props.mediaState, "EnableMaster", !this.props.mediaState.state.audioMaster);
 								return true;
 							}}
-							style={[{ backgroundColor: backgroundColor }]}
+							style={[{ backgroundColor: (this.props.mediaState.state.audioMaster) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Master Remote
 							</Text>

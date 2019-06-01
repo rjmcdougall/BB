@@ -69,48 +69,6 @@ export default class AppManagement extends Component {
 		this.setState({ bbComButton: "skyblue" });
 	}
 	render() {
-
-		var wifiBackgroundColor;
-		if (this.props.userPrefs.wifiLocations == 0) {
-			wifiBackgroundColor = "skyblue";
-		}
-		else {
-			wifiBackgroundColor = "green";
-		}
-
-		var mapPointsBackgroundColor;
-		if (this.props.userPrefs.mapPoints == 0) {
-			mapPointsBackgroundColor = "skyblue";
-		}
-		else {
-			mapPointsBackgroundColor = "green";
-		}
-
-		var burnerModeBackgroundColor;
-		if (this.props.userPrefs.isBurnerMode == 0) {
-			burnerModeBackgroundColor = "skyblue";
-		}
-		else {
-			burnerModeBackgroundColor = "green";
-		}
-
-
-		var includeMeOnMapBackgroundColor;
-		if (this.props.userPrefs.includeMeOnMap == 0) {
-			includeMeOnMapBackgroundColor = "skyblue";
-		}
-		else {
-			includeMeOnMapBackgroundColor = "green";
-		}
-
-		var leftHandBackgroundColor;
-		if (this.props.userPrefs.isDevilsHand == 0) {
-			leftHandBackgroundColor = "skyblue";
-		}
-		else {
-			leftHandBackgroundColor = "green";
-		}
-
 		var downloadText
 
 		if (this.state.downloaded)
@@ -140,7 +98,7 @@ export default class AppManagement extends Component {
 								this.props.userPrefs.includeMeOnMap = !this.props.userPrefs.includeMeOnMap;
 								this.props.setUserPrefs(this.props.userPrefs);
 							}}
-							style={[{ backgroundColor: includeMeOnMapBackgroundColor }]}
+							style={[{ backgroundColor:  (this.props.userPrefs.includeMeOnMap) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Map My Phone </Text>
 						</Touchable>
@@ -153,7 +111,7 @@ export default class AppManagement extends Component {
 								this.props.onLoadAPILocations();
 								this.props.setUserPrefs(this.props.userPrefs);
 							}}
-							style={[{ backgroundColor: wifiBackgroundColor }]}
+							style={[{ backgroundColor: (this.props.userPrefs.wifiLocations) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Cloud Locations </Text>
 						</Touchable>
@@ -176,7 +134,7 @@ export default class AppManagement extends Component {
 								this.props.userPrefs.isDevilsHand = !this.props.userPrefs.isDevilsHand;
 								this.props.setUserPrefs(this.props.userPrefs);
 							}}
-							style={[{ backgroundColor: leftHandBackgroundColor }]}
+							style={[{ backgroundColor: (this.props.userPrefs.isDevilsHand) ? "green" : "skyblue" }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Left Handed</Text>
 						</Touchable>
