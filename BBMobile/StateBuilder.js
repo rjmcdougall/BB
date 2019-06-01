@@ -34,6 +34,7 @@ var bEmptyMediaState = {
 		APKVersion: 0,
 		IPAddress: "0.0.0.0",
 		GTFO: false,
+		blockMaster: false,
 	},
 	region: {
 		latitude: 37.78825,

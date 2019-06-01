@@ -133,6 +133,7 @@ public class BBService extends Service {
     public A2dpSink mA2dpSink = null;
     public BluetoothConnManager mBluetoothConnManager = null;
     private boolean mMasterRemote = false;
+    private boolean mBlockMaster = false;
     private boolean mVoiceAnnouncements = false;
     public final String cpuType = Build.BOARD;
     private boolean mGTFO = false;
@@ -457,13 +458,9 @@ public class BBService extends Service {
         voice.shutdown();
     }
 
-    public boolean isMaster() {
-        return mMasterRemote;
-    }
-
-    public boolean isGTFO() {
-        return mGTFO;
-    }
+    public boolean isMaster() { return mMasterRemote;}
+    public boolean blockMaster() { return mBlockMaster; }
+    public boolean isGTFO() { return mGTFO; }
 
     public String getAPKUpdatedDate() {
         return mAPKUpdatedDate.toString();
@@ -1013,6 +1010,9 @@ public class BBService extends Service {
 
     }
 
+    public void blockMaster(boolean enable) {
+        mBlockMaster = enable;
+    }
 
     public void enableMaster(boolean enable) {
         mMasterRemote = enable;
@@ -1063,61 +1063,68 @@ public class BBService extends Service {
     // Change value -> hash lookup
     public void decodeRemoteControl(String client, int cmd, long value) {
 
-        l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
 
-        switch (cmd) {
-            case kRemoteAudioTrack:
+        if(mBlockMaster) {
+            l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
+        }
+        else {
 
-                for (int i = 1; i <= getRadioChannelMax(); i++) {
-                    String name = getRadioChannelInfo(i);
-                    long hashed = hashTrackName(name);
-                    if (hashed == value) {
-                        l("Remote Audio " + getRadioChannel() + " -> " + i);
-                        if (getRadioChannel() != i) {
-                            SetRadioChannel((int) i);
-                            l("Received remote audio switch to track " + i + " (" + name + ")");
-                        } else {
-                            l("Ignored remote audio switch to track " + i + " (" + name + ")");
+            l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
+
+            switch (cmd) {
+                case kRemoteAudioTrack:
+
+                    for (int i = 1; i <= getRadioChannelMax(); i++) {
+                        String name = getRadioChannelInfo(i);
+                        long hashed = hashTrackName(name);
+                        if (hashed == value) {
+                            l("Remote Audio " + getRadioChannel() + " -> " + i);
+                            if (getRadioChannel() != i) {
+                                SetRadioChannel((int) i);
+                                l("Received remote audio switch to track " + i + " (" + name + ")");
+                            } else {
+                                l("Ignored remote audio switch to track " + i + " (" + name + ")");
+                            }
+                            break;
                         }
-                        break;
                     }
-                }
-                break;
+                    break;
 
-            case kRemoteVideoTrack:
-                for (int i = 1; i <= getVideoMax(); i++) {
-                    String name = getVideoModeInfo(i);
-                    long hashed = hashTrackName(name);
-                    if (hashed == value) {
-                        l("Remote Video " + getVideoMode() + " -> " + i);
-                        if (getVideoMode() != i) {
-                            setVideoMode((int) i);
-                            l("Received remote video switch to mode " + i + " (" + name + ")");
-                        } else {
-                            l("Ignored remote video switch to mode " + i + " (" + name + ")");
+                case kRemoteVideoTrack:
+                    for (int i = 1; i <= getVideoMax(); i++) {
+                        String name = getVideoModeInfo(i);
+                        long hashed = hashTrackName(name);
+                        if (hashed == value) {
+                            l("Remote Video " + getVideoMode() + " -> " + i);
+                            if (getVideoMode() != i) {
+                                setVideoMode((int) i);
+                                l("Received remote video switch to mode " + i + " (" + name + ")");
+                            } else {
+                                l("Ignored remote video switch to mode " + i + " (" + name + ")");
+                            }
+                            break;
                         }
-                        break;
                     }
-                }
-                break;
-            case kRemoteMute:
-                if (value != getCurrentBoardVol()) {
-                    //System.out.println("UDP: set vol = " + boardVol);
-                    setBoardVolume((int)value);
-                }
-                break;
-            case kRemoteMasterName:
-                if( mMasterRemote ) {
-                    // This board thinks it's the master, but apparently it's no longer. Reset master
-                    // mode and follow the new master
-                    String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
-                    l( diag );
-                    voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
-                    enableMaster(false);
-                }
+                    break;
+                case kRemoteMute:
+                    if (value != getCurrentBoardVol()) {
+                        //System.out.println("UDP: set vol = " + boardVol);
+                        setBoardVolume((int) value);
+                    }
+                    break;
+                case kRemoteMasterName:
+                    if (mMasterRemote) {
+                        // This board thinks it's the master, but apparently it's no longer. Reset master
+                        // mode and follow the new master
+                        String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
+                        l(diag);
+                        voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
+                        enableMaster(false);
+                    }
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
     }
 

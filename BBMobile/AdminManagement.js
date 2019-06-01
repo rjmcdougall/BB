@@ -23,6 +23,8 @@ export default class AdminManagement extends Component {
 
 		var backgroundColor;
 		var GTFOBackgroundColor;
+		var blockMasterBackgroundColor;
+
 		if (this.props.mediaState.state.audioMaster == 0) {
 			backgroundColor = "skyblue";
 		}
@@ -35,6 +37,18 @@ export default class AdminManagement extends Component {
 		}
 		else {
 			GTFOBackgroundColor = "green";
+		}
+
+		if (this.props.mediaState.state.blockMaster == null) {
+			blockMasterBackgroundColor = "grey";
+		}
+		else { 
+			if (this.props.mediaState.state.blockMaster == 0) {
+				blockMasterBackgroundColor = "skyblue";
+			}
+			else {
+				blockMasterBackgroundColor = "green";
+			}
 		}
 
 		//
@@ -57,12 +71,25 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand(this.props.mediaState,  "EnableMaster", !this.props.mediaState.state.audioMaster);
+								await this.props.sendCommand(this.props.mediaState, "EnableMaster", !this.props.mediaState.state.audioMaster);
 								return true;
 							}}
 							style={[{ backgroundColor: backgroundColor }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Master Remote
+							</Text>
+						</Touchable>
+					</View>
+					<View style={{ height: 10 }}></View>
+					<View style={StyleSheet.button}>
+						<Touchable
+							onPress={async () => {
+								await this.props.sendCommand(this.props.mediaState, "BlockMaster", !this.props.mediaState.state.blockMaster);
+								return true;
+							}}
+							style={[{ backgroundColor: blockMasterBackgroundColor }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={StyleSheet.buttonTextCenter}> Block Master Remote
 							</Text>
 						</Touchable>
 					</View>

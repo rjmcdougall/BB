@@ -233,6 +233,31 @@ public class BluetoothCommands {
                     }
                 });
 
+        // Register GTFO command on bluetooth server
+        mBLEServer.addCallback("BlockMaster",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got BlockMaster command:" + payload.toString());
+                        try {
+                            boolean blockMaster = payload.getBoolean("arg");
+                            mBBService.blockMaster(blockMaster);
+
+                        } catch (Exception e) {
+                            l("error setting BlockMaster: " + e.getMessage());
+                        }
+                        sendStateResponse(command, device);
+                    }
+                });
 
         // Register Volume command on bluetooth server
         mBLEServer.addCallback("Volume",
@@ -422,6 +447,7 @@ public class BluetoothCommands {
             state.put("APKVersion", mBBService.getVersion());
             state.put("IPAddress", mBBService.getIPAddress());
             state.put("GTFO", mBBService.isGTFO());
+            state.put("blockMaster" , mBBService.blockMaster());
         } catch (Exception e) {
             l("Could not get state: " + e.getMessage());
         }
