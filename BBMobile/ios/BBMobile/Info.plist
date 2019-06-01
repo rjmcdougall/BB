@@ -39,10 +39,9 @@
 	</dict>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Bluetooth LE access to Burner Board for the purpose of reading audio, video, map, and other data for display and manipulation through the app.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>cause your board loves you</string>
+
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>cause your board loves you</string>
+	<string>used for phone location gps on map</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Entypo.ttf</string>
