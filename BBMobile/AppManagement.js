@@ -116,7 +116,7 @@ export default class AppManagement extends Component {
 		if (this.state.downloaded)
 			downloadText = "Playa Map Downloaded";
 		else if (this.state.downloadPercentage)
-			downloadText = "Downloading " + Math.round(this.state.downloadPercentage);
+			downloadText = "Downloading " + Math.round(this.state.downloadPercentage) + "%";
 		else
 			downloadText = "Download Playa Map";
 
