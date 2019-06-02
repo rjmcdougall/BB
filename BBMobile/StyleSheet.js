@@ -26,6 +26,14 @@ export default StyleSheet.create({
 		marginTop: 2,
 		backgroundColor: "skyblue"
 	},
+	horizonralButton: {
+		flex: 1,
+		marginTop: 2,
+		backgroundColor: "skyblue"
+	},
+	horizontalButtonBar: {
+		flexDirection: "row",
+	},
 	icon: {
 		margin: 5
 	},
