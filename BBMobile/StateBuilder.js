@@ -1,4 +1,3 @@
-import Geolocation from "react-native-geolocation-service";
 import Constants from "./Constants";
 
 var bEmptyUserPrefs = {
