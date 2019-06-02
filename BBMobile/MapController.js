@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
 import Constants from "./Constants";
+
 Mapbox.setAccessToken(
 	"sk.eyJ1IjoiZGFuaWVsa2VpdGh3IiwiYSI6ImNqdzhlbHUwZTJvdmUzenFramFmMTQ4bXIifQ.9EXJnBcsrsKyS-veb_dlNg"
 );
@@ -14,35 +15,60 @@ export default class MapController extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			autoZoom: false,
+			autoZoom: false, 
 		};
+
+		this.onRegionDidChange = this.onRegionDidChange.bind(this);
+
+
+	}
+ 
+	async onRegionDidChange() {
+		try{
+			var center = await this._map.getCenter();
+			var zoom = await this._map.getZoom();
+			var bounds = await this._map.getVisibleBounds();
+	
+			console.log("change center" + center[0] + " " + center[1])
+	
+			this.props.setMap({
+				center: center,
+				zoom: zoom,
+				bounds: bounds
+			});
+		}
+		catch (error) {
+			console.log(error);
+		}
 	}
 
 	render() {
-
+	
 		var locations = new Array();
-		var bound;
+		// var bound;
 
 		locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
+ 
+		// //		var boundsArray = Constants.PLAYA_BOUNDS();
+		// if (this.state.autoZoom == true && (locations.length > 0))
+		// 	bound = StateBuilder.getBoundsForCoordinates(locations);
+		// else
+		// 	bound = StateBuilder.getBoundsForCoordinates([this.props.mediaState.phoneLocation]);
 
-		if (this.props.userPrefs.includeMeOnMap)
-			locations = [...locations, this.props.mediaState.phoneLocation];
-
-		//		var boundsArray = Constants.PLAYA_BOUNDS();
-		if (this.state.autoZoom == true && (locations.length > 0))
-			bound = StateBuilder.getBoundsForCoordinates(locations);
-		else
-			bound = StateBuilder.getBoundsForCoordinates([this.props.mediaState.phoneLocation]);
-
-		MP = this;
+		// MP = this;
 
 		return (
 			<View style={StyleSheet.container}>
 				<Mapbox.MapView
+					showUserLocation={true}
+					userTrackingMode={Mapbox.UserTrackingModes.FollowWithHeading}
 					styleURL={Mapbox.StyleURL.Street}
-					zoomLevel={15}
-					style={StyleSheet.container}
-					visibleCoordinateBounds={bound}>
+					zoomLevel={this.props.map.zoom}
+					centerCoordinate={this.props.map.center}
+					onRegionDidChange={this.onRegionDidChange}
+					bounds={this.props.map.bounds}
+					ref={c => (this._map = c)}
+					style={StyleSheet.container}>
 					{locations.map(marker => {
 						var bgColor = StateBuilder.boardColor(marker.board, MP.props.mediaState.boards);
 						return (
@@ -86,4 +112,6 @@ export default class MapController extends Component {
 MapController.propTypes = {
 	mediaState: PropTypes.object,
 	userPrefs: PropTypes.object,
+	setMapCenter: PropTypes.func,
+	map: PropTypes.object,
 };

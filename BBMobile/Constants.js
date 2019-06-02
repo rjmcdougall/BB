@@ -32,9 +32,11 @@ exports.VIDEOPREFIX = "Video_";
 exports.BTDEVICESPREFIX = "BTDevice_";
 
 exports.PLAYA_BOUNDS = function() {
-	var bounds = geoViewport.bounds([-119.206, 40.7856], 14, [600, 400]);
+	var bounds = geoViewport.bounds([-119.2066,40.7866], 14, [600, 400]);
 	return [[bounds[0], bounds[1]], [bounds[2], bounds[3]]];
 }
+
+exports.MAN_LOCATION = [-119.2066,40.7866];
 
 
 //wait lengths may vary depending on BLE stability and the RN component

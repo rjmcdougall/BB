@@ -8,8 +8,7 @@ import {
 
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
-import StyleSheet from "./StyleSheet";
-import ManLocationController from "./ManLocationController";
+import StyleSheet from "./StyleSheet"; 
 import Cache from "./Cache";
 import Mapbox from "@mapbox/react-native-mapbox-gl";
 import Constants from "./Constants"
@@ -91,18 +90,6 @@ export default class AppManagement extends Component {
 		return (
 			<View style={StyleSheet.container}>
 				<ScrollView>
-					<View style={{ height: 10 }}></View>
-					<View style={StyleSheet.button}>
-						<Touchable
-							onPress={() => {
-								this.props.userPrefs.includeMeOnMap = !this.props.userPrefs.includeMeOnMap;
-								this.props.setUserPrefs(this.props.userPrefs);
-							}}
-							style={[{ backgroundColor:  (this.props.userPrefs.includeMeOnMap) ? "green" : "skyblue"  }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> Map My Phone </Text>
-						</Touchable>
-					</View>
 					<View style={{ height: 10 }}></View>
 					<View style={StyleSheet.button}>
 						<Touchable

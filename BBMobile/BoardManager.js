@@ -40,6 +40,7 @@ export default class BoardManager extends Component {
 			boardData: [],
 			rxBuffers: [],
 			logLines: StateBuilder.blankLogLines(),
+			map: StateBuilder.blankMap(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -54,6 +55,13 @@ export default class BoardManager extends Component {
 		this.onNavigate = this.onNavigate.bind(this);
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
 		this.startScan = this.startScan.bind(this);
+		this.setMap = this.setMap.bind(this);
+		
+	}
+
+
+	setMap(map) { 
+		this.setState({map: map});
 	}
 
 	async componentDidMount() {
@@ -115,8 +123,7 @@ export default class BoardManager extends Component {
 			});
 
 			await this.startScan(true);
-		}
-		this.readPhoneLocationLoop();
+		} 
 	}
 
 	handleAppStateChange(nextAppState) {
@@ -607,29 +614,7 @@ export default class BoardManager extends Component {
 		}, Constants.LOCATION_CHECK_INTERVAL());
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
-
-	async readPhoneLocationLoop() {
-		// android play requires data for location to work.
-		//	if (Platform.OS === "android") {
-		var phoneBackgroundTimer = setInterval(async () => {
-
-			if (this.state.mediaState) {
-				try {
-					var mediaState = await StateBuilder.getPhoneLocation(this.state.mediaState);
-					this.setState({
-						mediaState: mediaState,
-					});
-				}
-				catch (error) {
-					this.l("Phone Location Loop Failed: " + error, true, null);
-				}
-			}
-		}, Constants.LOCATION_CHECK_INTERVAL());
-		this.setState({ phoneBackgroundLoop: phoneBackgroundTimer });
-		//	}
-
-	}
-
+ 
 	async advFetch(url, headers, timeout) {
 		const TIMEOUT = timeout;
 		let didTimeOut = false;
@@ -770,7 +755,7 @@ export default class BoardManager extends Component {
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
 							{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} setMap={this.setMap} map={this.state.map} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
 						<View style={StyleSheet.footer}>

@@ -1,17 +1,17 @@
 import Geolocation from "react-native-geolocation-service";
+import Constants from "./Constants";
 
 var bEmptyUserPrefs = {
 	isDevilsHand: false,
 	isBurnerMode: false,
 	wifiLocations: false,
 	mapPoints: false,
-	includeMeOnMap: false,
-	man: {
-		latitude: 40.7866,
-		longitude: -119.20660000000001,
-	}
 };
 
+var bMap = {
+	center: Constants.MAN_LOCATION,
+	zoom: 12,
+}
 var bEmptyLogLines = [{ logLine: "", isError: false }];
 
 var bEmptyMediaState = {
@@ -47,13 +47,11 @@ var bEmptyMediaState = {
 	apiLocations: [], //[{board: "sexy", latitude: 37.759305, longitude: -122.450425, dateTime: "2019-04-02T04:50:31.488000"}]
 	isError: false,
 	boards: [{ name: "none", address: 1234 }], //    { "color": "coral", "address": 42424, "isProfileGlobal": true, "profile": "Small-Testing","name": "BLUE DASH M2",  "type": "tester"},
-	phoneLocation: {
-		latitude: 0,
-		longitude: 0,
-		board: "my phone",
-		dateTime: Date.now()
-	}
 };
+
+exports.blankMap = function() {
+	return JSON.parse(JSON.stringify(bMap));
+}
 
 exports.blankLogLines = function () {
 	return JSON.parse(JSON.stringify(bEmptyLogLines));
@@ -65,29 +63,7 @@ exports.blankUserPrefs = function () {
 exports.blankMediaState = function () {
 	return JSON.parse(JSON.stringify(bEmptyMediaState));
 };
-
-exports.getPhoneLocation = async function (mediaState) {
-	mediaState.phoneLocation = await checkPhoneLocation();
-	return mediaState;
-};
-
-exports.getLocationForMan = async function () {
-	return await checkPhoneLocation();
-};
-
-function checkPhoneLocation() {
-	return new Promise(function (resolve, reject) {
-		Geolocation.getCurrentPosition(
-			(position) => {
-				resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude, board: "my phone", dateTime: Date.now()});
-			},
-			(error) => {
-				reject(error);
-			},
-			{ enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 });
-	});
-}
-
+ 
 exports.getLocations = function (mediaState, showAPILocations) {
 
 	if (showAPILocations) {
