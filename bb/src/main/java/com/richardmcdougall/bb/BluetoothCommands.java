@@ -445,7 +445,7 @@ public class BluetoothCommands {
             state.put("audioMaster", mBBService.isMaster());
             state.put("APKUpdateDate", mBBService.getAPKUpdatedDate());
             state.put("APKVersion", mBBService.getVersion());
-            state.put("IPAddress", mBBService.getIPAddress());
+            state.put("IPAddress", mBBService.wifi.getIPAddress());
             state.put("GTFO", mBBService.isGTFO());
             state.put("blockMaster" , mBBService.blockMaster());
         } catch (Exception e) {

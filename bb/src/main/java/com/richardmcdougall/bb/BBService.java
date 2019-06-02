@@ -14,9 +14,6 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.PlaybackParams;
 import android.net.Uri;
-import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -40,9 +37,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
-import java.net.InetAddress;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -53,12 +47,6 @@ import android.os.Build;
 import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import no.nordicsemi.android.log.LogSession;
-import no.nordicsemi.android.log.Logger;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
@@ -124,7 +112,7 @@ public class BBService extends Service {
     IoTClient iotClient = null;
     int mVersion = 0;
     Date mAPKUpdatedDate;
-    WifiManager mWiFiManager = null;
+
     public RF mRadio = null;
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
@@ -137,24 +125,14 @@ public class BBService extends Service {
     private boolean mVoiceAnnouncements = false;
     public final String cpuType = Build.BOARD;
     private boolean mGTFO = false;
-
-    private int statePeers = 0;
-    private long stateReplies = 0;
-    //public String mSerialConn = "";
-
+    public BBWifi wifi = null;
     int currentRadioChannel = 1;
     long phoneModelAudioLatency = 0;
 
-    // IP address of the device
-    public String mIPAddress = null;
 
     TextToSpeech voice;
 
-
-
     private BBService.usbReceiver mUsbReceiver = new BBService.usbReceiver();
-
-    int work = 0;
 
     public BBService() {
     }
@@ -221,16 +199,6 @@ public class BBService extends Service {
     boolean mEnableWifiReconnect = true;
     int mWifiReconnectEveryNSeconds = 60;
 
-
-    /* XXX TODO remove me - this looks like dead code -jib
-    private static final Map<String, String> BoardNames = new HashMap<String, String>();
-
-    static {
-        BoardNames.put("BISCUIT", "Richard");
-        BoardNames.put("newproto", "Richard");
-    }
-    */
-
     @Override
     public void onCreate() {
 
@@ -242,25 +210,6 @@ public class BBService extends Service {
         this.registerReceiver(mUsbReceiver, ufilter);
 
         mContext = getApplicationContext();
-
-
-        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-
-        if (checkWifiOnAndConnected(mWiFiManager) == false) {
-
-            l("Enabling Wifi...");
-            setupWifi();
-
-            /*
-            if (mWiFiManager.setWifiEnabled(true) == false) {
-
-                l("Failed to enable wifi");
-            }
-            if (mWiFiManager.reassociate() == false) {
-                l("Failed to associate wifi");
-            }
-            */
-        }
 
         PackageInfo pinfo;
         try {
@@ -274,19 +223,16 @@ public class BBService extends Service {
             e.printStackTrace();
         }
 
-        /*
-        if (boardType.contains("BLU")) {
-            mServerMode = true;
-            l("I am the server");
-        }
-        */
-
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
 
 
         if (iotClient == null) {
             iotClient = new IoTClient(mContext);
+        }
+
+        if (wifi == null) {
+            wifi = new BBWifi(mContext);
         }
 
         // Start the RF Radio and GPS
@@ -322,8 +268,8 @@ public class BBService extends Service {
                     voice.speak( rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
 
                     // Let's announce the WIFI IP on RPIs - do it here, as we need voice initialized first
-                    if( mIPAddress != null ) {
-                        voice.speak( "My WiFi IP is: " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                    if(wifi.mIPAddress != null ) {
+                        voice.speak( "My WiFi IP is: " + wifi.mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
                     }
                 }
             }
@@ -354,14 +300,10 @@ public class BBService extends Service {
             }
         };
 
-
-
         HandlerThread mHandlerThread = null;
         mHandlerThread = new HandlerThread("BBServiceHandlerThread");
         mHandlerThread.start();
-
         mHandler = new Handler(mHandlerThread.getLooper());
-
 
         // Register to receive button messages
         IntentFilter filter = new IntentFilter(BBService.ACTION_BUTTONS);
@@ -410,7 +352,6 @@ public class BBService extends Service {
         }
         //startActivity(new Intent(this, MainActivity.class));
     }
-
 
     /**
      * The service is starting, due to a call to startService()
@@ -468,10 +409,6 @@ public class BBService extends Service {
 
     public String getVersion() {
         return String.valueOf(mVersion);
-    }
-
-    public String getIPAddress() {
-        return mIPAddress;
     }
 
     /**
@@ -546,7 +483,6 @@ public class BBService extends Service {
             return;
         }
 
-
         mBLEServer = new BluetoothLEServer(this, mContext);
         if (mBLEServer == null) {
             l("startServices: null BLE object");
@@ -562,8 +498,6 @@ public class BBService extends Service {
             l("startServices: null BLE object");
             return;
         }
-
-        //mA2dpSink = new A2dpSink(this, mContext);
 
         mRadio = new RF(this, mContext);
         if (mRadio == null) {
@@ -633,31 +567,12 @@ public class BBService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-
-    private void cmd_default(String arg) {
-
-    }
-
     private void onDeviceStateChange() {
         l("BBservice: onDeviceStateChange()");
 
         mBurnerBoard.stopIoManager();
         mBurnerBoard.startIoManager();
     }
-
-
-/*
-    public void sendCommand(String s) {
-        l("sendCommand:" + s);
-        try {
-            if (sPort != null) sPort.write(s.getBytes(), 200);
-        } catch (IOException e) {
-            l("sendCommand err:" + e.getMessage());
-        }
-        //log.append(s + "\r\n");
-    }
-*/
-
 
     // We use this to catch the music buttons
     private final BroadcastReceiver mButtonReceiver = new BroadcastReceiver() {
@@ -760,21 +675,14 @@ public class BBService extends Service {
 
     public int getBoardVolumePercent() {
         return getAndroidVolumePercent();
- //       return ((int) (vol * (float) 100.0));
     }
 
     public void setBoardVolume(int v) {
         setAndroidVolumePercent(v);
-//        l("Volume: " + vol + " -> " + v);
-//        vol = (float) v / (float) 127;
-//        mediaPlayer.setVolume(vol, vol);
     }
 
     public void setRadioVolumePercent(int v) {
         setAndroidVolumePercent(v);
-//        l("Volume: " + vol + " -> " + v);
-//        vol = (float) v / (float) 100;
-//        mediaPlayer.setVolume(vol, vol);
     }
 
     public int getAndroidVolumePercent(){
@@ -832,11 +740,6 @@ public class BBService extends Service {
             phoneModelAudioLatency = 0;
             userTimeOffset = 0;
         }
-
-
-        //udpClientServer = new UDPClientServer(this);
-        //udpClientServer.Run();
-
 
         boolean hasLowLatencyFeature =
                 getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
@@ -1241,7 +1144,6 @@ public class BBService extends Service {
                 Thread.sleep(mRfClientServer.getLatency());
             } catch (Exception e) {
             }
-
         }
 
         if (index == 0) {
@@ -1303,10 +1205,6 @@ public class BBService extends Service {
                                                 " took: " + (curTime - seekSave) + " ms");
                                     }
                                 });
-                        //SyncParams syncParams = new SyncParams();
-                        //l("syncParams.getAudioAdjustMode() = " + syncParams.getAudioAdjustMode());
-                        //l("syncParams.getTolerance() = " + syncParams.getTolerance());
-                        //mediaPlayer.setSyncParams(new SyncParams());
                         mediaPlayer.prepareAsync();
                         SeekAndPlay();
                         SeekAndPlay();
@@ -1355,7 +1253,6 @@ public class BBService extends Service {
 
     public void bluetoothModeEnable() {
         mAudioInStream.startRecording();
-        //mAudioInStream.setPreferredDevice(AudioDeviceInfo.TYPE_WIRED_HEADSET);
         mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
         mAudioOutStream.play();
         mAudioOutStream.setPlaybackRate(44100);
@@ -1509,9 +1406,7 @@ public class BBService extends Service {
     }
 
     public void setMode(int mode) {
-        //boolean cansetMode = mBurnerBoard.setMode(50);
-        //boolean cansetMode = mBurnerBoard.setMode(mode);
-        //if (cansetMode == false) {
+
         // Likely not connected to physical burner board, fallback
         if (mode == 99) {
             mBoardMode++;
@@ -1520,7 +1415,7 @@ public class BBService extends Service {
         } else {
             mBoardMode = mode;
         }
-        //}
+
         int maxModes = GetMaxLightModes();
         if (mBoardMode > maxModes)
             mBoardMode = 1;
@@ -1534,13 +1429,7 @@ public class BBService extends Service {
             String name = getVideoModeInfo(mBoardMode);
             l("Sending video remote for video " + name);
             mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
-            // Wait for 1/2 RTT so that we all select the same track/video at the same time
-            /*
-            try {
-                Thread.sleep(mRfClientServer.getLatency());
-            } catch (Exception e) {
-            }
-            */
+
         }
 
         if (mBoardVisualization != null && mBurnerBoard != null) {
@@ -1560,15 +1449,13 @@ public class BBService extends Service {
         public void BoardId(String str) {
             boardId = str;
             l("ardunio BoardID callback:" + str + " " + boardId);
-            //status.setText("Connected to " + boardId);
+
         }
 
         public void BoardMode(int mode) {
-            //mBoardMode = mode;
-            //mBoardVisualization.setMode(mBoardMode);
-            //voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+
             l("ardunio mode callback:" + mBoardMode);
-            //modeStatus.setText(String.format("%d", mBoardMode));
+
         }
     }
 
@@ -1591,7 +1478,8 @@ public class BBService extends Service {
 
             // Every 60 seconds check WIFI
             if (mEnableWifiReconnect && (loopCnt % mWifiReconnectEveryNSeconds == 0)) {
-                checkWifiReconnect();
+                if(wifi != null)
+                    wifi.checkWifiReconnect();
             }
 
             // Every second, check & update battery
@@ -1828,200 +1716,6 @@ public class BBService extends Service {
             }
         }
 
-    }
-
-    private void setupWifi() {
-        this.registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-              int extraWifiState =
-                      intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                              WifiManager.WIFI_STATE_UNKNOWN);
-
-              switch(extraWifiState){
-                  case WifiManager.WIFI_STATE_DISABLED:
-                      l("WIFI STATE DISABLED");
-                      break;
-                  case WifiManager.WIFI_STATE_DISABLING:
-                      l("WIFI STATE DISABLING");
-                      break;
-                  case WifiManager.WIFI_STATE_ENABLED:
-                      l("WIFI STATE ENABLED");
-                      int mfs = mWiFiManager.getWifiState();
-                      l("Wifi state is " + mfs);
-                      l("Checking wifi");
-                      if (checkWifiSSid(BurnerBoardUtil.WIFI_SSID) == false) {
-                          l("adding wifi: " + BurnerBoardUtil.WIFI_SSID);
-                          addWifi(BurnerBoardUtil.WIFI_SSID, BurnerBoardUtil.WIFI_PASS);
-                      }
-                      l("Connecting to wifi");
-                      connectWifi(BurnerBoardUtil.WIFI_SSID);
-                      break;
-                  case WifiManager.WIFI_STATE_ENABLING:
-                      l("WIFI STATE ENABLING");
-                      break;
-                  case WifiManager.WIFI_STATE_UNKNOWN:
-                      l("WIFI STATE UNKNOWN");
-                      break;
-              }
-            }
-        },
-        new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
-    }
-
-    private boolean checkWifiOnAndConnected(WifiManager wifiMgr) {
-
-        if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
-
-            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-
-            if( wifiInfo.getNetworkId() == -1 ){
-                mIPAddress = null;
-                return false; // Not connected to an access point
-            }
-
-            mIPAddress = getWifiIpAddress(wifiMgr);
-            if( mIPAddress != null) {
-                l("WIFI IP Address: " + mIPAddress);
-                // Text to speach is not set up yet at this time; move it to init loop.
-                //voice.speak("My WIFI IP is " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
-            } else {
-                l( "Could not determine WIFI IP at this time");
-            }
-
-            return true; // Connected to an access point
-        }
-        else {
-            mIPAddress = null;
-            return false; // Wi-Fi adapter is OFF
-        }
-    }
-
-    private void checkWifiReconnect() {
-        if (checkWifiOnAndConnected(mWiFiManager) == false) {
-            l("Enabling Wifi...");
-            if (mWiFiManager.setWifiEnabled(true) == false) {
-                l("Failed to enable wifi");
-            }
-            if (mWiFiManager.reassociate() == false) {
-                l("Failed to associate wifi");
-            }
-        }
-    }
-
-    /* On android, wifi SSIDs and passwords MUST be passed quoted. This fixes up the raw SSID & Pass -jib */
-    /* XXX TODO this code doesn't get exercised if the SSID is already in the known config it seems
-       which makes this code VERY hard to test. What's the right strategy? -jib
-
-        Here's some test code to run to manually verify:
-
-        String ssid = BurnerBoardUtil.WIFI_SSID;
-        String pass = BurnerBoardUtil.WIFI_PASS;
-        String qssid = "\"" + ssid + "\"";
-        String qpass = "\"" + pass + "\"";
-
-        String fssid = fixWifiSSidAndPass((ssid));
-        String fpass = fixWifiSSidAndPass(pass);
-        String fqssid = fixWifiSSidAndPass(qssid);
-        String fqpass = fixWifiSSidAndPass(qpass);
-
-        boolean ssid_eq = fssid.equals(fqssid);
-        boolean pass_eq = fpass.equals(fqpass);
-
-        l("ssid: " + ssid + " - qssid: " + qssid + " - fssid: " + fssid + " - fqssid: " + fqssid + " - equals? " + ssid_eq);
-        l("pass: " + pass + " - qpass: " + qpass + " - fpass: " + fpass + " - fqpass: " + fqpass + " - equals? " + pass_eq);
-
-     */
-    private String fixWifiSSidAndPass(String ssid) {
-        String fixedSSid = ssid;
-        fixedSSid = ssid.startsWith("\"") ? fixedSSid : "\"" + fixedSSid;
-        fixedSSid = ssid.endsWith("\"") ? fixedSSid : fixedSSid + "\"";
-        return fixedSSid;
-    }
-
-    private boolean checkWifiSSid(String ssid) {
-
-        String aWifi = fixWifiSSidAndPass(ssid);
-
-        try {
-            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
-            if (wifiList != null) {
-                for (WifiConfiguration config : wifiList) {
-                    String newSSID = config.SSID;
-                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
-                    if (aWifi.equals(newSSID)) {
-                        return true;
-                    }
-                }
-            }
-        } catch (Exception e) {
-        }
-        return false;
-    }
-
-
-    private void connectWifi(String ssid) {
-
-        String aWifi =fixWifiSSidAndPass(ssid);
-
-        try {
-            List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
-            if (wifiList != null) {
-                for (WifiConfiguration config : wifiList) {
-                    String newSSID = config.SSID;
-
-                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
-
-                    if (aWifi.equals(newSSID)) {
-                        l("connecting wifi:" + newSSID);
-                        mWiFiManager.disconnect();
-                        mWiFiManager.enableNetwork(config.networkId, true);
-                        mWiFiManager.reconnect();
-
-                        return;
-                    }
-                }
-            }
-        } catch (Exception e) {
-        }
-    }
-
-    private void addWifi(String ssid, String pass) {
-        try {
-
-            WifiConfiguration conf = new WifiConfiguration();
-            conf.SSID = fixWifiSSidAndPass(ssid);
-            conf.preSharedKey = fixWifiSSidAndPass(pass);
-
-            mWiFiManager.addNetwork(conf);
-            mWiFiManager.disconnect();
-            mWiFiManager.enableNetwork(conf.networkId, false);
-            mWiFiManager.reconnect();
-        } catch (Exception e) {
-        }
-        return;
-    }
-
-    // Cargo culted directly off of stack overflow: https://stackoverflow.com/questions/16730711/get-my-wifi-ip-address-android
-    public String getWifiIpAddress(WifiManager wifiManager) {
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-
-        // Convert little-endian to big-endianif needed
-        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            ipAddress = Integer.reverseBytes(ipAddress);
-        }
-
-        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
-
-        String ipAddressString;
-        try {
-            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
-        } catch (Exception ex) {
-            l( "Unable to get host address: " + ex.toString());
-            ipAddressString = null;
-        }
-
-        return ipAddressString;
     }
 
 }
