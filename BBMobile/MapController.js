@@ -54,6 +54,8 @@ export default class MapController extends Component {
 		var locations = new Array();
 		locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
 
+		var MP = this;
+		// todo you should be able to see the board colors even if you are not connected. look in the board cache.
 		return (
 			<View style={StyleSheet.container}>
 				<Mapbox.MapView
