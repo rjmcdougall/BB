@@ -100,8 +100,7 @@ public class IoTClient {
         Log.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = mContext.getFilesDir().getAbsolutePath();
         mqttClient = new MqttAndroidClient(context, "ssl://mqtt.googleapis.com:8883",
-                deviceId, new MqttDefaultFilePersistence(filesDir));
-
+                deviceId, new MemoryPersistence());
         doConnect();
 
 
@@ -144,7 +143,7 @@ public class IoTClient {
                             options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
                             mqttClient.setCallback(new MqttEventCallback());
                             mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
-                            mqttClient.setTraceEnabled(BBService.debug);
+                            mqttClient.setTraceEnabled(false);
 
                             mqttClient.connect(options, null, new IMqttActionListener() {
 
@@ -159,13 +158,6 @@ public class IoTClient {
                                 public void onSuccess(IMqttToken iMqttToken) {
                                     Log.i(TAG, "onSuccess");
                                     haveConnected = true;
-                                    DisconnectedBufferOptions disconnectedBufferOptions =
-                                            new DisconnectedBufferOptions();
-                                    disconnectedBufferOptions.setBufferEnabled(true);
-                                    disconnectedBufferOptions.setBufferSize(5000);
-                                    disconnectedBufferOptions.setPersistBuffer(true);
-                                    disconnectedBufferOptions.setDeleteOldestMessages(true);
-                                    mqttClient.setBufferOpts(disconnectedBufferOptions);
                                 }
                             });
                         } catch (Exception e) {
