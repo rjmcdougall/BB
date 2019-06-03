@@ -170,6 +170,13 @@ public class BurnerBoardAzul extends BurnerBoard {
         return mBatteryLevel;
     }
 
+    private static final int kAzulBatteryMah = 38000;
+
+    public int getBatteryHealth() {
+        return 100 * mBatteryStats[5] / kAzulBatteryMah;
+    }
+
+
     public String getBatteryStats() {
         return Arrays.toString(mBatteryStats);
     }
