@@ -41,6 +41,7 @@ export default class BoardManager extends Component {
 			rxBuffers: [],
 			logLines: StateBuilder.blankLogLines(),
 			map: StateBuilder.blankMap(),
+			boardData: StateBuilder.blankBoardData(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -77,7 +78,10 @@ export default class BoardManager extends Component {
 			this.setState({
 				boardData: boards,
 			});
+			this.l("Loading Board Data from Cache", false, boards);
 		}
+		else
+			this.l("No Board Data found in cache", false, null);
 
 		this.handlerDiscover = bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", this.handleDiscoverPeripheral);
 		this.handlerStop = bleManagerEmitter.addListener("BleManagerStopScan", this.handleStopScan);
@@ -358,7 +362,7 @@ export default class BoardManager extends Component {
 
 		return mediaState;
 	}
-
+z
 	async createMediaState(peripheral) {
 		try {
 			var mediaState = StateBuilder.blankMediaState();
@@ -391,15 +395,13 @@ export default class BoardManager extends Component {
 				this.l("requesting media state ", false, null);
 				var audio = await Cache.get(Constants.AUDIOPREFIX + mediaState.connectedPeripheral.name);
 				var video = await Cache.get(Constants.VIDEOPREFIX + mediaState.connectedPeripheral.name);
-				var boards = await Cache.get(Constants.BOARDS);
 				var btdevices = await Cache.get(Constants.BTDEVICESPREFIX + mediaState.connectedPeripheral.name);
 
 				if (audio != null && video != null) {
 
 					this.l("AV found in cache, skipping", false, audio.concat(video));
 					mediaState.audio = audio;
-					mediaState.video = video;
-					mediaState.boards = boards;
+					mediaState.video = video; 
 					mediaState.devices = btdevices;
 
 					if (await this.sendCommand(mediaState, "Location", "") == false) {
@@ -755,7 +757,7 @@ export default class BoardManager extends Component {
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
 							{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} setMap={this.setMap} map={this.state.map} /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
 						<View style={StyleSheet.footer}>

@@ -69,7 +69,7 @@ export default class MapController extends Component {
 					ref={c => (this._map = c)}
 					style={StyleSheet.container}>
 					{locations.map(marker => {
-						var bgColor = StateBuilder.boardColor(marker.board, MP.props.mediaState.boards);
+						var bgColor = StateBuilder.boardColor(marker.board, MP.props.boardData);
 						return (
 							<Mapbox.PointAnnotation
 								key={marker.board}
@@ -163,4 +163,5 @@ MapController.propTypes = {
 	userPrefs: PropTypes.object,
 	setMapCenter: PropTypes.func,
 	map: PropTypes.object,
+	boardData: PropTypes.any,
 };

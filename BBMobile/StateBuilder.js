@@ -14,6 +14,8 @@ var bMap = {
 }
 var bEmptyLogLines = [{ logLine: "", isError: false }];
 
+var bBoardData = [{ name: "none", address: 1234 }]; //    { "color": "coral", "address": 42424, "isProfileGlobal": true, "profile": "Small-Testing","name": "BLUE DASH M2",  "type": "tester"},
+
 var bEmptyMediaState = {
 	connectedPeripheral: {
 		name: "loading...",
@@ -46,8 +48,11 @@ var bEmptyMediaState = {
 	locations: [], // [{"board":"unknown","latitude":37.476222,"longitude":-122.1551087,"address":41,"lastHeard":811071,"lastHeardDate":1555174780789,"sigStrength":-53}]
 	apiLocations: [], //[{board: "sexy", latitude: 37.759305, longitude: -122.450425, dateTime: "2019-04-02T04:50:31.488000"}]
 	isError: false,
-	boards: [{ name: "none", address: 1234 }], //    { "color": "coral", "address": 42424, "isProfileGlobal": true, "profile": "Small-Testing","name": "BLUE DASH M2",  "type": "tester"},
 };
+
+exports.blankBoardData = function() {
+	return JSON.parse(JSON.stringify(bBoardData));
+}
 
 exports.blankMap = function() {
 	return JSON.parse(JSON.stringify(bMap));
