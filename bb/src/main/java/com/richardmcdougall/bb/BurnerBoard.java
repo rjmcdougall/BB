@@ -127,6 +127,10 @@ public class BurnerBoard {
     // Voltage in millivolts
     public int getBatteryVoltage() {return 0; }
 
+    // Battery Pack health 0-100%
+    public int getBatteryHealth() {return 0; }
+
+
     public String getBatteryStats() { return null;   }
 
 

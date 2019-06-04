@@ -144,6 +144,13 @@ public class BurnerBoardClassic extends BurnerBoard {
         return Arrays.toString(mBatteryStats);
     }
 
+
+    private static final int kClassicBatteryMah = 38000;
+
+    public int getBatteryHealth() {
+        return 100 * mBatteryStats[5] / kClassicBatteryMah;
+    }
+
     public int getBatteryCurrent() {
         int codedLevel = mBatteryStats[6];
         if (codedLevel > 32768) {
