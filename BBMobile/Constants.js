@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import geoViewport from "@mapbox/geo-viewport";
+import geoViewport from "@react-native-mapbox-gl/maps";
 
 //UUIDs
 exports.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";

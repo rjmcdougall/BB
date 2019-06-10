@@ -10,7 +10,7 @@ import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet"; 
 import Cache from "./Cache";
-import Mapbox from "@mapbox/react-native-mapbox-gl";
+import Mapbox from "@react-native-mapbox-gl/maps";
 import Constants from "./Constants"
 export default class AppManagement extends Component {
 	constructor(props) {

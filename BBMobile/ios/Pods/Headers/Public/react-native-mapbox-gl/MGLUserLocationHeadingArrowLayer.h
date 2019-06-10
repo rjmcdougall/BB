@@ -1,1 +1,1 @@
-../../../../../node_modules/@mapbox/react-native-mapbox-gl/ios/RCTMGL/MGLUserLocationHeadingArrowLayer.h
+../../../../../node_modules/@react-native-mapbox-gl/maps/ios/RCTMGL/MGLUserLocationHeadingArrowLayer.h

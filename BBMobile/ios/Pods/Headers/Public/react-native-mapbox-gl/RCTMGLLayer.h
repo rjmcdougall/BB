@@ -1,1 +1,1 @@
-../../../../../node_modules/@mapbox/react-native-mapbox-gl/ios/RCTMGL/RCTMGLLayer.h
+../../../../../node_modules/@react-native-mapbox-gl/maps/ios/RCTMGL/RCTMGLLayer.h

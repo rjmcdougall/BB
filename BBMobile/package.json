@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@mapbox/geo-viewport": "^0.4.0",
-    "@mapbox/react-native-mapbox-gl": "https://github.com/nitaliano/react-native-mapbox-gl/tarball/master",
+    "@react-native-mapbox-gl/maps": "^7.0.0-rc2",
     "async-lock": "^1.2.0",
     "buffer": "^5.2.1",
     "charenc": "0.0.2",

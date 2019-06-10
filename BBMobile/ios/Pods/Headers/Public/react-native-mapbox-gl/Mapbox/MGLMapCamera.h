@@ -1,1 +1,1 @@
-../../../../../../node_modules/@mapbox/react-native-mapbox-gl/ios/Mapbox.framework/Headers/MGLMapCamera.h
+../../../../../../node_modules/@react-native-mapbox-gl/maps/ios/Mapbox.framework/Headers/MGLMapCamera.h

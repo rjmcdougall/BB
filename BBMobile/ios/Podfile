@@ -33,7 +33,7 @@ target 'BBMobile' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
  # Mapbox
- pod 'react-native-mapbox-gl', :path => '../node_modules/@mapbox/react-native-mapbox-gl'
+ pod 'react-native-mapbox-gl', :path => '../node_modules/@react-native-mapbox-gl/maps'
 end
 
 post_install do |installer|

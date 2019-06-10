@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Text, View } from "react-native";
-import Mapbox from "@mapbox/react-native-mapbox-gl";
+import Mapbox from "@react-native-mapbox-gl/maps";
 import StateBuilder from "./StateBuilder";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
@@ -25,28 +25,28 @@ export default class MapController extends Component {
 	}
 
 	async onRegionDidChange() {
-		try {
-			var center = await this._map.getCenter();
-			var zoom = await this._map.getZoom();
+		// try {
+		// 	var center = await this._map.getCenter();
+		// 	var zoom = await this._map.getZoom();
 
-			this.props.setMap({
-				center: center,
-				zoom: zoom,
-				userLocation: this.props.map.userLocation
-			});
-		}
-		catch (error) {
-			console.log(error);
-		}
+		// 	this.props.setMap({
+		// 		center: center,
+		// 		zoom: zoom,
+		// 		userLocation: this.props.map.userLocation
+		// 	});
+		// }
+		// catch (error) {
+		// 	console.log(error);
+		// }
 	}
 
 	onUserLocationUpdate(location) {
-		this.props.setMap({
-			center: this.props.map.center,
-			zoom: this.props.map.zoom,
-			bounds: this.props.map.bounds,
-			userLocation: [location.coords.longitude, location.coords.latitude]
-		});
+		//this.props.setMap({
+		// 	center: this.props.map.center,
+		// 	zoom: this.props.map.zoom,
+		// 	bounds: this.props.map.bounds,
+		// 	userLocation: [location.coords.longitude, location.coords.latitude]
+		// });
 	}
 
 
@@ -78,20 +78,20 @@ export default class MapController extends Component {
 		}
 
 		board.locations.map((location) => {
-		//	route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
-			route.geometry.coordinates.push([location.longitude , location.latitude ]);
+			//	route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
+			route.geometry.coordinates.push([location.longitude, location.latitude]);
 		})
 
 		featureCollection.features.push(route)
 		return featureCollection;
-	} 
+	}
 
 	buildMap() {
 		var a = new Array();
 
 		this.props.mediaState.locations.map((board) => {
 			var recentLocation = this.getMostRecent(board);
-			
+
 			var shapeSource = (
 				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeFeatureCollection(board)}>
 					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
@@ -101,7 +101,7 @@ export default class MapController extends Component {
 						lineJoin: "round",
 						lineCap: "round",
 					}} />
-			</Mapbox.ShapeSource> );
+				</Mapbox.ShapeSource>);
 			a.push(shapeSource);
 			// var annotationSource = (
 			// 	<Mapbox.PointAnnotation
@@ -127,15 +127,17 @@ export default class MapController extends Component {
 		return (
 			<View style={StyleSheet.container}>
 				<Mapbox.MapView
-					showUserLocation={true}
-					onUserLocationUpdate={this.onUserLocationUpdate}
-					userTrackingMode={Mapbox.UserTrackingModes.FollowWithHeading}
 					styleURL={Mapbox.StyleURL.Street}
-					zoomLevel={this.props.map.zoom}
-					centerCoordinate={this.props.map.center}
-					onRegionDidChange={this.onRegionDidChange}
 					ref={c => (this._map = c)}
+					onRegionDidChange={this.onRegionDidChange}
 					style={StyleSheet.container}>
+					<Mapbox.Camera
+						zoomLevel={this.props.map.zoom}
+						animationMode={'flyTo'}
+						animationDuration={3000}
+						centerCoordinate={this.props.map.center}
+					/>
+					<Mapbox.UserLocation />
 					{this.buildMap()}
 				</Mapbox.MapView>
 				<View style={StyleSheet.horizontalButtonBar}>
@@ -148,11 +150,15 @@ export default class MapController extends Component {
 										boardsButtonColor: "skyblue",
 										manButtonColor: "skyblue",
 									});
-									await this._map.flyTo(this.props.map.userLocation, 3000);
+									this.props.setMap({
+										center: MP.props.map.userLocation,
+										zoom: MP.props.map.zoom,
+										userLocation: MP.props.map.userLocation
+									});  
 									this.setState({ meButtonColor: "skyblue" });
 								}
 								catch (error) {
-									console, log(error);
+									console.log(error);
 								}
 							}}
 							style={[{ backgroundColor: this.state.meButtonColor }]}
@@ -171,12 +177,17 @@ export default class MapController extends Component {
 									});
 									var locations = new Array();
 									locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
-									if (locations.length > 0)
-										await this._map.flyTo(StateBuilder.getBoundsForCoordinates(locations), 3000);
+									if (locations.length > 0){
+										this.props.setMap({
+											center: StateBuilder.getBoundsForCoordinates(locations),
+											zoom: this.props.map.zoom,
+											userLocation: this.props.map.userLocation
+										}); 
+									} 
 									this.setState({ boardsButtonColor: "skyblue" });
 								}
 								catch (error) {
-									console, log(error);
+									console.log(error);
 								}
 							}}
 							style={[{ backgroundColor: this.state.boardsButtonColor }]}
@@ -193,11 +204,15 @@ export default class MapController extends Component {
 										boardsButtonColor: "skyblue",
 										manButtonColor: "green",
 									});
-									await this._map.flyTo(Constants.MAN_LOCATION, 3000);
+									this.props.setMap({
+										center: Constants.MAN_LOCATION,
+										zoom: this.props.map.zoom,
+										userLocation: this.props.map.userLocation
+									}); 
 									this.setState({ manButtonColor: "skyblue" });
 								}
 								catch (error) {
-									console, log(error);
+									console.log(error);
 								}
 							}}
 							style={[{ backgroundColor: this.state.manButtonColor }]}

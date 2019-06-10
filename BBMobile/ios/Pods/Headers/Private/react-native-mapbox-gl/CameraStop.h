@@ -1,1 +1,1 @@
-../../../../../node_modules/@mapbox/react-native-mapbox-gl/ios/RCTMGL/CameraStop.h
+../../../../../node_modules/@react-native-mapbox-gl/maps/ios/RCTMGL/CameraStop.h
