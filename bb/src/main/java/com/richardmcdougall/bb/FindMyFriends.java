@@ -19,6 +19,7 @@ import org.json.JSONArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -313,54 +314,11 @@ public class FindMyFriends {
         return (magicNumber);
     }
 
-
-    // Pull one location from the list of recent locations
-    // TODO: pull only recent locations according to age
-    int lastLocationGet = 0;
-    byte[] getRecentLocation() {
-
-        byte [] lastHeardLocation = null;
-        int address = 0;
-        int keyNo = 0;
-        int getLoc = lastLocationGet;
-        BigInteger lastHeardDate = BigInteger.valueOf(0);
-
-        if (lastLocationGet == (mBoardLocations.size())) {
-            lastLocationGet = 0;
-            getLoc = 0;
-        }
-        lastLocationGet = lastLocationGet + 1;
-
-
-        for (int addr: mBoardLocations.keySet()) {
-            if (keyNo == getLoc) {
-                boardLocation loc = mBoardLocations.get(addr);
-                lastHeardDate = BigInteger.valueOf(loc.lastHeardDate/60000);
-                address = addr;
-               // boardId = mRFAddress.boardAddressToName(address).substring(0, Math.min(mRFAddress.boardAddressToName(address).length(), 8)).getBytes();
-                d("BLE Got location for key: " + keyNo + ":" + getLoc + ", " + mRFAddress.boardAddressToName(address));
-                break;
-            }
-            keyNo++;
-        }
-
-        if (lastHeardLocation != null) {
-            l("get recent location " + lastHeardLocation);
-
-             return concatenateByteArrays(Arrays.copyOfRange(lastHeardLocation, 0, 13),lastHeardDate.toByteArray());
-
-        } else {
-            l("no recent locaton");
-            return new byte[] {0, 0};
-        }
-
-    }
-
-    byte[] concatenateByteArrays(byte[] a, byte[] b) {
-        byte[] result = new byte[a.length + b.length];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
+    // keep a historical list of minimal location data
+    public class locationHistory{
+        public long lastHeardDate;
+        public double latitude;
+        public double longitude;
     }
 
     // Keep a list of board GPS locations
@@ -375,6 +333,49 @@ public class FindMyFriends {
     }
     private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
 
+    private class boardLocationHistory {
+        public String board;
+        public int address;
+        List<locationHistory> locations = new ArrayList<>();
+        public void AddLocationHistory(long lastHeardDate, double latitude, double longitude){
+            int MAX_AGE = 15;
+            int MINUTE_INTERVAL = 1;
+
+            // we only want to store one location every minute and drop everything older than 15 minutes
+            // not using a hash because it dorks the json.
+            long minute =  lastHeardDate/(1000*60*MINUTE_INTERVAL);
+
+            boolean found = false;
+            for(locationHistory l: locations) {
+                long lMinutes = l.lastHeardDate/(1000*60*MINUTE_INTERVAL);
+                if(minute==lMinutes) {
+                    l.lastHeardDate = lastHeardDate;
+                    l.latitude = latitude;
+                    l.longitude = longitude;
+                    found = true;
+                }
+            }
+            if(!found){
+                locationHistory lh = new locationHistory();
+                lh.lastHeardDate = lastHeardDate;
+                lh.latitude = latitude;
+                lh.longitude = longitude;
+                locations.add(lh);
+            }
+
+            //remove locations older than 30 minutes.
+            long maxAge = System.currentTimeMillis()-(MAX_AGE*1000*60);
+            for(locationHistory l: locations) {
+                if (l.lastHeardDate < maxAge) {
+                    locations.remove(l);
+                }
+            }
+        }
+    }
+    private HashMap<Integer, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
+
+
+
     public void updateBoardLocations(int address, int sigstrength, double lat, double lon, byte[] locationPacket) {
 
         boardLocation loc = new boardLocation();
@@ -384,7 +385,19 @@ public class FindMyFriends {
         loc.lastHeardDate = System.currentTimeMillis();
         loc.latitude = lat;
         loc.longitude = lon;
-        mBoardLocations.put(address, loc);
+        mBoardLocations.put(address, loc); // add to current locations
+
+        boardLocationHistory blh;
+        if(mBoardLocationHistory.containsKey(address)) {
+            blh = mBoardLocationHistory.get(address);
+        }
+        else {
+            blh = new boardLocationHistory();
+        }
+        blh.address = loc.address;
+        blh.AddLocationHistory(loc.lastHeardDate,lat,lon);
+        mBoardLocationHistory.put(address,blh);
+
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);
             d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
@@ -437,13 +450,13 @@ public class FindMyFriends {
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
         JsonArray list = null;
-        List<boardLocation> locs  = getBoardLocations(age);
+        List<boardLocationHistory> locs = new ArrayList<>(mBoardLocationHistory.values());
         try {
-            for (boardLocation b : locs){
+            for (boardLocationHistory b : locs){
                 b.board = mRFAddress.boardAddressToName(b.address);
             }
             //list = new JSONArray(valuesList);
-            list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocation>>() {}.getType());
+            list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocationHistory>>() {}.getType());
         } catch (Exception e) {
             l("Error creating device list");
             return null;

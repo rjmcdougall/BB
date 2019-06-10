@@ -1,0 +1,28 @@
+[
+    {
+        "address": 32602,
+        "board": "sexy",
+        "locations": [
+            {
+                "lastHeardDate": 1560030939667,
+                "latitude": 37.777505,
+                "longitude": -122.391761
+            },
+            {
+                "lastHeardDate": 1560031000519,
+                "latitude": 37.77755,
+                "longitude": -122.391805
+            },
+            {
+                "lastHeardDate": 1560031062502,
+                "latitude": 37.777506,
+                "longitude": -122.391861
+            },
+            {
+                "lastHeardDate": 1560031124504,
+                "latitude": 37.7775,
+                "longitude": -122.391835
+            }
+        ]
+    }
+]

@@ -23,7 +23,7 @@ export default class MapController extends Component {
 		this.onRegionDidChange = this.onRegionDidChange.bind(this);
 		this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
- 
+
 	async onRegionDidChange() {
 		try {
 			var center = await this._map.getCenter();
@@ -49,13 +49,81 @@ export default class MapController extends Component {
 		});
 	}
 
+
+	getMostRecent(board) {
+		var locations = board.locations.sort((a, b) => {
+			if (a.lastHeardDate < b.lastHeardDate) {
+				return -1;
+			}
+			if (a.lastHeardDate > b.lastHeardDate) {
+				return 1;
+			}
+			return 0;
+		});
+		return [locations[locations.length - 1].longitude, locations[locations.length - 1].latitude];
+
+	}
+	makeFeatureCollection(board) {
+
+		var featureCollection = {
+			'type': 'FeatureCollection',
+			'features': []
+		}
+		var route = {
+			"type": "Feature",
+			"geometry": {
+				"type": "LineString",
+				"coordinates": []
+			}
+		}
+
+		board.locations.map((location) => {
+		//	route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
+			route.geometry.coordinates.push([location.longitude , location.latitude ]);
+		})
+
+		featureCollection.features.push(route)
+		return featureCollection;
+	} 
+
+	buildMap() {
+		var a = new Array();
+
+		this.props.mediaState.locations.map((board) => {
+			var recentLocation = this.getMostRecent(board);
+			
+			var shapeSource = (
+				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeFeatureCollection(board)}>
+					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
+						lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
+						lineWidth: 5,
+						lineOpacity: 1,
+						lineJoin: "round",
+						lineCap: "round",
+					}} />
+			</Mapbox.ShapeSource> );
+			a.push(shapeSource);
+			// var annotationSource = (
+			// 	<Mapbox.PointAnnotation
+			// 		key={board.board + "anno"}
+			// 		id={board.board + "anno"}
+			// 		title={board.board + "1"}
+			// 		coordinate={recentLocation}>
+			// 		<View style={StyleSheet.annotationContainer}>
+			// 			<View style={[StyleSheet.annotationFill, { backgroundColor: StateBuilder.boardColor(board.board, this.props.boardData) }]} />
+			// 		</View>
+			// 		<Mapbox.Callout title={board.board + "2"} />
+			// 	</Mapbox.PointAnnotation>
+			// );
+			// a.push(annotationSource);
+		});
+		return a;
+	}
+
 	render() {
 
-		var locations = new Array();
-		locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
-
 		var MP = this;
-		// todo you should be able to see the board colors even if you are not connected. look in the board cache.
+
 		return (
 			<View style={StyleSheet.container}>
 				<Mapbox.MapView
@@ -68,22 +136,7 @@ export default class MapController extends Component {
 					onRegionDidChange={this.onRegionDidChange}
 					ref={c => (this._map = c)}
 					style={StyleSheet.container}>
-					{locations.map(marker => {
-						var bgColor = StateBuilder.boardColor(marker.board, MP.props.boardData);
-						return (
-							<Mapbox.PointAnnotation
-								key={marker.board}
-								id={marker.board}
-								title={marker.board}
-								coordinate={[marker.longitude, marker.latitude]}>
-								<View style={StyleSheet.annotationContainer}>
-									<View style={[StyleSheet.annotationFill, { backgroundColor: bgColor }]} />
-								</View>
-								<Mapbox.Callout title={marker.board} />
-							</Mapbox.PointAnnotation>
-						);
-					})
-					}
+					{this.buildMap()}
 				</Mapbox.MapView>
 				<View style={StyleSheet.horizontalButtonBar}>
 					<View style={StyleSheet.horizonralButton}>
