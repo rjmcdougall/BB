@@ -1,0 +1,282 @@
+{
+    "command": "getall",
+    "audio": [
+        {
+            "localName": "01-FunRide2.mp3"
+        },
+        {
+            "localName": "TheBoss.mp3"
+        }
+    ],
+    "video": [
+        {
+            "localName": "DancingLights.mp4"
+        },
+        {
+            "algorithm": "modeMatrix(kMatrixLunarian)"
+        },
+        {
+            "algorithm": "modeMatrix(kMatrixBurnerColor)"
+        },
+        {
+            "algorithm": "modeFire(kModeFireNormal)"
+        },
+        {
+            "algorithm": "modeFire(kModeFireDistrikt)"
+        },
+        {
+            "algorithm": "modeFire(kModeFireTheMan)"
+        },
+        {
+            "algorithm": "modeAudioCenter()"
+        },
+        {
+            "algorithm": "modeAudioBarV()"
+        },
+        {
+            "algorithm": "modeMatrix(kMatrix9)",
+            "friendlyName": "Marix 9"
+        },
+        {
+            "algorithm": "modeAudioTile()"
+        },
+        {
+            "localName": "lighting_streaks 2.mp4"
+        }
+    ],
+    "boards": [
+        {
+            "name": "BLUE DASH M2",
+            "color": "coral"
+        },
+        {
+            "color": "cornsilk",
+            "name": "DigitalMast"
+        },
+        {
+            "name": "DragonboardZ1",
+            "bootName": "",
+            "color": "yellow"
+        },
+        {
+            "color": "cornsilk",
+            "name": "VIM",
+            "bootName": ""
+        },
+        {
+            "name": "VIM2",
+            "bootName": "",
+            "color": "cornsilk"
+        },
+        {
+            "name": "akula",
+            "color": "indianred"
+        },
+        {
+            "name": "artemis",
+            "color": "gray"
+        },
+        {
+            "color": "yellow",
+            "name": "biscuit"
+        },
+        {
+            "bootName": "pifb0048",
+            "color": "red",
+            "name": "blinky"
+        },
+        {
+            "name": "boadie",
+            "bootName": "",
+            "color": "green"
+        },
+        {
+            "color": "hotpink",
+            "name": "candy"
+        },
+        {
+            "color": "moccasin",
+            "name": "cranky"
+        },
+        {
+            "name": "goofy",
+            "color": "sandybrown"
+        },
+        {
+            "name": "grumpy",
+            "color": "orchid"
+        },
+        {
+            "color": "plum",
+            "name": "hermione",
+            "bootName": "pic0c234"
+        },
+        {
+            "name": "inky",
+            "bootName": "pi8eb67a",
+            "color": "cyan"
+        },
+        {
+            "name": "iot_imx7d_pico",
+            "color": "lightyellow"
+        },
+        {
+            "name": "iot_rpi3",
+            "color": "magenta"
+        },
+        {
+            "name": "joon",
+            "color": "yellow"
+        },
+        {
+            "name": "mickey",
+            "color": "mediumpurple"
+        },
+        {
+            "color": "olive",
+            "name": "mini",
+            "bootName": "pia2975e"
+        },
+        {
+            "name": "mojo",
+            "bootName": "pieb944d",
+            "color": "lightcyan"
+        },
+        {
+            "name": "monaco",
+            "color": "silver"
+        },
+        {
+            "name": "moriarty",
+            "bootName": "pi0f8dbb",
+            "color": "royalblue"
+        },
+        {
+            "name": "pegasus",
+            "color": "whitesmoke"
+        },
+        {
+            "name": "peggy",
+            "bootName": "pi3c3837",
+            "color": "khaki"
+        },
+        {
+            "name": "pi4a3308",
+            "color": "purple"
+        },
+        {
+            "bootName": "pi5696be",
+            "color": "pink",
+            "name": "pinky"
+        },
+        {
+            "name": "rainbow",
+            "bootName": "pi0e8a91",
+            "color": "violet"
+        },
+        {
+            "color": "mintcream",
+            "name": "ratchet"
+        },
+        {
+            "color": "lime",
+            "name": "rufio",
+            "bootName": "pic6d259"
+        },
+        {
+            "color": "seagreen",
+            "name": "serenity",
+            "bootName": "pie86887"
+        },
+        {
+            "color": "yellowgreen",
+            "name": "sexy"
+        },
+        {
+            "name": "squeeze",
+            "color": "orange"
+        },
+        {
+            "name": "statler",
+            "bootName": "pi89b08b",
+            "color": "lightgray"
+        },
+        {
+            "bootName": "pi56457f",
+            "color": "gold",
+            "name": "sunshine"
+        },
+        {
+            "name": "test_board",
+            "color": "papayawhip"
+        },
+        {
+            "name": "vega",
+            "color": "steelblue"
+        }
+    ],
+    "btdevices": [],
+    "locations": [
+        {
+            "address": 12,
+            "board": "vega",
+            "locations": [
+                {
+                    "lastHeardDate": 1560125626644,
+                    "latitude": 37.759426,
+                    "longitude": -122.45042
+                },
+                {
+                    "lastHeardDate": 1560125657648,
+                    "latitude": 37.759408,
+                    "longitude": -122.450436
+                }
+            ]
+        },
+        {
+            "address": 8,
+            "board": "pegasus",
+            "locations": [
+                {
+                    "lastHeardDate": 1560125615813,
+                    "latitude": 37.759515,
+                    "longitude": -122.45031
+                },
+                {
+                    "lastHeardDate": 1560125647674,
+                    "latitude": 37.759516,
+                    "longitude": -122.45031
+                }
+            ]
+        },
+        {
+            "address": 32602,
+            "board": "sexy",
+            "locations": [
+                {
+                    "lastHeardDate": 1560125583378,
+                    "latitude": 37.759508,
+                    "longitude": -122.450481
+                },
+                {
+                    "lastHeardDate": 1560125642403,
+                    "latitude": 37.759795,
+                    "longitude": -122.450375
+                }
+            ]
+        }
+    ],
+    "state": {
+        "audioChannelNo": 0,
+        "videoChannelNo": 0,
+        "volume": 0,
+        "battery": 50,
+        "audioMaster": false,
+        "APKUpdateDate": "Sat Jun 08 21:55:26 GMT+00:00 2019",
+        "APKVersion": "5006",
+        "IPAddress": "192.168.1.64",
+        "GTFO": false,
+        "blockMaster": false
+    },
+    "error": ""
+}
