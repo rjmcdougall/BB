@@ -40,14 +40,14 @@ export default class MapController extends Component {
 		// }
 	}
 
-	onUserLocationUpdate(location) {
-		//this.props.setMap({
-		// 	center: this.props.map.center,
-		// 	zoom: this.props.map.zoom,
-		// 	bounds: this.props.map.bounds,
-		// 	userLocation: [location.coords.longitude, location.coords.latitude]
-		// });
-	}
+	// onUserLocationUpdate(location) {
+	// 	this.props.setMap({
+	// 		center: this.props.map.center,
+	// 		zoom: this.props.map.zoom,
+	// 		bounds: this.props.map.bounds,
+	// 		userLocation: [location.coords.longitude, location.coords.latitude]
+	// 	});
+	// }
 
 
 	getMostRecent(board) {
@@ -90,19 +90,19 @@ export default class MapController extends Component {
 		var a = new Array();
 
 		this.props.mediaState.locations.map((board) => {
-			var recentLocation = this.getMostRecent(board);
+			//var recentLocation = this.getMostRecent(board);
 
-			var shapeSource = (
-				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeFeatureCollection(board)}>
-					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
-						lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
-						lineWidth: 5,
-						lineOpacity: 1,
-						lineJoin: "round",
-						lineCap: "round",
-					}} />
-				</Mapbox.ShapeSource>);
-			a.push(shapeSource);
+			// var shapeSource = (
+			// 	<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeFeatureCollection(board)}>
+			// 		<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
+			// 			lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
+			// 			lineWidth: 5,
+			// 			lineOpacity: 1,
+			// 			lineJoin: "round",
+			// 			lineCap: "round",
+			// 		}} />
+			// 	</Mapbox.ShapeSource>);
+			// a.push(shapeSource);
 			// var annotationSource = (
 			// 	<Mapbox.PointAnnotation
 			// 		key={board.board + "anno"}
@@ -129,16 +129,15 @@ export default class MapController extends Component {
 				<Mapbox.MapView
 					styleURL={Mapbox.StyleURL.Street}
 					ref={c => (this._map = c)}
-					onRegionDidChange={this.onRegionDidChange}
 					style={StyleSheet.container}>
 					<Mapbox.Camera
-						zoomLevel={this.props.map.zoom}
+						zoomLevel={MP.props.map.zoom}
 						animationMode={'flyTo'}
 						animationDuration={3000}
-						centerCoordinate={this.props.map.center}
+						centerCoordinate={MP.props.map.center}
 					/>
 					<Mapbox.UserLocation />
-					{this.buildMap()}
+					
 				</Mapbox.MapView>
 				<View style={StyleSheet.horizontalButtonBar}>
 					<View style={StyleSheet.horizonralButton}>
@@ -208,8 +207,7 @@ export default class MapController extends Component {
 										center: Constants.MAN_LOCATION,
 										zoom: this.props.map.zoom,
 										userLocation: this.props.map.userLocation
-									}); 
-									this.setState({ manButtonColor: "skyblue" });
+									}); 									this.setState({ manButtonColor: "skyblue" });
 								}
 								catch (error) {
 									console.log(error);
@@ -229,7 +227,7 @@ export default class MapController extends Component {
 MapController.propTypes = {
 	mediaState: PropTypes.object,
 	userPrefs: PropTypes.object,
-	setMapCenter: PropTypes.func,
+	setMap: PropTypes.func,
 	map: PropTypes.object,
 	boardData: PropTypes.any,
 };
