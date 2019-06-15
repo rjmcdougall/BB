@@ -229,8 +229,6 @@ export default class MapController extends Component {
 							onPress={async () => {
 								try {
 									this.setState({
-										meButtonColor: "skyblue",
-										boardsButtonColor: "skyblue",
 										manButtonColor: "green",
 									});
 									this.props.setMap({
@@ -238,6 +236,7 @@ export default class MapController extends Component {
 										zoom: 14,
 										userLocation: this.props.map.userLocation
 									});
+									await this.sleep(1000);
 									this.setState({ manButtonColor: "skyblue" });
 								}
 								catch (error) {
