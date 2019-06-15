@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import geoViewport from "@react-native-mapbox-gl/maps";
+import geoViewport from "@mapbox/geo-viewport";
 
 exports.debug = false;
 
