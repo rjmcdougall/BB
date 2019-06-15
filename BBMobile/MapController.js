@@ -20,8 +20,8 @@ export default class MapController extends Component {
 			boardsButtonColor: "skyblue",
 			manButtonColor: "skyblue",
 		}
-		this.onRegionDidChange = this.onRegionDidChange.bind(this);
-		this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
+	//	this.onRegionDidChange = this.onRegionDidChange.bind(this);
+	//	this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
 
 	async onRegionDidChange() {
@@ -48,22 +48,8 @@ export default class MapController extends Component {
 	// 		userLocation: [location.coords.longitude, location.coords.latitude]
 	// 	});
 	// }
-
-
-	getMostRecent(board) {
-		var locations = board.locations.sort((a, b) => {
-			if (a.lastHeardDate < b.lastHeardDate) {
-				return -1;
-			}
-			if (a.lastHeardDate > b.lastHeardDate) {
-				return 1;
-			}
-			return 0;
-		});
-		return [locations[locations.length - 1].longitude, locations[locations.length - 1].latitude];
-
-	}
-	makeFeatureCollection(board) {
+ 
+	makeLineCollection(board) {
 
 		var featureCollection = {
 			'type': 'FeatureCollection',
@@ -77,45 +63,87 @@ export default class MapController extends Component {
 			}
 		}
 
-		board.locations.map((location) => {
-			//	route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
-			route.geometry.coordinates.push([location.longitude, location.latitude]);
+		//locations.locations :) ascending order
+		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate -  b.lastHeardDate);
+		
+		locationHistory.map((location) => {
+			route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
+			//route.geometry.coordinates.push([location.longitude, location.latitude]);
 		})
 
 		featureCollection.features.push(route)
 		return featureCollection;
 	}
 
+	makePoint(board) {
+
+		//locations.locations :) ascending order
+		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate -  b.lastHeardDate);
+		var lastLocation = locationHistory[locationHistory.length-1] ;
+				
+		var featureCollection = {
+			'type': 'FeatureCollection',
+			'features': []
+		}
+		var point = {
+			"type": "Feature",
+			"geometry": {
+				"type": "Point",
+				"coordinates": [lastLocation.longitude, lastLocation.latitude]
+			},
+			"properties": {
+				"title": "Mapbox DC",
+				"icon": "monument"
+				}
+		}
+
+		featureCollection.features.push(point);
+ 
+		return featureCollection;
+	}
+
+	async onPressCircle(e){
+ 
+		if(e.nativeEvent.payload.geometry.type!="Point")
+			return;
+ 
+			console.log(e.nativeEvent.payload);
+
+	}
+	  
 	buildMap() {
 		var a = new Array();
 
 		this.props.mediaState.locations.map((board) => {
-			//var recentLocation = this.getMostRecent(board);
 
-			// var shapeSource = (
-			// 	<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeFeatureCollection(board)}>
-			// 		<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
-			// 			lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
-			// 			lineWidth: 5,
-			// 			lineOpacity: 1,
-			// 			lineJoin: "round",
-			// 			lineCap: "round",
-			// 		}} />
-			// 	</Mapbox.ShapeSource>);
-			// a.push(shapeSource);
-			// var annotationSource = (
-			// 	<Mapbox.PointAnnotation
-			// 		key={board.board + "anno"}
-			// 		id={board.board + "anno"}
-			// 		title={board.board + "1"}
-			// 		coordinate={recentLocation}>
-			// 		<View style={StyleSheet.annotationContainer}>
-			// 			<View style={[StyleSheet.annotationFill, { backgroundColor: StateBuilder.boardColor(board.board, this.props.boardData) }]} />
-			// 		</View>
-			// 		<Mapbox.Callout title={board.board + "2"} />
-			// 	</Mapbox.PointAnnotation>
-			// );
-			// a.push(annotationSource);
+			var shapeSource = (
+				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
+					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
+						lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
+						lineWidth: 5,
+						lineOpacity: 1,
+						lineJoin: "round",
+						lineCap: "round",
+					}} />
+				</Mapbox.ShapeSource>);
+			
+			a.push(shapeSource);
+
+			if(board.locations.length>0){
+
+				var shapeSource = (
+					<Mapbox.ShapeSource id={"C" + board.board} key={"C" + board.board} 
+					shape={this.makePoint(board)} 
+					onPress={this.onPressCircle}>
+						<Mapbox.CircleLayer id={"CL" + board.board} key={"CL" + board.board}  
+						style={{
+							circleRadius:  8,
+							circleColor: StateBuilder.boardColor(board.board, this.props.boardData),
+						  }}/>
+					</Mapbox.ShapeSource>);
+		
+				a.push(shapeSource);
+			}
 		});
 		return a;
 	}
@@ -129,7 +157,8 @@ export default class MapController extends Component {
 				<Mapbox.MapView
 					styleURL={Mapbox.StyleURL.Street}
 					ref={c => (this._map = c)}
-					style={StyleSheet.container}>
+					style={StyleSheet.container}
+					>
 					<Mapbox.Camera
 						zoomLevel={MP.props.map.zoom}
 						animationMode={'flyTo'}
@@ -137,7 +166,7 @@ export default class MapController extends Component {
 						centerCoordinate={MP.props.map.center}
 					/>
 					<Mapbox.UserLocation />
-					
+				{this.buildMap()}	
 				</Mapbox.MapView>
 				<View style={StyleSheet.horizontalButtonBar}>
 					<View style={StyleSheet.horizonralButton}>
@@ -150,7 +179,7 @@ export default class MapController extends Component {
 										manButtonColor: "skyblue",
 									});
 									this.props.setMap({
-										center: MP.props.map.userLocation,
+										center: [-122.4194,37.7749], // hack until i figure out user location
 										zoom: MP.props.map.zoom,
 										userLocation: MP.props.map.userLocation
 									});  
@@ -231,3 +260,4 @@ MapController.propTypes = {
 	map: PropTypes.object,
 	boardData: PropTypes.any,
 };
+ 
