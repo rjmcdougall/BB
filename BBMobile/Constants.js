@@ -40,6 +40,8 @@ exports.PLAYA_BOUNDS = function() {
 
 exports.MAN_LOCATION = [-119.2066,40.7866];
 
+exports.MAX_DIAGNOSTIC_LINES = 100;
+
 //wait lengths may vary depending on BLE stability and the RN component
 exports.LOCATION_CHECK_INTERVAL = function () {
 	if (Platform.OS == "android")

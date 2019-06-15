@@ -381,6 +381,8 @@ z
 	l(logLine, isError, body) {
 		if (logLine != null && isError != null) {
 			var logArray = this.state.logLines;
+			if(logArray.length>Constants.MAX_DIAGNOSTIC_LINES)
+				logArray.splice(0,1);
 			logArray.push({ logLine: logLine, isError: isError, body: body });
 			console.log(logLine);
 			if (body != null) console.log(body);
