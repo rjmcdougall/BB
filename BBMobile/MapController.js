@@ -33,11 +33,13 @@ export default class MapController extends Component {
 
 	onUserLocationUpdate(location) {
 
-		this.props.setMap({
-			center: this.props.map.center,
-			zoom: this.props.map.zoom,
-			userLocation: [location.coords.longitude, location.coords.latitude]
-		});
+		if(location){
+			this.props.setMap({
+				center: this.props.map.center,
+				zoom: this.props.map.zoom,
+				userLocation: [location.coords.longitude, location.coords.latitude]
+			});
+		}
 	}
 
 	makeLineCollection(board) {
