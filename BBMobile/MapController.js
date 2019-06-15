@@ -21,40 +21,24 @@ export default class MapController extends Component {
 			boardsButtonColor: "skyblue",
 			manButtonColor: "skyblue",
 			showBubble: false,
+			followUserLocation: false,
 		}
- 
-		this.onPressCircle = this.onPressCircle.bind(this); 
-		this.lastHeardBoardDate = this.lastHeardBoardDate.bind(this); 
 
-		
-		//	this.onRegionDidChange = this.onRegionDidChange.bind(this);
-		//	this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
+		this.onPressCircle = this.onPressCircle.bind(this);
+		this.lastHeardBoardDate = this.lastHeardBoardDate.bind(this);
+
+
+		this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
 
-	async onRegionDidChange() {
-		// try {
-		// 	var center = await this._map.getCenter();
-		// 	var zoom = await this._map.getZoom();
+	onUserLocationUpdate(location) {
 
-		// 	this.props.setMap({
-		// 		center: center,
-		// 		zoom: zoom,
-		// 		userLocation: this.props.map.userLocation
-		// 	});
-		// }
-		// catch (error) {
-		// 	console.log(error);
-		// }
+		this.props.setMap({
+			center: this.props.map.center,
+			zoom: this.props.map.zoom,
+			userLocation: [location.coords.longitude, location.coords.latitude]
+		});
 	}
-
-	// onUserLocationUpdate(location) {
-	// 	this.props.setMap({
-	// 		center: this.props.map.center,
-	// 		zoom: this.props.map.zoom,
-	// 		bounds: this.props.map.bounds,
-	// 		userLocation: [location.coords.longitude, location.coords.latitude]
-	// 	});
-	// }
 
 	makeLineCollection(board) {
 
@@ -78,11 +62,11 @@ export default class MapController extends Component {
 		})
 
 		// debug
-		if(Constants.debug)
-			for(i=0;i<route.geometry.coordinates.length-1;i++) { 
-				route.geometry.coordinates[i] =  [route.geometry.coordinates[i][0] + (Math.random() * .01), route.geometry.coordinates[i][1] + (Math.random() * .01)]
-			} 
- 
+		if (Constants.debug)
+			for (i = 0; i < route.geometry.coordinates.length - 1; i++) {
+				route.geometry.coordinates[i] = [route.geometry.coordinates[i][0] + (Math.random() * .01), route.geometry.coordinates[i][1] + (Math.random() * .01)]
+			}
+
 		featureCollection.features.push(route)
 		return featureCollection;
 	}
@@ -128,17 +112,17 @@ export default class MapController extends Component {
 		var boardPicked = this.props.mediaState.locations.filter((board) => {
 			return board.board == e.nativeEvent.payload.properties.board;
 		})[0];
- 
+
 		this.setState({
-			boardPicked: boardPicked  
+			boardPicked: boardPicked
 		})
 		await this.sleep(3000);
 		this.setState({
 			boardPicked: null
-		})	
+		})
 	}
- 
-	lastHeardBoardDate(){
+
+	lastHeardBoardDate() {
 		var locationHistory = this.state.boardPicked.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
 		var lastLocation = locationHistory[locationHistory.length - 1];
 		return new Date(lastLocation.lastHeardDate).toLocaleString();
@@ -194,14 +178,17 @@ export default class MapController extends Component {
 					styleURL={Mapbox.StyleURL.Street}
 					ref={c => (this._map = c)}
 					style={StyleSheet.container}
-				>
+					showUserLocation={true}
+					followUserMode={"compass"}>
 					<Mapbox.Camera
 						zoomLevel={MP.props.map.zoom}
 						animationMode={'flyTo'}
-						animationDuration={3000}
+						animationDuration={1000}
 						centerCoordinate={MP.props.map.center}
-					/>
-					<Mapbox.UserLocation />
+						followUserLocation={this.state.followUserLocation}
+						followZoomLevel={MP.props.map.zoom}
+						userTrackingMode={"compass"} />
+					<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} />
 					{this.buildMap()}
 				</Mapbox.MapView>
 
@@ -217,17 +204,16 @@ export default class MapController extends Component {
 						<Touchable
 							onPress={async () => {
 								try {
-									this.setState({
-										meButtonColor: "green",
-										boardsButtonColor: "skyblue",
-										manButtonColor: "skyblue",
-									});
+									var followUserLocation = !this.state.followUserLocation;
 									this.props.setMap({
-										center: [-122.4194, 37.7749], // hack until i figure out user location
-										zoom: MP.props.map.zoom,
-										userLocation: MP.props.map.userLocation
+										center: this.props.map.userLocation,
+										zoom: 14,
+										userLocation: this.props.map.userLocation
 									});
-									this.setState({ meButtonColor: "skyblue" });
+									this.setState({
+										meButtonColor: (followUserLocation) ? "green" : "skyblue",
+										followUserLocation: followUserLocation,
+									});
 								}
 								catch (error) {
 									console.log(error);
@@ -244,43 +230,14 @@ export default class MapController extends Component {
 								try {
 									this.setState({
 										meButtonColor: "skyblue",
-										boardsButtonColor: "green",
-										manButtonColor: "skyblue",
-									});
-									var locations = new Array();
-									locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
-									if (locations.length > 0) {
-										this.props.setMap({
-											center: StateBuilder.getBoundsForCoordinates(locations),
-											zoom: this.props.map.zoom,
-											userLocation: this.props.map.userLocation
-										});
-									}
-									this.setState({ boardsButtonColor: "skyblue" });
-								}
-								catch (error) {
-									console.log(error);
-								}
-							}}
-							style={[{ backgroundColor: this.state.boardsButtonColor }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}>Boards</Text>
-						</Touchable>
-					</View>
-					<View style={StyleSheet.horizonralButton}>
-						<Touchable
-							onPress={async () => {
-								try {
-									this.setState({
-										meButtonColor: "skyblue",
 										boardsButtonColor: "skyblue",
 										manButtonColor: "green",
 									});
 									this.props.setMap({
 										center: Constants.MAN_LOCATION,
-										zoom: this.props.map.zoom,
+										zoom: 14,
 										userLocation: this.props.map.userLocation
-									}); 
+									});
 									this.setState({ manButtonColor: "skyblue" });
 								}
 								catch (error) {

@@ -93,19 +93,6 @@ export default class AppManagement extends Component {
 					<View style={{ height: 10 }}></View>
 					<View style={StyleSheet.button}>
 						<Touchable
-							onPress={() => {
-								this.props.userPrefs.wifiLocations = !this.props.userPrefs.wifiLocations;
-								this.props.onLoadAPILocations();
-								this.props.setUserPrefs(this.props.userPrefs);
-							}}
-							style={[{ backgroundColor: (this.props.userPrefs.wifiLocations) ? "green" : "skyblue"  }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}> Cloud Locations </Text>
-						</Touchable>
-					</View>
-					<View style={{ height: 10 }}></View>
-					<View style={StyleSheet.button}>
-						<Touchable
 							onPress={async () => {
 								await this.clearCache();
 							}}
