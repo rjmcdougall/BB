@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
 import Constants from "./Constants";
+import Bubble from './Bubble';
 
 Mapbox.setAccessToken(
 	"sk.eyJ1IjoiZGFuaWVsa2VpdGh3IiwiYSI6ImNqdzhlbHUwZTJvdmUzenFramFmMTQ4bXIifQ.9EXJnBcsrsKyS-veb_dlNg"
@@ -19,9 +20,14 @@ export default class MapController extends Component {
 			meButtonColor: "skyblue",
 			boardsButtonColor: "skyblue",
 			manButtonColor: "skyblue",
+			showBubble: false,
 		}
-	//	this.onRegionDidChange = this.onRegionDidChange.bind(this);
-	//	this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
+ 
+		this.onPressCircle = this.onPressCircle.bind(this);
+		this.onCloseBubble = this.onCloseBubble.bind(this);
+
+		//	this.onRegionDidChange = this.onRegionDidChange.bind(this);
+		//	this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
 
 	async onRegionDidChange() {
@@ -48,7 +54,7 @@ export default class MapController extends Component {
 	// 		userLocation: [location.coords.longitude, location.coords.latitude]
 	// 	});
 	// }
- 
+
 	makeLineCollection(board) {
 
 		var featureCollection = {
@@ -64,8 +70,8 @@ export default class MapController extends Component {
 		}
 
 		//locations.locations :) ascending order
-		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate -  b.lastHeardDate);
-		
+		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
+
 		locationHistory.map((location) => {
 			route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
 			//route.geometry.coordinates.push([location.longitude, location.latitude]);
@@ -78,9 +84,9 @@ export default class MapController extends Component {
 	makePoint(board) {
 
 		//locations.locations :) ascending order
-		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate -  b.lastHeardDate);
-		var lastLocation = locationHistory[locationHistory.length-1] ;
-				
+		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
+		var lastLocation = locationHistory[locationHistory.length - 1];
+
 		var featureCollection = {
 			'type': 'FeatureCollection',
 			'features': []
@@ -92,28 +98,33 @@ export default class MapController extends Component {
 				"coordinates": [lastLocation.longitude, lastLocation.latitude]
 			},
 			"properties": {
-				"title": "Mapbox DC",
-				"icon": "monument"
-				}
+				"title": board.board,
+			}
 		}
 
 		featureCollection.features.push(point);
- 
 		return featureCollection;
 	}
 
-	async onPressCircle(e){
- 
-		if(e.nativeEvent.payload.geometry.type!="Point")
-			return;
- 
-			console.log(e.nativeEvent.payload);
+	onPressCircle(e) {
 
+		if (e.nativeEvent.payload.geometry.type != "Point")
+			return;
+
+		console.log(e.nativeEvent.payload);
+		this.setState({
+			bubbleText: e.nativeEvent.payload.properties.title,
+			showBubble: true
+		})
 	}
-	  
+
+	onCloseBubble() {
+		this.setState({ showBubble: false })
+	}
+
 	buildMap() {
 		var a = new Array();
-
+		var MP = this;
 		this.props.mediaState.locations.map((board) => {
 
 			var shapeSource = (
@@ -126,22 +137,22 @@ export default class MapController extends Component {
 						lineCap: "round",
 					}} />
 				</Mapbox.ShapeSource>);
-			
+
 			a.push(shapeSource);
 
-			if(board.locations.length>0){
+			if (board.locations.length > 0) {
 
 				var shapeSource = (
-					<Mapbox.ShapeSource id={"C" + board.board} key={"C" + board.board} 
-					shape={this.makePoint(board)} 
-					onPress={this.onPressCircle}>
-						<Mapbox.CircleLayer id={"CL" + board.board} key={"CL" + board.board}  
-						style={{
-							circleRadius:  8,
-							circleColor: StateBuilder.boardColor(board.board, this.props.boardData),
-						  }}/>
+					<Mapbox.ShapeSource id={"C" + board.board} key={"C" + board.board}
+						shape={this.makePoint(board)}
+						onPress={MP.onPressCircle}>
+						<Mapbox.CircleLayer id={"CL" + board.board} key={"CL" + board.board}
+							style={{
+								circleRadius: 8,
+								circleColor: StateBuilder.boardColor(board.board, this.props.boardData),
+							}} />
 					</Mapbox.ShapeSource>);
-		
+
 				a.push(shapeSource);
 			}
 		});
@@ -158,7 +169,7 @@ export default class MapController extends Component {
 					styleURL={Mapbox.StyleURL.Street}
 					ref={c => (this._map = c)}
 					style={StyleSheet.container}
-					>
+				>
 					<Mapbox.Camera
 						zoomLevel={MP.props.map.zoom}
 						animationMode={'flyTo'}
@@ -166,8 +177,16 @@ export default class MapController extends Component {
 						centerCoordinate={MP.props.map.center}
 					/>
 					<Mapbox.UserLocation />
-				{this.buildMap()}	
+					{this.buildMap()}
 				</Mapbox.MapView>
+
+				{(this.state.showBubble) ? (
+					<Bubble onPress={this.onCloseBubble} style={{fontSize: 32, fontWeight: "bold"}}>
+						<Text>{this.state.bubbleText}</Text>
+					</Bubble>
+				) : <View />}
+
+
 				<View style={StyleSheet.horizontalButtonBar}>
 					<View style={StyleSheet.horizonralButton}>
 						<Touchable
@@ -179,10 +198,10 @@ export default class MapController extends Component {
 										manButtonColor: "skyblue",
 									});
 									this.props.setMap({
-										center: [-122.4194,37.7749], // hack until i figure out user location
+										center: [-122.4194, 37.7749], // hack until i figure out user location
 										zoom: MP.props.map.zoom,
 										userLocation: MP.props.map.userLocation
-									});  
+									});
 									this.setState({ meButtonColor: "skyblue" });
 								}
 								catch (error) {
@@ -205,13 +224,13 @@ export default class MapController extends Component {
 									});
 									var locations = new Array();
 									locations = StateBuilder.getLocations(this.props.mediaState, this.props.userPrefs.wifiLocations);
-									if (locations.length > 0){
+									if (locations.length > 0) {
 										this.props.setMap({
 											center: StateBuilder.getBoundsForCoordinates(locations),
 											zoom: this.props.map.zoom,
 											userLocation: this.props.map.userLocation
-										}); 
-									} 
+										});
+									}
 									this.setState({ boardsButtonColor: "skyblue" });
 								}
 								catch (error) {
@@ -236,7 +255,7 @@ export default class MapController extends Component {
 										center: Constants.MAN_LOCATION,
 										zoom: this.props.map.zoom,
 										userLocation: this.props.map.userLocation
-									}); 									this.setState({ manButtonColor: "skyblue" });
+									}); this.setState({ manButtonColor: "skyblue" });
 								}
 								catch (error) {
 									console.log(error);
@@ -260,4 +279,3 @@ MapController.propTypes = {
 	map: PropTypes.object,
 	boardData: PropTypes.any,
 };
- 
