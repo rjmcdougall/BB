@@ -32,8 +32,7 @@ public class MainApplication extends Application implements ReactApplication {
             new ReactNativeWheelPickerPackage(),
             new VectorIconsPackage(),
             new RNFSPackage(),
-            new BleManagerPackage(),
-            new RCTMGLPackage()
+            new BleManagerPackage()
       );
     }
 
