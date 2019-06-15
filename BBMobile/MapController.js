@@ -106,22 +106,30 @@ export default class MapController extends Component {
 		return featureCollection;
 	}
 
-	onPressCircle(e) {
+	async sleep(ms) {
+		await this._sleep(ms);
+	}
+
+	_sleep(ms) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	async onPressCircle(e) {
 
 		if (e.nativeEvent.payload.geometry.type != "Point")
 			return;
 
-		console.log(e.nativeEvent.payload);
 		this.setState({
 			bubbleText: e.nativeEvent.payload.properties.title,
 			showBubble: true
 		})
+		await this.sleep(3000);
+		this.setState({
+			bubbleText: "",
+			showBubble: false
+		})	
 	}
-
-	onCloseBubble() {
-		this.setState({ showBubble: false })
-	}
-
+ 
 	buildMap() {
 		var a = new Array();
 		var MP = this;
@@ -181,11 +189,10 @@ export default class MapController extends Component {
 				</Mapbox.MapView>
 
 				{(this.state.showBubble) ? (
-					<Bubble onPress={this.onCloseBubble} style={{fontSize: 32, fontWeight: "bold"}}>
+					<Bubble>
 						<Text>{this.state.bubbleText}</Text>
 					</Bubble>
 				) : <View />}
-
 
 				<View style={StyleSheet.horizontalButtonBar}>
 					<View style={StyleSheet.horizonralButton}>
@@ -255,7 +262,8 @@ export default class MapController extends Component {
 										center: Constants.MAN_LOCATION,
 										zoom: this.props.map.zoom,
 										userLocation: this.props.map.userLocation
-									}); this.setState({ manButtonColor: "skyblue" });
+									}); 
+									this.setState({ manButtonColor: "skyblue" });
 								}
 								catch (error) {
 									console.log(error);
