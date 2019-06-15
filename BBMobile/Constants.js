@@ -1,6 +1,8 @@
 import { Platform } from "react-native";
 import geoViewport from "@react-native-mapbox-gl/maps";
 
+exports.debug = false;
+
 //UUIDs
 exports.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";
 exports.UARTservice = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";

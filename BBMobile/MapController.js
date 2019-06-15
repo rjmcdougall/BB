@@ -23,9 +23,10 @@ export default class MapController extends Component {
 			showBubble: false,
 		}
  
-		this.onPressCircle = this.onPressCircle.bind(this);
-		this.onCloseBubble = this.onCloseBubble.bind(this);
+		this.onPressCircle = this.onPressCircle.bind(this); 
+		this.lastHeardBoardDate = this.lastHeardBoardDate.bind(this); 
 
+		
 		//	this.onRegionDidChange = this.onRegionDidChange.bind(this);
 		//	this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
@@ -73,10 +74,15 @@ export default class MapController extends Component {
 		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
 
 		locationHistory.map((location) => {
-			route.geometry.coordinates.push([location.longitude + (Math.random() * .01), location.latitude + (Math.random() * .01)]);
-			//route.geometry.coordinates.push([location.longitude, location.latitude]);
+			route.geometry.coordinates.push([location.longitude, location.latitude]);
 		})
 
+		// debug
+		if(Constants.debug)
+			for(i=0;i<route.geometry.coordinates.length-1;i++) { 
+				route.geometry.coordinates[i] =  [route.geometry.coordinates[i][0] + (Math.random() * .01), route.geometry.coordinates[i][1] + (Math.random() * .01)]
+			} 
+ 
 		featureCollection.features.push(route)
 		return featureCollection;
 	}
@@ -98,7 +104,7 @@ export default class MapController extends Component {
 				"coordinates": [lastLocation.longitude, lastLocation.latitude]
 			},
 			"properties": {
-				"title": board.board,
+				"board": board.board
 			}
 		}
 
@@ -119,28 +125,37 @@ export default class MapController extends Component {
 		if (e.nativeEvent.payload.geometry.type != "Point")
 			return;
 
+		var boardPicked = this.props.mediaState.locations.filter((board) => {
+			return board.board == e.nativeEvent.payload.properties.board;
+		})[0];
+ 
 		this.setState({
-			bubbleText: e.nativeEvent.payload.properties.title,
-			showBubble: true
+			boardPicked: boardPicked  
 		})
 		await this.sleep(3000);
 		this.setState({
-			bubbleText: "",
-			showBubble: false
+			boardPicked: null
 		})	
 	}
  
+	lastHeardBoardDate(){
+		var locationHistory = this.state.boardPicked.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
+		var lastLocation = locationHistory[locationHistory.length - 1];
+		return new Date(lastLocation.lastHeardDate).toLocaleString();
+
+	}
 	buildMap() {
 		var a = new Array();
 		var MP = this;
 		this.props.mediaState.locations.map((board) => {
+
 
 			var shapeSource = (
 				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
 					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
 						lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
 						lineWidth: 5,
-						lineOpacity: 1,
+						lineOpacity: .7,
 						lineJoin: "round",
 						lineCap: "round",
 					}} />
@@ -158,6 +173,8 @@ export default class MapController extends Component {
 							style={{
 								circleRadius: 8,
 								circleColor: StateBuilder.boardColor(board.board, this.props.boardData),
+								circleStrokeColor: "black",
+								circleStrokeWidth: 2
 							}} />
 					</Mapbox.ShapeSource>);
 
@@ -188,9 +205,10 @@ export default class MapController extends Component {
 					{this.buildMap()}
 				</Mapbox.MapView>
 
-				{(this.state.showBubble) ? (
+				{(this.state.boardPicked) ? (
 					<Bubble>
-						<Text>{this.state.bubbleText}</Text>
+						<Text>{this.state.boardPicked.board}</Text>
+						<Text>{this.lastHeardBoardDate()}</Text>
 					</Bubble>
 				) : <View />}
 
