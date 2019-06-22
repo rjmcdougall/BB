@@ -93,6 +93,10 @@
         <service android:name="org.eclipse.paho.android.service.MqttService" >
         </service>
 
+        <provider
+            android:name=".BoardsContentProvider"
+            android:authorities="com.richardmcdougall.bb.provider" />
+
 
 
     </application>

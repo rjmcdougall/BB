@@ -1,138 +1,176 @@
 package com.richardmcdougall.bb;
 
-import java.util.ArrayList;
 import android.content.ContentProvider;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MergeCursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
-import android.provider.BaseColumns;
+import android.support.annotation.Nullable;
+import android.util.Log;
+
+import static java.lang.Integer.parseInt;
 
 public class BoardsContentProvider extends ContentProvider {
 
-   // public static final String TAG = "m039";
+    private static final String TAG = BoardsContentProvider.class.getSimpleName();
+    public String[] mData = {"{}"};
 
-    public FindMyFriends mFindMyFriends = null;
-
-    public static final String AUTHORITY = "com.richardmcdougall.bb";
-
-    public BoardsContentProvider() {
-
-    }
-
-    public BoardsContentProvider(FindMyFriends fmf) {
-        mFindMyFriends = fmf;
-    }
-
-    private static class JSONRow {
-        private int ID;
-        public String JSON;
-
-        public JSONRow() {
-            ID = 1;
-            JSON = "";
-        }
-
-        public JSONRow(int i,String JSON) {
-            this.ID = i;
-            this.JSON = JSON;
-        }
-    }
-
-    static ArrayList<JSONRow> sJSON = new ArrayList<JSONRow>();
-
-    {
-       // mFindMyFriends.getBoardLocationsJSON(0);
-        sJSON.add(new JSONRow(1,"JSON STRING"));
-    }
-
-    public static final class Words {
-        public static class JSON {
-            public static final String JSON_TYPE =
-                    "vnd.android.cursor.dir" + "/" + AUTHORITY + "." + JSONColumns.JSON;
-
-            public static final Uri CONTENT_URI;
-
-            static {
-                CONTENT_URI = Uri
-                        .parse(ContentResolver.SCHEME_CONTENT + "://" + AUTHORITY + "/" + JSONColumns.JSON);
-            }
-
-        }
-
-        public interface JSONColumns extends BaseColumns {
-            String JSON = "json";
-        }
-    }
-
+    // UriMatcher is a helper class for processing the accepted Uri schemes
+    // for this content provider.
+    // https://developer.android.com/reference/android/content/UriMatcher.html
     private static UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
-    private static final int GET_JSON = 1;
-
-    static {
-        sUriMatcher.addURI(AUTHORITY, Words.JSONColumns.JSON, GET_JSON);
-    }
 
     @Override
-    public Cursor query (Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        switch (sUriMatcher.match(uri)) {
-            case GET_JSON:
-            {
-                int count = sJSON.size();
-                Cursor cursors[] = new Cursor[count];
-
-                for(int i = 0; i < count; i++) {
-                    cursors[i] = query(ContentUris.withAppendedId(uri, i),
-                            projection,
-                            selection,
-                            selectionArgs,
-                            sortOrder);
-                }
-
-                return new MergeCursor(cursors);
-            }
-
-            default:
-                throw new IllegalArgumentException("Invalide URI");
-        }
-    }
-
-    //not implemented.
-    @Override
-    public Uri insert (Uri uri, ContentValues values) {
-        return null;
-    }
-
-    // not implemented
-    @Override
-    public int delete (Uri uri, String selection, String[] selectionArgs) {
-        return -1;
-    }
-
-    // not implemented
-    @Override
-    public int update (Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return -1;
-    }
-
-    @Override
-    public boolean onCreate () {
+    public boolean onCreate() {
+        // Set up the URI scheme for this content provider.
+        initializeUriMatching();
         return true;
     }
 
-    @Override
-    public String getType (Uri uri) {
-        switch (sUriMatcher.match(uri)) {
-            case GET_JSON:
-                return Words.JSON.JSON_TYPE;
-            default:
-                return null;
-        }
+    /**
+`     * Defines the accepted Uri schemes for this content provider.
+     * Calls addURI()for all of the content URI patterns that the provide should recognize.
+     */
+    private void initializeUriMatching(){
+        // Matches a URI that references one word in the list by its index.
+        // The # symbol matches a string of numeric characters of any length.
+        // For this sample, this references the first, second, etc. words in the list.
+        // For a database, this could be an ID.
+        // Note that addURI expects separate authority and path arguments.
+        // The last argument is the integer code to assign to this URI pattern.
+        sUriMatcher.addURI(Contract.AUTHORITY, Contract.CONTENT_PATH + "/#", 1);
 
+        // Matches a URI that is just the authority + the path, triggering the return of all words.
+        sUriMatcher.addURI(Contract.AUTHORITY, Contract.CONTENT_PATH, 0);
     }
 
-}
+    /**
+     * Matches the URI, converts it to a query, executes the query, and returns the result.
+     *
+     * The arguments to this method represent the parts of an SQL query.
+     * If you are using another kind of backend, you must still accept a query in this style,
+     * but handle the arguments appropriately.
+     *
+     * @param uri The complete URI queried. This cannot be null.
+     * @param projection Indicates which columns/attributes you want to access.
+     * @param selection Indicates which rows/records of the objects you want to access
+     * @param selectionArgs The binding parameters to the previous selection argument.
+     * @param sortOrder Whether to sort, and if so, whether ascending or descending.
+     * @return a Cursor of any kind with the response data inside.
+     */
+    @Nullable
+    @Override
+    public Cursor query(Uri uri, String[] projection, String selection,
+                        String[] selectionArgs, String sortOrder) {
 
+        int id = -1;
+
+        // Analyze the URI and build a query from the arguments.
+        // This code changes depending on your backend.
+        // This example uses the matcher to get the integer code for this URI pattern.
+
+        // Determine which integer code corresponds to the URI, then switch on it.
+        switch (sUriMatcher.match(uri)) {
+            case 0:
+                // Matches URI to get all of the entries.
+                id = Contract.ALL_ITEMS;
+                // Look at the remaining arguments to see whether there are constraints.
+                // In this example, we only support getting a specific entry by id. Not full search.
+                // For a real-life app, you need error-catching code; here we assume that the
+                // value we need is actually in selectionArgs and valid.
+                if (selection != null){
+                    id = Integer.parseInt(selectionArgs[0]);
+                }
+                break;
+
+            case 1:
+                // The URI ends in a numeric value, which represents an id.
+                // Parse the URI to extract the value of the last, numeric part of the path,
+                // and set the id to that value.
+                id = parseInt(uri.getLastPathSegment());
+                // With a database, you would then use this value and the path to build a query.
+                break;
+
+            case UriMatcher.NO_MATCH:
+                // You should do some error handling here.
+                Log.d(TAG, "NO MATCH FOR THIS URI IN SCHEME.");
+                id = -1;
+                break;
+            default:
+                // You should do some error handling here.
+                Log.d(TAG, "INVALID URI - URI NOT RECOGNZED.");
+                id = -1;
+        }
+        Log.d(TAG, "query: " + id);
+        return populateCursor(id);
+    }
+
+    private Cursor populateCursor(int id) {
+        // The query() method must return a cursor.
+        // If you are not using data storage that returns a cursor,
+        // you can use a simple MatrixCursor to hold the data to return.
+        // https://developer.android.com/reference/android/database/MatrixCursor.html
+        MatrixCursor cursor = new MatrixCursor(new String[] { Contract.CONTENT_PATH });
+
+        // If there is a valid query, execute it and add the result to the cursor.
+        if (id == Contract.ALL_ITEMS) {
+            for (int i = 0; i < mData.length; i++) {
+                String word = mData[i];
+                cursor.addRow(new Object[]{word});
+            }
+        } else if (id >= 0) {
+            // Execute the query to get the requested word.
+            String word = mData[id];
+            // Add the result to the cursor.
+            cursor.addRow(new Object[]{word});
+        }
+        return cursor;
+    }
+
+    // getType must be implemented.
+    @Nullable
+    @Override
+    public String getType(Uri uri) {
+        switch (sUriMatcher.match(uri)) {
+            case 0:
+                return Contract.MULTIPLE_RECORDS_MIME_TYPE;
+            case 1:
+                return Contract.SINGLE_RECORD_MIME_TYPE;
+            default:
+                // Alternatively, throw an exception.
+                return null;
+        }
+    }
+
+    @Nullable
+    @Override
+    // Inserts the values into the provider.
+    // Returns a URI that points to the newly inserted record.
+    // We will implement this method in the next practical.
+    public Uri insert(Uri uri, ContentValues values) {
+        Log.e(TAG, "Not implemented: insert uri: " + uri.toString());
+        return null;
+    }
+
+    // Deletes records(s) specified by either the URI or selection/selectionArgs combo.
+    // Returns the number of records affected.
+    // We will implement this method in the next practical.
+    @Override
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        Log.e(TAG, "Not implemented: delete uri: " + uri.toString());
+        return 0;
+    }
+
+    // Updates records(s) specified by either the URI or selection/selectionArgs combo.
+    // Returns the number of records affected.
+    // We will implement this method in the next practical.
+    @Override
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        mData[0] = values.getAsString("0");
+
+        Log.i(TAG, "Updated content provider JSON as : " + mData[0]);
+        return 1;
+    }
+}

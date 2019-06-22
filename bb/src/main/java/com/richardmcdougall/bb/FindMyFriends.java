@@ -19,16 +19,12 @@ import org.json.JSONArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.lang.reflect.Array;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
+
+import android.content.ContentValues;
 
 /**
  * Created by rmc on 2/7/18.
@@ -397,6 +393,29 @@ public class FindMyFriends {
         blh.address = loc.address;
         blh.AddLocationHistory(loc.lastHeardDate,lat,lon);
         mBoardLocationHistory.put(address,blh);
+
+        // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
+        ContentValues v = new ContentValues(1);
+        v.put("0",getBoardLocationsJSON(0).toString());
+        mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
+
+        //        Cursor cursor = mContext.getContentResolver().query(Contract.CONTENT_URI,projection,null,null,null);
+//
+//        // If we got data back, display it, otherwise report the error.
+//        // See WordList app and database chapter for more on cursors.
+//        if (cursor != null) {
+//            if (cursor.getCount() > 0) {
+//                cursor.moveToFirst();
+//                do {
+//                    String word = cursor.getString(0);
+//                } while (cursor.moveToNext());
+//            } else {
+//                Log.d(TAG, "onClickDisplayEntries " + "No data returned.");
+//            }
+//            cursor.close();
+//        } else {
+//            Log.d(TAG, "onClickDisplayEntries " + "Cursor is null.");
+//        }
 
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);
