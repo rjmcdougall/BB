@@ -399,23 +399,7 @@ public class FindMyFriends {
         v.put("0",getBoardLocationsJSON(0).toString());
         mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
-        //        Cursor cursor = mContext.getContentResolver().query(Contract.CONTENT_URI,projection,null,null,null);
-//
-//        // If we got data back, display it, otherwise report the error.
-//        // See WordList app and database chapter for more on cursors.
-//        if (cursor != null) {
-//            if (cursor.getCount() > 0) {
-//                cursor.moveToFirst();
-//                do {
-//                    String word = cursor.getString(0);
-//                } while (cursor.moveToNext());
-//            } else {
-//                Log.d(TAG, "onClickDisplayEntries " + "No data returned.");
-//            }
-//            cursor.close();
-//        } else {
-//            Log.d(TAG, "onClickDisplayEntries " + "Cursor is null.");
-//        }
+
 
         for (int addr: mBoardLocations.keySet()) {
             boardLocation l = mBoardLocations.get(addr);

@@ -47,18 +47,17 @@ public final class Contract {
     // It does not predict or presume in what form the data is stored or organized in the
     // background. As such, "words" could resolve into the name of a table, the name of a file,
     // or in this example, the name of a list.
-    public static final String CONTENT_PATH = "words";
+    public static final String CONTENT_PATH = "locationsJSON";
 
 
     // A content:// style URI to the authority for this table */
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + CONTENT_PATH);
 
     static final int ALL_ITEMS = -2;
-    static final String WORD_ID = "id";
 
     // MIME types for this content provider.
     // https://developer.android.com/guide/topics/providers/content-provider-creating.html#MIMETypes
-    static final String SINGLE_RECORD_MIME_TYPE = "vnd.android.cursor.item/vnd.com.example.provider.words";
-    static final String MULTIPLE_RECORDS_MIME_TYPE = "vnd.android.cursor.dir/vnd.com.example.provider.words";
+    static final String SINGLE_RECORD_MIME_TYPE = "vnd.android.cursor.item/vnd.com.example.provider.locationsJSON";
+    static final String MULTIPLE_RECORDS_MIME_TYPE = "vnd.android.cursor.dir/vnd.com.example.provider.locationsJSON";
 
 }

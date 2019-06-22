@@ -95,7 +95,10 @@
 
         <provider
             android:name=".BoardsContentProvider"
-            android:authorities="com.richardmcdougall.bb.provider" />
+            android:authorities="com.richardmcdougall.bb.provider"
+            android:exported="true"
+            android:multiprocess="true"
+        />
 
 
 
