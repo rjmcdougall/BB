@@ -179,18 +179,18 @@ export default class MapController extends Component {
 				<Mapbox.MapView
 					styleURL={Mapbox.StyleURL.Street}
 					ref={c => (this._map = c)}
-					style={StyleSheet.container}
-					showUserLocation={true}
-					followUserMode={"compass"}>
+					style={StyleSheet.container}>
 					<Mapbox.Camera
 						zoomLevel={MP.props.map.zoom}
 						animationMode={'flyTo'}
 						animationDuration={1000}
 						centerCoordinate={MP.props.map.center}
 						followUserLocation={this.state.followUserLocation}
+						followUserMode="compass"
 						followZoomLevel={MP.props.map.zoom}
-						userTrackingMode={"compass"} />
-					<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} />
+						showUserLocation={true}/>
+					<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} 
+					/>
 					{this.buildMap()}
 				</Mapbox.MapView>
 
