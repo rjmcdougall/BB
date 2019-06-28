@@ -5,7 +5,6 @@
 	};
 	objectVersion = 46;
 	objects = {
-
 /* Begin PBXBuildFile section */
 		00C302E51ABCBA2D00DB3ED1 /* libRCTActionSheet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302AC1ABCB8CE00DB3ED1 /* libRCTActionSheet.a */; };
 		00C302E71ABCBA2D00DB3ED1 /* libRCTGeolocation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302BA1ABCB90400DB3ED1 /* libRCTGeolocation.a */; };
@@ -52,7 +51,6 @@
 		BCF3B64EF2A64107A224D203 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 58411A9A693843659C0F4DBF /* MaterialCommunityIcons.ttf */; };
 		C38F397021A9D15000B1A3EF /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		DDB784F8582D4D93ACF2DA71 /* Feather.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EB7302CD50D543E68A1EF7DA /* Feather.ttf */; };
-		DDEAAD2354864D45BF34D0F5 /* libRNFS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 532FDABF7BC94D508ECDE3CD /* libRNFS.a */; };
 		E9B5540ED1764058BD25DEBD /* libBleManager.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A14CD913378B4428B569E525 /* libBleManager.a */; };
 		FFADD08E084746B38EB78592 /* libPods-BBMobile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 42E4BCDF9C8174BED0FE34F2 /* libPods-BBMobile.a */; };
 /* End PBXBuildFile section */
@@ -331,20 +329,6 @@
 			remoteGlobalIDString = 3D383D621EBD27B9005632C8;
 			remoteInfo = "double-conversion-tvOS";
 		};
-		C36FE95B2082DD51000EF80F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 942F1BD7D3D547028AEB26B8 /* RNFS.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = F12AFB9B1ADAF8F800E0535D;
-			remoteInfo = RNFS;
-		};
-		C36FE95D2082DD51000EF80F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 942F1BD7D3D547028AEB26B8 /* RNFS.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 6456441F1EB8DA9100672408;
-			remoteInfo = "RNFS-tvOS";
-		};
 		C36FE99B2082E8E3000EF80F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 652B260A94D04A9DBAD843C4 /* BleManager.xcodeproj */;
@@ -388,7 +372,6 @@
 		40A1FCA20C924A5496E85271 /* FontAwesome5_Solid.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Solid.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf"; sourceTree = "<group>"; };
 		42E4BCDF9C8174BED0FE34F2 /* libPods-BBMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BBMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4B2FE32ACE30A25179E04C97 /* Pods-BBMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BBMobile.release.xcconfig"; path = "Pods/Target Support Files/Pods-BBMobile/Pods-BBMobile.release.xcconfig"; sourceTree = "<group>"; };
-		532FDABF7BC94D508ECDE3CD /* libRNFS.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNFS.a; sourceTree = "<group>"; };
 		58411A9A693843659C0F4DBF /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		5E91572D1DD0AC6500FF2AA8 /* RCTAnimation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTAnimation.xcodeproj; path = "../node_modules/react-native/Libraries/NativeAnimation/RCTAnimation.xcodeproj"; sourceTree = "<group>"; };
 		652B260A94D04A9DBAD843C4 /* BleManager.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = BleManager.xcodeproj; path = "../node_modules/react-native-ble-manager/ios/BleManager.xcodeproj"; sourceTree = "<group>"; };
@@ -396,7 +379,6 @@
 		78C398B01ACF4ADC00677621 /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		8E3E676936A945C79981F7A7 /* AntDesign.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = AntDesign.ttf; path = "../node_modules/react-native-vector-icons/Fonts/AntDesign.ttf"; sourceTree = "<group>"; };
-		942F1BD7D3D547028AEB26B8 /* RNFS.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RNFS.xcodeproj; path = "../node_modules/react-native-fs/RNFS.xcodeproj"; sourceTree = "<group>"; };
 		A14CD913378B4428B569E525 /* libBleManager.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libBleManager.a; sourceTree = "<group>"; };
 		A6CA6315A19A816A157967D6 /* libPods-BBMobileTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BBMobileTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADBDB91F1DFEBF0600ED6528 /* RCTBlob.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTBlob.xcodeproj; path = "../node_modules/react-native/Libraries/Blob/RCTBlob.xcodeproj"; sourceTree = "<group>"; };
@@ -434,7 +416,6 @@
 				832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */,
 				00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */,
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
-				DDEAAD2354864D45BF34D0F5 /* libRNFS.a in Frameworks */,
 				E9B5540ED1764058BD25DEBD /* libBleManager.a in Frameworks */,
 				FFADD08E084746B38EB78592 /* libPods-BBMobile.a in Frameworks */,
 			);
@@ -648,7 +629,6 @@
 				832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */,
 				00C302DF1ABCB9EE00DB3ED1 /* RCTVibration.xcodeproj */,
 				139FDEE61B06529A00C62182 /* RCTWebSocket.xcodeproj */,
-				942F1BD7D3D547028AEB26B8 /* RNFS.xcodeproj */,
 				652B260A94D04A9DBAD843C4 /* BleManager.xcodeproj */,
 			);
 			name = Libraries;
@@ -707,15 +687,6 @@
 				A14CD913378B4428B569E525 /* libBleManager.a */,
 			);
 			name = "Recovered References";
-			sourceTree = "<group>";
-		};
-		C36FE9572082DD50000EF80F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				C36FE95C2082DD51000EF80F /* libRNFS.a */,
-				C36FE95E2082DD51000EF80F /* libRNFS.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		C36FE9982082E8E3000EF80F /* Products */ = {
@@ -913,10 +884,6 @@
 				{
 					ProductGroup = 146834001AC3E56700842450 /* Products */;
 					ProjectRef = 146833FF1AC3E56700842450 /* React.xcodeproj */;
-				},
-				{
-					ProductGroup = C36FE9572082DD50000EF80F /* Products */;
-					ProjectRef = 942F1BD7D3D547028AEB26B8 /* RNFS.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -1189,20 +1156,6 @@
 			remoteRef = C36FE9512082DD50000EF80F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		C36FE95C2082DD51000EF80F /* libRNFS.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRNFS.a;
-			remoteRef = C36FE95B2082DD51000EF80F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		C36FE95E2082DD51000EF80F /* libRNFS.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libRNFS.a;
-			remoteRef = C36FE95D2082DD51000EF80F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		C36FE99C2082E8E3000EF80F /* libBleManager.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1454,7 +1407,6 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../node_modules/react-native-ble-manager/ios",
 				);
 				INFOPLIST_FILE = BBMobileTests/Info.plist;
@@ -1481,7 +1433,6 @@
 				DEVELOPMENT_TEAM = CHLAWX3BBF;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../node_modules/react-native-ble-manager/ios",
 				);
 				INFOPLIST_FILE = BBMobileTests/Info.plist;
@@ -1510,7 +1461,6 @@
 				DEVELOPMENT_TEAM = CHLAWX3BBF;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../node_modules/react-native-ble-manager/ios",
 				);
 				INFOPLIST_FILE = BBMobile/Info.plist;
@@ -1540,7 +1490,6 @@
 				DEVELOPMENT_TEAM = CHLAWX3BBF;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../node_modules/react-native-ble-manager/ios",
 				);
 				INFOPLIST_FILE = BBMobile/Info.plist;
@@ -1574,7 +1523,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../node_modules/react-native-ble-manager/ios",
 				);
 				INFOPLIST_FILE = "BBMobile-tvOS/Info.plist";
@@ -1607,7 +1555,6 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../node_modules/react-native-fs/**",
 					"$(SRCROOT)/../node_modules/react-native-ble-manager/ios",
 				);
 				INFOPLIST_FILE = "BBMobile-tvOS/Info.plist";
@@ -1649,6 +1596,9 @@
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BBMobile-tvOS.app/BBMobile-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+				);
 			};
 			name = Debug;
 		};
@@ -1676,6 +1626,9 @@
 				SDKROOT = appletvos;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BBMobile-tvOS.app/BBMobile-tvOS";
 				TVOS_DEPLOYMENT_TARGET = 10.1;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+				);
 			};
 			name = Release;
 		};

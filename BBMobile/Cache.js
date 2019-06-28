@@ -1,22 +1,10 @@
-import RNFS from "react-native-fs";
+import AsyncStorage from "@react-native-community/async-storage";
  
 exports.get = async function (key) {
-	// create a path you want to write to
-	var path = RNFS.DocumentDirectoryPath + "/" + key;
 
 	try {
-		var dir = await RNFS.readDir(RNFS.DocumentDirectoryPath);
-		var fileExists = dir.filter((item) => {
-			return item.name === key;
-		}).length > 0;
-
-		if (!fileExists) {
-			console.log(key + " Not Found in Cache");
-			return null;
-		}
-
+		var value = await AsyncStorage.getItem(key)
 		console.log("Get " + key + " From Cache");
-		var value = JSON.parse(await RNFS.readFile(path, "utf8"));
 		return value;
 	}
 	catch (error) {
@@ -25,22 +13,10 @@ exports.get = async function (key) {
 };
 
 exports.set = async function (key, value) {
-	// create a path you want to write to
-	var path = RNFS.DocumentDirectoryPath + "/" + key;
-
+ 
 	try {
-		var dir = await RNFS.readDir(RNFS.DocumentDirectoryPath);
-		var fileExists = dir.filter((item) => {
-			return item.name === key;
-		}).length > 0;
-
-		if(fileExists) {
-			await RNFS.unlink(path);
-			console.log(key + " Found in Cache, Deleting");
-		}
-
+		await AsyncStorage.setItem(key, value); 
 		console.log(key + " set in cache");
-		await RNFS.writeFile(path, JSON.stringify(value), "utf8");
 	}
 	catch (error) {
 		console.log("Error: " + error);
@@ -49,10 +25,9 @@ exports.set = async function (key, value) {
 
 exports.clear = async function () {
 	try {
-		var dir = await RNFS.readDir(RNFS.DocumentDirectoryPath);
+		var dir = await AsyncStorage.getAllKeys();
 		dir.map(async (item) => {
-			var path = RNFS.DocumentDirectoryPath + "/" + item.name;
-			await RNFS.unlink(path);
+			await(AsyncStorage.removeItem(item));
 			console.log(item.name + " Found in Cache, Deleting");
 		}) ;
 	}
