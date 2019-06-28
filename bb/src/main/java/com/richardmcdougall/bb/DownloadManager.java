@@ -308,7 +308,13 @@ public class DownloadManager {
                 urlConnection.disconnect();
 
                 return downloadSize;
-            } catch (Throwable e) {
+
+            }
+            catch(FileNotFoundException e){
+                Log.d(TAG,"An exception occured access the file from burnerboard.com. This is likely the result of having an unregistered board.");
+                return -1;
+            }
+            catch (Throwable e) {
                 e.printStackTrace();
                 return -1;
             }
