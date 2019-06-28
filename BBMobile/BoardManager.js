@@ -16,6 +16,8 @@ import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
 import { Buffer } from "buffer";
+import ContentResolver from './ContentResolver';
+
 var AsyncLock = require("async-lock");
 var lock = new AsyncLock();
 import { stringToBytes } from "convert-string";
@@ -42,6 +44,7 @@ export default class BoardManager extends Component {
 			logLines: StateBuilder.blankLogLines(),
 			map: StateBuilder.blankMap(),
 			boardData: StateBuilder.blankBoardData(),
+			isMonitor: true
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -605,9 +608,19 @@ z
 		}
 	}
 	async readLocationLoop() {
-
 		var backgroundTimer = setInterval(async () => {
-			if (this.state.mediaState) {
+			if(this.userPrefs.isMonitor){
+				try {
+					var boardsJSON = await cr.getLocationJSON();
+					mediaState = this.state.mediaState;
+					mediaState.locations = boardsJSON; 
+					this.setState({mediaState: medidaState});
+				}
+				catch(error){
+					this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed",true,error);
+				}
+			}
+			else if (this.state.mediaState) {
 				try {
 					await this.sendCommand(this.state.mediaState, "Location", 600);
 				}
@@ -618,66 +631,7 @@ z
 		}, Constants.LOCATION_CHECK_INTERVAL());
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
- 
-	async advFetch(url, headers, timeout) {
-		const TIMEOUT = timeout;
-		let didTimeOut = false;
 
-		return new Promise(function (resolve, reject) {
-			const timeout = setTimeout(() => {
-				didTimeOut = true;
-				reject(new Error("Request timed out"));
-			}, TIMEOUT);
-
-			fetch(url, headers).then(function (response) {
-				clearTimeout(timeout);
-				if (!didTimeOut) {
-					resolve(response);
-				}
-			})
-				.catch(function (err) {
-					if (didTimeOut) {
-						return;
-					}
-					reject(err);
-				});
-		});
-	}
-
-	async fetchLocations(mediaState) {
-
-		//const API = "http://192.168.1.66:3001/boards/locations/";
-		const API = "https://us-central1-burner-board.cloudfunctions.net/boards/locations/";
-
-		try {
-			var response = await this.advFetch(API, {
-				headers: {
-					"Accept": "application/json",
-					"Content-Type": "application/json",
-				}
-			}, 20000);
-
-			var apiLocations = await response.json();
-
-			mediaState.apiLocations = apiLocations.map((board) => {
-				return {
-					board: board.board,
-					latitude: board.lat,
-					longitude: board.lon,
-					dateTime: board.time,
-				};
-			});
-
-			this.l("Locations Fetch Found " + mediaState.apiLocations.length + " boards", false);
-
-			return mediaState;
-		}
-		catch (error) {
-			this.l("Locations: " + error, true);
-
-			return mediaState;
-		}
-	}
 	render() {
 
 		var color = "#fff";

@@ -5,6 +5,7 @@ var bEmptyUserPrefs = {
 	isBurnerMode: false,
 	wifiLocations: false,
 	mapPoints: false,
+	isMonitor: false,
 };
 
 var bMap = {
