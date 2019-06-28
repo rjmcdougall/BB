@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, View } from "react-native";
+import { Text, View, Platform } from "react-native";
 import Mapbox from "@react-native-mapbox-gl/maps";
 import StateBuilder from "./StateBuilder";
 import PropTypes from "prop-types";
@@ -22,6 +22,8 @@ export default class MapController extends Component {
 			manButtonColor: "skyblue",
 			showBubble: false,
 			followUserLocation: false,
+			isFetchingAndroidPermission: Platform.OS === 'android',
+			isAndroidPermissionGranted: false,
 		}
 
 		this.onPressCircle = this.onPressCircle.bind(this);
@@ -30,6 +32,16 @@ export default class MapController extends Component {
 
 		this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
+
+	async componentDidMount() { 
+		if (Platform.OS === 'android') {
+		  const isGranted = await Mapbox.requestAndroidLocationPermissions();
+		  this.setState({
+			isAndroidPermissionGranted: isGranted,
+			isFetchingAndroidPermission: false,
+		  });
+		}
+	  }
 
 	onUserLocationUpdate(location) {
 
@@ -171,6 +183,12 @@ export default class MapController extends Component {
 	}
 
 	render() {
+
+		if ((Platform.OS === 'android') && !this.state.isAndroidPermissionGranted) {
+			if (this.state.isFetchingAndroidPermission) {
+			  return null;
+			}
+		}
 
 		var MP = this;
 
