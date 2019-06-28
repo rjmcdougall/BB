@@ -1,7 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.graphics.Color;
-
 import java.util.ArrayList;
 
 public class BBColor {

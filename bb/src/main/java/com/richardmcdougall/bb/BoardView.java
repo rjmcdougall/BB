@@ -6,17 +6,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
-import android.media.audiofx.Visualizer;
-import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by rmc on 3/5/17.

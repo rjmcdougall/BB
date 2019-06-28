@@ -9,9 +9,6 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-
 /**
  * Created by rmc on 4/15/18.
  */

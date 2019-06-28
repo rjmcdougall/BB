@@ -2,18 +2,13 @@ package com.richardmcdougall.bb;
 
 import android.Manifest;
 import android.app.IntentService;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.PixelFormat;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Parcelable;
-import android.os.ResultReceiver;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -24,13 +19,9 @@ import android.view.WindowManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.Gravity;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.ImageView;
-import android.view.MotionEvent;
 import android.content.BroadcastReceiver;
 import android.widget.Toast;
 import android.app.admin.DevicePolicyManager;
@@ -38,17 +29,7 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.pm.PackageManager;
 import android.os.BatteryManager;
-import android.app.admin.DeviceAdminReceiver;
 import android.provider.Settings;
-
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-
-import java.io.IOException;
-import java.util.List;
-import android.text.InputFilter;
-
 
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 

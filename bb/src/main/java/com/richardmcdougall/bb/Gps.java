@@ -9,27 +9,16 @@ import android.util.Log;
 
 import net.sf.marineapi.nmea.event.SentenceListener;
 import net.sf.marineapi.nmea.event.SentenceEvent;
-import net.sf.marineapi.nmea.event.SentenceListener;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.sentence.GGASentence;
 import net.sf.marineapi.nmea.sentence.SentenceId;
-import net.sf.marineapi.nmea.sentence.SentenceValidator;
 import net.sf.marineapi.nmea.io.ExceptionListener;
 import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.provider.PositionProvider;
 import net.sf.marineapi.provider.event.PositionEvent;
 import net.sf.marineapi.provider.event.PositionListener;
-import net.sf.marineapi.nmea.util.Time;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 /**
  * Created by rmc on 2/6/18.

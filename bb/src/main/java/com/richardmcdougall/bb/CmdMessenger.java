@@ -1,18 +1,10 @@
 package com.richardmcdougall.bb;
 
-import android.content.Context;
-import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
-import android.view.InputDevice;
-import android.view.MotionEvent;
-
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
-
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;

@@ -1,14 +1,10 @@
 package com.richardmcdougall.bb;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
-
-import static android.R.attr.x;
-import static android.R.attr.y;
 
 /**
  * Created by rmc on 7/25/17.

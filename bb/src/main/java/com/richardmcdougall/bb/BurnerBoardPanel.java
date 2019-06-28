@@ -1,10 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
-
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 /**

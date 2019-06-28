@@ -7,9 +7,6 @@ import com.richardmcdougall.bb.visualization.Mickey;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.*;
 import com.richardmcdougall.bb.visualization.Visualization;
-import com.richardmcdougall.bb.BurnerBoardUtil;
-
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -17,8 +14,6 @@ import android.media.audiofx.Visualizer;
 
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.Random;

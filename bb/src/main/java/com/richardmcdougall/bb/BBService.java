@@ -118,7 +118,6 @@ public class BBService extends Service {
     public FindMyFriends mFindMyFriends = null;
     public BluetoothLEServer mBLEServer = null;
     public BluetoothCommands mBluetoothCommands = null;
-    public A2dpSink mA2dpSink = null;
     public BluetoothConnManager mBluetoothConnManager = null;
     private boolean mMasterRemote = false;
     private boolean mBlockMaster = false;

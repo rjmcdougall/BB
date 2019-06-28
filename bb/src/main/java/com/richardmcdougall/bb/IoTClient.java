@@ -1,8 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -11,52 +9,27 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.os.Build;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
-
 import org.eclipse.paho.android.service.MqttTraceHandler;
-import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.eclipse.paho.client.mqttv3.MqttSecurityException;
-import org.eclipse.paho.client.mqttv3.internal.ExceptionHelper;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.util.Debug;
-
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-
 import java.io.InputStream;
-
 import java.security.Key;
 import java.security.KeyFactory;
-import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-
-import android.text.format.DateFormat;
-
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.Date;
-
-import org.eclipse.paho.client.mqttv3.persist.MqttDefaultFilePersistence;
 import org.joda.time.DateTime;
-
-import static android.R.id.message;
-import org.eclipse.paho.android.service.MqttTraceHandler;
 
 /**
  * Created by rmc on 9/16/17.

@@ -1,8 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.os.Build;
-import android.app.Service;
-
 import java.io.*;
 
 

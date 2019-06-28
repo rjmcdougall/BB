@@ -1,12 +1,8 @@
 package com.richardmcdougall.bb;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.hardware.usb.UsbManager;
-import android.support.v4.content.WakefulBroadcastReceiver;
 
 /**
  * Created by rmc on 10/15/16.
