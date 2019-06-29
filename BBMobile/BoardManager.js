@@ -17,6 +17,7 @@ import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
 import { Buffer } from "buffer";
 import ContentResolver from './ContentResolver';
+var cr = new ContentResolver();
 
 var AsyncLock = require("async-lock");
 var lock = new AsyncLock();
@@ -607,13 +608,17 @@ z
 		}
 	}
 	async readLocationLoop() {
+		var ll = this;
 		var backgroundTimer = setInterval(async () => {
-			if(Cache.get(Constants.USER_PREFS).isMonitor){
+			if(true){
 				try {
-					var boardsJSON = await cr.getLocationJSON();
-					mediaState = this.state.mediaState;
+					var boardsJSON = JSON.parse(await cr.getLocationJSON());
+					this.l("Got locations from ContentResolver", boardsJSON);
+					console.log(boardsJSON);
+					mediaState = ll.state.mediaState;
 					mediaState.locations = boardsJSON; 
-					this.setState({mediaState: medidaState});
+					this.setState({mediaState: mediaState});
+					console.log(this.state.mediaState);
 				}
 				catch(error){
 					this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed",true,error);
