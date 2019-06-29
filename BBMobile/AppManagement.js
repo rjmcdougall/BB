@@ -8,7 +8,7 @@ import {
 
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
-import StyleSheet from "./StyleSheet"; 
+import StyleSheet from "./StyleSheet";
 import Cache from "./Cache";
 import Mapbox from "@react-native-mapbox-gl/maps";
 import Constants from "./Constants"
@@ -113,8 +113,24 @@ export default class AppManagement extends Component {
 							<Text style={StyleSheet.buttonTextCenter}> Left Handed</Text>
 						</Touchable>
 					</View>
+					{(Constants.IS_ANDROID) ?
+						<View>
+							<View style={{ height: 10 }}></View>
+							<View style={StyleSheet.button}>
+								<Touchable
+									onPress={async () => {
+										this.props.userPrefs.isMonitor = !this.props.userPrefs.isMonitor;
+										this.props.setUserPrefs(this.props.userPrefs);
+									}}
+									style={[{ backgroundColor: (this.props.userPrefs.isMonitor) ? "green" : "skyblue" }]}
+									background={Touchable.Ripple("blue")}>
+									<Text style={StyleSheet.buttonTextCenter}>Monitor Mode</Text>
+								</Touchable>
+							</View>
+						</View>
+						: <View />}
 					<View style={{ height: 10 }}></View>
-					<View style={StyleSheet.button} pointerEvents={this.state.downloaded||this.state.buttonDisabled ? "none" : "auto"}>
+					<View style={StyleSheet.button} pointerEvents={this.state.downloaded || this.state.buttonDisabled ? "none" : "auto"}>
 						<Touchable
 							onPress={() => {
 
@@ -128,7 +144,7 @@ export default class AppManagement extends Component {
 							}}
 							style={[{ backgroundColor: downloadBackgroundColor }]}
 							background={Touchable.Ripple("blue")}
-							 >
+						>
 							<Text style={StyleSheet.buttonTextCenter}>{downloadText}</Text>
 						</Touchable>
 					</View>
