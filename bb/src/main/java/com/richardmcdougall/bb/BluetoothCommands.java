@@ -140,17 +140,17 @@ public class BluetoothCommands {
                         }
 
                         // Locations for last 10 mins
-                        JSONArray locations = mFindMyFriends.getBoardLocationsJSON(600);
-                        if (locations == null) {
-                            error = "Could not get bt locations (null)";
-                        }
-                        if (locations != null) {
-                            try {
-                                response.put("locations", locations);
-                            } catch (Exception e) {
-                                error = "Could not get locations: " + e.getMessage();
-                            }
-                        }
+//                        JSONArray locations = mFindMyFriends.getBoardLocationsJSON(600);
+//                        if (locations == null) {
+//                            error = "Could not get bt locations (null)";
+//                        }
+//                        if (locations != null) {
+//                            try {
+//                                response.put("locations", locations);
+//                            } catch (Exception e) {
+//                                error = "Could not get locations: " + e.getMessage();
+//                            }
+//                        }
 
                         // Current board state
                         JSONObject state = getState();

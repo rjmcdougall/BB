@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, View, Platform } from "react-native";
+import { Text, View } from "react-native";
 import Mapbox from "@react-native-mapbox-gl/maps";
 import StateBuilder from "./StateBuilder";
 import PropTypes from "prop-types";
@@ -22,7 +22,7 @@ export default class MapController extends Component {
 			manButtonColor: "skyblue",
 			showBubble: false,
 			followUserLocation: false,
-			isFetchingAndroidPermission: Platform.OS === 'android',
+			isFetchingAndroidPermission: Constants.IS_ANDROID,
 			isAndroidPermissionGranted: false,
 		}
 
@@ -34,7 +34,7 @@ export default class MapController extends Component {
 	}
 
 	async componentDidMount() { 
-		if (Platform.OS === 'android') {
+		if (Constants.IS_ANDROID) {
 		  const isGranted = await Mapbox.requestAndroidLocationPermissions();
 		  this.setState({
 			isAndroidPermissionGranted: isGranted,
@@ -69,10 +69,10 @@ export default class MapController extends Component {
 		}
 
 		//locations.locations :) ascending order
-		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
+		var locationHistory = board.locations.sort((a, b) => a.d - b.d);
 
 		locationHistory.map((location) => {
-			route.geometry.coordinates.push([location.longitude, location.latitude]);
+			route.geometry.coordinates.push([location.o, location.a]);
 		})
 
 		// debug
@@ -88,7 +88,7 @@ export default class MapController extends Component {
 	makePoint(board) {
 
 		//locations.locations :) ascending order
-		var locationHistory = board.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
+		var locationHistory = board.locations.sort((a, b) => a.d - b.d);
 		var lastLocation = locationHistory[locationHistory.length - 1];
 
 		var featureCollection = {
@@ -99,7 +99,7 @@ export default class MapController extends Component {
 			"type": "Feature",
 			"geometry": {
 				"type": "Point",
-				"coordinates": [lastLocation.longitude, lastLocation.latitude]
+				"coordinates": [lastLocation.o, lastLocation.a]
 			},
 			"properties": {
 				"board": board.board
@@ -137,9 +137,9 @@ export default class MapController extends Component {
 	}
 
 	lastHeardBoardDate() {
-		var locationHistory = this.state.boardPicked.locations.sort((a, b) => a.lastHeardDate - b.lastHeardDate);
+		var locationHistory = this.state.boardPicked.locations.sort((a, b) => a.d - b.d);
 		var lastLocation = locationHistory[locationHistory.length - 1];
-		return new Date(lastLocation.lastHeardDate).toLocaleString();
+		return new Date(lastLocation.d).toLocaleString();
 
 	}
 	buildMap() {
@@ -184,7 +184,7 @@ export default class MapController extends Component {
 
 	render() {
 
-		if ((Platform.OS === 'android') && !this.state.isAndroidPermissionGranted) {
+		if (Constants.IS_ANDROID && !this.state.isAndroidPermissionGranted) {
 			if (this.state.isFetchingAndroidPermission) {
 			  return null;
 			}

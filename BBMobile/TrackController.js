@@ -1,9 +1,10 @@
 import React, { Component } from "react";
-import { View, Text, Platform } from "react-native";
+import { View, Text } from "react-native";
 import PropTypes from "prop-types";
 import StateBuilder from "./StateBuilder";
 import Picker from "react-native-wheel-picker";
 import StyleSheet from "./StyleSheet";
+import Constants from "./Constants";
 
 var PickerItem = Picker.Item;
 
@@ -28,19 +29,19 @@ export default class TrackController extends Component {
 	// nasty hack. the wheel picker is two different platform-specific controls
 	// which have quirks on how they handle updates after state change events.
 	static getDerivedStateFromProps(props, state) {
-		if (Platform.OS == "android" && props.mediaType == "Audio"){
+		if (Constants.IS_ANDROID && props.mediaType == "Audio"){
 			return {
 				selectedTrack: props.mediaState.state.audioChannelNo,
 				tracks: props.mediaState.audio,
 			};
 		}
-		else if (Platform.OS == "android" && props.mediaType == "Video"){
+		else if (Constants.IS_ANDROID && props.mediaType == "Video"){
 			return {
 				selectedTrack: props.mediaState.state.videoChannelNo,
 				tracks: props.mediaState.video,
 			};
 		}
-		else if (Platform.OS == "ios" && props.mediaType == "Audio"){
+		else if (Constants.IS_IOS && props.mediaType == "Audio"){
 			// if the state track has never been set before.
 			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
 				// if the props track is a real track.
@@ -58,7 +59,7 @@ export default class TrackController extends Component {
 				return state;
 			}
 		}
-		else if (Platform.OS == "ios" && props.mediaType == "Video"){
+		else if (Constants.IS_IOS && props.mediaType == "Video"){
 			// if the state track has never been set before.
 			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
 				// if the props track is a real track.

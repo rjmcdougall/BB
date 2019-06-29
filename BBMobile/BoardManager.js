@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, NativeEventEmitter, NativeModules, Platform, PermissionsAndroid, AppState, Text, Image, } from "react-native";
+import { View, NativeEventEmitter, NativeModules, PermissionsAndroid, AppState, Text, Image, } from "react-native";
 import BleManager from "react-native-ble-manager";
 import Cache from "./Cache";
 import MediaManagement from "./MediaManagement";
@@ -43,8 +43,7 @@ export default class BoardManager extends Component {
 			rxBuffers: [],
 			logLines: StateBuilder.blankLogLines(),
 			map: StateBuilder.blankMap(),
-			boardData: StateBuilder.blankBoardData(),
-			isMonitor: true
+			boardData: StateBuilder.blankBoardData()
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -92,7 +91,7 @@ export default class BoardManager extends Component {
 		this.handlerNewData = bleManagerEmitter.addListener("BleManagerDidUpdateValueForCharacteristic", this.handleNewData);
 
 		// this is a hack for android permissions. Not required for IOS.
-		if (Platform.OS === "android" && Platform.Version >= 23) {
+		if (Constants.IS_ANDROID && Constants.HAS_ANDROID_VERSION) {
 			PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
 				if (result) {
 					this.l("Permission is OK", false, null);
@@ -609,7 +608,7 @@ z
 	}
 	async readLocationLoop() {
 		var backgroundTimer = setInterval(async () => {
-			if(this.userPrefs.isMonitor){
+			if(Cache.get(Constants.USER_PREFS).isMonitor){
 				try {
 					var boardsJSON = await cr.getLocationJSON();
 					mediaState = this.state.mediaState;

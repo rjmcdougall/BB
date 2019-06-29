@@ -1,7 +1,13 @@
 import { Platform } from "react-native";
 import geoViewport from "@mapbox/geo-viewport";
 
+//lots more debug info shipped to stdout
 exports.debug = false;
+
+//sime features are android specific.  the monitor is android only.'
+exports.IS_ANDROID = Platform.OS === "android"
+exports.IS_IOS = Platform.OS === "ios"
+exports.HAS_ANDROID_VERSION = Platform.Version >= 23
 
 //UUIDs
 exports.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";
@@ -33,39 +39,40 @@ exports.AUDIOPREFIX = "Audio_";
 exports.VIDEOPREFIX = "Video_";
 exports.BTDEVICESPREFIX = "BTDevice_";
 
+//Map Configuration
 exports.PLAYA_BOUNDS = function() {
 	var bounds = geoViewport.bounds([-119.2066,40.7866], 14, [600, 400]);
 	return [[bounds[0], bounds[1]], [bounds[2], bounds[3]]];
 }
-
 exports.MAN_LOCATION = [-119.2066,40.7866];
 
+//Diagnostic Screen Configuration
 exports.MAX_DIAGNOSTIC_LINES = 100;
 
 //wait lengths may vary depending on BLE stability and the RN component
 exports.LOCATION_CHECK_INTERVAL = function () {
-	if (Platform.OS == "android")
+	if (module.exports.IS_ANDROID)
 		return 8000;
 	else
 		return 8000;
 };
 
 exports.CONNECT_SLEEP = function () {
-	if (Platform.OS == "android")
+	if (module.exports.IS_ANDROID)
 		return 0;
 	else
 		return 0;
 };
 
 exports.RETRIEVE_SERVICES_SLEEP = function () {
-	if (Platform.OS == "android")
+	if (module.exports.IS_ANDROID)
 		return 0;
 	else
 		return 0;
 };
 
 exports.SET_NOTIFICATIONS_SLEEP = function () {
-	if (Platform.OS == "android")
+	if (module.exports.IS_ANDROID)
 		return 1000;
 	else
 		return 0;

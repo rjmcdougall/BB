@@ -312,9 +312,9 @@ public class FindMyFriends {
 
     // keep a historical list of minimal location data
     public class locationHistory{
-        public long lastHeardDate;
-        public double latitude;
-        public double longitude;
+        public long d; // dateTime
+        public double a; // latitude
+        public double o; // longitude
     }
 
     // Keep a list of board GPS locations
@@ -343,26 +343,26 @@ public class FindMyFriends {
 
             boolean found = false;
             for(locationHistory l: locations) {
-                long lMinutes = l.lastHeardDate/(1000*60*MINUTE_INTERVAL);
+                long lMinutes = l.d/(1000*60*MINUTE_INTERVAL);
                 if(minute==lMinutes) {
-                    l.lastHeardDate = lastHeardDate;
-                    l.latitude = latitude;
-                    l.longitude = longitude;
+                    l.d = lastHeardDate;
+                    l.a = latitude;
+                    l.o = longitude;
                     found = true;
                 }
             }
             if(!found){
                 locationHistory lh = new locationHistory();
-                lh.lastHeardDate = lastHeardDate;
-                lh.latitude = latitude;
-                lh.longitude = longitude;
+                lh.d = lastHeardDate;
+                lh.a = latitude;
+                lh.o = longitude;
                 locations.add(lh);
             }
 
             //remove locations older than 30 minutes.
             long maxAge = System.currentTimeMillis()-(MAX_AGE*1000*60);
             for(locationHistory l: locations) {
-                if (l.lastHeardDate < maxAge) {
+                if (l.d < maxAge) {
                     locations.remove(l);
                 }
             }
