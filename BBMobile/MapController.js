@@ -123,7 +123,7 @@ export default class MapController extends Component {
 		if (e.nativeEvent.payload.geometry.type != "Point")
 			return;
 
-		var boardPicked = this.props.mediaState.locations.filter((board) => {
+		var boardPicked = this.props.locations.filter((board) => {
 			return board.board == e.nativeEvent.payload.properties.board;
 		})[0];
 
@@ -145,7 +145,7 @@ export default class MapController extends Component {
 	buildMap() {
 		var a = new Array();
 		var MP = this;
-		this.props.mediaState.locations.map((board) => {
+		this.props.locations.map((board) => {
 
 
 			var shapeSource = (
@@ -276,6 +276,7 @@ export default class MapController extends Component {
 
 MapController.propTypes = {
 	mediaState: PropTypes.object,
+	locations: PropTypes.array,
 	userPrefs: PropTypes.object,
 	setMap: PropTypes.func,
 	map: PropTypes.object,

@@ -44,7 +44,8 @@ export default class BoardManager extends Component {
 			rxBuffers: [],
 			logLines: StateBuilder.blankLogLines(),
 			map: StateBuilder.blankMap(),
-			boardData: StateBuilder.blankBoardData()
+			boardData: StateBuilder.blankBoardData(),
+			locations: StateBuilder.blankLocations(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -60,12 +61,12 @@ export default class BoardManager extends Component {
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
 		this.startScan = this.startScan.bind(this);
 		this.setMap = this.setMap.bind(this);
-		
+
 	}
 
 
-	setMap(map) { 
-		this.setState({map: map});
+	setMap(map) {
+		this.setState({ map: map });
 	}
 
 	async componentDidMount() {
@@ -130,7 +131,12 @@ export default class BoardManager extends Component {
 			});
 
 			await this.startScan(true);
-		} 
+		}
+
+		// Kick off a per-second location reader 
+		this.l("Begin Background Location Loop", false, null);
+		await this.readLocationLoop();
+
 	}
 
 	handleAppStateChange(nextAppState) {
@@ -355,8 +361,8 @@ export default class BoardManager extends Component {
 				}
 			}
 			if (newMedia.locations) {
-				this.l("updated locations", false, null);
-				mediaState.locations = newMedia.locations;
+				this.l("updated locations", false, newMedia.locations);
+				this.setState({ locations: newMedia.locations });
 			}
 		}
 		catch (error) {
@@ -365,7 +371,7 @@ export default class BoardManager extends Component {
 
 		return mediaState;
 	}
-z
+	z
 	async createMediaState(peripheral) {
 		try {
 			var mediaState = StateBuilder.blankMediaState();
@@ -374,7 +380,7 @@ z
 			this.l("Getting BLE Data for " + peripheral.name, false, null);
 			mediaState = await this.refreshMediaState(mediaState);
 
-			return mediaState;	 
+			return mediaState;
 		}
 		catch (error) {
 			this.l("Error creating media state " + error, true, null);
@@ -384,8 +390,8 @@ z
 	l(logLine, isError, body) {
 		if (logLine != null && isError != null) {
 			var logArray = this.state.logLines;
-			if(logArray.length>Constants.MAX_DIAGNOSTIC_LINES)
-				logArray.splice(0,1);
+			if (logArray.length > Constants.MAX_DIAGNOSTIC_LINES)
+				logArray.splice(0, 1);
 			logArray.push({ logLine: logLine, isError: isError, body: body });
 			console.log(logLine);
 			if (body != null) console.log(body);
@@ -406,7 +412,7 @@ z
 
 					this.l("AV found in cache, skipping", false, audio.concat(video));
 					mediaState.audio = audio;
-					mediaState.video = video; 
+					mediaState.video = video;
 					mediaState.devices = btdevices;
 
 					if (await this.sendCommand(mediaState, "Location", "") == false) {
@@ -574,10 +580,6 @@ z
 						var mediaState = await this.createMediaState(boardBleDevice);
 						this.setState({ mediaState: mediaState });
 
-						// Kick off a per-second location reader 
-						this.l("Begin Background Location Loop", false, null);
-						await this.readLocationLoop(this.state.mediaState);
-
 					} catch (error) {
 						this.l("Error connecting: " + error, true, null);
 
@@ -608,29 +610,33 @@ z
 		}
 	}
 	async readLocationLoop() {
-		var ll = this;
+
 		var backgroundTimer = setInterval(async () => {
-			if(true){
+			if (this.props.userPrefs.isMonitor) {
 				try {
 					var boardsJSON = JSON.parse(await cr.getLocationJSON());
 					this.l("Got locations from ContentResolver", boardsJSON);
 					console.log(boardsJSON);
-					mediaState = ll.state.mediaState;
-					mediaState.locations = boardsJSON; 
-					this.setState({mediaState: mediaState});
-					console.log(this.state.mediaState);
-				}
-				catch(error){
-					this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed",true,error);
-				}
-			}
-			else if (this.state.mediaState) {
-				try {
-					await this.sendCommand(this.state.mediaState, "Location", 600);
+					this.setState({ locations: boardsJSON });
 				}
 				catch (error) {
-					this.l("Location Loop Failed:" + error, true, null);
+					this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed", true, error);
 				}
+			}
+			else {
+				if (this.state.connectedPeripheral) {
+					if (this.state.connectedPeripheral.connected) {
+						try {
+							await this.sendCommand(this.state.mediaState, "Location", 600);
+						}
+						catch (error) {
+							this.l("Location Loop Failed:" + error, true, null);
+						}
+					}
+				}
+
+
+
 			}
 		}, Constants.LOCATION_CHECK_INTERVAL());
 		this.setState({ backgroundLoop: backgroundTimer });
@@ -717,7 +723,7 @@ z
 							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
 							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
 							{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} /> : <View></View>}
 							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
 						<View style={StyleSheet.footer}>
