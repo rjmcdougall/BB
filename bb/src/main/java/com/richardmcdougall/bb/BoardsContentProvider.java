@@ -14,7 +14,7 @@ import static java.lang.Integer.parseInt;
 public class BoardsContentProvider extends ContentProvider {
 
     private static final String TAG = BoardsContentProvider.class.getSimpleName();
-    public String[] mData = {"{}"};
+    public String[] mData = {"[]"};
 
     // UriMatcher is a helper class for processing the accepted Uri schemes
     // for this content provider.
