@@ -10,7 +10,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
+import android.app.PendingIntent;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
@@ -217,13 +217,14 @@ public class RF {
         }
 
         if (!mUsbManager.hasPermission(mUsbDevice)) {
-            //ask for permission
-            /*
-            PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
-            mContext.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
-            mUsbManager.requestPermission(mUsbDevice, pi);
-            l("USB: No Permission");
-            */
+            //ask for permissionB
+            // DIRTY HACK FOR THE MONITOR.
+            if(BurnerBoardUtil.BOARD_ID.equals("VIM2")){
+                PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
+                mContext.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
+                mUsbManager.requestPermission(mUsbDevice, pi);
+                l("USB: No Permission");
+            }
             return;
         } else {
             usbConnect(mUsbDevice);
