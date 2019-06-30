@@ -33,19 +33,19 @@ export default class MapController extends Component {
 		this.onUserLocationUpdate = this.onUserLocationUpdate.bind(this);
 	}
 
-	async componentDidMount() { 
+	async componentDidMount() {
 		if (Constants.IS_ANDROID) {
-		  const isGranted = await Mapbox.requestAndroidLocationPermissions();
-		  this.setState({
-			isAndroidPermissionGranted: isGranted,
-			isFetchingAndroidPermission: false,
-		  });
+			const isGranted = await Mapbox.requestAndroidLocationPermissions();
+			this.setState({
+				isAndroidPermissionGranted: isGranted,
+				isFetchingAndroidPermission: false,
+			});
 		}
-	  }
+	}
 
 	onUserLocationUpdate(location) {
 
-		if(location){
+		if (location) {
 			this.props.setMap({
 				center: this.props.map.center,
 				zoom: this.props.map.zoom,
@@ -186,7 +186,7 @@ export default class MapController extends Component {
 
 		if (Constants.IS_ANDROID && !this.state.isAndroidPermissionGranted) {
 			if (this.state.isFetchingAndroidPermission) {
-			  return null;
+				return null;
 			}
 		}
 
@@ -206,8 +206,8 @@ export default class MapController extends Component {
 						followUserLocation={this.state.followUserLocation}
 						followUserMode="compass"
 						followZoomLevel={MP.props.map.zoom}
-						showUserLocation={true}/>
-					<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} 
+						showUserLocation={true} />
+					<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate}
 					/>
 					{this.buildMap()}
 				</Mapbox.MapView>
@@ -268,6 +268,19 @@ export default class MapController extends Component {
 							<Text style={StyleSheet.buttonTextCenter}>Playa</Text>
 						</Touchable>
 					</View>
+					{(this.props.userPrefs.isMonitor) ?
+						<View style={StyleSheet.horizonralButton}>
+							<Touchable
+								onPress={async () => {
+									this.props.userPrefs.isMonitor = !this.props.userPrefs.isMonitor;
+									this.props.setUserPrefs(this.props.userPrefs);
+								}}
+								style={[{ backgroundColor: (this.props.userPrefs.isMonitor) ? "green" : "skyblue" }]}
+								background={Touchable.Ripple("blue")}>
+								<Text style={StyleSheet.buttonTextCenter}>Monitor Mode</Text>
+							</Touchable>
+						</View>
+						: <View />}
 				</View>
 			</View>
 		);
@@ -281,4 +294,5 @@ MapController.propTypes = {
 	setMap: PropTypes.func,
 	map: PropTypes.object,
 	boardData: PropTypes.any,
+	setUserPrefs: PropTypes.func,
 };

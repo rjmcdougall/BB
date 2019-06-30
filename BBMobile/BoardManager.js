@@ -699,16 +699,19 @@ export default class BoardManager extends Component {
 		return (
 			<View style={{ flex: 1 }}>
 				<View style={{ flexDirection: "row" }}>
-					{(!this.props.userPrefs.isDevilsHand) ?
+					{(!this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ?
 						<View style={{ margin: 5, paddingTop: 10 }}>
 							<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
 						</View>
 						: <View></View>
 					}
-					<View style={{ flex: 1 }}>
-						<BatteryController mediaState={this.state.mediaState} />
-					</View>
-					{(this.props.userPrefs.isDevilsHand) ?
+					{(!this.props.userPrefs.isMonitor) ?
+						<View style={{ flex: 1 }}>
+							<BatteryController mediaState={this.state.mediaState} />
+						</View>
+						: <View></View>
+					}
+					{(this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ?
 						<View style={{ margin: 5, paddingTop: 10 }}>
 							<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
 						</View>
@@ -716,37 +719,40 @@ export default class BoardManager extends Component {
 					}
 				</View>
 				<View style={{ flex: 1, flexDirection: "row" }}>
-					{(!this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
+					{(!this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 					<View style={{ flex: 1 }}>
 						<View style={{ flex: 1 }}>
-							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-							{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
-							{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} /> : <View></View>}
-							{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
+							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT && !this.props.userPrefs.isMonitor) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+							{(this.state.showScreen == Constants.DIAGNOSTIC && !this.props.userPrefs.isMonitor) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
+							{(this.state.showScreen == Constants.ADMINISTRATION && !this.props.userPrefs.isMonitor) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
+							{(this.state.showScreen == Constants.APP_MANAGEMENT && !this.props.userPrefs.isMonitor) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
+							{(this.state.showScreen == Constants.MAP || this.props.userPrefs.isMonitor) ? <MapController userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} /> : <View></View>}
+							{(this.state.showScreen == Constants.DISCOVER && !this.props.userPrefs.isMonitor) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 						</View>
-						<View style={StyleSheet.footer}>
-							<Touchable
-								onPress={async () => {
-									try {
-										await this.startScan(true);
+						{(!this.props.userPrefs.isMonitor) ?
+							<View style={StyleSheet.footer}>
+								<Touchable
+									onPress={async () => {
+										try {
+											await this.startScan(true);
+										}
+										catch (error) {
+											this.l("Failed to Connext " + error);
+										}
 									}
-									catch (error) {
-										this.l("Failed to Connext " + error);
 									}
-								}
-								}
-								style={{
-									backgroundColor: color,
-									flex: 1,
-								}}
-								background={Touchable.Ripple("blue")}>
-								<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
-							</Touchable>
-						</View>
+									style={{
+										backgroundColor: color,
+										flex: 1,
+									}}
+									background={Touchable.Ripple("blue")}>
+									<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+								</Touchable>
+							</View>
+							: <View></View>
+						}
 					</View>
-					{(this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
+					{(this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 				</View>
 			</View>
 		);
