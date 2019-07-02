@@ -87,7 +87,7 @@ public class PlayaMap extends Visualization {
                     BurnerBoard.getRGB(0, 0, 0));
 
 
-            List<FindMyFriends.boardLocation> boardLocations = mFMF.getBoardLocations(120);
+            List<FindMyFriends.boardLocation> boardLocations = mFMF.getBoardLocations();
 
             for (FindMyFriends.boardLocation location: boardLocations) {
                 String color = mFMF.getBoardColor(location.address);

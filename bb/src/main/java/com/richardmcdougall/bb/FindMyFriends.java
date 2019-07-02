@@ -248,58 +248,67 @@ public class FindMyFriends {
     }
 
     boolean processReceive(byte [] packet, int sigStrength) {
-        ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
-        int recvMagicNumber = magicNumberToInt(
-                new int[] { bytes.read(), bytes.read()});
+        try {
+            ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
-        if (recvMagicNumber == magicNumberToInt(kGPSMagicNumber)) {
-            d("BB GPS Packet");
-            mTheirAddress = (int) ((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8));
-            int repeatedBy = bytes.read();
-            mTheirLat = (double) ((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8) +
-                    ((bytes.read() & 0xff) << 16) +
-                    ((bytes.read() & 0xff) << 24)) / 1000000.0;
-            mTheirLon = (double)((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8) +
-                    ((bytes.read() & 0xff) << 16) +
-                    ((bytes.read() & 0xff) << 24)) / 1000000.0;
-            mTheirBatt = (int)(bytes.read() & 0xff);
-            bytes.read(); // spare
-            bytes.read(); // spare
-            bytes.read(); // spare
-            mThereAccurate = bytes.read();
-            mLastRecv = System.currentTimeMillis();
-            mLastHeardLocation = packet.clone();
-            l(mRFAddress.boardAddressToName(mTheirAddress) +
-                    " strength " + sigStrength +
-                    "theirLat = " + mTheirLat + ", " +
-                    "theirLon = " + mTheirLon +
-                    "theirBatt = " + mTheirBatt);
-            mIotClient.sendUpdate("bbevent", "[" +
-                    mRFAddress.boardAddressToName(mTheirAddress) + "," +
-                    sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
-            updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, packet.clone());
-            return true;
-        } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
-            d("tracker packet");
-            mTheirLat = (double) ((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8) +
-                    ((bytes.read() & 0xff) << 16) +
-                    ((bytes.read() & 0xff) << 24)) / 1000000.0;
-            mTheirLon = (double)((bytes.read() & 0xff) +
-                    ((bytes.read() & 0xff) << 8) +
-                    ((bytes.read() & 0xff) << 16) +
-                    ((bytes.read() & 0xff) << 24)) / 1000000.0;
-            mThereAccurate = bytes.read();
-            mLastRecv = System.currentTimeMillis();
-            return true;
-        } else {
-            d("rogue packet not for us!");
+            int recvMagicNumber = magicNumberToInt(
+                    new int[] { bytes.read(), bytes.read()});
+
+            if (recvMagicNumber == magicNumberToInt(kGPSMagicNumber)) {
+                d("BB GPS Packet");
+                mTheirAddress = (int) ((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8));
+                int repeatedBy = bytes.read();
+                mTheirLat = (double) ((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8) +
+                        ((bytes.read() & 0xff) << 16) +
+                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
+                mTheirLon = (double)((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8) +
+                        ((bytes.read() & 0xff) << 16) +
+                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
+                mTheirBatt = (int)(bytes.read() & 0xff);
+                bytes.read(); // spare
+                bytes.read(); // spare
+                bytes.read(); // spare
+                mThereAccurate = bytes.read();
+                mLastRecv = System.currentTimeMillis();
+                mLastHeardLocation = packet.clone();
+                l(mRFAddress.boardAddressToName(mTheirAddress) +
+                        " strength " + sigStrength +
+                        "theirLat = " + mTheirLat + ", " +
+                        "theirLon = " + mTheirLon +
+                        "theirBatt = " + mTheirBatt);
+                mIotClient.sendUpdate("bbevent", "[" +
+                        mRFAddress.boardAddressToName(mTheirAddress) + "," +
+                        sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
+                updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, packet.clone());
+                return true;
+            } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
+                d("tracker packet");
+                mTheirLat = (double) ((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8) +
+                        ((bytes.read() & 0xff) << 16) +
+                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
+                mTheirLon = (double)((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8) +
+                        ((bytes.read() & 0xff) << 16) +
+                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
+                mThereAccurate = bytes.read();
+                mLastRecv = System.currentTimeMillis();
+                return true;
+            } else {
+                d("rogue packet not for us!");
+            }
+            return false;
         }
-        return false;
+        catch(Exception e){
+            l("Error processing a received packet " + e.getMessage());
+            return false;
+        }
+
+
     }
 
     private static final int magicNumberToInt(int[] magic) {
@@ -337,34 +346,39 @@ public class FindMyFriends {
             int MAX_AGE = 15;
             int MINUTE_INTERVAL = 1;
 
-            // we only want to store one location every minute and drop everything older than 15 minutes
-            // not using a hash because it dorks the json.
-            long minute =  lastHeardDate/(1000*60*MINUTE_INTERVAL);
+            try{
+                // we only want to store one location every minute and drop everything older than 15 minutes
+                // not using a hash because it dorks the json.
+                long minute =  lastHeardDate/(1000*60*MINUTE_INTERVAL);
 
-            boolean found = false;
-            for(locationHistory l: locations) {
-                long lMinutes = l.d/(1000*60*MINUTE_INTERVAL);
-                if(minute==lMinutes) {
-                    l.d = lastHeardDate;
-                    l.a = latitude;
-                    l.o = longitude;
-                    found = true;
+                boolean found = false;
+                for(locationHistory l: locations) {
+                    long lMinutes = l.d/(1000*60*MINUTE_INTERVAL);
+                    if(minute==lMinutes) {
+                        l.d = lastHeardDate;
+                        l.a = latitude;
+                        l.o = longitude;
+                        found = true;
+                    }
+                }
+                if(!found){
+                    locationHistory lh = new locationHistory();
+                    lh.d = lastHeardDate;
+                    lh.a = latitude;
+                    lh.o = longitude;
+                    locations.add(lh);
+                }
+
+                //remove locations older than 30 minutes.
+                long maxAge = System.currentTimeMillis()-(MAX_AGE*1000*60);
+                for(locationHistory l: locations) {
+                    if (l.d < maxAge) {
+                        locations.remove(l);
+                    }
                 }
             }
-            if(!found){
-                locationHistory lh = new locationHistory();
-                lh.d = lastHeardDate;
-                lh.a = latitude;
-                lh.o = longitude;
-                locations.add(lh);
-            }
-
-            //remove locations older than 30 minutes.
-            long maxAge = System.currentTimeMillis()-(MAX_AGE*1000*60);
-            for(locationHistory l: locations) {
-                if (l.d < maxAge) {
-                    locations.remove(l);
-                }
+            catch(Exception e){
+                l("Error Adding a Location History for " + address + " " + e.getMessage());
             }
         }
     }
@@ -375,36 +389,48 @@ public class FindMyFriends {
     public void updateBoardLocations(int address, int sigstrength, double lat, double lon, byte[] locationPacket) {
 
         boardLocation loc = new boardLocation();
-        loc.address = address;
-        loc.lastHeard = SystemClock.elapsedRealtime();
-        loc.sigStrength = sigstrength;
-        loc.lastHeardDate = System.currentTimeMillis();
-        loc.latitude = lat;
-        loc.longitude = lon;
-        mBoardLocations.put(address, loc); // add to current locations
 
-        boardLocationHistory blh;
-        if(mBoardLocationHistory.containsKey(address)) {
-            blh = mBoardLocationHistory.get(address);
+        try {
+            loc.address = address;
+            loc.lastHeard = SystemClock.elapsedRealtime();
+            loc.sigStrength = sigstrength;
+            loc.lastHeardDate = System.currentTimeMillis();
+            loc.latitude = lat;
+            loc.longitude = lon;
+            mBoardLocations.put(address, loc); // add to current locations
         }
-        else {
-            blh = new boardLocationHistory();
+        catch(Exception e){
+            l("Error storing the current location for " + address + " " + e.getMessage());
         }
-        blh.address = loc.address;
-        blh.AddLocationHistory(loc.lastHeardDate,lat,lon);
-        mBoardLocationHistory.put(address,blh);
 
-        // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
-        ContentValues v = new ContentValues(1);
-        v.put("0",getBoardLocationsJSON(0).toString());
-        mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
+        try{
+            boardLocationHistory blh;
+
+            if(mBoardLocationHistory.containsKey(address)) {
+                blh = mBoardLocationHistory.get(address);
+            }
+            else {
+                blh = new boardLocationHistory();
+            }
+            blh.address = loc.address;
+            blh.AddLocationHistory(loc.lastHeardDate,lat,lon);
+            mBoardLocationHistory.put(address,blh);
+
+            // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
+            ContentValues v = new ContentValues(1);
+            v.put("0",getBoardLocationsJSON().toString());
+            mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
 
-
-        for (int addr: mBoardLocations.keySet()) {
-            boardLocation l = mBoardLocations.get(addr);
-            d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+            for (int addr: mBoardLocations.keySet()) {
+                boardLocation l = mBoardLocations.get(addr);
+                d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+            }
         }
+        catch(Exception e){
+            l("Error storing the board location history for " + address + " " + e.getMessage());
+        }
+
     }
 
     private void addTestBoardLocations() {
@@ -412,46 +438,13 @@ public class FindMyFriends {
      //   updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
     }
 
-    // Pull one location from the list of recent locations
-    // filter by age seconds
-    // returns location structure
-    int lastLocationCoordGet = 0;
-    public boardLocation getRecentCoordinate(int age) {
-
-        int keyNo = 0;
-        int getLoc = lastLocationCoordGet;
-        BigInteger lastHeardDate = BigInteger.valueOf(0);
-
-        if (lastLocationCoordGet == (mBoardLocations.size())) {
-            lastLocationCoordGet = 0;
-            getLoc = 0;
-        }
-
-        //l("Getting location " + getLoc);
-        lastLocationCoordGet = lastLocationCoordGet + 1;
-
-
-        for (int addr: mBoardLocations.keySet()) {
-            if (keyNo == getLoc) {
-                boardLocation loc = mBoardLocations.get(addr);
-                //l("Location Entry:" + mRFAddress.boardAddressToName(addr) +
-                // ", age:" + (SystemClock.elapsedRealtime() - loc.lastHeard) +
-                // ", bytes: " + bytesToHex(loc.lastheardLocaton));
-                if ((SystemClock.elapsedRealtime() - loc.lastHeard) < (age * 1000)) {
-                    return loc;
-                }
-            }
-            keyNo++;
-        }
-        return null;
-    }
-    public List<boardLocation> getBoardLocations(int age) {
+    public List<boardLocation> getBoardLocations() {
         List<boardLocation> list = new ArrayList<boardLocation>(mBoardLocations.values());
         return list;
     }
 
     // Create device list in JSON format for app use
-    public JSONArray getBoardLocationsJSON(int age) {
+    public JSONArray getBoardLocationsJSON() {
         JsonArray list = null;
         List<boardLocationHistory> locs = new ArrayList<>(mBoardLocationHistory.values());
         try {

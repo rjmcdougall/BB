@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.URLEncoder;
@@ -310,6 +311,11 @@ public class DownloadManager {
             catch(FileNotFoundException e){
                 Log.d(TAG,"An exception occured access the file from burnerboard.com. This is likely the result of having an unregistered board.");
                 return -1;
+            }
+            catch(UnknownHostException e){
+                Log.d(TAG,"An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
+                return -1;
+
             }
             catch (Throwable e) {
                 e.printStackTrace();
