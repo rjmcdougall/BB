@@ -307,8 +307,6 @@ public class FindMyFriends {
             l("Error processing a received packet " + e.getMessage());
             return false;
         }
-
-
     }
 
     private static final int magicNumberToInt(int[] magic) {
