@@ -19,7 +19,7 @@ import org.json.JSONArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -369,11 +369,13 @@ public class FindMyFriends {
 
                 //remove locations older than 30 minutes.
                 long maxAge = System.currentTimeMillis()-(MAX_AGE*1000*60);
-                for(locationHistory l: locations) {
-                    if (l.d < maxAge) {
-                        locations.remove(l);
-                    }
+
+                Iterator<locationHistory> iter = locations.iterator();
+                while(iter.hasNext()){
+                    if(iter.next().d < maxAge)
+                        iter.remove();
                 }
+
             }
             catch(Exception e){
                 l("Error Adding a Location History for " + address + " " + e.getMessage());
