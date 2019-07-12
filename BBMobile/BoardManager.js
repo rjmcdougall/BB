@@ -695,41 +695,37 @@ export default class BoardManager extends Component {
 		}
 
 
-
-		return (
-			<View style={{ flex: 1 }}>
-				<View style={{ flexDirection: "row" }}>
-					{(!this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ?
-						<View style={{ margin: 5, paddingTop: 10 }}>
-							<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
-						</View>
-						: <View></View>
-					}
-					{(!this.props.userPrefs.isMonitor) ?
+		if (!this.props.userPrefs.isMonitor)
+			return (
+				<View style={{ flex: 1 }}>
+					<View style={{ flexDirection: "row" }}>
+						{(!this.props.userPrefs.isDevilsHand) ?
+							<View style={{ margin: 5, paddingTop: 10 }}>
+								<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
+							</View>
+							: <View></View>
+						}
 						<View style={{ flex: 1 }}>
-							<BatteryController mediaState={this.state.mediaState} />
+							<BatteryController battery={this.state.mediaState.state.battery} />
 						</View>
-						: <View></View>
-					}
-					{(this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ?
-						<View style={{ margin: 5, paddingTop: 10 }}>
-							<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
-						</View>
-						: <View></View>
-					}
-				</View>
-				<View style={{ flex: 1, flexDirection: "row" }}>
-					{(!this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
-					<View style={{ flex: 1 }}>
+						{(this.props.userPrefs.isDevilsHand) ?
+							<View style={{ margin: 5, paddingTop: 10 }}>
+								<Image style={{ width: 45, height: 40, }} source={require("./images/BurnerBoardIcon-1026.png")} />
+							</View>
+							: <View></View>
+						}
+					</View>
+					<View style={{ flex: 1, flexDirection: "row" }}>
+						{(!this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 						<View style={{ flex: 1 }}>
-							{(this.state.showScreen == Constants.MEDIA_MANAGEMENT && !this.props.userPrefs.isMonitor) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-							{(this.state.showScreen == Constants.DIAGNOSTIC && !this.props.userPrefs.isMonitor) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
-							{(this.state.showScreen == Constants.ADMINISTRATION && !this.props.userPrefs.isMonitor) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
-							{(this.state.showScreen == Constants.APP_MANAGEMENT && !this.props.userPrefs.isMonitor) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-							{(this.state.showScreen == Constants.MAP || this.props.userPrefs.isMonitor) ? <MapController userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} /> : <View></View>}
-							{(this.state.showScreen == Constants.DISCOVER && !this.props.userPrefs.isMonitor) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
-						</View>
-						{(!this.props.userPrefs.isMonitor) ?
+							<View style={{ flex: 1 }}>
+								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
+								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
+								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
+								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
+							</View>
 							<View style={StyleSheet.footer}>
 								<Touchable
 									onPress={async () => {
@@ -749,14 +745,54 @@ export default class BoardManager extends Component {
 									<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
 								</Touchable>
 							</View>
-							: <View></View>
-						}
+						</View>
+						{(this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 					</View>
-					{(this.props.userPrefs.isDevilsHand && !this.props.userPrefs.isMonitor) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 				</View>
-			</View>
-		);
+			);
+								
+		else {
+			return (
+				<View style={StyleSheet.monitorContainer}>
+					<View style={StyleSheet.monitorMap}>
+						<MapController userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
+					</View>
+					<View style={StyleSheet.batteryList}>
+						{this.buildBatteryList()}
+					</View>
+				</View>
+			);
+		} 
+	}
 
+	buildBatteryList(){
+		var a = new Array();
+		var BM = this;
+		
+
+		var locations = new Array();
+		locations.push({ board: "pegasus", b: 40 });
+		locations.push({ board: "vega", b: 60 });
+		locations.push({ board: "sexy", b: 80 });
+
+		//locations.map((board) => {
+		this.state.locations.map((board) => {
+			var color=StateBuilder.boardColor(board.board, BM.state.boardData);
+ 			//color="pink";
+			var batteryGauge = (
+				<View key={board.board + "v2"} style={{ flexDirection: "row", backgroundColor: color }}>
+					<View key={board.board + "v4"} style={{ flex: .5 }}>
+						<View key={board.board + "v1"} style={{ marginVertical: 20 }}>
+							<Text style={{ fontSize: 24, fontWeight: "bold" }} key={board.board + "txt"} >{board.board}</Text>
+						</View>
+					</View>
+					<View key={board.board + "v3"} style={{ flex: 1 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} battery={board.b} /></View>
+				</View>
+			)
+			a.push(batteryGauge);
+		});
+
+		return a;
 	}
 }
 

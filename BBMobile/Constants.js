@@ -22,6 +22,10 @@ exports.CONNECTED = "Connected";
 exports.CONNECTING = "Connecting";
 exports.LOADED = "Loaded";
 
+//Batter Thresholds
+exports.BATTERY_RED = 20;
+exports.BATTERY_YELLOW = 30;
+
 // The Screens
 exports.DISCOVER = "Discover";
 exports.MEDIA_MANAGEMENT = "Media Management";

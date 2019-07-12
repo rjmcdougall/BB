@@ -45,6 +45,16 @@ export default StyleSheet.create({
 		flex: 1,
 		margin: 2
 	},
+	monitorContainer: {
+		flex: 1,
+		flexDirection: "row",
+	},
+	monitorMap: {
+		flex: 1,
+	},
+	batteryList: {
+		flex: .3,
+	},
 	container: {
 		flex: 1,
 	},

@@ -1,20 +1,18 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import PropTypes from "prop-types";
-import StateBuilder from "./StateBuilder";
 import AnimatedBar from "react-native-animated-bar";
+import Constants from "./Constants";
 
 export default class BatteryController extends React.Component {
 	constructor(props) {
 		super(props);
 	}
 	render() {
-
-		var battery = this.props.mediaState.state.battery/100.0;
 		var barColor;
-		if (battery <= .2)
+		if (this.props.battery <= Constants.BATTERY_RED)
 			barColor = "red";
-		else if (battery <= .3)
+		else if (this.props.battery <= Constants.BATTERY_YELLOW)
 			barColor = "yellow";
 		else
 			barColor = "green";
@@ -22,17 +20,18 @@ export default class BatteryController extends React.Component {
 		return (
 			<View style={styles.container}>
 				<AnimatedBar
-					progress={battery}
+					progress={this.props.battery/100.0}
 					height={null}
 					borderColor="#DDD"
 					barColor={barColor}
 					borderRadius={5}
 					borderWidth={5}
 					duration={100}
+					key={this.props.id + "bar"}
 				>
 					<View style={[styles.row, styles.center]}>
-						<Text style={[styles.barText, { fontSize: 30 }]}>
-							{Math.round(battery*100)}%
+						<Text key={this.props.id + "t"} style={[styles.barText, { fontSize: 30 }]}>
+							{Math.round(this.props.battery)}%
 						</Text>
 					</View>
 				</AnimatedBar>
@@ -42,11 +41,12 @@ export default class BatteryController extends React.Component {
 }
 
 BatteryController.propTypes = {
-	mediaState: PropTypes.object,
+	battery: PropTypes.number,
+	id: PropTypes.string,
 };
 
 BatteryController.defaultProps = {
-	mediaState: StateBuilder.blankMediaState(),
+	battery: 0,
 };
 
 const styles = StyleSheet.create({

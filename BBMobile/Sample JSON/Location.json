@@ -2,8 +2,8 @@
     "command": "Location",
     "locations": [
         {
-            "address": 32602,
-            "board": "sexy",
+            "a": 32602,
+            "b": "sexy",
             "locations": [
                 {
                     "a": 37.77728,
