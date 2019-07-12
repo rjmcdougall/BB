@@ -207,8 +207,7 @@ export default class MapController extends Component {
 						followUserMode="compass"
 						followZoomLevel={MP.props.map.zoom}
 						showUserLocation={true} />
-					<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate}
-					/>
+					{ (!this.props.userPrefs.isMonitor) ? (<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} />) : <View></View>}
 					{this.buildMap()}
 				</Mapbox.MapView>
 
