@@ -194,7 +194,7 @@ public class FindMyFriends {
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
         updateBoardLocations(mBoardAddress, 999,
-                lat / 1000000.0, lon / 1000000.0, radioPacket.toByteArray());
+                lat / 1000000.0, lon / 1000000.0, batt, radioPacket.toByteArray());
     }
 
 
@@ -283,7 +283,7 @@ public class FindMyFriends {
                 mIotClient.sendUpdate("bbevent", "[" +
                         mRFAddress.boardAddressToName(mTheirAddress) + "," +
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
-                updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, packet.clone());
+                updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt ,packet.clone());
                 return true;
             } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
                 d("tracker packet");
@@ -338,7 +338,9 @@ public class FindMyFriends {
 
     private class boardLocationHistory {
         public String board;
-        public int address;
+        public int a;
+        public int b;
+
         List<locationHistory> locations = new ArrayList<>();
         public void AddLocationHistory(long lastHeardDate, double latitude, double longitude){
             int MAX_AGE = 15;
@@ -378,7 +380,7 @@ public class FindMyFriends {
 
             }
             catch(Exception e){
-                l("Error Adding a Location History for " + address + " " + e.getMessage());
+                l("Error Adding a Location History for " + a + " " + e.getMessage());
             }
         }
     }
@@ -386,7 +388,7 @@ public class FindMyFriends {
 
 
 
-    public void updateBoardLocations(int address, int sigstrength, double lat, double lon, byte[] locationPacket) {
+    public void updateBoardLocations(int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket) {
 
         boardLocation loc = new boardLocation();
 
@@ -412,7 +414,8 @@ public class FindMyFriends {
             else {
                 blh = new boardLocationHistory();
             }
-            blh.address = loc.address;
+            blh.a = loc.address;
+            blh.b = bat;
             blh.AddLocationHistory(loc.lastHeardDate,lat,lon);
             mBoardLocationHistory.put(address,blh);
 
@@ -449,7 +452,7 @@ public class FindMyFriends {
         List<boardLocationHistory> locs = new ArrayList<>(mBoardLocationHistory.values());
         try {
             for (boardLocationHistory b : locs){
-                b.board = mRFAddress.boardAddressToName(b.address);
+                b.board = mRFAddress.boardAddressToName(b.a);
             }
             //list = new JSONArray(valuesList);
             list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocationHistory>>() {}.getType());
