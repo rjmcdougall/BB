@@ -215,7 +215,8 @@ export default class MapController extends Component {
 				{(this.state.boardPicked) ? (
 					<Bubble>
 						<Text>{this.state.boardPicked.board}</Text>
-						<Text>{this.lastHeardBoardDate()}</Text>
+						<Text>last heard: {this.lastHeardBoardDate()}</Text>
+						<Text>battery: {this.state.boardPicked.b}%</Text>
 					</Bubble>
 				) : <View />}
 
