@@ -206,9 +206,7 @@ export default class BoardManager extends Component {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
 		this.handlerDisconnect.remove();
-		this.handlerNewData.remove();
-		if (this.state.backgroundLoop)
-			clearInterval(this.state.backgroundLoop);
+		this.handlerNewData.remove(); 
 	}
 
 	async handleDisconnectedPeripheral(data) {
@@ -225,12 +223,9 @@ export default class BoardManager extends Component {
 			if (this.state.connectedPeripheral) {
 				if (peripheral == this.state.connectedPeripheral.id) {
 					this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime) / 1000) + " seconds", true, dev);
-					if (this.state.backgroundLoop)
-						clearInterval(this.state.backgroundLoop);
 					this.setState({
 						connectedPeripheral: StateBuilder.blankMediaState().peripheral,
-						mediaState: StateBuilder.blankMediaState(),
-						backgroundLoop: null,
+						mediaState: StateBuilder.blankMediaState()
 					});
 				}
 			}
@@ -260,10 +255,7 @@ export default class BoardManager extends Component {
 
 		if (!this.state.scanning) {
 			try {
-
-				if (this.state.backgroundLoop)
-					clearInterval(this.state.backgroundLoop);
-
+ 
 				if (this.state.connectedPeripheral)
 					if (this.state.connectedPeripheral.id != "12345") {
 						await BleManager.disconnect(this.state.connectedPeripheral.id);
@@ -274,8 +266,7 @@ export default class BoardManager extends Component {
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
 					boardBleDevices: new Map(),
-					automaticallyConnect: automaticallyConnect,
-					backgroundLoop: null,
+					automaticallyConnect: automaticallyConnect
 				});
 
 				this.l("Scanning with automatic connect: " + automaticallyConnect, false, null);
@@ -309,16 +300,12 @@ export default class BoardManager extends Component {
 
 				var boardName = peripheral.name;
 
-				if (this.state.backgroundLoop)
-					clearInterval(this.state.backgroundLoop);
-
 				this.setState({
 					connectedPeripheral: peripheral,
 					mediaState: StateBuilder.blankMediaState(),
 					showScreen: Constants.MEDIA_MANAGEMENT,
 					boardName: boardName,
 					scanning: false,
-					backgroundLoop: null,
 				});
 
 				await this.startScan(true);
@@ -486,16 +473,13 @@ export default class BoardManager extends Component {
 
 			try {
 				await BleManager.disconnect(this.state.connectedPeripheral.id);
-				if (this.state.backgroundLoop)
-					clearInterval(this.state.backgroundLoop);
 
 				this.setState({
 					//	boardBleDevices: new Map(),
 					appState: "",
 					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
 					mediaState: StateBuilder.blankMediaState(),
-					showScreen: Constants.DISCOVER,
-					backgroundLoop: null,
+					showScreen: Constants.DISCOVER
 				});
 			}
 			catch (error) {
@@ -627,16 +611,17 @@ export default class BoardManager extends Component {
 				if (this.state.connectedPeripheral) {
 					if (this.state.connectedPeripheral.connected) {
 						try {
-							await this.sendCommand(this.state.mediaState, "Location", 600);
+							await this.sendCommand(this.state.mediaState, "Location", "");
 						}
 						catch (error) {
 							this.l("Location Loop Failed:" + error, true, null);
 						}
 					}
+					else
+						this.l("Skip Location Loop. Not connected.", false, null);
 				}
-
-
-
+				else
+					this.l("Skip Location Loop. Not connected.", false, null);
 			}
 		}, Constants.LOCATION_CHECK_INTERVAL());
 		this.setState({ backgroundLoop: backgroundTimer });
