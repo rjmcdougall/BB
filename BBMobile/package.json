@@ -4,11 +4,11 @@
   "private": true,
   "devDependencies": {
     "babel-eslint": "^10.0.2",
-    "eslint": "^5.16.0",
+    "eslint": "^6.0.1",
     "eslint-config-google": "^0.13.0",
     "eslint-plugin-react": "^7.14.2",
     "eslint-plugin-react-native": "^3.7.0",
-    "metro-react-native-babel-preset": "^0.54.0",
+    "metro-react-native-babel-preset": "^0.55.0",
     "react-native-scripts": "2.0.1"
   },
   "main": "./node_modules/react-native-scripts/build/bin/crna-entry.js",
@@ -35,7 +35,7 @@
     "react-native-modal-dropdown": "^0.6.2",
     "react-native-platform-touchable": "^1.1.1",
     "react-native-slider": "^0.11.0",
-    "react-native-vector-icons": "^6.4.2",
+    "react-native-vector-icons": "^6.6.0",
     "react-native-wheel-picker": "^1.2.0"
   }
 }
