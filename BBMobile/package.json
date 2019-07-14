@@ -29,7 +29,7 @@
     "react": "^16.8.6",
     "react-native": "^0.59.9",
     "react-native-animated-bar": "^0.2.0",
-    "react-native-ble-manager": "^6.6.4",
+    "react-native-ble-manager": "^6.6.8",
     "react-native-cli": "^2.0.1",
     "react-native-flip-toggle-button": "^1.0.5",
     "react-native-modal-dropdown": "^0.6.2",
