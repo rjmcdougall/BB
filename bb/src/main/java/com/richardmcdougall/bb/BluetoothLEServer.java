@@ -72,13 +72,13 @@ public class BluetoothLEServer {
 
     public BluetoothLEServer(BBService service, Context context) {
 
-        mBBService = service;
-        mContext = context;
-        mHandler = new Handler(Looper.getMainLooper());
-        mBoardId = service.getBoardId();
-        mBluetoothConnManager = service.mBluetoothConnManager;
-        mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
+    mBBService = service;
+    mContext = context;
+    mHandler = new Handler(Looper.getMainLooper());
+    mBoardId = service.getBoardId();
+    mBluetoothConnManager = service.mBluetoothConnManager;
+    mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
+    BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
 
         // We can't continue without proper Bluetooth support
         if (bluetoothAdapter == null) {
@@ -163,24 +163,41 @@ public class BluetoothLEServer {
     private final HashMap<BluetoothDevice, ByteArrayOutputStream> mReceiveBuffers = new HashMap<>();
 
    public void tx(BluetoothDevice device, final byte[] data) {
-        ByteArrayInputStream buffer = new ByteArrayInputStream(data);
-        byte [] txBuf = new byte[20];
-        int nBytes;
-        while ((nBytes = buffer.read(txBuf,0, 18)) > 0) {
-            byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
-            mTxCharacteristic.setValue(sendBuf);
-            //l("Notifying...");
 
-            // PREVENT BUFFER ISSUES / OVERFLOW
-            try {
-                Thread.sleep(15,0);
-            } catch (Exception e) {
-            }
-            
-            boolean status = mBluetoothGattServer.notifyCharacteristicChanged(device,
-                    mTxCharacteristic, false);
-            //l("notify: " + status);
-        }
+       // a thread is required here because the sleep interferes with the mp4's being displayed.
+       // the thread terminates immediately after completion.
+       Thread t = new Thread(new Runnable() {
+           public void run() {
+               try {
+                   Thread.currentThread().setName("Bluetooth TX Response.");
+                   l("Creating Thread to service Bluetooth tx response");
+
+                   ByteArrayInputStream buffer = new ByteArrayInputStream(data);
+                   byte [] txBuf = new byte[20];
+                   int nBytes;
+                   while ((nBytes = buffer.read(txBuf,0, 18)) > 0) {
+                       byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
+                       mTxCharacteristic.setValue(sendBuf);
+                       //l("Notifying...");
+
+                       // PREVENT BUFFER ISSUES / OVERFLOW
+                       try {
+                           Thread.sleep(15,0);
+                       } catch (Exception e) {
+                       }
+
+                       boolean status = mBluetoothGattServer.notifyCharacteristicChanged(device,
+                               mTxCharacteristic, false);
+                       //l("notify: " + status);
+                   }
+               }
+               catch(Exception e){
+                   l("Bluetooth tx response failed.");
+               }
+               return;
+           }
+       });
+       t.start();
     }
 
 
