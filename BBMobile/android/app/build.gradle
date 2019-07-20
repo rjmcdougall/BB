@@ -76,6 +76,7 @@ project.ext.react = [
         entryFile: "index.js",
 // the root of your project, i.e. where "package.json" lives
         root: "../../",
+        enableHermes: true  // clean and rebuild if changing
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"
