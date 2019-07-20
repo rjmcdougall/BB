@@ -20,7 +20,7 @@ import ContentResolver from './ContentResolver';
 var cr = new ContentResolver();
 
 var AsyncLock = require("async-lock");
-var lock = new AsyncLock();
+var lock = new AsyncLock({timeout: 5000});
 import { stringToBytes } from "convert-string";
 
 const BleManagerModule = NativeModules.BleManager;
@@ -153,7 +153,7 @@ export default class BoardManager extends Component {
 
 	handleNewData(newData) {
 		try {
-
+			var bm = this;
 			var rxBuffers = this.state.rxBuffers;
 			// Convert bytes array to string
 			var data = newData.value;
@@ -169,15 +169,24 @@ export default class BoardManager extends Component {
 						tmpData.copy(tmpDataBuffer, 0, 0, tmpDataLen);
 						rxBuffers.push(tmpDataBuffer);
 					}
-					var newMessage = Buffer.concat(rxBuffers);
-					var newState = JSON.parse(newMessage.toString("ascii"));
-					this.l("new data", false, newState);
-					// Setup the app-specific mediaState structure
-					this.setState({ mediaState: this.updateMediaState(this.state.mediaState, newState) });
+					try {
+						var newMessage = Buffer.concat(rxBuffers);
+						var newState = JSON.parse(newMessage.toString("ascii"));
+						this.l("new data", false, newState);
+						// Setup the app-specific mediaState structure
+						this.setState({ mediaState: this.updateMediaState(this.state.mediaState, newState) });	
+					}
+					catch (error) {
+						this.l("Bad JSON detected. Update succeeded but the app does not reflect that.  slow down pushing commads!", true, newState);
+					}
 					rxBuffers = [];
 					this.setState({ rxBuffers: rxBuffers });
 					tmpData = Buffer.alloc(1024);
 					tmpDataLen = 0;
+					lock.acquire("send", async function (done) {
+						console.log("lock released");
+						done();
+					});
 				} else {
 					// Add characters to buffer
 					if (oneChar > 0) {
@@ -435,7 +444,8 @@ export default class BoardManager extends Component {
 			this.l("send command " + command + " on device " + this.state.connectedPeripheral.name, false);
 
 			var bm = this;
-			lock.acquire("send", async function (done) {
+			console.log("aquire lock");
+			lock.acquire("send", async function () {
 				// async work
 				try {
 					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
@@ -449,10 +459,7 @@ export default class BoardManager extends Component {
 					bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
 					bm.l("getstate: " + error, true);
 				}
-				done();
 			}, function () {
-				// lock released
-				bm.l("send command " + command + " " + arg + " done on device " + bm.state.connectedPeripheral.name, false, null);
 				return true;
 			});
 		}
