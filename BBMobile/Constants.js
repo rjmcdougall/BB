@@ -77,7 +77,7 @@ exports.RETRIEVE_SERVICES_SLEEP = function () {
 
 exports.SET_NOTIFICATIONS_SLEEP = function () {
 	if (module.exports.IS_ANDROID)
-		return 0;
+		return 1000;
 	else
 		return 0;
 };

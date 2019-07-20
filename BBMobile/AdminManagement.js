@@ -43,7 +43,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand(this.props.mediaState, "EnableGTFO", !this.props.mediaState.state.GTFO);
+								await this.props.sendCommand("EnableGTFO", !this.props.mediaState.state.GTFO);
 								return true;
 							}}
 							style={[{ backgroundColor: (this.props.mediaState.state.GTFO) ? "green" : "skyblue"  }]}
@@ -55,7 +55,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand(this.props.mediaState, "EnableMaster", !this.props.mediaState.state.audioMaster);
+								await this.props.sendCommand("EnableMaster", !this.props.mediaState.state.audioMaster);
 								return true;
 							}}
 							style={[{ backgroundColor: (this.props.mediaState.state.audioMaster) ? "green" : "skyblue"  }]}
@@ -68,7 +68,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand(this.props.mediaState, "BlockMaster", !this.props.mediaState.state.blockMaster);
+								await this.props.sendCommand("BlockMaster", !this.props.mediaState.state.blockMaster);
 								return true;
 							}}
 							style={[{ backgroundColor: blockMasterBackgroundColor }]}
@@ -78,7 +78,7 @@ export default class AdminManagement extends Component {
 						</Touchable>
 					</View>
 					<View style={{ height: 50 }}></View>
-					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand(this.props.mediaState, "Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
+					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand("Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>

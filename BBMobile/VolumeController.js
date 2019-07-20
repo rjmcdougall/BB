@@ -29,7 +29,7 @@ export default class VolumeController extends React.Component {
 						minimumTrackTintColor="blue"
 						onSlidingComplete={async (volume) => {
 							try {
-								await this.props.sendCommand(this.props.mediaState, "Volume", volume);
+								await this.props.sendCommand("Volume", volume);
 							}
 							catch (error) {
 								console.log("VolumeController Error: " + error);

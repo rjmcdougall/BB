@@ -19,12 +19,13 @@ var bBoardData = [{ name: "none", address: 1234 }]; //    { "color": "coral", "a
 
 var bLocations = [];
 
+var bPeripheral = {
+					name: "loading...",
+					id: "12345",
+					connectionStatus: Constants.DISCONNECTED,
+				}
+
 var bEmptyMediaState = {
-	connectedPeripheral: {
-		name: "loading...",
-		id: "12345",
-		connState: "DISCONNECTED",
-	},
 	//audio: [null, { channelNo: 1, channelInfo: "loading..." }],
 	audio: [{ localName: "loading..." }],
 	video: [{ localName: "loading..." }],
@@ -52,6 +53,10 @@ var bEmptyMediaState = {
 	apiLocations: [], //[{board: "sexy", latitude: 37.759305, longitude: -122.450425, dateTime: "2019-04-02T04:50:31.488000"}]
 	isError: false,
 };
+
+exports.blankPeripheral = function() {
+	return JSON.parse(JSON.stringify(bPeripheral));
+}
 
 exports.blankBoardData = function() {
 	return JSON.parse(JSON.stringify(bBoardData));

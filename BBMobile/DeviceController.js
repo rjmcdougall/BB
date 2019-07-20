@@ -44,7 +44,7 @@ export default class DeviceController extends Component {
 					<Touchable
 						onPress={async () => {
 							try {
-								await this.props.sendCommand(this.props.mediaState, "BTScan", null);
+								await this.props.sendCommand("BTScan", null);
 								return true;
 							}
 							catch (error) {

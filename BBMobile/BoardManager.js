@@ -35,7 +35,7 @@ export default class BoardManager extends Component {
 			scanning: false,
 			boardBleDevices: new Map(),
 			appState: "",
-			connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+			connectedPeripheral: StateBuilder.blankPeripheral(),
 			mediaState: StateBuilder.blankMediaState(),
 			showScreen: Constants.MEDIA_MANAGEMENT,
 			automaticallyConnect: true,
@@ -218,13 +218,13 @@ export default class BoardManager extends Component {
 			var dev = this.state.boardBleDevices.get(peripheral);
 			if (dev != null) {
 				this.l("Disconnected from " + dev.name, false, dev);
-				dev.connected = Constants.DISCONNECTED;
+				dev.connectionStatus = Constants.DISCONNECTED;
 			}
 			if (this.state.connectedPeripheral) {
 				if (peripheral == this.state.connectedPeripheral.id) {
 					this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime) / 1000) + " seconds", true, dev);
 					this.setState({
-						connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+						connectedPeripheral: StateBuilder.blankPeripheral(),
 						mediaState: StateBuilder.blankMediaState()
 					});
 				}
@@ -262,7 +262,7 @@ export default class BoardManager extends Component {
 					}
 
 				this.setState({
-					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+					connectedPeripheral: StateBuilder.blankPeripheral(),
 					mediaState: StateBuilder.blankMediaState(),
 					scanning: true,
 					boardBleDevices: new Map(),
@@ -285,10 +285,14 @@ export default class BoardManager extends Component {
 	async onSelectPeripheral(peripheral) {
 		if (peripheral) {
 
-			if (peripheral.connected == Constants.CONNECTED) {
+			var boardBLEDevices = this.state.boardBleDevices;
+
+			if (peripheral.connectionStatus != Constants.DISCONNECTED) {
 				try {
 					this.l("Disconnecting BLE From " + peripheral.name, false, null);
 					await BleManager.disconnect(peripheral.id);
+					peripheral.connectionStatus = Constants.DISCONNECTED;
+					boardBLEDevices.set(peripheral.id, peripheral);
 				}
 				catch (error) {
 					this.l("Failed to Disconnect" + error, true, null);
@@ -302,6 +306,7 @@ export default class BoardManager extends Component {
 
 				this.setState({
 					connectedPeripheral: peripheral,
+					boardBLEDevices: boardBLEDevices,
 					mediaState: StateBuilder.blankMediaState(),
 					showScreen: Constants.MEDIA_MANAGEMENT,
 					boardName: boardName,
@@ -358,11 +363,10 @@ export default class BoardManager extends Component {
 
 		return mediaState;
 	}
-	z
+	
 	async createMediaState(peripheral) {
 		try {
 			var mediaState = StateBuilder.blankMediaState();
-			mediaState.connectedPeripheral = peripheral;
 
 			this.l("Getting BLE Data for " + peripheral.name, false, null);
 			mediaState = await this.refreshMediaState(mediaState);
@@ -388,12 +392,12 @@ export default class BoardManager extends Component {
 
 	async refreshMediaState(mediaState) {
 
-		if (mediaState.connectedPeripheral) {
+		if (this.state.connectedPeripheral) {
 			try {
 				this.l("requesting media state ", false, null);
-				var audio = await Cache.get(Constants.AUDIOPREFIX + mediaState.connectedPeripheral.name);
-				var video = await Cache.get(Constants.VIDEOPREFIX + mediaState.connectedPeripheral.name);
-				var btdevices = await Cache.get(Constants.BTDEVICESPREFIX + mediaState.connectedPeripheral.name);
+				var audio = await Cache.get(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name);
+				var video = await Cache.get(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name);
+				var btdevices = await Cache.get(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name);
 
 				if (audio != null && video != null) {
 
@@ -402,12 +406,12 @@ export default class BoardManager extends Component {
 					mediaState.video = video;
 					mediaState.devices = btdevices;
 
-					if (await this.sendCommand(mediaState, "Location", "") == false) {
+					if (await this.sendCommand("Location", "") == false) {
 						return mediaState;
 					}
 				}
 				else {
-					if (await this.sendCommand(mediaState, "getall", "") == false) {
+					if (await this.sendCommand("getall", "") == false) {
 						return mediaState;
 					}
 				}
@@ -425,33 +429,30 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	async sendCommand(mediaState, command, arg) {
+	async sendCommand(command, arg) {
 		// Send request command
-		if (mediaState.connectedPeripheral.connected == Constants.CONNECTED) {
-			this.l("send command " + command + " on device " + mediaState.connectedPeripheral.name, false);
+		if (this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
+			this.l("send command " + command + " on device " + this.state.connectedPeripheral.name, false);
 
 			var bm = this;
 			lock.acquire("send", async function (done) {
 				// async work
 				try {
 					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
-					await BleManager.write(mediaState.connectedPeripheral.id,
+					await BleManager.write(bm.state.connectedPeripheral.id,
 						Constants.UARTservice,
 						Constants.txCharacteristic,
 						data,
 						18); // MTU Size
-
-					bm.l("successfully requested " + command, false);
-
 				}
 				catch (error) {
-					mediaState.connectedPeripheral.connected = false;
+					bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
 					bm.l("getstate: " + error, true);
 				}
 				done();
 			}, function () {
 				// lock released
-				bm.l("send command " + command + " " + arg + " done on device " + mediaState.connectedPeripheral.name, false, null);
+				bm.l("send command " + command + " " + arg + " done on device " + bm.state.connectedPeripheral.name, false, null);
 				return true;
 			});
 		}
@@ -460,7 +461,7 @@ export default class BoardManager extends Component {
 		}
 	}
 	onSelectAudioTrack = async function (idx) {
-		await this.sendCommand(this.state.mediaState, "Audio", idx);
+		await this.sendCommand("Audio", idx);
 	}
 
 	async onLoadAPILocations() {
@@ -477,7 +478,7 @@ export default class BoardManager extends Component {
 				this.setState({
 					//	boardBleDevices: new Map(),
 					appState: "",
-					connectedPeripheral: StateBuilder.blankMediaState().peripheral,
+					connectedPeripheral: StateBuilder.blankperipheral(),
 					mediaState: StateBuilder.blankMediaState(),
 					showScreen: Constants.DISCOVER
 				});
@@ -487,7 +488,7 @@ export default class BoardManager extends Component {
 			}
 		}
 	}
-
+ 
 	async handleDiscoverPeripheral(peripheral) {
 		try {
 
@@ -498,11 +499,11 @@ export default class BoardManager extends Component {
 
 				this.l("BoardManager Found New Peripheral:" + peripheral.name, false, null);
 
-				peripheral.connected = Constants.DISCONNECTED;
+				peripheral.connectionStatus = Constants.DISCONNECTED;
 
 				var boardBleDeviceArray = Array.from(boardBleDevices.values());
 				var bleBoardDeviceExists = boardBleDeviceArray.filter((board) => {
-					if (board.id == peripheral.id)
+					if (board.name == peripheral.name && board.id != peripheral)
 						return true;
 				});
 
@@ -515,9 +516,10 @@ export default class BoardManager extends Component {
 			}
 
 			// if it is your default peripheral, connect automatically.
-			if (peripheral.name == this.state.boardName) {
+			if (this.state.automaticallyConnect && peripheral.name == this.state.boardName) {
 				await this.connectToPeripheral(peripheral);
 			}
+
 		}
 		catch (error) {
 			this.l("BoardManager Found Peripheral Error:" + error, true, null);
@@ -528,49 +530,58 @@ export default class BoardManager extends Component {
 
 		// Update state 
 		var boardBleDevices = this.state.boardBleDevices;
-		var boardBleDevice = this.state.boardBleDevices.get(peripheral.id);
+		var boardBleDevice = boardBleDevices.get(peripheral.id);
+
 		try {
-			this.setState({
-				connectedPeripheral: boardBleDevice,
-			});
 
-			if (this.state.automaticallyConnect) {
+			if (boardBleDevice.connectionStatus == Constants.DISCONNECTED) {
+				this.l("Automatically Connecting To: " + peripheral.name, false, null);
 
-				if (boardBleDevice.connected == Constants.DISCONNECTED) {
-					this.l("Automatically Connecting To: " + peripheral.name, false, null);
+				// Update status 
+				boardBleDevice.connectionStatus = Constants.CONNECTING;
+				boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+
+				this.setState({
+					connectedPeripheral: boardBleDevice,
+					boardBleDevices: boardBleDevices,
+				});
+
+				try {
+					await BleManager.connect(boardBleDevice.id);
+					await this.sleep(Constants.CONNECT_SLEEP());
+					this.l("Retreiving services", false, null);
+					await BleManager.retrieveServices(boardBleDevice.id);
+					await this.sleep(Constants.RETRIEVE_SERVICES_SLEEP());
+
+					// Can't await setNotificatoon due to a bug in blemanager (missing callback)
+					this.setNotificationRx(boardBleDevice.id);
+					// Sleep until it's done (guess)
+					await this.sleep(Constants.SET_NOTIFICATIONS_SLEEP());
 
 					// Update status 
-					boardBleDevice.connected = Constants.CONNECTING;
+					boardBleDevice.connectionStatus = Constants.CONNECTED;
+					boardBleDevice.connectionStartTime = new Date();
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 
-					try {
-						await BleManager.connect(boardBleDevice.id);
-						await this.sleep(Constants.CONNECT_SLEEP());
-						this.l("Retreiving services", false, null);
-						await BleManager.retrieveServices(boardBleDevice.id);
-						await this.sleep(Constants.RETRIEVE_SERVICES_SLEEP());
+					// Now go setup and read all the state for the first time
+					var mediaState = await this.createMediaState(boardBleDevice);
+					this.setState({
+						mediaState: mediaState,
+						connectedPeripheral: boardBleDevice,
+						boardBleDevices: boardBleDevices,
+					});
 
-						// Can't await setNotificatoon due to a bug in blemanager (missing callback)
-						this.setNotificationRx(boardBleDevice.id);
-						// Sleep until it's done (guess)
-						await this.sleep(Constants.SET_NOTIFICATIONS_SLEEP());
+				} catch (error) {
+					this.l("Error connecting: " + error, true, null);
 
-						// Update status 
-						boardBleDevice.connected = Constants.CONNECTED;
-						boardBleDevice.connectionStartTime = new Date();
-						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
+					// Update status 
+					boardBleDevice.connectionStatus = Constants.DISCONNECTED;
+					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 
-						// Now go setup and read all the state for the first time
-						var mediaState = await this.createMediaState(boardBleDevice);
-						this.setState({ mediaState: mediaState });
-
-					} catch (error) {
-						this.l("Error connecting: " + error, true, null);
-
-						// Update status 
-						boardBleDevice.connected = Constants.DISCONNECTED;
-						boardBleDevices.set(boardBleDevice.id, boardBleDevice);
-					}
+					this.setState({
+						connectedPeripheral: boardBleDevice,
+						boardBleDevices: boardBleDevices,
+					});
 				}
 			}
 		}
@@ -609,9 +620,9 @@ export default class BoardManager extends Component {
 			}
 			else {
 				if (this.state.connectedPeripheral) {
-					if (this.state.connectedPeripheral.connected) {
+					if (this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
 						try {
-							await this.sendCommand(this.state.mediaState, "Location", "");
+							await this.sendCommand("Location", "");
 						}
 						catch (error) {
 							this.l("Location Loop Failed:" + error, true, null);
@@ -638,13 +649,7 @@ export default class BoardManager extends Component {
 			boardName = this.state.boardName;
 
 		if (this.state.connectedPeripheral) {
-
-			var connected = this.state.connectedPeripheral.connected;
-
-			if (!connected) {
-				connected = Constants.DISCONNECTED;
-			}
-
+ 
 			if (this.state.mediaState.video.localName != "loading..."
 				&& this.state.mediaState.audio.localName != "loading..."
 				&& this.state.mediaState.state.volume != -1) {
@@ -653,7 +658,7 @@ export default class BoardManager extends Component {
 				connectionButtonText = "Loaded " + boardName;
 			}
 			else {
-				switch (connected) {
+				switch (this.state.connectedPeripheral.connectionStatus) {
 					case Constants.DISCONNECTED:
 						color = "#fff";
 						enableControls = "none";

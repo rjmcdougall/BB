@@ -120,7 +120,7 @@ export default class TrackController extends Component {
 									}
 	
 									this.setState({ selectedTrack: value });
-									await this.props.sendCommand(this.props.mediaState, this.props.mediaType, value);	
+									await this.props.sendCommand(this.props.mediaType, value);	
 								}
 								catch(error) {
 									console.log(error);
