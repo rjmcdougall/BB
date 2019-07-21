@@ -46,6 +46,7 @@ export default class BoardManager extends Component {
 			map: StateBuilder.blankMap(),
 			boardData: StateBuilder.blankBoardData(),
 			locations: StateBuilder.blankLocations(),
+			isWaitingOnData: false,
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -180,13 +181,11 @@ export default class BoardManager extends Component {
 						this.l("Bad JSON detected. Update succeeded but the app does not reflect that.  slow down pushing commads!", true, newState);
 					}
 					rxBuffers = [];
-					this.setState({ rxBuffers: rxBuffers });
+					this.setState({ rxBuffers: rxBuffers,
+									isWaitingOnData: false, });
 					tmpData = Buffer.alloc(1024);
 					tmpDataLen = 0;
-					lock.acquire("send", async function (done) {
-						console.log("lock released");
-						done();
-					});
+					console.log("release lock");
 				} else {
 					// Add characters to buffer
 					if (oneChar > 0) {
@@ -207,7 +206,9 @@ export default class BoardManager extends Component {
 		} catch (error) {
 			this.l("handleNewData error: " + error, true, newMessage);
 			rxBuffers = [];
-			this.setState({ rxBuffers: rxBuffers });
+			this.setState({ rxBuffers: rxBuffers,
+				isWaitingOnData: false, });
+			console.log("release lock");
 		}
 	}
 
@@ -444,16 +445,23 @@ export default class BoardManager extends Component {
 			this.l("send command " + command + " on device " + this.state.connectedPeripheral.name, false);
 
 			var bm = this;
-			console.log("aquire lock");
-			lock.acquire("send", async function () {
-				// async work
+			
+			lock.acquire("send", async function (done) {
+				console.log("aquire lock");
+				
 				try {
+					while(bm.state.isWaitingOnData){
+						await bm.sleep(50);
+					}
+					bm.setState({isWaitingOnData: true});
 					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
 					await BleManager.write(bm.state.connectedPeripheral.id,
 						Constants.UARTservice,
 						Constants.txCharacteristic,
 						data,
 						18); // MTU Size
+					
+					done();
 				}
 				catch (error) {
 					bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
