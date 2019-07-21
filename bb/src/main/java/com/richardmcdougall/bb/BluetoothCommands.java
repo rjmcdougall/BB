@@ -12,6 +12,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class BluetoothCommands {
@@ -45,6 +46,88 @@ public class BluetoothCommands {
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
     }
 
+    public JSONArray Boards() {
+        JSONArray boards = mBBService.dlManager.GetDataBoards();
+        JSONArray boards2 = null;
+        if (boards == null) {
+           l( "Could not get boards directory (null)");
+        }
+        if (boards != null) {
+            try {
+
+                boards2 = new JSONArray(boards.toString()) ;
+                for (int i = 0; i < boards2.length(); i++) {
+                    JSONObject a = boards2.getJSONObject(i);
+                    if(a.has("address"))  a.remove("address");
+                    if(a.has("isProfileGlobal"))  a.remove("isProfileGlobal");
+                    if(a.has("profile"))   a.remove("profile");
+                    if(a.has("isProfileGlobal2"))  a.remove("isProfileGlobal2");
+                    if(a.has("profile2"))   a.remove("profile2");
+                    if(a.has("type"))  a.remove("type");
+                }
+            } catch (Exception e) {
+                l( "Could not get boards directory: " + e.getMessage());
+            }
+        }
+        return boards2;
+    }
+
+    public JSONArray AudioMedia(){
+
+        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
+        JSONObject media = mBBService.dlManager.GetDataDirectory();
+        JSONArray audio = null;
+        if (media == null) {
+            l("Could not get media directory (null)");
+        }
+        if (media != null) {
+            try {
+
+                audio = new JSONArray(media.getJSONArray("audio").toString()) ;
+                for (int i = 0; i < audio.length(); i++) {
+                    JSONObject a = audio.getJSONObject(i);
+                    if(a.has("URL"))  a.remove("URL");
+                    if(a.has("ordinal"))  a.remove("ordinal");
+                    if(a.has("Size"))   a.remove("Size");
+                    if(a.has("Length"))  a.remove("Length");
+                }
+
+            } catch (Exception e) {
+               l( "Could not get media directory: " + e.getMessage());
+            }
+        }
+        return audio;
+    }
+
+    public JSONArray VideoMedia(){
+
+        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
+        JSONObject media = mBBService.dlManager.GetDataDirectory();
+        JSONArray video = null;
+
+        if (media == null) {
+            l("Could not get media directory (null)");
+        }
+        if (media != null) {
+            try {
+
+                video = new JSONArray(media.getJSONArray("video").toString());
+                for (int i = 0; i < video.length(); i++) {
+                    JSONObject v = video.getJSONObject(i);
+                    if(v.has("URL")) v.remove("URL");
+                    if(v.has("ordinal"))v.remove("ordinal");
+                    if(v.has("Size"))v.remove("Size");
+                    if(v.has("SpeachCue"))v.remove("SpeachCue");
+                    if(v.has( "Length"))v.remove( "Length");
+                }
+
+            } catch (Exception e) {
+                l( "Could not get media directory: " + e.getMessage());
+            }
+        }
+        return video;
+    }
+
     public void init() {
         // Register getstate command on bluetooth server
         mBLEServer.addCallback("getall",
@@ -68,62 +151,31 @@ public class BluetoothCommands {
                         } catch (Exception e) {
                             error = "Could not insert command: " + e.getMessage();
                         }
-
-                        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
-                        JSONObject media = mBBService.dlManager.GetDataDirectory();
-                        if (media == null) {
-                            error = "Could not get media directory (null)";
+                        try{
+                            response.put("boards", Boards());
                         }
-                        if (media != null) {
-                            try {
-
-                                JSONArray audio = new JSONArray(media.getJSONArray("audio").toString()) ;
-                                for (int i = 0; i < audio.length(); i++) {
-                                    JSONObject a = audio.getJSONObject(i);
-                                    if(a.has("URL"))  a.remove("URL");
-                                    if(a.has("ordinal"))  a.remove("ordinal");
-                                    if(a.has("Size"))   a.remove("Size");
-                                    if(a.has("Length"))  a.remove("Length");
-                                }
+                        catch(JSONException e){
+                            l(e.getMessage());
+                        }
+                        try{
+                            JSONArray audio = AudioMedia();
+                            if(audio==null)
+                                l("Empty Audio");
+                            else
                                 response.put("audio", audio);
-
-                                JSONArray video = new JSONArray(media.getJSONArray("video").toString());
-                                for (int i = 0; i < video.length(); i++) {
-                                    JSONObject v = video.getJSONObject(i);
-                                    if(v.has("URL")) v.remove("URL");
-                                    if(v.has("ordinal"))v.remove("ordinal");
-                                    if(v.has("Size"))v.remove("Size");
-                                    if(v.has("SpeachCue"))v.remove("SpeachCue");
-                                    if(v.has( "Length"))v.remove( "Length");
-                                }
+                        }
+                        catch(JSONException e){
+                            l(e.getMessage());
+                        }
+                        try {
+                            JSONArray video = VideoMedia();
+                            if(video==null)
+                                l("Empty VideoMedia");
+                            else
                                 response.put("video", video);
-
-                            } catch (Exception e) {
-                                error = "Could not get media directory: " + e.getMessage();
-                            }
                         }
-
-                         JSONArray boards = mBBService.dlManager.GetDataBoards();
-                        if (boards == null) {
-                            error = "Could not get boards directory (null)";
-                        }
-                        if (boards != null) {
-                            try {
-
-                                JSONArray boards2 = new JSONArray(boards.toString()) ;
-                                for (int i = 0; i < boards2.length(); i++) {
-                                    JSONObject a = boards2.getJSONObject(i);
-                                    if(a.has("address"))  a.remove("address");
-                                    if(a.has("isProfileGlobal"))  a.remove("isProfileGlobal");
-                                    if(a.has("profile"))   a.remove("profile");
-                                    if(a.has("isProfileGlobal2"))  a.remove("isProfileGlobal2");
-                                    if(a.has("profile2"))   a.remove("profile2");
-                                   if(a.has("type"))  a.remove("type");
-                                }
-                                response.put("boards", boards2);
-                            } catch (Exception e) {
-                                error = "Could not get boards directory: " + e.getMessage();
-                            }
+                        catch(JSONException e){
+                            l(e.getMessage());
                         }
 
                         // Bluetooth devices
@@ -138,19 +190,6 @@ public class BluetoothCommands {
                                 error = "Could not get btdevs: " + e.getMessage();
                             }
                         }
-
-                        // Locations for last 10 mins
-//                        JSONArray locations = mFindMyFriends.getBoardLocationsJSON(600);
-//                        if (locations == null) {
-//                            error = "Could not get bt locations (null)";
-//                        }
-//                        if (locations != null) {
-//                            try {
-//                                response.put("locations", locations);
-//                            } catch (Exception e) {
-//                                error = "Could not get locations: " + e.getMessage();
-//                            }
-//                        }
 
                         // Current board state
                         JSONObject state = getState();
@@ -176,6 +215,7 @@ public class BluetoothCommands {
                                 (String.format("%s;", response.toString())).getBytes());
 
                         l("BBservice done getall command");
+                        l(response.toString());
 
                     }
 
