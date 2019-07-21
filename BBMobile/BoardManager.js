@@ -20,7 +20,8 @@ import ContentResolver from './ContentResolver';
 var cr = new ContentResolver();
 
 var AsyncLock = require("async-lock");
-var lock = new AsyncLock({timeout: 5000});
+var lock = new AsyncLock({timeout: Constants.BLE_DATA_FETCH_TIMEOUT});
+
 import { stringToBytes } from "convert-string";
 
 const BleManagerModule = NativeModules.BleManager;
