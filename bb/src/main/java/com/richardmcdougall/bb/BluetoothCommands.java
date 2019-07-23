@@ -129,7 +129,160 @@ public class BluetoothCommands {
     }
 
     public void init() {
-        // Register getstate command on bluetooth server
+
+        mBLEServer.addCallback("getboards",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got getboards OnAction");
+                        String error = null;
+                        JSONObject response = new JSONObject();
+                        try {
+                            response.put("command", command);
+                        } catch (Exception e) {
+                            error = "Could not insert command: " + e.getMessage();
+                        }
+                        try{
+                            response.put("boards", Boards());
+                        }
+                        catch(JSONException e){
+                            l(e.getMessage());
+                        }
+                        if (error != null) {
+                            try {
+                                response.put("error", error);
+                            } catch (Exception e) {
+                            }
+                        } else {
+                            try {
+                                response.put("error", "");
+                            } catch (Exception e) {
+                            }
+                        }
+                        // Send payload back to requesting device
+                        mBLEServer.tx(device,
+                                (String.format("%s;", response.toString())).getBytes());
+
+                        l("BBservice done getboards command");
+                        l(response.toString());
+                    }
+                });
+
+        mBLEServer.addCallback("getaudio",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got getaudio OnAction");
+                        String error = null;
+                        JSONObject response = new JSONObject();
+                        try {
+                            response.put("command", command);
+                        } catch (Exception e) {
+                            error = "Could not insert command: " + e.getMessage();
+                        }
+
+                        try{
+                            JSONArray audio = AudioMedia();
+                            if(audio==null)
+                                l("Empty Audio");
+                            else
+                                response.put("audio", audio);
+                        }
+                        catch(JSONException e){
+                            l(e.getMessage());
+                        }
+                        if (error != null) {
+                            try {
+                                response.put("error", error);
+                            } catch (Exception e) {
+                            }
+                        } else {
+                            try {
+                                response.put("error", "");
+                            } catch (Exception e) {
+                            }
+                        }
+                        // Send payload back to requesting device
+                        mBLEServer.tx(device,
+                                (String.format("%s;", response.toString())).getBytes());
+
+                        l("BBservice done getaudio command");
+                        l(response.toString());
+                    }
+                });
+
+
+        mBLEServer.addCallback("getvideo",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got getvideo OnAction");
+                        String error = null;
+                        JSONObject response = new JSONObject();
+                        try {
+                            response.put("command", command);
+                        } catch (Exception e) {
+                            error = "Could not insert command: " + e.getMessage();
+                        }
+
+                        try {
+                            JSONArray video = VideoMedia();
+                            if(video==null)
+                                l("Empty VideoMedia");
+                            else
+                                response.put("video", video);
+                        }
+                        catch(JSONException e){
+                            l(e.getMessage());
+                        }
+
+                        if (error != null) {
+                            try {
+                                response.put("error", error);
+                            } catch (Exception e) {
+                            }
+                        } else {
+                            try {
+                                response.put("error", "");
+                            } catch (Exception e) {
+                            }
+                        }
+                        // Send payload back to requesting device
+                        mBLEServer.tx(device,
+                                (String.format("%s;", response.toString())).getBytes());
+
+                        l("BBservice done getvideo command");
+                        l(response.toString());
+                    }
+                });
+
         mBLEServer.addCallback("getall",
                 new BluetoothLEServer.BLECallback() {
                     @Override
