@@ -17,11 +17,12 @@ import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
 import { Buffer } from "buffer";
 import ContentResolver from './ContentResolver';
+import {Mutex} from "async-mutex";
+const mutex = new Mutex(); 
+var bleMutex;
+
 var cr = new ContentResolver();
-
-var AsyncLock = require("async-lock");
-var lock = new AsyncLock({timeout: Constants.BLE_DATA_FETCH_TIMEOUT});
-
+ 
 import { stringToBytes } from "convert-string";
 
 const BleManagerModule = NativeModules.BleManager;
@@ -41,13 +42,11 @@ export default class BoardManager extends Component {
 			showScreen: Constants.MEDIA_MANAGEMENT,
 			automaticallyConnect: true,
 			backgroundLoop: null,
-			boardData: [],
 			rxBuffers: [],
 			logLines: StateBuilder.blankLogLines(),
 			map: StateBuilder.blankMap(),
 			boardData: StateBuilder.blankBoardData(),
-			locations: StateBuilder.blankLocations(),
-			isWaitingOnData: false,
+			locations: StateBuilder.blankLocations()
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -63,12 +62,21 @@ export default class BoardManager extends Component {
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
 		this.startScan = this.startScan.bind(this);
 		this.setMap = this.setMap.bind(this);
-
+		this.clearCache = this.clearCache.bind(this);
 	}
 
 
 	setMap(map) {
 		this.setState({ map: map });
+	}
+
+	async clearCache(){
+		await Cache.clear();
+		this.setState({
+			connectedPeripheral: StateBuilder.blankPeripheral(),
+			mediaState: StateBuilder.blankMediaState()
+		});
+		await this.sleep(500);
 	}
 
 	async componentDidMount() {
@@ -174,19 +182,18 @@ export default class BoardManager extends Component {
 					try {
 						var newMessage = Buffer.concat(rxBuffers);
 						var newState = JSON.parse(newMessage.toString("ascii"));
-						this.l("new data", false, newState);
 						// Setup the app-specific mediaState structure
-						this.setState({ mediaState: this.updateMediaState(this.state.mediaState, newState) });	
+						this.updateMediaState(this.state.mediaState, newState);	
 					}
 					catch (error) {
 						this.l("Bad JSON detected. Update succeeded but the app does not reflect that.  slow down pushing commads!", true, newState);
 					}
 					rxBuffers = [];
-					this.setState({ rxBuffers: rxBuffers,
-									isWaitingOnData: false, });
+					this.setState({ rxBuffers: rxBuffers});
 					tmpData = Buffer.alloc(1024);
 					tmpDataLen = 0;
-					console.log("release lock");
+					bleMutex();
+					console.log("BLE Command release lock");
 				} else {
 					// Add characters to buffer
 					if (oneChar > 0) {
@@ -207,8 +214,7 @@ export default class BoardManager extends Component {
 		} catch (error) {
 			this.l("handleNewData error: " + error, true, newMessage);
 			rxBuffers = [];
-			this.setState({ rxBuffers: rxBuffers,
-				isWaitingOnData: false, });
+			this.setState({ rxBuffers: rxBuffers});
 			console.log("release lock");
 		}
 	}
@@ -345,16 +351,19 @@ export default class BoardManager extends Component {
 			if (newMedia.video) {
 				this.l("updated video", false, newMedia.video);
 				mediaState.video = newMedia.video;
+				this.setState({ mediaState: mediaState });
 				Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
 			}
 			if (newMedia.audio) {
 				this.l("updated audio", false, newMedia.audio);
-				Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 				mediaState.audio = newMedia.audio;
+				this.setState({ mediaState: mediaState });
+				Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 			}
 			if (newMedia.state) {
 				this.l("updated state", false, newMedia.state);
 				mediaState.state = newMedia.state;
+				this.setState({ mediaState: mediaState });
 			}
 			if (newMedia.btdevices) {
 				this.l("updated devices", false, newMedia.btdevices);
@@ -362,6 +371,7 @@ export default class BoardManager extends Component {
 				if (newMedia.btdevices.length > 0) {
 					mediaState.devices = newMedia.btdevices;
 				}
+				this.setState({ mediaState: mediaState });
 			}
 			if (newMedia.locations) {
 				this.l("updated locations", false, newMedia.locations);
@@ -374,21 +384,7 @@ export default class BoardManager extends Component {
 
 		return mediaState;
 	}
-	
-	async createMediaState(peripheral) {
-		try {
-			var mediaState = StateBuilder.blankMediaState();
-
-			this.l("Getting BLE Data for " + peripheral.name, false, null);
-			mediaState = await this.refreshMediaState(mediaState);
-
-			return mediaState;
-		}
-		catch (error) {
-			this.l("Error creating media state " + error, true, null);
-		}
-	}
-
+	 
 	l(logLine, isError, body) {
 		if (logLine != null && isError != null) {
 			var logArray = this.state.logLines;
@@ -401,76 +397,85 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	async refreshMediaState(mediaState) {
-
+	async refreshMediaState() {
+ 
 		if (this.state.connectedPeripheral) {
-			try {
-				this.l("requesting media state ", false, null);
-				var audio = await Cache.get(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name);
-				var video = await Cache.get(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name);
-				var btdevices = await Cache.get(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name);
 
-				if (audio != null && video != null) {
+			this.l("requesting media state ", false, null);
 
-					this.l("AV found in cache, skipping", false, audio.concat(video));
-					mediaState.audio = audio;
-					mediaState.video = video;
-					mediaState.devices = btdevices;
+			this.setState({ mediaState: StateBuilder.blankMediaState() });
+			var mediaState = StateBuilder.blankMediaState();
 
-					if (await this.sendCommand("Location", "") == false) {
-						return mediaState;
-					}
-				}
-				else {
-					if (await this.sendCommand("getall", "") == false) {
-						return mediaState;
-					}
-				}
-
-				return mediaState;
+			try{
+				var boards = await Cache.get(Constants.BOARDS);	
+				if(boards)			
+					this.l("boards found in cache, skipping", false, boards);
+				else
+				 	await this.sendCommand("getboards", "");
 			}
 			catch (error) {
-
 				this.l("Refresh Media Error: " + error, true);
-				return mediaState;
 			}
-		}
-		else {
-			return mediaState;
+
+			try {
+				var audio = await Cache.get(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name);
+				if (audio) {
+					this.l("audio found in cache, skipping", false, audio);
+					mediaState.audio = audio;
+					this.setState({ mediaState: mediaState });
+				}
+				else
+					await this.sendCommand("getaudio", "");
+			}
+			catch (error) {
+				this.l("Refresh Media Error: " + error, true);
+			}
+
+			try {
+				var video = await Cache.get(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name);
+				if (video) {
+					this.l("video found in cache, skipping", false, video);
+					mediaState.video = video;
+					this.setState({ mediaState: mediaState });
+				}
+				else
+				 	await this.sendCommand("getvideo", "");
+			}
+			catch (error) {
+				this.l("Refresh Media Error: " + error, true);
+			}
+
+			 await this.sendCommand("Location", "");
+					 
+			//mediaState.devices = btdevices;
 		}
 	}
 
 	async sendCommand(command, arg) {
+
 		// Send request command
 		if (this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
-			this.l("send command " + command + " on device " + this.state.connectedPeripheral.name, false);
 
 			var bm = this;
-			
-			lock.acquire("send", async function (done) {
-				console.log("aquire lock");
+			 
+			try {
+ 
+				bleMutex = await mutex.acquire();
+				this.l("lock and request " + command + " on device " + this.state.connectedPeripheral.name, false);
+
+				const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
+				await BleManager.write(bm.state.connectedPeripheral.id,
+					Constants.UARTservice,
+					Constants.txCharacteristic,
+					data,
+					18); // MTU Size
 				
-				try {
-					while(bm.state.isWaitingOnData){
-						await bm.sleep(50);
-					}
-					bm.setState({isWaitingOnData: true});
-					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
-					await BleManager.write(bm.state.connectedPeripheral.id,
-						Constants.UARTservice,
-						Constants.txCharacteristic,
-						data,
-						18); // MTU Size
-					
-					done();
-				}
-				catch (error) {
-					bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
-					bm.l("getstate: " + error, true);
-				}
-			}, function () {
-				return true;
-			});
+			}
+			catch (error) {
+				bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
+				bm.l("getstate: " + error, true);
+			} 
+			return true;
 		}
 		else {
 			return false;
@@ -580,9 +585,8 @@ export default class BoardManager extends Component {
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 
 					// Now go setup and read all the state for the first time
-					var mediaState = await this.createMediaState(boardBleDevice);
+					await this.refreshMediaState(boardBleDevice);
 					this.setState({
-						mediaState: mediaState,
 						connectedPeripheral: boardBleDevice,
 						boardBleDevices: boardBleDevices,
 					});
@@ -660,15 +664,19 @@ export default class BoardManager extends Component {
 		var enableControls = "none";
 		var connectionButtonText = "";
 		var boardName = "board";
+		var completionPercent = 0;
 
 		if (this.state.boardName)
 			boardName = this.state.boardName;
 
 		if (this.state.connectedPeripheral) {
- 
-			if (this.state.mediaState.video.localName != "loading..."
-				&& this.state.mediaState.audio.localName != "loading..."
-				&& this.state.mediaState.state.volume != -1) {
+
+			if (this.state.boardData.length > 1) completionPercent += 25;
+			if (this.state.mediaState.video.length > 1) completionPercent += 25;
+			if (this.state.mediaState.audio.length > 1) completionPercent += 25;
+			if (this.state.mediaState.state.volume != -1) completionPercent += 25;
+
+			if(completionPercent == 1){
 				color = "green";
 				enableControls = "auto";
 				connectionButtonText = "Loaded " + boardName;
@@ -683,7 +691,7 @@ export default class BoardManager extends Component {
 					case Constants.CONNECTING:
 						color = "yellow";
 						enableControls = "none";
-						connectionButtonText = "Connecting To " + boardName;
+						connectionButtonText = "Connecting To " + boardName + " " + completionPercent + "%";
 						break;
 					case Constants.CONNECTED:
 						color = "yellow";
@@ -728,7 +736,7 @@ export default class BoardManager extends Component {
 								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
 								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
 								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
-								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement clearCache={this.clearCache} onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
 								{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
 								{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 							</View>
@@ -748,7 +756,7 @@ export default class BoardManager extends Component {
 										flex: 1,
 									}}
 									background={Touchable.Ripple("blue")}>
-									<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(scanning)" : ""}</Text>
+									<Text style={StyleSheet.connectButtonTextCenter}>{connectionButtonText} {this.state.scanning ? "(s)" : ""}</Text>
 								</Touchable>
 							</View>
 						</View>
@@ -775,12 +783,6 @@ export default class BoardManager extends Component {
 		var a = new Array();
 		var BM = this;
 		
-
-		var locations = new Array();
-		locations.push({ board: "pegasus", b: 40 });
-		locations.push({ board: "vega", b: 60 });
-		locations.push({ board: "sexy", b: 80 });
-
 		//locations.map((board) => {
 		this.state.locations.map((board) => {
 			var color=StateBuilder.boardColor(board.board, BM.state.boardData);

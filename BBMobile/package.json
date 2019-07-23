@@ -22,7 +22,7 @@
     "@mapbox/geo-viewport": "^0.4.0",
     "@react-native-community/async-storage": "^1.5.1",
     "@react-native-mapbox-gl/maps": "^7.0.0-rc3",
-    "async-lock": "^1.2.2",
+    "async-mutex": "^0.1.3",
     "buffer": "^5.2.1",
     "charenc": "0.0.2",
     "convert-string": "^0.1.0",

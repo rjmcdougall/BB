@@ -34,8 +34,7 @@ export default class AppManagement extends Component {
 
 	async clearCache() {
 		this.setState({ cacheButton: "green" });
-		await Cache.clear();
-		await this.sleep(500);
+		await this.props.clearCache();
 		this.setState({ cacheButton: "skyblue" });
 	}
 
@@ -170,5 +169,6 @@ AppManagement.propTypes = {
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
 	onLoadAPILocations: PropTypes.func,
+	clearCache: PropTypes.func,
 };
 

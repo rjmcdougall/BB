@@ -84,7 +84,7 @@ exports.SET_NOTIFICATIONS_SLEEP = function () {
 
 exports.BLE_DATA_FETCH_TIMEOUT = function () {
 	if (module.exports.IS_ANDROID)
-		return 30000;
+		return 5000;
 	else
-		return 15000;
+		return 5000;
 };
