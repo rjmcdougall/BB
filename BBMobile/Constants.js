@@ -88,3 +88,5 @@ exports.BLE_DATA_FETCH_TIMEOUT = function () {
 	else
 		return 5000;
 };
+
+exports.FS_CACHE_HEADER = "BBM_";
