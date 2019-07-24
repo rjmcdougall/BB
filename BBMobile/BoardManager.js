@@ -74,7 +74,8 @@ export default class BoardManager extends Component {
 		await Cache.clear();
 		this.setState({
 			connectedPeripheral: StateBuilder.blankPeripheral(),
-			mediaState: StateBuilder.blankMediaState()
+			mediaState: StateBuilder.blankMediaState(),
+			boardData: StateBuilder.blankBoardData(),
 		});
 		await this.sleep(500);
 	}
@@ -184,6 +185,13 @@ export default class BoardManager extends Component {
 						var newState = JSON.parse(newMessage.toString("ascii"));
 						// Setup the app-specific mediaState structure
 						this.updateMediaState(this.state.mediaState, newState);	
+						if(mutex.isLocked()){
+							bleMutex();
+							this.l("Release lock after getting data", false);
+						}
+						else {
+							this.l("Timed out before returning.", true);
+						}
 					}
 					catch (error) {
 						this.l("Bad JSON detected. Update succeeded but the app does not reflect that.  slow down pushing commads!", true, newState);
@@ -192,8 +200,6 @@ export default class BoardManager extends Component {
 					this.setState({ rxBuffers: rxBuffers});
 					tmpData = Buffer.alloc(1024);
 					tmpDataLen = 0;
-					bleMutex();
-					console.log("BLE Command release lock");
 				} else {
 					// Add characters to buffer
 					if (oneChar > 0) {
@@ -231,6 +237,9 @@ export default class BoardManager extends Component {
 		let peripheral = data.peripheral;
 
 		try {
+			if(mutex.isLocked())
+				bleMutex();
+
 			// Update state 
 			var dev = this.state.boardBleDevices.get(peripheral);
 			if (dev != null) {
@@ -463,17 +472,29 @@ export default class BoardManager extends Component {
 				bleMutex = await mutex.acquire();
 				this.l("lock and request " + command + " on device " + this.state.connectedPeripheral.name, false);
 
-				const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
-				await BleManager.write(bm.state.connectedPeripheral.id,
-					Constants.UARTservice,
-					Constants.txCharacteristic,
-					data,
-					18); // MTU Size
+				setTimeout(function () {
+					if(mutex.isLocked()){
+						bleMutex();
+						bm.l(command + " timed out after 5 seconds", true);
+						return;
+					}
+				}, 5000); 
+
+				if(mutex.isLocked()){ // last chance. if the mutex unlocks that means a timeout occured and 
+										//we should skip.
+					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
+					await BleManager.write(bm.state.connectedPeripheral.id,
+						Constants.UARTservice,
+						Constants.txCharacteristic,
+						data,
+						18); // MTU Size
+				}
 				
 			}
 			catch (error) {
+				if(mutex.isLocked()) bleMutex(); 
 				bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
-				bm.l("getstate: " + error, true);
+				bm.l(error + " errored. releaseing lock.", true);
 			} 
 			return true;
 		}
@@ -518,7 +539,7 @@ export default class BoardManager extends Component {
 
 			if (!boardBleDevices.has(peripheral.id)) {
 
-				this.l("BoardManager Found New Peripheral:" + peripheral.name, false, null);
+				this.l("Found New Peripheral:" + peripheral.name, false, null);
 
 				peripheral.connectionStatus = Constants.DISCONNECTED;
 
@@ -676,7 +697,7 @@ export default class BoardManager extends Component {
 			if (this.state.mediaState.audio.length > 1) completionPercent += 25;
 			if (this.state.mediaState.state.volume != -1) completionPercent += 25;
 
-			if(completionPercent == 1){
+			if(completionPercent == 100 && this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED){
 				color = "green";
 				enableControls = "auto";
 				connectionButtonText = "Loaded " + boardName;
@@ -691,13 +712,13 @@ export default class BoardManager extends Component {
 					case Constants.CONNECTING:
 						color = "yellow";
 						enableControls = "none";
-						connectionButtonText = "Connecting To " + boardName + " " + completionPercent + "%";
+						connectionButtonText = "Connecting To " + boardName;
 						break;
 					case Constants.CONNECTED:
-						color = "yellow";
-						enableControls = "none";
-						connectionButtonText = "Connected To " + boardName;
-						break;
+							color = "yellow";
+							enableControls = "none";
+							connectionButtonText = "Loading " + boardName + " " + completionPercent + "%";
+						break;		 
 				}
 			}
 
