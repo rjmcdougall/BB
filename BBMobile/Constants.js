@@ -22,7 +22,7 @@ exports.CONNECTED = "Connected";
 exports.CONNECTING = "Connecting";
 exports.LOADED = "Loaded";
 
-//Batter Thresholds
+//Battery Thresholds
 exports.BATTERY_RED = 20;
 exports.BATTERY_YELLOW = 30;
 
@@ -42,6 +42,12 @@ exports.USER_PREFS = "UserPrefs";
 exports.AUDIOPREFIX = "Audio_";
 exports.VIDEOPREFIX = "Video_";
 exports.BTDEVICESPREFIX = "BTDevice_";
+
+//prevent name conflicts in file system for cache.
+exports.FS_CACHE_HEADER = "BBM_";
+
+//BLE Serialization
+exports.MTU_SIZE = 18;
 
 //Map Configuration
 exports.PLAYA_BOUNDS = function() {
@@ -89,4 +95,3 @@ exports.BLE_DATA_FETCH_TIMEOUT = function () {
 		return 5000;
 };
 
-exports.FS_CACHE_HEADER = "BBM_";

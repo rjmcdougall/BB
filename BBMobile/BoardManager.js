@@ -485,7 +485,7 @@ export default class BoardManager extends Component {
 						bm.l(command + " timed out after 5 seconds", true);
 						return;
 					}
-				}, 5000);
+				}, Constants.BLE_DATA_FETCH_TIMEOUT);
 
 				if (mutex.isLocked()) { // last chance. if the mutex unlocks that means a timeout occured and 
 					//we should skip.
@@ -494,7 +494,7 @@ export default class BoardManager extends Component {
 						Constants.UARTservice,
 						Constants.txCharacteristic,
 						data,
-						18); // MTU Size
+						Constants.MTU_SIZE); // MTU Size
 				}
 
 			}
