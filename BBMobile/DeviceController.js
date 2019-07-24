@@ -18,7 +18,7 @@ export default class DeviceController extends Component {
 	render() {
 
  
-		var devs = this.props.mediaState.devices.map(a => a.address);
+		var devs = this.props.devices.map(a => a.address);
 
 		return (
 
@@ -64,7 +64,7 @@ export default class DeviceController extends Component {
 
 DeviceController.propTypes = {
 	mediaType: PropTypes.string,
-	mediaState: PropTypes.object,
+	devices: PropTypes.array,
 	onSelectTrack: PropTypes.func,
 	sendCommand: PropTypes.func,
 	displayRefreshButton: PropTypes.bool,

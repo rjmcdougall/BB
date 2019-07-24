@@ -31,24 +31,24 @@ export default class TrackController extends Component {
 	static getDerivedStateFromProps(props, state) {
 		if (Constants.IS_ANDROID && props.mediaType == "Audio"){
 			return {
-				selectedTrack: props.mediaState.state.audioChannelNo,
-				tracks: props.mediaState.audio,
+				selectedTrack: props.boardState.audioChannelNo,
+				tracks: props.audio,
 			};
 		}
 		else if (Constants.IS_ANDROID && props.mediaType == "Video"){
 			return {
-				selectedTrack: props.mediaState.state.videoChannelNo,
-				tracks: props.mediaState.video,
+				selectedTrack: props.boardState.videoChannelNo,
+				tracks: props.video,
 			};
 		}
 		else if (Constants.IS_IOS && props.mediaType == "Audio"){
 			// if the state track has never been set before.
 			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
 				// if the props track is a real track.
-				if (props.mediaState.state.audioChannelNo<9999){
+				if (props.boardState.audioChannelNo<9999){
 					return {
-						selectedTrack: props.mediaState.state.audioChannelNo,
-						tracks: props.mediaState.audio,
+						selectedTrack: props.boardState.audioChannelNo,
+						tracks: props.audio,
 					};
 				}
 				else {
@@ -63,11 +63,11 @@ export default class TrackController extends Component {
 			// if the state track has never been set before.
 			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
 				// if the props track is a real track.
-				if (props.mediaState.state.videoChannelNo<9999){
-					console.log(props.mediaState.state.videoChannelNo + "Found video for the first time!!!");
+				if (props.boardState.videoChannelNo<9999){
+					console.log(props.boardState.videoChannelNo + "Found video for the first time!!!");
 					return {
-						selectedTrack: props.mediaState.state.videoChannelNo,
-						tracks: props.mediaState.video,
+						selectedTrack: props.boardState.videoChannelNo,
+						tracks: props.video,
 					};
 				}
 				else {
@@ -141,14 +141,16 @@ export default class TrackController extends Component {
 }
 
 TrackController.defaultProps = {
-	mediaState: StateBuilder.blankMediaState(),
+	boardState: StateBuilder.blankBoardState(),
 };
 
 TrackController.propTypes = {
 	mediaType: PropTypes.string,
-	mediaState: PropTypes.object,
+	boardState: PropTypes.object,
 	onSelectTrack: PropTypes.func,
 	refreshFunction: PropTypes.func,
 	displayRefreshButton: PropTypes.bool,
 	sendCommand: PropTypes.func,
+	audio: PropTypes.array,
+	video: PropTypes.array,
 };

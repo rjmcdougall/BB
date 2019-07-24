@@ -23,11 +23,11 @@ export default class AdminManagement extends Component {
  
 		var blockMasterBackgroundColor;
  
-		if (this.props.mediaState.state.blockMaster == null) {
+		if (this.props.boardState.blockMaster == null) {
 			blockMasterBackgroundColor = "grey";
 		}
 		else { 
-			if (this.props.mediaState.state.blockMaster == 0) {
+			if (this.props.boardState.blockMaster == 0) {
 				blockMasterBackgroundColor = "skyblue";
 			}
 			else {
@@ -43,10 +43,10 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand("EnableGTFO", !this.props.mediaState.state.GTFO);
+								await this.props.sendCommand("EnableGTFO", !this.props.boardState.GTFO);
 								return true;
 							}}
-							style={[{ backgroundColor: (this.props.mediaState.state.GTFO) ? "green" : "skyblue"  }]}
+							style={[{ backgroundColor: (this.props.boardState.GTFO) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> GTFO </Text>
 						</Touchable>
@@ -55,10 +55,10 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand("EnableMaster", !this.props.mediaState.state.audioMaster);
+								await this.props.sendCommand("EnableMaster", !this.props.boardState.audioMaster);
 								return true;
 							}}
-							style={[{ backgroundColor: (this.props.mediaState.state.audioMaster) ? "green" : "skyblue"  }]}
+							style={[{ backgroundColor: (this.props.boardState.audioMaster) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Master Remote
 							</Text>
@@ -68,7 +68,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand("BlockMaster", !this.props.mediaState.state.blockMaster);
+								await this.props.sendCommand("BlockMaster", !this.props.boardState.blockMaster);
 								return true;
 							}}
 							style={[{ backgroundColor: blockMasterBackgroundColor }]}
@@ -78,7 +78,7 @@ export default class AdminManagement extends Component {
 						</Touchable>
 					</View>
 					<View style={{ height: 50 }}></View>
-					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand("Device", value)} mediaState={this.props.mediaState} mediaType="Device" sendCommand={this.props.sendCommand} />
+					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand("Device", value)} devices={this.props.devices} boardState={this.props.boardState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>
@@ -87,7 +87,8 @@ export default class AdminManagement extends Component {
 }
 
 AdminManagement.propTypes = {
-	mediaState: PropTypes.object,
-	sendCommand: PropTypes.func
+	boardState: PropTypes.object,
+	sendCommand: PropTypes.func,
+	devices: PropTypes.array,
 };
 

@@ -17,12 +17,12 @@ import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
 import { Buffer } from "buffer";
 import ContentResolver from './ContentResolver';
-import {Mutex} from "async-mutex";
-const mutex = new Mutex(); 
+import { Mutex } from "async-mutex";
+const mutex = new Mutex();
 var bleMutex;
 
 var cr = new ContentResolver();
- 
+
 import { stringToBytes } from "convert-string";
 
 const BleManagerModule = NativeModules.BleManager;
@@ -38,7 +38,7 @@ export default class BoardManager extends Component {
 			boardBleDevices: new Map(),
 			appState: "",
 			connectedPeripheral: StateBuilder.blankPeripheral(),
-			mediaState: StateBuilder.blankMediaState(),
+			boardState: StateBuilder.blankBoardState(),
 			showScreen: Constants.MEDIA_MANAGEMENT,
 			automaticallyConnect: true,
 			backgroundLoop: null,
@@ -46,7 +46,9 @@ export default class BoardManager extends Component {
 			logLines: StateBuilder.blankLogLines(),
 			map: StateBuilder.blankMap(),
 			boardData: StateBuilder.blankBoardData(),
-			locations: StateBuilder.blankLocations()
+			locations: StateBuilder.blankLocations(),
+			audio: StateBuilder.blankAudio(),
+			video: StateBuilder.blankVideo(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -56,7 +58,6 @@ export default class BoardManager extends Component {
 		this.handleNewData = this.handleNewData.bind(this);
 		this.sendCommand = this.sendCommand.bind(this);
 		this.onSelectAudioTrack = this.onSelectAudioTrack.bind(this);
-		this.onLoadAPILocations = this.onLoadAPILocations.bind(this);
 		this.onPressSearchForBoards = this.onPressSearchForBoards.bind(this);
 		this.onNavigate = this.onNavigate.bind(this);
 		this.onSelectPeripheral = this.onSelectPeripheral.bind(this);
@@ -70,11 +71,13 @@ export default class BoardManager extends Component {
 		this.setState({ map: map });
 	}
 
-	async clearCache(){
+	async clearCache() {
 		await Cache.clear();
 		this.setState({
 			connectedPeripheral: StateBuilder.blankPeripheral(),
-			mediaState: StateBuilder.blankMediaState(),
+			boardState: StateBuilder.blankBoardState(),
+			video: StateBuilder.blankVideo(),
+			audio: StateBuilder.blankAudio(),
 			boardData: StateBuilder.blankBoardData(),
 		});
 		await this.sleep(500);
@@ -183,9 +186,9 @@ export default class BoardManager extends Component {
 					try {
 						var newMessage = Buffer.concat(rxBuffers);
 						var newState = JSON.parse(newMessage.toString("ascii"));
-						// Setup the app-specific mediaState structure
-						this.updateMediaState(this.state.mediaState, newState);	
-						if(mutex.isLocked()){
+						// Setup the app-specific ble state structure
+						this.updateBLEState(newState);
+						if (mutex.isLocked()) {
 							bleMutex();
 							this.l("Release lock after getting data", false);
 						}
@@ -197,7 +200,7 @@ export default class BoardManager extends Component {
 						this.l("Bad JSON detected. Update succeeded but the app does not reflect that.  slow down pushing commads!", true, newState);
 					}
 					rxBuffers = [];
-					this.setState({ rxBuffers: rxBuffers});
+					this.setState({ rxBuffers: rxBuffers });
 					tmpData = Buffer.alloc(1024);
 					tmpDataLen = 0;
 				} else {
@@ -220,7 +223,7 @@ export default class BoardManager extends Component {
 		} catch (error) {
 			this.l("handleNewData error: " + error, true, newMessage);
 			rxBuffers = [];
-			this.setState({ rxBuffers: rxBuffers});
+			this.setState({ rxBuffers: rxBuffers });
 			console.log("release lock");
 		}
 	}
@@ -229,7 +232,7 @@ export default class BoardManager extends Component {
 		this.handlerDiscover.remove();
 		this.handlerStop.remove();
 		this.handlerDisconnect.remove();
-		this.handlerNewData.remove(); 
+		this.handlerNewData.remove();
 	}
 
 	async handleDisconnectedPeripheral(data) {
@@ -237,7 +240,7 @@ export default class BoardManager extends Component {
 		let peripheral = data.peripheral;
 
 		try {
-			if(mutex.isLocked())
+			if (mutex.isLocked())
 				bleMutex();
 
 			// Update state 
@@ -251,7 +254,10 @@ export default class BoardManager extends Component {
 					this.l("Disconnected from active peripheral after " + (((new Date()) - dev.connectionStartTime) / 1000) + " seconds", true, dev);
 					this.setState({
 						connectedPeripheral: StateBuilder.blankPeripheral(),
-						mediaState: StateBuilder.blankMediaState()
+						boardState: StateBuilder.blankBoardState(),
+						video: StateBuilder.blankVideo(),
+						audio: StateBuilder.blankAudio(),
+						devices: StateBuilder.blankDevices(),
 					});
 				}
 			}
@@ -281,7 +287,7 @@ export default class BoardManager extends Component {
 
 		if (!this.state.scanning) {
 			try {
- 
+
 				if (this.state.connectedPeripheral)
 					if (this.state.connectedPeripheral.id != "12345") {
 						await BleManager.disconnect(this.state.connectedPeripheral.id);
@@ -289,7 +295,10 @@ export default class BoardManager extends Component {
 
 				this.setState({
 					connectedPeripheral: StateBuilder.blankPeripheral(),
-					mediaState: StateBuilder.blankMediaState(),
+					boardState: StateBuilder.blankBoardState(),
+					video: StateBuilder.blankVideo(),
+					audio: StateBuilder.blankAudio(),
+					devices: StateBuilder.blankDevices(),
 					scanning: true,
 					boardBleDevices: new Map(),
 					automaticallyConnect: automaticallyConnect
@@ -333,7 +342,10 @@ export default class BoardManager extends Component {
 				this.setState({
 					connectedPeripheral: peripheral,
 					boardBLEDevices: boardBLEDevices,
-					mediaState: StateBuilder.blankMediaState(),
+					boardState: StateBuilder.blankBoardState(),
+					video: StateBuilder.blankVideo(),
+					audio: StateBuilder.blankAudio(),
+					devices: StateBuilder.blankDevices(),
 					showScreen: Constants.MEDIA_MANAGEMENT,
 					boardName: boardName,
 					scanning: false,
@@ -348,8 +360,8 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	// Upload the JSON from the brain to the local mediaState
-	updateMediaState(mediaState, newMedia) {
+	// Upload the JSON from the brain to the local BLE state
+	updateBLEState(newMedia) {
 
 		try {
 			if (newMedia.boards) {
@@ -359,28 +371,24 @@ export default class BoardManager extends Component {
 			}
 			if (newMedia.video) {
 				this.l("updated video", false, newMedia.video);
-				mediaState.video = newMedia.video;
-				this.setState({ mediaState: mediaState });
+				this.setState({ video: newMedia.video });
 				Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
 			}
 			if (newMedia.audio) {
 				this.l("updated audio", false, newMedia.audio);
-				mediaState.audio = newMedia.audio;
-				this.setState({ mediaState: mediaState });
+				this.setState({ audio: newMedia.audio });
 				Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 			}
 			if (newMedia.state) {
 				this.l("updated state", false, newMedia.state);
-				mediaState.state = newMedia.state;
-				this.setState({ mediaState: mediaState });
+				this.setState({ boardState: newMedia.state });
 			}
 			if (newMedia.btdevices) {
 				this.l("updated devices", false, newMedia.btdevices);
 				Cache.set(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name, newMedia.btdevices);
 				if (newMedia.btdevices.length > 0) {
-					mediaState.devices = newMedia.btdevices;
+					this.setState({ devices: newMedia.btdevices });
 				}
-				this.setState({ mediaState: mediaState });
 			}
 			if (newMedia.locations) {
 				this.l("updated locations", false, newMedia.locations);
@@ -390,10 +398,8 @@ export default class BoardManager extends Component {
 		catch (error) {
 			this.l("Error Updating Media State " + error, true, null);
 		}
-
-		return mediaState;
 	}
-	 
+
 	l(logLine, isError, body) {
 		if (logLine != null && isError != null) {
 			var logArray = this.state.logLines;
@@ -406,21 +412,25 @@ export default class BoardManager extends Component {
 		}
 	}
 
-	async refreshMediaState() {
- 
+	async refreshBLEState() {
+
 		if (this.state.connectedPeripheral) {
 
 			this.l("requesting media state ", false, null);
 
-			this.setState({ mediaState: StateBuilder.blankMediaState() });
-			var mediaState = StateBuilder.blankMediaState();
+			this.setState({
+				boardState: StateBuilder.blankBoardState(),
+				audio: StateBuilder.blankAudio(),
+				video: StateBuilder.blankVideo(),
+				devices: StateBuilder.blankDevices(),
+			});
 
-			try{
-				var boards = await Cache.get(Constants.BOARDS);	
-				if(boards)			
+			try {
+				var boards = await Cache.get(Constants.BOARDS);
+				if (boards)
 					this.l("boards found in cache, skipping", false, boards);
 				else
-				 	await this.sendCommand("getboards", "");
+					await this.sendCommand("getboards", "");
 			}
 			catch (error) {
 				this.l("Refresh Media Error: " + error, true);
@@ -430,8 +440,7 @@ export default class BoardManager extends Component {
 				var audio = await Cache.get(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name);
 				if (audio) {
 					this.l("audio found in cache, skipping", false, audio);
-					mediaState.audio = audio;
-					this.setState({ mediaState: mediaState });
+					this.setState({ audio: audio });
 				}
 				else
 					await this.sendCommand("getaudio", "");
@@ -444,19 +453,17 @@ export default class BoardManager extends Component {
 				var video = await Cache.get(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name);
 				if (video) {
 					this.l("video found in cache, skipping", false, video);
-					mediaState.video = video;
-					this.setState({ mediaState: mediaState });
+					this.setState({ video: video });
 				}
 				else
-				 	await this.sendCommand("getvideo", "");
+					await this.sendCommand("getvideo", "");
 			}
 			catch (error) {
 				this.l("Refresh Media Error: " + error, true);
 			}
 
-			 await this.sendCommand("Location", "");
-					 
-			//mediaState.devices = btdevices;
+			await this.sendCommand("Location", "");
+
 		}
 	}
 
@@ -466,22 +473,22 @@ export default class BoardManager extends Component {
 		if (this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
 
 			var bm = this;
-			 
+
 			try {
- 
+
 				bleMutex = await mutex.acquire();
 				this.l("lock and request " + command + " on device " + this.state.connectedPeripheral.name, false);
 
 				setTimeout(function () {
-					if(mutex.isLocked()){
+					if (mutex.isLocked()) {
 						bleMutex();
 						bm.l(command + " timed out after 5 seconds", true);
 						return;
 					}
-				}, 5000); 
+				}, 5000);
 
-				if(mutex.isLocked()){ // last chance. if the mutex unlocks that means a timeout occured and 
-										//we should skip.
+				if (mutex.isLocked()) { // last chance. if the mutex unlocks that means a timeout occured and 
+					//we should skip.
 					const data = stringToBytes("{command:\"" + command + "\", arg:\"" + arg + "\"};\n");
 					await BleManager.write(bm.state.connectedPeripheral.id,
 						Constants.UARTservice,
@@ -489,13 +496,13 @@ export default class BoardManager extends Component {
 						data,
 						18); // MTU Size
 				}
-				
+
 			}
 			catch (error) {
-				if(mutex.isLocked()) bleMutex(); 
+				if (mutex.isLocked()) bleMutex();
 				bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
 				bm.l(error + " errored. releaseing lock.", true);
-			} 
+			}
 			return true;
 		}
 		else {
@@ -504,10 +511,6 @@ export default class BoardManager extends Component {
 	}
 	onSelectAudioTrack = async function (idx) {
 		await this.sendCommand("Audio", idx);
-	}
-
-	async onLoadAPILocations() {
-		this.setState({ mediaState: await this.fetchLocations(this.state.mediaState) });
 	}
 
 	async onPressSearchForBoards() {
@@ -521,7 +524,10 @@ export default class BoardManager extends Component {
 					//	boardBleDevices: new Map(),
 					appState: "",
 					connectedPeripheral: StateBuilder.blankperipheral(),
-					mediaState: StateBuilder.blankMediaState(),
+					boardState: StateBuilder.blankBoardState(),
+					video: StateBuilder.blankVideo(),
+					audio: StateBuilder.blankAudio(),
+					devices: StateBuilder.blankDevices(),
 					showScreen: Constants.DISCOVER
 				});
 			}
@@ -530,7 +536,7 @@ export default class BoardManager extends Component {
 			}
 		}
 	}
- 
+
 	async handleDiscoverPeripheral(peripheral) {
 		try {
 
@@ -606,7 +612,7 @@ export default class BoardManager extends Component {
 					boardBleDevices.set(boardBleDevice.id, boardBleDevice);
 
 					// Now go setup and read all the state for the first time
-					await this.refreshMediaState(boardBleDevice);
+					await this.refreshBLEState(boardBleDevice);
 					this.setState({
 						connectedPeripheral: boardBleDevice,
 						boardBleDevices: boardBleDevices,
@@ -693,11 +699,11 @@ export default class BoardManager extends Component {
 		if (this.state.connectedPeripheral) {
 
 			if (this.state.boardData.length > 1) completionPercent += 25;
-			if (this.state.mediaState.video.length > 1) completionPercent += 25;
-			if (this.state.mediaState.audio.length > 1) completionPercent += 25;
-			if (this.state.mediaState.state.volume != -1) completionPercent += 25;
+			if (this.state.video.length > 1) completionPercent += 25;
+			if (this.state.audio.length > 1) completionPercent += 25;
+			if (this.state.boardState.volume != -1) completionPercent += 25;
 
-			if(completionPercent == 100 && this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED){
+			if (completionPercent == 100 && this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
 				color = "green";
 				enableControls = "auto";
 				connectionButtonText = "Loaded " + boardName;
@@ -715,10 +721,10 @@ export default class BoardManager extends Component {
 						connectionButtonText = "Connecting To " + boardName;
 						break;
 					case Constants.CONNECTED:
-							color = "yellow";
-							enableControls = "none";
-							connectionButtonText = "Loading " + boardName + " " + completionPercent + "%";
-						break;		 
+						color = "yellow";
+						enableControls = "none";
+						connectionButtonText = "Loading " + boardName + " " + completionPercent + "%";
+						break;
 				}
 			}
 
@@ -741,7 +747,7 @@ export default class BoardManager extends Component {
 							: <View></View>
 						}
 						<View style={{ flex: 1 }}>
-							<BatteryController battery={this.state.mediaState.state.battery} />
+							<BatteryController boardState={this.state.boardState} />
 						</View>
 						{(this.props.userPrefs.isDevilsHand) ?
 							<View style={{ margin: 5, paddingTop: 10 }}>
@@ -754,11 +760,11 @@ export default class BoardManager extends Component {
 						{(!this.props.userPrefs.isDevilsHand) ? <LeftNav onNavigate={this.onNavigate} showScreen={this.state.showScreen} onPressSearchForBoards={this.onPressSearchForBoards} /> : <View></View>}
 						<View style={{ flex: 1 }}>
 							<View style={{ flex: 1 }}>
-								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} onLoadAPILocations={this.onLoadAPILocations} /> : <View></View>}
-								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} mediaState={this.state.mediaState} /> : <View></View>}
-								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} mediaState={this.state.mediaState} sendCommand={this.sendCommand} /> : <View></View>}
-								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement clearCache={this.clearCache} onLoadAPILocations={this.onLoadAPILocations} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-								{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} audio={this.state.audio} video={this.state.video} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
+								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} boardState={this.state.boardState} /> : <View></View>}
+								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement devices={this.state.devices} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
+								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement clearCache={this.clearCache} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
 								{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 							</View>
 							<View style={StyleSheet.footer}>
@@ -785,29 +791,29 @@ export default class BoardManager extends Component {
 					</View>
 				</View>
 			);
-								
+
 		else {
 			return (
 				<View style={StyleSheet.monitorContainer}>
 					<View style={StyleSheet.monitorMap}>
-						<MapController userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} mediaState={this.state.mediaState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
+						<MapController userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
 					</View>
 					<View style={StyleSheet.batteryList}>
 						{this.buildBatteryList()}
 					</View>
 				</View>
 			);
-		} 
+		}
 	}
 
-	buildBatteryList(){
+	buildBatteryList() {
 		var a = new Array();
 		var BM = this;
-		
+
 		//locations.map((board) => {
 		this.state.locations.map((board) => {
-			var color=StateBuilder.boardColor(board.board, BM.state.boardData);
- 			//color="pink";
+			var color = StateBuilder.boardColor(board.board, BM.state.boardData);
+			//color="pink";
 			var batteryGauge = (
 				<View key={board.board + "v2"} style={{ flexDirection: "row", backgroundColor: color }}>
 					<View key={board.board + "v4"} style={{ flex: .5 }}>

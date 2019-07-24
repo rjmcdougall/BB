@@ -20,10 +20,10 @@ export default class VolumeController extends React.Component {
 
 				}}>
 					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>Volume</Text></View>
-					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>{this.props.mediaState.state.volume}</Text></View>
+					<View style={{ height: 30 }}><Text style={StyleSheet.rowText}>{this.props.boardState.volume}</Text></View>
 				</View>
 				<View style={{ flex: 1, height: 40, margin: 20 }}>
-					<Slider value={this.props.mediaState.state.volume}
+					<Slider value={this.props.boardState.volume}
 						trackStyle={StyleSheet.sliderTrack}
 						thumbStyle={StyleSheet.sliderThumb}
 						minimumTrackTintColor="blue"
@@ -43,7 +43,7 @@ export default class VolumeController extends React.Component {
 }
 
 VolumeController.propTypes = {
-	mediaState: PropTypes.object,
+	boardState: PropTypes.object,
 	sendCommand: PropTypes.func,
 };
 

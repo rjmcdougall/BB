@@ -13,9 +13,9 @@ export default class Diagnostic extends Component {
 			<View style={StyleSheet.container}  >
 
 				<ScrollView style={{ margin: 10 }}>
-					<Text>APK Version: {this.props.mediaState.state.APKVersion} {"\n"}
-						Last Updated: {new Date(this.props.mediaState.state.APKUpdateDate).toDateString()} {"\n"}
-						IP Address: {this.props.mediaState.state.IPAddress} {"\n"}
+					<Text>APK Version: {this.props.boardState.APKVersion} {"\n"}
+						Last Updated: {new Date(this.props.boardState.APKUpdateDate).toDateString()} {"\n"}
+						IP Address: {this.props.boardState.IPAddress} {"\n"}
 					</Text>
 					{
 						this.props.logLines.map((line) => {
@@ -32,12 +32,12 @@ export default class Diagnostic extends Component {
 	}
 }
 Diagnostic.propTypes = {
-	mediaState: PropTypes.object,
+	boardState: PropTypes.object,
 	logLines: PropTypes.array,
 };
 
 Diagnostic.defaultProps = {
-	mediaState: StateBuilder.blankMediaState(),
+	boardState: StateBuilder.blankBoardState(),
 	logLines: StateBuilder.blankLogLines(),
 };
 

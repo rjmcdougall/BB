@@ -287,8 +287,7 @@ export default class MapController extends Component {
 	}
 }
 
-MapController.propTypes = {
-	mediaState: PropTypes.object,
+MapController.propTypes = { 
 	locations: PropTypes.array,
 	userPrefs: PropTypes.object,
 	setMap: PropTypes.func,

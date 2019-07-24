@@ -168,7 +168,6 @@ export default class AppManagement extends Component {
 AppManagement.propTypes = {
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
-	onLoadAPILocations: PropTypes.func,
 	clearCache: PropTypes.func,
 };
 
