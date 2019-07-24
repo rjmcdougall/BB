@@ -63,9 +63,11 @@ PODS:
     - React/Core
     - React/fishhook
     - React/RCTBlob
-  - RNCAsyncStorage (1.5.0):
+  - RNCAsyncStorage (1.5.1):
     - React
-  - RNVectorIcons (6.4.2):
+  - RNFS (2.13.3):
+    - React
+  - RNVectorIcons (6.6.0):
     - React
   - yoga (0.59.9.React)
 
@@ -88,6 +90,7 @@ DEPENDENCIES:
   - React/RCTVibration (from `../node_modules/react-native`)
   - React/RCTWebSocket (from `../node_modules/react-native`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-community/async-storage`)"
+  - RNFS (from `../node_modules/react-native-fs`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - yoga (from `../node_modules/react-native/ReactCommon/yoga/yoga.podspec`)
 
@@ -108,6 +111,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-mapbox-gl/maps"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-community/async-storage"
+  RNFS:
+    :path: "../node_modules/react-native-fs"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   yoga:
@@ -121,9 +126,10 @@ SPEC CHECKSUMS:
   React: 1d605e098d69bdf08960787f3446f0a9dc2e2ccf
   react-native-mapbox-gl: 099d223de88d75815e3a5a0a04b64c970b929105
   RNCAsyncStorage: 6ae5aba8a41bfe0a9f21885ec91faf23ca3fe7ee
-  RNVectorIcons: 8c52e1e8da1153613fdef44748e865c25556cb9c
+  RNFS: bbb1a64eb245763daf34aea86f97c97c4e85f74c
+  RNVectorIcons: 66af4d5c8ff4f584c7b7cd9c4b0780920f27fce2
   yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
 
-PODFILE CHECKSUM: c9637ee6e728efdbf1815b5c6025dcc47418ec34
+PODFILE CHECKSUM: 6ed8440874c173841eed9af2fdc8799e6ec7e80f
 
 COCOAPODS: 1.5.3

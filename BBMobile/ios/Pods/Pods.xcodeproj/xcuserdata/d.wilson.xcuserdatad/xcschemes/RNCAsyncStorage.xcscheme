@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2E05A056C950617109991C562D3F7316"
+               BlueprintIdentifier = "A03ACADB45D40FD8CA2E75A88AD7A1BB"
                BlueprintName = "RNCAsyncStorage"
                ReferencedContainer = "container:Pods.xcodeproj"
                BuildableName = "libRNCAsyncStorage.a">
