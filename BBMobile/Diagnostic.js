@@ -21,7 +21,7 @@ export default class Diagnostic extends Component {
 						this.props.logLines.map((line) => {
 							var color = "white";
 							if (line.isError)
-								color = "red";
+								color = "yellow";
 
 							return (<Text key={Math.random()} style={{ backgroundColor: color }}>{line.logLine}</Text>);
 						})
