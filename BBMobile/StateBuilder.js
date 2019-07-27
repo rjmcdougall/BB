@@ -14,9 +14,16 @@ var bMap = {
 	userLocation: Constants.MAN_LOCATION,
 }
 var bEmptyLogLines = [{ logLine: "", isError: false }];
+
 var bBoardData = [{ name: "none", address: 1234 }]; //    { "color": "coral", "address": 42424, "isProfileGlobal": true, "profile": "Small-Testing","name": "BLUE DASH M2",  "type": "tester"},
+
 var bLocations = [];
-var bPeripheral = {name: "loading...",id: "12345",connectionStatus: Constants.DISCONNECTED,}
+
+var bPeripheral = {
+					name: "loading...",
+					id: "12345",
+					connectionStatus: Constants.DISCONNECTED,
+				}
 var bAudio = [{ localName: "loading..." }];
 var bVideo = [{ localName: "loading..." }];
 var bDevices = [{ name: "loading...", address: "loading...", isPaired: false, }];
