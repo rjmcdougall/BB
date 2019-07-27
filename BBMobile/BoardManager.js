@@ -49,6 +49,7 @@ export default class BoardManager extends Component {
 			locations: StateBuilder.blankLocations(),
 			audio: StateBuilder.blankAudio(),
 			video: StateBuilder.blankVideo(),
+			devices: StateBuilder.blankDevices(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
