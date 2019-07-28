@@ -113,7 +113,7 @@ public class BBWifi {
                                                   }
                                                   l("Connecting to wifi");
                                                   if(!checkWifiOnAndConnected(mWiFiManager))
-                                                        connectWifi(BurnerBoardUtil.WIFI_SSID);
+                                                        connectWifi(SSID);
                                                   break;
                                               case WifiManager.WIFI_STATE_ENABLING:
                                                   l("WIFI STATE ENABLING");
