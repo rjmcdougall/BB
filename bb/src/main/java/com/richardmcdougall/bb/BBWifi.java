@@ -11,9 +11,21 @@ import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BBWifi {
@@ -25,9 +37,28 @@ public class BBWifi {
     private static final String TAG = "BB.BBWifi";
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
 
-    BBWifi(Context context){
+    public String SSID = "";
+    public String password = "";
+
+    public String getSSID() {
+        return mWiFiManager.getConnectionInfo().getSSID();
+    }
+    public String getConfiguredSSID(){
+        return SSID;
+    }
+    public String getConfiguredPassword(){
+        return password;
+    }
+    BBWifi(Context context) {
         mContext = context;
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+
+        // look for an SSID and password in file system. If it is not there default to firetruck.
+        getSSIDAndPassword();
+        if (SSID == "") {
+            setSSISAndPassword(BurnerBoardUtil.WIFI_SSID, BurnerBoardUtil.WIFI_PASS);
+            getSSIDAndPassword();
+        }
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
@@ -37,6 +68,7 @@ public class BBWifi {
         }
 
     }
+
     public String getIPAddress() {
         return mIPAddress;
     }
@@ -44,40 +76,41 @@ public class BBWifi {
     private void setupWifi() {
 
         mContext.registerReceiver(new BroadcastReceiver() {
-                                  @Override
-                                  public void onReceive(Context context, Intent intent) {
-                                      int extraWifiState =
-                                              intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                                                      WifiManager.WIFI_STATE_UNKNOWN);
+                                      @Override
+                                      public void onReceive(Context context, Intent intent) {
+                                          int extraWifiState =
+                                                  intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE,
+                                                          WifiManager.WIFI_STATE_UNKNOWN);
 
-                                      switch(extraWifiState){
-                                          case WifiManager.WIFI_STATE_DISABLED:
-                                              l("WIFI STATE DISABLED");
-                                              break;
-                                          case WifiManager.WIFI_STATE_DISABLING:
-                                              l("WIFI STATE DISABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLED:
-                                              l("WIFI STATE ENABLED");
-                                              int mfs = mWiFiManager.getWifiState();
-                                              l("Wifi state is " + mfs);
-                                              l("Checking wifi");
-                                              if (checkWifiSSid(BurnerBoardUtil.WIFI_SSID) == false) {
-                                                  l("adding wifi: " + BurnerBoardUtil.WIFI_SSID);
-                                                  addWifi(BurnerBoardUtil.WIFI_SSID, BurnerBoardUtil.WIFI_PASS);
-                                              }
-                                              l("Connecting to wifi");
-                                              connectWifi(BurnerBoardUtil.WIFI_SSID);
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLING:
-                                              l("WIFI STATE ENABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_UNKNOWN:
-                                              l("WIFI STATE UNKNOWN");
-                                              break;
+                                          switch (extraWifiState) {
+                                              case WifiManager.WIFI_STATE_DISABLED:
+                                                  l("WIFI STATE DISABLED");
+                                                  break;
+                                              case WifiManager.WIFI_STATE_DISABLING:
+                                                  l("WIFI STATE DISABLING");
+                                                  break;
+                                              case WifiManager.WIFI_STATE_ENABLED:
+                                                  l("WIFI STATE ENABLED");
+                                                  int mfs = mWiFiManager.getWifiState();
+                                                  l("Wifi state is " + mfs);
+                                                  l("Checking wifi");
+                                                  if (checkWifiSSid(SSID) == false) {
+                                                      l("adding wifi: " + SSID);
+                                                      addWifi(SSID, password);
+                                                  }
+                                                  l("Connecting to wifi");
+                                                  if(!checkWifiOnAndConnected(mWiFiManager))
+                                                        connectWifi(BurnerBoardUtil.WIFI_SSID);
+                                                  break;
+                                              case WifiManager.WIFI_STATE_ENABLING:
+                                                  l("WIFI STATE ENABLING");
+                                                  break;
+                                              case WifiManager.WIFI_STATE_UNKNOWN:
+                                                  l("WIFI STATE UNKNOWN");
+                                                  break;
+                                          }
                                       }
-                                  }
-                              },
+                                  },
                 new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
     }
 
@@ -87,23 +120,28 @@ public class BBWifi {
 
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
 
-            if( wifiInfo.getNetworkId() == -1 ){
+            if (wifiInfo.getNetworkId() == -1) {
                 mIPAddress = null;
                 return false; // Not connected to an access point
             }
 
+            l("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(SSID));
+            if(!wifiInfo.getSSID().equals(fixWifiSSidAndPass(SSID))){
+                mIPAddress = null;
+                return false; // configured for wrong access point.
+            }
+
             mIPAddress = getWifiIpAddress(wifiMgr);
-            if( mIPAddress != null) {
+            if (mIPAddress != null) {
                 l("WIFI IP Address: " + mIPAddress);
                 // Text to speach is not set up yet at this time; move it to init loop.
                 //voice.speak("My WIFI IP is " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
             } else {
-                l( "Could not determine WIFI IP at this time");
+                l("Could not determine WIFI IP at this time");
             }
 
             return true; // Connected to an access point
-        }
-        else {
+        } else {
             mIPAddress = null;
             return false; // Wi-Fi adapter is OFF
         }
@@ -188,7 +226,7 @@ public class BBWifi {
 
     private void connectWifi(String ssid) {
 
-        String aWifi =fixWifiSSidAndPass(ssid);
+        String aWifi = fixWifiSSidAndPass(ssid);
 
         try {
             List<WifiConfiguration> wifiList = mWiFiManager.getConfiguredNetworks();
@@ -198,7 +236,7 @@ public class BBWifi {
 
                     l("Found wifi:" + newSSID + " == " + aWifi + " ?");
 
-                    if (aWifi.equals(newSSID)) {
+                    if (aWifi.equalsIgnoreCase(newSSID)) {
                         l("connecting wifi:" + newSSID);
                         mWiFiManager.disconnect();
                         mWiFiManager.enableNetwork(config.networkId, true);
@@ -243,11 +281,72 @@ public class BBWifi {
         try {
             ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
         } catch (Exception ex) {
-            l( "Unable to get host address: " + ex.toString());
+            l("Unable to get host address: " + ex.toString());
             ipAddressString = null;
         }
 
         return ipAddressString;
     }
 
+
+    public boolean setSSISAndPassword(String SSID, String password) {
+
+        try {
+            JSONObject wifiSettings = new JSONObject();
+            wifiSettings.put("SSID", SSID);
+            wifiSettings.put("password", password);
+
+            setSSISAndPassword(wifiSettings);
+
+        } catch (JSONException e) {
+            l(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean setSSISAndPassword(JSONObject wifiSettings) {
+
+        try {
+            FileWriter fw = new FileWriter(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.wifiJSON);
+            fw.write(wifiSettings.toString());
+            fw.close();
+            SSID = wifiSettings.getString("SSID");
+            password = wifiSettings.getString("password");
+        } catch (JSONException e) {
+            l(e.getMessage());
+            return false;
+        } catch (IOException e) {
+            l(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    public void getSSIDAndPassword() {
+        try {
+            ArrayList<String> r = new ArrayList();
+
+            File f = new File(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.wifiJSON);
+            InputStream is = null;
+            try {
+                is = new FileInputStream(f);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder(buf.readLine());
+            l("contents of wifi.json: " + sb.toString());
+            JSONObject j = new JSONObject(sb.toString());
+
+            SSID = j.getString("SSID");
+            password = j.getString("password");
+
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
 }

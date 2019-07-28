@@ -453,6 +453,34 @@ public class BluetoothCommands {
                 });
 
         // Register Volume command on bluetooth server
+        mBLEServer.addCallback("Wifi",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got Wifi command:" + payload.toString());
+                        try {
+                            String SSIS = payload.getString("arg");
+                            if (SSIS != "") {
+                                String[] parts = SSIS.split("__");
+                                mBBService.wifi.setSSISAndPassword(parts[0], parts[1]);
+                            }
+                        } catch (Exception e) {
+                            l("error setting wifi: " + e.getMessage());
+                        }
+                        sendStateResponse(command, device);
+                    }
+                });
+
+        // Register Volume command on bluetooth server
         mBLEServer.addCallback("Volume",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -641,6 +669,11 @@ public class BluetoothCommands {
             state.put("IPAddress", mBBService.wifi.getIPAddress());
             state.put("GTFO", mBBService.isGTFO());
             state.put("blockMaster" , mBBService.blockMaster());
+            state.put("SSID", mBBService.wifi.getSSID());
+            state.put("cSSID", mBBService.wifi.getConfiguredSSID());
+            state.put("cPass", mBBService.wifi.getConfiguredPassword());
+
+
         } catch (Exception e) {
             l("Could not get state: " + e.getMessage());
         }

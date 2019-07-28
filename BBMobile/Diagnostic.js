@@ -15,6 +15,7 @@ export default class Diagnostic extends Component {
 				<ScrollView style={{ margin: 10 }}>
 					<Text>APK Version: {this.props.boardState.APKVersion} {"\n"}
 						Last Updated: {new Date(this.props.boardState.APKUpdateDate).toDateString()} {"\n"}
+						SSID: {this.props.boardState.SSID} {"\n"}
 						IP Address: {this.props.boardState.IPAddress} {"\n"}
 					</Text>
 					{

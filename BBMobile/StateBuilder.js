@@ -39,7 +39,9 @@ var bBoardState = {
 	IPAddress: "0.0.0.0",
 	GTFO: false,
 	blockMaster: false,
-
+	SSID: "",
+	cSSID: "zzzz",
+	cPass: "",
 };
 
 exports.blankBoardState = function() {

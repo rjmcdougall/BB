@@ -1477,8 +1477,10 @@ public class BBService extends Service {
 
             // Every 60 seconds check WIFI
             if (mEnableWifiReconnect && (loopCnt % mWifiReconnectEveryNSeconds == 0)) {
-                if(wifi != null)
+                if(wifi != null) {
+                    l("Check Wifi");
                     wifi.checkWifiReconnect();
+                }
             }
 
             // Every second, check & update battery

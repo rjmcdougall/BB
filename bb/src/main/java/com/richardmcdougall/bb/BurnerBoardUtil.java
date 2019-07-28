@@ -2,6 +2,7 @@ package com.richardmcdougall.bb;
 
 import android.os.Build;
 import java.io.*;
+import java.util.ArrayList;
 
 
 public class BurnerBoardUtil {
@@ -120,6 +121,8 @@ public class BurnerBoardUtil {
 
      */
     public static final String publicNameFile = "publicName.txt";
+    public static final String wifiJSON = "wifi.json";
+
     /*
         XXX this doesn't work as a static method:
         error: non-static method getApplicationContext() cannot be referenced from a static context
@@ -129,6 +132,7 @@ public class BurnerBoardUtil {
         Hardcoding for now, which sucks :( Suggestions welcome -jib
      */
     public static final String publicNameDir = "/data/data/com.richardmcdougall.bb/files";
+
 
     public static final boolean setPublicName (String name) {
         try {

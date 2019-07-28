@@ -4,7 +4,7 @@ import {
 	ScrollView,
 	Text,
 } from "react-native";
-
+import WifiController from "./WifiController";
 import DeviceController from "./DeviceController";
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
@@ -78,6 +78,8 @@ export default class AdminManagement extends Component {
 						</Touchable>
 					</View>
 					<View style={{ height: 50 }}></View>
+					<WifiController boardState={this.props.boardState} sendCommand={this.props.sendCommand} />
+					<View style={{ height: 50 }}></View>
 					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand("Device", value)} devices={this.props.devices} boardState={this.props.boardState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
@@ -90,5 +92,6 @@ AdminManagement.propTypes = {
 	boardState: PropTypes.object,
 	sendCommand: PropTypes.func,
 	devices: PropTypes.array,
+	boardState: PropTypes.object,
 };
 
