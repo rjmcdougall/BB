@@ -826,7 +826,7 @@ export default class BoardManager extends Component {
 							<Text style={{ fontSize: 24, fontWeight: "bold" }} key={board.board + "txt"} >{board.board}</Text>
 						</View>
 					</View>
-					<View key={board.board + "v3"} style={{ flex: 1 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} battery={board.b} /></View>
+					<View key={board.board + "v3"} style={{ flex: 1 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 				</View>
 			)
 			a.push(batteryGauge);
