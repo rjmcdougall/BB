@@ -110,8 +110,8 @@ android {
         applicationId "com.bbmobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40
-        versionName "4.6"
+        versionCode 41
+        versionName "4.7"
           ndk {
             abiFilters "armeabi-v7a", "x86",'arm64-v8a','x86_64'
         }
