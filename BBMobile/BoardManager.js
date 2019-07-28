@@ -702,7 +702,7 @@ export default class BoardManager extends Component {
 			if (this.state.boardData.length > 1) completionPercent += 25;
 			if (this.state.video.length > 1) completionPercent += 25;
 			if (this.state.audio.length > 1) completionPercent += 25;
-			if (this.state.boardState.volume != -1) completionPercent += 25;
+			if (this.state.boardState.v != -1) completionPercent += 25;
 
 			if (completionPercent == 100 && this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
 				color = "green";

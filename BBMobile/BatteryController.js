@@ -10,9 +10,9 @@ export default class BatteryController extends React.Component {
 	}
 	render() {
 		var barColor;
-		if (this.props.battery <= Constants.BATTERY_RED)
+		if (this.props.b <= Constants.BATTERY_RED)
 			barColor = "red";
-		else if (this.props.battery <= Constants.BATTERY_YELLOW)
+		else if (this.props.b <= Constants.BATTERY_YELLOW)
 			barColor = "yellow";
 		else
 			barColor = "green";
@@ -20,7 +20,7 @@ export default class BatteryController extends React.Component {
 		return (
 			<View style={styles.container}>
 				<AnimatedBar
-					progress={this.props.boardState.battery/100.0}
+					progress={this.props.boardState.b/100.0}
 					height={null}
 					borderColor="#DDD"
 					barColor={barColor}
@@ -31,7 +31,7 @@ export default class BatteryController extends React.Component {
 				>
 					<View style={[styles.row, styles.center]}>
 						<Text key={this.props.id + "t"} style={[styles.barText, { fontSize: 30 }]}>
-							{Math.round(this.props.battery)}%
+							{Math.round(this.props.b)}%
 						</Text>
 					</View>
 				</AnimatedBar>
@@ -44,11 +44,7 @@ BatteryController.propTypes = {
 	boardState: PropTypes.object,
 	id: PropTypes.string,
 };
-
-BatteryController.defaultProps = {
-	battery: 0,
-};
-
+ 
 const styles = StyleSheet.create({
 	container: {
 		paddingTop: 15,

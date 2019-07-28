@@ -29,19 +29,19 @@ var bVideo = [{ localName: "loading..." }];
 var bDevices = [{ name: "loading...", address: "loading...", isPaired: false, }];
 
 var bBoardState = {
-	audioChannelNo: 9999,
-	videoChannelNo: 9999,
-	volume: -1,
-	battery: 0,
-	audioMaster: 0,
-	APKUpdateDate: 0,
-	APKVersion: 0,
-	IPAddress: "0.0.0.0",
-	GTFO: false,
-	blockMaster: false,
-	SSID: "",
-	cSSID: "zzzz",
-	cPass: "",
+	acn: 9999, // audio channel number
+	vcn: 9999,
+	v: -1, // volume
+	b: 0, // battery level
+	am: 0, // audio master
+	apkd: 0, // apk updated date
+	apkv: 0, // apk version number
+	ip: "0.0.0.0", // ip address
+	g: false, // GTFO
+	bm: false, //block master
+	s: "", // SSID
+	c: "zzzz", // configured ssid
+	p: "", // configured password
 };
 
 exports.blankBoardState = function() {

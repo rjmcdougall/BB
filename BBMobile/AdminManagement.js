@@ -23,11 +23,11 @@ export default class AdminManagement extends Component {
  
 		var blockMasterBackgroundColor;
  
-		if (this.props.boardState.blockMaster == null) {
+		if (this.props.boardState.bm == null) {
 			blockMasterBackgroundColor = "grey";
 		}
 		else { 
-			if (this.props.boardState.blockMaster == 0) {
+			if (this.props.boardState.bm == 0) {
 				blockMasterBackgroundColor = "skyblue";
 			}
 			else {
@@ -43,10 +43,10 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand("EnableGTFO", !this.props.boardState.GTFO);
+								await this.props.sendCommand("EnableGTFO", !this.props.boardState.g);
 								return true;
 							}}
-							style={[{ backgroundColor: (this.props.boardState.GTFO) ? "green" : "skyblue"  }]}
+							style={[{ backgroundColor: (this.props.boardState.g) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> GTFO </Text>
 						</Touchable>
@@ -55,10 +55,10 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand("EnableMaster", !this.props.boardState.audioMaster);
+								await this.props.sendCommand("EnableMaster", !this.props.boardState.am);
 								return true;
 							}}
-							style={[{ backgroundColor: (this.props.boardState.audioMaster) ? "green" : "skyblue"  }]}
+							style={[{ backgroundColor: (this.props.boardState.am) ? "green" : "skyblue"  }]}
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}> Master Remote
 							</Text>
@@ -68,7 +68,7 @@ export default class AdminManagement extends Component {
 					<View style={StyleSheet.button}>
 						<Touchable
 							onPress={async () => {
-								await this.props.sendCommand("BlockMaster", !this.props.boardState.blockMaster);
+								await this.props.sendCommand("BlockMaster", !this.props.boardState.bm);
 								return true;
 							}}
 							style={[{ backgroundColor: blockMasterBackgroundColor }]}

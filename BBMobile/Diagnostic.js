@@ -13,10 +13,10 @@ export default class Diagnostic extends Component {
 			<View style={StyleSheet.container}  >
 
 				<ScrollView style={{ margin: 10 }}>
-					<Text>APK Version: {this.props.boardState.APKVersion} {"\n"}
-						Last Updated: {new Date(this.props.boardState.APKUpdateDate).toDateString()} {"\n"}
-						SSID: {this.props.boardState.SSID} {"\n"}
-						IP Address: {this.props.boardState.IPAddress} {"\n"}
+					<Text>APK Version: {this.props.boardState.apkv} {"\n"}
+						Last Updated: {new Date(this.props.boardState.apkd).toDateString()} {"\n"}
+						SSID: {this.props.boardState.s} {"\n"}
+						IP Address: {this.props.boardState.ip} {"\n"}
 					</Text>
 					{
 						this.props.logLines.map((line) => {

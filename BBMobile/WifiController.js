@@ -8,8 +8,8 @@ export default class WifiController extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            cSSID: "",
-            cPass: "",
+            c: "",
+            p: "",
             firstTime: true,
         };
     }
@@ -30,15 +30,15 @@ export default class WifiController extends Component {
                     flex: 1, 
                 }}>
                     <View style={{ height: 40 }}>
-                        <Text style={StyleSheet.rowText}>SSID {this.props.boardState.cSSID}</Text>
+                        <Text style={StyleSheet.rowText}>SSID {this.props.boardState.c}</Text>
                     </View>
                     <View style={{ height: 40 }}>
                         <TextInput
                             style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
-                            onChangeText={async (cSSID) => {
-                                this.setState({ cSSID: cSSID });
+                            onChangeText={async (c) => {
+                                this.setState({ c: c });
                             }}
-                            value={this.state.cSSID}
+                            value={this.state.c}
                         />
                     </View>
                 </View>
@@ -46,22 +46,22 @@ export default class WifiController extends Component {
                     flex: 1, 
                 }}>
                     <View style={{ height: 40 }}>
-                        <Text style={StyleSheet.rowText}>Password {this.props.boardState.cPass}</Text>
+                        <Text style={StyleSheet.rowText}>Password {this.props.boardState.p}</Text>
                     </View>
                     <View style={{ height: 40 }}>
                         <TextInput
                             style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
-                            onChangeText={async (cPass) => {
-                                this.setState({ cPass: cPass });
+                            onChangeText={async (p) => {
+                                this.setState({ p: p });
                             }}
-                            value={this.state.cPass}
+                            value={this.state.p}
                         />
                     </View>
                 </View>
                 <View style={StyleSheet.button}>
                     <Touchable
                         onPress={async () => {
-                            var wifi = this.state.cSSID + "__" + this.state.cPass;
+                            var wifi = this.state.c + "__" + this.state.p;
                             console.log(wifi);
                             await this.props.sendCommand("Wifi", wifi);
                         }}

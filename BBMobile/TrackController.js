@@ -31,13 +31,13 @@ export default class TrackController extends Component {
 	static getDerivedStateFromProps(props, state) {
 		if (Constants.IS_ANDROID && props.mediaType == "Audio"){
 			return {
-				selectedTrack: props.boardState.audioChannelNo,
+				selectedTrack: props.boardState.acn,
 				tracks: props.audio,
 			};
 		}
 		else if (Constants.IS_ANDROID && props.mediaType == "Video"){
 			return {
-				selectedTrack: props.boardState.videoChannelNo,
+				selectedTrack: props.boardState.vcn,
 				tracks: props.video,
 			};
 		}
@@ -45,9 +45,9 @@ export default class TrackController extends Component {
 			// if the state track has never been set before.
 			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
 				// if the props track is a real track.
-				if (props.boardState.audioChannelNo<9999){
+				if (props.boardState.acn<9999){
 					return {
-						selectedTrack: props.boardState.audioChannelNo,
+						selectedTrack: props.boardState.acn,
 						tracks: props.audio,
 					};
 				}
@@ -63,10 +63,10 @@ export default class TrackController extends Component {
 			// if the state track has never been set before.
 			if(state.selectedTrack==29999 || state.selectedTrack == 9999){
 				// if the props track is a real track.
-				if (props.boardState.videoChannelNo<9999){
-					console.log(props.boardState.videoChannelNo + "Found video for the first time!!!");
+				if (props.boardState.vcn<9999){
+					console.log(props.boardState.vcn + "Found video for the first time!!!");
 					return {
-						selectedTrack: props.boardState.videoChannelNo,
+						selectedTrack: props.boardState.vcn,
 						tracks: props.video,
 					};
 				}
