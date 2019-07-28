@@ -463,7 +463,7 @@ export default class BoardManager extends Component {
 				this.l("Refresh Media Error: " + error, true);
 			}
 
-			await this.sendCommand("Location", "");
+			await this.sendCommand("getstate", "");
 
 		}
 	}
@@ -486,7 +486,7 @@ export default class BoardManager extends Component {
 						bm.l(command + " timed out after 5 seconds", true);
 						return;
 					}
-				}, 5000);
+				}, Constants.BLE_TIMEOUT);
 
 				if (mutex.isLocked()) { // last chance. if the mutex unlocks that means a timeout occured and 
 					//we should skip.

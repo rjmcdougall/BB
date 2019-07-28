@@ -533,7 +533,7 @@ public class BluetoothCommands {
                 });
 
         // Register Video command on bluetooth server
-        mBLEServer.addCallback("Video",
+        mBLEServer.addCallback("getstate",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -546,16 +546,11 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        l("BBservice got Video command:" + payload.toString());
-                        try {
-                            int track = payload.getInt("arg") + 1;
-                            mBBService.setVideoMode(track);
-                        } catch (Exception e) {
-                            l("error setting video track: " + e.getMessage());
-                        }
+                        l("BBservice get state command:" + payload.toString());
                         sendStateResponse(command, device);
                     }
                 });
+
         // Register Video command on bluetooth server
         mBLEServer.addCallback("Location",
                 new BluetoothLEServer.BLECallback() {
@@ -706,8 +701,8 @@ public class BluetoothCommands {
 
             }
             // Current board state
-            JSONObject state = getState();
-            response.put("state", state);
+           // JSONObject state = getState();
+           // response.put("state", state);
 
         } catch (Exception e) {
             error = "Could not get locations: " + e.getMessage();
@@ -747,6 +742,7 @@ public class BluetoothCommands {
         l("BBservice done sendBTScanResponse command");
         return (error != null);
     }
+
 
     private void sendLogMsg(String msg) {
 
