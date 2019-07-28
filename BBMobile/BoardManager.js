@@ -664,7 +664,6 @@ export default class BoardManager extends Component {
 				try {
 					var boardsJSON = JSON.parse(await cr.getLocationJSON());
 					this.l("Got locations from ContentResolver", boardsJSON);
-					console.log(boardsJSON);
 					this.setState({ locations: boardsJSON });
 				}
 				catch (error) {
@@ -753,7 +752,7 @@ export default class BoardManager extends Component {
 							: <View></View>
 						}
 						<View style={{ flex: 1 }}>
-							<BatteryController boardState={this.state.boardState} />
+							<BatteryController key={this.state.connectedPeripheral.name + "bat"} id={this.state.connectedPeripheral.name + "bat"} battery={this.state.boardState.b} />
 						</View>
 						{(this.props.userPrefs.isDevilsHand) ?
 							<View style={{ margin: 5, paddingTop: 10 }}>

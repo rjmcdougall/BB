@@ -20,7 +20,7 @@ export default class BatteryController extends React.Component {
 		return (
 			<View style={styles.container}>
 				<AnimatedBar
-					progress={this.props.boardState.b/100.0}
+					progress={this.props.b/100.0}
 					height={null}
 					borderColor="#DDD"
 					barColor={barColor}
@@ -41,10 +41,14 @@ export default class BatteryController extends React.Component {
 }
 
 BatteryController.propTypes = {
-	boardState: PropTypes.object,
+	b: PropTypes.number,
 	id: PropTypes.string,
 };
- 
+
+BatteryController.defaultProps = {
+	b: 0,
+};
+
 const styles = StyleSheet.create({
 	container: {
 		paddingTop: 15,
