@@ -374,7 +374,6 @@ public class BluetoothCommands {
 
                 });
 
-        // Register Enable Master command on bluetooth server
         mBLEServer.addCallback("EnableMaster",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -400,7 +399,6 @@ public class BluetoothCommands {
                     }
                 });
 
-        // Register GTFO command on bluetooth server
         mBLEServer.addCallback("EnableGTFO",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -426,7 +424,6 @@ public class BluetoothCommands {
                     }
                 });
 
-        // Register GTFO command on bluetooth server
         mBLEServer.addCallback("BlockMaster",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -452,7 +449,30 @@ public class BluetoothCommands {
                     }
                 });
 
-        // Register Volume command on bluetooth server
+        mBLEServer.addCallback("Video",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
+
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got Video command:" + payload.toString());
+                        try {
+                            int track = payload.getInt("arg") + 1;
+                            mBBService.setVideoMode(track);
+                        } catch (Exception e) {
+                            l("error setting video track: " + e.getMessage());
+                        }
+                        sendStateResponse(command, device);
+                    }
+                });
+
         mBLEServer.addCallback("Wifi",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -480,7 +500,6 @@ public class BluetoothCommands {
                     }
                 });
 
-        // Register Volume command on bluetooth server
         mBLEServer.addCallback("Volume",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -507,7 +526,6 @@ public class BluetoothCommands {
                     }
                 });
 
-        // Register Audio command on bluetooth server
         mBLEServer.addCallback("Audio",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -551,7 +569,6 @@ public class BluetoothCommands {
                     }
                 });
 
-        // Register Video command on bluetooth server
         mBLEServer.addCallback("Location",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -578,7 +595,7 @@ public class BluetoothCommands {
                         sendLocationResponse(command, device, age);
                     }
                 });
-        // Register Video command on bluetooth server
+
         mBLEServer.addCallback("BTScan",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -597,7 +614,7 @@ public class BluetoothCommands {
                         sendBTScanResponse(command, device);
                     }
                 });
-        // Register Video command on bluetooth server
+
         mBLEServer.addCallback("BTSelect",
                 new BluetoothLEServer.BLECallback() {
                     @Override
@@ -654,19 +671,19 @@ public class BluetoothCommands {
     JSONObject getState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("audioChannelNo", mBBService.getRadioChannel() - 1);
-            state.put("videoChannelNo", mBBService.getVideoMode() - 1);
-            state.put("volume", mBBService.getBoardVolumePercent());
-            state.put("battery", mBBService.getBatteryLevel());
-            state.put("audioMaster", mBBService.isMaster());
-            state.put("APKUpdateDate", mBBService.getAPKUpdatedDate());
-            state.put("APKVersion", mBBService.getVersion());
-            state.put("IPAddress", mBBService.wifi.getIPAddress());
-            state.put("GTFO", mBBService.isGTFO());
-            state.put("blockMaster" , mBBService.blockMaster());
-            state.put("SSID", mBBService.wifi.getSSID());
-            state.put("cSSID", mBBService.wifi.getConfiguredSSID());
-            state.put("cPass", mBBService.wifi.getConfiguredPassword());
+            state.put("acn", mBBService.getRadioChannel() - 1);
+            state.put("vcn", mBBService.getVideoMode() - 1);
+            state.put("v", mBBService.getBoardVolumePercent());
+            state.put("b", mBBService.getBatteryLevel());
+            state.put("am", mBBService.isMaster());
+            state.put("apkd", mBBService.getAPKUpdatedDate());
+            state.put("apkv", mBBService.getVersion());
+            state.put("ip", mBBService.wifi.getIPAddress());
+            state.put("g", mBBService.isGTFO());
+            state.put("bm" , mBBService.blockMaster());
+            state.put("s", mBBService.wifi.getSSID());
+            state.put("c", mBBService.wifi.getConfiguredSSID());
+            state.put("p", mBBService.wifi.getConfiguredPassword());
 
 
         } catch (Exception e) {
