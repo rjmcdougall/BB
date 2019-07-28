@@ -54,9 +54,13 @@ exports.MAN_LOCATION = [-119.2066,40.7866];
 exports.MAX_DIAGNOSTIC_LINES = 100;
 
 //wait lengths may vary depending on BLE stability and the RN component
-exports.LOCATION_CHECK_INTERVAL = function () {
-	if (module.exports.IS_ANDROID)
-		return 8000;
+exports.LOCATION_CHECK_INTERVAL = function (isMonitorMode) {
+	if (module.exports.IS_ANDROID){
+		if(isMonitorMode)
+			return 1000;
+		else
+			return 8000;
+	}
 	else
 		return 8000;
 };

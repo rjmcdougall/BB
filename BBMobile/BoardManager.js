@@ -682,7 +682,7 @@ export default class BoardManager extends Component {
 				else
 					this.l("Skip Location Loop. Not connected.", false, null);
 			}
-		}, Constants.LOCATION_CHECK_INTERVAL());
+		}, Constants.LOCATION_CHECK_INTERVAL(this.props.userPrefs.isMonitor));
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
