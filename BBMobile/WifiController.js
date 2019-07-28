@@ -3,6 +3,7 @@ import { View, Text, TextInput } from "react-native";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
+import ModalDropdown from "react-native-modal-dropdown";
 
 export default class WifiController extends Component {
     constructor(props) {
@@ -13,7 +14,7 @@ export default class WifiController extends Component {
             firstTime: true,
         };
     }
- 
+
     render() {
 
         return (
@@ -27,23 +28,37 @@ export default class WifiController extends Component {
                     Wifi
 				</Text>
                 <View style={{
-                    flex: 1, 
+                    flex: 1,
                 }}>
                     <View style={{ height: 40 }}>
                         <Text style={StyleSheet.rowText}>SSID {this.props.boardState.c}</Text>
                     </View>
                     <View style={{ height: 40 }}>
-                        <TextInput
-                            style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
-                            onChangeText={async (c) => {
-                                this.setState({ c: c });
+                        <ModalDropdown options={this.props.wifi}
+                            style={StyleSheet.button}
+                            dropdownStyle={StyleSheet.button}
+                            textStyle={StyleSheet.dropDownRowText}
+                            dropdownTextStyle={StyleSheet.dropDownRowText}
+                            dropdownTextHighlightStyle={StyleSheet.dropDownRowText}
+                            onSelect={(selected) => {
+                                this.setState({ c: this.props.wifi[selected] });
                             }}
-                            value={this.state.c}
                         />
+                    </View>
+                    <View>
+                        <View style={StyleSheet.button}>
+                            <Touchable
+                                onPress={async () => {
+                                    await this.props.sendCommand("getwifi", "");
+                                }}
+                                background={Touchable.Ripple("blue")}>
+                                <Text style={StyleSheet.smallButtonTextCenter}>Update Wifi List</Text>
+                            </Touchable>
+                        </View>
                     </View>
                 </View>
                 <View style={{
-                    flex: 1, 
+                    flex: 1,
                 }}>
                     <View style={{ height: 40 }}>
                         <Text style={StyleSheet.rowText}>Password {this.props.boardState.p}</Text>
@@ -69,10 +84,12 @@ export default class WifiController extends Component {
                         <Text style={StyleSheet.smallButtonTextCenter}>Update</Text>
                     </Touchable>
                 </View>
+
             </View>
         );
     }
 }
 WifiController.propTypes = {
     sendCommand: PropTypes.func,
+    wifi: PropTypes.array,
 };

@@ -35,7 +35,7 @@ export default class AdminManagement extends Component {
 			}
 		}
 
-		//
+		 
 		return (
 			<View style={StyleSheet.container}>
 				<ScrollView>
@@ -78,7 +78,7 @@ export default class AdminManagement extends Component {
 						</Touchable>
 					</View>
 					<View style={{ height: 50 }}></View>
-					<WifiController boardState={this.props.boardState} sendCommand={this.props.sendCommand} />
+					<WifiController wifi={this.props.wifi} boardState={this.props.boardState} sendCommand={this.props.sendCommand} />
 					<View style={{ height: 50 }}></View>
 					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand("Device", value)} devices={this.props.devices} boardState={this.props.boardState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>

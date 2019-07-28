@@ -472,7 +472,58 @@ public class BluetoothCommands {
                         sendStateResponse(command, device);
                     }
                 });
+        mBLEServer.addCallback("getwifi",
+                new BluetoothLEServer.BLECallback() {
+                    @Override
+                    public void onConnected(String clientId) {
+                    }
 
+                    @Override
+                    public void onDisconnected(String clientId) {
+                    }
+
+                    @Override
+                    public void OnAction(String clientId, BluetoothDevice device,
+                                         String command, JSONObject payload) {
+                        l("BBservice got getwifi OnAction");
+                        String error = null;
+                        JSONObject response = new JSONObject();
+                        try {
+                            response.put("command", command);
+                        } catch (Exception e) {
+                            error = "Could not insert command: " + e.getMessage();
+                        }
+
+                        try {
+                            JSONArray wifi = mBBService.wifi.getScanResults();
+                            if(wifi==null)
+                                l("Empty wifi");
+                            else
+                                response.put("wifi", wifi);
+                        }
+                        catch(JSONException e){
+                            l(e.getMessage());
+                        }
+
+                        if (error != null) {
+                            try {
+                                response.put("error", error);
+                            } catch (Exception e) {
+                            }
+                        } else {
+                            try {
+                                response.put("error", "");
+                            } catch (Exception e) {
+                            }
+                        }
+                        // Send payload back to requesting device
+                        mBLEServer.tx(device,
+                                (String.format("%s;", response.toString())).getBytes());
+
+                        l("BBservice done wifi command");
+                        l(response.toString());
+                    }
+                });
         mBLEServer.addCallback("Wifi",
                 new BluetoothLEServer.BLECallback() {
                     @Override

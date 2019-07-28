@@ -27,6 +27,7 @@ var bPeripheral = {
 var bAudio = [{ localName: "loading..." }];
 var bVideo = [{ localName: "loading..." }];
 var bDevices = [{ name: "loading...", address: "loading...", isPaired: false, }];
+var bWifi = [];
 
 var bBoardState = {
 	acn: 9999, // audio channel number
@@ -44,6 +45,9 @@ var bBoardState = {
 	p: "", // configured password
 };
 
+exports.blankWifi = function() {
+	return JSON.parse(JSON.stringify(bWifi));
+}
 exports.blankBoardState = function() {
 	return JSON.parse(JSON.stringify(bBoardState));
 }

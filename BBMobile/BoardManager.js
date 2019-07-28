@@ -50,6 +50,7 @@ export default class BoardManager extends Component {
 			audio: StateBuilder.blankAudio(),
 			video: StateBuilder.blankVideo(),
 			devices: StateBuilder.blankDevices(),
+			wifi: StateBuilder.blankWifi(),
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -383,6 +384,10 @@ export default class BoardManager extends Component {
 			if (newMedia.state) {
 				this.l("updated state", false, newMedia.state);
 				this.setState({ boardState: newMedia.state });
+			}
+			if (newMedia.wifi) {
+				this.l("updated state", false, newMedia.wifi);
+				this.setState({ wifi: newMedia.wifi });
 			}
 			if (newMedia.btdevices) {
 				this.l("updated devices", false, newMedia.btdevices);
@@ -763,7 +768,7 @@ export default class BoardManager extends Component {
 							<View style={{ flex: 1 }}>
 								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} audio={this.state.audio} video={this.state.video} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
 								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} boardState={this.state.boardState} /> : <View></View>}
-								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement devices={this.state.devices} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
+								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement wifi={this.state.wifi} devices={this.state.devices} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
 								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement clearCache={this.clearCache} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
 								{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
 								{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}

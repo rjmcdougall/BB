@@ -10,6 +10,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.net.wifi.ScanResult;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,6 +28,9 @@ import java.net.InetAddress;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class BBWifi {
 
@@ -36,7 +40,7 @@ public class BBWifi {
     public String mIPAddress = null;
     private static final String TAG = "BB.BBWifi";
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
-
+    List<ScanResult> mScanResults;
     public String SSID = "";
     public String password = "";
 
@@ -46,12 +50,21 @@ public class BBWifi {
     public String getConfiguredSSID(){
         return SSID;
     }
+    public JSONArray getScanResults(){
+        JSONArray a = new JSONArray();
+        for(ScanResult s: mScanResults){
+            a.put(s.SSID);
+        }
+        return a;
+    }
     public String getConfiguredPassword(){
         return password;
     }
     BBWifi(Context context) {
         mContext = context;
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mContext.registerReceiver(mWifiScanReceiver,
+                new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
         // look for an SSID and password in file system. If it is not there default to firetruck.
         getSSIDAndPassword();
@@ -66,7 +79,7 @@ public class BBWifi {
             setupWifi();
 
         }
-
+        ScanWifi();
     }
 
     public String getIPAddress() {
@@ -288,6 +301,21 @@ public class BBWifi {
         return ipAddressString;
     }
 
+
+
+    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+                mScanResults = mWiFiManager.getScanResults();
+                l("wifi scan results" + mScanResults.toString());
+            }
+        }
+    };
+
+    public void ScanWifi() {
+        mWiFiManager.startScan();
+    }
 
     public boolean setSSISAndPassword(String SSID, String password) {
 
