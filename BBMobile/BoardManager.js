@@ -488,7 +488,7 @@ export default class BoardManager extends Component {
 				setTimeout(function () {
 					if (mutex.isLocked()) {
 						bleMutex();
-						bm.l(command + " timed out after 5 seconds", true);
+						bm.l(command + " timed out after 10 seconds", true);
 						return;
 					}
 				}, Constants.BLE_TIMEOUT);
@@ -657,9 +657,11 @@ export default class BoardManager extends Component {
 			this.l("error setting notification on rx:" + error, true, null);
 		}
 	}
-	async readLocationLoop() {
 
+	async readLocationLoop() {
+ 
 		var backgroundTimer = setInterval(async () => {
+ 
 			if (this.props.userPrefs.isMonitor) {
 				try {
 					var boardsJSON = JSON.parse(await cr.getLocationJSON());
@@ -671,44 +673,44 @@ export default class BoardManager extends Component {
 				}
 			}
 			else {
-				if (this.state.connectedPeripheral) {
-					if (this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
-						try {
-							await this.sendCommand("Location", "");
-						}
-						catch (error) {
-							this.l("Location Loop Failed:" + error, true, null);
-						}
+				if (this.state.connectedPeripheral
+					&& this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED
+					&& this.completionPercentage() == 100) {
+					try {
+						await this.sendCommand("Location", "");
 					}
-					else
-						this.l("Skip Location Loop. Not connected.", false, null);
+					catch (error) {
+						this.l("Location Loop Failed:" + error, true, null);
+					}
 				}
-				else
-					this.l("Skip Location Loop. Not connected.", false, null);
 			}
-		}, Constants.LOCATION_CHECK_INTERVAL(this.props.userPrefs.isMonitor));
+		}, 8000);
 		this.setState({ backgroundLoop: backgroundTimer });
 	}
 
+	completionPercentage() {
+		var completionPercent = 0;
+		if (this.state.boardData.length > 1) completionPercent += 25;
+		if (this.state.video.length > 1) completionPercent += 25;
+		if (this.state.audio.length > 1) completionPercent += 25;
+		if (this.state.boardState.v != -1) completionPercent += 25;
+		return completionPercent;
+	}
 	render() {
 
 		var color = "#fff";
 		var enableControls = "none";
 		var connectionButtonText = "";
 		var boardName = "board";
-		var completionPercent = 0;
-
+ 
 		if (this.state.boardName)
 			boardName = this.state.boardName;
 
 		if (this.state.connectedPeripheral) {
 
-			if (this.state.boardData.length > 1) completionPercent += 25;
-			if (this.state.video.length > 1) completionPercent += 25;
-			if (this.state.audio.length > 1) completionPercent += 25;
-			if (this.state.boardState.v != -1) completionPercent += 25;
+ 
 
-			if (completionPercent == 100 && this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
+			if (this.completionPercentage() == 100 && this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED) {
 				color = "green";
 				enableControls = "auto";
 				connectionButtonText = "Loaded " + boardName;
@@ -728,7 +730,7 @@ export default class BoardManager extends Component {
 					case Constants.CONNECTED:
 						color = "yellow";
 						enableControls = "none";
-						connectionButtonText = "Loading " + boardName + " " + completionPercent + "%";
+						connectionButtonText = "Loading " + boardName + " " + this.completionPercentage() + "%";
 						break;
 				}
 			}
