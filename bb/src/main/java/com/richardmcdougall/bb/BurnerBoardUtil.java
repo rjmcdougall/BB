@@ -37,6 +37,7 @@ public class BurnerBoardUtil {
      */
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
+    public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
 
     // DEVICE_ID is whatever the device identifies as; BOARD_ID is the 'pretty name' we may have given it
     // BOARD_ID generally gets used as the name everywhere.
@@ -48,10 +49,15 @@ public class BurnerBoardUtil {
         String serial = Build.SERIAL;
         String publicName = getPublicName();
 
+
         if (BurnerBoardUtil.kIsRPI) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
-        } else {
+        } else if (BurnerBoardUtil.kIsNano) {
+            DEVICE_ID = "npi" + serial.substring(Math.max(serial.length() - 5, 0),
+                    serial.length());
+        }
+        else {
             DEVICE_ID = Build.MODEL;
         }
 
@@ -113,7 +119,7 @@ public class BurnerBoardUtil {
         50  -> 0.50a draw
         25  -> 0.35a draw
     */
-    public static final int kVisualizationDirectMapPowerMultiplier = BurnerBoardUtil.kIsRPI ? 25 : 100;
+    public static final int kVisualizationDirectMapPowerMultiplier = BurnerBoardUtil.kIsRPI ? 25 : 100; // should be ok for nano
 
     /*
 

@@ -60,7 +60,7 @@ public class BBService extends Service {
     public static final boolean kEmulatingClassic = false;
 
     // RPIs don't always have a screen; use beeps -jib
-    public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI;
+    public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI; // Not Done IsNano
 
     public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
     public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
@@ -183,13 +183,13 @@ public class BBService extends Service {
      * Indicates whether battery monitoring is enabled
      */
     //boolean mEnableBatteryMonitoring = true;
-    boolean mEnableBatteryMonitoring = !BurnerBoardUtil.kIsRPI;
+    boolean mEnableBatteryMonitoring = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
 
     /**
      * Indicates whether IoT reporting is enabled and how often
      */
     //boolean mEnableIoTReporting = true;
-    boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI;
+    boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
     int mIoTReportEveryNSeconds = 10;
 
     /**
@@ -259,7 +259,7 @@ public class BBService extends Service {
                     l("Sorry! Text To Speech failed...");
                 }
 
-                // Let the user know they're on a raspberry pi
+                // Let the user know they're on a raspberry pi // Skip For IsNano
                 if (BurnerBoardUtil.kIsRPI) {
                     String rpiMsg = "Raspberry PI detected";
                     l(rpiMsg);
@@ -731,7 +731,7 @@ public class BBService extends Service {
 
         l("Starting BB on " + boardId + ", model " + model);
 
-        if (BurnerBoardUtil.kIsRPI) {
+        if (BurnerBoardUtil.kIsRPI) { // Nano should be OK
             phoneModelAudioLatency = 80;
         } else if (model.equals("imx7d_pico")) {
             phoneModelAudioLatency = 110;

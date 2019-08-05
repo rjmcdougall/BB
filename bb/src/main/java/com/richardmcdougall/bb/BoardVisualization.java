@@ -467,7 +467,7 @@ public class BoardVisualization {
             String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
-            if (BurnerBoardUtil.kIsRPI) {
+            if (BurnerBoardUtil.kIsRPI) { // nano is fine
                 return mFrameRate;
             }
             mVisualizationVideo.update(mode);
