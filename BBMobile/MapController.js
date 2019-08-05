@@ -207,7 +207,7 @@ export default class MapController extends Component {
 						followUserMode="compass"
 						followZoomLevel={MP.props.map.zoom}
 						showUserLocation={true} />
-					{ (!this.props.userPrefs.isMonitor) ? (<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} />) : <View></View>}
+					{(!this.props.isMonitor) ? (<Mapbox.UserLocation onUpdate={this.onUserLocationUpdate} />) : <View></View>}
 					{this.buildMap()}
 				</Mapbox.MapView>
 
@@ -218,80 +218,73 @@ export default class MapController extends Component {
 						<Text>battery: {this.state.boardPicked.b}%</Text>
 					</Bubble>
 				) : <View />}
-
-				<View style={StyleSheet.horizontalButtonBar}>
-					<View style={StyleSheet.horizonralButton}>
-						<Touchable
-							onPress={async () => {
-								try {
-									var followUserLocation = !this.state.followUserLocation;
-									this.props.setMap({
-										center: this.props.map.userLocation,
-										zoom: 14,
-										userLocation: this.props.map.userLocation
-									});
-									this.setState({
-										meButtonColor: (followUserLocation) ? "green" : "skyblue",
-										followUserLocation: followUserLocation,
-									});
-								}
-								catch (error) {
-									console.log(error);
-								}
-							}}
-							style={[{ backgroundColor: this.state.meButtonColor }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}>Me</Text>
-						</Touchable>
-					</View>
-					<View style={StyleSheet.horizonralButton}>
-						<Touchable
-							onPress={async () => {
-								try {
-									this.setState({
-										manButtonColor: "green",
-									});
-									this.props.setMap({
-										center: Constants.MAN_LOCATION,
-										zoom: 14,
-										userLocation: this.props.map.userLocation
-									});
-									await this.sleep(1000);
-									this.setState({ manButtonColor: "skyblue" });
-								}
-								catch (error) {
-									console.log(error);
-								}
-							}}
-							style={[{ backgroundColor: this.state.manButtonColor }]}
-							background={Touchable.Ripple("blue")}>
-							<Text style={StyleSheet.buttonTextCenter}>Playa</Text>
-						</Touchable>
-					</View>
-					{(this.props.userPrefs.isMonitor) ?
+				{(!this.props.isMonitor) ?
+					<View style={StyleSheet.horizontalButtonBar}>
 						<View style={StyleSheet.horizonralButton}>
 							<Touchable
 								onPress={async () => {
-									this.props.userPrefs.isMonitor = !this.props.userPrefs.isMonitor;
-									this.props.setUserPrefs(this.props.userPrefs);
+									try {
+										var followUserLocation = !this.state.followUserLocation;
+										this.props.setMap({
+											center: this.props.map.userLocation,
+											zoom: 13,
+											userLocation: this.props.map.userLocation
+										});
+										this.setState({
+											meButtonColor: (followUserLocation) ? "green" : "skyblue",
+											followUserLocation: followUserLocation,
+										});
+									}
+									catch (error) {
+										console.log(error);
+									}
 								}}
-								style={[{ backgroundColor: (this.props.userPrefs.isMonitor) ? "green" : "skyblue" }]}
+								style={[{ backgroundColor: this.state.meButtonColor }]}
 								background={Touchable.Ripple("blue")}>
-								<Text style={StyleSheet.buttonTextCenter}>Monitor Mode</Text>
+								<Text style={StyleSheet.buttonTextCenter}>Me</Text>
 							</Touchable>
 						</View>
-						: <View />}
-				</View>
+						<View style={StyleSheet.horizonralButton}>
+							<Touchable
+								onPress={async () => {
+									try {
+										this.setState({
+											manButtonColor: "green",
+										});
+										this.props.setMap({
+											center: Constants.MAN_LOCATION,
+											zoom: 13,
+											userLocation: this.props.map.userLocation
+										});
+										await this.sleep(1000);
+										this.setState({ manButtonColor: "skyblue" });
+									}
+									catch (error) {
+										console.log(error);
+									}
+								}}
+								style={[{ backgroundColor: this.state.manButtonColor }]}
+								background={Touchable.Ripple("blue")}>
+								<Text style={StyleSheet.buttonTextCenter}>Playa</Text>
+							</Touchable>
+						</View>
+
+
+					</View>
+					: <View />}
+
 			</View>
 		);
 	}
 }
 
-MapController.propTypes = { 
+MapController.propTypes = {
 	locations: PropTypes.array,
 	userPrefs: PropTypes.object,
 	setMap: PropTypes.func,
 	map: PropTypes.object,
 	boardData: PropTypes.any,
 	setUserPrefs: PropTypes.func,
+	isMonitor: PropTypes.bool,
+	updateMonitor: PropTypes.func,
 };

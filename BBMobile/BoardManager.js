@@ -51,6 +51,7 @@ export default class BoardManager extends Component {
 			video: StateBuilder.blankVideo(),
 			devices: StateBuilder.blankDevices(),
 			wifi: StateBuilder.blankWifi(),
+			isMonitor: false,
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -66,6 +67,7 @@ export default class BoardManager extends Component {
 		this.startScan = this.startScan.bind(this);
 		this.setMap = this.setMap.bind(this);
 		this.clearCache = this.clearCache.bind(this);
+		this.updateMonitor = this.updateMonitor.bind(this);
 	}
 
 
@@ -658,11 +660,15 @@ export default class BoardManager extends Component {
 		}
 	}
 
+	updateMonitor(isMonitor) {
+		this.setState({ isMonitor: isMonitor });
+	}
+
 	async readLocationLoop() {
  
 		var backgroundTimer = setInterval(async () => {
  
-			if (this.props.userPrefs.isMonitor) {
+			if (this.state.isMonitor) {
 				try {
 					var boardsJSON = JSON.parse(await cr.getLocationJSON());
 					this.l("Got locations from ContentResolver", boardsJSON);
@@ -743,7 +749,7 @@ export default class BoardManager extends Component {
 		}
 
 
-		if (!this.props.userPrefs.isMonitor)
+		if (!this.state.isMonitor)
 			return (
 				<View style={{ flex: 1 }}>
 					<View style={{ flexDirection: "row" }}>
@@ -770,8 +776,8 @@ export default class BoardManager extends Component {
 								{(this.state.showScreen == Constants.MEDIA_MANAGEMENT) ? <MediaManagement pointerEvents={enableControls} audio={this.state.audio} video={this.state.video} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
 								{(this.state.showScreen == Constants.DIAGNOSTIC) ? <Diagnostic pointerEvents={enableControls} logLines={this.state.logLines} boardState={this.state.boardState} /> : <View></View>}
 								{(this.state.showScreen == Constants.ADMINISTRATION) ? <AdminManagement wifi={this.state.wifi} devices={this.state.devices} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} pointerEvents={enableControls} boardState={this.state.boardState} sendCommand={this.sendCommand} /> : <View></View>}
-								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement clearCache={this.clearCache} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
-								{(this.state.showScreen == Constants.MAP) ? <MapController userPrefs={this.props.userPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.APP_MANAGEMENT) ? <AppManagement updateMonitor={this.updateMonitor} clearCache={this.clearCache} setUserPrefs={this.props.setUserPrefs} userPrefs={this.props.userPrefs} /> : <View></View>}
+								{(this.state.showScreen == Constants.MAP) ? <MapController isMonitor={this.state.isMonitor} updateMonitor = {this.updateMonitor} userPrefs={this.props.userPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} setUserPrefs={this.props.setUserPrefs} /> : <View></View>}
 								{(this.state.showScreen == Constants.DISCOVER) ? <DiscoverController startScan={this.startScan} boardBleDevices={this.state.boardBleDevices} scanning={this.state.scanning} boardData={this.state.boardData} onSelectPeripheral={this.onSelectPeripheral} /> : <View></View>}
 							</View>
 							<View style={StyleSheet.footer}>
@@ -803,7 +809,7 @@ export default class BoardManager extends Component {
 			return (
 				<View style={StyleSheet.monitorContainer}>
 					<View style={StyleSheet.monitorMap}>
-						<MapController userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
+						<MapController isMonitor={this.state.isMonitor} updateMonitor = {this.updateMonitor} userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
 					</View>
 					<View style={StyleSheet.batteryList}>
 						{this.buildBatteryList()}

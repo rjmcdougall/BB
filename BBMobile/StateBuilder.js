@@ -10,7 +10,7 @@ var bEmptyUserPrefs = {
 
 var bMap = {
 	center: Constants.MAN_LOCATION,
-	zoom: 12,
+	zoom: 13,
 	userLocation: Constants.MAN_LOCATION,
 }
 var bEmptyLogLines = [{ logLine: "", isError: false }];

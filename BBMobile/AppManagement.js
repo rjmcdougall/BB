@@ -118,10 +118,9 @@ export default class AppManagement extends Component {
 							<View style={StyleSheet.button}>
 								<Touchable
 									onPress={async () => {
-										this.props.userPrefs.isMonitor = !this.props.userPrefs.isMonitor;
-										this.props.setUserPrefs(this.props.userPrefs);
+										this.props.updateMonitor(!this.props.isMonitor);
 									}}
-									style={[{ backgroundColor: (this.props.userPrefs.isMonitor) ? "green" : "skyblue" }]}
+									style={[{ backgroundColor: (this.state.isMonitor) ? "green" : "skyblue" }]}
 									background={Touchable.Ripple("blue")}>
 									<Text style={StyleSheet.buttonTextCenter}>Monitor Mode</Text>
 								</Touchable>
@@ -169,5 +168,6 @@ AppManagement.propTypes = {
 	userPrefs: PropTypes.object,
 	setUserPrefs: PropTypes.func,
 	clearCache: PropTypes.func,
+	updateMonitor: PropTypes.func,
 };
 
