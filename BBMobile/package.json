@@ -4,9 +4,9 @@
   "private": true,
   "devDependencies": {
     "babel-eslint": "^10.0.2",
-    "eslint": "^6.0.1",
+    "eslint": "^6.1.0",
     "eslint-config-google": "^0.13.0",
-    "eslint-plugin-react": "^7.14.2",
+    "eslint-plugin-react": "^7.14.3",
     "eslint-plugin-react-native": "^3.7.0",
     "metro-react-native-babel-preset": "^0.55.0",
     "react-native-scripts": "^2.0.1"
@@ -32,7 +32,7 @@
     "react-native-ble-manager": "^6.6.8",
     "react-native-cli": "^2.0.1",
     "react-native-flip-toggle-button": "^1.0.5",
-    "react-native-fs": "^2.13.3",
+    "react-native-fs": "^2.14.1",
     "react-native-modal-dropdown": "^0.6.2",
     "react-native-platform-touchable": "^1.1.1",
     "react-native-slider": "^0.11.0",
