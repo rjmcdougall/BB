@@ -9,9 +9,8 @@ import {
 import Touchable from "react-native-platform-touchable";
 import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
-import Cache from "./Cache";
 import Mapbox from "@react-native-mapbox-gl/maps";
-import Constants from "./Constants"
+import Constants from "./Constants";
 export default class AppManagement extends Component {
 	constructor(props) {
 		super(props);
@@ -67,7 +66,7 @@ export default class AppManagement extends Component {
 		this.setState({ bbComButton: "skyblue" });
 	}
 	render() {
-		var downloadText
+		var downloadText;
 
 		if (this.state.downloaded)
 			downloadText = "Playa Map Downloaded";
@@ -138,7 +137,7 @@ export default class AppManagement extends Component {
 									minZoom: 5,
 									maxZoom: 20,
 									bounds: Constants.PLAYA_BOUNDS()
-								}, AM.progressListener, AM.errorListener)
+								}, AM.progressListener, AM.errorListener);
 							}}
 							style={[{ backgroundColor: downloadBackgroundColor }]}
 							background={Touchable.Ripple("blue")}
@@ -169,5 +168,6 @@ AppManagement.propTypes = {
 	setUserPrefs: PropTypes.func,
 	clearCache: PropTypes.func,
 	updateMonitor: PropTypes.func,
+	isMonitor: PropTypes.bool,
 };
 

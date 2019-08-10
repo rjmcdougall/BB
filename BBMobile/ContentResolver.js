@@ -6,15 +6,15 @@
  * 2. int duration: The duration of the toast. May be ToastExample.SHORT or
  *    ToastExample.LONG
  */
-import {NativeModules} from 'react-native';
+import {NativeModules} from "react-native";
 
 class ContentResolver {
 
-    getLocationJSON() {
-        return new Promise((resolve, reject) => {
-            NativeModules.ContentResolver.getLocationJSON(resolve, reject);
-          });
-    }
+	getLocationJSON() {
+		return new Promise((resolve, reject) => {
+			NativeModules.ContentResolver.getLocationJSON(resolve, reject);
+		});
+	}
 }
 
 export default ContentResolver;

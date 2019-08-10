@@ -5,9 +5,9 @@ import geoViewport from "@mapbox/geo-viewport";
 exports.debug = false;
 
 //sime features are android specific.  the monitor is android only.'
-exports.IS_ANDROID = Platform.OS === "android"
-exports.IS_IOS = Platform.OS === "ios"
-exports.HAS_ANDROID_VERSION = Platform.Version >= 23
+exports.IS_ANDROID = Platform.OS === "android";
+exports.IS_IOS = Platform.OS === "ios";
+exports.HAS_ANDROID_VERSION = Platform.Version >= 23;
 
 //UUIDs
 exports.bbUUID = "58fdc6ee-15d1-11e8-b642-0ed5f89f718b";
@@ -47,7 +47,7 @@ exports.BTDEVICESPREFIX = "BTDevice_";
 exports.PLAYA_BOUNDS = function() {
 	var bounds = geoViewport.bounds([-119.2066,40.7866], 14, [600, 400]);
 	return [[bounds[0], bounds[1]], [bounds[2], bounds[3]]];
-}
+};
 exports.MAN_LOCATION = [-119.2066,40.7866];
 
 //Diagnostic Screen Configuration

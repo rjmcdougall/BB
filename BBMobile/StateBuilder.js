@@ -12,7 +12,8 @@ var bMap = {
 	center: Constants.MAN_LOCATION,
 	zoom: 13,
 	userLocation: Constants.MAN_LOCATION,
-}
+};
+
 var bEmptyLogLines = [{ logLine: "", isError: false }];
 
 var bBoardData = [{ name: "none", address: 1234 }]; //    { "color": "coral", "address": 42424, "isProfileGlobal": true, "profile": "Small-Testing","name": "BLUE DASH M2",  "type": "tester"},
@@ -20,10 +21,10 @@ var bBoardData = [{ name: "none", address: 1234 }]; //    { "color": "coral", "a
 var bLocations = [];
 
 var bPeripheral = {
-					name: "loading...",
-					id: "12345",
-					connectionStatus: Constants.DISCONNECTED,
-				}
+	name: "loading...",
+	id: "12345",
+	connectionStatus: Constants.DISCONNECTED,
+};
 var bAudio = [{ localName: "loading..." }];
 var bVideo = [{ localName: "loading..." }];
 var bDevices = [{ name: "loading...", address: "loading...", isPaired: false, }];
@@ -47,35 +48,35 @@ var bBoardState = {
 
 exports.blankWifi = function() {
 	return JSON.parse(JSON.stringify(bWifi));
-}
+};
 exports.blankBoardState = function() {
 	return JSON.parse(JSON.stringify(bBoardState));
-}
+};
 exports.blankDevices = function() {
 	return JSON.parse(JSON.stringify(bDevices));
-}
+};
 exports.blankAudio = function() {
 	return JSON.parse(JSON.stringify(bAudio));
-}
+};
 exports.blankVideo = function() {
 	return JSON.parse(JSON.stringify(bVideo));
-}
+};
 
 exports.blankPeripheral = function() {
 	return JSON.parse(JSON.stringify(bPeripheral));
-}
+};
 
 exports.blankBoardData = function() {
 	return JSON.parse(JSON.stringify(bBoardData));
-}
+};
 
 exports.blankLocations = function() {
 	return JSON.parse(JSON.stringify(bLocations));
-}
+};
 
 exports.blankMap = function() {
 	return JSON.parse(JSON.stringify(bMap));
-}
+};
 
 exports.blankLogLines = function () {
 	return JSON.parse(JSON.stringify(bEmptyLogLines));
@@ -85,7 +86,7 @@ exports.blankUserPrefs = function () {
 };
 
 exports.boardColor = function (item, boardData) {
-	 
+
 	var color = "whitesmoke";
 
 	var foundBoard = boardData.filter((board) => {
@@ -103,5 +104,5 @@ exports.boardColor = function (item, boardData) {
 		}
 	}
 	return color;
-}
+};
 

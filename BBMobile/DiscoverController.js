@@ -20,7 +20,7 @@ export default class DiscoverController extends React.Component {
 			const list = Array.from(this.props.boardBleDevices.values());
 			const dataSource = ds.cloneWithRows(list);
 
-			DC = this;
+			var DC = this;
 
 			return (
 				<View style={{ flex: 1, margin: 30 }}>
@@ -45,7 +45,7 @@ export default class DiscoverController extends React.Component {
 									if (item.name) {
 										try {
  
-											color = StateBuilder.boardColor(item.name, DC.props.boardData)
+											var color = StateBuilder.boardColor(item.name, DC.props.boardData);
 
 											return (
 												<Touchable

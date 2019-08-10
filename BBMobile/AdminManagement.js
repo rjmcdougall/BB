@@ -35,7 +35,6 @@ export default class AdminManagement extends Component {
 			}
 		}
 
-		 
 		return (
 			<View style={StyleSheet.container}>
 				<ScrollView>
@@ -92,6 +91,6 @@ AdminManagement.propTypes = {
 	boardState: PropTypes.object,
 	sendCommand: PropTypes.func,
 	devices: PropTypes.array,
-	boardState: PropTypes.object,
+	wifi: PropTypes.array,
 };
 

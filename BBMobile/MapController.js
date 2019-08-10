@@ -6,7 +6,7 @@ import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
 import Constants from "./Constants";
-import Bubble from './Bubble';
+import Bubble from "./Bubble";
 
 Mapbox.setAccessToken(
 	"sk.eyJ1IjoiZGFuaWVsa2VpdGh3IiwiYSI6ImNqdzhlbHUwZTJvdmUzenFramFmMTQ4bXIifQ.9EXJnBcsrsKyS-veb_dlNg"
@@ -24,7 +24,7 @@ export default class MapController extends Component {
 			followUserLocation: false,
 			isFetchingAndroidPermission: Constants.IS_ANDROID,
 			isAndroidPermissionGranted: false,
-		}
+		};
 
 		this.onPressCircle = this.onPressCircle.bind(this);
 		this.lastHeardBoardDate = this.lastHeardBoardDate.bind(this);
@@ -57,31 +57,31 @@ export default class MapController extends Component {
 	makeLineCollection(board) {
 
 		var featureCollection = {
-			'type': 'FeatureCollection',
-			'features': []
-		}
+			"type": "FeatureCollection",
+			"features": []
+		};
 		var route = {
 			"type": "Feature",
 			"geometry": {
 				"type": "LineString",
 				"coordinates": []
 			}
-		}
+		};
 
 		//locations.locations :) ascending order
 		var locationHistory = board.locations.sort((a, b) => a.d - b.d);
 
 		locationHistory.map((location) => {
 			route.geometry.coordinates.push([location.o, location.a]);
-		})
+		});
 
 		// debug
 		if (Constants.debug)
-			for (i = 0; i < route.geometry.coordinates.length - 1; i++) {
-				route.geometry.coordinates[i] = [route.geometry.coordinates[i][0] + (Math.random() * .01), route.geometry.coordinates[i][1] + (Math.random() * .01)]
+			for (var i = 0; i < route.geometry.coordinates.length - 1; i++) {
+				route.geometry.coordinates[i] = [route.geometry.coordinates[i][0] + (Math.random() * .01), route.geometry.coordinates[i][1] + (Math.random() * .01)];
 			}
 
-		featureCollection.features.push(route)
+		featureCollection.features.push(route);
 		return featureCollection;
 	}
 
@@ -92,9 +92,9 @@ export default class MapController extends Component {
 		var lastLocation = locationHistory[locationHistory.length - 1];
 
 		var featureCollection = {
-			'type': 'FeatureCollection',
-			'features': []
-		}
+			"type": "FeatureCollection",
+			"features": []
+		};
 		var point = {
 			"type": "Feature",
 			"geometry": {
@@ -104,7 +104,7 @@ export default class MapController extends Component {
 			"properties": {
 				"board": board.board
 			}
-		}
+		};
 
 		featureCollection.features.push(point);
 		return featureCollection;
@@ -129,11 +129,11 @@ export default class MapController extends Component {
 
 		this.setState({
 			boardPicked: boardPicked
-		})
+		});
 		await this.sleep(3000);
 		this.setState({
 			boardPicked: null
-		})
+		});
 	}
 
 	lastHeardBoardDate() {
@@ -145,10 +145,12 @@ export default class MapController extends Component {
 	buildMap() {
 		var a = new Array();
 		var MP = this;
+		var shapeSource;
+
 		this.props.locations.map((board) => {
 
 
-			var shapeSource = (
+			shapeSource = (
 				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
 					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
 						lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
@@ -163,7 +165,7 @@ export default class MapController extends Component {
 
 			if (board.locations.length > 0) {
 
-				var shapeSource = (
+				shapeSource = (
 					<Mapbox.ShapeSource id={"C" + board.board} key={"C" + board.board}
 						shape={this.makePoint(board)}
 						onPress={MP.onPressCircle}>
@@ -200,7 +202,7 @@ export default class MapController extends Component {
 					style={StyleSheet.container}>
 					<Mapbox.Camera
 						zoomLevel={MP.props.map.zoom}
-						animationMode={'flyTo'}
+						animationMode={"flyTo"}
 						animationDuration={1000}
 						centerCoordinate={MP.props.map.center}
 						followUserLocation={this.state.followUserLocation}

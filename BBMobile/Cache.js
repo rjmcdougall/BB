@@ -4,7 +4,7 @@ import Constants from "./Constants";
 exports.get = async function (key) {
 	// create a path you want to write to
 
-	var key = Constants.FS_CACHE_HEADER + key;
+	key = Constants.FS_CACHE_HEADER + key;
 
 	var path = RNFS.DocumentDirectoryPath + "/" + key;
 
@@ -30,7 +30,7 @@ exports.get = async function (key) {
 
 exports.set = async function (key, value) {
 	// create a path you want to write to
-	var key = Constants.FS_CACHE_HEADER + key;
+	key = Constants.FS_CACHE_HEADER + key;
 
 	var path = RNFS.DocumentDirectoryPath + "/" + key;
 

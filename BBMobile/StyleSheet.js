@@ -98,9 +98,9 @@ export default StyleSheet.create({
 	annotationContainer: {
 		width: 30,
 		height: 30,
-		alignItems: 'center',
-		justifyContent: 'center',
-		backgroundColor: 'white',
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: "white",
 		borderRadius: 15
 	},
 	annotationFill: {
