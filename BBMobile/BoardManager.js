@@ -296,6 +296,13 @@ export default class BoardManager extends Component {
 						await BleManager.disconnect(this.state.connectedPeripheral.id);
 					}
 
+				// you wont find a peripheral you are already connected to. So... readd those.
+				var boardBleDevices = new Map();
+				var peripherals = await BleManager.getConnectedPeripherals();
+				peripherals.map((peripheral) => {
+					boardBleDevices.set(peripheral.id, peripheral);
+				});
+				
 				this.setState({
 					connectedPeripheral: StateBuilder.blankPeripheral(),
 					boardState: StateBuilder.blankBoardState(),
@@ -303,7 +310,7 @@ export default class BoardManager extends Component {
 					audio: StateBuilder.blankAudio(),
 					devices: StateBuilder.blankDevices(),
 					scanning: true,
-					boardBleDevices: new Map(),
+					boardBleDevices: boardBleDevices,
 					automaticallyConnect: automaticallyConnect
 				});
 
@@ -724,21 +731,21 @@ export default class BoardManager extends Component {
 			}
 			else {
 				switch (this.state.connectedPeripheral.connectionStatus) {
-					case Constants.DISCONNECTED:
-						color = "#fff";
-						enableControls = "none";
-						connectionButtonText = "Connect to " + boardName;
-						break;
-					case Constants.CONNECTING:
-						color = "yellow";
-						enableControls = "none";
-						connectionButtonText = "Connecting To " + boardName;
-						break;
-					case Constants.CONNECTED:
-						color = "yellow";
-						enableControls = "none";
-						connectionButtonText = "Loading " + boardName + " " + this.completionPercentage() + "%";
-						break;
+				case Constants.DISCONNECTED:
+					color = "#fff";
+					enableControls = "none";
+					connectionButtonText = "Connect to " + boardName;
+					break;
+				case Constants.CONNECTING:
+					color = "yellow";
+					enableControls = "none";
+					connectionButtonText = "Connecting To " + boardName;
+					break;
+				case Constants.CONNECTED:
+					color = "yellow";
+					enableControls = "none";
+					connectionButtonText = "Loading " + boardName + " " + this.completionPercentage() + "%";
+					break;
 				}
 			}
 

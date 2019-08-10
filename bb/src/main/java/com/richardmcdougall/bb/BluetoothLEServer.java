@@ -228,6 +228,8 @@ public class BluetoothLEServer {
 
         mBluetoothLeAdvertiser
                 .startAdvertising(settings, data, mAdvertiseCallback);
+
+        l("LE Advertising Start");
     }
 
     /**
@@ -236,6 +238,7 @@ public class BluetoothLEServer {
     private void stopAdvertising() {
         if (mBluetoothLeAdvertiser == null) return;
 
+        l("LE Advertising Stop");
         mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
     }
 
