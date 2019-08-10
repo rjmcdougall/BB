@@ -26,10 +26,9 @@ public class Matrix extends Visualization {
     public static final int kMatrixEsperanto = 5;
     public static final int kMatrixIrukandji = 6;
     public static final int kMatrixFireFull = 7;
-    public static final int kMatrix9 = 8;
-    public static final int kMatrixReverse = 9;
-    public static final int kMatrixMickey = 10;
-    public static final int kMatrixSync = 11;
+    public static final int kMatrixReverse = 8;
+    public static final int kMatrixMickey = 9;
+    public static final int kMatrixSync = 10;
 
     private static final int[] googleColors = {
             BurnerBoard.getRGB(60, 186, 84),
@@ -116,49 +115,6 @@ public class Matrix extends Visualization {
                     break;
 
                 case kMatrixEsperanto:
-
-
-
-                case kMatrix9:
-                    /*
-                    if (mRandom.nextInt(2) == 0) {
-                        color = BurnerBoard.getRGB(0, 0, 0);
-                        if (x > 0) {
-                            mBurnerBoard.setPixel(pixelSkip * x - 1, y, color);
-                            mBurnerBoard.setPixel(pixelSkip * x - 1, y - 1, color);
-                            mBurnerBoard.setPixel(pixelSkip * x - 1, y - 2, color);
-                        }
-                        mBurnerBoard.setPixel(pixelSkip * x, y, BurnerBoard.getRGB(0, 0, 0));
-                        if (x < mBoardWidth / pixelSkip) {
-                            mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
-                            mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
-                            mBurnerBoard.setPixel(pixelSkip * x + 1, y - 2, color);
-                        }
-
-                    } else {
-                        color = wheel(wheel_color);
-                        colorDim = wheelDim(wheel_color, 0.5f);
-                        wheelInc(1);
-                        if (pixelSkip >= 3) {
-                            if (x > 0) {
-                                mBurnerBoard.setPixel(pixelSkip * x - 1, y, BurnerBoard.getRGB(0, 0, 0));
-                                mBurnerBoard.setPixel(pixelSkip * x - 1, y - 1, colorDim);
-                                mBurnerBoard.setPixel(pixelSkip * x - 1, y - 2, BurnerBoard.getRGB(0, 0, 0));
-                            }
-                            if (x < mBoardWidth / pixelSkip) {
-                                mBurnerBoard.setPixel(pixelSkip * x + 1, y, BurnerBoard.getRGB(0, 0, 0));
-                                mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, colorDim);
-                                mBurnerBoard.setPixel(pixelSkip * x + 1, y - 2, BurnerBoard.getRGB(0, 0, 0));
-                            }
-                            mBurnerBoard.setPixel(pixelSkip * x, y, colorDim);
-                            mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
-                            mBurnerBoard.setPixel(pixelSkip * x, y - 2, colorDim);
-                        } else {
-                            mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                        }
-                    }
-                    */
-                    break;
 
                 case kMatrixLunarian:
                     color = mBoardVisualizion.mRandom.nextInt(2) == 0 ?
