@@ -335,6 +335,8 @@ public class BluetoothLEServer {
                 l("BluetoothDevice DISCONNECTED: " + device);
                 //Remove device from any active subscriptions
                 mRegisteredDevices.remove(device);
+                stopAdvertising();
+                startAdvertising();
             } else {
                 l("BluetoothDevice State Change: " + device + " status: " + status +
                         " newstate:" + newState);
