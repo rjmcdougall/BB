@@ -250,11 +250,6 @@ public class BoardVisualization {
                 mVisualizationAudioBar.update(Matrix.kDefault);
                 break;
 
-            case "modeMatrix(kMatrix9)":
-                frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kMatrix9);
-                break;
-
             case "modeMatrix(kMatrixSync)":
                 frameRate = mFrameRate;
                 mVisualizationMatrix.update(Matrix.kMatrixSync);
