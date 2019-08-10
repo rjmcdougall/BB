@@ -16,7 +16,7 @@ import StyleSheet from "./StyleSheet";
 import DiscoverController from "./DiscoverController";
 import PropTypes from "prop-types";
 import { Buffer } from "buffer";
-import ContentResolver from './ContentResolver';
+import ContentResolver from "./ContentResolver";
 import { Mutex } from "async-mutex";
 const mutex = new Mutex();
 var bleMutex;
@@ -171,7 +171,6 @@ export default class BoardManager extends Component {
 
 	handleNewData(newData) {
 		try {
-			var bm = this;
 			var rxBuffers = this.state.rxBuffers;
 			// Convert bytes array to string
 			var data = newData.value;
@@ -330,6 +329,7 @@ export default class BoardManager extends Component {
 				try {
 					this.l("Disconnecting BLE From " + peripheral.name, false, null);
 					await BleManager.disconnect(peripheral.id);
+					// eslint-disable-next-line require-atomic-updates
 					peripheral.connectionStatus = Constants.DISCONNECTED;
 					boardBLEDevices.set(peripheral.id, peripheral);
 				}
@@ -508,6 +508,7 @@ export default class BoardManager extends Component {
 			}
 			catch (error) {
 				if (mutex.isLocked()) bleMutex();
+				// eslint-disable-next-line require-atomic-updates
 				bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
 				bm.l(error + " errored. releaseing lock.", true);
 			}
@@ -836,7 +837,7 @@ export default class BoardManager extends Component {
 					</View>
 					<View key={board.board + "v3"} style={{ flex: 1 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 				</View>
-			)
+			);
 			a.push(batteryGauge);
 		});
 
