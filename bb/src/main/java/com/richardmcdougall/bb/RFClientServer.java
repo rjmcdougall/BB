@@ -301,7 +301,7 @@ public class RFClientServer {
             clientAddress = (int)int16FromPacket(bytes);
 
             if (clientAddress == mBoardAddress) {
-                d("BB Sync Packet from Server: len(" + packet.length + "), data: " + bytesToHex(packet));
+                d("BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
                 d("BB Sync Packet from Server " + serverAddress +
                         " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
@@ -312,7 +312,7 @@ public class RFClientServer {
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
             clientAddress = (int)int16FromPacket(bytes);
 
-            d("BB Sync Packet from Client: len(" + packet.length + "), data: " + bytesToHex(packet));
+            d("BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             d("BB Sync Packet from Client " + clientAddress +
                     " (" + mRFAddress.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
@@ -328,7 +328,7 @@ public class RFClientServer {
 
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int)int16FromPacket(bytes);
-            d("BB Server Beacon packet: len(" + packet.length + "), data: " + bytesToHex(packet));
+            d("BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             d("BB Server Beacon packet from Server " + serverAddress +
                     " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
@@ -373,21 +373,6 @@ public class RFClientServer {
         }
         return ret;
     }
-
-
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-    public static String bytesToHex(byte[] bytes) {
-
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
 
     private void processSyncResponse(byte[] recvPacket) {
 
@@ -524,7 +509,7 @@ public class RFClientServer {
                     int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
                     int16ToPacket(clientPacket, 0);
-                    d("send packet " + bytesToHex(clientPacket.toByteArray()));
+                    d("send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     mRF.broadcast(clientPacket.toByteArray());
                     d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", mMain.GetCurrentClock()) +

@@ -82,7 +82,7 @@ public class FindMyFriends {
         mRadio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                l("FMF Packet: len(" + bytes.length + "), data: " + bytesToHex(bytes));
+                l("FMF Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -228,20 +228,6 @@ public class FindMyFriends {
             Log.v(TAG, s);
             sendLogMsg(s);
         }
-    }
-
-
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-
-    public static String bytesToHex(byte[] bytes) {
-
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
     }
 
     boolean processReceive(byte [] packet, int sigStrength) {
