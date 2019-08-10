@@ -108,7 +108,6 @@ public class BBService extends Service {
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
     BoardVisualization mBoardVisualization = null;
-    boolean mServerMode = false;
     IoTClient iotClient = null;
     int mVersion = 0;
     Date mAPKUpdatedDate;
@@ -275,7 +274,7 @@ public class BBService extends Service {
         });
 
         dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
-                boardId, mServerMode, mVersion);
+                boardId, mVersion);
         dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
@@ -419,9 +418,6 @@ public class BBService extends Service {
 
     private void startLights() {
 
-        if (mServerMode == true) {
-            return;
-        }
 
         if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
             l( "Visualization: Using Classic");
@@ -469,10 +465,6 @@ public class BBService extends Service {
     private void startServices() {
 
         l("StartServices");
-
-        if (mServerMode == true) {
-            return;
-        }
 
         // Start the manager for bluetooth discovery/pairing/etc,...
 
@@ -760,10 +752,6 @@ public class BBService extends Service {
         l("audio framesPerBufferInt: " + framesPerBufferInt );
 
         dlManager.StartDownloads();
-
-        if (mServerMode == true) {
-            return;
-        }
 
         try {
             Thread.sleep(5000);
@@ -1125,11 +1113,6 @@ public class BBService extends Service {
     public void SetRadioChannel(int index) {
         l("SetRadioChannel: " + index);
         currentRadioChannel = index;
-
-
-        if (mServerMode == true) {
-            return;
-        }
 
         // If I am set to be the master, broadcast to other boards
         if (mMasterRemote && (mRfClientServer != null)) {
