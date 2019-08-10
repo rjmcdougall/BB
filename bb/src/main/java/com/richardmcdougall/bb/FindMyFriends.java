@@ -42,10 +42,7 @@ public class FindMyFriends {
     private findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
     static final int kMaxFixAge = 30000;
-    static final int kMagicNumberLen = 2;
     static final int krepeatedBy = 0;
-    static final int [] kTrackerMagicNumber = new int[] {0x02, 0xcb};
-    static final int [] kGPSMagicNumber = new int[] {0xbb, 0x01};
     int mLat;
     int mLon;
     int mAlt;
@@ -163,11 +160,11 @@ public class FindMyFriends {
         int batt = mBBService.getBatteryLevel();
 
         // Check GPS data is not stale
-        int len = 2 * 4 + 1 + kMagicNumberLen + 1;
+        int len = 2 * 4 + 1 + BurnerBoardUtil.kMagicNumberLen + 1;
         ByteArrayOutputStream radioPacket = new ByteArrayOutputStream();
 
-        for (int i = 0; i < kMagicNumberLen; i++) {
-            radioPacket.write(kGPSMagicNumber[i]);
+        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
+            radioPacket.write(BurnerBoardUtil.kGPSMagicNumber[i]);
         }
 
         radioPacket.write(mBoardAddress & 0xFF);
@@ -255,7 +252,7 @@ public class FindMyFriends {
             int recvMagicNumber = magicNumberToInt(
                     new int[] { bytes.read(), bytes.read()});
 
-            if (recvMagicNumber == magicNumberToInt(kGPSMagicNumber)) {
+            if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kGPSMagicNumber)) {
                 d("BB GPS Packet");
                 mTheirAddress = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
@@ -285,7 +282,7 @@ public class FindMyFriends {
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
                 updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt ,packet.clone());
                 return true;
-            } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
+            } else if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kTrackerMagicNumber)) {
                 d("tracker packet");
                 mTheirLat = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
@@ -311,8 +308,8 @@ public class FindMyFriends {
 
     private static final int magicNumberToInt(int[] magic) {
         int magicNumber = 0;
-        for (int i = 0; i < kMagicNumberLen; i++) {
-            magicNumber = magicNumber + (magic[i] << ((kMagicNumberLen - 1 - i) * 8));
+        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
+            magicNumber = magicNumber + (magic[i] << ((BurnerBoardUtil.kMagicNumberLen - 1 - i) * 8));
         }
         return (magicNumber);
     }
