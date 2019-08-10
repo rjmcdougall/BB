@@ -30,7 +30,6 @@ public class DownloadManager {
     protected JSONObject dataDirectory;
     protected JSONArray dataBoards;
     int mVersion;
-    boolean mIsServer = false;
     String mBoardId;
 
     JSONObject GetDataDirectory() {
@@ -50,12 +49,11 @@ public class DownloadManager {
 
     public OnDownloadProgressType onProgressCallback = null;
 
-    DownloadManager(String filesDir, String boardId, boolean isServer, int myVersion) {
+    DownloadManager(String filesDir, String boardId, int myVersion) {
         Log.d(TAG, "Downloading files to: " + filesDir);
         mVersion = myVersion;
         mFilesDir = filesDir;
         PackageInfo pinfo;
-        mIsServer = isServer;
         mBoardId = boardId;
     }
 
@@ -495,8 +493,7 @@ public class DownloadManager {
                             // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
                             if (elm.has("URL") &&
                                     !elm.isNull("URL") &&
-                                    elm.getString("URL").length() > 0 &&
-                                    !mIsServer
+                                    elm.getString("URL").length() > 0
                                     ) {
                                 if (!isUpToDate(elm))
                                     changedFiles.put(elm);
