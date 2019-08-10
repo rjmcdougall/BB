@@ -243,8 +243,8 @@ public class RFClientServer {
 
         ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
-        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-            replyPacket.write(BurnerBoardUtil.kServerSyncMagicNumber[i]);
+        for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
+            replyPacket.write(RFUtil.kServerSyncMagicNumber[i]);
         }
 
         // Address of this server (just put this in now?)
@@ -291,12 +291,12 @@ public class RFClientServer {
         if(mBoardAddress <= 0)
             mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
 
-        int recvMagicNumber = magicNumberToInt(
+        int recvMagicNumber = RFUtil.magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
 
         int clientAddress = 0;
 
-        if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kServerSyncMagicNumber)) {
+        if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kServerSyncMagicNumber)) {
             int serverAddress = (int)int16FromPacket(bytes);
             clientAddress = (int)int16FromPacket(bytes);
 
@@ -309,7 +309,7 @@ public class RFClientServer {
             }
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
-        } else if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kClientSyncMagicNumber)) {
+        } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
             clientAddress = (int)int16FromPacket(bytes);
 
             d("BB Sync Packet from Client: len(" + packet.length + "), data: " + bytesToHex(packet));
@@ -326,14 +326,14 @@ public class RFClientServer {
             }
             logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
 
-        } else if (recvMagicNumber == magicNumberToInt(kServerBeaconMagicNumber)) {
+        } else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int)int16FromPacket(bytes);
             d("BB Server Beacon packet: len(" + packet.length + "), data: " + bytesToHex(packet));
             d("BB Server Beacon packet from Server " + serverAddress +
                     " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
-        } else if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kRemoteControlMagicNumber)) {
+        } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
             int address = (int) int16FromPacket(bytes);
             int cmd = (int) int16FromPacket(bytes);
             int value = (int) int32FromPacket(bytes);
@@ -343,14 +343,6 @@ public class RFClientServer {
             d("packet not for sync server!");
         }
         return;
-    }
-
-    private static final int magicNumberToInt(int[] magic) {
-        int magicNumber = 0;
-        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-            magicNumber = magicNumber + (magic[i] << ((BurnerBoardUtil.kMagicNumberLen - 1 - i) * 8));
-        }
-        return (magicNumber);
     }
 
     class Sample {
@@ -520,8 +512,8 @@ public class RFClientServer {
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
-                    for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-                        clientPacket.write(BurnerBoardUtil.kClientSyncMagicNumber[i]);
+                    for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
+                        clientPacket.write(RFUtil.kClientSyncMagicNumber[i]);
                     }
 
                     // My Client Address
@@ -550,8 +542,8 @@ public class RFClientServer {
 
                 ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
-                for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-                    replyPacket.write(BurnerBoardUtil.kServerBeaconMagicNumber[i]);
+                for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
+                    replyPacket.write(RFUtil.kServerBeaconMagicNumber[i]);
                 }
 
                 // Address of this server (just put this in now?)
@@ -702,8 +694,8 @@ public class RFClientServer {
 
         ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
-        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-            clientPacket.write(BurnerBoardUtil.kRemoteControlMagicNumber[i]);
+        for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
+            clientPacket.write(RFUtil.kRemoteControlMagicNumber[i]);
         }
 
         // Client

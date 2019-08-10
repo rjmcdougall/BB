@@ -182,12 +182,4 @@ public class BurnerBoardUtil {
         }
     }
 
-    static final int [] kClientSyncMagicNumber =        new int[] {0xbb, 0x03};
-    static final int [] kServerSyncMagicNumber =        new int[] {0xbb, 0x04};
-    static final int [] kServerBeaconMagicNumber =      new int[] {0xbb, 0x05};
-    static final int [] kRemoteControlMagicNumber =     new int[] {0xbb, 0x06};
-    static final int [] kTrackerMagicNumber =           new int[] {0x02, 0xcb};
-    static final int [] kGPSMagicNumber =               new int[] {0xbb, 0x01};
-    static final int kMagicNumberLen = 2;
-
 }

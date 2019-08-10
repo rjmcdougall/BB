@@ -160,11 +160,11 @@ public class FindMyFriends {
         int batt = mBBService.getBatteryLevel();
 
         // Check GPS data is not stale
-        int len = 2 * 4 + 1 + BurnerBoardUtil.kMagicNumberLen + 1;
+        int len = 2 * 4 + 1 + RFUtil.kMagicNumberLen + 1;
         ByteArrayOutputStream radioPacket = new ByteArrayOutputStream();
 
-        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-            radioPacket.write(BurnerBoardUtil.kGPSMagicNumber[i]);
+        for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
+            radioPacket.write(RFUtil.kGPSMagicNumber[i]);
         }
 
         radioPacket.write(mBoardAddress & 0xFF);
@@ -249,10 +249,10 @@ public class FindMyFriends {
         try {
             ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
-            int recvMagicNumber = magicNumberToInt(
+            int recvMagicNumber = RFUtil.magicNumberToInt(
                     new int[] { bytes.read(), bytes.read()});
 
-            if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kGPSMagicNumber)) {
+            if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kGPSMagicNumber)) {
                 d("BB GPS Packet");
                 mTheirAddress = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
@@ -282,7 +282,7 @@ public class FindMyFriends {
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
                 updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt ,packet.clone());
                 return true;
-            } else if (recvMagicNumber == magicNumberToInt(BurnerBoardUtil.kTrackerMagicNumber)) {
+            } else if (recvMagicNumber == RFUtil.magicNumberToInt( RFUtil.kTrackerMagicNumber)) {
                 d("tracker packet");
                 mTheirLat = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
@@ -304,14 +304,6 @@ public class FindMyFriends {
             l("Error processing a received packet " + e.getMessage());
             return false;
         }
-    }
-
-    private static final int magicNumberToInt(int[] magic) {
-        int magicNumber = 0;
-        for (int i = 0; i < BurnerBoardUtil.kMagicNumberLen; i++) {
-            magicNumber = magicNumber + (magic[i] << ((BurnerBoardUtil.kMagicNumberLen - 1 - i) * 8));
-        }
-        return (magicNumber);
     }
 
     // keep a historical list of minimal location data

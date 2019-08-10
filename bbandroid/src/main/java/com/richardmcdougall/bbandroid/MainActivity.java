@@ -862,10 +862,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
 
-            int recvMagicNumber = magicNumberToInt(
+            int recvMagicNumber = RFUtil.magicNumberToInt(
                     new int[]{bytes.read(), bytes.read()});
 
-            if (recvMagicNumber == magicNumberToInt(kGPSMagicNumber)) {
+            if (recvMagicNumber == RFUtil.magicNumberToInt(kGPSMagicNumber)) {
                 l("BB GPS Packet");
                 mTheirAddress = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
@@ -883,7 +883,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
                 mThereAccurate = bytes.read();
-            } else if (recvMagicNumber == magicNumberToInt(kTrackerMagicNumber)) {
+            } else if (recvMagicNumber == RFUtil.magicNumberToInt(kTrackerMagicNumber)) {
                 l("tracker packet");
                 mTheirLat = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
@@ -898,16 +898,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 l("rogue bluetooth packet not for us!");
             }
         }
-
-        private final int magicNumberToInt(int[] magic) {
-            int magicNumber = 0;
-            for (int i = 0; i < kMagicNumberLen; i++) {
-                magicNumber = magicNumber + (magic[i] << ((kMagicNumberLen - 1 - i) * 8));
-            }
-            return (magicNumber);
-        }
-
-
     }
 
 
