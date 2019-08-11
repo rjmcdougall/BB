@@ -115,6 +115,7 @@ public class BBService extends Service {
     public RF mRadio = null;
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
+    public Favorites mFavorites = null;
     public BluetoothLEServer mBLEServer = null;
     public BluetoothCommands mBluetoothCommands = null;
     public BluetoothConnManager mBluetoothConnManager = null;
@@ -480,16 +481,6 @@ public class BBService extends Service {
             return;
         }
 
-        if (mBLEServer == null) {
-            l("startServices: null BLE object");
-            return;
-        }
-
-        if (mBLEServer == null) {
-            l("startServices: null BLE object");
-            return;
-        }
-
         mRadio = new RF(this, mContext);
         if (mRadio == null) {
             l("startServices: null RF object");
@@ -509,6 +500,11 @@ public class BBService extends Service {
 
         mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
 
+        // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
+        // if (mFavorites == null) {
+        //     l("startServices: null Favorites object");
+        //     return;
+        // }
 
         mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
                 mBluetoothConnManager, mFindMyFriends);

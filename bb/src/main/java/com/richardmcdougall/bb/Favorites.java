@@ -1,0 +1,324 @@
+package com.richardmcdougall.bb;
+
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.os.SystemClock;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
+
+import net.sf.marineapi.nmea.util.Position;
+import net.sf.marineapi.nmea.util.Time;
+import net.sf.marineapi.provider.event.PositionEvent;
+
+import org.joda.time.DateTime;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+/**
+ * Created by rmc on 2/7/18.
+ */
+
+public class Favorites {
+
+    private static final String TAG = "BB.FAV";
+    private Context mContext;
+    private RF mRadio;
+    private RFAddress mRFAddress = null;
+    private Gps mGps;
+    private IoTClient mIotClient;
+    private BBService mBBService;
+    private favoritesCallback mFavoritesCallback = null;
+    static final int krepeatedBy = 0;
+    int mThereAccurate;
+    long mLastSend = 0;
+    long mLastRecv = 0;
+    private int mBoardAddress = 0;
+    byte[] mLastHeardLocation;
+
+    public Favorites(Context context, BBService service,
+                     final RF radio, Gps gps, IoTClient iotclient) {
+        mContext = context;
+        mRadio = radio;
+        mGps = gps;
+        mIotClient = iotclient;
+        mBBService = service;
+        l("Starting favorites");
+
+        if (mRadio == null) {
+            l("No Radio!");
+            return;
+        }
+        mRFAddress = mRadio.mRFAddress;
+
+        mRadio.attach(new RF.radioEvents() {
+            @Override
+            public void receivePacket(byte[] bytes, int sigStrength) {
+                l("Favorites Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
+                if (processReceive(bytes, sigStrength)) {
+
+                }
+            }
+
+            @Override
+            public void GPSevent(PositionEvent gps) {
+                d("Favorites GPS Event" );
+            }
+
+            @Override
+            public void timeEvent(Time time) {
+                d("Favorites Time: " + time.toString());
+            }
+        });
+        addTestFavorite();
+        getFavorites(); // load from disk
+     }
+
+    public final static int BBFavoritesPacketSize = 18;
+
+    private void broadcastFavoritesPacket(int lat, int lon,  int iMAccurate, String message) {
+
+        byte[] b = message.substring(0,4).getBytes();
+
+        // Check GPS data is not stale
+        int len = 2 * 4 + 1 + RFUtil.kMagicNumberLen + 1;
+        ByteArrayOutputStream radioPacket = new ByteArrayOutputStream();
+
+        for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
+            radioPacket.write(RFUtil.kFavoritesMagicNumber[i]);
+        }
+
+        radioPacket.write(mBoardAddress & 0xFF);
+        radioPacket.write((mBoardAddress >> 8) & 0xFF);
+        radioPacket.write(krepeatedBy);
+        radioPacket.write(lat & 0xFF);
+        radioPacket.write((lat >> 8) & 0xFF);
+        radioPacket.write((lat >> 16) & 0xFF);
+        radioPacket.write((lat >> 24) & 0xFF);
+        radioPacket.write(lon & 0xFF);
+        radioPacket.write((lon >> 8) & 0xFF);
+        radioPacket.write((lon >> 16) & 0xFF);
+        radioPacket.write((lon >> 24) & 0xFF);
+        radioPacket.write((b[0]) & 0xFF); // spare
+        radioPacket.write((b[1]) & 0xFF); // spare
+        radioPacket.write((b[2]) & 0xFF); // spare
+        radioPacket.write((b[3]) & 0xFF); // spare
+
+        radioPacket.write(iMAccurate);
+        radioPacket.write(0);
+
+        d("Sending Favorites packet...");
+        mRadio.broadcast(radioPacket.toByteArray());
+        mLastSend = System.currentTimeMillis();
+        d("Sent Favorites packet...");
+
+        Fav f = new Fav();
+        f.r = mBoardAddress;
+        f.d = DateTime.now();
+        f.a = lat;
+        f.o = lon;
+        f.n = b.toString();
+
+        UpdateFavorites(f);
+    }
+
+
+    public interface favoritesCallback {
+
+    }
+
+    public void attach(Favorites.favoritesCallback newfunction) {
+
+        mFavoritesCallback = newfunction;
+    }
+
+    private void sendLogMsg(String msg) {
+
+        Intent in = new Intent(BBService.ACTION_STATS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("msgType", 4);
+        // Put extras into the intent as usual
+        in.putExtra("logMsg", msg);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+    }
+
+    public void l(String s) {
+        Log.v(TAG, s);
+        sendLogMsg(s);
+    }
+
+    public void d(String s) {
+        if (BBService.debug == true) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
+    }
+
+    boolean processReceive(byte [] packet, int sigStrength) {
+
+        try {
+            ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
+
+            Fav f = new Fav();
+
+            int recvMagicNumber = RFUtil.magicNumberToInt(
+                    new int[] { bytes.read(), bytes.read()});
+
+            if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kFavoritesMagicNumber)) {
+                d("BB Favorites Packet");
+                f.r = (int) ((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8));
+                int repeatedBy = bytes.read();
+                f.a = (double) ((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8) +
+                        ((bytes.read() & 0xff) << 16) +
+                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
+                f.o = (double)((bytes.read() & 0xff) +
+                        ((bytes.read() & 0xff) << 8) +
+                        ((bytes.read() & 0xff) << 16) +
+                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
+                f.n += (char) bytes.read(); // note character 1
+                f.n += (char) bytes.read(); //  note character 2
+                f.n += (char) bytes.read(); //  note character 3
+                f.n += (char) bytes.read(); //  note character 4
+                mThereAccurate = bytes.read();
+                mLastRecv = System.currentTimeMillis();
+                mLastHeardLocation = packet.clone();
+                l(mRFAddress.boardAddressToName(f.r) +
+                        " strength " + sigStrength +
+                        "favorites lat = " + f.a + ", " +
+                        "favorites Lon = " + f.o);
+                mIotClient.sendUpdate("bbevent", "[" +
+                        mRFAddress.boardAddressToName(f.r) + "," +
+                        sigStrength + "," + f.a + "," + f.o + "]");
+
+
+                UpdateFavorites(f);
+                return true;
+            } else {
+                d("rogue packet not for us!");
+            }
+            return false;
+        }
+        catch(Exception e){
+            l("Error processing a received packet " + e.getMessage());
+            return false;
+        }
+    }
+
+    // keep a historical list of minimal location data
+    private class Fav{
+        public int r; // address
+        public DateTime d; // dateTime
+        public double a; // latitude
+        public double o; // longitude
+        public String n;
+    }
+
+    private HashMap<String, Fav> mFavorites = new HashMap<>();
+
+    public void UpdateFavorites(Fav fav) {
+        try{
+
+            if(!mFavorites.containsKey(fav.n)){
+                mFavorites.put(fav.n,fav);
+                saveFavorites();
+            }
+            // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
+            //ContentValues v = new ContentValues(1);
+           // v.put("0",getBoardLocationsJSON().toString());
+            //mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
+
+        }
+        catch(Exception e){
+            l("Error storing the favorites history " + e.getMessage());
+        }
+
+    }
+
+    private void addTestFavorite() {
+
+        Fav f = new Fav();
+        f.r = mBoardAddress;
+        f.o = -122.391883;
+        f.a = 37.77728;
+        f.d = new DateTime("2/2/2020");
+        f.n = "yes!";
+        UpdateFavorites(f);
+    }
+
+    public boolean saveFavorites() {
+
+        try {
+
+            JSONArray favorites = new JSONArray(mFavorites);
+
+            FileWriter fw = new FileWriter(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
+            fw.write(favorites.toString());
+            fw.close();
+        } catch (JSONException e) {
+            l(e.getMessage());
+            return false;
+        } catch (IOException e) {
+            l(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    // keep favorites persisted between reboots.
+    public void getFavorites() {
+        try {
+
+            File f = new File(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
+            InputStream is = null;
+            try {
+                is = new FileInputStream(f);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder(buf.readLine());
+            l("contents of favorites.json: " + sb.toString());
+            JSONArray j = new JSONArray(sb.toString());
+
+            HashMap<String, Fav> favs  = new HashMap<>();
+            for (int i = 0; i < j.length(); i++) {
+                JSONObject jFav = j.getJSONObject(i);
+                Fav ff = new Fav();
+                ff.r = jFav.getInt("r");
+                ff.o =  jFav.getInt("o");
+                ff.a =  jFav.getInt("a");
+              //  ff.d =  jFav.get("");
+                ff.n =  jFav.getString("n");
+                UpdateFavorites(ff);
+                favs.put(jFav.getString(""),ff );
+            }
+
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+}

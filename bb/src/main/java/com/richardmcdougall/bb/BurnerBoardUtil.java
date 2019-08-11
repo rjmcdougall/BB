@@ -128,6 +128,7 @@ public class BurnerBoardUtil {
      */
     public static final String publicNameFile = "publicName.txt";
     public static final String wifiJSON = "wifi.json";
+    public static final String favoritesJSON = "favorites.json";
 
     /*
         XXX this doesn't work as a static method:
