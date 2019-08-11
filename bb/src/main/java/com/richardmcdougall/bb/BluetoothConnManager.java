@@ -231,9 +231,6 @@ public class BluetoothConnManager {
             l("Cannot convert devices to json: " + e.getMessage());
         }
 
-        l("devJson1: " + list.toString());
-        l("devJson2: " + json.toString());
-
         return (json);
     }
 

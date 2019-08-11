@@ -16,7 +16,6 @@ import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
 
 import org.json.JSONArray;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Iterator;
@@ -317,6 +316,7 @@ public class FindMyFriends {
         public int b;
 
         List<locationHistory> locations = new ArrayList<>();
+
         public void AddLocationHistory(long lastHeardDate, double latitude, double longitude){
             int MAX_AGE = 15;
             int MINUTE_INTERVAL = 1;
@@ -396,7 +396,7 @@ public class FindMyFriends {
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
             ContentValues v = new ContentValues(1);
-            v.put("0",getBoardLocationsJSON().toString());
+            v.put("0",getBoardLocationsJSON(50).toString());
             mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
 
@@ -421,18 +421,40 @@ public class FindMyFriends {
         return list;
     }
 
+    public HashMap<Integer, boardLocationHistory>  DeepCloneHashMap(HashMap<Integer, boardLocationHistory> blh){
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(blh);
+
+        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, boardLocationHistory>>(){}.getType();
+        HashMap<Integer, boardLocationHistory> clonedMap = gson.fromJson(jsonString, type);
+        return clonedMap;
+
+    }
     // Create device list in JSON format for app use
-    public JSONArray getBoardLocationsJSON() {
+    public JSONArray getBoardLocationsJSON(int age) {
         JsonArray list = null;
-        List<boardLocationHistory> locs = new ArrayList<>(mBoardLocationHistory.values());
+        HashMap<Integer, boardLocationHistory> blh =  DeepCloneHashMap(mBoardLocationHistory);
+
+        List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
             for (boardLocationHistory b : locs){
                 b.board = mRFAddress.boardAddressToName(b.a);
+
+                Iterator<locationHistory> iter = b.locations.iterator();
+                while(iter.hasNext()){
+                    locationHistory lll = iter.next();
+                    long d = lll.d;
+                    long min =  System.currentTimeMillis()-(age*60*1000);
+                    if(d < min)
+                        iter.remove();
+                }
             }
             //list = new JSONArray(valuesList);
             list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocationHistory>>() {}.getType());
+
+
         } catch (Exception e) {
-            l("Error creating device list");
+            l("Error building board location json");
             return null;
         }
 
@@ -440,11 +462,10 @@ public class FindMyFriends {
         try {
             json = new JSONArray(list.toString());
         } catch (Exception e)  {
-            l("Cannot convert devices to json: " + e.getMessage());
+            l("Cannot convert locations to json: " + e.getMessage());
         }
 
-        l("devJson1: " + list.toString());
-        l("devJson2: " + json.toString());
+        l("location JSON max age " + age + " : " + json.toString());
 
         return (json);
     }

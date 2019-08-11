@@ -760,7 +760,7 @@ public class BluetoothCommands {
         try {
             response.put("command", command);
             // Locations
-            JSONArray locations = mFindMyFriends.getBoardLocationsJSON();
+            JSONArray locations = mFindMyFriends.getBoardLocationsJSON(age);
             if (locations == null) {
                 error = "Could not get bt locations (null)";
             }
