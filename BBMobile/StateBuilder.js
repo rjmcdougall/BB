@@ -6,6 +6,7 @@ var bEmptyUserPrefs = {
 	wifiLocations: false,
 	mapPoints: false,
 	isMonitor: false,
+	locationHistoryMinutes: "1",
 };
 
 var bMap = {

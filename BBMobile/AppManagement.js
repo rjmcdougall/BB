@@ -4,6 +4,7 @@ import {
 	ScrollView,
 	Text,
 	Linking,
+	TextInput,
 } from "react-native";
 
 import Touchable from "react-native-platform-touchable";
@@ -155,6 +156,29 @@ export default class AppManagement extends Component {
 							background={Touchable.Ripple("blue")}>
 							<Text style={StyleSheet.buttonTextCenter}>Go To BB.Com</Text>
 						</Touchable>
+					</View>
+					<View style={{ height: 10 }}></View>
+					<View style={{
+						margin: 10,
+						padding: 10,
+						borderColor: "black",
+						borderWidth: 2
+					}}>
+						<View style={{ height: 40 }}>
+							<Text style={StyleSheet.rowText}>Location History Minutes (max 15)</Text>
+						</View>
+						<View style={{ height: 40 }}>
+							<TextInput
+								style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
+								onChangeText={async (p) => {
+									this.props.userPrefs.locationHistoryMinutes = p;
+									this.props.setUserPrefs(this.props.userPrefs);
+
+									this.setState({ p: p });
+								}}
+								value={this.props.userPrefs.locationHistoryMinutes}
+							/>
+						</View>
 					</View>
 					<View style={{ height: 10 }}></View>
 				</ScrollView>

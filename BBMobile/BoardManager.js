@@ -691,7 +691,7 @@ export default class BoardManager extends Component {
 					&& this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED
 					&& this.completionPercentage() == 100) {
 					try {
-						await this.sendCommand("Location", "2");
+						await this.sendCommand("Location", this.props.userPrefs.locationHistoryMinutes);
 					}
 					catch (error) {
 						this.l("Location Loop Failed:" + error, true, null);
