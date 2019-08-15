@@ -214,7 +214,7 @@ public class BluetoothLEServer {
         }
 
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                 .setConnectable(true)
                 .setTimeout(0)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
@@ -317,6 +317,7 @@ public class BluetoothLEServer {
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             super.onConnectionStateChange(device, status, newState);
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
+                stopAdvertising();
                 l("BluetoothDevice CONNECTED: " + device);
                 try {
                     // Setup tx buffer
