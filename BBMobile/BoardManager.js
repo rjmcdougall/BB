@@ -440,7 +440,12 @@ export default class BoardManager extends Component {
 				devices: StateBuilder.blankDevices(),
 			});
 
-			await this.sendCommand("getstate", "");
+			try {
+				await this.sendCommand("getstate", "");
+			}
+			catch (error) {
+				this.l("Get State Error: " + error, true);
+			}
 
 			try {
 				var boards = await Cache.get(Constants.BOARDS);
