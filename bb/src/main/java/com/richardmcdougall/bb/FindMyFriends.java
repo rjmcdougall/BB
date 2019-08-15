@@ -318,17 +318,15 @@ public class FindMyFriends {
         List<locationHistory> locations = new ArrayList<>();
 
         public void AddLocationHistory(long lastHeardDate, double latitude, double longitude){
-            int MAX_AGE = 15;
-            int MINUTE_INTERVAL = 1;
 
             try{
                 // we only want to store one location every minute and drop everything older than 15 minutes
                 // not using a hash because it dorks the json.
-                long minute =  lastHeardDate/(1000*60*MINUTE_INTERVAL);
+                long minute =  lastHeardDate/(1000*60 * RFUtil.LOCATION_INTERVAL_MINUTES);
 
                 boolean found = false;
                 for(locationHistory l: locations) {
-                    long lMinutes = l.d/(1000*60*MINUTE_INTERVAL);
+                    long lMinutes = l.d/(1000*60 * RFUtil.LOCATION_INTERVAL_MINUTES);
                     if(minute==lMinutes) {
                         l.d = lastHeardDate;
                         l.a = latitude;
@@ -345,7 +343,7 @@ public class FindMyFriends {
                 }
 
                 //remove locations older than 30 minutes.
-                long maxAge = System.currentTimeMillis()-(MAX_AGE*1000*60);
+                long maxAge = System.currentTimeMillis()-(RFUtil.MAX_LOCATION_STORAGE_MINUTES*1000*60);
 
                 Iterator<locationHistory> iter = locations.iterator();
                 while(iter.hasNext()){
@@ -396,7 +394,7 @@ public class FindMyFriends {
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
             ContentValues v = new ContentValues(1);
-            v.put("0",getBoardLocationsJSON(50).toString());
+            v.put("0",getBoardLocationsJSON(15).toString());
             mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
 

@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 
 public class RFUtil {
 
+    static final int MAX_LOCATION_STORAGE_MINUTES = 180;
+    static final int LOCATION_INTERVAL_MINUTES = 1;
 
     static final int [] kClientSyncMagicNumber =        new int[] {0xbb, 0x03};
     static final int [] kServerSyncMagicNumber =        new int[] {0xbb, 0x04};
