@@ -440,6 +440,8 @@ export default class BoardManager extends Component {
 				devices: StateBuilder.blankDevices(),
 			});
 
+			await this.sendCommand("getstate", "");
+
 			try {
 				var boards = await Cache.get(Constants.BOARDS);
 				if (boards)
@@ -476,8 +478,6 @@ export default class BoardManager extends Component {
 			catch (error) {
 				this.l("Refresh Media Error: " + error, true);
 			}
-
-			await this.sendCommand("getstate", "");
 
 		}
 	}
