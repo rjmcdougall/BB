@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, NativeEventEmitter, NativeModules, PermissionsAndroid, AppState, Text, Image, } from "react-native";
+import { View, NativeEventEmitter, NativeModules, ScrollView,PermissionsAndroid, AppState, Text, Image, } from "react-native";
 import BleManager from "react-native-ble-manager";
 import Cache from "./Cache";
 import MediaManagement from "./MediaManagement";
@@ -817,14 +817,22 @@ export default class BoardManager extends Component {
 			return (
 				<View style={StyleSheet.monitorContainer}>
 					<View style={StyleSheet.monitorMap}>
-						<MapController isMonitor={this.state.isMonitor} updateMonitor = {this.updateMonitor} userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
+						<MapController isMonitor={this.state.isMonitor} updateMonitor={this.updateMonitor} userPrefs={this.props.userPrefs} setUserPrefs={this.props.setUserPrefs} boardState={this.state.boardState} locations={this.state.locations} setMap={this.setMap} map={this.state.map} boardData={this.state.boardData} />
 					</View>
 					<View style={StyleSheet.batteryList}>
-						{this.buildBatteryList()}
+						<ScrollView>
+							{this.buildBatteryList()}
+						</ScrollView>
 					</View>
 				</View>
 			);
 		}
+	}
+
+	lastHeardBoardDate(board) {
+		var locationHistory = board.locations.sort((a, b) => a.d - b.d);
+		var lastLocation = locationHistory[locationHistory.length - 1];
+		return new Date(lastLocation.d).toLocaleTimeString();
 	}
 
 	buildBatteryList() {
@@ -836,13 +844,18 @@ export default class BoardManager extends Component {
 			var color = StateBuilder.boardColor(board.board, BM.state.boardData);
 			//color="pink";
 			var batteryGauge = (
-				<View key={board.board + "v2"} style={{ flexDirection: "row", backgroundColor: color }}>
-					<View key={board.board + "v4"} style={{ flex: .5 }}>
-						<View key={board.board + "v1"} style={{ marginVertical: 20 }}>
-							<Text style={{ fontSize: 24, fontWeight: "bold" }} key={board.board + "txt"} >{board.board}</Text>
+				<View  key={board.board + "v6"} style={{ backgroundColor: color}}>
+					<View key={board.board + "v1"} style={{ flexDirection: "row" }}>
+						<View key={board.board + "v2"} style={{ flex: .5, justifyContent: "center", alignItems: "center"}}>
+							<View key={board.board + "v3"}>
+								<Text style={{ fontSize: 20, fontWeight: "bold" }} key={board.board + "txt"} >{board.board}</Text>
+							</View>
+							<View key={board.board + "v4"}>
+								<Text style={{ fontSize: 12, fontWeight: "bold" }} key={board.board + "txt2"} >{this.lastHeardBoardDate(board)}</Text>
+							</View>
 						</View>
+						<View key={board.board + "v5"} style={{ flex: 1, marginBottom:10 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 					</View>
-					<View key={board.board + "v3"} style={{ flex: 1 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 				</View>
 			);
 			a.push(batteryGauge);
