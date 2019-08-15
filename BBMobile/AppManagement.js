@@ -168,7 +168,7 @@ export default class AppManagement extends Component {
 							<Text style={StyleSheet.rowText}>Location History Minutes (max 15)</Text>
 						</View>
 						<View style={{ height: 40 }}>
-							<TextInput
+							<TextInput keyboardType="number-pad"
 								style={{ height: 40, width: 200, borderColor: "gray", borderWidth: 1 }}
 								onChangeText={async (p) => {
 									this.props.userPrefs.locationHistoryMinutes = p;
