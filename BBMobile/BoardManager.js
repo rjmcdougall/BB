@@ -52,6 +52,8 @@ export default class BoardManager extends Component {
 			devices: StateBuilder.blankDevices(),
 			wifi: StateBuilder.blankWifi(),
 			isMonitor: false,
+			currentCommandTimeout: null,
+			currentCommand: "",
 		};
 
 		this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -193,10 +195,8 @@ export default class BoardManager extends Component {
 						this.updateBLEState(newState);
 						if (mutex.isLocked()) {
 							bleMutex();
-							this.l("Release lock after getting data", false);
-						}
-						else {
-							this.l("Timed out before returning.", true);
+							clearTimeout(this.state.currentCommandTimeout);
+							this.l(this.state.currentCommand + " data found, release lock", false);
 						}
 					}
 					catch (error) {
@@ -376,37 +376,30 @@ export default class BoardManager extends Component {
 
 		try {
 			if (newMedia.boards) {
-				this.l(" updated boards", false, newMedia.boards);
 				Cache.set(Constants.BOARDS, newMedia.boards);
 				this.setState({ boardData: newMedia.boards });
 			}
 			if (newMedia.video) {
-				this.l("updated video", false, newMedia.video);
 				this.setState({ video: newMedia.video });
 				Cache.set(Constants.VIDEOPREFIX + this.state.connectedPeripheral.name, newMedia.video);
 			}
 			if (newMedia.audio) {
-				this.l("updated audio", false, newMedia.audio);
 				this.setState({ audio: newMedia.audio });
 				Cache.set(Constants.AUDIOPREFIX + this.state.connectedPeripheral.name, newMedia.audio);
 			}
 			if (newMedia.state) {
-				this.l("updated state", false, newMedia.state);
 				this.setState({ boardState: newMedia.state });
 			}
 			if (newMedia.wifi) {
-				this.l("updated state", false, newMedia.wifi);
 				this.setState({ wifi: newMedia.wifi });
 			}
 			if (newMedia.btdevices) {
-				this.l("updated devices", false, newMedia.btdevices);
 				Cache.set(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name, newMedia.btdevices);
 				if (newMedia.btdevices.length > 0) {
 					this.setState({ devices: newMedia.btdevices });
 				}
 			}
 			if (newMedia.locations) {
-				this.l("updated locations", false, newMedia.locations);
 				this.setState({ locations: newMedia.locations });
 			}
 		}
@@ -439,13 +432,6 @@ export default class BoardManager extends Component {
 				video: StateBuilder.blankVideo(),
 				devices: StateBuilder.blankDevices(),
 			});
-
-			try {
-				await this.sendCommand("getstate", "");
-			}
-			catch (error) {
-				this.l("Get State Error: " + error, true);
-			}
 
 			try {
 				var boards = await Cache.get(Constants.BOARDS);
@@ -484,6 +470,14 @@ export default class BoardManager extends Component {
 				this.l("Refresh Media Error: " + error, true);
 			}
 
+			try {
+				await this.sendCommand("getstate", "");
+			}
+			catch (error) {
+				this.l("Get State Error: " + error, true);
+			}
+
+
 		}
 	}
 
@@ -497,15 +491,20 @@ export default class BoardManager extends Component {
 			try {
 
 				bleMutex = await mutex.acquire();
+
 				this.l("lock and request " + command + " on device " + this.state.connectedPeripheral.name, false);
 
-				setTimeout(function () {
+				var commandTimeout = setTimeout(function () {
 					if (mutex.isLocked()) {
 						bleMutex();
-						bm.l(command + " timed out after 10 seconds", true);
+						this.l(this.state.currentCommand + " timeout", true);
 						return;
 					}
 				}, Constants.BLE_TIMEOUT);
+
+				this.setState({currentCommandTimeout: commandTimeout,
+					currentCommand: command + " " + arg});
+	
 
 				if (mutex.isLocked()) { // last chance. if the mutex unlocks that means a timeout occured and 
 					//we should skip.
