@@ -143,45 +143,51 @@ export default class MapController extends Component {
 
 	}
 	buildMap() {
-		var a = new Array();
-		var MP = this;
-		var shapeSource;
+		try {
+			var a = new Array();
+			var MP = this;
+			var shapeSource;
 
-		this.props.locations.map((board) => {
+			this.props.locations.map((board) => {
 
-
-			shapeSource = (
-				<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
-					<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
-						lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
-						lineWidth: 5,
-						lineOpacity: .7,
-						lineJoin: "round",
-						lineCap: "round",
-					}} />
-				</Mapbox.ShapeSource>);
-
-			a.push(shapeSource);
-
-			if (board.locations.length > 0) {
 
 				shapeSource = (
-					<Mapbox.ShapeSource id={"C" + board.board} key={"C" + board.board}
-						shape={this.makePoint(board)}
-						onPress={MP.onPressCircle}>
-						<Mapbox.CircleLayer id={"CL" + board.board} key={"CL" + board.board}
-							style={{
-								circleRadius: 8,
-								circleColor: StateBuilder.boardColor(board.board, this.props.boardData),
-								circleStrokeColor: "black",
-								circleStrokeWidth: 2
-							}} />
+					<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
+						<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
+							lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
+							lineWidth: 5,
+							lineOpacity: .7,
+							lineJoin: "round",
+							lineCap: "round",
+						}} />
 					</Mapbox.ShapeSource>);
 
 				a.push(shapeSource);
-			}
-		});
-		return a;
+
+				if (board.locations.length > 0) {
+
+					shapeSource = (
+						<Mapbox.ShapeSource id={"C" + board.board} key={"C" + board.board}
+							shape={this.makePoint(board)}
+							onPress={MP.onPressCircle}>
+							<Mapbox.CircleLayer id={"CL" + board.board} key={"CL" + board.board}
+								style={{
+									circleRadius: 8,
+									circleColor: StateBuilder.boardColor(board.board, this.props.boardData),
+									circleStrokeColor: "black",
+									circleStrokeWidth: 2
+								}} />
+						</Mapbox.ShapeSource>);
+
+					a.push(shapeSource);
+				}
+			});
+			return a;
+		}
+		catch (error) {
+			console.log(error);
+		}
+
 	}
 
 	render() {
