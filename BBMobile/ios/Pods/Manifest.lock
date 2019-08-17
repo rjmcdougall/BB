@@ -8,7 +8,7 @@ PODS:
   - glog (0.3.5)
   - React (0.59.9):
     - React/Core (= 0.59.9)
-  - react-native-mapbox-gl (7.0.0-rc3):
+  - react-native-mapbox-gl (7.0.1):
     - React
   - React/Core (0.59.9):
     - yoga (= 0.59.9.React)
@@ -65,7 +65,7 @@ PODS:
     - React/RCTBlob
   - RNCAsyncStorage (1.5.1):
     - React
-  - RNFS (2.13.3):
+  - RNFS (2.14.1):
     - React
   - RNVectorIcons (6.6.0):
     - React
@@ -126,7 +126,7 @@ SPEC CHECKSUMS:
   React: 1d605e098d69bdf08960787f3446f0a9dc2e2ccf
   react-native-mapbox-gl: 099d223de88d75815e3a5a0a04b64c970b929105
   RNCAsyncStorage: 6ae5aba8a41bfe0a9f21885ec91faf23ca3fe7ee
-  RNFS: bbb1a64eb245763daf34aea86f97c97c4e85f74c
+  RNFS: 6a2bfb5d0b14cf0ad72667f76202358abba4aacf
   RNVectorIcons: 66af4d5c8ff4f584c7b7cd9c4b0780920f27fce2
   yoga: 128daf064cacaede0c3bb27424b6b4c71052e6cd
 
