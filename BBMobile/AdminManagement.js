@@ -21,8 +21,6 @@ export default class AdminManagement extends Component {
 
 	render() {
  
-		console.log(this.props.devices);
-
 		var blockMasterBackgroundColor;
  
 		if (this.props.boardState.bm == null) {

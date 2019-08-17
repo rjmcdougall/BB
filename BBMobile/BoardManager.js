@@ -21,6 +21,7 @@ import { Mutex } from "async-mutex";
 const mutex = new Mutex();
 var bleMutex;
 
+// eslint-disable-next-line no-unused-vars
 var cr = new ContentResolver();
 
 YellowBox.ignoreWarnings(["Setting a timer"]);
