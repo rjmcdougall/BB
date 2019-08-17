@@ -317,7 +317,7 @@ public class BluetoothLEServer {
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             super.onConnectionStateChange(device, status, newState);
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
-                stopAdvertising();
+                //stopAdvertising();
                 l("BluetoothDevice CONNECTED: " + device);
                 try {
                     // Setup tx buffer
