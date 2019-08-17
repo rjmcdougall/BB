@@ -3,6 +3,7 @@
 gcloud auth application-default login
 
 //deploy to burnerboard.com
+npm run build // this is new after changing to node standard.
 gcloud app deploy
 
 //backlog
