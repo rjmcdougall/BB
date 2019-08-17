@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, NativeEventEmitter, NativeModules, ScrollView,PermissionsAndroid, AppState, Text, Image, } from "react-native";
+import { View, NativeEventEmitter, NativeModules, ScrollView,PermissionsAndroid, AppState, Text, Image, YellowBox } from "react-native";
 import BleManager from "react-native-ble-manager";
 import Cache from "./Cache";
 import MediaManagement from "./MediaManagement";
@@ -22,6 +22,8 @@ const mutex = new Mutex();
 var bleMutex;
 
 var cr = new ContentResolver();
+
+YellowBox.ignoreWarnings(["Setting a timer"]);
 
 import { stringToBytes } from "convert-string";
 
@@ -171,8 +173,15 @@ export default class BoardManager extends Component {
 		});
 	}
 
+	cancelCommand() {
+		clearTimeout(this.state.currentCommandTimeout);
+		this.l(this.state.currentCommand + " data found, release lock", false);
+		bleMutex();
+	}
+
 	handleNewData(newData) {
 		try {
+			
 			var rxBuffers = this.state.rxBuffers;
 			// Convert bytes array to string
 			var data = newData.value;
@@ -194,9 +203,7 @@ export default class BoardManager extends Component {
 						// Setup the app-specific ble state structure
 						this.updateBLEState(newState);
 						if (mutex.isLocked()) {
-							bleMutex();
-							clearTimeout(this.state.currentCommandTimeout);
-							this.l(this.state.currentCommand + " data found, release lock", false);
+							this.cancelCommand();
 						}
 					}
 					catch (error) {
@@ -243,9 +250,10 @@ export default class BoardManager extends Component {
 		let peripheral = data.peripheral;
 
 		try {
-			if (mutex.isLocked())
-				bleMutex();
-
+			if (mutex.isLocked()) {
+				this.cancelCommand();
+			}
+			
 			// Update state 
 			var dev = this.state.boardBleDevices.get(peripheral);
 			if (dev != null) {
@@ -480,7 +488,7 @@ export default class BoardManager extends Component {
 
 		}
 	}
-
+ 
 	async sendCommand(command, arg) {
 
 		// Send request command
@@ -494,13 +502,14 @@ export default class BoardManager extends Component {
 
 				this.l("lock and request " + command + " on device " + this.state.connectedPeripheral.name, false);
 
-				var commandTimeout = setTimeout(function () {
+				console.ignoredYellowBox = ["Setting a timer"];
+				var commandTimeout = setTimeout( () => {
 					if (mutex.isLocked()) {
 						bleMutex();
 						this.l(this.state.currentCommand + " timeout", true);
 						return;
 					}
-				}, Constants.BLE_TIMEOUT);
+				},  100000);
 
 				this.setState({currentCommandTimeout: commandTimeout,
 					currentCommand: command + " " + arg});
@@ -518,7 +527,9 @@ export default class BoardManager extends Component {
 
 			}
 			catch (error) {
-				if (mutex.isLocked()) bleMutex();
+				if (mutex.isLocked()) 
+					this.cancelCommand();
+
 				// eslint-disable-next-line require-atomic-updates
 				bm.state.connectedPeripheral.connectionStatus = Constants.DISCONNECTED;
 				bm.l(error + " errored. releaseing lock.", true);
