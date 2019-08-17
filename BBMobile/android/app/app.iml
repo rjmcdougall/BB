@@ -184,17 +184,5 @@
     <orderEntry type="module" module-name="react-native-fs" />
     <orderEntry type="module" module-name="react-native-wheel-picker" />
     <orderEntry type="module" module-name="react-native-ble-manager" />
-    <orderEntry type="module" module-name="react-native-vector-icons" />
-    <orderEntry type="module" module-name="@react-native-mapbox-gl_maps" />
-    <orderEntry type="module" module-name="@react-native-community_async-storage" />
-    <orderEntry type="module" module-name="react-native-fs" />
-    <orderEntry type="module" module-name="react-native-wheel-picker" />
-    <orderEntry type="module" module-name="react-native-ble-manager" />
-    <orderEntry type="module" module-name="react-native-vector-icons" />
-    <orderEntry type="module" module-name="@react-native-mapbox-gl_maps" />
-    <orderEntry type="module" module-name="@react-native-community_async-storage" />
-    <orderEntry type="module" module-name="react-native-fs" />
-    <orderEntry type="module" module-name="react-native-wheel-picker" />
-    <orderEntry type="module" module-name="react-native-ble-manager" />
   </component>
 </module>
