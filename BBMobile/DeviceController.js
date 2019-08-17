@@ -12,13 +12,17 @@ export default class DeviceController extends Component {
 			refreshButtonClicked: false,
 		};
 
-		this.onSelectTrack = this.props.onSelectTrack.bind(this);
+		this.pairButton = this.pairButton.bind(this);
 	}
 
+	pairButton(value){
+		var dev = this.props.devices[value];
+		this.props.sendCommand("BTSelect", dev.address);
+	}
 	render() {
 
  
-		var devs = this.props.devices.map(a => a.address);
+		var devs = this.props.devices.map(a => a.name + (a.paired ? "paired" : ""));
 
 		return (
 
@@ -37,7 +41,7 @@ export default class DeviceController extends Component {
 						textStyle={StyleSheet.dropDownRowText}
 						dropdownTextStyle={StyleSheet.dropDownRowText}
 						dropdownTextHighlightStyle={StyleSheet.dropDownRowText}
-						onSelect={this.onSelectTrack.bind(this)}
+						onSelect={this.pairButton.bind(this)}
 					/>
 				</View>
 				<View style={StyleSheet.button}>
@@ -65,7 +69,6 @@ export default class DeviceController extends Component {
 DeviceController.propTypes = {
 	mediaType: PropTypes.string,
 	devices: PropTypes.array,
-	onSelectTrack: PropTypes.func,
 	sendCommand: PropTypes.func,
 	displayRefreshButton: PropTypes.bool,
 };

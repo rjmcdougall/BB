@@ -239,7 +239,7 @@ public class BluetoothConnManager {
 		HashMap<String, BluetoothDeviceEntry> deviceList = new HashMap<>();
         for (String address: mPairedDevices.keySet()) {
             BluetoothDevice device = mPairedDevices.get(address);
-            if (device != null) {
+            if (device != null && device.getAddress().startsWith("DC")) {
                 l("found paired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), true);
@@ -247,8 +247,8 @@ public class BluetoothConnManager {
             }
         }
         for (String address: mNewDevices.keySet()) {
-            BluetoothDevice device = mPairedDevices.get(address);
-            if (device != null) {
+            BluetoothDevice device = mNewDevices.get(address);
+            if (device != null && device.getAddress().startsWith("DC")) {
                 l("found unpaired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), false);

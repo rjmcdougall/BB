@@ -21,6 +21,8 @@ export default class AdminManagement extends Component {
 
 	render() {
  
+		console.log(this.props.devices);
+
 		var blockMasterBackgroundColor;
  
 		if (this.props.boardState.bm == null) {
@@ -79,7 +81,7 @@ export default class AdminManagement extends Component {
 					<View style={{ height: 50 }}></View>
 					<WifiController wifi={this.props.wifi} boardState={this.props.boardState} sendCommand={this.props.sendCommand} />
 					<View style={{ height: 50 }}></View>
-					<DeviceController onSelectTrack={async (value) => await this.props.sendCommand("Device", value)} devices={this.props.devices} boardState={this.props.boardState} mediaType="Device" sendCommand={this.props.sendCommand} />
+					<DeviceController devices={this.props.devices} boardState={this.props.boardState} mediaType="Device" sendCommand={this.props.sendCommand} />
 					<View style={{ height: 200 }}></View>
 				</ScrollView>
 			</View>

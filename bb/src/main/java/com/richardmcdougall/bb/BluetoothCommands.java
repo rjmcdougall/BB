@@ -749,6 +749,8 @@ public class BluetoothCommands {
         JSONArray btdevs = mBluetoothConnManager.getDeviceListJSON();
         if (btdevs == null) {
             l("Could not get bt devs (null)");
+        } else {
+            l("bt devs " + btdevs.toString());
         }
         return btdevs;
     }

@@ -401,11 +401,8 @@ export default class BoardManager extends Component {
 			if (newMedia.wifi) {
 				this.setState({ wifi: newMedia.wifi });
 			}
-			if (newMedia.btdevices) {
-				Cache.set(Constants.BTDEVICESPREFIX + this.state.connectedPeripheral.name, newMedia.btdevices);
-				if (newMedia.btdevices.length > 0) {
-					this.setState({ devices: newMedia.btdevices });
-				}
+			if (newMedia.btdevs) {
+				this.setState({ devices: newMedia.btdevs });
 			}
 			if (newMedia.locations) {
 				this.setState({ locations: newMedia.locations });
@@ -689,32 +686,32 @@ export default class BoardManager extends Component {
 
 	async readLocationLoop() {
  
-		var backgroundTimer = setInterval(async () => {
+		// var backgroundTimer = setInterval(async () => {
  
-			if (this.state.isMonitor) {
-				try {
-					var boardsJSON = JSON.parse(await cr.getLocationJSON());
-					this.l("Got locations from ContentResolver", boardsJSON);
-					this.setState({ locations: boardsJSON });
-				}
-				catch (error) {
-					this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed", true, error);
-				}
-			}
-			else {
-				if (this.state.connectedPeripheral
-					&& this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED
-					&& this.completionPercentage() == 100) {
-					try {
-						await this.sendCommand("Location", this.props.userPrefs.locationHistoryMinutes);
-					}
-					catch (error) {
-						this.l("Location Loop Failed:" + error, true, null);
-					}
-				}
-			}
-		}, 8000);
-		this.setState({ backgroundLoop: backgroundTimer });
+		// 	if (this.state.isMonitor) {
+		// 		try {
+		// 			var boardsJSON = JSON.parse(await cr.getLocationJSON());
+		// 			this.l("Got locations from ContentResolver", boardsJSON);
+		// 			this.setState({ locations: boardsJSON });
+		// 		}
+		// 		catch (error) {
+		// 			this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed", true, error);
+		// 		}
+		// 	}
+		// 	else {
+		// 		if (this.state.connectedPeripheral
+		// 			&& this.state.connectedPeripheral.connectionStatus == Constants.CONNECTED
+		// 			&& this.completionPercentage() == 100) {
+		// 			try {
+		// 				await this.sendCommand("Location", this.props.userPrefs.locationHistoryMinutes);
+		// 			}
+		// 			catch (error) {
+		// 				this.l("Location Loop Failed:" + error, true, null);
+		// 			}
+		// 		}
+		// 	}
+		// }, 8000);
+		// this.setState({ backgroundLoop: backgroundTimer });
 	}
 
 	completionPercentage() {
