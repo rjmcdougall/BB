@@ -275,7 +275,7 @@ public class BBService extends Service {
         });
 
         dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
-                boardId, mVersion);
+                BurnerBoardUtil.BOARD_ID, mVersion);
         dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
