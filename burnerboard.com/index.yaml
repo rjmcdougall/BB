@@ -75,3 +75,8 @@ indexes:
   - name: isGlobal
   - name: name
   - name: board
+
+- kind: board
+  properties:
+  - name: isActive
+  - name: name

@@ -187,6 +187,7 @@ exports.listBoards = async function (boardID) {
 				.filter("name", "=", boardID);
 		else
 			boardQuery = datastore.createQuery("board")
+				.filter("isActive","=",true)
 				.order("name");
 
 		var results = await datastore.runQuery(boardQuery);
