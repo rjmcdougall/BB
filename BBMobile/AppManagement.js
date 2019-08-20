@@ -12,6 +12,11 @@ import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
 import Mapbox from "@react-native-mapbox-gl/maps";
 import Constants from "./Constants";
+
+Mapbox.setAccessToken(
+	"sk.eyJ1IjoiZGFuaWVsa2VpdGh3IiwiYSI6ImNqdzhlbHUwZTJvdmUzenFramFmMTQ4bXIifQ.9EXJnBcsrsKyS-veb_dlNg"
+);
+
 export default class AppManagement extends Component {
 	constructor(props) {
 		super(props);
