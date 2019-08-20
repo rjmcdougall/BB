@@ -10,10 +10,18 @@ import {NativeModules} from "react-native";
 
 class ContentResolver {
 
-	getLocationJSON() {
-		return new Promise((resolve, reject) => {
-			NativeModules.ContentResolver.getLocationJSON(resolve, reject);
+	async getLocationJSON() {
+		var i = await NativeModules.ContentResolver.getLocationJSON();
+		console.log("Returned from Bridge");
+
+		var JSONString = "[";
+		
+		i.map((item) => {
+			JSONString += item + ",";
 		});
+		JSONString = JSONString.substring(0, JSONString.length - 1);
+		JSONString += "]"; 
+		return JSONString;
 	}
 }
 

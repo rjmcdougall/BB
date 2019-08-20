@@ -393,8 +393,12 @@ public class FindMyFriends {
             mBoardLocationHistory.put(address,blh);
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
-            ContentValues v = new ContentValues(1);
-            v.put("0",getBoardLocationsJSON(15).toString());
+            JSONArray ct = getBoardLocationsJSON(15);
+            ContentValues v = new ContentValues(ct.length());
+            for (int i = 0; i < ct.length(); i++) {
+                v.put(String.valueOf(i),ct.getJSONObject(i).toString());
+            }
+
             mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
 
@@ -428,6 +432,8 @@ public class FindMyFriends {
         return clonedMap;
 
     }
+
+
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
         JsonArray list = null;

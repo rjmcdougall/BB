@@ -691,9 +691,10 @@ export default class BoardManager extends Component {
  
 			if (this.state.isMonitor) {
 				try {
-					var boardsJSON = JSON.parse(await cr.getLocationJSON());
-					this.l("Got locations from ContentResolver", boardsJSON);
-					this.setState({ locations: boardsJSON });
+					var boardsJSON = await cr.getLocationJSON();
+					console.log("Content Resolver JSON");
+					console.log(JSON.parse(boardsJSON));
+					this.setState({ locations: JSON.parse(boardsJSON)});
 				}
 				catch (error) {
 					this.l("Attempted to get locations via ContentResolver since we are in Monitor Mode, but failed", true, error);

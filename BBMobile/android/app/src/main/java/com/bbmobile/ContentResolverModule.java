@@ -8,9 +8,12 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 
 import java.util.Map;
 import java.util.HashMap;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableNativeArray;
 
 public class ContentResolverModule extends ReactContextBaseJavaModule {
 
@@ -30,10 +33,10 @@ public class ContentResolverModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void getLocationJSON(Callback successCallback, Callback errorCallback
-                              ) {
+    public void getLocationJSON(Promise promise ) {
 
         String JSON = "";
+        WritableArray locationJSON = new WritableNativeArray();
 
         try{
             Context mContext = getReactApplicationContext().getApplicationContext();
@@ -44,18 +47,21 @@ public class ContentResolverModule extends ReactContextBaseJavaModule {
                     cursor.moveToFirst();
                     do {
                         JSON = cursor.getString(0);
-                        Log.i("JSON", "JSON returned from ContentProvider: " + JSON);
-                    } while (cursor.moveToNext());
+                        locationJSON.pushString(JSON);
+                   } while (cursor.moveToNext());
                 } else {
                 }
                 cursor.close();
             } else {
                 throw new Exception("Cursor is null");
             }
-            successCallback.invoke(JSON);
-        }
-        catch (Exception e){
-            errorCallback.invoke(e.getMessage());
+            Log.i("JSON", "JSON array returned from ContentProvider: " + locationJSON.toString());
+
+            promise.resolve(locationJSON);
+
+        } catch (Exception e) {
+            Log.i("JSON", "Failed to get JSON via react native bridge." + e.getMessage());
+            promise.reject("Failed to get JSON via react native bridge.", e);
         }
     }
 }

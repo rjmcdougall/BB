@@ -9,12 +9,15 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 import static java.lang.Integer.parseInt;
 
 public class BoardsContentProvider extends ContentProvider {
 
     private static final String TAG = BoardsContentProvider.class.getSimpleName();
-    public String[] mData = {"[]"};
+    public ArrayList<String>  mData = new ArrayList<>();
 
     // UriMatcher is a helper class for processing the accepted Uri schemes
     // for this content provider.
@@ -116,13 +119,13 @@ public class BoardsContentProvider extends ContentProvider {
 
         // If there is a valid query, execute it and add the result to the cursor.
         if (id == Contract.ALL_ITEMS) {
-            for (int i = 0; i < mData.length; i++) {
-                String word = mData[i];
+            for (int i = 0; i < mData.size(); i++) {
+                String word = mData.get(i);
                 cursor.addRow(new Object[]{word});
             }
         } else if (id >= 0) {
             // Execute the query to get the requested word.
-            String word = mData[id];
+            String word = mData.get(id);
             // Add the result to the cursor.
             cursor.addRow(new Object[]{word});
         }
@@ -168,9 +171,14 @@ public class BoardsContentProvider extends ContentProvider {
     // We will implement this method in the next practical.
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        mData[0] = values.getAsString("0");
 
-        Log.i(TAG, "Updated content provider JSON as : " + mData[0]);
+        mData = new ArrayList<>();
+
+        for (int i = 0; i < values.size(); i++) {
+            mData.add(values.get(String.valueOf(i)).toString());
+            Log.i(TAG, "Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
+        }
+
         return 1;
     }
 }
