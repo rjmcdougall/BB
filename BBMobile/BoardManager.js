@@ -782,7 +782,7 @@ export default class BoardManager extends Component {
 							: <View></View>
 						}
 						<View style={{ flex: 1 }}>
-							<BatteryController key={this.state.connectedPeripheral.name + "bat"} id={this.state.connectedPeripheral.name + "bat"} battery={this.state.boardState.b} />
+							<BatteryController key={this.state.connectedPeripheral.name + "bat"} id={this.state.connectedPeripheral.name + "bat"} b={this.state.boardState.b} />
 						</View>
 						{(this.props.userPrefs.isDevilsHand) ?
 							<View style={{ margin: 5, paddingTop: 10 }}>
