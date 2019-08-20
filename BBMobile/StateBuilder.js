@@ -7,6 +7,7 @@ var bEmptyUserPrefs = {
 	mapPoints: false,
 	isMonitor: false,
 	locationHistoryMinutes: "1",
+	offlineMapPercentage: 0,
 };
 
 var bMap = {

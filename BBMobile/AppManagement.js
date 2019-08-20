@@ -44,11 +44,9 @@ export default class AppManagement extends Component {
 	}
 
 	progressListener(offlineRegion, offlineRegionStatus) {
-		this.setState({
-			name: offlineRegion.name,
-			downloadPercentage: offlineRegionStatus.percentage,
-			buttonDisabled: true,
-		});
+		var userPrefs = this.props.userPrefs;
+		userPrefs.offlineMapPercentage = offlineRegionStatus.percentage;
+		this.props.setUserPrefs(userPrefs);
 	}
 
 	errorListener(error) {
@@ -68,21 +66,24 @@ export default class AppManagement extends Component {
 	}
 	render() {
 		var downloadText;
-
-		if (this.state.downloaded)
-			downloadText = "Playa Map Downloaded";
-		else if (this.state.downloadPercentage)
-			downloadText = "Downloading " + Math.round(this.state.downloadPercentage) + "%";
-		else
-			downloadText = "Download Playa Map";
-
 		var downloadBackgroundColor;
-		if (this.state.downloaded)
+		var pointerEvents;
+
+		if (this.props.userPrefs.offlineMapPercentage==100){
+			downloadText = "Playa Map Downloaded";
 			downloadBackgroundColor = "green";
-		else if (this.state.downloadPercentage == 100)
-			downloadBackgroundColor = "green";
-		else
+			pointerEvents = "none";
+		}
+		else if (this.props.userPrefs.offlineMapPercentage > 0 && this.props.userPrefs.offlineMapPercentage<100){
+			downloadText = "Downloading " + Math.round(this.props.userPrefs.offlineMapPercentage) + "%";
+			downloadBackgroundColor = "yellow";
+			pointerEvents = "auto";
+		}
+		else {
+			downloadText = "Download Playa Map";
 			downloadBackgroundColor = "skyblue";
+			pointerEvents = "auto";
+		}
 
 		var AM = this;
 
@@ -128,11 +129,13 @@ export default class AppManagement extends Component {
 						</View>
 						: <View />}
 					<View style={{ height: 10 }}></View>
-					<View style={StyleSheet.button} pointerEvents={this.state.downloaded || this.state.buttonDisabled ? "none" : "auto"}>
+					<View style={StyleSheet.button} pointerEvents={pointerEvents}>
 						<Touchable
-							onPress={() => {
+							onPress={async () => {
 
-								Mapbox.offlineManager.createPack({
+								await Mapbox.offlineManager.deletePack("Playa");
+
+								await Mapbox.offlineManager.createPack({
 									name: "Playa",
 									styleURL: Mapbox.StyleURL.Street,
 									minZoom: 5,
