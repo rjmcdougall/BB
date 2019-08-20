@@ -693,7 +693,7 @@ export default class BoardManager extends Component {
 				try {
 					var boardsJSON = await cr.getLocationJSON();
 					console.log("Content Resolver JSON");
-					console.log(JSON.parse(boardsJSON));
+					console.log(boardsJSON);
 					this.setState({ locations: JSON.parse(boardsJSON)});
 				}
 				catch (error) {
@@ -844,9 +844,14 @@ export default class BoardManager extends Component {
 	}
 
 	lastHeardBoardDate(board) {
-		var locationHistory = board.locations.sort((a, b) => a.d - b.d);
-		var lastLocation = locationHistory[locationHistory.length - 1];
-		return new Date(lastLocation.d).toLocaleTimeString();
+		try {
+			var locationHistory = board.locations.sort((a, b) => a.d - b.d);
+			var lastLocation = locationHistory[locationHistory.length - 1];
+			return new Date(lastLocation.d).toLocaleTimeString();
+		}
+		catch (error){
+			console.log(error);
+		}
 	}
 
 	buildBatteryList() {
@@ -868,7 +873,7 @@ export default class BoardManager extends Component {
 								<Text style={{ fontSize: 12, fontWeight: "bold" }} key={board.board + "txt2"} >{this.lastHeardBoardDate(board)}</Text>
 							</View>
 						</View>
-						<View key={board.board + "v5"} style={{ flex: 1, marginBottom:10 }}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
+						<View key={board.board + "v5"} style={{ flex: 1}}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 					</View>
 				</View>
 			);

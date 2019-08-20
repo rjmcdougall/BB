@@ -57,7 +57,8 @@ BatteryController.defaultProps = {
 
 const styles = StyleSheet.create({
 	container: {
-		paddingTop: 15,
+		paddingTop: 5,
+		paddingBottom: 5,
 		paddingHorizontal: 0,
 		justifyContent: "space-around",
 	},
