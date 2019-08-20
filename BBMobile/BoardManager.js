@@ -862,22 +862,24 @@ export default class BoardManager extends Component {
 		this.state.locations.map((board) => {
 			var color = StateBuilder.boardColor(board.board, BM.state.boardData);
 			//color="pink";
-			var batteryGauge = (
-				<View  key={board.board + "v6"} style={{ backgroundColor: color}}>
-					<View key={board.board + "v1"} style={{ flexDirection: "row" }}>
-						<View key={board.board + "v2"} style={{ flex: .5, justifyContent: "center", alignItems: "center"}}>
-							<View key={board.board + "v3"}>
-								<Text style={{ fontSize: 20, fontWeight: "bold" }} key={board.board + "txt"} >{board.board}</Text>
+			if(board.locations.length >0){
+				var batteryGauge = (
+					<View  key={board.board + "v6"} style={{ backgroundColor: color}}>
+						<View key={board.board + "v1"} style={{ flexDirection: "row" }}>
+							<View key={board.board + "v2"} style={{ flex: .5, justifyContent: "center", alignItems: "center"}}>
+								<View key={board.board + "v3"}>
+									<Text style={{ fontSize: 20, fontWeight: "bold" }} key={board.board + "txt"} >{board.board}</Text>
+								</View>
+								<View key={board.board + "v4"}>
+									<Text style={{ fontSize: 12, fontWeight: "bold" }} key={board.board + "txt2"} >{this.lastHeardBoardDate(board)}</Text>
+								</View>
 							</View>
-							<View key={board.board + "v4"}>
-								<Text style={{ fontSize: 12, fontWeight: "bold" }} key={board.board + "txt2"} >{this.lastHeardBoardDate(board)}</Text>
-							</View>
+							<View key={board.board + "v5"} style={{ flex: 1}}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 						</View>
-						<View key={board.board + "v5"} style={{ flex: 1}}><BatteryController key={board.board + "bat"} id={board.board + "bat"} b={board.b} /></View>
 					</View>
-				</View>
-			);
-			a.push(batteryGauge);
+				);
+				a.push(batteryGauge);
+			}
 		});
 
 		return a;
