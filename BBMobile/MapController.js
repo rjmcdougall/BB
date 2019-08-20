@@ -150,20 +150,20 @@ export default class MapController extends Component {
 
 			this.props.locations.map((board) => {
 
+				if (board.locations.length > 1) {
+					shapeSource = (
+						<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
+							<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
+								lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
+								lineWidth: 5,
+								lineOpacity: .7,
+								lineJoin: "round",
+								lineCap: "round",
+							}} />
+						</Mapbox.ShapeSource>);
 
-				shapeSource = (
-					<Mapbox.ShapeSource id={"SS" + board.board} key={"SS" + board.board} shape={this.makeLineCollection(board)}>
-						<Mapbox.LineLayer id={"LL" + board.board} key={"LL" + board.board} style={{
-							lineColor: StateBuilder.boardColor(board.board, this.props.boardData),
-							lineWidth: 5,
-							lineOpacity: .7,
-							lineJoin: "round",
-							lineCap: "round",
-						}} />
-					</Mapbox.ShapeSource>);
-
-				a.push(shapeSource);
-
+					a.push(shapeSource);
+				}
 				if (board.locations.length > 0) {
 
 					shapeSource = (
