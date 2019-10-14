@@ -106,22 +106,22 @@ class GlobalMenu extends React.Component {
 
 						onKeyDown={() => this.props.toggleDrawer(false)}
 					>
-						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showBoards: !this.state.showBoards })}>Azul</ListSubheader>} className={classes.list} >
+						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showAzul: !this.state.showAzul })}>Azul</ListSubheader>} className={classes.list} >
 							{this.props.boardNames.filter((item) => { return item.type === "azul"; }).map(item => (
 								<MenuItem onClick={event => { this.props.onSelectBoard(event, "azul-" + item.board_name); this.setState({ showProfiles: true }); }}
 									key={"azul-" + item.board_name}
 									selected={item.board_name === this.props.currentBoard}
-									style={{ display: this.state.showBoards ? "block" : "none" }}
+									style={{ display: this.state.showAzul ? "block" : "none" }}
 								> {item.board_name}
 								</MenuItem>))
 							}
 						</MenuList>
-						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showBoards: !this.state.showBoards })}>Classic</ListSubheader>} className={classes.list} >
+						<MenuList subheader={<ListSubheader className={classes.listSubheader} disableSticky={true} onClick={event => this.setState({ showClassic: !this.state.showClassic })}>Classic</ListSubheader>} className={classes.list} >
 							{this.props.boardNames.filter((item) => { return item.type === "classic"; }).map(item => (
 								<MenuItem onClick={event => { this.props.onSelectBoard(event, "classic-" + item.board_name); this.setState({ showProfiles: true }); }}
 									key={"classic-" + item.board_name}
 									selected={item.board_name === this.props.currentBoard}
-									style={{ display: this.state.showBoards ? "block" : "none" }}
+									style={{ display: this.state.showClassic ? "block" : "none" }}
 								> {item.board_name}
 								</MenuItem>))
 							}
