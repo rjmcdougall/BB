@@ -102,6 +102,7 @@ public class BurnerBoardUtil {
             || BOARD_ID.contains("cranky")
             //|| BOARD_ID.contains("grumpy")
             || BOARD_ID.contains("imx7d_pico")
+                || BOARD_ID.contains("supersexy")
         ) ? true : false;
     }
 
