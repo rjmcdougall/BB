@@ -1,18 +1,11 @@
 package com.richardmcdougall.bb;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.reflect.TypeToken;
-
-import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
 
@@ -31,10 +24,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by rmc on 2/7/18.
@@ -169,7 +159,7 @@ public class Favorites {
     }
 
     public void d(String s) {
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_FAVORITES == true) {
             Log.v(TAG, s);
             sendLogMsg(s);
         }

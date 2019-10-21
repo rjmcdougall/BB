@@ -71,7 +71,7 @@ public class RFClientServer {
     }
 
     public void d(String s) {
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
             Log.v(TAG, s);
             sendLogMsg(s);
         }
@@ -87,7 +87,7 @@ public class RFClientServer {
     }
 
     private void setupUDPLogger(){
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
             // InetAddress.getByName("0.0.0.0")
             try {
                 mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
@@ -99,7 +99,7 @@ public class RFClientServer {
 
     public void logUDP(long timestamp, String msg) {
 
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
             ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
 
             stringToPacket(logPacketTmp, String.valueOf(timestamp));

@@ -140,7 +140,7 @@ public class RF {
     }
 
     public void d(String s) {
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_RF) {
             Log.v(TAG, s);
             sendLogMsg(s);
         }

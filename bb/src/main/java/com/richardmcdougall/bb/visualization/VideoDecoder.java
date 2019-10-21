@@ -18,6 +18,7 @@ package com.richardmcdougall.bb.visualization;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+        import com.richardmcdougall.bb.DebugConfigs;
         import com.richardmcdougall.bb.SimpleImage;
 
         import android.graphics.SurfaceTexture;
@@ -60,7 +61,6 @@ package com.richardmcdougall.bb.visualization;
  */
 public class VideoDecoder extends AndroidTestCase {
     private static final String TAG = "BB.VideoDecoder";
-    private static final boolean VERBOSE = false;           // lots of logging
 
     // where to find files (note: requires WRITE_EXTERNAL_STORAGE permission)
 
@@ -209,7 +209,7 @@ public class VideoDecoder extends AndroidTestCase {
                 extractor.selectTrack(trackIndex);
 
                 MediaFormat format = extractor.getTrackFormat(trackIndex);
-                if (VERBOSE) {
+                if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) {
                     Log.d(TAG, "Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" +
                             format.getInteger(MediaFormat.KEY_HEIGHT));
                 }
@@ -262,7 +262,7 @@ public class VideoDecoder extends AndroidTestCase {
             MediaFormat format = extractor.getTrackFormat(i);
             String mime = format.getString(MediaFormat.KEY_MIME);
             if (mime.startsWith("video/")) {
-                if (VERBOSE) {
+                if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) {
                     Log.d(TAG, "Extractor selected track " + i + " (" + mime + "): " + format);
                 }
                 return i;
@@ -292,7 +292,7 @@ public class VideoDecoder extends AndroidTestCase {
         long lastFrameTime = System.currentTimeMillis();
 
         while (!outputDone && !parent.stopRequested) {
-            if (VERBOSE) Log.d(TAG, "loop");
+            if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "loop");
 
             // Feed more data to the decoder.
             if (!inputDone) {
@@ -307,7 +307,7 @@ public class VideoDecoder extends AndroidTestCase {
                         decoder.queueInputBuffer(inputBufIndex, 0, 0, 0L,
                                 MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         inputDone = true;
-                        if (VERBOSE) Log.d(TAG, "sent input EOS");
+                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "sent input EOS");
                     } else {
                         if (extractor.getSampleTrackIndex() != trackIndex) {
                             Log.w(TAG, "WEIRD: got sample from track " +
@@ -316,7 +316,7 @@ public class VideoDecoder extends AndroidTestCase {
                         long presentationTimeUs = extractor.getSampleTime();
                         decoder.queueInputBuffer(inputBufIndex, 0, chunkSize,
                                 presentationTimeUs, 0 /*flags*/);
-                        if (VERBOSE) {
+                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) {
                             Log.d(TAG, "submitted frame " + inputChunk + " to dec, size=" +
                                     chunkSize);
                         }
@@ -324,7 +324,7 @@ public class VideoDecoder extends AndroidTestCase {
                         extractor.advance();
                     }
                 } else {
-                    if (VERBOSE) Log.d(TAG, "input buffer not available");
+                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "input buffer not available");
                 }
             }
 
@@ -332,20 +332,20 @@ public class VideoDecoder extends AndroidTestCase {
                 int decoderStatus = decoder.dequeueOutputBuffer(info, TIMEOUT_USEC);
                 if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     // no output available yet
-                    if (VERBOSE) Log.d(TAG, "no output from decoder available");
+                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "no output from decoder available");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                     // not important for us, since we're using Surface
-                    if (VERBOSE) Log.d(TAG, "decoder output buffers changed");
+                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "decoder output buffers changed");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     MediaFormat newFormat = decoder.getOutputFormat();
-                    if (VERBOSE) Log.d(TAG, "decoder output format changed: " + newFormat);
+                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "decoder output format changed: " + newFormat);
                 } else if (decoderStatus < 0) {
                     fail("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus);
                 } else { // decoderStatus >= 0
-                    if (VERBOSE) Log.d(TAG, "surface decoder given buffer " + decoderStatus +
+                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "surface decoder given buffer " + decoderStatus +
                             " (size=" + info.size + ")");
                     if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                        if (VERBOSE) Log.d(TAG, "output EOS");
+                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "output EOS");
                         outputDone = true;
                     }
 
@@ -366,7 +366,7 @@ public class VideoDecoder extends AndroidTestCase {
                     decoder.releaseOutputBuffer(decoderStatus, doRender);
 
                     if (doRender) {
-                        if (VERBOSE) Log.d(TAG, "awaiting decode of frame " + decodeCount);
+                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "awaiting decode of frame " + decodeCount);
                         outputSurface.awaitNewImage();
                         outputSurface.drawImage(true);
 
@@ -460,7 +460,7 @@ public class VideoDecoder extends AndroidTestCase {
             mTextureRender = new VideoDecoder.STextureRender();
             mTextureRender.surfaceCreated();
 
-            if (VERBOSE) Log.d(TAG, "textureID=" + mTextureRender.getTextureId());
+            if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "textureID=" + mTextureRender.getTextureId());
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
 
             // This doesn't work if this object is created on the thread that CTS started for
@@ -622,7 +622,7 @@ public class VideoDecoder extends AndroidTestCase {
         // SurfaceTexture callback
         @Override
         public void onFrameAvailable(SurfaceTexture st) {
-            if (VERBOSE) Log.d(TAG, "new frame available");
+            if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "new frame available");
             synchronized (mFrameSyncObject) {
                 if (mFrameAvailable) {
                     throw new RuntimeException("mFrameAvailable already set, frame could be dropped");

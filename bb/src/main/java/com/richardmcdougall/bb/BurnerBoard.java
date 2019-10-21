@@ -558,7 +558,7 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId) {
-        if (BBService.debug == false) {
+        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
@@ -569,7 +569,7 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId, int arg) {
-        if (BBService.debug == false) {
+        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
@@ -581,7 +581,7 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId, int arg1, int arg2, int arg3) {
-        if (BBService.debug == false) {
+        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
         Intent in = new Intent(BBService.ACTION_GRAPHICS);
@@ -595,7 +595,7 @@ public class BurnerBoard {
     }
 
     public void sendVisual(int visualId, int arg1, int[] arg2) {
-        if (BBService.debug == false) {
+        if(!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
         final byte[] pixels = new byte[arg2.length];

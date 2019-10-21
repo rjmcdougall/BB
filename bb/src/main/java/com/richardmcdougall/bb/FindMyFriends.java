@@ -223,7 +223,7 @@ public class FindMyFriends {
     }
 
     public void d(String s) {
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_FMF) {
             Log.v(TAG, s);
             sendLogMsg(s);
         }

@@ -21,18 +21,14 @@ import android.os.IBinder;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
-import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.ByteOrder;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -51,8 +47,6 @@ import android.media.Ringtone;
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
-
-    public static final boolean debug = true;
 
     private static final String TAG = "BB.BBService";
 
@@ -142,7 +136,14 @@ public class BBService extends Service {
     }
 
     public void d(String s) {
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_AUDIO_SYNC) {
+            Log.v(TAG, s);
+            sendLogMsg(s);
+        }
+    }
+
+    public void d_battery(String s) {
+        if (DebugConfigs.DEBUG_BATTERY) {
             Log.v(TAG, s);
             sendLogMsg(s);
         }
@@ -770,7 +771,6 @@ public class BBService extends Service {
                         l("Downloaded: Starting Radio Mode");
                         RadioMode();
                     } else {
-                        l("Waiting for download");
                         try {
                             Thread.sleep(1000);
                         } catch (Throwable e) {
@@ -1502,9 +1502,9 @@ public class BBService extends Service {
             int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
             int voltage = mBurnerBoard.getBatteryVoltage();
 
-            l("Board Current(avg) is " + current);
-            l("Board Current(Instant) is " + currentInstant);
-            l("Board Voltage is " + voltage);
+            d_battery("Board Current(avg) is " + current);
+            d_battery("Board Current(Instant) is " + currentInstant);
+            d_battery("Board Voltage is " + voltage);
 
             // Save CPU cycles for lower power mode
             // current is milliamps
@@ -1540,7 +1540,7 @@ public class BBService extends Service {
                 mBoardVisualization.inhibit(false);
             }
 
-            l("Power state is " + powerState);
+            d_battery("Power state is " + powerState);
 
             // Show battery if charging
             mBoardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);

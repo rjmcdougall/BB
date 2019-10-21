@@ -201,9 +201,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         if (log == null)
             return;
 
-        if (BBConfigs.DISPLAY_VIDEO_IN_APP)
-            return;
-
         // append the new string
         log.append(msg + "\n");
 
@@ -346,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        if (!BBConfigs.DISPLAY_VIDEO_IN_APP) {
+        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             becomeHomeActivity(this.getApplicationContext());
         }
 
@@ -687,7 +684,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (!BBConfigs.DISPLAY_VIDEO_IN_APP)
+            if (!DebugConfigs.DISPLAY_VIDEO_IN_APP)
                 return;
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
             int visualId = intent.getIntExtra("visualId", 0);

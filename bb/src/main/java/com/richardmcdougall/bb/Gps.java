@@ -175,7 +175,7 @@ public class Gps {
     }
 
     public void d(String s) {
-        if (BBService.debug == true) {
+        if (DebugConfigs.DEBUG_GPS) {
             Log.v(TAG, s);
             sendLogMsg(s);
         }
