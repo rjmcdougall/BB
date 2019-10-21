@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private static final String TAG = "BB.MainActivity";
 
-    public static final boolean kEmbeddedMode = true;
     public static final boolean kThings = true;
 
     boolean imRunning = false;
@@ -202,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         if (log == null)
             return;
 
-        if (kEmbeddedMode == false)
+        if (BBConfigs.DISPLAY_VIDEO_IN_APP)
             return;
 
         // append the new string
@@ -347,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        if (kEmbeddedMode == true) {
+        if (!BBConfigs.DISPLAY_VIDEO_IN_APP) {
             becomeHomeActivity(this.getApplicationContext());
         }
 
@@ -688,7 +687,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (kEmbeddedMode == true)
+            if (!BBConfigs.DISPLAY_VIDEO_IN_APP)
                 return;
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
             int visualId = intent.getIntExtra("visualId", 0);
