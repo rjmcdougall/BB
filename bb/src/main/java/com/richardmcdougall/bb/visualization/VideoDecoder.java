@@ -183,7 +183,7 @@ public class VideoDecoder extends AndroidTestCase {
      * you're extracting frames you don't want black bars.
      */
     private void extractMpegFrames() throws IOException {
-        MediaCodec decoder = null;
+        MediaCodec codec = null;
         CodecOutputSurface outputSurface = null;
         MediaExtractor extractor = null;
         int saveWidth = outWidth;
@@ -211,8 +211,6 @@ public class VideoDecoder extends AndroidTestCase {
                 extractor.selectTrack(trackIndex);
 
                 MediaFormat format = extractor.getTrackFormat(trackIndex);
-                d( "Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" +
-                            format.getInteger(MediaFormat.KEY_HEIGHT));
 
 
                 // Could use width/height from the MediaFormat to get full-size frames.
@@ -221,13 +219,30 @@ public class VideoDecoder extends AndroidTestCase {
                 // Create a MediaCodec decoder, and configure it with the MediaFormat from the
                 // extractor.  It's very important to use the format from the extractor because
                 // it contains a copy of the CSD-0/CSD-1 codec-specific data chunks.
-                String mime = format.getString(MediaFormat.KEY_MIME);
-                decoder = MediaCodec.createDecoderByType(mime);
-                decoder.configure(format, outputSurface.getSurface(), null, 0);
+                //String mime = format.getString(MediaFormat.KEY_MIME);
+                //codec = MediaCodec.createDecoderByType(mime);
 
-                decoder.start();
+                // DKW note that the NPI would fail to display videos because of an effort to use
+                // the hardware codec OMX.rk.video_decoder.avc when allowing automatic selection.
+                // Dragonboard used the software codec  so I am setting it explicitly.
+                codec = MediaCodec.createByCodecName("OMX.google.h264.decoder");
 
-                doExtract(extractor, trackIndex, decoder, outputSurface, onFrameReady, this);
+                codec.configure(format, outputSurface.getSurface(), null, 0);
+
+                d( "Dec: Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" + format.getInteger(MediaFormat.KEY_HEIGHT));
+                d("Dec: Duration: " + format.getLong(MediaFormat.KEY_DURATION));
+
+                // dkw note that this does not exist on Dragonboard
+                try{
+                    d("Dec: Frame Rate: " + format.getInteger(MediaFormat.KEY_FRAME_RATE));
+                }
+                catch(Exception e){  }
+                d("Dec: MIME: " + format.getString(MediaFormat.KEY_MIME));
+                d("Dec: Codec: " + codec.getName());
+
+                codec.start();
+
+                doExtract(extractor, trackIndex, codec, outputSurface, onFrameReady, this);
 
             } finally {
                 // release everything we grabbed
@@ -236,10 +251,10 @@ public class VideoDecoder extends AndroidTestCase {
                     outputSurface.release();
                     outputSurface = null;
                 }
-                if (decoder != null) {
-                    decoder.stop();
-                    decoder.release();
-                    decoder = null;
+                if (codec != null) {
+                    codec.stop();
+                    codec.release();
+                    codec = null;
                 }
                 if (extractor != null) {
                     extractor.release();
@@ -292,7 +307,6 @@ public class VideoDecoder extends AndroidTestCase {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         int inputChunk = 0;
         int decodeCount = 0;
-        long frameSaveTime = 0;
 
         boolean outputDone = false;
         boolean inputDone = false;
@@ -338,7 +352,7 @@ public class VideoDecoder extends AndroidTestCase {
 
             if (!outputDone) {
 
-                int decoderStatus = codec.dequeueOutputBuffer(info, TIMEOUT_USEC);
+                int decoderStatus = codec.dequeueOutputBuffer(info,TIMEOUT_USEC);
                 if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     // no output available yet
                     d( "no output from decoder available");
@@ -359,14 +373,6 @@ public class VideoDecoder extends AndroidTestCase {
                     }
 
                     boolean doRender = (info.size != 0);
-
-                    /*
-                    decoder.setOnFrameRenderedListener(new MediaCodec.OnFrameRenderedListener() {
-                        @Override
-                        public void onFrameRendered(MediaCodec mediaCodec, long presentationTimeUs, long renderTimeNanos) {
-                            Log.e(TAG, "onFrameRendered");
-                        }
-                    }, null); */
 
                     // As soon as we call releaseOutputBuffer, the buffer will be forwarded
                     // to SurfaceTexture to convert to a texture.  The API doesn't guarantee
@@ -399,14 +405,7 @@ public class VideoDecoder extends AndroidTestCase {
                         }
                         lastFrameTime = curFrameTime;
 
-/*                        if (decodeCount < MAX_FRAMES) {
-                            File outputFile = new File("/not/",
-                                    String.format("frame-%02d.png", decodeCount));
-                            long startWhen = System.nanoTime();
-                            outputSurface.saveFrame(outputFile.toString());
-                            frameSaveTime += System.nanoTime() - startWhen;
-                        } */
-                        //Log.e(TAG, "Decoding frame " + decodeCount);
+                        d( "Decoding frame " + decodeCount);
                         decodeCount++;
                     }
                 }
