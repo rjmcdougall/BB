@@ -82,7 +82,7 @@ public class VideoDecoder extends AndroidTestCase {
     public Boolean IsRunning() {
         Thread dt = decodeThread;
         if (dt!=null && !dt.isAlive()) {
-            //Log.d(TAG, "IsRunning() found decode thread dead");
+            d("IsRunning() found decode thread dead");
             stopRequested = true;
             state = StateType.STOPPED;
             return false;
@@ -92,7 +92,7 @@ public class VideoDecoder extends AndroidTestCase {
 
     /** test entry point */
     public void Start(String fname, int xRes, int yRes) throws Throwable {
-        //Log.d(TAG, "starting decodeThread");
+        d("starting decodeThread");
         Stop();
         stopRequested = false;
         sourceFilename = fname;
@@ -100,12 +100,12 @@ public class VideoDecoder extends AndroidTestCase {
         outHeight = yRes;
         state = StateType.DECODING;
         wrapper = ExtractMpegFramesWrapper.Start(this);
-        //Log.d(TAG, "starteddecodeThread");
+        d("starteddecodeThread");
 
     }
 
     public void Stop() {
-        //Log.d(TAG, "stopping decodeThread");
+        d( "stopping decodeThread");
         Thread waitThread = decodeThread;
         if (waitThread!=null) {
             stopRequested = true;
@@ -117,7 +117,7 @@ public class VideoDecoder extends AndroidTestCase {
                 }
             }
         }
-        //Log.d(TAG, "stopped decodeThread");
+        d( "stopped decodeThread");
     }
 
 
@@ -148,15 +148,15 @@ public class VideoDecoder extends AndroidTestCase {
             try {
                 mTest.extractMpegFrames();
             } catch (Throwable th) {
-                Log.d(TAG, "extractMpegFrames failed");
+                e("extractMpegFrames failed");
                 mThrowable = th;
-                Log.d(TAG, "extractMpegFrames thread failed" + mThrowable.getMessage() + mThrowable.fillInStackTrace());
+                e("extractMpegFrames thread failed" + mThrowable.getMessage() + mThrowable.fillInStackTrace());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                 }
             }
-            //Log.d(TAG, "extractMpegFrames thread exiting");
+            d("extractMpegFrames thread exiting");
 
         }
 
@@ -196,6 +196,8 @@ public class VideoDecoder extends AndroidTestCase {
                 File inputFile = new File(sourceFilename);   // must be an absolute path
                 // The MediaExtractor error messages aren't very useful.  Check to see if the input
                 // file exists so we can throw a better one if it's not there.
+                d("filename: " + sourceFilename);
+
                 if (!inputFile.canRead()) {
                     throw new FileNotFoundException("Unable to read " + inputFile);
                 }
@@ -209,10 +211,9 @@ public class VideoDecoder extends AndroidTestCase {
                 extractor.selectTrack(trackIndex);
 
                 MediaFormat format = extractor.getTrackFormat(trackIndex);
-                if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) {
-                    Log.d(TAG, "Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" +
+                d( "Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" +
                             format.getInteger(MediaFormat.KEY_HEIGHT));
-                }
+
 
                 // Could use width/height from the MediaFormat to get full-size frames.
                 outputSurface = new CodecOutputSurface(saveWidth, saveHeight);
@@ -230,7 +231,7 @@ public class VideoDecoder extends AndroidTestCase {
 
             } finally {
                 // release everything we grabbed
-                //Log.d(TAG, "Exiting extractMpegFrames");
+                d("Exiting extractMpegFrames");
                 if (outputSurface != null) {
                     outputSurface.release();
                     outputSurface = null;
@@ -262,9 +263,7 @@ public class VideoDecoder extends AndroidTestCase {
             MediaFormat format = extractor.getTrackFormat(i);
             String mime = format.getString(MediaFormat.KEY_MIME);
             if (mime.startsWith("video/")) {
-                if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) {
-                    Log.d(TAG, "Extractor selected track " + i + " (" + mime + "): " + format);
-                }
+                d("Extractor selected track " + i + " (" + mime + "): " + format);
                 return i;
             }
         }
@@ -273,6 +272,14 @@ public class VideoDecoder extends AndroidTestCase {
     }
 
 
+    static void d(String logMsg){
+        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING)
+            Log.d(TAG, logMsg);
+    }
+
+    static void e(String logMsg){
+            Log.e(TAG, logMsg);
+    }
 
     /**
      * Work loop.
@@ -282,6 +289,7 @@ public class VideoDecoder extends AndroidTestCase {
                           VideoDecoder parent) throws IOException {
         final int TIMEOUT_USEC = 10000;
         ByteBuffer[] decoderInputBuffers = decoder.getInputBuffers();
+
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         int inputChunk = 0;
         int decodeCount = 0;
@@ -292,22 +300,24 @@ public class VideoDecoder extends AndroidTestCase {
         long lastFrameTime = System.currentTimeMillis();
 
         while (!outputDone && !parent.stopRequested) {
-            if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "loop");
+            d("loop");
 
             // Feed more data to the decoder.
             if (!inputDone) {
                 int inputBufIndex = decoder.dequeueInputBuffer(TIMEOUT_USEC);
-                if (inputBufIndex >= 0) {
+               if (inputBufIndex >= 0) {
                     ByteBuffer inputBuf = decoderInputBuffers[inputBufIndex];
+
                     // Read the sample data into the ByteBuffer.  This neither respects nor
                     // updates inputBuf's position, limit, etc.
-                    int chunkSize = extractor.readSampleData(inputBuf, 0);
+                   int chunkSize = extractor.readSampleData(inputBuf, 0);
+                    d("chuck size" + chunkSize);
                     if (chunkSize < 0) {
                         // End of stream -- send empty frame with EOS flag set.
                         decoder.queueInputBuffer(inputBufIndex, 0, 0, 0L,
                                 MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         inputDone = true;
-                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "sent input EOS");
+                        d("sent input EOS");
                     } else {
                         if (extractor.getSampleTrackIndex() != trackIndex) {
                             Log.w(TAG, "WEIRD: got sample from track " +
@@ -316,36 +326,36 @@ public class VideoDecoder extends AndroidTestCase {
                         long presentationTimeUs = extractor.getSampleTime();
                         decoder.queueInputBuffer(inputBufIndex, 0, chunkSize,
                                 presentationTimeUs, 0 /*flags*/);
-                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) {
-                            Log.d(TAG, "submitted frame " + inputChunk + " to dec, size=" +
+                        d ("submitted frame " + inputChunk + " to dec, size=" +
                                     chunkSize);
-                        }
+
                         inputChunk++;
                         extractor.advance();
                     }
                 } else {
-                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "input buffer not available");
+                    d("input buffer not available");
                 }
             }
 
             if (!outputDone) {
+
                 int decoderStatus = decoder.dequeueOutputBuffer(info, TIMEOUT_USEC);
                 if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     // no output available yet
-                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "no output from decoder available");
+                    d( "no output from decoder available");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                     // not important for us, since we're using Surface
-                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "decoder output buffers changed");
+                    d("decoder output buffers changed");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     MediaFormat newFormat = decoder.getOutputFormat();
-                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "decoder output format changed: " + newFormat);
+                    d("decoder output format changed: " + newFormat);
                 } else if (decoderStatus < 0) {
                     fail("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus);
                 } else { // decoderStatus >= 0
-                    if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "surface decoder given buffer " + decoderStatus +
+                    d("surface decoder given buffer " + decoderStatus +
                             " (size=" + info.size + ")");
                     if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "output EOS");
+                        d("output EOS");
                         outputDone = true;
                     }
 
@@ -366,7 +376,7 @@ public class VideoDecoder extends AndroidTestCase {
                     decoder.releaseOutputBuffer(decoderStatus, doRender);
 
                     if (doRender) {
-                        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "awaiting decode of frame " + decodeCount);
+                        d("awaiting decode of frame " + decodeCount);
                         outputSurface.awaitNewImage();
                         outputSurface.drawImage(true);
 
@@ -405,7 +415,7 @@ public class VideoDecoder extends AndroidTestCase {
         }
 
         int numSaved = (MAX_FRAMES < decodeCount) ? MAX_FRAMES : decodeCount;
-        //Log.d(TAG, "Saving " + numSaved);
+        d("Saving " + numSaved);
     }
 
 
@@ -460,7 +470,7 @@ public class VideoDecoder extends AndroidTestCase {
             mTextureRender = new VideoDecoder.STextureRender();
             mTextureRender.surfaceCreated();
 
-            if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "textureID=" + mTextureRender.getTextureId());
+            d("textureID=" + mTextureRender.getTextureId());
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
 
             // This doesn't work if this object is created on the thread that CTS started for
@@ -622,7 +632,7 @@ public class VideoDecoder extends AndroidTestCase {
         // SurfaceTexture callback
         @Override
         public void onFrameAvailable(SurfaceTexture st) {
-            if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING) Log.d(TAG, "new frame available");
+            d("new frame available");
             synchronized (mFrameSyncObject) {
                 if (mFrameAvailable) {
                     throw new RuntimeException("mFrameAvailable already set, frame could be dropped");
@@ -631,62 +641,6 @@ public class VideoDecoder extends AndroidTestCase {
                 mFrameSyncObject.notifyAll();
             }
         }
-
-        /**
-         * Saves the current frame to disk as a PNG image.
-
-        public void saveFrame(String filename) throws IOException {
-            // glReadPixels gives us a ByteBuffer filled with what is essentially big-endian RGBA
-            // data (i.e. a byte of red, followed by a byte of green...).  To use the Bitmap
-            // constructor that takes an int[] array with pixel data, we need an int[] filled
-            // with little-endian ARGB data.
-            //
-            // If we implement this as a series of buf.get() calls, we can spend 2.5 seconds just
-            // copying data around for a 720p frame.  It's better to do a bulk get() and then
-            // rearrange the data in memory.  (For comparison, the PNG compress takes about 500ms
-            // for a trivial frame.)
-            //
-            // So... we set the ByteBuffer to little-endian, which should turn the bulk IntBuffer
-            // get() into a straight memcpy on most Android devices.  Our ints will hold ABGR data.
-            // Swapping B and R gives us ARGB.  We need about 30ms for the bulk get(), and another
-            // 270ms for the color swap.
-            //
-            // We can avoid the costly B/R swap here if we do it in the fragment shader (see
-            // http://stackoverflow.com/questions/21634450/ ).
-            //
-            // Having said all that... it turns out that the Bitmap#copyPixelsFromBuffer()
-            // method wants RGBA pixels, not ARGB, so if we create an empty bitmap and then
-            // copy pixel data in we can avoid the swap issue entirely, and just copy straight
-            // into the Bitmap from the ByteBuffer.
-            //
-            // Making this even more interesting is the upside-down nature of GL, which means
-            // our output will look upside-down relative to what appears on screen if the
-            // typical GL conventions are used.  (For ExtractMpegFrameTest, we avoid the issue
-            // by inverting the frame when we render it.)
-            //
-            // Allocating large buffers is expensive, so we really want mPixelBuf to be
-            // allocated ahead of time if possible.  We still get some allocations from the
-            // Bitmap / PNG creation.
-
-            mPixelBuf.rewind();
-            GLES20.glReadPixels(0, 0, mWidth, mHeight, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
-                    mPixelBuf);
-
-            BufferedOutputStream bos = null;
-            try {
-                bos = new BufferedOutputStream(new FileOutputStream(filename));
-                Bitmap bmp = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
-                mPixelBuf.rewind();
-                bmp.copyPixelsFromBuffer(mPixelBuf);
-                bmp.compress(Bitmap.CompressFormat.PNG, 90, bos);
-                bmp.recycle();
-            } finally {
-                if (bos != null) bos.close();
-            }
-            if (VERBOSE) {
-                Log.d(TAG, "Saved " + mWidth + "x" + mHeight + " frame as '" + filename + "'");
-            }
-        } (/
 
         /**
          * Checks for EGL errors.
