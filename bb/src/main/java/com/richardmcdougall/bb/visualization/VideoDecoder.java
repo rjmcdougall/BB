@@ -284,11 +284,10 @@ public class VideoDecoder extends AndroidTestCase {
     /**
      * Work loop.
      */
-    static void doExtract(MediaExtractor extractor, int trackIndex, MediaCodec decoder,
+    static void doExtract(MediaExtractor extractor, int trackIndex, MediaCodec codec,
                           CodecOutputSurface outputSurface, OnFrameReadyCallback callback,
                           VideoDecoder parent) throws IOException {
         final int TIMEOUT_USEC = 10000;
-        ByteBuffer[] decoderInputBuffers = decoder.getInputBuffers();
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         int inputChunk = 0;
@@ -304,9 +303,9 @@ public class VideoDecoder extends AndroidTestCase {
 
             // Feed more data to the decoder.
             if (!inputDone) {
-                int inputBufIndex = decoder.dequeueInputBuffer(TIMEOUT_USEC);
+                int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_USEC);
                if (inputBufIndex >= 0) {
-                    ByteBuffer inputBuf = decoderInputBuffers[inputBufIndex];
+                    ByteBuffer inputBuf = codec.getInputBuffer(inputBufIndex);
 
                     // Read the sample data into the ByteBuffer.  This neither respects nor
                     // updates inputBuf's position, limit, etc.
@@ -314,7 +313,7 @@ public class VideoDecoder extends AndroidTestCase {
                     d("chuck size" + chunkSize);
                     if (chunkSize < 0) {
                         // End of stream -- send empty frame with EOS flag set.
-                        decoder.queueInputBuffer(inputBufIndex, 0, 0, 0L,
+                        codec.queueInputBuffer(inputBufIndex, 0, 0, 0L,
                                 MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         inputDone = true;
                         d("sent input EOS");
@@ -324,10 +323,10 @@ public class VideoDecoder extends AndroidTestCase {
                                     extractor.getSampleTrackIndex() + ", expected " + trackIndex);
                         }
                         long presentationTimeUs = extractor.getSampleTime();
-                        decoder.queueInputBuffer(inputBufIndex, 0, chunkSize,
+                        codec.queueInputBuffer(inputBufIndex, 0, chunkSize,
                                 presentationTimeUs, 0 /*flags*/);
                         d ("submitted frame " + inputChunk + " to dec, size=" +
-                                    chunkSize);
+                                    chunkSize + " presentation time: " + presentationTimeUs);
 
                         inputChunk++;
                         extractor.advance();
@@ -339,7 +338,7 @@ public class VideoDecoder extends AndroidTestCase {
 
             if (!outputDone) {
 
-                int decoderStatus = decoder.dequeueOutputBuffer(info, TIMEOUT_USEC);
+                int decoderStatus = codec.dequeueOutputBuffer(info, TIMEOUT_USEC);
                 if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     // no output available yet
                     d( "no output from decoder available");
@@ -347,7 +346,7 @@ public class VideoDecoder extends AndroidTestCase {
                     // not important for us, since we're using Surface
                     d("decoder output buffers changed");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                    MediaFormat newFormat = decoder.getOutputFormat();
+                    MediaFormat newFormat = codec.getOutputFormat();
                     d("decoder output format changed: " + newFormat);
                 } else if (decoderStatus < 0) {
                     fail("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus);
@@ -373,7 +372,7 @@ public class VideoDecoder extends AndroidTestCase {
                     // to SurfaceTexture to convert to a texture.  The API doesn't guarantee
                     // that the texture will be available before the call returns, so we
                     // need to wait for the onFrameAvailable callback to fire.
-                    decoder.releaseOutputBuffer(decoderStatus, doRender);
+                    codec.releaseOutputBuffer(decoderStatus, doRender);
 
                     if (doRender) {
                         d("awaiting decode of frame " + decodeCount);
