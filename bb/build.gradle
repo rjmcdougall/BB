@@ -9,15 +9,15 @@ android {
             storePassword 'kermit01'
         }
     }
-    compileSdkVersion 23
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.richardmcdougall.bb"
-        minSdkVersion 23
-        targetSdkVersion 23
+        minSdkVersion 27
+        targetSdkVersion 27
 
-        versionCode 5016
-        versionName "5016"
+        versionCode 5017
+        versionName "5017"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
