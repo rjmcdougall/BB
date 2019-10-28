@@ -669,10 +669,6 @@ public class BBService extends Service {
         setAndroidVolumePercent(v);
     }
 
-    public void setRadioVolumePercent(int v) {
-        setAndroidVolumePercent(v);
-    }
-
     public int getAndroidVolumePercent(){
         // Get the AudioManager
         AudioManager audioManager =
@@ -698,12 +694,6 @@ public class BBService extends Service {
                 AudioManager.STREAM_MUSIC,
                 setVolume,
                 0);
-    }
-
-    public void broadcastVolume(float vol) {
-        Intent in = new Intent(ACTION_BB_VOLUME);
-        in.putExtra("volume", vol);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
     long lastSeekOffset = 0;
@@ -819,28 +809,16 @@ public class BBService extends Service {
                 long seekOff = ms % lenInMS;
                 long curPos = mediaPlayer.getCurrentPosition();
                 long seekErr = curPos - seekOff;
-                d("time/pos: " + curPos + "/" + CurrentClockAdjusted());
 
                 if (curPos == 0 || seekErr != 0) {
-                    if (curPos == 0 || Math.abs(seekErr) > 100) {
-                        l("SeekAndPlay: explicit seek");
-                        // mediaPlayer.pause();
-                        // hack: I notice i taked 79ms on dragonboard to seekTo
+                    if (curPos == 0 || Math.abs(seekErr) > 200) {
+                        d("SeekAndPlay: explicit seek");
                         seekSave = SystemClock.elapsedRealtime();
-                        seekSavePos = seekOff + 79;
-                        // RMC
-                        //mediaPlayer.seekTo((int) seekOff + 79);
-                        mediaPlayer.seekTo((int) seekOff + 100);
+                        mediaPlayer.seekTo((int) seekOff);
                         mediaPlayer.start();
                     } else {
-                        //PlaybackParams params = mediaPlayer.getPlaybackParams();
+
                         Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
-                        if (speed > 1.05f) {
-                            //    speed = 1.05f;
-                        }
-                        if (speed < 0.95f) {
-                            //    speed = 0.95f;
-                        }
                         d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
 
                         if ((seekErr > 10) || (seekErr < -10)) {
@@ -848,19 +826,11 @@ public class BBService extends Service {
                         }
 
                         try {
-                            //mediaPlayer.pause();
+
                             PlaybackParams params = new PlaybackParams();
                             params.allowDefaults();
                             params.setSpeed(speed).setPitch(speed).setAudioFallbackMode(PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT);
                             mediaPlayer.setPlaybackParams(params);
-
-                            //l("SeekAndPlay: pause()");
-                            //mediaPlayer.pause();
-                            //mediaPlayer.stop();
-                            //l("SeekAndPlay: setPlaybackParams()");
-                            //mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(speed));
-                            //mediaPlayer.start();
-                            //mediaPlayer.prepareAsync();
 
                             d("SeekAndPlay: setPlaybackParams() Sucesss!!");
                         } catch (IllegalStateException exception) {
@@ -869,17 +839,13 @@ public class BBService extends Service {
                             l("SeekAndPlay setPlaybackParams: " + err.getMessage());
                             //err.printStackTrace();
                         }
-                        //l("SeekAndPlay: start()");
                         mediaPlayer.start();
                     }
                 }
 
-                String msg = "SeekErr " + seekErr + " SvOff " + serverTimeOffset +
+                d("SeekAndPlay: SeekErr " + seekErr + " SvOff " + serverTimeOffset +
                         " User " + userTimeOffset + "\nSeekOff " + seekOff +
-                        " RTT " + serverRTT + " Strm" + currentRadioChannel;
-                //if (rfClientServer.tSentPackets != 0)
-                //    msg += "\nSent " + rfClientServer.tSentPackets;
-                d(msg);
+                        " RTT " + serverRTT + " Strm" + currentRadioChannel);
 
                 Intent in = new Intent(ACTION_STATS);
                 in.putExtra("resultCode", Activity.RESULT_OK);
