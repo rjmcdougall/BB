@@ -822,7 +822,7 @@ public class BBService extends Service {
                         d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
 
                         if ((seekErr > 10) || (seekErr < -10)) {
-                            l("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
+                            d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
                         }
 
                         try {
