@@ -313,8 +313,23 @@ public class BBService extends Service {
         mMusicPlayer = new MusicPlayer(this,  mContext, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
         mMusicPlayer.Run();
 
-        // Start the RF Radio and GPS
-        startServices();
+        mBluetoothConnManager = new BluetoothConnManager(this, mContext);
+        mBLEServer = new BluetoothLEServer(this, mContext);
+        mRadio = new RF(this, mContext);
+
+        InitClock();
+
+        mRfClientServer = new RFClientServer(this, mRadio);
+        mRfClientServer.Run();
+
+        mGps = mRadio.getGps();
+        mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
+
+        // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
+
+        mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
+                mBluetoothConnManager, mFindMyFriends, mMusicPlayer);
+        mBluetoothCommands.init();
 
         if (supervisorMonitor == null) {
             l("starting supervisor thread");
@@ -450,60 +465,6 @@ public class BBService extends Service {
 
         Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
         mBoardVisualization.setMode(mBoardMode);
-    }
-
-    private void startServices() {
-
-        l("StartServices");
-
-        // Start the manager for bluetooth discovery/pairing/etc,...
-
-        mBluetoothConnManager = new BluetoothConnManager(this, mContext);
-        if (mBluetoothConnManager == null) {
-            l("startServices: null BluetoothConnManager object");
-            return;
-        }
-
-        mBLEServer = new BluetoothLEServer(this, mContext);
-        if (mBLEServer == null) {
-            l("startServices: null BLE object");
-            return;
-        }
-
-        mRadio = new RF(this, mContext);
-        if (mRadio == null) {
-            l("startServices: null RF object");
-            return;
-        }
-
-        InitClock();
-        mRfClientServer = new RFClientServer(this, mRadio);
-        mRfClientServer.Run();
-
-        mGps = mRadio.getGps();
-
-        if (mGps == null) {
-            l("startGps: null gps object");
-            return;
-        }
-
-        mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
-
-        // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
-        // if (mFavorites == null) {
-        //     l("startServices: null Favorites object");
-        //     return;
-        // }
-
-        mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
-                mBluetoothConnManager, mFindMyFriends, mMusicPlayer);
-
-        if (mBluetoothCommands == null) {
-            l("startServices: null mBluetoothCommands object");
-            return;
-        }
-        mBluetoothCommands.init();
-
     }
 
     public FindMyFriends getFindMyFriends() {
