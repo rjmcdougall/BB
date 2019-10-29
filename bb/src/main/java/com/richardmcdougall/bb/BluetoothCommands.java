@@ -23,10 +23,11 @@ public class BluetoothCommands {
     BluetoothLEServer mBLEServer;
     BluetoothConnManager mBluetoothConnManager;
     public FindMyFriends mFindMyFriends = null;
+    public MusicPlayer mMusicPlayer = null;
     private Handler mHandler;
 
     public BluetoothCommands(BBService service, Context context, BluetoothLEServer ble,
-                             BluetoothConnManager connmgr, FindMyFriends fmf) {
+                             BluetoothConnManager connmgr, FindMyFriends fmf, MusicPlayer mp) {
         mBBService = service;
         mContext = context;
         mHandler = new Handler(Looper.getMainLooper());
@@ -34,6 +35,7 @@ public class BluetoothCommands {
         mBLEServer = ble;
         mBluetoothConnManager = connmgr;
         mFindMyFriends = fmf;
+        mMusicPlayer = mp;
         // Register to receive button messages
         IntentFilter filter;
         filter = new IntentFilter(BBService.ACTION_BB_VOLUME);
@@ -75,15 +77,14 @@ public class BluetoothCommands {
     public JSONArray AudioMedia(){
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
-        JSONObject media = mBBService.dlManager.GetDataDirectory();
         JSONArray audio = null;
-        if (media == null) {
+        if (mBBService.dlManager.GetDataDirectory() == null) {
             l("Could not get media directory (null)");
         }
-        if (media != null) {
+        else {
             try {
 
-                audio = new JSONArray(media.getJSONArray("audio").toString()) ;
+                 audio = new JSONArray(mBBService.dlManager.GetDataDirectory().getJSONArray("audio").toString()) ;
                 for (int i = 0; i < audio.length(); i++) {
                     JSONObject a = audio.getJSONObject(i);
                     if(a.has("URL"))  a.remove("URL");
@@ -102,16 +103,15 @@ public class BluetoothCommands {
     public JSONArray VideoMedia(){
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
-        JSONObject media = mBBService.dlManager.GetDataDirectory();
-        JSONArray video = null;
+         JSONArray video = null;
 
-        if (media == null) {
+        if (mBBService.dlManager.GetDataDirectory() == null) {
             l("Could not get media directory (null)");
         }
-        if (media != null) {
+        else {
             try {
 
-                video = new JSONArray(media.getJSONArray("video").toString());
+                video = new JSONArray(mBBService.dlManager.GetDataDirectory().getJSONArray("video").toString());
                 for (int i = 0; i < video.length(); i++) {
                     JSONObject v = video.getJSONObject(i);
                     if(v.has("URL")) v.remove("URL");
@@ -200,11 +200,10 @@ public class BluetoothCommands {
                         }
 
                         try{
-                            JSONArray audio = AudioMedia();
-                            if(audio==null)
+                            if(AudioMedia()==null)
                                 l("Empty Audio");
                             else
-                                response.put("audio", audio);
+                                response.put("audio", AudioMedia());
                         }
                         catch(JSONException e){
                             l(e.getMessage());
@@ -253,11 +252,10 @@ public class BluetoothCommands {
                         }
 
                         try {
-                            JSONArray video = VideoMedia();
-                            if(video==null)
+                            if(VideoMedia()==null)
                                 l("Empty VideoMedia");
                             else
-                                response.put("video", video);
+                                response.put("video", VideoMedia());
                         }
                         catch(JSONException e){
                             l(e.getMessage());
@@ -568,7 +566,7 @@ public class BluetoothCommands {
                         try {
                             int volume = payload.getInt("arg");
                             if (volume >= 0 && volume <= 100) {
-                                mBBService.setBoardVolume(volume);
+                                mMusicPlayer.setBoardVolume(volume);
                             }
                         } catch (Exception e) {
                             l("error setting volume: " + e.getMessage());
@@ -593,7 +591,7 @@ public class BluetoothCommands {
                         l("BBservice got Audio command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg");
-                            mBBService.SetRadioChannel(track + 1);
+                            mMusicPlayer.SetRadioChannel(track + 1);
                         } catch (Exception e) {
                             l("error setting audio track: " + e.getMessage());
                         }
@@ -722,9 +720,9 @@ public class BluetoothCommands {
     JSONObject getState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("acn", mBBService.getRadioChannel() - 1);
+            state.put("acn", mMusicPlayer.getRadioChannel() - 1);
             state.put("vcn", mBBService.getVideoMode() - 1);
-            state.put("v", mBBService.getBoardVolumePercent());
+            state.put("v", mMusicPlayer.getBoardVolumePercent());
             state.put("b", mBBService.getBatteryLevel());
             state.put("am", mBBService.isMaster());
             state.put("apkd", mBBService.getAPKUpdatedDate());

@@ -88,11 +88,8 @@ public class BBService extends Service {
     //private BBListenerAdapter mListener = null;
     public Handler mHandler = null;
     private Context mContext;
-    private MediaPlayer mediaPlayer = new MediaPlayer();
-    private float vol = 0.80f;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
-    private int userTimeOffset = 0;
     public RFClientServer mRfClientServer = null;
     /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
     public static String boardId = BurnerBoardUtil.BOARD_ID;
@@ -106,6 +103,7 @@ public class BBService extends Service {
     int mVersion = 0;
     Date mAPKUpdatedDate;
 
+    public MusicPlayer mMusicPlayer = null;
     public RF mRadio = null;
     public Gps mGps = null;
     public FindMyFriends mFindMyFriends = null;
@@ -119,8 +117,6 @@ public class BBService extends Service {
     public final String cpuType = Build.BOARD;
     private boolean mGTFO = false;
     public BBWifi wifi = null;
-    int currentRadioChannel = 1;
-    long phoneModelAudioLatency = 0;
 
 
     TextToSpeech voice;
@@ -142,6 +138,9 @@ public class BBService extends Service {
         }
     }
 
+    public boolean HasVoiceAnnouncements(){
+        return mVoiceAnnouncements;
+    }
     public void d_battery(String s) {
         if (DebugConfigs.DEBUG_BATTERY) {
             Log.v(TAG, s);
@@ -235,9 +234,6 @@ public class BBService extends Service {
             wifi = new BBWifi(mContext);
         }
 
-        // Start the RF Radio and GPS
-        startServices();
-
         try {
             Thread.sleep(500);
         } catch (Exception e) {
@@ -312,19 +308,13 @@ public class BBService extends Service {
         // Register to know when bluetooth remote connects
         mContext.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
-        if (musicPlayer == null) {
-            l("starting music player thread");
-            // Start Music Player
-            Thread musicPlayer = new Thread(new Runnable() {
-                public void run() {
-                    Thread.currentThread().setName("BB Music Player");
-                    musicPlayerThread();
-                }
-            });
-            musicPlayer.start();
-        } else {
-            l("music player already running");
-        }
+        startLights();
+
+        mMusicPlayer = new MusicPlayer(this,  mContext, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
+        mMusicPlayer.Run();
+
+        // Start the RF Radio and GPS
+        startServices();
 
         if (supervisorMonitor == null) {
             l("starting supervisor thread");
@@ -338,10 +328,6 @@ public class BBService extends Service {
         } else {
             l("supervisor thread already running");
         }
-
-        startLights();
-
-        //mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
 
         // Supported Languages
         Set<Locale> supportedLanguages = voice.getAvailableLanguages();
@@ -411,12 +397,14 @@ public class BBService extends Service {
         return String.valueOf(mVersion);
     }
 
+
     /**
      * Handle action Foo in the provided background thread with the provided
      * parameters.
      */
 
     private BurnerBoard mBurnerBoard;
+
 
     private void startLights() {
 
@@ -508,7 +496,7 @@ public class BBService extends Service {
         // }
 
         mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
-                mBluetoothConnManager, mFindMyFriends);
+                mBluetoothConnManager, mFindMyFriends, mMusicPlayer);
 
         if (mBluetoothCommands == null) {
             l("startServices: null mBluetoothCommands object");
@@ -540,7 +528,7 @@ public class BBService extends Service {
         return GetCurrentClock() + serverTimeOffset;
         //return Calendar.getInstance().getTimeInMillis()
     }
-
+ 
     public void SetServerClockOffset(long serverClockOffset, long rtt) {
         serverTimeOffset = serverClockOffset;
         serverRTT = rtt;
@@ -582,7 +570,7 @@ public class BBService extends Service {
                         break;
                     case BUTTON_TRACK:
                         l("BUTTON_TRACK");
-                        NextStream();
+                        mMusicPlayer.NextStream();
                         break;
                     case BUTTON_MODE_UP:
                         l("BUTTON_MODE_UP");
@@ -594,23 +582,23 @@ public class BBService extends Service {
                         break;
                     case BUTTON_DRIFT_DOWN:
                         l("BUTTON_DRIFT_DOWN");
-                        MusicOffset(-10);
+                        mMusicPlayer.MusicOffset(-10);
                         break;
                     case BUTTON_DRIFT_UP:
                         l("BUTTON_DRIFT_UP");
-                        MusicOffset(10);
+                        mMusicPlayer.MusicOffset(10);
                         break;
                     case BUTTON_VOL_DOWN:
                         l("BUTTON_VOL_DOWN");
-                        onVolDown();
+                        mMusicPlayer.onVolDown();
                         break;
                     case BUTTON_VOL_UP:
                         l("BUTTON_VOL_UP");
-                        onVolUp();
+                        mMusicPlayer.onVolUp();
                         break;
                     case BUTTON_VOL_PAUSE:
                         l("BUTTON_VOL_PAUSE");
-                        onVolPause();
+                        mMusicPlayer.onVolPause();
                         break;
                     default:
                         break;
@@ -620,33 +608,6 @@ public class BBService extends Service {
     };
 
 
-    public String GetRadioChannelFile(int idx) {
-
-        if (idx < 1) {
-            return "";
-        }
-
-
-        //return (mContext.getExternalFilesDir(
-        //Environment.DIRECTORY_MUSIC).toString() + "/test.mp3");
-
-        // RMC get rid of this
-        //String radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).toString() + "/test.mp3";
-        //return radioFile;
-
-        /*
-        String radioFile = null;
-        radioFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath() + "/radio_stream" + idx + ".mp3";
-        File f = new File(radioFile);
-        if (f.exists()) {
-            return radioFile;
-        } */
-
-        return mContext.getExternalFilesDir(
-                Environment.DIRECTORY_MUSIC).toString() + "/radio_stream" + (idx - 1) + ".mp3";
-
-    }
-
     public int getCurrentBoardMode() {
         if (mBoardVisualization != null) {
             return mBoardVisualization.getMode();
@@ -655,212 +616,7 @@ public class BBService extends Service {
         }
     }
 
-    public int getCurrentBoardVol() {
-        int v = getAndroidVolumePercent();
-        //return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
-        return (v); // dkw not sure what 127 is for.
-    }
 
-    public int getBoardVolumePercent() {
-        return getAndroidVolumePercent();
-    }
-
-    public void setBoardVolume(int v) {
-        setAndroidVolumePercent(v);
-    }
-
-    public int getAndroidVolumePercent(){
-        // Get the AudioManager
-        AudioManager audioManager =
-                (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
-
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        vol = ((float)volume / (float)maxVolume);
-        int v = (int) ( vol * (float)100);
-        return v;
-    }
-
-    public void setAndroidVolumePercent(int v){
-        // Get the AudioManager
-        AudioManager audioManager =
-                (AudioManager)this.getSystemService(Context.AUDIO_SERVICE);
-
-        vol = v / (float)100;
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int setVolume = (int)((float) maxVolume * (float) v / (float) 100);
-
-        audioManager.setStreamVolume (
-                AudioManager.STREAM_MUSIC,
-                setVolume,
-                0);
-    }
-
-    long lastSeekOffset = 0;
-    long lastSeekTimestamp = 0;
-
-    long GetCurrentStreamLengthInSeconds() {
-        return dlManager.GetAudioLength( currentRadioChannel - 1);
-    }
-
-    // Main thread to drive the music player
-    void musicPlayerThread() {
-
-        String model = android.os.Build.MODEL;
-
-        l("Starting BB on " + boardId + ", model " + model);
-
-        if (BurnerBoardUtil.kIsRPI) { // Nano should be OK
-            phoneModelAudioLatency = 80;
-        } else if (model.equals("imx7d_pico")) {
-            phoneModelAudioLatency = 110;
-        } else {
-            phoneModelAudioLatency = 0;
-            userTimeOffset = 0;
-        }
-
-        boolean hasLowLatencyFeature =
-                getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
-
-        l("has audio LowLatencyFeature: " + hasLowLatencyFeature);
-        boolean hasProFeature =
-                getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-        l("has audio ProFeature: " + hasProFeature );
-
-        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
-        int sampleRate = Integer.parseInt(sampleRateStr);
-
-        l("audio sampleRate: " + sampleRate );
-
-        String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
-        int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
-
-        l("audio framesPerBufferInt: " + framesPerBufferInt );
-
-        dlManager.StartDownloads();
-
-        try {
-            Thread.sleep(5000);
-        } catch (Exception e) {
-
-        }
-
-        // MediaSession ms = new MediaSession(mContext);
-
-        bluetoothModeInit();
-
-        int musicState = 0;
-
-        while (true) {
-
-            switch (musicState) {
-                case 0:
-                    if (dlManager.GetTotalAudio() != 0) {
-                        musicState = 1;
-                        l("Downloaded: Starting Radio Mode");
-                        RadioMode();
-                    } else {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (Throwable e) {
-                        }
-                    }
-                    break;
-
-                case 1:
-                    SeekAndPlay();
-                    try {
-                        // RMC try 15 seconds instead of 1
-                        Thread.sleep(1000);
-                    } catch (Throwable e) {
-                    }
-                    if ( currentRadioChannel == 0) {
-                        musicState = 2;
-                    }
-                    break;
-
-                case 2:
-                    bluetoothPlay();
-                    if ( currentRadioChannel != 0) {
-                        musicState = 1;
-                    }
-                    break;
-
-                default:
-                    break;
-
-
-            }
-
-        }
-
-    }
-
-    private long seekSave = 0;
-    private long seekSavePos = 0;
-    public void SeekAndPlay() {
-        if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
-            synchronized (mediaPlayer) {
-                long ms = CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
-
-                long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
-
-                long seekOff = ms % lenInMS;
-                long curPos = mediaPlayer.getCurrentPosition();
-                long seekErr = curPos - seekOff;
-
-                if (curPos == 0 || seekErr != 0) {
-                    if (curPos == 0 || Math.abs(seekErr) > 200) {
-                        d("SeekAndPlay: explicit seek");
-                        seekSave = SystemClock.elapsedRealtime();
-                        mediaPlayer.seekTo((int) seekOff);
-                        mediaPlayer.start();
-                    } else {
-
-                        Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
-                        d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
-
-                        if ((seekErr > 10) || (seekErr < -10)) {
-                            d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
-                        }
-
-                        try {
-
-                            PlaybackParams params = new PlaybackParams();
-                            params.allowDefaults();
-                            params.setSpeed(speed).setPitch(speed).setAudioFallbackMode(PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT);
-                            mediaPlayer.setPlaybackParams(params);
-
-                            d("SeekAndPlay: setPlaybackParams() Sucesss!!");
-                        } catch (IllegalStateException exception) {
-                            l("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
-                        } catch (Throwable err) {
-                            l("SeekAndPlay setPlaybackParams: " + err.getMessage());
-                            //err.printStackTrace();
-                        }
-                        mediaPlayer.start();
-                    }
-                }
-
-                d("SeekAndPlay: SeekErr " + seekErr + " SvOff " + serverTimeOffset +
-                        " User " + userTimeOffset + "\nSeekOff " + seekOff +
-                        " RTT " + serverRTT + " Strm" + currentRadioChannel);
-
-                Intent in = new Intent(ACTION_STATS);
-                in.putExtra("resultCode", Activity.RESULT_OK);
-                in.putExtra("msgType", 1);
-                // Put extras into the intent as usual
-                in.putExtra("seekErr", seekErr);
-                in.putExtra("", currentRadioChannel);
-                in.putExtra("userTimeOffset", userTimeOffset);
-                in.putExtra("serverTimeOffset", serverTimeOffset);
-                in.putExtra("serverRTT", serverRTT);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-            }
-        }
-
-    }
 
     public void blockMaster(boolean enable) {
         mBlockMaster = enable;
@@ -894,15 +650,15 @@ public class BBService extends Service {
 
             mBoardVisualization.inhibitGTFO(true);
             mBurnerBoard.setText90("Get The Fuck Off!", 5000);
-            mediaPlayer.setVolume(0,0);
-            stashedAndroidVolumePercent = getAndroidVolumePercent();
-            setAndroidVolumePercent(100);
+            mMusicPlayer.setVolume(0,0);
+            stashedAndroidVolumePercent = mMusicPlayer.getAndroidVolumePercent();
+            mMusicPlayer.setAndroidVolumePercent(100);
             voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD,null , "GTFO");
         }
         else {
             mBoardVisualization.inhibitGTFO(false);
-            setAndroidVolumePercent(stashedAndroidVolumePercent);
-            mediaPlayer.setVolume(1,1);
+            mMusicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
+            mMusicPlayer.setVolume(1,1);
         }
     }
 
@@ -927,12 +683,12 @@ public class BBService extends Service {
                 case kRemoteAudioTrack:
 
                     for (int i = 1; i <= getRadioChannelMax(); i++) {
-                        String name = getRadioChannelInfo(i);
+                        String name = mMusicPlayer.getRadioChannelInfo(i);
                         long hashed = hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Audio " + getRadioChannel() + " -> " + i);
-                            if (getRadioChannel() != i) {
-                                SetRadioChannel((int) i);
+                            l("Remote Audio " + mMusicPlayer. getRadioChannel() + " -> " + i);
+                            if (mMusicPlayer.getRadioChannel() != i) {
+                                mMusicPlayer.SetRadioChannel((int) i);
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote audio switch to track " + i + " (" + name + ")");
@@ -959,9 +715,9 @@ public class BBService extends Service {
                     }
                     break;
                 case kRemoteMute:
-                    if (value != getCurrentBoardVol()) {
+                    if (value != mMusicPlayer.getCurrentBoardVol()) {
                         //System.out.println("UDP: set vol = " + boardVol);
-                        setBoardVolume((int) value);
+                        mMusicPlayer.setBoardVolume((int) value);
                     }
                     break;
                 case kRemoteMasterName:
@@ -980,50 +736,14 @@ public class BBService extends Service {
         }
     }
 
-    private void RadioStop() {
-
-    }
-
-    private void RadioResume() {
-
-    }
 
 
-    /*
-    Per Richard: Track 0 only plays on a single board. On every other board, this is silence.
-    Considering this a feature for now, as it lets you 'turn off' music with a remote. -jib
-     */
 
-    void NextStream() {
-        int nextRadioChannel = currentRadioChannel + 1;
-        if (nextRadioChannel > dlManager.GetTotalAudio())
-            nextRadioChannel = 0;
-        SetRadioChannel(nextRadioChannel);
-
-    }
-
-    void PreviousStream() {
-        int nextRadioChannel = currentRadioChannel - 1;
-        if (nextRadioChannel < 0 ) {
-            nextRadioChannel = 0;
-        }
-        SetRadioChannel(nextRadioChannel);
-
-    }
-
-    public String getRadioChannelInfo(int index) {
-        return dlManager.GetAudioFileLocalName(index - 1);
-    }
 
     public String getVideoModeInfo(int index) {
         return dlManager.GetVideoFileLocalName(index - 1);
     }
 
-    public int getRadioChannel() {
-
-        l("GetRadioChannel: ");
-        return currentRadioChannel;
-    }
 
     public int getVideoMode() {
         return getCurrentBoardMode();
@@ -1071,184 +791,8 @@ public class BBService extends Service {
         return (encoded[0] << 24) + (encoded[1] << 16) + (encoded[2] << 8) + encoded[0];
     }
 
-    // Set radio input mode 0 = bluetooth, 1-n = tracks
-    public void SetRadioChannel(int index) {
-        l("SetRadioChannel: " + index);
-        currentRadioChannel = index;
-
-        // If I am set to be the master, broadcast to other boards
-        if (mMasterRemote && (mRfClientServer != null)) {
-
-            l("Sending remote");
-
-            String fileName = getRadioChannelInfo(index);
-            mRfClientServer.sendRemote(kRemoteAudioTrack, hashTrackName(fileName), RFClientServer.kRemoteAudio);
-            // Wait for 1/2 RTT so that we all select the same track/video at the same time
-            try {
-                Thread.sleep(mRfClientServer.getLatency());
-            } catch (Exception e) {
-            }
-        }
-
-        if (index == 0) {
-            mediaPlayer.pause();
-            l("Bluetooth Mode");
-            mBurnerBoard.setText("Bluetooth", 2000);
-            if (mVoiceAnnouncements) {
-                voice.speak("Blue tooth Audio", TextToSpeech.QUEUE_FLUSH, null, "bluetooth");
-            }
-            try {
-                Thread.sleep(1000);
-            } catch (Throwable e) {
-            }
-            bluetoothModeEnable();
-
-        } else {
-            l("Radio Mode");
-            String [] shortName = getRadioChannelInfo(index).split("\\.", 2);
-            mBurnerBoard.setText(shortName[0], 2000);
-            if (mVoiceAnnouncements) {
-                voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
-            }
-            bluetoothModeDisable();
-            try {
-                if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
-                    synchronized (mediaPlayer) {
-                        lastSeekOffset = 0;
-                        FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index - 1));
-                        l("playing file " + dlManager.GetAudioFile(index - 1));
-                        mediaPlayer.reset();
-                        mediaPlayer.setDataSource(fds.getFD());
-                        fds.close();
-
-                        mediaPlayer.setLooping(true);
-                        mediaPlayer.setVolume(vol, vol);
-
-                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            @Override
-                            public void onPrepared(MediaPlayer mediaPlayer) {
-                                l("onPrepared");
-                                try {
-                                    //mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(0.55f));
-                                    PlaybackParams params = mediaPlayer.getPlaybackParams();
-                                    l("Playbackparams = " + params.toString());
-                                } catch (Exception e) {
-                                    l("Error in onPrepared:" + e.getMessage());
-                                }
-                                mediaPlayer.start();
-                            }
-                        });
-                        mediaPlayer.setOnSeekCompleteListener(
-                                new MediaPlayer.OnSeekCompleteListener() {
-                                    @Override
-                                    public void onSeekComplete(MediaPlayer mediaPlayer) {
-                                        long curPos = mediaPlayer.getCurrentPosition();
-                                        long curTime = SystemClock.elapsedRealtime();
-                                        d("Seek complete - off: " +
-                                                (curPos - seekSavePos) +
-                                                " took: " + (curTime - seekSave) + " ms");
-                                    }
-                                });
-                        mediaPlayer.prepareAsync();
-                        SeekAndPlay();
-                        SeekAndPlay();
-                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
-                    }
-                }
-                SeekAndPlay();
-            } catch (Throwable err) {
-                String msg = err.getMessage();
-                l("Radio mode failed" + msg);
-                System.out.println(msg);
-            }
-        }
-    }
-
-    public void RadioMode() {
-        SetRadioChannel(currentRadioChannel);
-    }
     public void setVideoMode(int mode) {
         setMode(mode);
-    }
-
-    private AudioRecord mAudioInStream;
-    private AudioTrack mAudioOutStream;
-    private AudioManager mAudioManager;
-    private byte[] mAudioBuffer;
-
-    public void bluetoothModeInit() {
-        mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        AudioDeviceInfo[] deviceList = mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-        for (int index = 0; index < deviceList.length; index++) {
-            l("Audio device" + deviceList[index].toString());
-        }
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-        int buffersize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-        mAudioInStream = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize);
-        mAudioOutStream = new AudioTrack(AudioManager.STREAM_VOICE_CALL, 44100, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, buffersize, AudioTrack.MODE_STREAM);
-        mAudioBuffer = new byte[buffersize];
-        try {
-            mAudioInStream.startRecording();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        mAudioOutStream.play();
-    }
-
-    public void bluetoothModeEnable() {
-        mAudioInStream.startRecording();
-        mBoardVisualization.attachAudio(mAudioOutStream.getAudioSessionId());
-        mAudioOutStream.play();
-        mAudioOutStream.setPlaybackRate(44100);
-        mAudioOutStream.setVolume(vol);
-    }
-
-    public void bluetoothModeDisable() {
-        try {
-            mAudioInStream.stop();
-            mAudioOutStream.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void bluetoothPlay() {
-        mAudioInStream.read(mAudioBuffer, 0, mAudioBuffer.length);
-        mAudioOutStream.write(mAudioBuffer, 0, mAudioBuffer.length);
-    }
-
-
-    void MusicOffset(int ms) {
-        userTimeOffset += ms;
-        SeekAndPlay();
-        l("UserTimeOffset = " + userTimeOffset);
-    }
-
-    public void onVolUp() {
-        vol += 0.01;
-        if (vol > 1) vol = 1;
-        mediaPlayer.setVolume(vol, vol);
-        l("Volume " + vol * 100.0f + "%");
-    }
-
-    public void onVolDown() {
-        vol -= 0.01;
-        if (vol < 0) vol = 0;
-        mediaPlayer.setVolume(vol, vol);
-        l("Volume " + vol * 100.0f + "%");
-    }
-
-    float recallVol = 0;
-
-    public void onVolPause() {
-        if (vol > 0) {
-            recallVol = vol;
-            vol = 0;
-        } else {
-            vol = recallVol;
-        }
-        mediaPlayer.setVolume(vol, vol);
-        l("Volume " + vol * 100.0f + "%");
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -1271,26 +815,26 @@ public class BBService extends Service {
         switch (keyCode) {
             case 100:
             case 87: // satachi right button
-                NextStream();
+                mMusicPlayer.NextStream();
                 break;
             case 97:
             case 20:
-                MusicOffset(-10);
+                mMusicPlayer.MusicOffset(-10);
                 break;
 
 
             //case 99:
             case 19:
-                MusicOffset(10);
+                mMusicPlayer.MusicOffset(10);
                 break;
             case 24:   // native volume up button
             case 21:
-                onVolUp();
+                mMusicPlayer.onVolUp();
 
                 return false;
             case 25:  // native volume down button
             case 22:
-                onVolDown();
+                mMusicPlayer.onVolDown();
                 return false;
             case 85: // Play button - show battery
                 onBatteryButton();
@@ -1328,21 +872,21 @@ public class BBService extends Service {
             /* Audio stream control */
             case 87: // satachi right button
                 l("RPI Bluetooth Right Button");
-                NextStream();
+                mMusicPlayer. NextStream();
                 break;
             case 88: //satachi left button
                 l("RPI Bluetooth Left Button");
-                PreviousStream();
+                mMusicPlayer. PreviousStream();
                 break;
 
             /* Volume control */
             case 24:   // satachi & native volume up button
                 l("RPI Bluetooth Volume Up Button");
-                onVolUp();
+                mMusicPlayer.onVolUp();
                 return false;
             case 25:  // satachi & native volume down button
                 l("RPI Bluetooth Volume Down Button");
-                onVolDown();
+                mMusicPlayer.onVolDown();
                 return false;
         }
         //mHandler.removeCallbacksAndMessages(null);
