@@ -9,12 +9,12 @@ android {
             storePassword 'kermit01'
         }
     }
-    compileSdkVersion 23
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.richardmcdougall.bbinstaller"
-        minSdkVersion 23
-        targetSdkVersion 23
+        minSdkVersion 27
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -51,8 +51,8 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     testImplementation 'junit:junit:4.12'
-    implementation 'com.android.support:appcompat-v7:23.1.1'
-    implementation 'com.android.support:support-v4:23.1.1'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:support-v4:27.1.1'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'io.jsonwebtoken:jjwt:0.7.0'
