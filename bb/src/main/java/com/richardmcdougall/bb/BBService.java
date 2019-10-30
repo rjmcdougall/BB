@@ -24,7 +24,7 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Date; 
+import java.util.Date;
 import android.os.Build;
 
 import android.bluetooth.BluetoothDevice;
@@ -49,14 +49,9 @@ public class BBService extends Service {
         return dlManager.GetTotalVideo();
     }
 
-    public int GetMaxAudioModes() {
-
-        return dlManager.GetTotalAudio();
-    }
-
     public DownloadManager dlManager;
 
-    public static enum buttons {
+    public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
         BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE,
         BUTTON_VOL_UP, BUTTON_VOL_DOWN, BUTTON_VOL_PAUSE
@@ -131,11 +126,6 @@ public class BBService extends Service {
     }
 
     /**
-     * indicates how to behave if the service is killed
-     */
-    int mStartMode;
-
-    /**
      * interface for clients that bind
      */
     IBinder mBinder;
@@ -148,24 +138,16 @@ public class BBService extends Service {
     /**
      * Called when the service is being created.
      */
-    Thread musicPlayer = null;
-
-    /**
-     * Called when the service is being created.
-     */
     Thread supervisorMonitor = null;
-
 
     /**
      * Indicates whether battery monitoring is enabled
      */
-    //boolean mEnableBatteryMonitoring = true;
     boolean mEnableBatteryMonitoring = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
 
     /**
      * Indicates whether IoT reporting is enabled and how often
      */
-    //boolean mEnableIoTReporting = true;
     boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
     int mIoTReportEveryNSeconds = 10;
 
@@ -328,7 +310,6 @@ public class BBService extends Service {
                 l("Voice Supported Language: " + lang);
             }
         }
-        //startActivity(new Intent(this, MainActivity.class));
     }
 
     /**
@@ -389,14 +370,7 @@ public class BBService extends Service {
         return String.valueOf(mVersion);
     }
 
-
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-
     private BurnerBoard mBurnerBoard;
-
 
     private void startLights() {
 
@@ -456,15 +430,11 @@ public class BBService extends Service {
     }
 
     public long GetCurrentClock() {
-        //return (System.nanoTime()-startNanotime)/1000000 + startClock;
-        //return System.currentTimeMillis();
         return SystemClock.elapsedRealtime() - startElapsedTime + startClock;
-        //return Calendar.getInstance().getTimeInMillis();
     }
 
     public long CurrentClockAdjusted() {
         return GetCurrentClock() + serverTimeOffset;
-        //return Calendar.getInstance().getTimeInMillis()
     }
  
     public void SetServerClockOffset(long serverClockOffset, long rtt) {
@@ -545,7 +515,6 @@ public class BBService extends Service {
         }
     };
 
-
     public int getCurrentBoardMode() {
         if (mBoardVisualization != null) {
             return mBoardVisualization.getMode();
@@ -553,8 +522,6 @@ public class BBService extends Service {
             return 0;
         }
     }
-
-
 
     public void blockMaster(boolean enable) {
         mBlockMaster = enable;
@@ -654,7 +621,6 @@ public class BBService extends Service {
                     break;
                 case kRemoteMute:
                     if (value != mMusicPlayer.getCurrentBoardVol()) {
-                        //System.out.println("UDP: set vol = " + boardVol);
                         mMusicPlayer.setBoardVolume((int) value);
                     }
                     break;
@@ -674,14 +640,9 @@ public class BBService extends Service {
         }
     }
 
-
-
-
-
     public String getVideoModeInfo(int index) {
         return dlManager.GetVideoFileLocalName(index - 1);
     }
-
 
     public int getVideoMode() {
         return getCurrentBoardMode();
@@ -698,16 +659,6 @@ public class BBService extends Service {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = getVideoMode() + 1;
-        if (next > getVideoMax()) {
-            //next = 0;
-            next = 1;
-        }
-        l( "Setting Video to: " + getVideoModeInfo(next) );
-        mBoardVisualization.setMode(next);
-    }
-
-    void PreviousVideo() {
-        int next = getVideoMode() - 1;
         if (next > getVideoMax()) {
             //next = 0;
             next = 1;
@@ -739,7 +690,6 @@ public class BBService extends Service {
             return onKeyDownBurnerBoard(keyCode, event);
         } else {
             return onKeyDownRPI(keyCode, event);
-
         }
     }
 
@@ -747,7 +697,6 @@ public class BBService extends Service {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
             l("BurnerBoard Keycode:" + keyCode);
-            //System.out.println("Keycode: " + keyCode);
         }
 
         switch (keyCode) {
@@ -759,9 +708,6 @@ public class BBService extends Service {
             case 20:
                 mMusicPlayer.MusicOffset(-10);
                 break;
-
-
-            //case 99:
             case 19:
                 mMusicPlayer.MusicOffset(10);
                 break;
@@ -787,7 +733,6 @@ public class BBService extends Service {
                 setMode(99);
                 break;
         }
-        //mHandler.removeCallbacksAndMessages(null);
         return true;
     }
 
@@ -795,15 +740,10 @@ public class BBService extends Service {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
             l("RPI Keycode:" + keyCode);
-            //System.out.println("Keycode: " + keyCode);
         }
 
         switch (keyCode) {
             case 85: // satachi Play button
-                //onBatteryButton();
-                // Do something more useful here. Like turn on/off lights?
-                l("RPI Bluetooth Play Button");
-                //voice.speak( "I'm sorry Dave, I can't let you do that", TextToSpeech.QUEUE_FLUSH, null, "keycode");
                 NextVideo();
                 break;
 
@@ -851,11 +791,9 @@ public class BBService extends Service {
         // If I am set to be the master, broadcast to other boards
         if (mMasterRemote && (mRfClientServer != null)) {
 
-
             String name = getVideoModeInfo(mBoardMode);
             l("Sending video remote for video " + name);
             mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
-
         }
 
         if (mBoardVisualization != null && mBurnerBoard != null) {
@@ -869,27 +807,21 @@ public class BBService extends Service {
         }
     }
 
-
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
         public void BoardId(String str) {
             boardId = str;
             l("ardunio BoardID callback:" + str + " " + boardId);
-
         }
 
         public void BoardMode(int mode) {
-
             l("ardunio mode callback:" + mBoardMode);
-
         }
     }
-
 
     public int getBatteryLevel() {
         return mBurnerBoard.getBattery();
     }
-
 
     private int loopCnt = 0;
 
@@ -936,8 +868,7 @@ public class BBService extends Service {
 
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
-    private long lastUnknownStatement = System.currentTimeMillis();
-    private static enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
+    private enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
 
     private void checkBattery() {
         if ((mBurnerBoard != null) && (mBoardVisualization != null)) {
@@ -1003,14 +934,6 @@ public class BBService extends Service {
             }
 
             announce = false;
-            /*
-            if (level < 0) {
-                if (System.currentTimeMillis() - lastUnknownStatement > 900000) {
-                    lastUnknownStatement = System.currentTimeMillis();
-                    voice.speak("Battery level unknown", TextToSpeech.QUEUE_FLUSH, null, "batteryUnknown");
-                }
-            }
-            */
 
             if ((level >= 0) && (level < 15)) {
                 if (System.currentTimeMillis() - lastOkStatement > 60000) {
@@ -1082,8 +1005,6 @@ public class BBService extends Service {
             //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
             if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-                //voice.speak("Connected", TextToSpeech.QUEUE_FLUSH, null, "Connected");
-                //the device is found
                 try {
                     if (kBeepOnConnect) {
                         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -1143,9 +1064,7 @@ public class BBService extends Service {
                 }
             }
         }
-
     }
-
 }
 
 
