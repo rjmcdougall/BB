@@ -6,18 +6,8 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.List;
 import java.net.URLEncoder;
 
 /**
@@ -25,19 +15,14 @@ import java.net.URLEncoder;
  */
 
 public class DownloadManager {
-    private static final String TAG = "BB.BBDownloadManger";
+    private static final String TAG = "DownloadManager";
     protected String mFilesDir;
     protected JSONObject dataDirectory;
-    protected JSONArray dataBoards;
     int mVersion;
     String mBoardId;
 
     JSONObject GetDataDirectory() {
         return dataDirectory;
-    }
-
-    JSONArray GetDataBoards() {
-        return dataBoards;
     }
 
     interface OnDownloadProgressType {
@@ -46,7 +31,15 @@ public class DownloadManager {
         public void onVoiceCue(String err);
     }
 
+    public void d(String logMsg) {
+        if (DebugConfigs.DEBUG_DOWNLOAD_MANAGER) {
+            Log.d(TAG, logMsg);
+        }
+    }
 
+    public void e(String logMsg) {
+            Log.e(TAG, logMsg);
+    }
     public OnDownloadProgressType onProgressCallback = null;
 
     DownloadManager(String filesDir, String boardId, int myVersion) {
@@ -73,7 +66,7 @@ public class DownloadManager {
             String fn = mFilesDir + "/" + GetAudio(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            e.printStackTrace();
+            e(e.getMessage());
             return null;
         }
     }
@@ -84,7 +77,7 @@ public class DownloadManager {
                 String fn = GetAudio(index).getString("localName");
                 return fn;
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         } else {
@@ -106,7 +99,7 @@ public class DownloadManager {
                 }
                 return fn;
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         } else {
@@ -119,7 +112,7 @@ public class DownloadManager {
             String fn = mFilesDir + "/" + GetVideo(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            e.printStackTrace();
+            e(e.getMessage());
             return null;
         }
     }
@@ -132,7 +125,7 @@ public class DownloadManager {
                 //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " audio files");
                 return dataDirectory.getJSONArray("audio").length();
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return 0;
             }
         }
@@ -146,7 +139,7 @@ public class DownloadManager {
                 //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " video files");
                 return dataDirectory.getJSONArray("video").length();
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return 0;
             }
         }
@@ -160,7 +153,7 @@ public class DownloadManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index);
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         } else
@@ -174,7 +167,7 @@ public class DownloadManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         } else
@@ -188,7 +181,7 @@ public class DownloadManager {
             try {
                 return dataDirectory.getJSONArray("audio").getJSONObject(index);
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         } else
@@ -199,122 +192,11 @@ public class DownloadManager {
         try {
             return GetAudio(index).getLong("Length");
         } catch (JSONException e) {
-            e.printStackTrace();
+            e(e.getMessage());
             return 1000;   // return a dummy value
         }
     }
 
-    String GetgetPublicName(String deviceID) {
-        String name = deviceID;
-        try {
-            for (int i = 0; i < dataBoards.length(); i++) {
-                JSONObject obj = dataBoards.getJSONObject(i);
-
-                if (obj.has("bootName")) {
-                    if (obj.getString("bootName").equals(deviceID)) {
-                        Log.d(TAG, "Found bootName: " + deviceID);
-                        name = obj.getString("name");
-
-                        Log.d(TAG, "Found publicName: " + name);
-                        return name;
-                    }
-                }
-            }
-
-            Log.d(TAG, "No special publicName found for: " + deviceID);
-        } catch (JSONException e) {
-            Log.d(TAG, "Could not find publicName for: " + deviceID + " " + e.toString());
-        }
-
-        // We got here, we got nothing...
-        return name;
-    }
-
-    public String LoadTextFile(String filename) {
-        try {
-            File f = new File(mFilesDir, filename);
-            if (!f.exists())
-                return null;
-
-            InputStream is = null;
-            try {
-                is = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-            String line = buf.readLine();
-            StringBuilder sb = new StringBuilder();
-
-            while (line != null) {
-                sb.append(line).append("\n");
-                line = buf.readLine();
-            }
-
-            return sb.toString();
-
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public long DownloadURL(String URLString, String filename, String progressName) {
-        try {
-            URL url = new URL(URLString);
-
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.connect();
-
-            File file = new File(mFilesDir, filename);
-            FileOutputStream fileOutput = new FileOutputStream(file);
-            InputStream inputStream = urlConnection.getInputStream();
-
-            byte[] buffer = new byte[4096];
-            int bufferLength = 0;
-
-            long fileSize = -1;
-            long downloadSize = 0;
-
-            List values = urlConnection.getHeaderFields().get("content-Length");
-            if (values != null && !values.isEmpty()) {
-                String sLength = (String) values.get(0);
-
-                if (sLength != null) {
-                    fileSize = Long.valueOf(sLength);
-                }
-            }
-
-            Log.d(TAG, "Downloading " + URLString);
-            while ((bufferLength = inputStream.read(buffer)) > 0) {
-                fileOutput.write(buffer, 0, bufferLength);
-                downloadSize += bufferLength;
-
-                if (onProgressCallback != null && progressName != "Boards JSON" && progressName != "Directory") {
-                    onProgressCallback.onProgress(progressName, fileSize, downloadSize);
-
-                }
-            }
-            fileOutput.close();
-            urlConnection.disconnect();
-
-            return downloadSize;
-
-        }
-        catch(FileNotFoundException e){
-            Log.d(TAG,"An exception occured access the file from burnerboard.com. This is likely the result of having an unregistered board.");
-            return -1;
-        }
-        catch(UnknownHostException e){
-            Log.d(TAG,"An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
-            return -1;
-
-        }
-        catch (Throwable e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
 
     public void CleanupOldFiles() {
         try {
@@ -357,7 +239,7 @@ public class DownloadManager {
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = LoadTextFile("directory.json");
+                String origDir = FileHelpers.LoadTextFile("directory.json", mFilesDir);
                 if (origDir != null) {
                     JSONObject dir = new JSONObject(origDir);
                     dataDirectory = dir;
@@ -365,29 +247,8 @@ public class DownloadManager {
                 }
             }
 
-        } catch (Throwable er) {
-            er.printStackTrace();
-            onProgressCallback.onVoiceCue("Error loading media error due to jason error");
-        }
-    }
-
-    public void LoadInitialBoardsDirectory() {
-        try {
-            String dataDir = mFilesDir;
-            File[] flist = new File(dataDir).listFiles();
-            if (flist != null) {
-
-                // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = LoadTextFile("boards.json");
-                if (origDir != null) {
-                    JSONArray dir = new JSONArray(origDir);
-                    dataBoards = dir;
-
-                }
-            }
-
-        } catch (Throwable er) {
-            er.printStackTrace();
+        } catch (Throwable e) {
+            e(e.getMessage());
             onProgressCallback.onVoiceCue("Error loading media error due to jason error");
         }
     }
@@ -423,7 +284,7 @@ public class DownloadManager {
             return upToDate;
 
         } catch (JSONException jse) {
-            Log.d(TAG, "Error " + jse.getMessage());
+            e("Error " + jse.getMessage());
             return false;
         }
     }
@@ -433,7 +294,7 @@ public class DownloadManager {
         try {
             String localName = elm.getString("localName");
             String url = encodeURL(elm.getString("URL"));
-            DownloadURL(url, "tmp", localName);   // download to a "tmp" file
+            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback,mFilesDir);   // download to a "tmp" file
             File dstFile2 = new File(mFilesDir, localName);   // move to localname so that we can install it
 
             if (dstFile2.exists())
@@ -442,10 +303,10 @@ public class DownloadManager {
             return true;
 
         } catch (JSONException jse) {
-            Log.d(TAG, "Error " + jse.getMessage());
+            e("Error " + jse.getMessage());
             return false;
         } catch (Throwable th) {
-            Log.d(TAG, "Error " + th.getMessage());
+            e("Error " + th.getMessage());
             return false;
         }
 
@@ -459,23 +320,23 @@ public class DownloadManager {
             DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + mVersion ;
             boolean returnValue = false;
 
-            long ddsz = DownloadURL(DirectoryURL, "tmp", "Directory");
+            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback,mFilesDir);
             if (ddsz < 0) {
-                Log.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
+                d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue  = false;
             }
 
             if(!returnValue) {
-                Log.d(TAG, "Reading Directory from " + DirectoryURL);
+                d("Reading Directory from " + DirectoryURL);
 
                 new File(mFilesDir, "tmp").renameTo(new File(mFilesDir, "directory.json.tmp"));
 
-                String dirTxt = LoadTextFile("directory.json.tmp");
+                String dirTxt = FileHelpers.LoadTextFile("directory.json.tmp", mFilesDir);
                 JSONObject dir = new JSONObject(dirTxt);
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
 
-                Log.d(TAG, "Downloaded JSON: " + dirTxt);
+                d("Downloaded JSON: " + dirTxt);
 
                 // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
@@ -501,7 +362,7 @@ public class DownloadManager {
                     if (onProgressCallback != null)
                         onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
                 } else {
-                    Log.d(TAG, "No Changes to Directory JSON.");
+                    d("No Changes to Directory JSON.");
                     returnValue = true;
                 }
 
@@ -517,7 +378,7 @@ public class DownloadManager {
                         CleanupOldFiles();
                         if (onProgressCallback != null) {
                             String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
-                            Log.d(TAG, diag);
+                            d(diag);
                             onProgressCallback.onVoiceCue(diag);
                         }
                     }
@@ -533,101 +394,26 @@ public class DownloadManager {
             return returnValue;
 
         } catch (JSONException jse) {
-            Log.d(TAG, "Error " + jse.getMessage());
+            e("Error " + jse.getMessage());
             return false;
         } catch (Throwable th) {
-            Log.d(TAG, "Error " + th.getMessage());
-            return false;
-        }
-    }
-
-    public boolean GetNewBoardsJSON() {
-
-        try {
-
-            String dataDir = mFilesDir;
-            String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
-            boolean returnValue = false;
-
-            Log.d(TAG, DirectoryURL);
-
-            long ddsz = DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON");
-
-            if (ddsz < 0) {
-                Log.d(TAG, "Unable to Download Boards JSON.  Sleeping for 5 seconds. ");
-                returnValue = false;
-            }
-
-            if(!returnValue){
-                new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
-
-                String dirTxt = LoadTextFile("boards.json.tmp");
-                JSONArray dir = new JSONArray(dirTxt);
-
-                Log.d(TAG, "Downloaded Boards JSON: " + dirTxt);
-
-                if (onProgressCallback != null) {
-                    if (dataBoards == null || dir.length() != dataBoards.length()) {
-                        Log.d(TAG, "A new board was discovered in Boards JSON.");
-                        onProgressCallback.onVoiceCue("New Boards available for syncing.");
-                    } else
-                        Log.d(TAG, "A minor change was discovered in Boards JSON.");
-                }
-
-                // got new boards.  Update!
-                dataBoards = dir;
-
-                // now that you have the media, update the directory so the board can use it.
-                new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
-
-                // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
-                Log.d(TAG, "Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
-
-                String newPN = GetgetPublicName(BurnerBoardUtil.DEVICE_ID);
-                String existingPN = BurnerBoardUtil.getPublicName();
-
-                Log.d(TAG, "Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
-                if (newPN != null) {
-                    if (existingPN == null || !existingPN.equals(newPN)) {
-                        BurnerBoardUtil.setPublicName(newPN);
-                        Log.d(TAG, "Public name updated to: " + newPN);
-                    }
-                }
-
-                if (dataBoards != null)
-                    if (dir.toString().length() == dataBoards.toString().length()) {
-                        Log.d(TAG, "No Changes to Boards JSON.");
-                        returnValue = true;
-                    }
-            }
-
-
-            return returnValue;
-        } catch (JSONException jse) {
-            Log.d(TAG, "Error " + jse.getMessage());
-            return false;
-        } catch (Throwable th) {
-            Log.d(TAG, "Error " + th.getMessage());
+            e("Error " + th.getMessage());
             return false;
         }
     }
 
     public void StartDownloadManager() {
-        LoadInitialBoardsDirectory();
+
         LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
         try {
             boolean downloadSuccessDirectory = false;
-            boolean downloadSuccessBoards = false;
             int i = 0;
 
             // On boot it can take some time to get an internet connection.  Check every 5 seconds for 5 minutes
-            while (!(downloadSuccessDirectory && downloadSuccessBoards)
+            while (!(downloadSuccessDirectory)
                     && i < 60) { // try this for 5 minutes.
                 i++;
-
-                if (!downloadSuccessBoards)
-                    downloadSuccessBoards = GetNewBoardsJSON();
 
                 if (!downloadSuccessDirectory)
                     downloadSuccessDirectory = GetNewDirectory();
@@ -638,7 +424,6 @@ public class DownloadManager {
             // After the first boot check periodically in case the profile has changed.
             while (true) {
                 GetNewDirectory();
-                GetNewBoardsJSON();
                 Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
             }
         } catch (Throwable th) {

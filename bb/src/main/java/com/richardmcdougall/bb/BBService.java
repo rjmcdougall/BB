@@ -75,6 +75,7 @@ public class BBService extends Service {
     int mVersion = 0;
     Date mAPKUpdatedDate;
 
+    public AllBoards mAllBoards = null;
     public MusicPlayer mMusicPlayer = null;
     public RF mRadio = null;
     public Gps mGps = null;
@@ -230,6 +231,9 @@ public class BBService extends Service {
             }
         });
 
+        mAllBoards = new AllBoards(this, mContext);
+        mAllBoards.Run();
+
         dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
                 BurnerBoardUtil.BOARD_ID, mVersion);
 
@@ -289,7 +293,7 @@ public class BBService extends Service {
         // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
 
         mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
-                mBluetoothConnManager, mFindMyFriends, mMusicPlayer);
+                mBluetoothConnManager, mFindMyFriends, mMusicPlayer, mAllBoards);
         mBluetoothCommands.init();
 
         if (supervisorMonitor == null) {

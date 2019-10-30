@@ -6,25 +6,57 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-/**
- * Created by rmc on 4/15/18.
- */
+import java.io.File;
 
 public class AllBoards {
 
+    private static final String TAG = "AllBoards";
     public BBService mBBService = null;
     public Context mContext = null;
-    private static final String TAG = "BB.AllBoards";
+    String mFilesDir = null;
+    public JSONArray dataBoards;
+    public DownloadManager.OnDownloadProgressType onProgressCallback = null;
 
     public AllBoards(BBService service, Context context) {
         mBBService = service;
         mContext = context;
+        mFilesDir = mContext.getFilesDir().getAbsolutePath();
+        LoadInitialBoardsDirectory();
     }
 
-    // TODO: should have a cache of board name/addresses that comes from the cloud.
+    void Run() {
+        Thread t = new Thread(new Runnable() {
+            public void run()
+            {
+                Thread.currentThread().setName("AllBoards");
+                StartDownloadManager();
+            }
+        });
+        t.start();
+    }
+
+    public void LoadInitialBoardsDirectory() {
+        try {
+            String dataDir = mFilesDir;
+            File[] flist = new File(dataDir).listFiles();
+            if (flist != null) {
+
+                // if files are no longer referenced in the Data Directory, delete them.
+                String origDir = FileHelpers.LoadTextFile("boards.json", mFilesDir);
+                if (origDir != null) {
+                    JSONArray dir = new JSONArray(origDir);
+                    dataBoards = dir;
+                    d(origDir);
+                }
+            }
+
+        } catch (Throwable er) {
+            e(er.getMessage()) ;
+        }
+    }
     public int getBoardAddress(String boardId) {
 
         JSONObject board;
@@ -33,12 +65,12 @@ public class AllBoards {
         try {
 
             if (mBBService.dlManager == null) {
-                l("Could not find board address data");
-            } else if (mBBService.dlManager.dataBoards == null) {
-                l("Could not find board address data");
+                d("Could not find board address data");
+            } else if (dataBoards == null) {
+                d("Could not find board address data");
             } else {
-                for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
-                    board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardId)) {
                         myAddress = board.getInt("address");
                     }
@@ -46,18 +78,15 @@ public class AllBoards {
             }
             return myAddress;
         } catch (JSONException e) {
-            l(e.getMessage());
+            d(e.getMessage());
             return myAddress;
         } catch (Exception e) {
-            l(e.getMessage());
+            d(e.getMessage());
             return myAddress;
         }
 
     }
 
-    // TODO: should have a cache of boardnames that comes from the cloud.
-    // TODO: alt is to have each board broadcast their name repeatedly
-    // DKW this api is available now GET burnerboard.com/boards/
     public String boardAddressToName(int address) {
 
         JSONObject board;
@@ -66,12 +95,12 @@ public class AllBoards {
         try {
 
             if (mBBService.dlManager == null) {
-                l("Could not find board name data");
-            } else if (mBBService.dlManager.dataBoards == null) {
-                l("Could not find board name data");
+                d("Could not find board name data");
+            } else if (dataBoards == null) {
+                d("Could not find board name data");
             } else {
-                for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
-                    board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getInt("address") == address) {
                         boardId = board.getString("name");
                     }
@@ -81,9 +110,9 @@ public class AllBoards {
             return boardId;
 
         } catch (JSONException e) {
-            l(e.getMessage());
+            e(e.getMessage());
         } catch (Exception e) {
-            l(e.getMessage());
+            e(e.getMessage());
         }
 
         return boardId;
@@ -97,12 +126,12 @@ public class AllBoards {
         try {
 
             if (mBBService.dlManager == null) {
-                l("Could not find board color data");
-            } else if (mBBService.dlManager.dataBoards == null) {
-                l("Could not find board color data");
+                d("Could not find board color data");
+            } else if (dataBoards == null) {
+                d("Could not find board color data");
             } else {
-                for (int i = 0; i < mBBService.dlManager.dataBoards.length(); i++) {
-                    board = mBBService.dlManager.dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getInt("address") == address) {
                         boardColor = board.getString("color");
                     }
@@ -111,25 +140,158 @@ public class AllBoards {
 
             return boardColor;
         } catch (JSONException e) {
-            l(e.getMessage());
+            e(e.getMessage());
             return boardColor;
         } catch (Exception e) {
-            l(e.getMessage());
+            e(e.getMessage());
             return boardColor;
         }
     }
 
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+    public void d(String logMsg) {
+        if (DebugConfigs.DEBUG_ALL_BOARDS) {
+            Log.d(TAG, logMsg);
+        }
     }
 
-    public void l(String s) {
-        Log.v(TAG, s);
-        sendLogMsg(s);
+    public void e(String logMsg) {
+            Log.e(TAG, logMsg);
+    }
+
+    String getPublicName(String deviceID) {
+        String name = deviceID;
+        try {
+            for (int i = 0; i < dataBoards.length(); i++) {
+                JSONObject obj = dataBoards.getJSONObject(i);
+
+                if (obj.has("bootName")) {
+                    if (obj.getString("bootName").equals(deviceID)) {
+                        d("Found bootName: " + deviceID);
+                        name = obj.getString("name");
+
+                        d("Found publicName: " + name);
+                        return name;
+                    }
+                }
+            }
+
+            d("No special publicName found for: " + deviceID);
+        } catch (JSONException e) {
+            e( "Could not find publicName for: " + deviceID + " " + e.toString());
+        }
+
+        // We got here, we got nothing...
+        return name;
+    }
+
+    JSONArray GetDataBoards() {
+        return dataBoards;
+    }
+
+    public boolean GetNewBoardsJSON() {
+
+        try {
+
+            String dataDir = mFilesDir;
+            String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
+            boolean returnValue = false;
+
+            d(DirectoryURL);
+
+            long ddsz = -1;
+            try{
+                ddsz = FileHelpers.DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON", onProgressCallback, mFilesDir);
+            }
+            catch(Exception e){}
+
+            if (ddsz < 0) {
+                d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
+                returnValue = false;
+            }
+
+            if(!returnValue){
+                new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
+
+                String dirTxt = FileHelpers.LoadTextFile("boards.json.tmp", mFilesDir);
+                JSONArray dir = new JSONArray(dirTxt);
+
+                d("Downloaded Boards JSON: " + dirTxt);
+
+                if (onProgressCallback != null) {
+                    if (dataBoards == null || dir.length() != dataBoards.length()) {
+                        d("A new board was discovered in Boards JSON.");
+                        onProgressCallback.onVoiceCue("New Boards available for syncing.");
+                    } else
+                        d("A minor change was discovered in Boards JSON.");
+                }
+
+                // got new boards.  Update!
+                dataBoards = dir;
+
+                // now that you have the media, update the directory so the board can use it.
+                new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
+
+                // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
+                d("Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
+
+                String newPN = getPublicName(BurnerBoardUtil.DEVICE_ID);
+                String existingPN = BurnerBoardUtil.getPublicName();
+
+                d("Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
+                if (newPN != null) {
+                    if (existingPN == null || !existingPN.equals(newPN)) {
+                        BurnerBoardUtil.setPublicName(newPN);
+                        d("Public name updated to: " + newPN);
+                    }
+                }
+
+                if (dataBoards != null)
+                    if (dir.toString().length() == dataBoards.toString().length()) {
+                        d("No Changes to Boards JSON.");
+                        returnValue = true;
+                    }
+            }
+
+
+            return returnValue;
+        } catch (JSONException jse) {
+            e("Error " + jse.getMessage());
+            return false;
+        } catch (Throwable th) {
+            e("Error " + th.getMessage());
+            return false;
+        }
+    }
+
+    public void StartDownloadManager() {
+
+        try {
+            boolean downloadSuccessBoards = false;
+            int i = 0;
+
+            // On boot it can take some time to get an internet connection.  Check every 5 seconds for 5 minutes
+            while (!downloadSuccessBoards && i < 60) { // try this for 5 minutes.
+                i++;
+
+                if (!downloadSuccessBoards)
+                    downloadSuccessBoards = GetNewBoardsJSON();
+
+                Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
+            }
+
+            // After the first boot check periodically in case the profile has changed.
+            while (true) {
+                GetNewBoardsJSON();
+                Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
+            }
+        } catch (Throwable th) {
+            if (onProgressCallback != null)
+                onProgressCallback.onVoiceCue(th.getMessage());
+            try {
+                Thread.sleep(10000);   // wait 10 second if unexpected error
+            } catch (Throwable er) {
+
+            }
+        }
     }
 }

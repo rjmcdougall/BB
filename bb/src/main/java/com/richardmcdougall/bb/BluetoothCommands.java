@@ -25,9 +25,10 @@ public class BluetoothCommands {
     public FindMyFriends mFindMyFriends = null;
     public MusicPlayer mMusicPlayer = null;
     private Handler mHandler;
+    private AllBoards mAllBoards;
 
     public BluetoothCommands(BBService service, Context context, BluetoothLEServer ble,
-                             BluetoothConnManager connmgr, FindMyFriends fmf, MusicPlayer mp) {
+                             BluetoothConnManager connmgr, FindMyFriends fmf, MusicPlayer mp, AllBoards ab) {
         mBBService = service;
         mContext = context;
         mHandler = new Handler(Looper.getMainLooper());
@@ -36,6 +37,8 @@ public class BluetoothCommands {
         mBluetoothConnManager = connmgr;
         mFindMyFriends = fmf;
         mMusicPlayer = mp;
+        mAllBoards = ab;
+
         // Register to receive button messages
         IntentFilter filter;
         filter = new IntentFilter(ACTION.BB_VOLUME);
@@ -49,7 +52,7 @@ public class BluetoothCommands {
     }
 
     public JSONArray Boards() {
-        JSONArray boards = mBBService.dlManager.GetDataBoards();
+        JSONArray boards = mAllBoards.GetDataBoards();
         JSONArray boards2 = null;
         if (boards == null) {
            l( "Could not get boards directory (null)");
