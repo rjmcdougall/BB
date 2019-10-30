@@ -98,7 +98,7 @@ public class Gps {
                         if (pos != null) {
                             double lat = pos.getLatitude();
                             double lon = pos.getLongitude();
-                            Intent in = new Intent(BBService.ACTION_BB_LOCATION);
+                            Intent in = new Intent(ACTION.BB_LOCATION);
                             in.putExtra("lat", evt.getPosition().getLatitude());
                             in.putExtra("lon", evt.getPosition().getLatitude());
                             LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);
@@ -161,7 +161,7 @@ public class Gps {
     }
 
     private void sendLogMsg(String msg) {
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual

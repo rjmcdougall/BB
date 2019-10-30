@@ -86,7 +86,7 @@ public class BluetoothConnManager {
 
     private void sendLogMsg(String msg) {
 
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual

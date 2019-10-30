@@ -78,7 +78,7 @@ public class RFClientServer {
     }
 
     private void sendLogMsg(String msg) {
-        Intent in = new Intent(com.richardmcdougall.bb.BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
@@ -138,7 +138,7 @@ public class RFClientServer {
 
         try {
             // Register for the particular broadcast based on Graphics Action
-            IntentFilter packetFilter = new IntentFilter(BBService.ACTION_BB_PACKET);
+            IntentFilter packetFilter = new IntentFilter(ACTION.BB_PACKET);
             LocalBroadcastManager.getInstance(mMain).registerReceiver(RFReceiver, packetFilter);
         } catch (Exception e) {
 
@@ -262,7 +262,7 @@ public class RFClientServer {
         tSentPackets++;
         replyCount++;
 
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 2);
         // Put extras into the intent as usual
@@ -414,7 +414,7 @@ public class RFClientServer {
             mLatency = s.roundTripTime;
 
             replyCount++;
-            Intent in = new Intent(BBService.ACTION_STATS);
+            Intent in = new Intent(ACTION.STATS);
             in.putExtra("resultCode", Activity.RESULT_OK);
             in.putExtra("msgType", 2);
             // Put extras into the intent as usual

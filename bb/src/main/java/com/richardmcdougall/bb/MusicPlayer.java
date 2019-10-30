@@ -20,9 +20,6 @@ import java.io.FileInputStream;
 
 public class MusicPlayer {
 
-
-    public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
-
     private static final String TAG = "BB.MusicPlayer";
     public RFClientServer mRfClientServer = null;
     int currentRadioChannel = 1;
@@ -163,7 +160,7 @@ public class MusicPlayer {
                         " User " + userTimeOffset + "\nSeekOff " + seekOff +
                         " RTT " + mMain.serverRTT + " Strm" + currentRadioChannel);
 
-                Intent in = new Intent(ACTION_STATS);
+                Intent in = new Intent(ACTION.STATS);
                 in.putExtra("resultCode", Activity.RESULT_OK);
                 in.putExtra("msgType", 1);
                 // Put extras into the intent as usual

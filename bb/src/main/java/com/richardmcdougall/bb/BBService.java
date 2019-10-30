@@ -56,16 +56,6 @@ public class BBService extends Service {
     // RPIs don't always have a screen; use beeps -jib
     public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI; // Not Done IsNano
 
-    public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
-    public static final String ACTION_BUTTONS = "com.richardmcdougall.bb.BBServiceButtons";
-    public static final String ACTION_GRAPHICS = "com.richardmcdougall.bb.BBServiceGraphics";
-    public static final String ACTION_USB_DEVICE_ATTACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_ATTACHED";
-    public static final String ACTION_USB_DEVICE_DETACHED = "com.richardmcdougall.bb.ACTION_USB_DEVICE_DETACHED";
-    public static final String ACTION_BB_LOCATION = "com.richardmcdougall.bb.ACTION_BB_LOCATION";
-    public static final String ACTION_BB_VOLUME = "com.richardmcdougall.bb.ACTION_BB_VOLUME";
-    public static final String ACTION_BB_AUDIOCHANNEL = "com.richardmcdougall.bb.ACTION_BB_AUDIOCHANNEL";
-    public static final String ACTION_BB_VIDEOMODE = "com.richardmcdougall.bb.ACTION_BB_VIDEOMODE";
-    public static final String ACTION_BB_PACKET = "com.richardmcdougall.bb.ACTION_BB_PACKET";
 
     public int GetMaxLightModes() {
 
@@ -302,7 +292,7 @@ public class BBService extends Service {
         mHandler = new Handler(mHandlerThread.getLooper());
 
         // Register to receive button messages
-        IntentFilter filter = new IntentFilter(BBService.ACTION_BUTTONS);
+        IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
         LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
 
         // Register to know when bluetooth remote connects
@@ -496,7 +486,7 @@ public class BBService extends Service {
     }
 
     private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
@@ -519,7 +509,7 @@ public class BBService extends Service {
             //Log.d(TAG, "onReceive entered");
             String action = intent.getAction();
 
-            if (ACTION_BUTTONS.equals(action)) {
+            if (ACTION.BUTTONS.equals(action)) {
                 Log.d(TAG, "Received BlueTooth key press");
                 buttons actionType = (buttons) intent.getSerializableExtra("buttonType");
                 switch (actionType) {
@@ -1141,7 +1131,7 @@ public class BBService extends Service {
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_ATTACHED);
+                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_ATTACHED);
                     broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
                     // Broadcast this event so we can receive it
@@ -1158,7 +1148,7 @@ public class BBService extends Service {
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_DETACHED);
+                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_DETACHED);
                     broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
                     // Broadcast this event so we can receive it

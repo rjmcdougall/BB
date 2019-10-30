@@ -38,13 +38,13 @@ public class BluetoothCommands {
         mMusicPlayer = mp;
         // Register to receive button messages
         IntentFilter filter;
-        filter = new IntentFilter(BBService.ACTION_BB_VOLUME);
+        filter = new IntentFilter(ACTION.BB_VOLUME);
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
-        filter = new IntentFilter(BBService.ACTION_BB_AUDIOCHANNEL);
+        filter = new IntentFilter(ACTION.BB_AUDIOCHANNEL);
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
-        filter = new IntentFilter(BBService.ACTION_BB_VIDEOMODE);
+        filter = new IntentFilter(ACTION.BB_VIDEOMODE);
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
-        filter = new IntentFilter(BBService.ACTION_BB_LOCATION);
+        filter = new IntentFilter(ACTION.BB_LOCATION);
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
     }
 
@@ -814,7 +814,7 @@ public class BluetoothCommands {
 
     private void sendLogMsg(String msg) {
 
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
@@ -847,7 +847,7 @@ public class BluetoothCommands {
 
             Log.d(TAG, "onReceive entered:" + action);
 
-            if (BBService.ACTION_BB_VOLUME.equals(action)) {
+            if (ACTION.BB_VOLUME.equals(action)) {
                 Log.d(TAG, "Got volume");
                 float volume = (float) intent.getSerializableExtra("volume");
 

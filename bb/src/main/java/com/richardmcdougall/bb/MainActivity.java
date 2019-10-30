@@ -451,11 +451,11 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         this.registerReceiver(mUsbReceiver, filter);
 
         // Register for the particular broadcast based on Stats Action
-        IntentFilter statFilter = new IntentFilter(BBService.ACTION_STATS);
+        IntentFilter statFilter = new IntentFilter(ACTION.STATS);
         LocalBroadcastManager.getInstance(this).registerReceiver(BBstatsReceiver, statFilter);
 
         // Register for the particular broadcast based on Graphics Action
-        IntentFilter gfxFilter = new IntentFilter(BBService.ACTION_GRAPHICS);
+        IntentFilter gfxFilter = new IntentFilter(ACTION.GRAPHICS);
         LocalBroadcastManager.getInstance(this).registerReceiver(BBgraphicsReceiver, gfxFilter);
 
     }
@@ -485,7 +485,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
 
     public void onModeDown(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_MODE_DOWN);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
@@ -496,7 +496,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     }
 
     public void onModeUp(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_MODE_UP);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
@@ -508,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
 
     public void onNextTrack(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_TRACK);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
@@ -516,7 +516,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     }
 
     public void onDriftDown(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_DRIFT_DOWN);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
@@ -524,28 +524,28 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     }
 
     public void onDriftUp(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_DRIFT_UP);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
     public void onVolDown(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_DOWN);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
     public void onVolUp(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_UP);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
     public void onVolPause(View v) {
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_PAUSE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
@@ -595,7 +595,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             //System.out.println("Keycode: " + keyCode);
         }
 
-        Intent in = new Intent(BBService.ACTION_BUTTONS);
+        Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_KEYCODE);
         in.putExtra("keyCode", keyCode);
@@ -740,7 +740,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_ATTACHED);
+                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_ATTACHED);
                     broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
                     // Broadcast this event so we can receive it
@@ -753,7 +753,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(BBService.ACTION_USB_DEVICE_DETACHED);
+                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_DETACHED);
                     broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
                     // Broadcast this event so we can receive it

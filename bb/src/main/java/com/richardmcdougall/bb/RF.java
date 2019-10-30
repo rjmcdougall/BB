@@ -131,7 +131,7 @@ public class RF {
     }
 
     private void sendLogMsg(String msg) {
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
@@ -336,7 +336,7 @@ public class RF {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));
             }
 
-            Intent in = new Intent(BBService.ACTION_BB_PACKET);
+            Intent in = new Intent(ACTION.BB_PACKET);
             in.putExtra("sigStrength", sigStrength);
             in.putExtra("packet", recvBytes.toByteArray());
             LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);

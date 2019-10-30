@@ -245,7 +245,7 @@ public class BurnerBoard {
     }
 
     private void sendLogMsg(String msg) {
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
@@ -255,7 +255,7 @@ public class BurnerBoard {
 
 
     private void updateUsbStatus(String status) {
-        Intent in = new Intent(BBService.ACTION_STATS);
+        Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 3);
         // Put extras into the intent as usual
@@ -561,7 +561,7 @@ public class BurnerBoard {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
-        Intent in = new Intent(BBService.ACTION_GRAPHICS);
+        Intent in = new Intent(ACTION.GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
@@ -572,7 +572,7 @@ public class BurnerBoard {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
-        Intent in = new Intent(BBService.ACTION_GRAPHICS);
+        Intent in = new Intent(ACTION.GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
@@ -584,7 +584,7 @@ public class BurnerBoard {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
-        Intent in = new Intent(BBService.ACTION_GRAPHICS);
+        Intent in = new Intent(ACTION.GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
@@ -602,7 +602,7 @@ public class BurnerBoard {
         for (int i = 0; i < arg2.length; i++) {
             pixels[i] = (byte) arg2[i];
         }
-        Intent in = new Intent(BBService.ACTION_GRAPHICS);
+        Intent in = new Intent(ACTION.GRAPHICS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
