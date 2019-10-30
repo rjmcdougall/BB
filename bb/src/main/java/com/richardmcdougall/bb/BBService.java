@@ -232,6 +232,7 @@ public class BBService extends Service {
 
         dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
                 BurnerBoardUtil.BOARD_ID, mVersion);
+
         dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
@@ -254,6 +255,7 @@ public class BBService extends Service {
                 voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
             }
         };
+        dlManager.Run();
 
         HandlerThread mHandlerThread = null;
         mHandlerThread = new HandlerThread("BBServiceHandlerThread");

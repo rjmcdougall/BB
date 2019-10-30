@@ -209,8 +209,6 @@ public class MusicPlayer {
 
         l("audio framesPerBufferInt: " + framesPerBufferInt );
 
-        dlManager.StartDownloads();
-
         try {
             Thread.sleep(5000);
         } catch (Exception e) {
