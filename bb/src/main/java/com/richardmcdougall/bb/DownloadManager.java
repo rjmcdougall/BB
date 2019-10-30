@@ -318,7 +318,7 @@ public class DownloadManager {
 
             String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId;
             DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + mVersion ;
-            boolean returnValue = false;
+            boolean returnValue = true;
 
             long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback,mFilesDir);
             if (ddsz < 0) {
@@ -326,7 +326,7 @@ public class DownloadManager {
                 returnValue  = false;
             }
 
-            if(!returnValue) {
+            if(returnValue) {
                 d("Reading Directory from " + DirectoryURL);
 
                 new File(mFilesDir, "tmp").renameTo(new File(mFilesDir, "directory.json.tmp"));

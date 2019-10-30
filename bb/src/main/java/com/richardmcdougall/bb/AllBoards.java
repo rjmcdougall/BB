@@ -49,7 +49,7 @@ public class AllBoards {
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataBoards = dir;
-                    d(origDir);
+                    d("Dir " + origDir);
                 }
             }
 
@@ -76,6 +76,7 @@ public class AllBoards {
                     }
                 }
             }
+            d("Address " + String.valueOf(myAddress));
             return myAddress;
         } catch (JSONException e) {
             d(e.getMessage());
@@ -107,6 +108,7 @@ public class AllBoards {
                 }
             }
 
+            d("Address " +  address + " To Name " + boardId);
             return boardId;
 
         } catch (JSONException e) {
@@ -138,6 +140,7 @@ public class AllBoards {
                 }
             }
 
+            d("Color " + boardColor);
             return boardColor;
         } catch (JSONException e) {
             e(e.getMessage());
@@ -194,7 +197,7 @@ public class AllBoards {
 
             String dataDir = mFilesDir;
             String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
-            boolean returnValue = false;
+            boolean returnValue = true;
 
             d(DirectoryURL);
 
@@ -209,7 +212,7 @@ public class AllBoards {
                 returnValue = false;
             }
 
-            if(!returnValue){
+            if(returnValue){
                 new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
 
                 String dirTxt = FileHelpers.LoadTextFile("boards.json.tmp", mFilesDir);
@@ -255,10 +258,10 @@ public class AllBoards {
 
             return returnValue;
         } catch (JSONException jse) {
-            e("Error " + jse.getMessage());
+            e( jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e("Error " + th.getMessage());
+            e( th.getMessage());
             return false;
         }
     }
