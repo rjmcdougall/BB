@@ -7,14 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.hardware.usb.UsbManager;
-import android.media.AudioDeviceInfo;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.PlaybackParams;
 import android.net.Uri;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -24,20 +18,13 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
-
-import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Date;
-
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
-import android.media.AudioTrack;
-import android.media.AudioFormat;
+import java.util.Date; 
 import android.os.Build;
 
 import android.bluetooth.BluetoothDevice;
