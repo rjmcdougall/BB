@@ -35,7 +35,7 @@ public class Favorites {
     private static final String TAG = "BB.FAV";
     private Context mContext;
     private RF mRadio;
-    private RFAddress mRFAddress = null;
+    private AllBoards mAllBoards = null;
     private Gps mGps;
     private IoTClient mIotClient;
     private BBService mBBService;
@@ -60,7 +60,7 @@ public class Favorites {
             l("No Radio!");
             return;
         }
-        mRFAddress = mRadio.mRFAddress;
+        mAllBoards = mRadio.mAllBoards;
 
         mRadio.attach(new RF.radioEvents() {
             @Override
@@ -195,12 +195,12 @@ public class Favorites {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                l(mRFAddress.boardAddressToName(f.r) +
+                l(mAllBoards.boardAddressToName(f.r) +
                         " strength " + sigStrength +
                         "favorites lat = " + f.a + ", " +
                         "favorites Lon = " + f.o);
                 mIotClient.sendUpdate("bbevent", "[" +
-                        mRFAddress.boardAddressToName(f.r) + "," +
+                        mAllBoards.boardAddressToName(f.r) + "," +
                         sigStrength + "," + f.a + "," + f.o + "]");
 
 

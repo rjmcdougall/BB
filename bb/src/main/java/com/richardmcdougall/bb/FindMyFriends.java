@@ -34,7 +34,7 @@ public class FindMyFriends {
     private static final String TAG = "BB.FMF";
     private Context mContext;
     private RF mRadio;
-    private RFAddress mRFAddress = null;
+    private AllBoards mAllBoards = null;
     private Gps mGps;
     private IoTClient mIotClient;
     private BBService mBBService;
@@ -76,7 +76,7 @@ public class FindMyFriends {
             l("No Radio!");
             return;
         }
-        mRFAddress = mRadio.mRFAddress;
+        mAllBoards = mRadio.mAllBoards;
 
         mRadio.attach(new RF.radioEvents() {
             @Override
@@ -99,12 +99,12 @@ public class FindMyFriends {
                 // since the address is loaded from a JSON you may get a race condition
                 // so try to find the address of this board each time until you do.
                 if(mBoardAddress<=0)
-                    mBoardAddress = mRFAddress.getBoardAddress(mBBService.getBoardId());
+                    mBoardAddress = mAllBoards.getBoardAddress(mBBService.getBoardId());
 
                 if (sinceLastFix > kMaxFixAge) {
                     d("FMF: sending GPS update");
                     mIotClient.sendUpdate("bbevent", "[" +
-                            mRFAddress.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
+                            mAllBoards.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
                     mLastFix = System.currentTimeMillis();
 
@@ -257,13 +257,13 @@ public class FindMyFriends {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                l(mRFAddress.boardAddressToName(mTheirAddress) +
+                l(mAllBoards.boardAddressToName(mTheirAddress) +
                         " strength " + sigStrength +
                         "theirLat = " + mTheirLat + ", " +
                         "theirLon = " + mTheirLon +
                         "theirBatt = " + mTheirBatt);
                 mIotClient.sendUpdate("bbevent", "[" +
-                        mRFAddress.boardAddressToName(mTheirAddress) + "," +
+                        mAllBoards.boardAddressToName(mTheirAddress) + "," +
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
                 updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt ,packet.clone());
                 return true;
@@ -404,7 +404,7 @@ public class FindMyFriends {
 
             for (int addr: mBoardLocations.keySet()) {
                 boardLocation l = mBoardLocations.get(addr);
-                d("Location Entry:" + mRFAddress.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+                d("Location Entry:" + mAllBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
             }
         }
         catch(Exception e){
@@ -442,7 +442,7 @@ public class FindMyFriends {
         List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
             for (boardLocationHistory b : locs){
-                b.board = mRFAddress.boardAddressToName(b.a);
+                b.board = mAllBoards.boardAddressToName(b.a);
 
                 Iterator<locationHistory> iter = b.locations.iterator();
                 while(iter.hasNext()){
@@ -475,7 +475,7 @@ public class FindMyFriends {
     }
 
     public String getBoardColor(int address) {
-        return mRFAddress.boardAddressToColor(address);
+        return mAllBoards.boardAddressToColor(address);
     }
 
 }

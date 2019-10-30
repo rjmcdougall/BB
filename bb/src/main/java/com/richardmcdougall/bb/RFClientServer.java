@@ -54,7 +54,7 @@ public class RFClientServer {
     private int mServerAddress = 0;
     private int mBoardAddress;
     private RF mRF;
-    private RFAddress mRFAddress = null;
+    private AllBoards mAllBoards = null;
     private PipedInputStream mReceivedPacketInput;
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
@@ -125,8 +125,8 @@ public class RFClientServer {
 
         mMain = service;
         mRF = rfRadio;
-        mRFAddress = rfRadio.mRFAddress;
-   //     mBoardAddress = mRFAddress.getBoardAddress(service.getBoardId());
+        mAllBoards = rfRadio.mAllBoards;
+   //     mBoardAddress = mAllBoards.getBoardAddress(service.getBoardId());
 
         // Make a pipe for packet receive
         try {
@@ -234,12 +234,12 @@ public class RFClientServer {
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
         l("I'm address " + mBoardAddress);
 
         d("Server reply : " +
-                mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                " -> " + mRFAddress.boardAddressToName(toClient) + "(" + toClient + ")");
+                mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                " -> " + mAllBoards.boardAddressToName(toClient) + "(" + toClient + ")");
 
         ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
@@ -289,7 +289,7 @@ public class RFClientServer {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         if(mBoardAddress <= 0)
-            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
 
         int recvMagicNumber = RFUtil.magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
@@ -303,7 +303,7 @@ public class RFClientServer {
             if (clientAddress == mBoardAddress) {
                 d("BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
                 d("BB Sync Packet from Server " + serverAddress +
-                        " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
+                        " (" + mAllBoards.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
                 processSyncResponse(packet);
             }
@@ -314,7 +314,7 @@ public class RFClientServer {
 
             d("BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             d("BB Sync Packet from Client " + clientAddress +
-                    " (" + mRFAddress.boardAddressToName(clientAddress) + ")");
+                    " (" + mAllBoards.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
             long curTimeStamp = mMain.GetCurrentClock();
             mLatency = int64FromPacket(bytes);
@@ -330,7 +330,7 @@ public class RFClientServer {
             int serverAddress = (int)int16FromPacket(bytes);
             d("BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             d("BB Server Beacon packet from Server " + serverAddress +
-                    " (" + mRFAddress.boardAddressToName(serverAddress) + ")");
+                    " (" + mAllBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
@@ -377,11 +377,11 @@ public class RFClientServer {
     private void processSyncResponse(byte[] recvPacket) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
 
         d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
-                mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                " -> " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                " -> " + mAllBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
         long packetHeader = int16FromPacket(packet);
@@ -454,7 +454,7 @@ public class RFClientServer {
         mPrefsEditor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
 
         if(mBoardAddress<=0)
-            mBoardAddress = mRFAddress.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
 
         while (true) {
 
@@ -493,7 +493,7 @@ public class RFClientServer {
             if (amServer() == false) {
                 try {
 
-                    d("I'm a client " + mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                    d("I'm a client " + mAllBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -513,8 +513,8 @@ public class RFClientServer {
                     // Broadcast, but only server will pick up
                     mRF.broadcast(clientPacket.toByteArray());
                     d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", mMain.GetCurrentClock()) +
-                             mRFAddress.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
-                    " -> " + mRFAddress.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
+                             mAllBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
+                    " -> " + mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
                 } catch(Throwable e) {
                     //l("Client UDP failed");
@@ -649,10 +649,10 @@ public class RFClientServer {
         for (int board: mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             if (board == mServerAddress) {
-                l("Vote: Server " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                l("Vote: Server " + mAllBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             } else {
-                l("Vote: Client " + mRFAddress.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                l("Vote: Client " + mAllBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             }
         }
@@ -712,7 +712,7 @@ public class RFClientServer {
     public void receiveRemoteControl(int address, int cmd, long value) {
         //l( "Received command: " + cmd + ", " + value + ", " + address);
 
-        String client = mRFAddress.boardAddressToName(address);
+        String client = mAllBoards.boardAddressToName(address);
         mMain.decodeRemoteControl(client, cmd, value);
     }
 

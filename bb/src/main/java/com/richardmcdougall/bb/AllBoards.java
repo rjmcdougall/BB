@@ -13,13 +13,13 @@ import org.json.JSONObject;
  * Created by rmc on 4/15/18.
  */
 
-public class RFAddress {
+public class AllBoards {
 
     public BBService mBBService = null;
     public Context mContext = null;
-    private static final String TAG = "BB.RFAddress";
+    private static final String TAG = "BB.AllBoards";
 
-    public RFAddress(BBService service, Context context) {
+    public AllBoards(BBService service, Context context) {
         mBBService = service;
         mContext = context;
     }

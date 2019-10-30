@@ -52,7 +52,7 @@ public class RF {
     public BBService mBBService = null;
     public Gps mGps = null;
     public RF.radioEvents mRadioCallback = null;
-    public RFAddress mRFAddress = null;
+    public AllBoards mAllBoards = null;
 
 
     public RF(BBService service, Context context) {
@@ -64,7 +64,7 @@ public class RF {
             mBBService.registerReceiver(mUsbReceiver, filter);
             filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
             mBBService.registerReceiver(mUsbReceiver, filter);
-            mRFAddress = new RFAddress(service, context);
+            mAllBoards = new AllBoards(service, context);
             initUsb();
             mGps = new Gps(mBBService, mContext);
             mGps.attach( new Gps.GpsEvents() {
