@@ -150,7 +150,7 @@ public class MusicPlayer {
                         } catch (IllegalStateException exception) {
                             e("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
                         } catch (Throwable err) {
-                            l("SeekAndPlay setPlaybackParams: " + err.getMessage());
+                            d("SeekAndPlay setPlaybackParams: " + err.getMessage());
                         }
                      //   mediaPlayer.start();
                     }
