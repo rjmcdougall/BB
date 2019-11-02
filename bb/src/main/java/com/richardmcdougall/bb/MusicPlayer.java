@@ -152,7 +152,7 @@ public class MusicPlayer {
                         } catch (Throwable err) {
                             d("SeekAndPlay setPlaybackParams: " + err.getMessage());
                         }
-                     //   mediaPlayer.start();
+                        mediaPlayer.start();
                     }
                 }
 
