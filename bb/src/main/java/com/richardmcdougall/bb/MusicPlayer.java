@@ -12,7 +12,9 @@ import android.media.AudioTrack;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.media.PlaybackParams;
+import android.net.Uri;
 import android.os.SystemClock;
+import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -20,7 +22,7 @@ import java.io.FileInputStream;
 
 public class MusicPlayer {
 
-    private static final String TAG = "BB.MusicPlayer";
+    private static final String TAG = "MusicPlayer";
     public RFClientServer mRfClientServer = null;
     int currentRadioChannel = 1;
     BoardVisualization mBoardVisualization = null;
@@ -29,7 +31,7 @@ public class MusicPlayer {
     long phoneModelAudioLatency = 0;
     private BBService mMain = null;
     private DownloadManager dlManager = null;
-    private MediaPlayer mediaPlayer = new MediaPlayer();
+    private MediaPlayer mediaPlayer = null;
     private long seekSave = 0;
     private long seekSavePos = 0;
     private int userTimeOffset = 0;
@@ -50,10 +52,6 @@ public class MusicPlayer {
         mBurnerBoard = bb;
         voice = v;
     }
-    public void l(String s) {
-        Log.v(TAG, s);
-    }
-
     public int getRadioChannel() {
 
         d("GetRadioChannel: ");
@@ -95,11 +93,14 @@ public class MusicPlayer {
     }
 
     public void d(String logMsg) {
-        if (DebugConfigs.DEBUG_AUDIO_SYNC) {
+        if (DebugConfigs.DEBUG_MUSIC_PLAYER) {
             Log.d(TAG, logMsg);
         }
     }
 
+    public void e(String logMsg) {
+            Log.e(TAG, logMsg);
+    }
 
     void MusicOffset(int ms) {
         userTimeOffset += ms;
@@ -147,12 +148,11 @@ public class MusicPlayer {
 
                             d("SeekAndPlay: setPlaybackParams() Sucesss!!");
                         } catch (IllegalStateException exception) {
-                            l("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
+                            e("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
                         } catch (Throwable err) {
                             l("SeekAndPlay setPlaybackParams: " + err.getMessage());
-                            //err.printStackTrace();
                         }
-                        mediaPlayer.start();
+                     //   mediaPlayer.start();
                     }
                 }
 
@@ -177,9 +177,11 @@ public class MusicPlayer {
     // Main thread to drive the music player
     void musicPlayerThread() {
 
+        mediaPlayer = new MediaPlayer();
+
         String model = android.os.Build.MODEL;
 
-        l("Starting BB on " + mMain.boardId + ", model " + model);
+        d("Starting BB on " + mMain.boardId + ", model " + model);
 
         if (BurnerBoardUtil.kIsRPI) { // Nano should be OK
             phoneModelAudioLatency = 80;
@@ -193,21 +195,21 @@ public class MusicPlayer {
         boolean hasLowLatencyFeature =
                 mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
 
-        l("has audio LowLatencyFeature: " + hasLowLatencyFeature);
+        d("has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
                 mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-        l("has audio ProFeature: " + hasProFeature );
+        d("has audio ProFeature: " + hasProFeature );
 
         AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         int sampleRate = Integer.parseInt(sampleRateStr);
 
-        l("audio sampleRate: " + sampleRate );
+        d("audio sampleRate: " + sampleRate );
 
         String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
         int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
 
-        l("audio framesPerBufferInt: " + framesPerBufferInt );
+        d("audio framesPerBufferInt: " + framesPerBufferInt );
 
         try {
             Thread.sleep(5000);
@@ -227,7 +229,7 @@ public class MusicPlayer {
                 case 0:
                     if (dlManager.GetTotalAudio() != 0) {
                         musicState = 1;
-                        l("Downloaded: Starting Radio Mode");
+                        d("Downloaded: Starting Radio Mode");
                         RadioMode();
                     } else {
                         try {
@@ -258,12 +260,8 @@ public class MusicPlayer {
 
                 default:
                     break;
-
-
             }
-
         }
-
     }
 
     public void setVolume(float vol1, float vol2){
@@ -276,8 +274,7 @@ public class MusicPlayer {
 
     public int getCurrentBoardVol() {
         int v = getAndroidVolumePercent();
-        //return ((int) ((v/(float)100) * (float) 127.0)); // dkw not sure what 127 is for.
-        return (v); // dkw not sure what 127 is for.
+        return (v);
     }
 
     public int getBoardVolumePercent() {
@@ -321,14 +318,14 @@ public class MusicPlayer {
         vol += 0.01;
         if (vol > 1) vol = 1;
         setVolume(vol, vol);
-        l("Volume " + vol * 100.0f + "%");
+        d("Volume " + vol * 100.0f + "%");
     }
 
     public void onVolDown() {
         vol -= 0.01;
         if (vol < 0) vol = 0;
         setVolume(vol, vol);
-        l("Volume " + vol * 100.0f + "%");
+        d("Volume " + vol * 100.0f + "%");
     }
 
     float recallVol = 0;
@@ -341,17 +338,17 @@ public class MusicPlayer {
             vol = recallVol;
         }
         setVolume(vol, vol);
-        l("Volume " + vol * 100.0f + "%");
+        d("Volume " + vol * 100.0f + "%");
     }
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     public void SetRadioChannel(int index) {
-        l("SetRadioChannel: " + index);
+        d("SetRadioChannel: " + index);
         currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
         if (mMain.isMaster() && (mRfClientServer != null)) {
 
-            l("Sending remote");
+            d("Sending remote");
 
             String fileName = getRadioChannelInfo(index);
             mRfClientServer.sendRemote(kRemoteAudioTrack, mMain.hashTrackName(fileName), RFClientServer.kRemoteAudio);
@@ -364,7 +361,7 @@ public class MusicPlayer {
 
         if (index == 0) {
             mediaPlayer.pause();
-            l("Bluetooth Mode");
+            d("Bluetooth Mode");
             mBurnerBoard.setText("Bluetooth", 2000);
             if (mMain.HasVoiceAnnouncements()) {
                 voice.speak("Blue tooth Audio", TextToSpeech.QUEUE_FLUSH, null, "bluetooth");
@@ -377,7 +374,7 @@ public class MusicPlayer {
 
         } else {
             try {
-                l("Radio Mode");
+                d("Radio Mode");
                 String [] shortName = getRadioChannelInfo(index).split("\\.", 2);
                 mBurnerBoard.setText(shortName[0], 2000);
                 if (mMain.HasVoiceAnnouncements()) {
@@ -389,24 +386,23 @@ public class MusicPlayer {
                     synchronized (mediaPlayer) {
                         lastSeekOffset = 0;
                         FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index - 1));
-                        l("playing file " + dlManager.GetAudioFile(index - 1));
+                        d("playing file " + dlManager.GetAudioFile(index - 1));
+
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(fds.getFD());
                         fds.close();
 
                         mediaPlayer.setLooping(true);
                         mediaPlayer.setVolume(vol, vol);
-
                         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
                             public void onPrepared(MediaPlayer mediaPlayer) {
-                                l("onPrepared");
+                                d("onPrepared");
                                 try {
-                                    //mediaPlayer.setPlaybackParams(mediaPlayer.getPlaybackParams().setSpeed(0.55f));
                                     PlaybackParams params = mediaPlayer.getPlaybackParams();
-                                    l("Playbackparams = " + params.toString());
+                                    d("Playbackparams = " + params.toString());
                                 } catch (Exception e) {
-                                    l("Error in onPrepared:" + e.getMessage());
+                                    e("Error in onPrepared:" + e.getMessage());
                                 }
                                 mediaPlayer.start();
                             }
@@ -430,9 +426,7 @@ public class MusicPlayer {
                 }
                 SeekAndPlay();
             } catch (Throwable err) {
-                String msg = err.getMessage();
-                l("Radio mode failed" + msg);
-                System.out.println(msg);
+                e("Radio mode failed" + err.getMessage());
             }
         }
     }
@@ -447,7 +441,7 @@ public class MusicPlayer {
         mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         AudioDeviceInfo[] deviceList = mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
         for (int index = 0; index < deviceList.length; index++) {
-            l("Audio device" + deviceList[index].toString());
+            d("Audio device" + deviceList[index].toString());
         }
         android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
         int buffersize = AudioRecord.getMinBufferSize(44100, AudioFormat.CHANNEL_IN_STEREO, AudioFormat.ENCODING_PCM_16BIT);

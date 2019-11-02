@@ -104,13 +104,6 @@ public class BBService extends Service {
         sendLogMsg(s);
     }
 
-    public void d(String s) {
-        if (DebugConfigs.DEBUG_AUDIO_SYNC) {
-            Log.v(TAG, s);
-            sendLogMsg(s);
-        }
-    }
-
     public boolean HasVoiceAnnouncements(){
         return mVoiceAnnouncements;
     }
