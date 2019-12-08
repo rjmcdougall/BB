@@ -315,8 +315,13 @@ public class DownloadManager {
     public boolean GetNewDirectory() {
 
         try {
+            String DirectoryURL = "";
+            if(DebugConfigs.DEBUG_BOARD_PROFILE!="")
+                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + DebugConfigs.DEBUG_BOARD_PROFILE;
+            else
+                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId;
 
-            String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId;
+
             DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + mVersion ;
             boolean returnValue = true;
 
