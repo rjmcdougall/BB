@@ -12,7 +12,7 @@ public class DebugConfigs {
     public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;
 
     // these all used to be a single debug flag but i broke them out by type.
-    public static final boolean DEBUG_AUDIO_SYNC = false;
+    public static final boolean DEBUG_MUSIC_PLAYER = false;
     public static final boolean DEBUG_FMF = false;
     public static final boolean DEBUG_RF = false;
     public static final boolean DEBUG_GPS = false;
@@ -22,6 +22,7 @@ public class DebugConfigs {
     public static final boolean DEBUG_ALL_BOARDS = false;
     public static final boolean DEBUG_DOWNLOAD_MANAGER = false;
 
+    // name the profile as a testing overridee.
     public static final String DEBUG_BOARD_PROFILE = "";
 
 }

@@ -13,7 +13,7 @@ android {
     buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.richardmcdougall.bb"
-        minSdkVersion 27
+        minSdkVersion 23
         targetSdkVersion 27
 
         versionCode 5017
@@ -83,5 +83,7 @@ dependencies {
     compileOnly 'com.google.android.things:androidthings:+'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'no.nordicsemi.android:log-timber:2.2.0'
+    implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
+
 }
 

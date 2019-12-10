@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
+
 import android.os.Build;
 
 import android.bluetooth.BluetoothDevice;
@@ -104,9 +105,10 @@ public class BBService extends Service {
         sendLogMsg(s);
     }
 
-    public boolean HasVoiceAnnouncements(){
+    public boolean HasVoiceAnnouncements() {
         return mVoiceAnnouncements;
     }
+
     public void d_battery(String s) {
         if (DebugConfigs.DEBUG_BATTERY) {
             Log.v(TAG, s);
@@ -154,160 +156,167 @@ public class BBService extends Service {
     @Override
     public void onCreate() {
 
-        super.onCreate();
-
-        IntentFilter ufilter = new IntentFilter();
-        ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
-        ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
-        this.registerReceiver(mUsbReceiver, ufilter);
-
-        mContext = getApplicationContext();
-
-        PackageInfo pinfo;
         try {
-            pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            mVersion = pinfo.versionCode;
-            mAPKUpdatedDate = new Date(pinfo.lastUpdateTime);
-            l("BurnerBoard Version " + mVersion);
-            //ET2.setText(versionNumber);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
 
-        l("BBService: onCreate");
-        l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
+            super.onCreate();
+
+            IntentFilter ufilter = new IntentFilter();
+            ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
+            ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
+            this.registerReceiver(mUsbReceiver, ufilter);
+
+            mContext = getApplicationContext();
+
+            PackageInfo pinfo;
+            try {
+                pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                mVersion = pinfo.versionCode;
+                mAPKUpdatedDate = new Date(pinfo.lastUpdateTime);
+                l("BurnerBoard Version " + mVersion);
+                //ET2.setText(versionNumber);
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+            l("BBService: onCreate");
+            l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
 
 
-        if (iotClient == null) {
-            iotClient = new IoTClient(mContext);
-        }
+            if (iotClient == null) {
+                iotClient = new IoTClient(mContext);
+            }
 
-        if (wifi == null) {
-            wifi = new BBWifi(mContext);
-        }
+            if (wifi == null) {
+                wifi = new BBWifi(mContext);
+            }
 
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-        }
-        voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                // check for successful instantiation
-                if (status == TextToSpeech.SUCCESS) {
-                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
-                        voice.setLanguage(Locale.US);
-                    l("Text To Speech ready...");
-                    voice.setPitch((float) 0.8);
-                    String utteranceId = UUID.randomUUID().toString();
-                    System.out.println("Where do you want to go, " + boardId + "?");
-                    voice.setSpeechRate((float) 0.9);
-                    voice.speak("I am " + boardId + "?",
-                            TextToSpeech.QUEUE_FLUSH, null, utteranceId);
-                } else if (status == TextToSpeech.ERROR) {
-                    l("Sorry! Text To Speech failed...");
-                }
+            try {
+                Thread.sleep(500);
+            } catch (Exception e) {
+            }
+            voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+                @Override
+                public void onInit(int status) {
+                    // check for successful instantiation
+                    if (status == TextToSpeech.SUCCESS) {
+                        if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
+                            voice.setLanguage(Locale.US);
+                        l("Text To Speech ready...");
+                        voice.setPitch((float) 0.8);
+                        String utteranceId = UUID.randomUUID().toString();
+                        System.out.println("Where do you want to go, " + boardId + "?");
+                        voice.setSpeechRate((float) 0.9);
+                        voice.speak("I am " + boardId + "?",
+                                TextToSpeech.QUEUE_FLUSH, null, utteranceId);
+                    } else if (status == TextToSpeech.ERROR) {
+                        l("Sorry! Text To Speech failed...");
+                    }
 
-                // Let the user know they're on a raspberry pi // Skip For IsNano
-                if (BurnerBoardUtil.kIsRPI) {
-                    String rpiMsg = "Raspberry PI detected";
-                    l(rpiMsg);
-                    // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
-                    voice.speak( rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
+                    // Let the user know they're on a raspberry pi // Skip For IsNano
+                    if (BurnerBoardUtil.kIsRPI) {
+                        String rpiMsg = "Raspberry PI detected";
+                        l(rpiMsg);
+                        // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
+                        voice.speak(rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
 
-                    // Let's announce the WIFI IP on RPIs - do it here, as we need voice initialized first
-                    if(wifi.mIPAddress != null ) {
-                        voice.speak( "My WiFi IP is: " + wifi.mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                        // Let's announce the WIFI IP on RPIs - do it here, as we need voice initialized first
+                        if (wifi.mIPAddress != null) {
+                            voice.speak("My WiFi IP is: " + wifi.mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                        }
                     }
                 }
-            }
-        });
-
-        mAllBoards = new AllBoards(this, mContext);
-        mAllBoards.Run();
-
-        dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
-                BurnerBoardUtil.BOARD_ID, mVersion);
-
-        dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
-            long lastTextTime = 0;
-
-            public void onProgress(String file, long fileSize, long bytesDownloaded) {
-                if (fileSize <= 0)
-                    return;
-
-                long curTime = System.currentTimeMillis();
-                if (curTime - lastTextTime > 30000) {
-                    lastTextTime = curTime;
-                    long percent = bytesDownloaded * 100 / fileSize;
-
-                    voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
-                    lastTextTime = curTime;
-                    l("Downloading " + file + ", " + percent + " Percent");
-                }
-            }
-
-            public void onVoiceCue(String msg) {
-                voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
-            }
-        };
-        dlManager.Run();
-
-        HandlerThread mHandlerThread = null;
-        mHandlerThread = new HandlerThread("BBServiceHandlerThread");
-        mHandlerThread.start();
-        mHandler = new Handler(mHandlerThread.getLooper());
-
-        // Register to receive button messages
-        IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
-
-        // Register to know when bluetooth remote connects
-        mContext.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
-
-        startLights();
-
-        mMusicPlayer = new MusicPlayer(this,  mContext, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
-        mMusicPlayer.Run();
-
-        mBluetoothConnManager = new BluetoothConnManager(this, mContext);
-        mBLEServer = new BluetoothLEServer(this, mContext);
-        mRadio = new RF(this, mContext);
-
-        InitClock();
-
-        mRfClientServer = new RFClientServer(this, mRadio);
-        mRfClientServer.Run();
-
-        mGps = mRadio.getGps();
-        mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
-
-        // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
-
-        mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
-                mBluetoothConnManager, mFindMyFriends, mMusicPlayer, mAllBoards);
-        mBluetoothCommands.init();
-
-        if (supervisorMonitor == null) {
-            l("starting supervisor thread");
-            Thread supervisorMonitor = new Thread(new Runnable() {
-                public void run() {
-                    Thread.currentThread().setName("BB Supervisor");
-                    supervisorThread();
-                }
             });
-            supervisorMonitor.start();
-        } else {
-            l("supervisor thread already running");
-        }
 
-        // Supported Languages
-        Set<Locale> supportedLanguages = voice.getAvailableLanguages();
-        if (supportedLanguages != null) {
-            for (Locale lang : supportedLanguages) {
-                l("Voice Supported Language: " + lang);
+            mAllBoards = new AllBoards(this, mContext);
+            mAllBoards.Run();
+
+            dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
+                    BurnerBoardUtil.BOARD_ID, mVersion);
+
+            dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
+                long lastTextTime = 0;
+
+                public void onProgress(String file, long fileSize, long bytesDownloaded) {
+                    if (fileSize <= 0)
+                        return;
+
+                    long curTime = System.currentTimeMillis();
+                    if (curTime - lastTextTime > 30000) {
+                        lastTextTime = curTime;
+                        long percent = bytesDownloaded * 100 / fileSize;
+
+                        voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                        lastTextTime = curTime;
+                        l("Downloading " + file + ", " + percent + " Percent");
+                    }
+                }
+
+                public void onVoiceCue(String msg) {
+                    voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+                }
+            };
+            dlManager.Run();
+
+            HandlerThread mHandlerThread = null;
+            mHandlerThread = new HandlerThread("BBServiceHandlerThread");
+            mHandlerThread.start();
+            mHandler = new Handler(mHandlerThread.getLooper());
+
+            // Register to receive button messages
+            IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
+            LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
+
+            // Register to know when bluetooth remote connects
+            mContext.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
+
+            startLights();
+
+            mMusicPlayer = new MusicPlayer(this,  mContext, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
+            mMusicPlayer.Run();
+
+            mBluetoothConnManager = new BluetoothConnManager(this, mContext);
+            mBLEServer = new BluetoothLEServer(this, mContext);
+            mRadio = new RF(this, mContext);
+
+            InitClock();
+
+            mRfClientServer = new RFClientServer(this, mRadio);
+            mRfClientServer.Run();
+
+            mGps = mRadio.getGps();
+            mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
+
+            // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
+
+            mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
+                    mBluetoothConnManager, mFindMyFriends, mMusicPlayer, mAllBoards);
+            mBluetoothCommands.init();
+
+            if (supervisorMonitor == null) {
+                l("starting supervisor thread");
+                Thread supervisorMonitor = new Thread(new Runnable() {
+                    public void run() {
+                        Thread.currentThread().setName("BB Supervisor");
+                        supervisorThread();
+                    }
+                });
+                supervisorMonitor.start();
+            } else {
+                l("supervisor thread already running");
             }
+
+            // Supported Languages
+            Set<Locale> supportedLanguages = voice.getAvailableLanguages();
+            if (supportedLanguages != null) {
+                for (Locale lang : supportedLanguages) {
+                    l("Voice Supported Language: " + lang);
+                }
+            }
+
+
+        } catch (Exception e) {
+            l(e.toString());
         }
     }
 
@@ -357,9 +366,17 @@ public class BBService extends Service {
         voice.shutdown();
     }
 
-    public boolean isMaster() { return mMasterRemote;}
-    public boolean blockMaster() { return mBlockMaster; }
-    public boolean isGTFO() { return mGTFO; }
+    public boolean isMaster() {
+        return mMasterRemote;
+    }
+
+    public boolean blockMaster() {
+        return mBlockMaster;
+    }
+
+    public boolean isGTFO() {
+        return mGTFO;
+    }
 
     public String getAPKUpdatedDate() {
         return mAPKUpdatedDate.toString();
@@ -375,27 +392,27 @@ public class BBService extends Service {
 
 
         if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
-            l( "Visualization: Using Classic");
+            l("Visualization: Using Classic");
             mBurnerBoard = new BurnerBoardClassic(this, mContext);
         } else if (BurnerBoardUtil.isBBMast()) {
-            l( "Visualization: Using Mast");
+            l("Visualization: Using Mast");
             mBurnerBoard = new BurnerBoardMast(this, mContext);
         } else if (BurnerBoardUtil.isBBPanel()) {
-            l( "Visualization: Using Panel");
+            l("Visualization: Using Panel");
             mBurnerBoard = new BurnerBoardPanel(this, mContext);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
-            l( "Visualization: Using Direct Map");
+            l("Visualization: Using Direct Map");
             mBurnerBoard = new BurnerBoardDirectMap(
-                this,
-                mContext,
-                BurnerBoardUtil.kVisualizationDirectMapWidth,
-                BurnerBoardUtil.kVisualizationDirectMapHeight
+                    this,
+                    mContext,
+                    BurnerBoardUtil.kVisualizationDirectMapWidth,
+                    BurnerBoardUtil.kVisualizationDirectMapHeight
             );
         } else if (BurnerBoardUtil.isBBAzul()) {
-            l( "Visualization: Using Azul");
+            l("Visualization: Using Azul");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         } else {
-            l( "Could not identify board type! Falling back to Azul for backwards compatibility");
+            l("Could not identify board type! Falling back to Azul for backwards compatibility");
             mBurnerBoard = new BurnerBoardAzul(this, mContext);
         }
 
@@ -435,7 +452,7 @@ public class BBService extends Service {
     public long CurrentClockAdjusted() {
         return GetCurrentClock() + serverTimeOffset;
     }
- 
+
     public void SetServerClockOffset(long serverClockOffset, long rtt) {
         serverTimeOffset = serverClockOffset;
         serverRTT = rtt;
@@ -535,7 +552,7 @@ public class BBService extends Service {
             mRfClientServer.sendRemote(kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
 
             mBurnerBoard.setText("Master", 2000);
-            voice.speak( "Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
+            voice.speak("Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             mRfClientServer.disableMasterBroadcast();
@@ -550,19 +567,18 @@ public class BBService extends Service {
     public void enableGTFO(boolean enable) {
 
         mGTFO = enable;
-        if(enable){
+        if (enable) {
 
             mBoardVisualization.inhibitGTFO(true);
             mBurnerBoard.setText90("Get The Fuck Off!", 5000);
-            mMusicPlayer.setVolume(0,0);
+            mMusicPlayer.setVolume(0, 0);
             stashedAndroidVolumePercent = mMusicPlayer.getAndroidVolumePercent();
             mMusicPlayer.setAndroidVolumePercent(100);
-            voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD,null , "GTFO");
-        }
-        else {
+            voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD, null, "GTFO");
+        } else {
             mBoardVisualization.inhibitGTFO(false);
             mMusicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
-            mMusicPlayer.setVolume(1,1);
+            mMusicPlayer.setVolume(1, 1);
         }
     }
 
@@ -576,10 +592,9 @@ public class BBService extends Service {
     public void decodeRemoteControl(String client, int cmd, long value) {
 
 
-        if(mBlockMaster) {
+        if (mBlockMaster) {
             l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
-        }
-        else {
+        } else {
 
             l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
 
@@ -590,7 +605,7 @@ public class BBService extends Service {
                         String name = mMusicPlayer.getRadioChannelInfo(i);
                         long hashed = hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Audio " + mMusicPlayer. getRadioChannel() + " -> " + i);
+                            l("Remote Audio " + mMusicPlayer.getRadioChannel() + " -> " + i);
                             if (mMusicPlayer.getRadioChannel() != i) {
                                 mMusicPlayer.SetRadioChannel((int) i);
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
@@ -650,6 +665,7 @@ public class BBService extends Service {
     public int getRadioChannelMax() {
         return dlManager.GetTotalAudio();
     }
+
     public int getVideoMax() {
         return dlManager.GetTotalVideo();
     }
@@ -662,7 +678,7 @@ public class BBService extends Service {
             //next = 0;
             next = 1;
         }
-        l( "Setting Video to: " + getVideoModeInfo(next) );
+        l("Setting Video to: " + getVideoModeInfo(next));
         mBoardVisualization.setMode(next);
     }
 
@@ -749,11 +765,11 @@ public class BBService extends Service {
             /* Audio stream control */
             case 87: // satachi right button
                 l("RPI Bluetooth Right Button");
-                mMusicPlayer. NextStream();
+                mMusicPlayer.NextStream();
                 break;
             case 88: //satachi left button
                 l("RPI Bluetooth Left Button");
-                mMusicPlayer. PreviousStream();
+                mMusicPlayer.PreviousStream();
                 break;
 
             /* Volume control */
@@ -835,7 +851,7 @@ public class BBService extends Service {
 
             // Every 60 seconds check WIFI
             if (mEnableWifiReconnect && (loopCnt % mWifiReconnectEveryNSeconds == 0)) {
-                if(wifi != null) {
+                if (wifi != null) {
                     l("Check Wifi");
                     wifi.checkWifiReconnect();
                 }
@@ -867,7 +883,10 @@ public class BBService extends Service {
 
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
-    private enum powerStates { STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING };
+
+    private enum powerStates {STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING}
+
+    ;
 
     private void checkBattery() {
         if ((mBurnerBoard != null) && (mBoardVisualization != null)) {
@@ -926,7 +945,7 @@ public class BBService extends Service {
             // Battery voltage is critically low
             // Board will come to a halt in < 60 seconds
             // current is milliamps
-            if ((voltage > 20000) && (voltage < 35300) ){
+            if ((voltage > 20000) && (voltage < 35300)) {
                 mBoardVisualization.emergency(true);
             } else {
                 mBoardVisualization.emergency(false);
@@ -963,6 +982,7 @@ public class BBService extends Service {
     // Tripple click to toggle master
     private long lastPressed = SystemClock.elapsedRealtime();
     private int pressCnt = 1;
+
     private void onBatteryButton() {
         if (mBurnerBoard != null) {
             mBurnerBoard.showBattery();
@@ -1030,10 +1050,8 @@ public class BBService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             //l("usbReceiver");
-            if (intent != null)
-            {
-                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED))
-                {
+            if (intent != null) {
+                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
                     Log.v(TAG, "ACTION_USB_DEVICE_ATTACHED");
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
@@ -1048,9 +1066,8 @@ public class BBService extends Service {
                         mBurnerBoard.initUsb();
                     }
                 }
-                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED))
-                {
-                    Log.v(TAG,"ACTION_USB_DEVICE_DETACHED");
+                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
+                    Log.v(TAG, "ACTION_USB_DEVICE_DETACHED");
 
                     Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 

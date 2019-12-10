@@ -9,16 +9,22 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.media.PlaybackParams;
 import android.net.Uri;
-import android.os.SystemClock;
-import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import java.io.FileInputStream;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SeekParameters;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 
 public class MusicPlayer {
 
@@ -27,23 +33,21 @@ public class MusicPlayer {
     int currentRadioChannel = 1;
     BoardVisualization mBoardVisualization = null;
     long lastSeekOffset = 0;
-    long lastSeekTimestamp = 0;
     long phoneModelAudioLatency = 0;
     private BBService mMain = null;
     private DownloadManager dlManager = null;
-    private MediaPlayer mediaPlayer = null;
-    private long seekSave = 0;
-    private long seekSavePos = 0;
     private int userTimeOffset = 0;
     private Context mContext = null;
     private BurnerBoard mBurnerBoard = null;
     private float vol = 0.80f;
     TextToSpeech voice;
+    SimpleExoPlayer player = null;
 
-    MusicPlayer(BBService service,  Context context, DownloadManager dlm, BoardVisualization bv,
-        RFClientServer rfc,
+
+    MusicPlayer(BBService service, Context context, DownloadManager dlm, BoardVisualization bv,
+                RFClientServer rfc,
                 BurnerBoard bb,
-                TextToSpeech v){
+                TextToSpeech v) {
         dlManager = dlm;
         mMain = service;
         mContext = context;
@@ -52,11 +56,13 @@ public class MusicPlayer {
         mBurnerBoard = bb;
         voice = v;
     }
+
     public int getRadioChannel() {
 
         d("GetRadioChannel: ");
         return currentRadioChannel;
     }
+
     void NextStream() {
         int nextRadioChannel = currentRadioChannel + 1;
         if (nextRadioChannel > dlManager.GetTotalAudio())
@@ -67,7 +73,7 @@ public class MusicPlayer {
 
     void PreviousStream() {
         int nextRadioChannel = currentRadioChannel - 1;
-        if (nextRadioChannel < 0 ) {
+        if (nextRadioChannel < 0) {
             nextRadioChannel = 0;
         }
         SetRadioChannel(nextRadioChannel);
@@ -77,8 +83,7 @@ public class MusicPlayer {
 
     void Run() {
         Thread t = new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 Thread.currentThread().setName("BB Music Player");
                 musicPlayerThread();
             }
@@ -87,8 +92,7 @@ public class MusicPlayer {
     }
 
 
-    public void RadioMode()
-    {
+    public void RadioMode() {
         SetRadioChannel(currentRadioChannel);
     }
 
@@ -99,7 +103,7 @@ public class MusicPlayer {
     }
 
     public void e(String logMsg) {
-            Log.e(TAG, logMsg);
+        Log.e(TAG, logMsg);
     }
 
     void MusicOffset(int ms) {
@@ -109,56 +113,42 @@ public class MusicPlayer {
     }
 
     long GetCurrentStreamLengthInSeconds() {
-        return dlManager.GetAudioLength( currentRadioChannel - 1);
+        return dlManager.GetAudioLength(currentRadioChannel - 1);
     }
 
 
     public void SeekAndPlay() {
-        if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
-            synchronized (mediaPlayer) {
+        if (player != null && dlManager.GetTotalAudio() != 0) {
+            synchronized (player) {
                 long ms = mMain.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
                 long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
                 long seekOff = ms % lenInMS;
-                long curPos = mediaPlayer.getCurrentPosition();
+                long curPos = player.getCurrentPosition();
                 long seekErr = curPos - seekOff;
 
                 if (curPos == 0 || seekErr != 0) {
-                    if (curPos == 0 || Math.abs(seekErr) > 200) {
-                        d("SeekAndPlay: explicit seek");
-                        seekSave = SystemClock.elapsedRealtime();
-                        mediaPlayer.seekTo((int) seekOff);
-                        mediaPlayer.start();
+
+                    Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
+
+                    d("SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + mMain.serverTimeOffset +
+                            " User " + userTimeOffset + " SeekOff " + seekOff +
+                            " RTT " + mMain.serverRTT + " Strm" + currentRadioChannel);
+
+                   if (curPos == 0 || Math.abs(seekErr) > 100) {
+                        player.seekTo((int) seekOff + 170);
                     } else {
 
-                        Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
-                        d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
-
-                        if ((seekErr > 10) || (seekErr < -10)) {
-                            d("SeekAndPlay: seekErr = " + seekErr + ", adjusting speed to " + speed);
-                        }
-
                         try {
+                            PlaybackParameters param = new PlaybackParameters(speed,1);
+                            player.setPlaybackParameters(param);
 
-                            PlaybackParams params = new PlaybackParams();
-                            params.allowDefaults();
-                            params.setSpeed(speed).setPitch(speed).setAudioFallbackMode(PlaybackParams.AUDIO_FALLBACK_MODE_DEFAULT);
-                            mediaPlayer.setPlaybackParams(params);
-
-                            d("SeekAndPlay: setPlaybackParams() Sucesss!!");
-                        } catch (IllegalStateException exception) {
-                            e("SeekAndPlay setPlaybackParams IllegalStateException: " + exception.getLocalizedMessage());
-                        } catch (Throwable err) {
-                            d("SeekAndPlay setPlaybackParams: " + err.getMessage());
+                     } catch (Throwable err) {
+                            e("SeekAndPlay Error: " + err.getMessage());
                         }
-                        mediaPlayer.start();
                     }
                 }
-
-                d("SeekAndPlay: SeekErr " + seekErr + " SvOff " + mMain.serverTimeOffset +
-                        " User " + userTimeOffset + "\nSeekOff " + seekOff +
-                        " RTT " + mMain.serverRTT + " Strm" + currentRadioChannel);
 
                 Intent in = new Intent(ACTION.STATS);
                 in.putExtra("resultCode", Activity.RESULT_OK);
@@ -174,16 +164,15 @@ public class MusicPlayer {
         }
 
     }
+
     // Main thread to drive the music player
     void musicPlayerThread() {
-
-        mediaPlayer = new MediaPlayer();
 
         String model = android.os.Build.MODEL;
 
         d("Starting BB on " + mMain.boardId + ", model " + model);
 
-        if (BurnerBoardUtil.kIsRPI) { // Nano should be OK
+        if (BurnerBoardUtil.kIsRPI ) { // Nano should be OK
             phoneModelAudioLatency = 80;
         } else if (model.equals("imx7d_pico")) {
             phoneModelAudioLatency = 110;
@@ -198,26 +187,45 @@ public class MusicPlayer {
         d("has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
                 mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-        d("has audio ProFeature: " + hasProFeature );
+        d("has audio ProFeature: " + hasProFeature);
 
         AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         int sampleRate = Integer.parseInt(sampleRateStr);
 
-        d("audio sampleRate: " + sampleRate );
+        d("audio sampleRate: " + sampleRate);
 
         String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
         int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
 
-        d("audio framesPerBufferInt: " + framesPerBufferInt );
+        d("audio framesPerBufferInt: " + framesPerBufferInt);
+
+        player = ExoPlayerFactory.newSimpleInstance(mContext);
+        player.setSeekParameters(SeekParameters.EXACT);
+        player.addAnalyticsListener(new AnalyticsListener() {
+            @Override
+            public void onSeekProcessed(EventTime eventTime) {
+                d("SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
+            }
+        });
+        player.addAnalyticsListener(new AnalyticsListener() {
+            @Override
+            public void onSeekStarted(EventTime eventTime) {
+                d("SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
+            }
+        });
+        player.addAnalyticsListener(new AnalyticsListener() {
+            @Override
+            public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
+                d("SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
+            }
+        });
 
         try {
             Thread.sleep(5000);
         } catch (Exception e) {
 
         }
-
-        // MediaSession ms = new MediaSession(mContext);
 
         bluetoothModeInit();
 
@@ -246,14 +254,14 @@ public class MusicPlayer {
                         Thread.sleep(1000);
                     } catch (Throwable e) {
                     }
-                    if ( currentRadioChannel == 0) {
+                    if (currentRadioChannel == 0) {
                         musicState = 2;
                     }
                     break;
 
                 case 2:
                     bluetoothPlay();
-                    if ( currentRadioChannel != 0) {
+                    if (currentRadioChannel != 0) {
                         musicState = 1;
                     }
                     break;
@@ -264,8 +272,10 @@ public class MusicPlayer {
         }
     }
 
-    public void setVolume(float vol1, float vol2){
-        mediaPlayer.setVolume(vol1, vol2);
+    public void setVolume(float vol1, float vol2) {
+        synchronized (player){
+            player.setVolume(vol1);
+        }
     }
 
     public String getRadioChannelInfo(int index) {
@@ -285,28 +295,28 @@ public class MusicPlayer {
         setAndroidVolumePercent(v);
     }
 
-    public int getAndroidVolumePercent(){
+    public int getAndroidVolumePercent() {
         // Get the AudioManager
         AudioManager audioManager =
-                (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+                (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
 
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        vol = ((float)volume / (float)maxVolume);
-        int v = (int) ( vol * (float)100);
+        vol = ((float) volume / (float) maxVolume);
+        int v = (int) (vol * (float) 100);
         return v;
     }
 
-    public void setAndroidVolumePercent(int v){
+    public void setAndroidVolumePercent(int v) {
         // Get the AudioManager
         AudioManager audioManager =
-                (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+                (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
 
-        vol = v / (float)100;
+        vol = v / (float) 100;
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int setVolume = (int)((float) maxVolume * (float) v / (float) 100);
+        int setVolume = (int) ((float) maxVolume * (float) v / (float) 100);
 
-        audioManager.setStreamVolume (
+        audioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC,
                 setVolume,
                 0);
@@ -314,6 +324,7 @@ public class MusicPlayer {
 
 
     public static final int kRemoteAudioTrack = 0x01;
+
     public void onVolUp() {
         vol += 0.01;
         if (vol > 1) vol = 1;
@@ -340,6 +351,7 @@ public class MusicPlayer {
         setVolume(vol, vol);
         d("Volume " + vol * 100.0f + "%");
     }
+
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     public void SetRadioChannel(int index) {
         d("SetRadioChannel: " + index);
@@ -360,7 +372,6 @@ public class MusicPlayer {
         }
 
         if (index == 0) {
-            mediaPlayer.pause();
             d("Bluetooth Mode");
             mBurnerBoard.setText("Bluetooth", 2000);
             if (mMain.HasVoiceAnnouncements()) {
@@ -375,53 +386,35 @@ public class MusicPlayer {
         } else {
             try {
                 d("Radio Mode");
-                String [] shortName = getRadioChannelInfo(index).split("\\.", 2);
+                String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
                 mBurnerBoard.setText(shortName[0], 2000);
                 if (mMain.HasVoiceAnnouncements()) {
                     voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
                 }
                 bluetoothModeDisable();
 
-                if (mediaPlayer != null && dlManager.GetTotalAudio() != 0) {
-                    synchronized (mediaPlayer) {
+                if (player != null && dlManager.GetTotalAudio() != 0) {
+                    synchronized (player) {
                         lastSeekOffset = 0;
-                        FileInputStream fds = new FileInputStream(dlManager.GetAudioFile(index - 1));
+
                         d("playing file " + dlManager.GetAudioFile(index - 1));
 
-                        mediaPlayer.reset();
-                        mediaPlayer.setDataSource(fds.getFD());
-                        fds.close();
+                        // Produces DataSource instances through which media data is loaded.
+                        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mContext,
+                                Util.getUserAgent(mContext, "yourApplicationName"));
 
-                        mediaPlayer.setLooping(true);
-                        mediaPlayer.setVolume(vol, vol);
-                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            @Override
-                            public void onPrepared(MediaPlayer mediaPlayer) {
-                                d("onPrepared");
-                                try {
-                                    PlaybackParams params = mediaPlayer.getPlaybackParams();
-                                    d("Playbackparams = " + params.toString());
-                                } catch (Exception e) {
-                                    e("Error in onPrepared:" + e.getMessage());
-                                }
-                                mediaPlayer.start();
-                            }
-                        });
-                        mediaPlayer.setOnSeekCompleteListener(
-                                new MediaPlayer.OnSeekCompleteListener() {
-                                    @Override
-                                    public void onSeekComplete(MediaPlayer mediaPlayer) {
-                                        long curPos = mediaPlayer.getCurrentPosition();
-                                        long curTime = SystemClock.elapsedRealtime();
-                                        d("Seek complete - off: " +
-                                                (curPos - seekSavePos) +
-                                                " took: " + (curTime - seekSave) + " ms");
-                                    }
-                                });
-                        mediaPlayer.prepareAsync();
-                        SeekAndPlay();
-                        SeekAndPlay();
-                        mBoardVisualization.attachAudio(mediaPlayer.getAudioSessionId());
+                        String filePath = dlManager.GetAudioFile(index - 1);
+                        Uri uri = Uri.parse("file:///" + filePath);
+
+                        // This is the MediaSource representing the media to be played.
+                        MediaSource audioSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+                                .createMediaSource(uri);
+
+                        player.prepare(audioSource, false, false);
+                        player.setPlayWhenReady(true);
+                        player.setRepeatMode(Player.REPEAT_MODE_ALL);
+                        player.setVolume(1);
+                        mBoardVisualization.attachAudio(player.getAudioSessionId());
                     }
                 }
                 SeekAndPlay();
