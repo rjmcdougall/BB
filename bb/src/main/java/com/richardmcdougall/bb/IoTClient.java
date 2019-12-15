@@ -50,14 +50,14 @@ public class IoTClient {
     boolean haveConnected = false;
     WifiManager mWiFiManager = null;
 
-    public IoTClient(Context context) {
-        mContext = context;
+    public IoTClient(BBService service) {
+        mContext = service.context;
 
         Log.d(TAG, "Creating MQTT Client");
         IntentFilter intentf = new IntentFilter();
         setClientID();
-        InputStream keyfile = context.getResources().openRawResource(context.
-                getResources().getIdentifier("rsa_private_pkcs8", "raw", context.getPackageName()));
+        InputStream keyfile = service.context.getResources().openRawResource(service.context.
+                getResources().getIdentifier("rsa_private_pkcs8", "raw", service.context.getPackageName()));
         int kfSize = 0;
         try {
             kfSize = keyfile.read(keyBytes);
@@ -72,7 +72,7 @@ public class IoTClient {
 
         Log.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = mContext.getFilesDir().getAbsolutePath();
-        mqttClient = new MqttAndroidClient(context, "ssl://mqtt.googleapis.com:8883",
+        mqttClient = new MqttAndroidClient(service.context, "ssl://mqtt.googleapis.com:8883",
                 deviceId, new MemoryPersistence());
         doConnect();
 

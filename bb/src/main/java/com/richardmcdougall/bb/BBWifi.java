@@ -58,8 +58,9 @@ public class BBWifi {
     public String getConfiguredPassword(){
         return password;
     }
-    BBWifi(Context context) {
-        mContext = context;
+    BBWifi(BBService service) {
+
+        mContext = service.context;
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mContext.registerReceiver(mWifiScanReceiver,
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));

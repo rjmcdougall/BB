@@ -27,10 +27,10 @@ public class BluetoothCommands {
     private Handler mHandler;
     private AllBoards mAllBoards;
 
-    public BluetoothCommands(BBService service, Context context, BluetoothLEServer ble,
+    public BluetoothCommands(BBService service,   BluetoothLEServer ble,
                              BluetoothConnManager connmgr, FindMyFriends fmf, MusicPlayer mp, AllBoards ab) {
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         mHandler = new Handler(Looper.getMainLooper());
         mBoardId = service.getBoardId();
         mBLEServer = ble;

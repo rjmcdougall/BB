@@ -70,15 +70,15 @@ public class BluetoothLEServer {
 
     private Handler mHandler;
 
-    public BluetoothLEServer(BBService service, Context context) {
+    public BluetoothLEServer(BBService service) {
 
-    mBBService = service;
-    mContext = context;
-    mHandler = new Handler(Looper.getMainLooper());
-    mBoardId = service.getBoardId();
-    mBluetoothConnManager = service.mBluetoothConnManager;
-    mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
-    BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
+        mBBService = service;
+        mContext = service.context;
+        mHandler = new Handler(Looper.getMainLooper());
+        mBoardId = service.getBoardId();
+        mBluetoothConnManager = service.bluetoothConnManager;
+        mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
 
         // We can't continue without proper Bluetooth support
         if (bluetoothAdapter == null) {

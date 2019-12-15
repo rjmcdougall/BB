@@ -43,8 +43,8 @@ public class BluetoothConnManager {
     private HashMap<String, BluetoothDevice> mNewDevices = new HashMap<>();
     private HashMap<String, BluetoothDevice> mPairedDevices = new HashMap<>();
 
-    public BluetoothConnManager(BBService service, Context context) {
-        mContext = context;
+    public BluetoothConnManager(BBService service) {
+        mContext = service.context;
         mBBService = service;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 

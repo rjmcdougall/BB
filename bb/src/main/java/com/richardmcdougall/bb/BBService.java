@@ -183,11 +183,11 @@ public class BBService extends Service {
 
 
             if (iotClient == null) {
-                iotClient = new IoTClient(context);
+                iotClient = new IoTClient(this);
             }
 
             if (wifi == null) {
-                wifi = new BBWifi(context);
+                wifi = new BBWifi(this);
             }
 
             try {
@@ -227,7 +227,7 @@ public class BBService extends Service {
                 }
             });
 
-            mAllBoards = new AllBoards(this, context);
+            mAllBoards = new AllBoards(this);
             mAllBoards.Run();
 
             dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
@@ -271,12 +271,12 @@ public class BBService extends Service {
 
             startLights();
 
-            mMusicPlayer = new MusicPlayer(this, context, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
+            mMusicPlayer = new MusicPlayer(this, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
             mMusicPlayer.Run();
 
-            bluetoothConnManager = new BluetoothConnManager(this, context);
-            bLEServer = new BluetoothLEServer(this, context);
-            radio = new RF(this, context);
+            bluetoothConnManager = new BluetoothConnManager(this);
+            bLEServer = new BluetoothLEServer(this);
+            radio = new RF(this);
 
             InitClock();
 
@@ -288,7 +288,7 @@ public class BBService extends Service {
 
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
-            bluetoothCommands = new BluetoothCommands(this, context, bLEServer,
+            bluetoothCommands = new BluetoothCommands(this, bLEServer,
                     bluetoothConnManager, findMyFriends, mMusicPlayer, mAllBoards);
             bluetoothCommands.init();
 

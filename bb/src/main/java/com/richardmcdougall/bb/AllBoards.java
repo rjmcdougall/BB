@@ -20,9 +20,9 @@ public class AllBoards {
     public JSONArray dataBoards;
     public DownloadManager.OnDownloadProgressType onProgressCallback = null;
 
-    public AllBoards(BBService service, Context context) {
+    public AllBoards(BBService service) {
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         mFilesDir = mContext.getFilesDir().getAbsolutePath();
         LoadInitialBoardsDirectory();
     }

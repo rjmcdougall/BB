@@ -55,16 +55,16 @@ public class RF {
     public AllBoards mAllBoards = null;
 
 
-    public RF(BBService service, Context context) {
+    public RF(BBService service) {
         try {
             mBBService = service;
-            mContext = context;
+            mContext = service.context;
             // Register to receive attach/detached messages that are proxied from MainActivity
             IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
             mBBService.registerReceiver(mUsbReceiver, filter);
             filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
             mBBService.registerReceiver(mUsbReceiver, filter);
-            mAllBoards = new AllBoards(service, context);
+            mAllBoards = new AllBoards(service);
             initUsb();
             mGps = new Gps(mBBService, mContext);
             mGps.attach( new Gps.GpsEvents() {
