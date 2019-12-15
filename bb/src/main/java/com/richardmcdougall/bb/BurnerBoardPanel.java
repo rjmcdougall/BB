@@ -46,8 +46,8 @@ public class BurnerBoardPanel extends BurnerBoard {
     public int [] mLayeredScreen;
 
 
-    public BurnerBoardPanel(BBService service, Context context) {
-        super(service, context);
+    public BurnerBoardPanel(BBService service) {
+        super(service);
         mBoardWidth = 32;
         mBoardHeight = 64;
         super.setTextBuffer(mBoardWidth, mBoardHeight);
@@ -57,7 +57,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         l("Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         initPixelOffset();
         initUsb();
         mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];

@@ -48,8 +48,8 @@ public class BurnerBoardMast extends BurnerBoard {
     //public String boardId = Build.MODEL;
 
 
-    public BurnerBoardMast(BBService service, Context context) {
-        super(service, context);
+    public BurnerBoardMast(BBService service) {
+        super(service);
         mBoardWidth = 24;
         mBoardHeight = 159;
         mMultipler4Speed = 3;
@@ -58,7 +58,7 @@ public class BurnerBoardMast extends BurnerBoard {
         l("Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         initPixelOffset();
         initpixelMap2Board();
         initUsb();

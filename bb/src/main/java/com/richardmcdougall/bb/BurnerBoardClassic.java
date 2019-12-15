@@ -23,8 +23,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     private static final String TAG = "BB.BurnerBoardClassic";
 
 
-    public BurnerBoardClassic(BBService service, Context context) {
-        super(service, context);
+    public BurnerBoardClassic(BBService service) {
+        super(service);
         mBoardWidth = 10;
         mBoardHeight = 70;
         mTextSizeHorizontal = 6;
@@ -34,7 +34,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         initPixelOffset();
         initUsb();
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);

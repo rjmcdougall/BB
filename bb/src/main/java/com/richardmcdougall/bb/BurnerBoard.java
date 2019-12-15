@@ -65,9 +65,9 @@ public class BurnerBoard {
     public IntBuffer mDrawBuffer = null;
 
 
-    public BurnerBoard(BBService service, Context context) {
+    public BurnerBoard(BBService service) {
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         // Register to receive attach/detached messages that are proxied from MainActivity
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
         mBBService.registerReceiver(mUsbReceiver, filter);

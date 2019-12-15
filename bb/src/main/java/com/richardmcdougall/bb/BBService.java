@@ -388,31 +388,29 @@ public class BBService extends Service {
     private BurnerBoard mBurnerBoard;
 
     private void startLights() {
-
-
+        
         if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
             l("Visualization: Using Classic");
-            mBurnerBoard = new BurnerBoardClassic(this, context);
+            mBurnerBoard = new BurnerBoardClassic(this);
         } else if (BurnerBoardUtil.isBBMast()) {
             l("Visualization: Using Mast");
-            mBurnerBoard = new BurnerBoardMast(this, context);
+            mBurnerBoard = new BurnerBoardMast(this);
         } else if (BurnerBoardUtil.isBBPanel()) {
             l("Visualization: Using Panel");
-            mBurnerBoard = new BurnerBoardPanel(this, context);
+            mBurnerBoard = new BurnerBoardPanel(this);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
             l("Visualization: Using Direct Map");
             mBurnerBoard = new BurnerBoardDirectMap(
                     this,
-                    context,
                     BurnerBoardUtil.kVisualizationDirectMapWidth,
                     BurnerBoardUtil.kVisualizationDirectMapHeight
             );
         } else if (BurnerBoardUtil.isBBAzul()) {
             l("Visualization: Using Azul");
-            mBurnerBoard = new BurnerBoardAzul(this, context);
+            mBurnerBoard = new BurnerBoardAzul(this);
         } else {
             l("Could not identify board type! Falling back to Azul for backwards compatibility");
-            mBurnerBoard = new BurnerBoardAzul(this, context);
+            mBurnerBoard = new BurnerBoardAzul(this);
         }
 
         if (mBurnerBoard == null) {

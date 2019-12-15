@@ -49,8 +49,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     public int [] mLayeredScreen;
 
 
-    public BurnerBoardAzul(BBService service, Context context) {
-        super(service, context);
+    public BurnerBoardAzul(BBService service) {
+        super(service);
         mBoardWidth = 46;
         mBoardHeight = 118;
         mMultipler4Speed = 2;
@@ -59,7 +59,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         l("Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
         initPixelOffset();
         initpixelMap2Board();
         initUsb();

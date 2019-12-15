@@ -51,8 +51,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     public static final int mDefaultBoardWidth = BurnerBoardUtil.kVisualizationDirectMapDefaultWidth;
     public static final int mDefaultBoardHeight = BurnerBoardUtil.kVisualizationDirectMapDefaultHeight;
 
-    public BurnerBoardDirectMap(BBService service, Context context, int width, int height) {
-        super(service, context);
+    public BurnerBoardDirectMap(BBService service, int width, int height) {
+        super(service);
         mBoardWidth = width;
         mBoardHeight = height;
         mMultipler4Speed = 3;
@@ -60,7 +60,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBBService = service;
-        mContext = context;
+        mContext = service.context;
 
         boardType = "Burner Board DirectMap";
         l(boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);
