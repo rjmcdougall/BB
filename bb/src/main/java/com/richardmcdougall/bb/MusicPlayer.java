@@ -44,15 +44,14 @@ public class MusicPlayer {
     SimpleExoPlayer player = null;
 
 
-    MusicPlayer(BBService service, DownloadManager dlm, BoardVisualization bv,
-                RFClientServer rfc,
+    MusicPlayer(BBService service,
                 BurnerBoard bb,
                 TextToSpeech v) {
-        dlManager = dlm;
+        dlManager = service.dlManager;
         mMain = service;
         mContext = service.context;
-        mBoardVisualization = bv;
-        mRfClientServer = rfc;
+        mBoardVisualization = service.boardVisualization;
+        mRfClientServer = service.rfClientServer;
         mBurnerBoard = bb;
         voice = v;
     }

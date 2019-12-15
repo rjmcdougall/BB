@@ -62,12 +62,11 @@ public class FindMyFriends {
     String mBoardId;
     byte[] mLastHeardLocation;
 
-    public FindMyFriends(Context context, BBService service,
-                         final RF radio, Gps gps, IoTClient iotclient) {
-        mContext = context;
-        mRadio = radio;
-        mGps = gps;
-        mIotClient = iotclient;
+    public FindMyFriends(BBService service) {
+        mContext = service.context;
+        mRadio = service.radio;
+        mGps = service.gps;
+        mIotClient = service.iotClient;
         mBBService = service;
         l("Starting FindMyFriends");
 

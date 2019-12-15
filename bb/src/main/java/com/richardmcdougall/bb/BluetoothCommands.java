@@ -27,17 +27,16 @@ public class BluetoothCommands {
     private Handler mHandler;
     private AllBoards mAllBoards;
 
-    public BluetoothCommands(BBService service,   BluetoothLEServer ble,
-                             BluetoothConnManager connmgr, FindMyFriends fmf, MusicPlayer mp, AllBoards ab) {
+    public BluetoothCommands(BBService service) {
         mBBService = service;
         mContext = service.context;
         mHandler = new Handler(Looper.getMainLooper());
         mBoardId = service.getBoardId();
-        mBLEServer = ble;
-        mBluetoothConnManager = connmgr;
-        mFindMyFriends = fmf;
-        mMusicPlayer = mp;
-        mAllBoards = ab;
+        mBLEServer = service.bLEServer;
+        mBluetoothConnManager = service.bluetoothConnManager;
+        mFindMyFriends = service.findMyFriends;
+        mMusicPlayer = service.musicPlayer;
+        mAllBoards = service.allBoards;
 
         // Register to receive button messages
         IntentFilter filter;

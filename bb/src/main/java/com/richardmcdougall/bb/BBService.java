@@ -63,7 +63,7 @@ public class BBService extends Service {
     public Context context;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
-    public RFClientServer mRfClientServer = null;
+    public RFClientServer rfClientServer = null;
     /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
     public static String boardId = BurnerBoardUtil.BOARD_ID;
     /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
@@ -71,19 +71,20 @@ public class BBService extends Service {
     //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
     //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
-    BoardVisualization mBoardVisualization = null;
-    IoTClient iotClient = null;
     int mVersion = 0;
     Date mAPKUpdatedDate;
 
-    public AllBoards mAllBoards = null;
-    public MusicPlayer mMusicPlayer = null;
+    public AllBoards allBoards = null;
+    public MusicPlayer musicPlayer = null;
     public RF radio = null;
     public Gps gps = null;
     public FindMyFriends findMyFriends = null;
     public BluetoothLEServer bLEServer = null;
     public BluetoothCommands bluetoothCommands = null;
     public BluetoothConnManager bluetoothConnManager = null;
+    public BoardVisualization boardVisualization = null;
+    public IoTClient iotClient = null;
+
     private boolean mMasterRemote = false;
     private boolean mBlockMaster = false;
     private boolean mVoiceAnnouncements = false;
@@ -227,8 +228,8 @@ public class BBService extends Service {
                 }
             });
 
-            mAllBoards = new AllBoards(this);
-            mAllBoards.Run();
+            allBoards = new AllBoards(this);
+            allBoards.Run();
 
             dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
                     BurnerBoardUtil.BOARD_ID, mVersion);
@@ -271,8 +272,8 @@ public class BBService extends Service {
 
             startLights();
 
-            mMusicPlayer = new MusicPlayer(this, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
-            mMusicPlayer.Run();
+            musicPlayer = new MusicPlayer(this, mBurnerBoard, voice);
+            musicPlayer.Run();
 
             bluetoothConnManager = new BluetoothConnManager(this);
             bLEServer = new BluetoothLEServer(this);
@@ -280,16 +281,15 @@ public class BBService extends Service {
 
             InitClock();
 
-            mRfClientServer = new RFClientServer(this, radio);
-            mRfClientServer.Run();
+            rfClientServer = new RFClientServer(this);
+            rfClientServer.Run();
 
             gps = radio.getGps();
-            findMyFriends = new FindMyFriends(context, this, radio, gps, iotClient);
+            findMyFriends = new FindMyFriends(this);
 
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
-            bluetoothCommands = new BluetoothCommands(this, bLEServer,
-                    bluetoothConnManager, findMyFriends, mMusicPlayer, mAllBoards);
+            bluetoothCommands = new BluetoothCommands(this);
             bluetoothCommands.init();
 
             if (supervisorMonitor == null) {
@@ -425,12 +425,12 @@ public class BBService extends Service {
             mBurnerBoard.attach(new BoardCallback());
         }
 
-        if (mBoardVisualization == null) {
-            mBoardVisualization = new BoardVisualization(this, mBurnerBoard, this);
+        if (boardVisualization == null) {
+            boardVisualization = new BoardVisualization(this, mBurnerBoard, this);
         }
 
         Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
-        mBoardVisualization.setMode(mBoardMode);
+        boardVisualization.setMode(mBoardMode);
     }
 
     public FindMyFriends getFindMyFriends() {
@@ -493,7 +493,7 @@ public class BBService extends Service {
                         break;
                     case BUTTON_TRACK:
                         l("BUTTON_TRACK");
-                        mMusicPlayer.NextStream();
+                        musicPlayer.NextStream();
                         break;
                     case BUTTON_MODE_UP:
                         l("BUTTON_MODE_UP");
@@ -505,23 +505,23 @@ public class BBService extends Service {
                         break;
                     case BUTTON_DRIFT_DOWN:
                         l("BUTTON_DRIFT_DOWN");
-                        mMusicPlayer.MusicOffset(-10);
+                        musicPlayer.MusicOffset(-10);
                         break;
                     case BUTTON_DRIFT_UP:
                         l("BUTTON_DRIFT_UP");
-                        mMusicPlayer.MusicOffset(10);
+                        musicPlayer.MusicOffset(10);
                         break;
                     case BUTTON_VOL_DOWN:
                         l("BUTTON_VOL_DOWN");
-                        mMusicPlayer.onVolDown();
+                        musicPlayer.onVolDown();
                         break;
                     case BUTTON_VOL_UP:
                         l("BUTTON_VOL_UP");
-                        mMusicPlayer.onVolUp();
+                        musicPlayer.onVolUp();
                         break;
                     case BUTTON_VOL_PAUSE:
                         l("BUTTON_VOL_PAUSE");
-                        mMusicPlayer.onVolPause();
+                        musicPlayer.onVolPause();
                         break;
                     default:
                         break;
@@ -531,8 +531,8 @@ public class BBService extends Service {
     };
 
     public int getCurrentBoardMode() {
-        if (mBoardVisualization != null) {
-            return mBoardVisualization.getMode();
+        if (boardVisualization != null) {
+            return boardVisualization.getMode();
         } else {
             return 0;
         }
@@ -548,13 +548,13 @@ public class BBService extends Service {
             // Let everyone else know we just decided to be the master
             // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
             // from the client data. XXX is there a better/more useful payload?
-            mRfClientServer.sendRemote(kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
+            rfClientServer.sendRemote(kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
 
             mBurnerBoard.setText("Master", 2000);
             voice.speak("Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
-            mRfClientServer.disableMasterBroadcast();
+            rfClientServer.disableMasterBroadcast();
 
             mBurnerBoard.setText("Solo", 2000);
             voice.speak("Disabling Master Remote: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
@@ -568,16 +568,16 @@ public class BBService extends Service {
         mGTFO = enable;
         if (enable) {
 
-            mBoardVisualization.inhibitGTFO(true);
+            boardVisualization.inhibitGTFO(true);
             mBurnerBoard.setText90("Get The Fuck Off!", 5000);
-            mMusicPlayer.setVolume(0, 0);
-            stashedAndroidVolumePercent = mMusicPlayer.getAndroidVolumePercent();
-            mMusicPlayer.setAndroidVolumePercent(100);
+            musicPlayer.setVolume(0, 0);
+            stashedAndroidVolumePercent = musicPlayer.getAndroidVolumePercent();
+            musicPlayer.setAndroidVolumePercent(100);
             voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD, null, "GTFO");
         } else {
-            mBoardVisualization.inhibitGTFO(false);
-            mMusicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
-            mMusicPlayer.setVolume(1, 1);
+            boardVisualization.inhibitGTFO(false);
+            musicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
+            musicPlayer.setVolume(1, 1);
         }
     }
 
@@ -601,12 +601,12 @@ public class BBService extends Service {
                 case kRemoteAudioTrack:
 
                     for (int i = 1; i <= getRadioChannelMax(); i++) {
-                        String name = mMusicPlayer.getRadioChannelInfo(i);
+                        String name = musicPlayer.getRadioChannelInfo(i);
                         long hashed = hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Audio " + mMusicPlayer.getRadioChannel() + " -> " + i);
-                            if (mMusicPlayer.getRadioChannel() != i) {
-                                mMusicPlayer.SetRadioChannel((int) i);
+                            l("Remote Audio " + musicPlayer.getRadioChannel() + " -> " + i);
+                            if (musicPlayer.getRadioChannel() != i) {
+                                musicPlayer.SetRadioChannel((int) i);
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote audio switch to track " + i + " (" + name + ")");
@@ -633,8 +633,8 @@ public class BBService extends Service {
                     }
                     break;
                 case kRemoteMute:
-                    if (value != mMusicPlayer.getCurrentBoardVol()) {
-                        mMusicPlayer.setBoardVolume((int) value);
+                    if (value != musicPlayer.getCurrentBoardVol()) {
+                        musicPlayer.setBoardVolume((int) value);
                     }
                     break;
                 case kRemoteMasterName:
@@ -678,7 +678,7 @@ public class BBService extends Service {
             next = 1;
         }
         l("Setting Video to: " + getVideoModeInfo(next));
-        mBoardVisualization.setMode(next);
+        boardVisualization.setMode(next);
     }
 
     // Hash String as 32-bit
@@ -716,23 +716,23 @@ public class BBService extends Service {
         switch (keyCode) {
             case 100:
             case 87: // satachi right button
-                mMusicPlayer.NextStream();
+                musicPlayer.NextStream();
                 break;
             case 97:
             case 20:
-                mMusicPlayer.MusicOffset(-10);
+                musicPlayer.MusicOffset(-10);
                 break;
             case 19:
-                mMusicPlayer.MusicOffset(10);
+                musicPlayer.MusicOffset(10);
                 break;
             case 24:   // native volume up button
             case 21:
-                mMusicPlayer.onVolUp();
+                musicPlayer.onVolUp();
 
                 return false;
             case 25:  // native volume down button
             case 22:
-                mMusicPlayer.onVolDown();
+                musicPlayer.onVolDown();
                 return false;
             case 85: // Play button - show battery
                 onBatteryButton();
@@ -764,21 +764,21 @@ public class BBService extends Service {
             /* Audio stream control */
             case 87: // satachi right button
                 l("RPI Bluetooth Right Button");
-                mMusicPlayer.NextStream();
+                musicPlayer.NextStream();
                 break;
             case 88: //satachi left button
                 l("RPI Bluetooth Left Button");
-                mMusicPlayer.PreviousStream();
+                musicPlayer.PreviousStream();
                 break;
 
             /* Volume control */
             case 24:   // satachi & native volume up button
                 l("RPI Bluetooth Volume Up Button");
-                mMusicPlayer.onVolUp();
+                musicPlayer.onVolUp();
                 return false;
             case 25:  // satachi & native volume down button
                 l("RPI Bluetooth Volume Down Button");
-                mMusicPlayer.onVolDown();
+                musicPlayer.onVolDown();
                 return false;
         }
         //mHandler.removeCallbacksAndMessages(null);
@@ -803,16 +803,16 @@ public class BBService extends Service {
             mBoardMode = maxModes;
 
         // If I am set to be the master, broadcast to other boards
-        if (mMasterRemote && (mRfClientServer != null)) {
+        if (mMasterRemote && (rfClientServer != null)) {
 
             String name = getVideoModeInfo(mBoardMode);
             l("Sending video remote for video " + name);
-            mRfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
+            rfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
-        if (mBoardVisualization != null && mBurnerBoard != null) {
-            l("SetMode:" + mBoardVisualization.getMode() + " -> " + mode);
-            mBoardVisualization.setMode(mBoardMode);
+        if (boardVisualization != null && mBurnerBoard != null) {
+            l("SetMode:" + boardVisualization.getMode() + " -> " + mode);
+            boardVisualization.setMode(mBoardMode);
             mBurnerBoard.setMode(mBoardMode);
         }
 
@@ -888,7 +888,7 @@ public class BBService extends Service {
     ;
 
     private void checkBattery() {
-        if ((mBurnerBoard != null) && (mBoardVisualization != null)) {
+        if ((mBurnerBoard != null) && (boardVisualization != null)) {
 
             boolean announce = false;
             powerStates powerState = powerStates.STATE_DISPLAYING;
@@ -912,42 +912,42 @@ public class BBService extends Service {
             if ((voltage > 20000) && (current > -150) && (current < 10)) {
                 // Any state -> IDLE
                 powerState = powerStates.STATE_IDLE;
-                mBoardVisualization.inhibit(true);
+                boardVisualization.inhibit(true);
             } else if ((voltage > 20000) && (currentInstant < -150)) {
                 // Any state -> Displaying
                 powerState = powerStates.STATE_DISPLAYING;
-                mBoardVisualization.inhibit(false);
+                boardVisualization.inhibit(false);
             } else if (powerState == powerStates.STATE_DISPLAYING &&
                     // DISPLAYING -> Charging (avg current)
                     (voltage > 20000) && (current > 10)) {
                 powerState = powerStates.STATE_CHARGING;
-                mBoardVisualization.inhibit(false);
+                boardVisualization.inhibit(false);
             } else if (powerState == powerStates.STATE_IDLE &&
                     (voltage > 20000) && (currentInstant > 10)) {
                 // STATE_IDLE -> Charging // instant
                 powerState = powerStates.STATE_CHARGING;
-                mBoardVisualization.inhibit(false);
+                boardVisualization.inhibit(false);
             } else if ((voltage > 20000) && (current > 10)) {
                 // Anystate -> Charging // avg current
                 powerState = powerStates.STATE_CHARGING;
-                mBoardVisualization.inhibit(false);
+                boardVisualization.inhibit(false);
             } else {
                 l("Unhandled power state " + powerState);
-                mBoardVisualization.inhibit(false);
+                boardVisualization.inhibit(false);
             }
 
             d_battery("Power state is " + powerState);
 
             // Show battery if charging
-            mBoardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
+            boardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
 
             // Battery voltage is critically low
             // Board will come to a halt in < 60 seconds
             // current is milliamps
             if ((voltage > 20000) && (voltage < 35300)) {
-                mBoardVisualization.emergency(true);
+                boardVisualization.emergency(true);
             } else {
-                mBoardVisualization.emergency(false);
+                boardVisualization.emergency(false);
             }
 
             announce = false;
@@ -992,7 +992,7 @@ public class BBService extends Service {
                         @Override
                         public void run() {
                             if (pressCnt == 2) {
-                                mBoardVisualization.showMap();
+                                boardVisualization.showMap();
                             } else if (pressCnt == 3) {
                                 // Toggle master mode
                                 if (mMasterRemote == true) {

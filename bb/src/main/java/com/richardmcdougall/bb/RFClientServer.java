@@ -121,12 +121,12 @@ public class RFClientServer {
         }
     }
 
-    RFClientServer(BBService service, RF rfRadio) {
+    RFClientServer(BBService service) {
 
         mMain = service;
-        mRF = rfRadio;
-        mAllBoards = rfRadio.mAllBoards;
-   //     mBoardAddress = mAllBoards.getBoardAddress(service.getBoardId());
+        mRF = service.radio;
+        mAllBoards = mRF.mAllBoards;
+   //     mBoardAddress = allBoards.getBoardAddress(service.getBoardId());
 
         // Make a pipe for packet receive
         try {
