@@ -272,7 +272,7 @@ public class BBService extends Service {
 
             startLights();
 
-            musicPlayer = new MusicPlayer(this, mBurnerBoard, voice);
+            musicPlayer = new MusicPlayer(this, burnerBoard, voice);
             musicPlayer.Run();
 
             bluetoothConnManager = new BluetoothConnManager(this);
@@ -385,46 +385,46 @@ public class BBService extends Service {
         return String.valueOf(mVersion);
     }
 
-    private BurnerBoard mBurnerBoard;
+    private BurnerBoard burnerBoard;
 
     private void startLights() {
-        
+
         if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
             l("Visualization: Using Classic");
-            mBurnerBoard = new BurnerBoardClassic(this);
+            burnerBoard = new BurnerBoardClassic(this);
         } else if (BurnerBoardUtil.isBBMast()) {
             l("Visualization: Using Mast");
-            mBurnerBoard = new BurnerBoardMast(this);
+            burnerBoard = new BurnerBoardMast(this);
         } else if (BurnerBoardUtil.isBBPanel()) {
             l("Visualization: Using Panel");
-            mBurnerBoard = new BurnerBoardPanel(this);
+            burnerBoard = new BurnerBoardPanel(this);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
             l("Visualization: Using Direct Map");
-            mBurnerBoard = new BurnerBoardDirectMap(
+            burnerBoard = new BurnerBoardDirectMap(
                     this,
                     BurnerBoardUtil.kVisualizationDirectMapWidth,
                     BurnerBoardUtil.kVisualizationDirectMapHeight
             );
         } else if (BurnerBoardUtil.isBBAzul()) {
             l("Visualization: Using Azul");
-            mBurnerBoard = new BurnerBoardAzul(this);
+            burnerBoard = new BurnerBoardAzul(this);
         } else {
             l("Could not identify board type! Falling back to Azul for backwards compatibility");
-            mBurnerBoard = new BurnerBoardAzul(this);
+            burnerBoard = new BurnerBoardAzul(this);
         }
 
-        if (mBurnerBoard == null) {
+        if (burnerBoard == null) {
             l("startLights: null burner board");
             return;
         }
-        mBurnerBoard.setText90(mBurnerBoard.boardId, 5000);
+        burnerBoard.setText90(burnerBoard.boardId, 5000);
 
-        if (mBurnerBoard != null) {
-            mBurnerBoard.attach(new BoardCallback());
+        if (burnerBoard != null) {
+            burnerBoard.attach(new BoardCallback());
         }
 
         if (boardVisualization == null) {
-            boardVisualization = new BoardVisualization(this, mBurnerBoard, this);
+            boardVisualization = new BoardVisualization(this, burnerBoard, this);
         }
 
         Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
@@ -467,8 +467,8 @@ public class BBService extends Service {
     private void onDeviceStateChange() {
         l("BBservice: onDeviceStateChange()");
 
-        mBurnerBoard.stopIoManager();
-        mBurnerBoard.startIoManager();
+        burnerBoard.stopIoManager();
+        burnerBoard.startIoManager();
     }
 
     // We use this to catch the music buttons
@@ -548,13 +548,13 @@ public class BBService extends Service {
             // from the client data. XXX is there a better/more useful payload?
             rfClientServer.sendRemote(kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
 
-            mBurnerBoard.setText("Master", 2000);
+            burnerBoard.setText("Master", 2000);
             voice.speak("Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             rfClientServer.disableMasterBroadcast();
 
-            mBurnerBoard.setText("Solo", 2000);
+            burnerBoard.setText("Solo", 2000);
             voice.speak("Disabling Master Remote: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
         }
     }
@@ -567,7 +567,7 @@ public class BBService extends Service {
         if (enable) {
 
             boardVisualization.inhibitGTFO(true);
-            mBurnerBoard.setText90("Get The Fuck Off!", 5000);
+            burnerBoard.setText90("Get The Fuck Off!", 5000);
             musicPlayer.setVolume(0, 0);
             stashedAndroidVolumePercent = musicPlayer.getAndroidVolumePercent();
             musicPlayer.setAndroidVolumePercent(100);
@@ -808,10 +808,10 @@ public class BBService extends Service {
             rfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
-        if (boardVisualization != null && mBurnerBoard != null) {
+        if (boardVisualization != null && burnerBoard != null) {
             l("SetMode:" + boardVisualization.getMode() + " -> " + mode);
             boardVisualization.setMode(mBoardMode);
-            mBurnerBoard.setMode(mBoardMode);
+            burnerBoard.setMode(mBoardMode);
         }
 
         if (mVoiceAnnouncements) {
@@ -832,7 +832,7 @@ public class BBService extends Service {
     }
 
     public int getBatteryLevel() {
-        return mBurnerBoard.getBattery();
+        return burnerBoard.getBattery();
     }
 
     private int loopCnt = 0;
@@ -855,7 +855,7 @@ public class BBService extends Service {
             }
 
             // Every second, check & update battery
-            if (mEnableBatteryMonitoring && (mBurnerBoard != null)) {
+            if (mEnableBatteryMonitoring && (burnerBoard != null)) {
                 checkBattery();
 
                 // Every 10 seconds, send battery update via IoT.
@@ -863,7 +863,7 @@ public class BBService extends Service {
                 if (mEnableIoTReporting && (loopCnt % mIoTReportEveryNSeconds == 0)) {
                     l("Sending MQTT update");
                     try {
-                        iotClient.sendUpdate("bbtelemetery", mBurnerBoard.getBatteryStats());
+                        iotClient.sendUpdate("bbtelemetery", burnerBoard.getBatteryStats());
                     } catch (Exception e) {
                     }
                 }
@@ -886,15 +886,15 @@ public class BBService extends Service {
     ;
 
     private void checkBattery() {
-        if ((mBurnerBoard != null) && (boardVisualization != null)) {
+        if ((burnerBoard != null) && (boardVisualization != null)) {
 
             boolean announce = false;
             powerStates powerState = powerStates.STATE_DISPLAYING;
 
-            int level = mBurnerBoard.getBattery();
-            int current = mBurnerBoard.getBatteryCurrent();
-            int currentInstant = mBurnerBoard.getBatteryCurrentInstant();
-            int voltage = mBurnerBoard.getBatteryVoltage();
+            int level = burnerBoard.getBattery();
+            int current = burnerBoard.getBatteryCurrent();
+            int currentInstant = burnerBoard.getBatteryCurrentInstant();
+            int voltage = burnerBoard.getBatteryVoltage();
 
             d_battery("Board Current(avg) is " + current);
             d_battery("Board Current(Instant) is " + currentInstant);
@@ -981,8 +981,8 @@ public class BBService extends Service {
     private int pressCnt = 1;
 
     private void onBatteryButton() {
-        if (mBurnerBoard != null) {
-            mBurnerBoard.showBattery();
+        if (burnerBoard != null) {
+            burnerBoard.showBattery();
             if ((SystemClock.elapsedRealtime() - lastPressed) < 600) {
                 if (pressCnt == 1) {
                     final Handler handler = new Handler();
@@ -1032,7 +1032,7 @@ public class BBService extends Service {
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            mBurnerBoard.flashScreen(400);
+                            burnerBoard.flashScreen(400);
 
                         }
                     }, 3000);
@@ -1059,8 +1059,8 @@ public class BBService extends Service {
                     // Broadcast this event so we can receive it
                     LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
 
-                    if (mBurnerBoard != null) {
-                        mBurnerBoard.initUsb();
+                    if (burnerBoard != null) {
+                        burnerBoard.initUsb();
                     }
                 }
                 if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
