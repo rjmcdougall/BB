@@ -84,6 +84,7 @@ public class BBService extends Service {
     public BluetoothConnManager bluetoothConnManager = null;
     public BoardVisualization boardVisualization = null;
     public IoTClient iotClient = null;
+    public Supervisor supervisor = null;
 
     private boolean mMasterRemote = false;
     private boolean mBlockMaster = false;
@@ -132,11 +133,6 @@ public class BBService extends Service {
     boolean mAllowRebind;
 
     /**
-     * Called when the service is being created.
-     */
-    Thread supervisorMonitor = null;
-
-    /**
      * Indicates whether battery monitoring is enabled
      */
     boolean mEnableBatteryMonitoring = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
@@ -146,12 +142,6 @@ public class BBService extends Service {
      */
     boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
     int mIoTReportEveryNSeconds = 10;
-
-    /**
-     * Indicates whether Wifi reconnecting is enabled and how often
-     */
-    boolean mEnableWifiReconnect = true;
-    int mWifiReconnectEveryNSeconds = 60;
 
     @Override
     public void onCreate() {
@@ -292,18 +282,8 @@ public class BBService extends Service {
             bluetoothCommands = new BluetoothCommands(this);
             bluetoothCommands.init();
 
-            if (supervisorMonitor == null) {
-                l("starting supervisor thread");
-                Thread supervisorMonitor = new Thread(new Runnable() {
-                    public void run() {
-                        Thread.currentThread().setName("BB Supervisor");
-                        supervisorThread();
-                    }
-                });
-                supervisorMonitor.start();
-            } else {
-                l("supervisor thread already running");
-            }
+            supervisor = new Supervisor(this);
+            supervisor.Run();
 
             // Supported Languages
             Set<Locale> supportedLanguages = voice.getAvailableLanguages();
@@ -385,7 +365,7 @@ public class BBService extends Service {
         return String.valueOf(mVersion);
     }
 
-    private BurnerBoard burnerBoard;
+    public BurnerBoard burnerBoard;
 
     private void startLights() {
 
@@ -835,49 +815,6 @@ public class BBService extends Service {
         return burnerBoard.getBattery();
     }
 
-    private int loopCnt = 0;
-
-    private void supervisorThread() {
-
-        /* Communicate the settings for the supervisor thread */
-        l("Enable Battery Monitoring? " + mEnableBatteryMonitoring);
-        l("Enable IoT Reporting? " + mEnableIoTReporting);
-        l("Enable WiFi reconnect? " + mEnableWifiReconnect);
-
-        while (true) {
-
-            // Every 60 seconds check WIFI
-            if (mEnableWifiReconnect && (loopCnt % mWifiReconnectEveryNSeconds == 0)) {
-                if (wifi != null) {
-                    l("Check Wifi");
-                    wifi.checkWifiReconnect();
-                }
-            }
-
-            // Every second, check & update battery
-            if (mEnableBatteryMonitoring && (burnerBoard != null)) {
-                checkBattery();
-
-                // Every 10 seconds, send battery update via IoT.
-                // Only do this if we're actively checking the battery.
-                if (mEnableIoTReporting && (loopCnt % mIoTReportEveryNSeconds == 0)) {
-                    l("Sending MQTT update");
-                    try {
-                        iotClient.sendUpdate("bbtelemetery", burnerBoard.getBatteryStats());
-                    } catch (Exception e) {
-                    }
-                }
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (Throwable e) {
-            }
-
-            loopCnt++;
-        }
-    }
-
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
 
@@ -885,7 +822,7 @@ public class BBService extends Service {
 
     ;
 
-    private void checkBattery() {
+    public void checkBattery() {
         if ((burnerBoard != null) && (boardVisualization != null)) {
 
             boolean announce = false;

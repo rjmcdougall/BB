@@ -32,6 +32,12 @@ import org.json.JSONArray;
 
 public class BBWifi {
 
+    /**
+     * Indicates whether Wifi reconnecting is enabled and how often
+     */
+    public boolean mEnableWifiReconnect = true;
+    public int mWifiReconnectEveryNSeconds = 60;
+
     private Context mContext;
     WifiManager mWiFiManager = null;
     // IP address of the device
