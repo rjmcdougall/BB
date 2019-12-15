@@ -60,7 +60,7 @@ public class BBService extends Service {
 
     //private BBListenerAdapter mListener = null;
     public Handler mHandler = null;
-    private Context mContext;
+    public Context context;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
     public RFClientServer mRfClientServer = null;
@@ -78,13 +78,12 @@ public class BBService extends Service {
 
     public AllBoards mAllBoards = null;
     public MusicPlayer mMusicPlayer = null;
-    public RF mRadio = null;
-    public Gps mGps = null;
-    public FindMyFriends mFindMyFriends = null;
-    public Favorites mFavorites = null;
-    public BluetoothLEServer mBLEServer = null;
-    public BluetoothCommands mBluetoothCommands = null;
-    public BluetoothConnManager mBluetoothConnManager = null;
+    public RF radio = null;
+    public Gps gps = null;
+    public FindMyFriends findMyFriends = null;
+    public BluetoothLEServer bLEServer = null;
+    public BluetoothCommands bluetoothCommands = null;
+    public BluetoothConnManager bluetoothConnManager = null;
     private boolean mMasterRemote = false;
     private boolean mBlockMaster = false;
     private boolean mVoiceAnnouncements = false;
@@ -165,7 +164,7 @@ public class BBService extends Service {
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
             this.registerReceiver(mUsbReceiver, ufilter);
 
-            mContext = getApplicationContext();
+            context = getApplicationContext();
 
             PackageInfo pinfo;
             try {
@@ -184,11 +183,11 @@ public class BBService extends Service {
 
 
             if (iotClient == null) {
-                iotClient = new IoTClient(mContext);
+                iotClient = new IoTClient(context);
             }
 
             if (wifi == null) {
-                wifi = new BBWifi(mContext);
+                wifi = new BBWifi(context);
             }
 
             try {
@@ -228,7 +227,7 @@ public class BBService extends Service {
                 }
             });
 
-            mAllBoards = new AllBoards(this, mContext);
+            mAllBoards = new AllBoards(this, context);
             mAllBoards.Run();
 
             dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
@@ -268,30 +267,30 @@ public class BBService extends Service {
             LocalBroadcastManager.getInstance(this).registerReceiver(mButtonReceiver, filter);
 
             // Register to know when bluetooth remote connects
-            mContext.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
+            context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
             startLights();
 
-            mMusicPlayer = new MusicPlayer(this,  mContext, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
+            mMusicPlayer = new MusicPlayer(this, context, dlManager, mBoardVisualization, mRfClientServer, mBurnerBoard, voice);
             mMusicPlayer.Run();
 
-            mBluetoothConnManager = new BluetoothConnManager(this, mContext);
-            mBLEServer = new BluetoothLEServer(this, mContext);
-            mRadio = new RF(this, mContext);
+            bluetoothConnManager = new BluetoothConnManager(this, context);
+            bLEServer = new BluetoothLEServer(this, context);
+            radio = new RF(this, context);
 
             InitClock();
 
-            mRfClientServer = new RFClientServer(this, mRadio);
+            mRfClientServer = new RFClientServer(this, radio);
             mRfClientServer.Run();
 
-            mGps = mRadio.getGps();
-            mFindMyFriends = new FindMyFriends(mContext, this, mRadio, mGps, iotClient);
+            gps = radio.getGps();
+            findMyFriends = new FindMyFriends(context, this, radio, gps, iotClient);
 
-            // mFavorites = new Favorites(mContext, this, mRadio, mGps, iotClient);
+            // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
-            mBluetoothCommands = new BluetoothCommands(this, mContext, mBLEServer,
-                    mBluetoothConnManager, mFindMyFriends, mMusicPlayer, mAllBoards);
-            mBluetoothCommands.init();
+            bluetoothCommands = new BluetoothCommands(this, context, bLEServer,
+                    bluetoothConnManager, findMyFriends, mMusicPlayer, mAllBoards);
+            bluetoothCommands.init();
 
             if (supervisorMonitor == null) {
                 l("starting supervisor thread");
@@ -393,27 +392,27 @@ public class BBService extends Service {
 
         if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
             l("Visualization: Using Classic");
-            mBurnerBoard = new BurnerBoardClassic(this, mContext);
+            mBurnerBoard = new BurnerBoardClassic(this, context);
         } else if (BurnerBoardUtil.isBBMast()) {
             l("Visualization: Using Mast");
-            mBurnerBoard = new BurnerBoardMast(this, mContext);
+            mBurnerBoard = new BurnerBoardMast(this, context);
         } else if (BurnerBoardUtil.isBBPanel()) {
             l("Visualization: Using Panel");
-            mBurnerBoard = new BurnerBoardPanel(this, mContext);
+            mBurnerBoard = new BurnerBoardPanel(this, context);
         } else if (BurnerBoardUtil.isBBDirectMap()) {
             l("Visualization: Using Direct Map");
             mBurnerBoard = new BurnerBoardDirectMap(
                     this,
-                    mContext,
+                    context,
                     BurnerBoardUtil.kVisualizationDirectMapWidth,
                     BurnerBoardUtil.kVisualizationDirectMapHeight
             );
         } else if (BurnerBoardUtil.isBBAzul()) {
             l("Visualization: Using Azul");
-            mBurnerBoard = new BurnerBoardAzul(this, mContext);
+            mBurnerBoard = new BurnerBoardAzul(this, context);
         } else {
             l("Could not identify board type! Falling back to Azul for backwards compatibility");
-            mBurnerBoard = new BurnerBoardAzul(this, mContext);
+            mBurnerBoard = new BurnerBoardAzul(this, context);
         }
 
         if (mBurnerBoard == null) {
@@ -435,7 +434,7 @@ public class BBService extends Service {
     }
 
     public FindMyFriends getFindMyFriends() {
-        return mFindMyFriends;
+        return findMyFriends;
     }
 
     long startElapsedTime, startClock;
