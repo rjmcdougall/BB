@@ -85,7 +85,7 @@ public class BBService extends Service {
     public BoardVisualization boardVisualization = null;
     public IoTClient iotClient = null;
     public BurnerBoard burnerBoard;
-    public Supervisor supervisor = null;
+    public BatterySupervisor batterySupervisor = null;
 
     private boolean mMasterRemote = false;
     private boolean mBlockMaster = false;
@@ -288,8 +288,8 @@ public class BBService extends Service {
             bluetoothCommands = new BluetoothCommands(this);
             bluetoothCommands.init();
 
-            supervisor = new Supervisor(this);
-            supervisor.Run();
+            batterySupervisor = new BatterySupervisor(this);
+            batterySupervisor.Run();
 
             // Supported Languages
             Set<Locale> supportedLanguages = voice.getAvailableLanguages();

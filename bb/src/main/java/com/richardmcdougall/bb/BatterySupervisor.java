@@ -6,7 +6,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-public class Supervisor {
+public class BatterySupervisor {
 
     private int loopCnt = 0;
     private BBService mBBService = null;
@@ -14,7 +14,7 @@ public class Supervisor {
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
 
-    Supervisor(BBService service){
+    BatterySupervisor(BBService service){
         mBBService = service;
     }
 
