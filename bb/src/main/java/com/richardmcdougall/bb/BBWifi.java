@@ -37,7 +37,7 @@ public class BBWifi {
      */
     public boolean mEnableWifiReconnect = true;
     public int mWifiReconnectEveryNSeconds = 60;
-
+    private BBService mBBService = null;
     private Context mContext;
     WifiManager mWiFiManager = null;
     // IP address of the device
@@ -64,8 +64,10 @@ public class BBWifi {
     public String getConfiguredPassword(){
         return password;
     }
+
     BBWifi(BBService service) {
 
+        mBBService = service;
         mContext = service.context;
         mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mContext.registerReceiver(mWifiScanReceiver,
@@ -80,7 +82,7 @@ public class BBWifi {
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
-            l("Enabling Wifi...");
+            d("Enabling Wifi...");
             setupWifi();
 
         }
@@ -102,29 +104,29 @@ public class BBWifi {
 
                                           switch (extraWifiState) {
                                               case WifiManager.WIFI_STATE_DISABLED:
-                                                  l("WIFI STATE DISABLED");
+                                                  d("WIFI STATE DISABLED");
                                                   break;
                                               case WifiManager.WIFI_STATE_DISABLING:
-                                                  l("WIFI STATE DISABLING");
+                                                  d("WIFI STATE DISABLING");
                                                   break;
                                               case WifiManager.WIFI_STATE_ENABLED:
-                                                  l("WIFI STATE ENABLED");
+                                                  d("WIFI STATE ENABLED");
                                                   int mfs = mWiFiManager.getWifiState();
-                                                  l("Wifi state is " + mfs);
-                                                  l("Checking wifi");
+                                                  d("Wifi state is " + mfs);
+                                                  d("Checking wifi");
                                                   if (checkWifiSSid(SSID) == false) {
-                                                      l("adding wifi: " + SSID);
+                                                      d("adding wifi: " + SSID);
                                                       addWifi(SSID, password);
                                                   }
-                                                  l("Connecting to wifi");
+                                                  d("Connecting to wifi");
                                                   if(!checkWifiOnAndConnected(mWiFiManager))
                                                         connectWifi(SSID);
                                                   break;
                                               case WifiManager.WIFI_STATE_ENABLING:
-                                                  l("WIFI STATE ENABLING");
+                                                  d("WIFI STATE ENABLING");
                                                   break;
                                               case WifiManager.WIFI_STATE_UNKNOWN:
-                                                  l("WIFI STATE UNKNOWN");
+                                                  d("WIFI STATE UNKNOWN");
                                                   break;
                                           }
                                       }
@@ -143,7 +145,7 @@ public class BBWifi {
                 return false; // Not connected to an access point
             }
 
-            l("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(SSID));
+            d("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(SSID));
             if(!wifiInfo.getSSID().equals(fixWifiSSidAndPass(SSID))){
                 mIPAddress = null;
                 return false; // configured for wrong access point.
@@ -151,11 +153,11 @@ public class BBWifi {
 
             mIPAddress = getWifiIpAddress(wifiMgr);
             if (mIPAddress != null) {
-                l("WIFI IP Address: " + mIPAddress);
+                d("WIFI IP Address: " + mIPAddress);
                 // Text to speach is not set up yet at this time; move it to init loop.
                 //voice.speak("My WIFI IP is " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
             } else {
-                l("Could not determine WIFI IP at this time");
+                d("Could not determine WIFI IP at this time");
             }
 
             return true; // Connected to an access point
@@ -167,19 +169,24 @@ public class BBWifi {
 
     public void checkWifiReconnect() {
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
-            l("Enabling Wifi...");
+            d("Enabling Wifi...");
             if (mWiFiManager.setWifiEnabled(true) == false) {
-                l("Failed to enable wifi");
+                d("Failed to enable wifi");
             }
             if (mWiFiManager.reassociate() == false) {
-                l("Failed to associate wifi");
+                d("Failed to associate wifi");
             }
         }
     }
 
-    public void l(String s) {
-        Log.v(TAG, s);
-        sendLogMsg(s);
+    public void d(String logMsg) {
+        if (DebugConfigs.DEBUG_WIFI) {
+            Log.d(TAG, logMsg);
+        }
+    }
+
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
     }
 
     private void sendLogMsg(String msg) {
@@ -230,7 +237,7 @@ public class BBWifi {
             if (wifiList != null) {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
-                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    d("Found wifi:" + newSSID + " == " + aWifi + " ?");
                     if (aWifi.equals(newSSID)) {
                         return true;
                     }
@@ -252,10 +259,10 @@ public class BBWifi {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
 
-                    l("Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    d("Found wifi:" + newSSID + " == " + aWifi + " ?");
 
                     if (aWifi.equalsIgnoreCase(newSSID)) {
-                        l("connecting wifi:" + newSSID);
+                        d("connecting wifi:" + newSSID);
                         mWiFiManager.disconnect();
                         mWiFiManager.enableNetwork(config.networkId, true);
                         mWiFiManager.reconnect();
@@ -299,7 +306,7 @@ public class BBWifi {
         try {
             ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
         } catch (Exception ex) {
-            l("Unable to get host address: " + ex.toString());
+            e("Unable to get host address: " + ex.toString());
             ipAddressString = null;
         }
 
@@ -313,7 +320,7 @@ public class BBWifi {
         public void onReceive(Context c, Intent intent) {
             if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                 mScanResults = mWiFiManager.getScanResults();
-                l("wifi scan results" + mScanResults.toString());
+                d("wifi scan results" + mScanResults.toString());
             }
         }
     };
@@ -332,7 +339,7 @@ public class BBWifi {
             setSSISAndPassword(wifiSettings);
 
         } catch (JSONException e) {
-            l(e.getMessage());
+            e(e.getMessage());
             return false;
         }
 
@@ -348,10 +355,10 @@ public class BBWifi {
             SSID = wifiSettings.getString("SSID");
             password = wifiSettings.getString("password");
         } catch (JSONException e) {
-            l(e.getMessage());
+            e(e.getMessage());
             return false;
         } catch (IOException e) {
-            l(e.getMessage());
+            e(e.getMessage());
             return false;
         }
 
@@ -371,7 +378,7 @@ public class BBWifi {
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
-            l("contents of wifi.json: " + sb.toString());
+            d("contents of wifi.json: " + sb.toString());
             JSONObject j = new JSONObject(sb.toString());
 
             SSID = j.getString("SSID");
@@ -380,6 +387,37 @@ public class BBWifi {
 
         } catch (Throwable e) {
             e.printStackTrace();
+        }
+    }
+
+    void Run() {
+        Thread t = new Thread(new Runnable() {
+            public void run()
+            {
+                Thread.currentThread().setName("Supervisor");
+                runSupervisor();
+            }
+        });
+        t.start();
+    }
+
+    private void runSupervisor() {
+
+        while (true) {
+
+            // Every 60 seconds check WIFI
+            if (mBBService.wifi.mEnableWifiReconnect) {
+                if (mBBService.wifi != null) {
+                    d("Check Wifi");
+                    checkWifiReconnect();
+                }
+            }
+
+            try {
+                Thread.sleep(mWifiReconnectEveryNSeconds * 1000);
+            } catch (Throwable e) {
+            }
+
         }
     }
 }

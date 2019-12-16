@@ -184,9 +184,8 @@ public class BBService extends Service {
                 iotClient = new IoTClient(this);
             }
 
-            if (wifi == null) {
-                wifi = new BBWifi(this);
-            }
+            wifi = new BBWifi(this);
+            wifi.Run();
 
             try {
                 Thread.sleep(500);

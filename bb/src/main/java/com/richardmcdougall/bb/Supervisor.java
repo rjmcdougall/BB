@@ -49,14 +49,6 @@ public class Supervisor {
 
         while (true) {
 
-            // Every 60 seconds check WIFI
-            if (mBBService.wifi.mEnableWifiReconnect && (loopCnt % mBBService.wifi.mWifiReconnectEveryNSeconds == 0)) {
-                if (mBBService.wifi != null) {
-                    d("Check Wifi");
-                    mBBService.wifi.checkWifiReconnect();
-                }
-            }
-
             // Every second, check & update battery
             if (mBBService.mEnableBatteryMonitoring && (mBBService.burnerBoard != null)) {
                 checkBattery();
