@@ -725,7 +725,7 @@ public class BluetoothCommands {
             state.put("acn", mMusicPlayer.getRadioChannel() - 1);
             state.put("vcn", mBBService.getVideoMode() - 1);
             state.put("v", mMusicPlayer.getBoardVolumePercent());
-            state.put("b", mBBService.getBatteryLevel());
+            state.put("b", mBBService.burnerBoard.getBattery());
             state.put("am", mBBService.isMaster());
             state.put("apkd", mBBService.getAPKUpdatedDate());
             state.put("apkv", mBBService.getVersion());

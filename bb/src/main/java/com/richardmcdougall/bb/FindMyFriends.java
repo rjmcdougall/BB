@@ -155,7 +155,7 @@ public class FindMyFriends {
     private void broadcastGPSpacket(int lat, int lon, int elev, int iMAccurate,
                                     int heading, int speed) {
 
-        int batt = mBBService.getBatteryLevel();
+        int batt = mBBService.burnerBoard.getBattery();
 
         // Check GPS data is not stale
         int len = 2 * 4 + 1 + RFUtil.kMagicNumberLen + 1;
