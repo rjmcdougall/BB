@@ -19,7 +19,7 @@ public class BatterySupervisor {
     }
 
     public void d(String logMsg) {
-        if (DebugConfigs.DEBUG_SUPERVISOR) {
+        if (DebugConfigs.DEBUG_BATTERY_SUPERVISOR) {
             Log.d(TAG, logMsg);
         }
     }

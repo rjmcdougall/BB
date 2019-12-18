@@ -21,10 +21,10 @@ public class DebugConfigs {
     public static final boolean DEBUG_BATTERY = false;
     public static final boolean DEBUG_ALL_BOARDS = false;
     public static final boolean DEBUG_DOWNLOAD_MANAGER = false;
-    public static final boolean DEBUG_SUPERVISOR = true;
+    public static final boolean DEBUG_BATTERY_SUPERVISOR = false;
     public static final boolean DEBUG_WIFI = false;
 
     // name the profile as a testing overridee.
-    public static final String DEBUG_BOARD_PROFILE = "";
+    public static final String DEBUG_BOARD_PROFILE = "supersexy";
 
 }

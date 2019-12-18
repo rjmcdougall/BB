@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
@@ -50,8 +51,6 @@ public class BBService extends Service {
         return dlManager.GetTotalVideo();
     }
 
-    public DownloadManager dlManager;
-
     public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
         BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE,
@@ -86,7 +85,9 @@ public class BBService extends Service {
     public IoTClient iotClient = null;
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
-
+    public MusicPlayerSupervisor musicPlayerSupervisor = null;
+    public DownloadManager dlManager;
+    Thread musicPlayerThread;
     private boolean mMasterRemote = false;
     private boolean mBlockMaster = false;
     private boolean mVoiceAnnouncements = false;
@@ -269,7 +270,11 @@ public class BBService extends Service {
             startLights();
 
             musicPlayer = new MusicPlayer(this, burnerBoard, voice);
-            musicPlayer.Run();
+            musicPlayerThread = new Thread(musicPlayer);
+            musicPlayerThread.start();
+
+            musicPlayerSupervisor = new MusicPlayerSupervisor(this);
+            musicPlayerSupervisor.Run();
 
             bluetoothConnManager = new BluetoothConnManager(this);
             bLEServer = new BluetoothLEServer(this);
