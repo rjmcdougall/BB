@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.content.pm.PackageInfo;
+import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Log;
 import org.json.JSONArray;
@@ -21,9 +22,9 @@ public class DownloadManager {
     }
 
     interface OnDownloadProgressType {
-        public void onProgress(String file, long fileSize, long bytesDownloaded);
+        void onProgress(String file, long fileSize, long bytesDownloaded);
 
-        public void onVoiceCue(String err);
+        void onVoiceCue(String err);
     }
 
     public void d(String logMsg) {
@@ -40,6 +41,30 @@ public class DownloadManager {
     DownloadManager(BBService service ) {
         this.service = service;
         mFilesDir = service.context.getFilesDir().getAbsolutePath();
+
+        this.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
+            long lastTextTime = 0;
+
+            public void onProgress(String file, long fileSize, long bytesDownloaded) {
+                if (fileSize <= 0)
+                    return;
+
+                long curTime = System.currentTimeMillis();
+                if (curTime - lastTextTime > 30000) {
+                    lastTextTime = curTime;
+                    long percent = bytesDownloaded * 100 / fileSize;
+
+                    service.voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    lastTextTime = curTime;
+                    d("Downloading " + file + ", " + percent + " Percent");
+                }
+            }
+
+            public void onVoiceCue(String msg) {
+                service.voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+            }
+        };
+
         Log.d(TAG, "Downloading files to: " + mFilesDir);
     }
 
