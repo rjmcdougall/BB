@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
@@ -32,12 +31,7 @@ import android.content.ContentValues;
 public class FindMyFriends {
 
     private static final String TAG = "BB.FMF";
-    private Context mContext;
-    private RF mRadio;
-    private AllBoards mAllBoards = null;
-    private Gps mGps;
-    private IoTClient mIotClient;
-    private BBService mBBService;
+    private BBService service;
     private findMyFriendsCallback mFindMyFriendsCallback = null;
     long mLastFix = 0;
     static final int kMaxFixAge = 30000;
@@ -45,39 +39,28 @@ public class FindMyFriends {
     int mLat;
     int mLon;
     int mAlt;
-    int mSpeed;
-    int mHeading;
     int mAmIAccurate;
     int mTheirAddress;
     double mTheirLat;
     double mTheirLon;
-    double mTheirAlt;
     int mTheirBatt;
-    double mTheirSpeed;
-    double mTheirHeading;
     int mThereAccurate;
     long mLastSend = 0;
     long mLastRecv = 0;
     private int mBoardAddress = 0;
-    String mBoardId;
     byte[] mLastHeardLocation;
 
     public FindMyFriends(BBService service) {
-        mContext = service.context;
-        mRadio = service.radio;
-        mGps = service.gps;
-        mIotClient = service.iotClient;
-        mBBService = service;
+        this.service = service;
         l("Starting FindMyFriends");
 
 
-        if (mRadio == null) {
+        if (service.radio == null) {
             l("No Radio!");
             return;
         }
-        mAllBoards = mRadio.mAllBoards;
 
-        mRadio.attach(new RF.radioEvents() {
+        service.radio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
                 l("FMF Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
@@ -98,12 +81,12 @@ public class FindMyFriends {
                 // since the address is loaded from a JSON you may get a race condition
                 // so try to find the address of this board each time until you do.
                 if(mBoardAddress<=0)
-                    mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+                    mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
                 if (sinceLastFix > kMaxFixAge) {
                     d("FMF: sending GPS update");
-                    mIotClient.sendUpdate("bbevent", "[" +
-                            mAllBoards.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
+                    service.iotClient.sendUpdate("bbevent", "[" +
+                            service.allBoards.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
                     mLastFix = System.currentTimeMillis();
 
@@ -116,8 +99,7 @@ public class FindMyFriends {
             }
         });
         addTestBoardLocations();
-
-
+        
      }
 
     // GPS Packet format =
@@ -155,7 +137,7 @@ public class FindMyFriends {
     private void broadcastGPSpacket(int lat, int lon, int elev, int iMAccurate,
                                     int heading, int speed) {
 
-        int batt = mBBService.burnerBoard.getBattery();
+        int batt = service.burnerBoard.getBattery();
 
         // Check GPS data is not stale
         int len = 2 * 4 + 1 + RFUtil.kMagicNumberLen + 1;
@@ -185,7 +167,7 @@ public class FindMyFriends {
         radioPacket.write(0);
 
         d("Sending packet...");
-        mRadio.broadcast(radioPacket.toByteArray());
+        service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
         updateBoardLocations(mBoardAddress, 999,
@@ -213,7 +195,7 @@ public class FindMyFriends {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void l(String s) {
@@ -256,13 +238,13 @@ public class FindMyFriends {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                l(mAllBoards.boardAddressToName(mTheirAddress) +
+                l(service.allBoards.boardAddressToName(mTheirAddress) +
                         " strength " + sigStrength +
                         "theirLat = " + mTheirLat + ", " +
                         "theirLon = " + mTheirLon +
                         "theirBatt = " + mTheirBatt);
-                mIotClient.sendUpdate("bbevent", "[" +
-                        mAllBoards.boardAddressToName(mTheirAddress) + "," +
+                service.iotClient.sendUpdate("bbevent", "[" +
+                        service.allBoards.boardAddressToName(mTheirAddress) + "," +
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
                 updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt ,packet.clone());
                 return true;
@@ -398,12 +380,11 @@ public class FindMyFriends {
                 v.put(String.valueOf(i),ct.getJSONObject(i).toString());
             }
 
-            mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
-
+            service.context.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
             for (int addr: mBoardLocations.keySet()) {
                 boardLocation l = mBoardLocations.get(addr);
-                d("Location Entry:" + mAllBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+                d("Location Entry:" + service.allBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
             }
         }
         catch(Exception e){
@@ -441,7 +422,7 @@ public class FindMyFriends {
         List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
             for (boardLocationHistory b : locs){
-                b.board = mAllBoards.boardAddressToName(b.a);
+                b.board = service.allBoards.boardAddressToName(b.a);
 
                 Iterator<locationHistory> iter = b.locations.iterator();
                 while(iter.hasNext()){
@@ -474,7 +455,7 @@ public class FindMyFriends {
     }
 
     public String getBoardColor(int address) {
-        return mAllBoards.boardAddressToColor(address);
+        return service.allBoards.boardAddressToColor(address);
     }
 
 }
