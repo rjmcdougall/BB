@@ -10,16 +10,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.net.URLEncoder;
 
-/**
- * Created by Jonathan on 8/6/2017.
- */
-
 public class DownloadManager {
     private static final String TAG = "DownloadManager";
-    protected String mFilesDir;
-    protected JSONObject dataDirectory;
-    int mVersion;
-    String mBoardId;
+    private BBService service;
+    private String mFilesDir;
+    private JSONObject dataDirectory;
 
     JSONObject GetDataDirectory() {
         return dataDirectory;
@@ -42,12 +37,10 @@ public class DownloadManager {
     }
     public OnDownloadProgressType onProgressCallback = null;
 
-    DownloadManager(String filesDir, String boardId, int myVersion) {
-        Log.d(TAG, "Downloading files to: " + filesDir);
-        mVersion = myVersion;
-        mFilesDir = filesDir;
-        PackageInfo pinfo;
-        mBoardId = boardId;
+    DownloadManager(BBService service ) {
+        this.service = service;
+        mFilesDir = service.context.getFilesDir().getAbsolutePath();
+        Log.d(TAG, "Downloading files to: " + mFilesDir);
     }
 
     void Run() {
@@ -303,10 +296,10 @@ public class DownloadManager {
             return true;
 
         } catch (JSONException jse) {
-            e("Error " + jse.getMessage());
+            e(jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e("Error " + th.getMessage());
+            e(th.getMessage());
             return false;
         }
 
@@ -319,10 +312,10 @@ public class DownloadManager {
             if(DebugConfigs.DEBUG_BOARD_PROFILE!="")
                 DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + DebugConfigs.DEBUG_BOARD_PROFILE;
             else
-                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + mBoardId;
+                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + BurnerBoardUtil.BOARD_ID;
 
 
-            DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + mVersion ;
+            DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + service.version ;
             boolean returnValue = true;
 
             long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback,mFilesDir);
@@ -398,10 +391,10 @@ public class DownloadManager {
             return returnValue;
 
         } catch (JSONException jse) {
-            e("Error " + jse.getMessage());
+            e( jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e("Error " + th.getMessage());
+            e( th.getMessage());
             return false;
         }
     }

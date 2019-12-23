@@ -192,8 +192,7 @@ public class BBService extends Service {
             allBoards = new AllBoards(this);
             allBoards.Run();
 
-            dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
-                    BurnerBoardUtil.BOARD_ID, version);
+            dlManager = new DownloadManager(this );
 
             dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
                 long lastTextTime = 0;
