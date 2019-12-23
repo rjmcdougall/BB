@@ -2,7 +2,6 @@ package com.richardmcdougall.bb;
 
 import android.os.Build;
 import java.io.*;
-import java.util.ArrayList;
 
 
 public class BurnerBoardUtil {
@@ -13,11 +12,9 @@ public class BurnerBoardUtil {
     // This enabled GPS Time being polled
     public static final boolean fEnableGpsTime = false;
 
-
     /* Step one to make WiFi configurable is to pull out the strings */
     public static final String WIFI_SSID = "burnerboard";
     public static final String WIFI_PASS = "firetruck";
-
 
     // Known board types we have
     public static final String BOARD_TYPE = Build.MANUFACTURER;
@@ -49,7 +46,6 @@ public class BurnerBoardUtil {
         String serial = Build.SERIAL;
         String publicName = getPublicName();
 
-
         if (BurnerBoardUtil.kIsRPI) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
@@ -64,39 +60,24 @@ public class BurnerBoardUtil {
         BOARD_ID = (publicName == null || publicName.equals("")) ? DEVICE_ID : publicName;
     }
 
-    // Switch any of these to 'true' to force identification as that board type.
-    // Only useful for debugging! -jib
-    private static boolean kForceBBTypeAzul = false;
-    private static boolean kForceBBTypeClassic = false;
-    private static boolean kForceBBTypeDirectMap = false;
-    private static boolean kForceBBTypeMast = false;
-    private static boolean kForceBBTypePanel = false;
-
     public static final boolean isBBAzul() {
-        return (kForceBBTypeAzul || BOARD_TYPE.contains("Azul")) ? true : false;
+        return (DebugConfigs.FORCE_BB_TYPE_AZUL || BOARD_TYPE.contains("Azul")) ? true : false;
     }
 
     public static final boolean isBBClassic() {
-        return (kForceBBTypeClassic || BOARD_TYPE.contains("Classic")) ? true : false;
+        return (DebugConfigs.FORCE_BB_TYPE_CLASSIC || BOARD_TYPE.contains("Classic")) ? true : false;
     }
 
     public static final boolean isBBDirectMap() {
-        return (kForceBBTypeDirectMap || BurnerBoardUtil.kIsRPI || BOARD_ID.contains("mickey")) ? true : false;
+        return (DebugConfigs.FORCE_BB_TYPE_DIRECT_MAP || BurnerBoardUtil.kIsRPI || BOARD_ID.contains("mickey")) ? true : false;
     }
 
     public static final boolean isBBMast() {
-        return (kForceBBTypeMast || BOARD_TYPE.contains("Mast") || BOARD_ID.contains("test")) ? true : false;
+        return (DebugConfigs.FORCE_BB_TYPE_MAST || BOARD_TYPE.contains("Mast") || BOARD_ID.contains("test")) ? true : false;
     }
 
-    /*  rjmcdougall says:
-        Obviously we need a better persistent way of setting board types on android things.
-
-        The embedded android 6 we deploy allows us to set the board type at provision time via USB.
-
-        With android things we either need to allow config through the cloud or through the app.
-    */
     public static final boolean isBBPanel() {
-        return (kForceBBTypePanel
+        return (DebugConfigs.FORCE_BB_TYPE_PANEL
             || BOARD_TYPE.contains("Panel")
             || BOARD_ID.contains("Panel")
             || BOARD_ID.contains("cranky")

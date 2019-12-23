@@ -18,17 +18,13 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 import java.util.Date;
-
 import android.os.Build;
-
 import android.bluetooth.BluetoothDevice;
 import android.media.RingtoneManager;
 import android.media.Ringtone;

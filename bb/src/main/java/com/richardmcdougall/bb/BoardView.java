@@ -26,7 +26,7 @@ public class BoardView extends View {
     public BoardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
 
-        if (DebugConfigs.DEBUG_EMULATING_CLASSIC) {
+        if (DebugConfigs.EMULATING_CLASSIC) {
             mBoardWidth = 10;
             mBoardHeight = 70;
         } else {

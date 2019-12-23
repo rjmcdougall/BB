@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.content.pm.PackageInfo;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Log;
@@ -334,8 +333,8 @@ public class DownloadManager {
 
         try {
             String DirectoryURL = "";
-            if(DebugConfigs.DEBUG_BOARD_PROFILE!="")
-                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + DebugConfigs.DEBUG_BOARD_PROFILE;
+            if(DebugConfigs.OVERRIDE_BOARD_DOWNLOAD_PROFILE !="")
+                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + DebugConfigs.OVERRIDE_BOARD_DOWNLOAD_PROFILE;
             else
                 DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + BurnerBoardUtil.BOARD_ID;
 

@@ -809,7 +809,7 @@ public class BurnerBoard {
 
         BurnerBoard burnerBoard;
 
-        if (DebugConfigs.DEBUG_EMULATING_CLASSIC || BurnerBoardUtil.isBBClassic()) {
+        if (DebugConfigs.EMULATING_CLASSIC || BurnerBoardUtil.isBBClassic()) {
             Log.d(TAG,"Visualization: Using Classic");
             burnerBoard = new BurnerBoardClassic(service);
         } else if (BurnerBoardUtil.isBBMast()) {
