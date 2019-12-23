@@ -37,8 +37,7 @@ public class BBWifi {
      */
     public boolean mEnableWifiReconnect = true;
     public int mWifiReconnectEveryNSeconds = 60;
-    private BBService mBBService = null;
-    private Context mContext;
+    private BBService service = null;
     WifiManager mWiFiManager = null;
     // IP address of the device
     public String mIPAddress = null;
@@ -67,10 +66,9 @@ public class BBWifi {
 
     BBWifi(BBService service) {
 
-        mBBService = service;
-        mContext = service.context;
-        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        mContext.registerReceiver(mWifiScanReceiver,
+        this.service = service;
+        mWiFiManager = (WifiManager) service.context.getSystemService(Context.WIFI_SERVICE);
+        service.context.registerReceiver(mWifiScanReceiver,
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
         // look for an SSID and password in file system. If it is not there default to firetruck.
@@ -95,7 +93,7 @@ public class BBWifi {
 
     private void setupWifi() {
 
-        mContext.registerReceiver(new BroadcastReceiver() {
+        service.context.registerReceiver(new BroadcastReceiver() {
                                       @Override
                                       public void onReceive(Context context, Intent intent) {
                                           int extraWifiState =
@@ -189,14 +187,6 @@ public class BBWifi {
         Log.e(TAG, logMsg);
     }
 
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION_STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
-    }
 
     /* On android, wifi SSIDs and passwords MUST be passed quoted. This fixes up the raw SSID & Pass -jib */
     /* XXX TODO this code doesn't get exercised if the SSID is already in the known config it seems
@@ -406,8 +396,8 @@ public class BBWifi {
         while (true) {
 
             // Every 60 seconds check WIFI
-            if (mBBService.wifi.mEnableWifiReconnect) {
-                if (mBBService.wifi != null) {
+            if (service.wifi.mEnableWifiReconnect) {
+                if (service.wifi != null) {
                     d("Check Wifi");
                     checkWifiReconnect();
                 }

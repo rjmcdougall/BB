@@ -109,6 +109,9 @@ public class BBService extends Service {
 
             super.onCreate();
 
+            l("BBService: onCreate");
+            l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
+
             IntentFilter ufilter = new IntentFilter();
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
@@ -116,25 +119,20 @@ public class BBService extends Service {
 
             context = getApplicationContext();
 
+            HandlerThread mHandlerThread = null;
+            mHandlerThread = new HandlerThread("BBServiceHandlerThread");
+            mHandlerThread.start();
+            mHandler = new Handler(mHandlerThread.getLooper());
+
             PackageInfo pinfo;
-            try {
-                pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                version = pinfo.versionCode;
-                apkUpdatedDate = new Date(pinfo.lastUpdateTime);
-                l("BurnerBoard Version " + version);
-                //ET2.setText(versionNumber);
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
 
-            l("BBService: onCreate");
-            l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
+            pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            version = pinfo.versionCode;
+            apkUpdatedDate = new Date(pinfo.lastUpdateTime);
+            l("BurnerBoard Version " + version);
 
 
-            if (iotClient == null) {
-                iotClient = new IoTClient(this);
-            }
+            iotClient = new IoTClient(this);
 
             wifi = new BBWifi(this);
             wifi.Run();
@@ -180,35 +178,7 @@ public class BBService extends Service {
             allBoards.Run();
 
             dlManager = new DownloadManager(this );
-
-            dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
-                long lastTextTime = 0;
-
-                public void onProgress(String file, long fileSize, long bytesDownloaded) {
-                    if (fileSize <= 0)
-                        return;
-
-                    long curTime = System.currentTimeMillis();
-                    if (curTime - lastTextTime > 30000) {
-                        lastTextTime = curTime;
-                        long percent = bytesDownloaded * 100 / fileSize;
-
-                        voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
-                        lastTextTime = curTime;
-                        l("Downloading " + file + ", " + percent + " Percent");
-                    }
-                }
-
-                public void onVoiceCue(String msg) {
-                    voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
-                }
-            };
             dlManager.Run();
-
-            HandlerThread mHandlerThread = null;
-            mHandlerThread = new HandlerThread("BBServiceHandlerThread");
-            mHandlerThread.start();
-            mHandler = new Handler(mHandlerThread.getLooper());
 
             // Register to receive button messages
             IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
@@ -245,15 +215,6 @@ public class BBService extends Service {
 
             batterySupervisor = new BatterySupervisor(this);
             batterySupervisor.Run();
-
-            // Supported Languages
-            Set<Locale> supportedLanguages = voice.getAvailableLanguages();
-            if (supportedLanguages != null) {
-                for (Locale lang : supportedLanguages) {
-                    l("Voice Supported Language: " + lang);
-                }
-            }
-
 
         } catch (Exception e) {
             l(e.toString());

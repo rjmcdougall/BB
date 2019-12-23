@@ -37,9 +37,6 @@ import org.joda.time.DateTime;
 
 public class IoTClient {
 
-    private ConnectivityManager mConnMan;
-    private static boolean hasWifi = false;
-    private static boolean hasMmobile = false;
     private static final String TAG = "BB.IoTClient";
     private volatile MqttAndroidClient mqttClient = null;
     private Context mContext;
