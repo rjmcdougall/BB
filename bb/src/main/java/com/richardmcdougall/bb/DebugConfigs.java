@@ -6,7 +6,7 @@ public class DebugConfigs {
 
     // if this is true, the video will show in the app. This isn't needed
     // in embedded mode, so conserve the resources.
-    public static boolean DISPLAY_VIDEO_IN_APP = false;
+    public static boolean DISPLAY_VIDEO_IN_APP = true;
 
     // lots of logging for decoder. LOTS
     public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;

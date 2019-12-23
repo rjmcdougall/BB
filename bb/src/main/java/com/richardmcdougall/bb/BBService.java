@@ -109,38 +109,32 @@ public class BBService extends Service {
 
             super.onCreate();
 
+            context = getApplicationContext();
+
+            PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            version = pinfo.versionCode;
+            apkUpdatedDate = new Date(pinfo.lastUpdateTime);
+
             l("BBService: onCreate");
-            l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
+            l("Manufacturer " + Build.MANUFACTURER);
+            l("Model " +  Build.MODEL  );
+            l("Serial " + Build.SERIAL);
+            l("BurnerBoard Version " + version);
+            l("BurnerBoard APK Updated Date " + apkUpdatedDate);
 
             IntentFilter ufilter = new IntentFilter();
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
             this.registerReceiver(mUsbReceiver, ufilter);
 
-            context = getApplicationContext();
-
             HandlerThread mHandlerThread = null;
             mHandlerThread = new HandlerThread("BBServiceHandlerThread");
             mHandlerThread.start();
             mHandler = new Handler(mHandlerThread.getLooper());
 
-            PackageInfo pinfo;
-
-            pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            version = pinfo.versionCode;
-            apkUpdatedDate = new Date(pinfo.lastUpdateTime);
-            l("BurnerBoard Version " + version);
+            InitClock();
 
 
-            iotClient = new IoTClient(this);
-
-            wifi = new BBWifi(this);
-            wifi.Run();
-
-            try {
-                Thread.sleep(500);
-            } catch (Exception e) {
-            }
             voice = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
                 @Override
                 public void onInit(int status) {
@@ -174,6 +168,11 @@ public class BBService extends Service {
                 }
             });
 
+            iotClient = new IoTClient(this);
+
+            wifi = new BBWifi(this);
+            wifi.Run();
+
             allBoards = new AllBoards(this);
             allBoards.Run();
 
@@ -200,21 +199,19 @@ public class BBService extends Service {
             bLEServer = new BluetoothLEServer(this);
             radio = new RF(this);
 
-            InitClock();
-
             rfClientServer = new RFClientServer(this);
             rfClientServer.Run();
 
             gps = radio.getGps();
             findMyFriends = new FindMyFriends(this);
 
-            // mFavorites = new Favorites(context, this, radio, gps, iotClient);
-
             bluetoothCommands = new BluetoothCommands(this);
             bluetoothCommands.init();
 
             batterySupervisor = new BatterySupervisor(this);
             batterySupervisor.Run();
+
+            // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
             l(e.toString());
@@ -254,7 +251,6 @@ public class BBService extends Service {
     @Override
     public void onRebind(Intent intent) {
         l("BBService: onRebind");
-
     }
 
     /**
@@ -293,7 +289,7 @@ public class BBService extends Service {
             burnerBoard = new BurnerBoardAzul(this);
         }
 
-        if (burnerBoard == null) {
+         if (burnerBoard == null) {
             l("startLights: null burner board");
             return;
         }
