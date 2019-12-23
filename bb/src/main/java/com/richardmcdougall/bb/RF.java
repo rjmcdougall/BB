@@ -37,7 +37,6 @@ SN: 0000000A0026
 
 public class RF {
 
-    public Context mContext = null;
     public RF.radioEvents radioCallback = null;
     public CmdMessenger mListener = null;
     private SerialInputOutputManager mSerialIoManager;
@@ -49,7 +48,7 @@ public class RF {
     private UsbManager mUsbManager = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.RF";
-    public BBService mBBService = null;
+    public BBService service = null;
     public Gps mGps = null;
     public RF.radioEvents mRadioCallback = null;
     public AllBoards mAllBoards = null;
@@ -57,16 +56,15 @@ public class RF {
 
     public RF(BBService service) {
         try {
-            mBBService = service;
-            mContext = service.context;
+            this.service = service;
             // Register to receive attach/detached messages that are proxied from MainActivity
             IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-            mBBService.registerReceiver(mUsbReceiver, filter);
+            this.service.registerReceiver(mUsbReceiver, filter);
             filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-            mBBService.registerReceiver(mUsbReceiver, filter);
+            this.service.registerReceiver(mUsbReceiver, filter);
             mAllBoards = new AllBoards(service);
             initUsb();
-            mGps = new Gps(mBBService, mContext);
+            mGps = new Gps(this.service, this.service.context);
             mGps.attach( new Gps.GpsEvents() {
                 public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
                     d("Radio Time: " + time.toString());
@@ -136,7 +134,7 @@ public class RF {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void d(String s) {
@@ -184,7 +182,7 @@ public class RF {
             return;
         }
 
-        mUsbManager = (UsbManager) mBBService.getSystemService(Context.USB_SERVICE);
+        mUsbManager = (UsbManager) service.getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers =
@@ -220,8 +218,8 @@ public class RF {
             //ask for permissionB
             // DIRTY HACK FOR THE MONITOR.
             if(BurnerBoardUtil.BOARD_ID.equals("VIM2")){
-                PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
-                mContext.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
+                PendingIntent pi = PendingIntent.getBroadcast(service.context, 0, new Intent(GET_USB_PERMISSION), 0);
+                service.context.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
                 mUsbManager.requestPermission(mUsbDevice, pi);
                 l("USB: No Permission");
             }
@@ -339,7 +337,7 @@ public class RF {
             Intent in = new Intent(ACTION.BB_PACKET);
             in.putExtra("sigStrength", sigStrength);
             in.putExtra("packet", recvBytes.toByteArray());
-            LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);
+            LocalBroadcastManager.getInstance(service).sendBroadcast(in);
 
             if (mRadioCallback != null) {
                 mRadioCallback.receivePacket(recvBytes.toByteArray(), sigStrength);
@@ -401,7 +399,7 @@ public class RF {
     private class PermissionReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            mContext.unregisterReceiver(this);
+            service.context.unregisterReceiver(this);
             if (intent.getAction().equals(GET_USB_PERMISSION)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {

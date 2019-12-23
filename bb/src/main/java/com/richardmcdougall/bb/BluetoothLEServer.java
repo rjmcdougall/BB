@@ -43,11 +43,7 @@ import android.os.Handler;
 
 public class BluetoothLEServer {
     private static final String TAG = "BB.BluetoothLEServer";
-    public Context mContext = null;
-    public BBService mBBService = null;
-    String mBoardId;
-    private BluetoothConnManager mBluetoothConnManager = null;
-
+    public BBService service = null;
 
     /* Bluetooth API */
     private BluetoothManager mBluetoothManager;
@@ -56,10 +52,7 @@ public class BluetoothLEServer {
     /* Collection of notification subscribers */
     private Set<BluetoothDevice> mRegisteredDevices = new HashSet<>();
 
-
-    public final static UUID kBurnerBoardUUID =
-            UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
-
+    public final static UUID kBurnerBoardUUID = UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
     public static final UUID UART_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
     public static final UUID TX_CHAR_UUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     public static final UUID RX_CHAR_UUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
@@ -72,11 +65,8 @@ public class BluetoothLEServer {
 
     public BluetoothLEServer(BBService service) {
 
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
         mHandler = new Handler(Looper.getMainLooper());
-        mBoardId = BurnerBoardUtil.BOARD_ID;
-        mBluetoothConnManager = service.bluetoothConnManager;
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
 
@@ -150,7 +140,7 @@ public class BluetoothLEServer {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void l(String s) {
@@ -247,7 +237,7 @@ public class BluetoothLEServer {
      * from the Time Profile.
      */
     private void startServer() {
-        mBluetoothGattServer = mBluetoothManager.openGattServer(mBBService, mGattServerCallback);
+        mBluetoothGattServer = mBluetoothManager.openGattServer(service, mGattServerCallback);
         if (mBluetoothGattServer == null) {
             l("Unable to create GATT server");
             return;
