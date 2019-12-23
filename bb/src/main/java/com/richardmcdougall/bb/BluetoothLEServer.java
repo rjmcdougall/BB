@@ -75,7 +75,7 @@ public class BluetoothLEServer {
         mBBService = service;
         mContext = service.context;
         mHandler = new Handler(Looper.getMainLooper());
-        mBoardId = service.getBoardId();
+        mBoardId = BurnerBoardUtil.BOARD_ID;
         mBluetoothConnManager = service.bluetoothConnManager;
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();

@@ -31,7 +31,7 @@ public class BluetoothCommands {
         mBBService = service;
         mContext = service.context;
         mHandler = new Handler(Looper.getMainLooper());
-        mBoardId = service.getBoardId();
+        mBoardId = BurnerBoardUtil.BOARD_ID;
         mBLEServer = service.bLEServer;
         mBluetoothConnManager = service.bluetoothConnManager;
         mFindMyFriends = service.findMyFriends;
@@ -726,16 +726,15 @@ public class BluetoothCommands {
             state.put("vcn", mBBService.boardVisualization.getMode() - 1);
             state.put("v", mMusicPlayer.getBoardVolumePercent());
             state.put("b", mBBService.burnerBoard.getBattery());
-            state.put("am", mBBService.isMaster());
-            state.put("apkd", mBBService.getAPKUpdatedDate());
-            state.put("apkv", mBBService.getVersion());
+            state.put("am", mBBService.masterRemote);
+            state.put("apkd", mBBService.apkUpdatedDate.toString());
+            state.put("apkv", mBBService.version);
             state.put("ip", mBBService.wifi.getIPAddress());
-            state.put("g", mBBService.isGTFO());
-            state.put("bm" , mBBService.blockMaster());
+            state.put("g", mBBService.gtfo);
+            state.put("bm" , mBBService.blockMaster);
             state.put("s", mBBService.wifi.getSSID());
             state.put("c", mBBService.wifi.getConfiguredSSID());
             state.put("p", mBBService.wifi.getConfiguredPassword());
-
 
         } catch (Exception e) {
             l("Could not get state: " + e.getMessage());

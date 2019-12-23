@@ -98,7 +98,7 @@ public class FindMyFriends {
                 // since the address is loaded from a JSON you may get a race condition
                 // so try to find the address of this board each time until you do.
                 if(mBoardAddress<=0)
-                    mBoardAddress = mAllBoards.getBoardAddress(mBBService.getBoardId());
+                    mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
                 if (sinceLastFix > kMaxFixAge) {
                     d("FMF: sending GPS update");

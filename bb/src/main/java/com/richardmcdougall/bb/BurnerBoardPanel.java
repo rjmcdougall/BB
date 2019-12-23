@@ -52,7 +52,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         mBoardHeight = 64;
         super.setTextBuffer(mBoardWidth, mBoardHeight);
         mMultipler4Speed = 3;
-        boardId = BBService.getBoardId();
+        boardId = BurnerBoardUtil.BOARD_ID;
         boardType = "Burner Board Panel";
         l("Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];

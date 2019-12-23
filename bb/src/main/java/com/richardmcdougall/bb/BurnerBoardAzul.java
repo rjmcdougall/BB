@@ -54,7 +54,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         mBoardWidth = 46;
         mBoardHeight = 118;
         mMultipler4Speed = 2;
-        boardId = BBService.getBoardId();
+        boardId = BurnerBoardUtil.BOARD_ID;
         boardType = "Burner Board Azul";
         l("Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];

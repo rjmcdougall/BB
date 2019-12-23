@@ -293,7 +293,7 @@ public class MusicPlayer implements Runnable {
         currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
-        if (mMain.isMaster() && (mRfClientServer != null)) {
+        if (mMain.masterRemote && (mRfClientServer != null)) {
 
             d("Sending remote");
 
@@ -310,7 +310,7 @@ public class MusicPlayer implements Runnable {
             d("Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
             mBurnerBoard.setText(shortName[0], 2000);
-            if (mMain.HasVoiceAnnouncements()) {
+            if (mMain.voiceAnnouncements) {
                 voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             }
 

@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
@@ -45,19 +44,12 @@ public class BBService extends Service {
     // RPIs don't always have a screen; use beeps -jib
     public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI; // Not Done IsNano
 
-
-    public int GetMaxLightModes() {
-
-        return dlManager.GetTotalVideo();
-    }
-
     public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
         BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE,
         BUTTON_VOL_UP, BUTTON_VOL_DOWN, BUTTON_VOL_PAUSE
     }
 
-    //private BBListenerAdapter mListener = null;
     public Handler mHandler = null;
     public Context context;
     public long serverTimeOffset = 0;
@@ -67,12 +59,9 @@ public class BBService extends Service {
     public static String boardId = BurnerBoardUtil.BOARD_ID;
     /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
     public static String boardType = BurnerBoardUtil.BOARD_TYPE;
-    //ArrayList<MusicStream> streamURLs = new ArrayList<BBService.MusicStream>();
-    //ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 100);
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
-    int mVersion = 0;
-    Date mAPKUpdatedDate;
-
+    public int version = 0;
+    public Date apkUpdatedDate;
     public AllBoards allBoards = null;
     public MusicPlayer musicPlayer = null;
     public RF radio = null;
@@ -87,17 +76,13 @@ public class BBService extends Service {
     public BatterySupervisor batterySupervisor = null;
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
     public DownloadManager dlManager;
-    Thread musicPlayerThread;
-    private boolean mMasterRemote = false;
-    private boolean mBlockMaster = false;
-    private boolean mVoiceAnnouncements = false;
-    public final String cpuType = Build.BOARD;
-    private boolean mGTFO = false;
+    private Thread musicPlayerThread;
+    public boolean masterRemote = false;
+    public boolean blockMaster = false;
+    public boolean voiceAnnouncements = false;
+    public boolean gtfo = false;
     public BBWifi wifi = null;
-
-
-    TextToSpeech voice;
-
+    public TextToSpeech voice;
     private BBService.usbReceiver mUsbReceiver = new BBService.usbReceiver();
 
     public BBService() {
@@ -106,15 +91,6 @@ public class BBService extends Service {
     public void l(String s) {
         Log.v(TAG, s);
         sendLogMsg(s);
-    }
-
-    public boolean HasVoiceAnnouncements() {
-        return mVoiceAnnouncements;
-    }
-
-    /* XXX TODO this is here for backwards compat; this used to be computed here and is now in bbutil -jib */
-    public static String getBoardId() {
-        return BurnerBoardUtil.BOARD_ID;
     }
 
     /**
@@ -155,9 +131,9 @@ public class BBService extends Service {
             PackageInfo pinfo;
             try {
                 pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                mVersion = pinfo.versionCode;
-                mAPKUpdatedDate = new Date(pinfo.lastUpdateTime);
-                l("BurnerBoard Version " + mVersion);
+                version = pinfo.versionCode;
+                apkUpdatedDate = new Date(pinfo.lastUpdateTime);
+                l("BurnerBoard Version " + version);
                 //ET2.setText(versionNumber);
             } catch (Exception e) {
                 // TODO Auto-generated catch block
@@ -216,7 +192,7 @@ public class BBService extends Service {
             allBoards.Run();
 
             dlManager = new DownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(),
-                    BurnerBoardUtil.BOARD_ID, mVersion);
+                    BurnerBoardUtil.BOARD_ID, version);
 
             dlManager.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
                 long lastTextTime = 0;
@@ -341,26 +317,6 @@ public class BBService extends Service {
 
         l("BBService: onDesonDestroy");
         voice.shutdown();
-    }
-
-    public boolean isMaster() {
-        return mMasterRemote;
-    }
-
-    public boolean blockMaster() {
-        return mBlockMaster;
-    }
-
-    public boolean isGTFO() {
-        return mGTFO;
-    }
-
-    public String getAPKUpdatedDate() {
-        return mAPKUpdatedDate.toString();
-    }
-
-    public String getVersion() {
-        return String.valueOf(mVersion);
     }
 
     private void startLights() {
@@ -501,11 +457,11 @@ public class BBService extends Service {
     };
 
     public void blockMaster(boolean enable) {
-        mBlockMaster = enable;
+        blockMaster = enable;
     }
 
     public void enableMaster(boolean enable) {
-        mMasterRemote = enable;
+        masterRemote = enable;
         if (enable) {
             // Let everyone else know we just decided to be the master
             // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
@@ -527,7 +483,7 @@ public class BBService extends Service {
 
     public void enableGTFO(boolean enable) {
 
-        mGTFO = enable;
+        gtfo = enable;
         if (enable) {
 
             boardVisualization.inhibitGTFO(true);
@@ -553,7 +509,7 @@ public class BBService extends Service {
     public void decodeRemoteControl(String client, int cmd, long value) {
 
 
-        if (mBlockMaster) {
+        if (blockMaster) {
             l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
         } else {
 
@@ -600,7 +556,7 @@ public class BBService extends Service {
                     }
                     break;
                 case kRemoteMasterName:
-                    if (mMasterRemote) {
+                    if (masterRemote) {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master
                         String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
@@ -742,14 +698,14 @@ public class BBService extends Service {
             mBoardMode = mode;
         }
 
-        int maxModes = GetMaxLightModes();
+        int maxModes = dlManager.GetTotalVideo();
         if (mBoardMode > maxModes)
             mBoardMode = 1;
         else if (mBoardMode < 1)
             mBoardMode = maxModes;
 
         // If I am set to be the master, broadcast to other boards
-        if (mMasterRemote && (rfClientServer != null)) {
+        if (masterRemote && (rfClientServer != null)) {
 
             String name = getVideoModeInfo(mBoardMode);
             l("Sending video remote for video " + name);
@@ -762,7 +718,7 @@ public class BBService extends Service {
             burnerBoard.setMode(mBoardMode);
         }
 
-        if (mVoiceAnnouncements) {
+        if (voiceAnnouncements) {
             voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
         }
     }
@@ -798,7 +754,7 @@ public class BBService extends Service {
                                 boardVisualization.showMap();
                             } else if (pressCnt == 3) {
                                 // Toggle master mode
-                                if (mMasterRemote == true) {
+                                if (masterRemote == true) {
                                     enableMaster(false);
                                 } else {
                                     enableMaster(true);

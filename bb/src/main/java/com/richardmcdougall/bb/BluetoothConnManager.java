@@ -55,7 +55,7 @@ public class BluetoothConnManager {
 
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
 
-        mBoardId = service.getBoardId();
+        mBoardId = BurnerBoardUtil.BOARD_ID;
         l("Board ID " + mBoardId);
         String name = mBoardId.substring(0, Math.min(mBoardId.length(), 8));
         mBluetoothAdapter.setName(name);

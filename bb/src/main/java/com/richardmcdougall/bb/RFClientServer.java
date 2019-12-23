@@ -234,7 +234,7 @@ public class RFClientServer {
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
         l("I'm address " + mBoardAddress);
 
         d("Server reply : " +
@@ -289,7 +289,7 @@ public class RFClientServer {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         if(mBoardAddress <= 0)
-            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
         int recvMagicNumber = RFUtil.magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
@@ -377,7 +377,7 @@ public class RFClientServer {
     private void processSyncResponse(byte[] recvPacket) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
         d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
@@ -454,7 +454,7 @@ public class RFClientServer {
         mPrefsEditor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
 
         if(mBoardAddress<=0)
-            mBoardAddress = mAllBoards.getBoardAddress(mMain.getBoardId());
+            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
         while (true) {
 

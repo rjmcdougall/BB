@@ -275,7 +275,7 @@ public class IoTClient {
 
         try {
                 String t = new String("/devices/bb-" +
-                        BBService.getBoardId().replaceAll("\\s", "") + "" +
+                        BurnerBoardUtil.BOARD_ID.replaceAll("\\s", "") + "" +
                         "/events/" + topic);
             //String t = new String("/devices/bb-test/events/" + topic);
             //Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
@@ -292,7 +292,7 @@ public class IoTClient {
     private void setClientID() {
         deviceId = new String(
                 "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" +
-                        BBService.getBoardId().replaceAll("\\s", ""));
+                        BurnerBoardUtil.BOARD_ID.replaceAll("\\s", ""));
     }
 
     /**
