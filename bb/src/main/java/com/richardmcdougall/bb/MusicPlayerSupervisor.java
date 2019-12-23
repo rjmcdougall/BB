@@ -5,8 +5,8 @@ public class MusicPlayerSupervisor {
     int musicState = 0;
     BBService service;
 
-    MusicPlayerSupervisor(BBService bb) {
-        service = bb;
+    MusicPlayerSupervisor(BBService service) {
+        this.service = service;
     }
 
     public void Run() {
