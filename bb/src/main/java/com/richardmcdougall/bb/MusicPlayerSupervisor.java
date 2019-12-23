@@ -26,9 +26,8 @@ public class MusicPlayerSupervisor {
                     if (service.dlManager.GetTotalAudio() != 0) {
                         musicState = 1;
                         //d("Downloaded: Starting Radio Mode");
-                        service.musicPlayer.handler.post(() -> {
-                            service.musicPlayer.RadioMode();
-                        });
+
+                        service.musicPlayer.RadioMode();
 
                     } else {
                         try {
@@ -39,9 +38,7 @@ public class MusicPlayerSupervisor {
                     break;
 
                 case 1:
-                    service.musicPlayer.handler.post(() -> {
-                        service.musicPlayer.SeekAndPlay();
-                    });
+                    service.musicPlayer.SeekAndPlay();
 
                     try {
                         // RMC try 15 seconds instead of 1
@@ -54,7 +51,6 @@ public class MusicPlayerSupervisor {
                     break;
 
                 case 2:
-                    service.musicPlayer.bluetoothPlay();
                     if (service.musicPlayer.currentRadioChannel != 0) {
                         musicState = 1;
                     }

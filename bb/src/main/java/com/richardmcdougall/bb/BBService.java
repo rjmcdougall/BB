@@ -593,7 +593,7 @@ public class BBService extends Service {
                         if (hashed == value) {
                             l("Remote Audio " + musicPlayer.getRadioChannel() + " -> " + i);
                             if (musicPlayer.getRadioChannel() != i) {
-                                musicPlayer.SetRadioChannel((int) i);
+                                musicPlayer.SetRadioChannel((int) i); 
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote audio switch to track " + i + " (" + name + ")");
@@ -708,8 +708,8 @@ public class BBService extends Service {
             case 97:
             case 20:
                 musicPlayer.MusicOffset(-10);
-                break;
-            case 19:
+            break;
+        case 19:
                 musicPlayer.MusicOffset(10);
                 break;
             case 24:   // native volume up button
@@ -768,7 +768,6 @@ public class BBService extends Service {
                 musicPlayer.onVolDown();
                 return false;
         }
-        //mHandler.removeCallbacksAndMessages(null);
         return true;
     }
 
