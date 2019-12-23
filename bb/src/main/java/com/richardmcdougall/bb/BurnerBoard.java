@@ -805,6 +805,40 @@ public class BurnerBoard {
         return curTimeStamp;
     }
 
+    public static BurnerBoard Builder(BBService service) {
+
+        BurnerBoard burnerBoard;
+
+        if (DebugConfigs.DEBUG_EMULATING_CLASSIC || BurnerBoardUtil.isBBClassic()) {
+            Log.d(TAG,"Visualization: Using Classic");
+            burnerBoard = new BurnerBoardClassic(service);
+        } else if (BurnerBoardUtil.isBBMast()) {
+            Log.d(TAG,"Visualization: Using Mast");
+            burnerBoard = new BurnerBoardMast(service);
+        } else if (BurnerBoardUtil.isBBPanel()) {
+            Log.d(TAG,"Visualization: Using Panel");
+            burnerBoard = new BurnerBoardPanel(service);
+        } else if (BurnerBoardUtil.isBBDirectMap()) {
+            Log.d(TAG,"Visualization: Using Direct Map");
+            burnerBoard = new BurnerBoardDirectMap(
+                    service,
+                    BurnerBoardUtil.kVisualizationDirectMapWidth,
+                    BurnerBoardUtil.kVisualizationDirectMapHeight
+            );
+        } else if (BurnerBoardUtil.isBBAzul()) {
+            Log.d(TAG,"Visualization: Using Azul");
+            burnerBoard = new BurnerBoardAzul(service);
+        } else {
+            Log.d(TAG,"Could not identify board type! Falling back to Azul for backwards compatibility");
+            burnerBoard = new BurnerBoardAzul(service);
+        }
+
+        if (burnerBoard == null) {
+            Log.d(TAG,"startLights: null burner board");
+        }
+
+        return burnerBoard;
+    }
 }
 
 

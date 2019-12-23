@@ -27,4 +27,7 @@ public class DebugConfigs {
     // name the profile as a testing overridee.
     public static final String DEBUG_BOARD_PROFILE = "supersexy";
 
+    // Set to force classic mode when using Emulator
+    public static final boolean DEBUG_EMULATING_CLASSIC = false;
+
 }

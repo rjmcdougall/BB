@@ -39,9 +39,6 @@ public class BBService extends Service {
 
     private static final String TAG = "BB.BBService";
 
-    // Set to force classic mode when using Emulator
-    public static final boolean kEmulatingClassic = false;
-
     // RPIs don't always have a screen; use beeps -jib
     public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI; // Not Done IsNano
 
@@ -186,7 +183,14 @@ public class BBService extends Service {
             // Register to know when bluetooth remote connects
             context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
-            startLights();
+            burnerBoard = BurnerBoard.Builder(this);
+            burnerBoard.setText90(BurnerBoardUtil.BOARD_ID, 5000);
+            burnerBoard.attach(new BBService.BoardCallback());
+
+            boardVisualization = new BoardVisualization(this );
+
+            Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
+            boardVisualization.setMode(mBoardMode);
 
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
@@ -261,47 +265,6 @@ public class BBService extends Service {
 
         l("BBService: onDesonDestroy");
         voice.shutdown();
-    }
-
-    private void startLights() {
-
-        if (kEmulatingClassic || BurnerBoardUtil.isBBClassic()) {
-            l("Visualization: Using Classic");
-            burnerBoard = new BurnerBoardClassic(this);
-        } else if (BurnerBoardUtil.isBBMast()) {
-            l("Visualization: Using Mast");
-            burnerBoard = new BurnerBoardMast(this);
-        } else if (BurnerBoardUtil.isBBPanel()) {
-            l("Visualization: Using Panel");
-            burnerBoard = new BurnerBoardPanel(this);
-        } else if (BurnerBoardUtil.isBBDirectMap()) {
-            l("Visualization: Using Direct Map");
-            burnerBoard = new BurnerBoardDirectMap(
-                    this,
-                    BurnerBoardUtil.kVisualizationDirectMapWidth,
-                    BurnerBoardUtil.kVisualizationDirectMapHeight
-            );
-        } else if (BurnerBoardUtil.isBBAzul()) {
-            l("Visualization: Using Azul");
-            burnerBoard = new BurnerBoardAzul(this);
-        } else {
-            l("Could not identify board type! Falling back to Azul for backwards compatibility");
-            burnerBoard = new BurnerBoardAzul(this);
-        }
-
-         if (burnerBoard == null) {
-            l("startLights: null burner board");
-            return;
-        }
-        burnerBoard.setText90(BurnerBoardUtil.BOARD_ID, 5000);
-        burnerBoard.attach(new BoardCallback());
-
-        if (boardVisualization == null) {
-            boardVisualization = new BoardVisualization(this );
-        }
-
-        Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
-        boardVisualization.setMode(mBoardMode);
     }
 
     long startElapsedTime, startClock;

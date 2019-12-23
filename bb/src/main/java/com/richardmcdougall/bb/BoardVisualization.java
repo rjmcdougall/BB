@@ -542,5 +542,4 @@ public class BoardVisualization {
         showingMap = mFrameRate * 15;
     }
 
-
 }
