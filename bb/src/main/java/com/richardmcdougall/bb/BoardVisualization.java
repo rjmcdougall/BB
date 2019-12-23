@@ -53,7 +53,7 @@ import java.util.Random;
 public class BoardVisualization {
 
     private static final String TAG = "BB.BoardVisualization";
-    private BBService mBBservice;
+    private BBService service;
     public Random mRandom = new Random();
     public byte[] mBoardFFT;
     private int mBoardWidth;
@@ -84,20 +84,16 @@ public class BoardVisualization {
     public Visualization getmVisualizationSyncLights;
 
     int mBoardMode;
-    Context mContext;
 
-    BurnerBoard mBurnerBoard = null;
+    BoardVisualization(BBService service) {
 
-    BoardVisualization(Context context, BurnerBoard board, BBService service) {
-        mBurnerBoard = board;
-        mBBservice = service;
-        l("Starting Board Visualization " + mBurnerBoard.boardType + " on " + mBurnerBoard.boardId);
+        this.service = service;
+        l("Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
 
-        mBoardWidth = mBurnerBoard.getWidth();
-        mBoardHeight = mBurnerBoard.getHeight();
-        mMultipler4Speed = mBurnerBoard.getMultiplier4Speed();
+        mBoardWidth = service.burnerBoard.getWidth();
+        mBoardHeight = service.burnerBoard.getHeight();
+        mMultipler4Speed = service.burnerBoard.getMultiplier4Speed();
 
-        mContext = context;
         // Start Board Display
         Thread boardDisplay = new Thread(new Runnable() {
             public void run() {
@@ -106,24 +102,24 @@ public class BoardVisualization {
             }
         });
         boardDisplay.start();
-        mBoardScreen = board.getPixelBuffer();
-        mFrameRate = board.getFrameRate();
+        mBoardScreen = service.burnerBoard.getPixelBuffer();
+        mFrameRate = service.burnerBoard.getFrameRate();
 
         l("Board framerate set to " + mFrameRate);
 
-        mVisualizationFire = new Fire(mBurnerBoard, this);
-        mVisualizationMatrix = new Matrix(mBurnerBoard, this);
-        mVisualizationTextColors = new TestColors(mBurnerBoard, this);
-        mVisualizationTheMan = new TheMan(mBurnerBoard, this);
-        mVisualizationAudioTile = new AudioTile(mBurnerBoard, this);
-        mVisualizationAudioCenter = new AudioCenter(mBurnerBoard, this);
-        mVisualizationVideo = new Video(mBurnerBoard, this);
-        mVisualizationMickey = new Mickey(mBurnerBoard, this);
-        mVisualizationJosPack = new JosPack(mBurnerBoard, this);
-        mVisualizationAudioBar = new AudioBar(mBurnerBoard, this);
-        mVisualizationMeteor = new Meteor(mBurnerBoard, this);
-        mVisualizationPlayaMap = new PlayaMap(mBurnerBoard, this);
-        getmVisualizationSyncLights = new SyncLights(mBurnerBoard, this);
+        mVisualizationFire = new Fire(service.burnerBoard, this);
+        mVisualizationMatrix = new Matrix(service.burnerBoard, this);
+        mVisualizationTextColors = new TestColors(service.burnerBoard, this);
+        mVisualizationTheMan = new TheMan(service.burnerBoard, this);
+        mVisualizationAudioTile = new AudioTile(service.burnerBoard, this);
+        mVisualizationAudioCenter = new AudioCenter(service.burnerBoard, this);
+        mVisualizationVideo = new Video(service.burnerBoard, this);
+        mVisualizationMickey = new Mickey(service.burnerBoard, this);
+        mVisualizationJosPack = new JosPack(service.burnerBoard, this);
+        mVisualizationAudioBar = new AudioBar(service.burnerBoard, this);
+        mVisualizationMeteor = new Meteor(service.burnerBoard, this);
+        mVisualizationPlayaMap = new PlayaMap(service.burnerBoard, this);
+        getmVisualizationSyncLights = new SyncLights(service.burnerBoard, this);
 
     }
 
@@ -158,7 +154,7 @@ public class BoardVisualization {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
 
@@ -166,19 +162,19 @@ public class BoardVisualization {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = getMode() + 1;
-        if (next > mBBservice.dlManager.GetTotalVideo()) {
+        if (next > service.dlManager.GetTotalVideo()) {
             next = 1;
         }
-        l("Setting Video to: " + mBBservice.dlManager.GetVideoFileLocalName(next - 1));
-        mBBservice.boardVisualization.setMode(next);
+        l("Setting Video to: " + service.dlManager.GetVideoFileLocalName(next - 1));
+        service.boardVisualization.setMode(next);
     }
 
     public void setMode(int mode) {
         Log.d(TAG, "Setting visualization mode to: " + mode);
 
         mBoardMode = mode;
-        mBurnerBoard.resetParams();
-        mBurnerBoard.clearPixels();
+        service.burnerBoard.resetParams();
+        service.burnerBoard.clearPixels();
         // TODO: call visual-specific setmode
     }
 
@@ -370,16 +366,16 @@ public class BoardVisualization {
 
         l("Starting board display thread...");
 
-        int nVideos = mBurnerBoard.mBBService.dlManager.GetTotalVideo();
+        int nVideos = service.burnerBoard.mBBService.dlManager.GetTotalVideo();
 
         while (true) {
 
             // Power saving when board top not turned on
             if (inhibitVisual || inhibitVisualGTFO) {
                 l("inhibit");
-                mBurnerBoard.clearPixels();
-                mBurnerBoard.showBattery();
-                mBurnerBoard.flush();
+                service.burnerBoard.clearPixels();
+                service.burnerBoard.showBattery();
+                service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
@@ -390,10 +386,10 @@ public class BoardVisualization {
 
             if (emergencyVisual) {
                 l("inhibit");
-                mBurnerBoard.clearPixels();
-                mBurnerBoard.fillScreen(255, 0, 0);
-                mBurnerBoard.showBattery();
-                mBurnerBoard.flush();
+                service.burnerBoard.clearPixels();
+                service.burnerBoard.fillScreen(255, 0, 0);
+                service.burnerBoard.showBattery();
+                service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
@@ -405,7 +401,7 @@ public class BoardVisualization {
             // TODO: render our own battery here rather than rely on firmware to do it.
             if (showBattery) {
                 if (batteryCnt % mFrameRate == 0) {
-                    mBurnerBoard.showBattery();
+                    service.burnerBoard.showBattery();
                 }
                 batteryCnt++;
             }
@@ -461,17 +457,17 @@ public class BoardVisualization {
             return mFrameRate;
         }
 
-        if(mBurnerBoard.mBBService.dlManager == null){
+        if(service.burnerBoard.mBBService.dlManager == null){
             return mFrameRate;
         }
 
         // TODO: check perf overhead of checking this every frame
-        JSONObject videos = mBurnerBoard.mBBService.dlManager.GetVideo(mode);
+        JSONObject videos = service.burnerBoard.mBBService.dlManager.GetVideo(mode);
         if (videos == null) {
             return mFrameRate;
         }
         if(videos.has("algorithm")){
-            String algorithm = mBurnerBoard.mBBService.dlManager.GetAlgorithm(mode);
+            String algorithm = service.burnerBoard.mBBService.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
             if (BurnerBoardUtil.kIsRPI) { // nano is fine

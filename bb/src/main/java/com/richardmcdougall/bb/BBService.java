@@ -141,7 +141,7 @@ public class BBService extends Service {
                 Thread.sleep(500);
             } catch (Exception e) {
             }
-            voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            voice = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
                 @Override
                 public void onInit(int status) {
                     // check for successful instantiation
@@ -298,13 +298,10 @@ public class BBService extends Service {
             return;
         }
         burnerBoard.setText90(BurnerBoardUtil.BOARD_ID, 5000);
-
-        if (burnerBoard != null) {
-            burnerBoard.attach(new BoardCallback());
-        }
+        burnerBoard.attach(new BoardCallback());
 
         if (boardVisualization == null) {
-            boardVisualization = new BoardVisualization(this, burnerBoard, this);
+            boardVisualization = new BoardVisualization(this );
         }
 
         Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
