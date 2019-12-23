@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.content.Context;
 import android.util.Log;
 import java.util.Arrays;
 
@@ -56,8 +55,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         boardType = "Burner Board Panel";
         l("Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
         initPixelOffset();
         initUsb();
         mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];

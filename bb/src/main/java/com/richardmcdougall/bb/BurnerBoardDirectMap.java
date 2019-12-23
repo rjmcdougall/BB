@@ -1,6 +1,5 @@
 
 package com.richardmcdougall.bb;
-import android.content.Context;
 import android.util.Log;
 
 import java.nio.IntBuffer;
@@ -59,8 +58,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardId = BurnerBoardUtil.BOARD_ID;
 
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
 
         boardType = "Burner Board DirectMap";
         l(boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);

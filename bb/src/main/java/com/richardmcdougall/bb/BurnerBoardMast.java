@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.nio.IntBuffer;
@@ -57,8 +56,7 @@ public class BurnerBoardMast extends BurnerBoard {
         boardType = "Burner Board Mast";
         l("Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
         initPixelOffset();
         initpixelMap2Board();
         initUsb();

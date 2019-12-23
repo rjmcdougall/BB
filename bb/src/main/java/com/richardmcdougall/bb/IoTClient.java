@@ -39,16 +39,16 @@ public class IoTClient {
 
     private static final String TAG = "BB.IoTClient";
     private volatile MqttAndroidClient mqttClient = null;
-    private Context mContext;
     private String deviceId;
     IMqttToken token = null;
     byte[] keyBytes = new byte[16384];
     String jwtKey = null;
     boolean haveConnected = false;
     WifiManager mWiFiManager = null;
+    BBService service = null;
 
     public IoTClient(BBService service) {
-        mContext = service.context;
+        this.service = service;
 
         Log.d(TAG, "Creating MQTT Client");
         IntentFilter intentf = new IntentFilter();
@@ -65,14 +65,13 @@ public class IoTClient {
         System.arraycopy(keyBytes, 0, compactKey, 0, kfSize);
         keyBytes = compactKey;
 
-        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mWiFiManager = (WifiManager) this.service.context.getSystemService(Context.WIFI_SERVICE);
 
         Log.d(TAG, "connect(google, " + deviceId + ")");
-        String filesDir = mContext.getFilesDir().getAbsolutePath();
+        String filesDir = this.service.context.getFilesDir().getAbsolutePath();
         mqttClient = new MqttAndroidClient(service.context, "ssl://mqtt.googleapis.com:8883",
                 deviceId, new MemoryPersistence());
         doConnect();
-
 
     }
 
@@ -161,7 +160,7 @@ public class IoTClient {
                     }
                     try {
                         Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
-                        mContext.sendBroadcast(intent);
+                        service.context.sendBroadcast(intent);
                     } catch (Exception e) {
                         Log.d(TAG, "Cannot send force-time-sync");
                     }
@@ -212,7 +211,7 @@ public class IoTClient {
         @SuppressLint("NewApi")
         public void messageArrived(String topic, final MqttMessage msg) throws Exception {
             Log.i(TAG, "Message arrived from topic " + topic + ": " + msg.getPayload().toString());
-            Handler h = new Handler(mContext.getMainLooper());
+            Handler h = new Handler(service.context.getMainLooper());
             h.post(new Runnable() {
                 @Override
                 public void run() {

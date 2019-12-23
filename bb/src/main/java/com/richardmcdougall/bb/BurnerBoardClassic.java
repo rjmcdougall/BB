@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.nio.IntBuffer;
@@ -33,8 +32,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
         initPixelOffset();
         initUsb();
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);

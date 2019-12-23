@@ -28,12 +28,11 @@ public class Gps {
 
     private static final String TAG = "BB.Gps";
     public GpsEvents mGpsCallback = null;
-    public Context mContext = null;
     private PipedInputStream mSentenceInput;
     private PipedOutputStream mSentenceOutput;
     private SentenceReader mSR;
     PositionProvider provider;
-    private BBService mBBService;
+    private BBService service;
 
     public interface GpsEvents {
         void timeEvent(net.sf.marineapi.nmea.util.Time time);
@@ -47,8 +46,7 @@ public class Gps {
 
 
     public Gps(BBService service, Context context) {
-        mContext = context;
-        mBBService = service;
+        this.service = service;
         l("Gps starting");
 
         try {
@@ -101,7 +99,7 @@ public class Gps {
                             Intent in = new Intent(ACTION.BB_LOCATION);
                             in.putExtra("lat", evt.getPosition().getLatitude());
                             in.putExtra("lon", evt.getPosition().getLatitude());
-                            LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);
+                            LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
                         }
                     } catch (Exception e) {
                         l("Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
@@ -166,7 +164,7 @@ public class Gps {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void l(String s) {

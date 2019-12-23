@@ -50,9 +50,8 @@ public class BurnerBoard {
     private UsbDevice mUsbDevice = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.BurnerBoard";
-    public Context mContext = null;
     public String boardId;
-    public BBService mBBService = null;
+    public BBService service = null;
     public String mEchoString = "";
     public int[] mBoardScreen;
     public String boardType;
@@ -66,17 +65,16 @@ public class BurnerBoard {
 
 
     public BurnerBoard(BBService service) {
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
         // Register to receive attach/detached messages that are proxied from MainActivity
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        mBBService.registerReceiver(mUsbReceiver, filter);
+        this.service.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-        mBBService.registerReceiver(mUsbReceiver, filter);
+        this.service.registerReceiver(mUsbReceiver, filter);
     }
 
     public BBService getBBService() {
-         return mBBService;
+         return service;
     }
 
     public void setTextBuffer(int width, int height) {
@@ -250,7 +248,7 @@ public class BurnerBoard {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
 
@@ -260,7 +258,7 @@ public class BurnerBoard {
         in.putExtra("msgType", 3);
         // Put extras into the intent as usual
         in.putExtra("ledStatus", status);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
 
@@ -294,7 +292,7 @@ public class BurnerBoard {
             return;
         }
 
-        UsbManager manager = (UsbManager) mBBService.getSystemService(Context.USB_SERVICE);
+        UsbManager manager = (UsbManager) service.getSystemService(Context.USB_SERVICE);
 
         // Find all available drivers from attached devices.
         List<UsbSerialDriver> availableDrivers =
@@ -307,7 +305,7 @@ public class BurnerBoard {
 
         // Register to receive detached messages
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        mBBService.registerReceiver(mUsbReceiver, filter);
+        service.registerReceiver(mUsbReceiver, filter);
 
         // Find the Radio device by pid/vid
         mUsbDevice = null;
@@ -333,8 +331,8 @@ public class BurnerBoard {
         if (!manager.hasPermission(mUsbDevice)) {
             //ask for permission
 
-            PendingIntent pi = PendingIntent.getBroadcast(mContext, 0, new Intent(GET_USB_PERMISSION), 0);
-            mContext.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
+            PendingIntent pi = PendingIntent.getBroadcast(service.context, 0, new Intent(GET_USB_PERMISSION), 0);
+            service.context.registerReceiver(new PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
             //manager.requestPermission(mUsbDevice, pi);
             //return;
 
@@ -373,7 +371,7 @@ public class BurnerBoard {
     private class PermissionReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            mContext.unregisterReceiver(this);
+            service.context.unregisterReceiver(this);
             if (intent.getAction().equals(GET_USB_PERMISSION)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -565,7 +563,7 @@ public class BurnerBoard {
         in.putExtra("resultCode", Activity.RESULT_OK);
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void sendVisual(int visualId, int arg) {
@@ -577,7 +575,7 @@ public class BurnerBoard {
         // Put extras into the intent as usual
         in.putExtra("visualId", visualId);
         in.putExtra("arg", arg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void sendVisual(int visualId, int arg1, int arg2, int arg3) {
@@ -591,7 +589,7 @@ public class BurnerBoard {
         in.putExtra("arg1", arg1);
         in.putExtra("arg2", arg2);
         in.putExtra("arg3", arg3);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void sendVisual(int visualId, int arg1, int[] arg2) {
@@ -609,7 +607,7 @@ public class BurnerBoard {
         in.putExtra("arg1", arg1);
         //java.util.Arrays.fill(arg2, (byte) 128);
         in.putExtra("arg2", pixels);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void batteryActions(int level) {
@@ -801,7 +799,7 @@ public class BurnerBoard {
     }
 
     public long getCurrentClock() {
-        long curTimeStamp = mBBService.GetCurrentClock();
+        long curTimeStamp = service.GetCurrentClock();
         return curTimeStamp;
     }
 

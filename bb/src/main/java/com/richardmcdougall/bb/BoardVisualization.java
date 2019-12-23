@@ -8,7 +8,6 @@ import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.*;
 import com.richardmcdougall.bb.visualization.Visualization;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.media.audiofx.Visualizer;
 
@@ -366,7 +365,7 @@ public class BoardVisualization {
 
         l("Starting board display thread...");
 
-        int nVideos = service.burnerBoard.mBBService.dlManager.GetTotalVideo();
+        int nVideos = service.burnerBoard.service.dlManager.GetTotalVideo();
 
         while (true) {
 
@@ -457,17 +456,17 @@ public class BoardVisualization {
             return mFrameRate;
         }
 
-        if(service.burnerBoard.mBBService.dlManager == null){
+        if(service.burnerBoard.service.dlManager == null){
             return mFrameRate;
         }
 
         // TODO: check perf overhead of checking this every frame
-        JSONObject videos = service.burnerBoard.mBBService.dlManager.GetVideo(mode);
+        JSONObject videos = service.burnerBoard.service.dlManager.GetVideo(mode);
         if (videos == null) {
             return mFrameRate;
         }
         if(videos.has("algorithm")){
-            String algorithm = service.burnerBoard.mBBService.dlManager.GetAlgorithm(mode);
+            String algorithm = service.burnerBoard.service.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
             if (BurnerBoardUtil.kIsRPI) { // nano is fine

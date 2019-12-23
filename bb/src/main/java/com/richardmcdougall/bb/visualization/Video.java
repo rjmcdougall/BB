@@ -14,13 +14,14 @@ public class Video extends Visualization {
     private VideoDecoder mVideoDecoder = new VideoDecoder();
     private int lastVideoMode = -1;
 
-    public Video(BurnerBoard bb, BoardVisualization visualization) {
+    public Video(BurnerBoard bb,
+                 BoardVisualization visualization) {
         super(bb, visualization);
     }
 
     public void update(int mode) {
 
-        int nVideos = mBurnerBoard.mBBService.dlManager.GetTotalVideo();
+        int nVideos = mBurnerBoard.service.dlManager.GetTotalVideo();
 
         if (nVideos == 0)
             return;
@@ -43,7 +44,7 @@ public class Video extends Visualization {
             };
 
             try {
-                mVideoDecoder.Start(mBurnerBoard.mBBService.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+                mVideoDecoder.Start(mBurnerBoard.service.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
             } catch (Throwable throwable) {
                 //Log.d(TAG, "Unable to start decoder");
                 //throwable.printStackTrace();
