@@ -233,7 +233,7 @@ public class BBService extends Service {
 
             startLights();
 
-            musicPlayer = new MusicPlayer(this, burnerBoard, voice);
+            musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();
 

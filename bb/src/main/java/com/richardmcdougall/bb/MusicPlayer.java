@@ -30,33 +30,19 @@ public class MusicPlayer implements Runnable {
 
     public static final int kRemoteAudioTrack = 0x01;
     private static final String TAG = "MusicPlayer";
-    public RFClientServer mRfClientServer = null;
     public int currentRadioChannel = 1;
     public Handler handler;
-    BoardVisualization mBoardVisualization = null;
     long lastSeekOffset = 0;
     long phoneModelAudioLatency = 0;
-    TextToSpeech voice;
     SimpleExoPlayer player = null;
     float recallVol = 0;
-    private BBService mMain = null;
-    private DownloadManager dlManager = null;
+    private BBService service = null;
     private int userTimeOffset = 0;
-    private Context mContext = null;
-    private BurnerBoard mBurnerBoard = null;
     private float vol = 0.80f;
     int nextRadioChannel;
 
-    MusicPlayer(BBService service,
-                BurnerBoard bb,
-                TextToSpeech v) {
-        dlManager = service.dlManager;
-        mMain = service;
-        mContext = service.context;
-        mBoardVisualization = service.boardVisualization;
-        mRfClientServer = service.rfClientServer;
-        mBurnerBoard = bb;
-        voice = v;
+    MusicPlayer(BBService service) {
+        this.service = service;
 
         String model = android.os.Build.MODEL;
 
@@ -70,14 +56,14 @@ public class MusicPlayer implements Runnable {
         }
 
         boolean hasLowLatencyFeature =
-                mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
+                this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
 
         d("has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
-                mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
+                this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
         d("has audio ProFeature: " + hasProFeature);
 
-        AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) this.service.context.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         int sampleRate = Integer.parseInt(sampleRateStr);
 
@@ -95,7 +81,7 @@ public class MusicPlayer implements Runnable {
         Looper.prepare();
         handler = new Handler(Looper.myLooper());
 
-        player = ExoPlayerFactory.newSimpleInstance(mContext);
+        player = ExoPlayerFactory.newSimpleInstance(service.context);
         player.setSeekParameters(SeekParameters.EXACT);
 
         player.addAnalyticsListener(new AnalyticsListener() {
@@ -128,7 +114,7 @@ public class MusicPlayer implements Runnable {
 
     public void NextStream() {
         nextRadioChannel = currentRadioChannel + 1;
-        if (nextRadioChannel > dlManager.GetTotalAudio())
+        if (nextRadioChannel > service.dlManager.GetTotalAudio())
             nextRadioChannel = 0;
 
         this.handler.post(() -> mSetRadioChannel(nextRadioChannel) );
@@ -163,7 +149,7 @@ public class MusicPlayer implements Runnable {
     }
 
     private long GetCurrentStreamLengthInSeconds() {
-        return dlManager.GetAudioLength(currentRadioChannel - 1);
+        return service.dlManager.GetAudioLength(currentRadioChannel - 1);
     }
 
     public void SeekAndPlay() {
@@ -171,9 +157,9 @@ public class MusicPlayer implements Runnable {
     }
 
     private void mSeekAndPlay() {
-        if (player != null && dlManager.GetTotalAudio() != 0) {
+        if (player != null && service.dlManager.GetTotalAudio() != 0) {
 
-            long ms = mMain.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
+            long ms = service.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
             long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
@@ -183,9 +169,9 @@ public class MusicPlayer implements Runnable {
 
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
-            d("SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + mMain.serverTimeOffset +
+            d("SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
                     " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + mMain.serverRTT + " Strm" + currentRadioChannel);
+                    " RTT " + service.serverRTT + " Strm" + currentRadioChannel);
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);
@@ -206,9 +192,9 @@ public class MusicPlayer implements Runnable {
             in.putExtra("seekErr", seekErr);
             in.putExtra("", currentRadioChannel);
             in.putExtra("userTimeOffset", userTimeOffset);
-            in.putExtra("serverTimeOffset", mMain.serverTimeOffset);
-            in.putExtra("serverRTT", mMain.serverRTT);
-            LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+            in.putExtra("serverTimeOffset", service.serverTimeOffset);
+            in.putExtra("serverRTT", service.serverRTT);
+            LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
         }
     }
 
@@ -217,7 +203,7 @@ public class MusicPlayer implements Runnable {
     }
 
     public String getRadioChannelInfo(int index) {
-        return dlManager.GetAudioFileLocalName(index - 1);
+        return service.dlManager.GetAudioFileLocalName(index - 1);
     }
 
     public int getCurrentBoardVol() {
@@ -235,7 +221,7 @@ public class MusicPlayer implements Runnable {
 
     public int getAndroidVolumePercent() {
         AudioManager audioManager =
-                (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+                (AudioManager) service.context.getSystemService(Context.AUDIO_SERVICE);
 
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
@@ -246,7 +232,7 @@ public class MusicPlayer implements Runnable {
 
     public void setAndroidVolumePercent(int v) {
         AudioManager audioManager =
-                (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+                (AudioManager) service.context.getSystemService(Context.AUDIO_SERVICE);
 
         vol = v / (float) 100;
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
@@ -293,15 +279,15 @@ public class MusicPlayer implements Runnable {
         currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
-        if (mMain.masterRemote && (mRfClientServer != null)) {
+        if (service.masterRemote && (service.rfClientServer != null)) {
 
             d("Sending remote");
 
             String fileName = getRadioChannelInfo(index);
-            mRfClientServer.sendRemote(kRemoteAudioTrack, mMain.hashTrackName(fileName), RFClientServer.kRemoteAudio);
+            service.rfClientServer.sendRemote(kRemoteAudioTrack, service.hashTrackName(fileName), RFClientServer.kRemoteAudio);
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             try {
-                Thread.sleep(mRfClientServer.getLatency());
+                Thread.sleep(service.rfClientServer.getLatency());
             } catch (Exception e) {
             }
         }
@@ -309,22 +295,22 @@ public class MusicPlayer implements Runnable {
         try {
             d("Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
-            mBurnerBoard.setText(shortName[0], 2000);
-            if (mMain.voiceAnnouncements) {
-                voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
+            service.burnerBoard.setText(shortName[0], 2000);
+            if (service.voiceAnnouncements) {
+                service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             }
 
-            if (player != null && dlManager.GetTotalAudio() != 0) {
+            if (player != null && service.dlManager.GetTotalAudio() != 0) {
 
                 lastSeekOffset = 0;
 
-                d("playing file " + dlManager.GetAudioFile(index - 1));
+                d("playing file " + service.dlManager.GetAudioFile(index - 1));
 
                 // Produces DataSource instances through which media data is loaded.
-                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(mContext,
-                        Util.getUserAgent(mContext, "yourApplicationName"));
+                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
+                        Util.getUserAgent(service.context, "yourApplicationName"));
 
-                String filePath = dlManager.GetAudioFile(index - 1);
+                String filePath = service.dlManager.GetAudioFile(index - 1);
                 Uri uri = Uri.parse("file:///" + filePath);
 
                 // This is the MediaSource representing the media to be played.
@@ -343,7 +329,7 @@ public class MusicPlayer implements Runnable {
                 player.setRepeatMode(Player.REPEAT_MODE_ALL);
                 player.setVolume(1);
 
-                mBoardVisualization.attachAudio(player.getAudioSessionId());
+                service.boardVisualization.attachAudio(player.getAudioSessionId());
             }
 
             this.handler.post(() -> mSeekAndPlay() );
