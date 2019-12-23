@@ -465,7 +465,7 @@ public class BluetoothCommands {
                         l("BBservice got Video command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg") + 1;
-                            mBBService.setVideoMode(track);
+                            mBBService.setMode(track);
                         } catch (Exception e) {
                             l("error setting video track: " + e.getMessage());
                         }
@@ -723,7 +723,7 @@ public class BluetoothCommands {
         JSONObject state = new JSONObject();
         try {
             state.put("acn", mMusicPlayer.getRadioChannel() - 1);
-            state.put("vcn", mBBService.getVideoMode() - 1);
+            state.put("vcn", mBBService.boardVisualization.getMode() - 1);
             state.put("v", mMusicPlayer.getBoardVolumePercent());
             state.put("b", mBBService.burnerBoard.getBattery());
             state.put("am", mBBService.isMaster());

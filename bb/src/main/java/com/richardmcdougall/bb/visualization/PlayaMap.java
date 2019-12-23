@@ -25,7 +25,7 @@ public class PlayaMap extends Visualization {
         super(bb, visualization);
         BBService bbService = bb.getBBService();
         if (bbService != null) {
-            mFMF = bbService.getFindMyFriends();
+            mFMF = bbService.findMyFriends;
         }
 
         /*

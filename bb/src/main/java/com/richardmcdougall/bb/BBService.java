@@ -112,13 +112,6 @@ public class BBService extends Service {
         return mVoiceAnnouncements;
     }
 
-    public void d_battery(String s) {
-        if (DebugConfigs.DEBUG_BATTERY) {
-            Log.v(TAG, s);
-            sendLogMsg(s);
-        }
-    }
-
     /* XXX TODO this is here for backwards compat; this used to be computed here and is now in bbutil -jib */
     public static String getBoardId() {
         return BurnerBoardUtil.BOARD_ID;
@@ -144,12 +137,6 @@ public class BBService extends Service {
      */
     boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
     int mIoTReportEveryNSeconds = 10;
-
-    /**
-     * Indicates whether Wifi reconnecting is enabled and how often
-     */
-    boolean mEnableWifiReconnect = true;
-    int mWifiReconnectEveryNSeconds = 60;
 
     @Override
     public void onCreate() {
@@ -420,10 +407,6 @@ public class BBService extends Service {
         boardVisualization.setMode(mBoardMode);
     }
 
-    public FindMyFriends getFindMyFriends() {
-        return findMyFriends;
-    }
-
     long startElapsedTime, startClock;
 
     public void InitClock() {
@@ -517,14 +500,6 @@ public class BBService extends Service {
         }
     };
 
-    public int getCurrentBoardMode() {
-        if (boardVisualization != null) {
-            return boardVisualization.getMode();
-        } else {
-            return 0;
-        }
-    }
-
     public void blockMaster(boolean enable) {
         mBlockMaster = enable;
     }
@@ -587,7 +562,7 @@ public class BBService extends Service {
             switch (cmd) {
                 case kRemoteAudioTrack:
 
-                    for (int i = 1; i <= getRadioChannelMax(); i++) {
+                    for (int i = 1; i <= dlManager.GetTotalAudio(); i++) {
                         String name = musicPlayer.getRadioChannelInfo(i);
                         long hashed = hashTrackName(name);
                         if (hashed == value) {
@@ -604,13 +579,13 @@ public class BBService extends Service {
                     break;
 
                 case kRemoteVideoTrack:
-                    for (int i = 1; i <= getVideoMax(); i++) {
+                    for (int i = 1; i <= dlManager.GetTotalVideo(); i++) {
                         String name = getVideoModeInfo(i);
                         long hashed = hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Video " + getVideoMode() + " -> " + i);
-                            if (getVideoMode() != i) {
-                                setVideoMode((int) i);
+                            l("Remote Video " + boardVisualization.getMode() + " -> " + i);
+                            if (boardVisualization.getMode() != i) {
+                                setMode((int) i);
                                 l("Received remote video switch to mode " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote video switch to mode " + i + " (" + name + ")");
@@ -644,23 +619,12 @@ public class BBService extends Service {
         return dlManager.GetVideoFileLocalName(index - 1);
     }
 
-    public int getVideoMode() {
-        return getCurrentBoardMode();
-    }
-
-    public int getRadioChannelMax() {
-        return dlManager.GetTotalAudio();
-    }
-
-    public int getVideoMax() {
-        return dlManager.GetTotalVideo();
-    }
 
     // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
-        int next = getVideoMode() + 1;
-        if (next > getVideoMax()) {
+        int next = boardVisualization.getMode() + 1;
+        if (next > dlManager.GetTotalVideo()) {
             //next = 0;
             next = 1;
         }
@@ -679,10 +643,6 @@ public class BBService extends Service {
             return -1;
         }
         return (encoded[0] << 24) + (encoded[1] << 16) + (encoded[2] << 8) + encoded[0];
-    }
-
-    public void setVideoMode(int mode) {
-        setMode(mode);
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
