@@ -4,13 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -22,6 +22,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 
 import android.os.*;
 
@@ -329,6 +330,14 @@ public class MusicPlayer implements Runnable {
                 // This is the MediaSource representing the media to be played.
                 MediaSource audioSource = new ExtractorMediaSource.Factory(dataSourceFactory)
                         .createMediaSource(uri);
+
+                AudioAttributes a = player.getAudioAttributes();
+
+                AudioAttributes.Builder b = new AudioAttributes.Builder();
+                b.setContentType(C.CONTENT_TYPE_MUSIC);
+                b.setUsage(C.USAGE_MEDIA);
+                player.setAudioAttributes(b.build());
+
                 player.prepare(audioSource, false, false);
                 player.setPlayWhenReady(true);
                 player.setRepeatMode(Player.REPEAT_MODE_ALL);
