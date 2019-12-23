@@ -440,7 +440,7 @@ public class BluetoothCommands {
                         l("BBservice got BlockMaster command:" + payload.toString());
                         try {
                             boolean blockMaster = payload.getBoolean("arg");
-                            mBBService.blockMaster(blockMaster);
+                            mBBService.blockMaster = blockMaster;
 
                         } catch (Exception e) {
                             l("error setting BlockMaster: " + e.getMessage());

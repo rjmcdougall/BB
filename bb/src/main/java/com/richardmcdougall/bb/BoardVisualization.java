@@ -161,6 +161,18 @@ public class BoardVisualization {
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
     }
 
+
+    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
+    // VideoMode() = 1 sets it to the beginning of the profile.
+    void NextVideo() {
+        int next = getMode() + 1;
+        if (next > mBBservice.dlManager.GetTotalVideo()) {
+            next = 1;
+        }
+        l("Setting Video to: " + mBBservice.dlManager.GetVideoFileLocalName(next - 1));
+        mBBservice.boardVisualization.setMode(next);
+    }
+
     public void setMode(int mode) {
         Log.d(TAG, "Setting visualization mode to: " + mode);
 

@@ -18,6 +18,7 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
@@ -392,13 +393,6 @@ public class BBService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-    private void onDeviceStateChange() {
-        l("BBservice: onDeviceStateChange()");
-
-        burnerBoard.stopIoManager();
-        burnerBoard.startIoManager();
-    }
-
     // We use this to catch the music buttons
     private final BroadcastReceiver mButtonReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -455,10 +449,6 @@ public class BBService extends Service {
             }
         }
     };
-
-    public void blockMaster(boolean enable) {
-        blockMaster = enable;
-    }
 
     public void enableMaster(boolean enable) {
         masterRemote = enable;
@@ -524,7 +514,7 @@ public class BBService extends Service {
                         if (hashed == value) {
                             l("Remote Audio " + musicPlayer.getRadioChannel() + " -> " + i);
                             if (musicPlayer.getRadioChannel() != i) {
-                                musicPlayer.SetRadioChannel((int) i); 
+                                musicPlayer.SetRadioChannel((int) i);
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote audio switch to track " + i + " (" + name + ")");
@@ -536,7 +526,7 @@ public class BBService extends Service {
 
                 case kRemoteVideoTrack:
                     for (int i = 1; i <= dlManager.GetTotalVideo(); i++) {
-                        String name = getVideoModeInfo(i);
+                        String name = dlManager.GetVideoFileLocalName(i - 1);
                         long hashed = hashTrackName(name);
                         if (hashed == value) {
                             l("Remote Video " + boardVisualization.getMode() + " -> " + i);
@@ -569,23 +559,6 @@ public class BBService extends Service {
                     break;
             }
         }
-    }
-
-    public String getVideoModeInfo(int index) {
-        return dlManager.GetVideoFileLocalName(index - 1);
-    }
-
-
-    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
-    // VideoMode() = 1 sets it to the beginning of the profile.
-    void NextVideo() {
-        int next = boardVisualization.getMode() + 1;
-        if (next > dlManager.GetTotalVideo()) {
-            //next = 0;
-            next = 1;
-        }
-        l("Setting Video to: " + getVideoModeInfo(next));
-        boardVisualization.setMode(next);
     }
 
     // Hash String as 32-bit
@@ -624,8 +597,8 @@ public class BBService extends Service {
             case 97:
             case 20:
                 musicPlayer.MusicOffset(-10);
-            break;
-        case 19:
+                break;
+            case 19:
                 musicPlayer.MusicOffset(10);
                 break;
             case 24:   // native volume up button
@@ -661,7 +634,7 @@ public class BBService extends Service {
 
         switch (keyCode) {
             case 85: // satachi Play button
-                NextVideo();
+                boardVisualization.NextVideo();
                 break;
 
             /* Audio stream control */
@@ -707,7 +680,7 @@ public class BBService extends Service {
         // If I am set to be the master, broadcast to other boards
         if (masterRemote && (rfClientServer != null)) {
 
-            String name = getVideoModeInfo(mBoardMode);
+            String name = dlManager.GetVideoFileLocalName(mBoardMode - 1);
             l("Sending video remote for video " + name);
             rfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
         }
