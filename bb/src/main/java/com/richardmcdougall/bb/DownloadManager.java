@@ -330,8 +330,7 @@ public class DownloadManager {
                 d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue  = false;
             }
-
-            if(returnValue) {
+            else {
                 d("Reading Directory from " + DirectoryURL);
 
                 new File(mFilesDir, "tmp").renameTo(new File(mFilesDir, "directory.json.tmp"));

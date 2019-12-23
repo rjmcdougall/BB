@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -95,10 +96,13 @@ public class FileHelpers {
         catch(UnknownHostException e){
             Log.d(TAG,"An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
             return -1;
-
         }
-        catch (Throwable e) {
-            e.printStackTrace();
+        catch(ConnectException e){
+            Log.d(TAG,"An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
+            return -1;
+        }
+        catch (Exception e) {
+            Log.d(TAG,"An exception occured access the boards file from burnerboard.com. " + e.getMessage());
             return -1;
         }
     }

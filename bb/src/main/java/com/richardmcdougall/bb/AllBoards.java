@@ -202,17 +202,13 @@ public class AllBoards {
             d(DirectoryURL);
 
             long ddsz = -1;
-            try{
-                ddsz = FileHelpers.DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON", onProgressCallback, mFilesDir);
-            }
-            catch(Exception e){}
+            ddsz = FileHelpers.DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON", onProgressCallback, mFilesDir);
 
             if (ddsz < 0) {
                 d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
                 returnValue = false;
             }
-
-            if(returnValue){
+            else {
                 new File(dataDir, "boardsTemp").renameTo(new File(dataDir, "boards.json.tmp"));
 
                 String dirTxt = FileHelpers.LoadTextFile("boards.json.tmp", mFilesDir);
