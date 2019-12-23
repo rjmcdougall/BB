@@ -17,26 +17,12 @@ import org.json.JSONObject;
 
 public class BluetoothCommands {
     private static final String TAG = "BB.BluetoothCommands";
-    public Context mContext = null;
-    public BBService mBBService = null;
-    String mBoardId;
-    BluetoothLEServer mBLEServer;
-    BluetoothConnManager mBluetoothConnManager;
-    public FindMyFriends mFindMyFriends = null;
-    public MusicPlayer mMusicPlayer = null;
+    public BBService service = null;
     private Handler mHandler;
-    private AllBoards mAllBoards;
 
     public BluetoothCommands(BBService service) {
-        mBBService = service;
-        mContext = service.context;
+        this.service = service;
         mHandler = new Handler(Looper.getMainLooper());
-        mBoardId = BurnerBoardUtil.BOARD_ID;
-        mBLEServer = service.bLEServer;
-        mBluetoothConnManager = service.bluetoothConnManager;
-        mFindMyFriends = service.findMyFriends;
-        mMusicPlayer = service.musicPlayer;
-        mAllBoards = service.allBoards;
 
         // Register to receive button messages
         IntentFilter filter;
@@ -51,7 +37,7 @@ public class BluetoothCommands {
     }
 
     public JSONArray Boards() {
-        JSONArray boards = mAllBoards.GetDataBoards();
+        JSONArray boards = service.allBoards.GetDataBoards();
         JSONArray boards2 = null;
         if (boards == null) {
            l( "Could not get boards directory (null)");
@@ -80,13 +66,13 @@ public class BluetoothCommands {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = null;
-        if (mBBService.dlManager.GetDataDirectory() == null) {
+        if (service.dlManager.GetDataDirectory() == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                 audio = new JSONArray(mBBService.dlManager.GetDataDirectory().getJSONArray("audio").toString()) ;
+                 audio = new JSONArray(service.dlManager.GetDataDirectory().getJSONArray("audio").toString()) ;
                 for (int i = 0; i < audio.length(); i++) {
                     JSONObject a = audio.getJSONObject(i);
                     if(a.has("URL"))  a.remove("URL");
@@ -107,13 +93,13 @@ public class BluetoothCommands {
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
          JSONArray video = null;
 
-        if (mBBService.dlManager.GetDataDirectory() == null) {
+        if (service.dlManager.GetDataDirectory() == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                video = new JSONArray(mBBService.dlManager.GetDataDirectory().getJSONArray("video").toString());
+                video = new JSONArray(service.dlManager.GetDataDirectory().getJSONArray("video").toString());
                 for (int i = 0; i < video.length(); i++) {
                     JSONObject v = video.getJSONObject(i);
                     if(v.has("URL")) v.remove("URL");
@@ -132,7 +118,7 @@ public class BluetoothCommands {
 
     public void init() {
 
-        mBLEServer.addCallback("getboards",
+        service.bLEServer.addCallback("getboards",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -171,7 +157,7 @@ public class BluetoothCommands {
                             }
                         }
                         // Send payload back to requesting device
-                        mBLEServer.tx(device,
+                        service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
                         l("BBservice done getboards command");
@@ -179,7 +165,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("getaudio",
+        service.bLEServer.addCallback("getaudio",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -222,7 +208,7 @@ public class BluetoothCommands {
                             }
                         }
                         // Send payload back to requesting device
-                        mBLEServer.tx(device,
+                        service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
                         l("BBservice done getaudio command");
@@ -231,7 +217,7 @@ public class BluetoothCommands {
                 });
 
 
-        mBLEServer.addCallback("getvideo",
+        service.bLEServer.addCallback("getvideo",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -275,7 +261,7 @@ public class BluetoothCommands {
                             }
                         }
                         // Send payload back to requesting device
-                        mBLEServer.tx(device,
+                        service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
                         l("BBservice done getvideo command");
@@ -283,7 +269,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("getall",
+        service.bLEServer.addCallback("getall",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -364,7 +350,7 @@ public class BluetoothCommands {
                             }
                         }
                         // Send payload back to requesting device
-                        mBLEServer.tx(device,
+                        service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
                         l("BBservice done getall command");
@@ -374,7 +360,7 @@ public class BluetoothCommands {
 
                 });
 
-        mBLEServer.addCallback("EnableMaster",
+        service.bLEServer.addCallback("EnableMaster",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -390,7 +376,7 @@ public class BluetoothCommands {
                         l("BBservice got EnableMaster command:" + payload.toString());
                         try {
                             boolean isMaster = payload.getBoolean("arg");
-                            mBBService.enableMaster(isMaster);
+                            service.enableMaster(isMaster);
 
                         } catch (Exception e) {
                             l("error setting Master: " + e.getMessage());
@@ -399,7 +385,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("EnableGTFO",
+        service.bLEServer.addCallback("EnableGTFO",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -415,7 +401,7 @@ public class BluetoothCommands {
                         l("BBservice got EnableGTFO command:" + payload.toString());
                         try {
                             boolean isGTFO = payload.getBoolean("arg");
-                            mBBService.enableGTFO(isGTFO);
+                            service.enableGTFO(isGTFO);
 
                         } catch (Exception e) {
                             l("error setting EnableGTFO: " + e.getMessage());
@@ -424,7 +410,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("BlockMaster",
+        service.bLEServer.addCallback("BlockMaster",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -440,7 +426,7 @@ public class BluetoothCommands {
                         l("BBservice got BlockMaster command:" + payload.toString());
                         try {
                             boolean blockMaster = payload.getBoolean("arg");
-                            mBBService.blockMaster = blockMaster;
+                            service.blockMaster = blockMaster;
 
                         } catch (Exception e) {
                             l("error setting BlockMaster: " + e.getMessage());
@@ -449,7 +435,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("Video",
+        service.bLEServer.addCallback("Video",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -465,14 +451,14 @@ public class BluetoothCommands {
                         l("BBservice got Video command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg") + 1;
-                            mBBService.setMode(track);
+                            service.setMode(track);
                         } catch (Exception e) {
                             l("error setting video track: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
                 });
-        mBLEServer.addCallback("getwifi",
+        service.bLEServer.addCallback("getwifi",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -495,7 +481,7 @@ public class BluetoothCommands {
                         }
 
                         try {
-                            JSONArray wifi = mBBService.wifi.getScanResults();
+                            JSONArray wifi = service.wifi.getScanResults();
                             if(wifi==null)
                                 l("Empty wifi");
                             else
@@ -517,14 +503,14 @@ public class BluetoothCommands {
                             }
                         }
                         // Send payload back to requesting device
-                        mBLEServer.tx(device,
+                        service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
                         l("BBservice done wifi command");
                         l(response.toString());
                     }
                 });
-        mBLEServer.addCallback("Wifi",
+        service.bLEServer.addCallback("Wifi",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -542,7 +528,7 @@ public class BluetoothCommands {
                             String SSIS = payload.getString("arg");
                             if (SSIS != "") {
                                 String[] parts = SSIS.split("__");
-                                mBBService.wifi.setSSISAndPassword(parts[0], parts[1]);
+                                service.wifi.setSSISAndPassword(parts[0], parts[1]);
                             }
                         } catch (Exception e) {
                             l("error setting wifi: " + e.getMessage());
@@ -551,7 +537,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("Volume",
+        service.bLEServer.addCallback("Volume",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -568,7 +554,7 @@ public class BluetoothCommands {
                         try {
                             int volume = payload.getInt("arg");
                             if (volume >= 0 && volume <= 100) {
-                                mMusicPlayer.setBoardVolume(volume);
+                                service.musicPlayer.setBoardVolume(volume);
                             }
                         } catch (Exception e) {
                             l("error setting volume: " + e.getMessage());
@@ -577,7 +563,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("Audio",
+        service.bLEServer.addCallback("Audio",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -593,7 +579,7 @@ public class BluetoothCommands {
                         l("BBservice got Audio command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg");
-                            mMusicPlayer.SetRadioChannel(track + 1);
+                            service.musicPlayer.SetRadioChannel(track + 1);
                         } catch (Exception e) {
                             l("error setting audio track: " + e.getMessage());
                         }
@@ -602,7 +588,7 @@ public class BluetoothCommands {
                 });
 
         // Register Video command on bluetooth server
-        mBLEServer.addCallback("getstate",
+        service.bLEServer.addCallback("getstate",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -620,7 +606,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("Location",
+        service.bLEServer.addCallback("Location",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -647,7 +633,7 @@ public class BluetoothCommands {
                     }
                 });
 
-        mBLEServer.addCallback("BTScan",
+        service.bLEServer.addCallback("BTScan",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -661,12 +647,12 @@ public class BluetoothCommands {
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
                         l("BBservice got BTScan command:" + payload.toString());
-                        mBluetoothConnManager.discoverDevices();
+                        service.bluetoothConnManager.discoverDevices();
                         sendBTScanResponse(command, device);
                     }
                 });
 
-        mBLEServer.addCallback("BTSelect",
+        service.bLEServer.addCallback("BTSelect",
                 new BluetoothLEServer.BLECallback() {
                     @Override
                     public void onConnected(String clientId) {
@@ -682,7 +668,7 @@ public class BluetoothCommands {
                         l("BBservice got BTSelect command:" + payload.toString());
                         try {
                             String address = payload.getString("arg");
-                            mBluetoothConnManager.togglePairDevice(address);
+                            service.bluetoothConnManager.togglePairDevice(address);
                         } catch (Exception e) {
                             l("error setting BTSelect: " + e.getMessage());
                         }
@@ -712,7 +698,7 @@ public class BluetoothCommands {
         } catch (Exception e) {
         }
         // Send payload back to requesting device
-        mBLEServer.tx(device,
+        service.bLEServer.tx(device,
                 (String.format("%s;", response.toString())).getBytes());
 
         l("BBservice done sendStateResponse command");
@@ -722,19 +708,19 @@ public class BluetoothCommands {
     JSONObject getState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("acn", mMusicPlayer.getRadioChannel() - 1);
-            state.put("vcn", mBBService.boardVisualization.getMode() - 1);
-            state.put("v", mMusicPlayer.getBoardVolumePercent());
-            state.put("b", mBBService.burnerBoard.getBattery());
-            state.put("am", mBBService.masterRemote);
-            state.put("apkd", mBBService.apkUpdatedDate.toString());
-            state.put("apkv", mBBService.version);
-            state.put("ip", mBBService.wifi.getIPAddress());
-            state.put("g", mBBService.gtfo);
-            state.put("bm" , mBBService.blockMaster);
-            state.put("s", mBBService.wifi.getSSID());
-            state.put("c", mBBService.wifi.getConfiguredSSID());
-            state.put("p", mBBService.wifi.getConfiguredPassword());
+            state.put("acn", service.musicPlayer.getRadioChannel() - 1);
+            state.put("vcn", service.boardVisualization.getMode() - 1);
+            state.put("v", service.musicPlayer.getBoardVolumePercent());
+            state.put("b", service.burnerBoard.getBattery());
+            state.put("am", service.masterRemote);
+            state.put("apkd", service.apkUpdatedDate.toString());
+            state.put("apkv", service.version);
+            state.put("ip", service.wifi.getIPAddress());
+            state.put("g", service.gtfo);
+            state.put("bm" , service.blockMaster);
+            state.put("s", service.wifi.getSSID());
+            state.put("c", service.wifi.getConfiguredSSID());
+            state.put("p", service.wifi.getConfiguredPassword());
 
         } catch (Exception e) {
             l("Could not get state: " + e.getMessage());
@@ -745,7 +731,7 @@ public class BluetoothCommands {
 
     JSONArray getBTDevs() {
         // Bluetooth devices
-        JSONArray btdevs = mBluetoothConnManager.getDeviceListJSON();
+        JSONArray btdevs = service.bluetoothConnManager.getDeviceListJSON();
         if (btdevs == null) {
             l("Could not get bt devs (null)");
         } else {
@@ -761,7 +747,7 @@ public class BluetoothCommands {
         try {
             response.put("command", command);
             // Locations
-            JSONArray locations = mFindMyFriends.getBoardLocationsJSON(age);
+            JSONArray locations = service.findMyFriends.getBoardLocationsJSON(age);
             if (locations == null) {
                 error = "Could not get bt locations (null)";
             }
@@ -777,7 +763,7 @@ public class BluetoothCommands {
             error = "Could not get locations: " + e.getMessage();
         }
         // Send payload back to requesting device
-        mBLEServer.tx(device,
+        service.bLEServer.tx(device,
                 (String.format("%s;", response.toString())).getBytes());
         l("BBservice done sendStateResponse command");
         return (error != null);
@@ -806,7 +792,7 @@ public class BluetoothCommands {
             error = "Could not get btdevs: " + e.getMessage();
         }
         // Send payload back to requesting device
-        mBLEServer.tx(device,
+        service.bLEServer.tx(device,
                 (String.format("%s;", response.toString())).getBytes());
         l("BBservice done sendBTScanResponse command");
         return (error != null);
@@ -820,7 +806,7 @@ public class BluetoothCommands {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void sendStateResponseAll() {
