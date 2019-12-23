@@ -13,6 +13,9 @@ public class BatterySupervisor {
     private static final String TAG = "BB.Supervisor";
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
+    private boolean enableBatteryMonitoring = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
+    private boolean enableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
+    private int iotReportEveryNSeconds = 10;
 
     BatterySupervisor(BBService service){
         mBBService = service;
@@ -43,19 +46,19 @@ public class BatterySupervisor {
     private void runSupervisor() {
 
         /* Communicate the settings for the supervisor thread */
-        d("Enable Battery Monitoring? " + mBBService.mEnableBatteryMonitoring);
-        d("Enable IoT Reporting? " + mBBService.mEnableIoTReporting);
+        d("Enable Battery Monitoring? " + enableBatteryMonitoring);
+        d("Enable IoT Reporting? " + enableIoTReporting);
         d("Enable WiFi reconnect? " + mBBService.wifi.mEnableWifiReconnect);
 
         while (true) {
 
             // Every second, check & update battery
-            if (mBBService.mEnableBatteryMonitoring && (mBBService.burnerBoard != null)) {
+            if (enableBatteryMonitoring && (mBBService.burnerBoard != null)) {
                 checkBattery();
 
                 // Every 10 seconds, send battery update via IoT.
                 // Only do this if we're actively checking the battery.
-                if (mBBService.mEnableIoTReporting && (loopCnt % mBBService.mIoTReportEveryNSeconds == 0)) {
+                if (enableIoTReporting && (loopCnt % iotReportEveryNSeconds == 0)) {
                     d("Sending MQTT update");
                     try {
                         mBBService.iotClient.sendUpdate("bbtelemetery", mBBService.burnerBoard.getBatteryStats());

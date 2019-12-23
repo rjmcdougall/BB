@@ -58,8 +58,6 @@ public class BBService extends Service {
     public RFClientServer rfClientServer = null;
     /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
     public static String boardId = BurnerBoardUtil.BOARD_ID;
-    /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
-    public static String boardType = BurnerBoardUtil.BOARD_TYPE;
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
     public int version = 0;
     public Date apkUpdatedDate;
@@ -103,17 +101,6 @@ public class BBService extends Service {
      * indicates whether onRebind should be used
      */
     boolean mAllowRebind;
-
-    /**
-     * Indicates whether battery monitoring is enabled
-     */
-    boolean mEnableBatteryMonitoring = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
-
-    /**
-     * Indicates whether IoT reporting is enabled and how often
-     */
-    boolean mEnableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
-    int mIoTReportEveryNSeconds = 10;
 
     @Override
     public void onCreate() {
@@ -166,9 +153,9 @@ public class BBService extends Service {
                         l("Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         String utteranceId = UUID.randomUUID().toString();
-                        System.out.println("Where do you want to go, " + boardId + "?");
+                        System.out.println("Where do you want to go, " + BurnerBoardUtil.BOARD_ID + "?");
                         voice.setSpeechRate((float) 0.9);
-                        voice.speak("I am " + boardId + "?",
+                        voice.speak("I am " + BurnerBoardUtil.BOARD_ID + "?",
                                 TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                     } else if (status == TextToSpeech.ERROR) {
                         l("Sorry! Text To Speech failed...");
@@ -349,7 +336,7 @@ public class BBService extends Service {
             l("startLights: null burner board");
             return;
         }
-        burnerBoard.setText90(burnerBoard.boardId, 5000);
+        burnerBoard.setText90(BurnerBoardUtil.BOARD_ID, 5000);
 
         if (burnerBoard != null) {
             burnerBoard.attach(new BoardCallback());
