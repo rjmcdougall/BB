@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 
@@ -11,10 +13,15 @@ public class ButtonReceiver extends BroadcastReceiver {
     private BBService service;
     private String TAG = "ButtonReceiver";
 
+    // Single press to show battery
+    // Double press to show map
+    // Tripple click to toggle master
+    private long lastPressed = SystemClock.elapsedRealtime();
+    private int pressCnt = 1;
+
     ButtonReceiver(BBService service){
         this.service = service;
     }
-
 
     public void l(String s) {
         Log.v(TAG, s);
@@ -111,7 +118,7 @@ public class ButtonReceiver extends BroadcastReceiver {
                 service.musicPlayer.onVolDown();
                 return false;
             case 85: // Play button - show battery
-                service.onBatteryButton();
+                onBatteryButton();
                 break;
             case 99:
                 service.setMode(99);
@@ -158,5 +165,35 @@ public class ButtonReceiver extends BroadcastReceiver {
                 return false;
         }
         return true;
+    }
+
+    public void onBatteryButton() {
+        if (service.burnerBoard != null) {
+            service.burnerBoard.showBattery();
+            if ((SystemClock.elapsedRealtime() - lastPressed) < 600) {
+                if (pressCnt == 1) {
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (pressCnt == 2) {
+                                service.boardVisualization.showMap();
+                            } else if (pressCnt == 3) {
+                                // Toggle master mode
+                                if (service.masterRemote == true) {
+                                    service.enableMaster(false);
+                                } else {
+                                    service.enableMaster(true);
+                                }
+                            }
+                        }
+                    }, 700);
+                }
+                pressCnt++;
+            } else {
+                pressCnt = 1;
+            }
+        }
+        lastPressed = SystemClock.elapsedRealtime();
     }
 }

@@ -396,41 +396,6 @@ public class BBService extends Service {
         }
     }
 
-    // Single press to show battery
-    // Double press to show map
-    // Tripple click to toggle master
-    private long lastPressed = SystemClock.elapsedRealtime();
-    private int pressCnt = 1;
-
-    public void onBatteryButton() {
-        if (burnerBoard != null) {
-            burnerBoard.showBattery();
-            if ((SystemClock.elapsedRealtime() - lastPressed) < 600) {
-                if (pressCnt == 1) {
-                    final Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (pressCnt == 2) {
-                                boardVisualization.showMap();
-                            } else if (pressCnt == 3) {
-                                // Toggle master mode
-                                if (masterRemote == true) {
-                                    enableMaster(false);
-                                } else {
-                                    enableMaster(true);
-                                }
-                            }
-                        }
-                    }, 700);
-                }
-                pressCnt++;
-            } else {
-                pressCnt = 1;
-            }
-        }
-        lastPressed = SystemClock.elapsedRealtime();
-    }
 
     //you can get notified when a new device is connected using Broadcast receiver
     private final BroadcastReceiver btReceive = new BroadcastReceiver() {

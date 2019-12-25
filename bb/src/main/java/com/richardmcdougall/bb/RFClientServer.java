@@ -541,7 +541,7 @@ public class RFClientServer {
             }
         }
     }
-    
+
     // Keep score of boards's we've heard from
     // If in range, vote +2 for it
     // If not in range, vote -1
