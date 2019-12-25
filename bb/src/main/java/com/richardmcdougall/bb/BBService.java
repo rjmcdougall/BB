@@ -7,12 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.hardware.usb.UsbManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Parcelable;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
@@ -75,7 +73,7 @@ public class BBService extends Service {
     public boolean gtfo = false;
     public BBWifi wifi = null;
     public TextToSpeech voice;
-    private BBService.usbReceiver mUsbReceiver = new BBService.usbReceiver();
+    private static USBReceiver usbReceiver = null;
     private static BroadcastReceiver buttonReceiver = null;
 
     public BBService() {
@@ -119,7 +117,7 @@ public class BBService extends Service {
             IntentFilter ufilter = new IntentFilter();
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
-            this.registerReceiver(mUsbReceiver, ufilter);
+            this.registerReceiver(usbReceiver, ufilter);
 
             HandlerThread mHandlerThread = null;
             mHandlerThread = new HandlerThread("BBServiceHandlerThread");
@@ -128,6 +126,7 @@ public class BBService extends Service {
 
             InitClock();
 
+            usbReceiver = new USBReceiver(this);
 
             voice = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
                 @Override
@@ -430,41 +429,7 @@ public class BBService extends Service {
         }
     };
 
-    public class usbReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //l("usbReceiver");
-            if (intent != null) {
-                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                    Log.v(TAG, "ACTION_USB_DEVICE_ATTACHED");
-                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                    // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_ATTACHED);
-                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
-
-                    // Broadcast this event so we can receive it
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
-
-                    if (burnerBoard != null) {
-                        burnerBoard.initUsb();
-                    }
-                }
-                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
-                    Log.v(TAG, "ACTION_USB_DEVICE_DETACHED");
-
-                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                    // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_DETACHED);
-                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
-
-                    // Broadcast this event so we can receive it
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
-                }
-            }
-        }
-    }
 }
 
 
