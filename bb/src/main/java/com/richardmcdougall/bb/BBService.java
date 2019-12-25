@@ -301,7 +301,7 @@ public class BBService extends Service {
             // Let everyone else know we just decided to be the master
             // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
             // from the client data. XXX is there a better/more useful payload?
-            rfClientServer.sendRemote(kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
+            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
 
             burnerBoard.setText("Master", 2000);
             voice.speak("Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
@@ -334,77 +334,6 @@ public class BBService extends Service {
         }
     }
 
-    public static final int kRemoteAudioTrack = 0x01;
-    public static final int kRemoteVideoTrack = 0x02;
-    public static final int kRemoteMute = 0x03;
-    public static final int kRemoteMasterName = 0x04;
-
-    // TODO: Put this back as a remote control packet
-    // Change value -> hash lookup
-    public void decodeRemoteControl(String client, int cmd, long value) {
-
-
-        if (blockMaster) {
-            l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
-        } else {
-
-            l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
-
-            switch (cmd) {
-                case kRemoteAudioTrack:
-
-                    for (int i = 1; i <= dlManager.GetTotalAudio(); i++) {
-                        String name = musicPlayer.getRadioChannelInfo(i);
-                        long hashed = hashTrackName(name);
-                        if (hashed == value) {
-                            l("Remote Audio " + musicPlayer.getRadioChannel() + " -> " + i);
-                            if (musicPlayer.getRadioChannel() != i) {
-                                musicPlayer.SetRadioChannel((int) i);
-                                l("Received remote audio switch to track " + i + " (" + name + ")");
-                            } else {
-                                l("Ignored remote audio switch to track " + i + " (" + name + ")");
-                            }
-                            break;
-                        }
-                    }
-                    break;
-
-                case kRemoteVideoTrack:
-                    for (int i = 1; i <= dlManager.GetTotalVideo(); i++) {
-                        String name = dlManager.GetVideoFileLocalName(i - 1);
-                        long hashed = hashTrackName(name);
-                        if (hashed == value) {
-                            l("Remote Video " + boardVisualization.getMode() + " -> " + i);
-                            if (boardVisualization.getMode() != i) {
-                                setMode((int) i);
-                                l("Received remote video switch to mode " + i + " (" + name + ")");
-                            } else {
-                                l("Ignored remote video switch to mode " + i + " (" + name + ")");
-                            }
-                            break;
-                        }
-                    }
-                    break;
-                case kRemoteMute:
-                    if (value != musicPlayer.getCurrentBoardVol()) {
-                        musicPlayer.setBoardVolume((int) value);
-                    }
-                    break;
-                case kRemoteMasterName:
-                    if (masterRemote) {
-                        // This board thinks it's the master, but apparently it's no longer. Reset master
-                        // mode and follow the new master
-                        String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
-                        l(diag);
-                        voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
-                        enableMaster(false);
-                    }
-
-                default:
-                    break;
-            }
-        }
-    }
 
     // Hash String as 32-bit
     public long hashTrackName(String name) {
@@ -441,7 +370,7 @@ public class BBService extends Service {
 
             String name = dlManager.GetVideoFileLocalName(mBoardMode - 1);
             l("Sending video remote for video " + name);
-            rfClientServer.sendRemote(kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
+            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
         if (boardVisualization != null && burnerBoard != null) {

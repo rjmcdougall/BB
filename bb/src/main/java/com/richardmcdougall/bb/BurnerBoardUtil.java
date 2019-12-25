@@ -23,6 +23,12 @@ public class BurnerBoardUtil {
     // starts with DC:
     public static final String MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX = "DC:";
 
+    // radio packet codes
+    public static final int kRemoteAudioTrack = 0x01;
+    public static final int kRemoteVideoTrack = 0x02;
+    public static final int kRemoteMute = 0x03;
+    public static final int kRemoteMasterName = 0x04;
+
     /* XXX TODO refactor out the string use cases and transform to constants -jib
     public static final String BB_TYPE_AZUL = "Burner Board Azul";
     public static final String BB_TYPE_CLASSIC = "Burner Board Classi";

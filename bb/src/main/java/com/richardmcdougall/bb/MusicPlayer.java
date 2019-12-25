@@ -28,7 +28,6 @@ import android.os.*;
 
 public class MusicPlayer implements Runnable {
 
-    public static final int kRemoteAudioTrack = 0x01;
     private static final String TAG = "MusicPlayer";
     public int currentRadioChannel = 1;
     public Handler handler;
@@ -284,7 +283,7 @@ public class MusicPlayer implements Runnable {
             d("Sending remote");
 
             String fileName = getRadioChannelInfo(index);
-            service.rfClientServer.sendRemote(kRemoteAudioTrack, service.hashTrackName(fileName), RFClientServer.kRemoteAudio);
+            service.rfClientServer.sendRemote(BurnerBoardUtil.kRemoteAudioTrack, service.hashTrackName(fileName), RFClientServer.kRemoteAudio);
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             try {
                 Thread.sleep(service.rfClientServer.getLatency());

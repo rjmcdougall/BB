@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -713,7 +714,75 @@ public class RFClientServer {
         //l( "Received command: " + cmd + ", " + value + ", " + address);
 
         String client = mAllBoards.boardAddressToName(address);
-        mMain.decodeRemoteControl(client, cmd, value);
+        decodeRemoteControl(client, cmd, value);
+    }
+
+
+    // TODO: Put this back as a remote control packet
+    // Change value -> hash lookup
+    public void decodeRemoteControl(String client, int cmd, long value) {
+
+
+        if (mMain.blockMaster) {
+            l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
+        } else {
+
+            l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
+
+            switch (cmd) {
+                case BurnerBoardUtil.kRemoteAudioTrack:
+
+                    for (int i = 1; i <= mMain.dlManager.GetTotalAudio(); i++) {
+                        String name = mMain.musicPlayer.getRadioChannelInfo(i);
+                        long hashed = mMain.hashTrackName(name);
+                        if (hashed == value) {
+                            l("Remote Audio " + mMain.musicPlayer.getRadioChannel() + " -> " + i);
+                            if (mMain.musicPlayer.getRadioChannel() != i) {
+                                mMain.musicPlayer.SetRadioChannel((int) i);
+                                l("Received remote audio switch to track " + i + " (" + name + ")");
+                            } else {
+                                l("Ignored remote audio switch to track " + i + " (" + name + ")");
+                            }
+                            break;
+                        }
+                    }
+                    break;
+
+                case BurnerBoardUtil.kRemoteVideoTrack:
+                    for (int i = 1; i <= mMain.dlManager.GetTotalVideo(); i++) {
+                        String name = mMain.dlManager.GetVideoFileLocalName(i - 1);
+                        long hashed = mMain.hashTrackName(name);
+                        if (hashed == value) {
+                            l("Remote Video " + mMain.boardVisualization.getMode() + " -> " + i);
+                            if (mMain.boardVisualization.getMode() != i) {
+                                mMain.setMode((int) i);
+                                l("Received remote video switch to mode " + i + " (" + name + ")");
+                            } else {
+                                l("Ignored remote video switch to mode " + i + " (" + name + ")");
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                case BurnerBoardUtil.kRemoteMute:
+                    if (value != mMain.musicPlayer.getCurrentBoardVol()) {
+                        mMain.musicPlayer.setBoardVolume((int) value);
+                    }
+                    break;
+                case BurnerBoardUtil.kRemoteMasterName:
+                    if (mMain.masterRemote) {
+                        // This board thinks it's the master, but apparently it's no longer. Reset master
+                        // mode and follow the new master
+                        String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
+                        l(diag);
+                        mMain.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
+                        mMain.enableMaster(false);
+                    }
+
+                default:
+                    break;
+            }
+        }
     }
 
     public long getLatency() {
