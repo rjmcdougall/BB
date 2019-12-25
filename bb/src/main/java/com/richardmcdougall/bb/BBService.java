@@ -33,9 +33,6 @@ public class BBService extends Service {
 
     private static final String TAG = "BB.BBService";
 
-    // RPIs don't always have a screen; use beeps -jib
-    public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI; // Not Done IsNano
-
     public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
         BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE,
@@ -74,7 +71,8 @@ public class BBService extends Service {
     public BBWifi wifi = null;
     public TextToSpeech voice;
     private static USBReceiver usbReceiver = null;
-    private static BroadcastReceiver buttonReceiver = null;
+    private static ButtonReceiver buttonReceiver = null;
+    private static BluetoothReceiver btReceive = null;
 
     public BBService() {
     }
@@ -114,10 +112,21 @@ public class BBService extends Service {
             l("BurnerBoard Version " + version);
             l("BurnerBoard APK Updated Date " + apkUpdatedDate);
 
+            // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
+            usbReceiver = new USBReceiver(this);
             this.registerReceiver(usbReceiver, ufilter);
+
+            // Register to receive button messages
+            IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
+            buttonReceiver = new ButtonReceiver(this);
+            LocalBroadcastManager.getInstance(this).registerReceiver(buttonReceiver, filter);
+
+            // Register to know when bluetooth remote connects
+            btReceive = new BluetoothReceiver(this);
+            context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
             HandlerThread mHandlerThread = null;
             mHandlerThread = new HandlerThread("BBServiceHandlerThread");
@@ -125,8 +134,6 @@ public class BBService extends Service {
             mHandler = new Handler(mHandlerThread.getLooper());
 
             InitClock();
-
-            usbReceiver = new USBReceiver(this);
 
             voice = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
                 @Override
@@ -161,8 +168,6 @@ public class BBService extends Service {
                 }
             });
 
-            buttonReceiver = new ButtonReceiver(this);
-
             iotClient = new IoTClient(this);
 
             wifi = new BBWifi(this);
@@ -173,13 +178,6 @@ public class BBService extends Service {
 
             dlManager = new DownloadManager(this );
             dlManager.Run();
-
-            // Register to receive button messages
-            IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
-            LocalBroadcastManager.getInstance(this).registerReceiver(buttonReceiver, filter);
-
-            // Register to know when bluetooth remote connects
-            context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.setText90(BurnerBoardUtil.BOARD_ID, 5000);
@@ -394,42 +392,6 @@ public class BBService extends Service {
             l("ardunio mode callback:" + mBoardMode);
         }
     }
-
-
-    //you can get notified when a new device is connected using Broadcast receiver
-    private final BroadcastReceiver btReceive = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            l("Bluetooth connected");
-
-            String action = intent.getAction();
-            //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-            if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
-                try {
-                    if (kBeepOnConnect) {
-                        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-
-                        Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-                        r.play();
-                    }
-                    final Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            burnerBoard.flashScreen(400);
-
-                        }
-                    }, 3000);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    };
-
-
 }
 
 
