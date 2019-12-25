@@ -30,7 +30,7 @@ import java.util.HashMap;
  */
 
 public class RFClientServer {
-    BBService mMain;
+    BBService service;
     public long tSentPackets = 0;
     private long replyCount = 0;
     private static final String TAG = "BB.RFClientServer";
@@ -54,8 +54,6 @@ public class RFClientServer {
 
     private int mServerAddress = 0;
     private int mBoardAddress;
-    private RF mRF;
-    private AllBoards mAllBoards = null;
     private PipedInputStream mReceivedPacketInput;
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
@@ -84,7 +82,7 @@ public class RFClientServer {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service).sendBroadcast(in);
     }
 
     private void setupUDPLogger(){
@@ -108,7 +106,7 @@ public class RFClientServer {
 
             final byte[] logPacket = logPacketTmp.toByteArray();
 
-            mMain.mHandler.post(new Runnable() {
+            service.mHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -124,10 +122,7 @@ public class RFClientServer {
 
     RFClientServer(BBService service) {
 
-        mMain = service;
-        mRF = service.radio;
-        mAllBoards = mRF.mAllBoards;
-   //     mBoardAddress = allBoards.getBoardAddress(service.getBoardId());
+        this.service = service;
 
         // Make a pipe for packet receive
         try {
@@ -140,7 +135,7 @@ public class RFClientServer {
         try {
             // Register for the particular broadcast based on Graphics Action
             IntentFilter packetFilter = new IntentFilter(ACTION.BB_PACKET);
-            LocalBroadcastManager.getInstance(mMain).registerReceiver(RFReceiver, packetFilter);
+            LocalBroadcastManager.getInstance(this.service).registerReceiver(RFReceiver, packetFilter);
         } catch (Exception e) {
 
         }
@@ -235,12 +230,12 @@ public class RFClientServer {
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
         l("I'm address " + mBoardAddress);
 
         d("Server reply : " +
-                mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                " -> " + mAllBoards.boardAddressToName(toClient) + "(" + toClient + ")");
+                service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                " -> " + service.allBoards.boardAddressToName(toClient) + "(" + toClient + ")");
 
         ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
@@ -259,7 +254,7 @@ public class RFClientServer {
         int64ToPacket(replyPacket, curTimeStamp);
 
         // Broadcast - client will filter for it's address
-        mRF.broadcast(replyPacket.toByteArray());
+        service.radio.broadcast(replyPacket.toByteArray());
         tSentPackets++;
         replyCount++;
 
@@ -269,7 +264,7 @@ public class RFClientServer {
         // Put extras into the intent as usual
         in.putExtra("stateReplies", replyCount);
         in.putExtra("stateMsgWifi", "Server");
-        LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service).sendBroadcast(in);
     }
 
     // Define the callback for what to do when stats are received
@@ -290,7 +285,7 @@ public class RFClientServer {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         if(mBoardAddress <= 0)
-            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
         int recvMagicNumber = RFUtil.magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
@@ -304,7 +299,7 @@ public class RFClientServer {
             if (clientAddress == mBoardAddress) {
                 d("BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
                 d("BB Sync Packet from Server " + serverAddress +
-                        " (" + mAllBoards.boardAddressToName(serverAddress) + ")");
+                        " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
                 processSyncResponse(packet);
             }
@@ -315,9 +310,9 @@ public class RFClientServer {
 
             d("BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             d("BB Sync Packet from Client " + clientAddress +
-                    " (" + mAllBoards.boardAddressToName(clientAddress) + ")");
+                    " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
-            long curTimeStamp = mMain.GetCurrentClock();
+            long curTimeStamp = service.GetCurrentClock();
             mLatency = int64FromPacket(bytes);
             // Try to re-elect server based on the heard board
             tryElectServer(clientAddress, sigstrength);
@@ -331,7 +326,7 @@ public class RFClientServer {
             int serverAddress = (int)int16FromPacket(bytes);
             d("BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             d("BB Server Beacon packet from Server " + serverAddress +
-                    " (" + mAllBoards.boardAddressToName(serverAddress) + ")");
+                    " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
@@ -378,11 +373,11 @@ public class RFClientServer {
     private void processSyncResponse(byte[] recvPacket) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
         d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
-                mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                " -> " + mAllBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                " -> " + service.allBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
         long packetHeader = int16FromPacket(packet);
@@ -390,7 +385,7 @@ public class RFClientServer {
         long serverAddress = int16FromPacket(packet);
         long myTimeStamp = int64FromPacket(packet);
         long svTimeStamp = int64FromPacket(packet);
-        long curTime = mMain.GetCurrentClock();
+        long curTime = service.GetCurrentClock();
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
         //l("client time stamp " + String.format("0x%16X", myTimeStamp));
@@ -425,7 +420,7 @@ public class RFClientServer {
             //mActivity.setStateMsgConn("Connected");
 
             // Fire the broadcast with intent packaged
-            LocalBroadcastManager.getInstance(mMain).sendBroadcast(in);
+            LocalBroadcastManager.getInstance(service).sendBroadcast(in);
 
             if (mLastSample == null || !s.equals(mLastSample)) {
                 mPrefsEditor.putLong("drift", s.drift);
@@ -435,27 +430,27 @@ public class RFClientServer {
 
             d("Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
 
-            mMain.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
-            logUDP(mMain.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + mMain.CurrentClockAdjusted());
+            service.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
+            logUDP(service.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + service.CurrentClockAdjusted());
         }
     }
 
     // Thread/ loop to send out requests
     void Start() {
         l("Sync Thread Staring");
-        SharedPreferences prefs = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE);
+        SharedPreferences prefs = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE);
         mDrift = prefs.getLong("drift", 0);
         mRtt = prefs.getLong("rtt", 100);
-        mMain.SetServerClockOffset(mDrift, mRtt);
+        service.SetServerClockOffset(mDrift, mRtt);
 
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new   StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        mPrefsEditor = mMain.getSharedPreferences("driftInfo", mMain.MODE_PRIVATE).edit();
+        mPrefsEditor = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE).edit();
 
         if(mBoardAddress<=0)
-            mBoardAddress = mAllBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
 
         while (true) {
 
@@ -472,7 +467,7 @@ public class RFClientServer {
                     byte [] packet = kMasterToClientPacket[i];
                     if (packet != null && packet.length > 0) {
                         l("Resending master client packet type: " + i);
-                        mRF.broadcast(packet);
+                        service.radio.broadcast(packet);
 
                         // To make sure we don't have collissions with the following TIME broadcast, so
                         // sleep for a few ms
@@ -494,7 +489,7 @@ public class RFClientServer {
             if (amServer() == false) {
                 try {
 
-                    d("I'm a client " + mAllBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                    d("I'm a client " + service.allBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -505,17 +500,17 @@ public class RFClientServer {
                     // My Client Address
                     int16ToPacket(clientPacket, mBoardAddress);
                     // My timeclock
-                    int64ToPacket(clientPacket, mMain.GetCurrentClock());
+                    int64ToPacket(clientPacket, service.GetCurrentClock());
                     // Send latency so server knows how much to delay sync'ed start
                     int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
                     int16ToPacket(clientPacket, 0);
                     d("send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
-                    mRF.broadcast(clientPacket.toByteArray());
-                    d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", mMain.GetCurrentClock()) +
-                             mAllBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
-                    " -> " + mAllBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
+                    service.radio.broadcast(clientPacket.toByteArray());
+                    d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
+                            service.allBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
+                    " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
                 } catch(Throwable e) {
                     //l("Client UDP failed");
@@ -524,7 +519,7 @@ public class RFClientServer {
                 d("I'm a server: broadcast Server beacon");
                 mRtt = 0;
                 mDrift = 0;
-                mMain.SetServerClockOffset(0, 0);
+                service.SetServerClockOffset(0, 0);
 
                 ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
@@ -537,7 +532,7 @@ public class RFClientServer {
                 replyPacket.write((mBoardAddress >> 8) & 0xFF);
 
                 // Broadcast - client will filter for it's address
-                mRF.broadcast(replyPacket.toByteArray());
+                service.radio.broadcast(replyPacket.toByteArray());
             }
 
             try {
@@ -546,9 +541,7 @@ public class RFClientServer {
             }
         }
     }
-
-
-
+    
     // Keep score of boards's we've heard from
     // If in range, vote +2 for it
     // If not in range, vote -1
@@ -650,10 +643,10 @@ public class RFClientServer {
         for (int board: mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             if (board == mServerAddress) {
-                l("Vote: Server " + mAllBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                l("Vote: Server " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             } else {
-                l("Vote: Client " + mAllBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                l("Vote: Client " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             }
         }
@@ -673,7 +666,7 @@ public class RFClientServer {
 
     public void sendRemote(int cmd, long value, int type) {
 
-        if (mRF == null) {
+        if (service.radio == null) {
             return;
         }
         l("Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + mBoardAddress);
@@ -695,7 +688,7 @@ public class RFClientServer {
         byte [] packet = clientPacket.toByteArray();
 
         for (int i = 0; i < 10; i++) {
-            mRF.broadcast(packet);
+            service.radio.broadcast(packet);
         }
 
         kMasterToClientPacket[type] = packet;
@@ -713,7 +706,7 @@ public class RFClientServer {
     public void receiveRemoteControl(int address, int cmd, long value) {
         //l( "Received command: " + cmd + ", " + value + ", " + address);
 
-        String client = mAllBoards.boardAddressToName(address);
+        String client = service.allBoards.boardAddressToName(address);
         decodeRemoteControl(client, cmd, value);
     }
 
@@ -723,7 +716,7 @@ public class RFClientServer {
     public void decodeRemoteControl(String client, int cmd, long value) {
 
 
-        if (mMain.blockMaster) {
+        if (service.blockMaster) {
             l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
         } else {
 
@@ -732,13 +725,13 @@ public class RFClientServer {
             switch (cmd) {
                 case BurnerBoardUtil.kRemoteAudioTrack:
 
-                    for (int i = 1; i <= mMain.dlManager.GetTotalAudio(); i++) {
-                        String name = mMain.musicPlayer.getRadioChannelInfo(i);
-                        long hashed = mMain.hashTrackName(name);
+                    for (int i = 1; i <= service.dlManager.GetTotalAudio(); i++) {
+                        String name = service.musicPlayer.getRadioChannelInfo(i);
+                        long hashed = service.hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Audio " + mMain.musicPlayer.getRadioChannel() + " -> " + i);
-                            if (mMain.musicPlayer.getRadioChannel() != i) {
-                                mMain.musicPlayer.SetRadioChannel((int) i);
+                            l("Remote Audio " + service.musicPlayer.getRadioChannel() + " -> " + i);
+                            if (service.musicPlayer.getRadioChannel() != i) {
+                                service.musicPlayer.SetRadioChannel((int) i);
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote audio switch to track " + i + " (" + name + ")");
@@ -749,13 +742,13 @@ public class RFClientServer {
                     break;
 
                 case BurnerBoardUtil.kRemoteVideoTrack:
-                    for (int i = 1; i <= mMain.dlManager.GetTotalVideo(); i++) {
-                        String name = mMain.dlManager.GetVideoFileLocalName(i - 1);
-                        long hashed = mMain.hashTrackName(name);
+                    for (int i = 1; i <= service.dlManager.GetTotalVideo(); i++) {
+                        String name = service.dlManager.GetVideoFileLocalName(i - 1);
+                        long hashed = service.hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Video " + mMain.boardVisualization.getMode() + " -> " + i);
-                            if (mMain.boardVisualization.getMode() != i) {
-                                mMain.setMode((int) i);
+                            l("Remote Video " + service.boardVisualization.getMode() + " -> " + i);
+                            if (service.boardVisualization.getMode() != i) {
+                                service.setMode((int) i);
                                 l("Received remote video switch to mode " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote video switch to mode " + i + " (" + name + ")");
@@ -765,18 +758,18 @@ public class RFClientServer {
                     }
                     break;
                 case BurnerBoardUtil.kRemoteMute:
-                    if (value != mMain.musicPlayer.getCurrentBoardVol()) {
-                        mMain.musicPlayer.setBoardVolume((int) value);
+                    if (value != service.musicPlayer.getCurrentBoardVol()) {
+                        service.musicPlayer.setBoardVolume((int) value);
                     }
                     break;
                 case BurnerBoardUtil.kRemoteMasterName:
-                    if (mMain.masterRemote) {
+                    if (service.masterRemote) {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master
                         String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
                         l(diag);
-                        mMain.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
-                        mMain.enableMaster(false);
+                        service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
+                        service.enableMaster(false);
                     }
 
                 default:
