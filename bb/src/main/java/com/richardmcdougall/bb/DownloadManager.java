@@ -387,7 +387,7 @@ public class DownloadManager {
                     returnValue = true;
                 }
 
-                if(!returnValue) {
+                if(returnValue) {
                     // download changes
                     for (int j = 0; j < changedFiles.length(); j++) {
                         JSONObject elm = changedFiles.getJSONObject(j);
@@ -408,7 +408,6 @@ public class DownloadManager {
                     dataDirectory = dir;
                     new File(mFilesDir, "directory.json.tmp").renameTo(new File(mFilesDir, "directory.json"));
 
-                    returnValue = true;
                 }
             }
 
