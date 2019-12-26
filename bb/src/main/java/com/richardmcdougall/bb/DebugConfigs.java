@@ -6,7 +6,7 @@ public class DebugConfigs {
 
     // if this is true, the video will show in the app. This isn't needed
     // in embedded mode, so conserve the resources.
-    public static boolean DISPLAY_VIDEO_IN_APP = true;
+    public static boolean DISPLAY_VIDEO_IN_APP = false;
 
     // lots of logging for decoder. LOTS
     public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;
@@ -25,7 +25,7 @@ public class DebugConfigs {
     public static final boolean DEBUG_WIFI = false;
 
     // name the profile as a testing overridee.
-    public static final String OVERRIDE_BOARD_DOWNLOAD_PROFILE = "supersexy";
+    public static final String OVERRIDE_BOARD_DOWNLOAD_PROFILE = "";
 
     // Set to force classic mode when using Emulator
     public static final boolean EMULATING_CLASSIC = false;
