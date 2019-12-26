@@ -19,13 +19,14 @@ public class PlayaMap extends Visualization {
 
     FindMyFriends mFMF = null;
     BBColor bbColor = new BBColor();
+    BBService service = null;
 
     public PlayaMap(BurnerBoard bb, BoardVisualization visualization) {
 
         super(bb, visualization);
-        BBService bbService = bb.getBBService();
-        if (bbService != null) {
-            mFMF = bbService.findMyFriends;
+        service = bb.getBBService();
+        if (service != null) {
+            mFMF = service.findMyFriends;
         }
 
         /*
@@ -55,8 +56,7 @@ public class PlayaMap extends Visualization {
 
     public void update(int mode) {
 
-
-        if (BurnerBoardUtil.isBBAzul()) {
+        if (service.allBoards.getBoardType() == BurnerBoardUtil.BoardType.azul) {
             final float outerRing = mBoardWidth * (float)kMapSizeRatio;
             final float innerRing = outerRing / (float)kRingRatio;
             final float theMan = 2;
@@ -109,7 +109,7 @@ public class PlayaMap extends Visualization {
                 }
             }
 
-        } else if (BurnerBoardUtil.isBBPanel()) {
+        } else if (BurnerBoardUtil.BoardType.panel == service.allBoards.getBoardType()) {
             mBurnerBoard.fillScreen(30, 30, 30);
             mBurnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
                     (float)kDegrees2, (float)(kDegrees10 - kDegrees2),
@@ -117,7 +117,7 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(50, 50, 50));
 
-        } else if (BurnerBoardUtil.isBBClassic()) {
+        } else if (BurnerBoardUtil.BoardType.classic == service.allBoards.getBoardType()) {
             mBurnerBoard.fillScreen(30, 0, 0);
 
         }

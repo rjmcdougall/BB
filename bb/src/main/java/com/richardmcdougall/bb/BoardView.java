@@ -26,10 +26,10 @@ public class BoardView extends View {
     public BoardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
 
-        if (DebugConfigs.EMULATING_CLASSIC) {
+        if (DebugConfigs.EMULATING_VISUAL == BurnerBoardUtil.BoardType.classic) {
             mBoardWidth = 10;
             mBoardHeight = 70;
-        } else {
+        } else if (DebugConfigs.EMULATING_VISUAL == BurnerBoardUtil.BoardType.azul || DebugConfigs.EMULATING_VISUAL == null) {
             mBoardWidth = 46;
             mBoardHeight = 118;
         }

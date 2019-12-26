@@ -187,6 +187,35 @@ public class AllBoards {
         return name;
     }
 
+    public BurnerBoardUtil.BoardType getBoardType() {
+
+        JSONObject board;
+        BurnerBoardUtil.BoardType type = BurnerBoardUtil.BoardType.unknown;
+
+        try {
+
+            if (dataBoards == null) {
+                d("Could not find board type");
+            } else {
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
+                    if (board.getString("name").equals(BurnerBoardUtil.BOARD_ID)) {
+                        type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
+                    }
+                }
+            }
+            d("Board Type " + String.valueOf(type));
+            return type;
+        } catch (JSONException e) {
+            d(e.getMessage());
+        } catch (Exception e) {
+            d(e.getMessage());
+        }
+        finally {
+            return type;
+        }
+    }
+
     JSONArray GetDataBoards() {
         return dataBoards;
     }

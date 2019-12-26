@@ -333,10 +333,7 @@ public class DownloadManager {
 
         try {
             String DirectoryURL = "";
-            if(DebugConfigs.OVERRIDE_BOARD_DOWNLOAD_PROFILE !="")
-                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + DebugConfigs.OVERRIDE_BOARD_DOWNLOAD_PROFILE;
-            else
-                DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + BurnerBoardUtil.BOARD_ID;
+            DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + BurnerBoardUtil.BOARD_ID;
 
 
             DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + service.version ;

@@ -9,6 +9,27 @@ public class BurnerBoardUtil {
         Feature flag section here
     */
 
+    public enum BoardType {
+        azul("azul"),
+        panel("panel"),
+        mast("mast"),
+        classic("classic"),
+        boombox("boombox"),
+        backpack("backpack"),
+        unknown("unknown");
+
+        private String stringValue;
+
+        BoardType(final String toString) {
+            stringValue = toString;
+        }
+
+        @Override
+        public String toString() {
+            return stringValue;
+        }
+    }
+
     // This enabled GPS Time being polled
     public static final boolean fEnableGpsTime = false;
 
@@ -50,7 +71,12 @@ public class BurnerBoardUtil {
     public static final String DEVICE_ID;
     static {
         String serial = Build.SERIAL;
-        String publicName = getPublicName();
+        String publicName = "";
+
+        if(DebugConfigs.OVERRIDE_PUBLIC_NAME != "")
+            publicName =  DebugConfigs.OVERRIDE_PUBLIC_NAME;
+        else
+            publicName = getPublicName();
 
         if (BurnerBoardUtil.kIsRPI) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
@@ -64,33 +90,6 @@ public class BurnerBoardUtil {
         }
 
         BOARD_ID = (publicName == null || publicName.equals("")) ? DEVICE_ID : publicName;
-    }
-
-    public static final boolean isBBAzul() {
-        return (DebugConfigs.FORCE_BB_TYPE_AZUL || BOARD_TYPE.contains("Azul")) ? true : false;
-    }
-
-    public static final boolean isBBClassic() {
-        return (DebugConfigs.FORCE_BB_TYPE_CLASSIC || BOARD_TYPE.contains("Classic")) ? true : false;
-    }
-
-    public static final boolean isBBDirectMap() {
-        return (DebugConfigs.FORCE_BB_TYPE_DIRECT_MAP || BurnerBoardUtil.kIsRPI || BOARD_ID.contains("mickey")) ? true : false;
-    }
-
-    public static final boolean isBBMast() {
-        return (DebugConfigs.FORCE_BB_TYPE_MAST || BOARD_TYPE.contains("Mast") || BOARD_ID.contains("test")) ? true : false;
-    }
-
-    public static final boolean isBBPanel() {
-        return (DebugConfigs.FORCE_BB_TYPE_PANEL
-            || BOARD_TYPE.contains("Panel")
-            || BOARD_ID.contains("Panel")
-            || BOARD_ID.contains("cranky")
-            //|| BOARD_ID.contains("grumpy")
-            || BOARD_ID.contains("imx7d_pico")
-                || BOARD_ID.contains("supersexy")
-        ) ? true : false;
     }
 
     /* DIRECT MAP SETTINGS */
@@ -143,32 +142,33 @@ public class BurnerBoardUtil {
 
     // Cargo culted from Download manager.
     public static final String getPublicName () {
-        try {
-            File f = new File(publicNameDir, publicNameFile);
-            if (!f.exists())
-                return null;
-            InputStream is = null;
+
             try {
-                is = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
+                File f = new File(publicNameDir, publicNameFile);
+                if (!f.exists())
+                    return null;
+                InputStream is = null;
+                try {
+                    is = new FileInputStream(f);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+                String line = buf.readLine();
+                StringBuilder sb = new StringBuilder();
+
+                // We only expect one line - this is a shortcut! -jib
+                while (line != null) {
+                    sb.append(line);
+                    line = buf.readLine();
+                }
+
+                return sb.toString();
+
+            } catch (Throwable e) {
                 e.printStackTrace();
+                return null;
             }
-            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-            String line = buf.readLine();
-            StringBuilder sb = new StringBuilder();
-
-            // We only expect one line - this is a shortcut! -jib
-            while (line != null) {
-                sb.append(line);
-                line = buf.readLine();
-            }
-
-            return sb.toString();
-
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return null;
         }
-    }
 
 }

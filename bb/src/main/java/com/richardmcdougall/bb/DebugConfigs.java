@@ -6,7 +6,9 @@ public class DebugConfigs {
 
     // if this is true, the video will show in the app. This isn't needed
     // in embedded mode, so conserve the resources.
+    // works with BoardType classic and azul to set the screen grid for video display
     public static boolean DISPLAY_VIDEO_IN_APP = false;
+    public static final BurnerBoardUtil.BoardType EMULATING_VISUAL = BurnerBoardUtil.BoardType.azul;
 
     // lots of logging for decoder. LOTS
     public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;
@@ -19,22 +21,15 @@ public class DebugConfigs {
     public static final boolean DEBUG_RF_CLIENT_SERVER = false;
     public static final boolean DEBUG_FAVORITES = false;
     public static final boolean DEBUG_BATTERY = false;
-    public static final boolean DEBUG_ALL_BOARDS = false;
-    public static final boolean DEBUG_DOWNLOAD_MANAGER = false;
+    public static final boolean DEBUG_ALL_BOARDS = true;
+    public static final boolean DEBUG_DOWNLOAD_MANAGER = true;
     public static final boolean DEBUG_BATTERY_SUPERVISOR = false;
     public static final boolean DEBUG_WIFI = false;
 
-    // name the profile as a testing overridee.
-    public static final String OVERRIDE_BOARD_DOWNLOAD_PROFILE = "";
-
-    // Set to force classic mode when using Emulator
-    public static final boolean EMULATING_CLASSIC = false;
+    // name the board as a testing overriden.
+    public static final String OVERRIDE_PUBLIC_NAME = "";
 
     // Switch any of these to 'true' to force identification as that board type.
-    public static final boolean FORCE_BB_TYPE_AZUL = false;
-    public static final boolean FORCE_BB_TYPE_CLASSIC = false;
-    public static final boolean FORCE_BB_TYPE_DIRECT_MAP = false;
-    public static final boolean FORCE_BB_TYPE_MAST = false;
-    public static final boolean FORCE_BB_TYPE_PANEL = false;
+    public static final BurnerBoardUtil.BoardType OVERRIDE_BOARD_TYPE = null;
 
 }
