@@ -333,7 +333,7 @@ public class DownloadManager {
 
         try {
             String DirectoryURL = "";
-            DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + BurnerBoardUtil.BOARD_ID;
+            DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + service.boardState.BOARD_ID;
 
 
             DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + service.version ;

@@ -53,8 +53,8 @@ public class BluetoothConnManager {
 
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
 
-        l("Board ID " + BurnerBoardUtil.BOARD_ID);
-        String name = BurnerBoardUtil.BOARD_ID.substring(0, Math.min(BurnerBoardUtil.BOARD_ID.length(), 8));
+        l("Board ID " + service.boardState.BOARD_ID);
+        String name = service.boardState.BOARD_ID.substring(0, Math.min(service.boardState.BOARD_ID.length(), 8));
         mBluetoothAdapter.setName(name);
         l("Bluetooth packet name set to: " + name);
 

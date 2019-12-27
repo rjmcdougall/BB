@@ -339,7 +339,7 @@ public class BBWifi {
     public boolean setSSISAndPassword(JSONObject wifiSettings) {
 
         try {
-            FileWriter fw = new FileWriter(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.wifiJSON);
+            FileWriter fw = new FileWriter(service.boardState.publicNameDir + "/" + BurnerBoardUtil.wifiJSON);
             fw.write(wifiSettings.toString());
             fw.close();
             SSID = wifiSettings.getString("SSID");
@@ -359,7 +359,7 @@ public class BBWifi {
         try {
             ArrayList<String> r = new ArrayList();
 
-            File f = new File(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.wifiJSON);
+            File f = new File(service.boardState.publicNameDir + "/" + BurnerBoardUtil.wifiJSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);

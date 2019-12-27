@@ -43,8 +43,6 @@ public class BBService extends Service {
     public Context context;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
-    /* XXX TODO this string is accessed both directly here in this class, as well as used via getBoardId() on the object it provides. refactor -jib */
-    public static String boardId = BurnerBoardUtil.BOARD_ID;
     private int mBoardMode = 1; // Mode of the Ardunio/LEDs
     public int version = 0;
     public Date apkUpdatedDate;
@@ -73,6 +71,7 @@ public class BBService extends Service {
     private static USBReceiver usbReceiver = null;
     private static ButtonReceiver buttonReceiver = null;
     private static BluetoothReceiver btReceive = null;
+    public BoardState boardState = null;
 
     public BBService() {
     }
@@ -100,6 +99,8 @@ public class BBService extends Service {
             super.onCreate();
 
             context = getApplicationContext();
+
+            boardState = new BoardState();
 
             PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             version = pinfo.versionCode;
@@ -145,9 +146,9 @@ public class BBService extends Service {
                         l("Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         String utteranceId = UUID.randomUUID().toString();
-                        System.out.println("Where do you want to go, " + BurnerBoardUtil.BOARD_ID + "?");
+                        System.out.println("Where do you want to go, " + boardState.BOARD_ID + "?");
                         voice.setSpeechRate((float) 0.9);
-                        voice.speak("I am " + BurnerBoardUtil.BOARD_ID + "?",
+                        voice.speak("I am " + boardState.BOARD_ID + "?",
                                 TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                     } else if (status == TextToSpeech.ERROR) {
                         l("Sorry! Text To Speech failed...");
@@ -180,7 +181,7 @@ public class BBService extends Service {
             dlManager.Run();
 
             burnerBoard = BurnerBoard.Builder(this);
-            burnerBoard.setText90(BurnerBoardUtil.BOARD_ID, 5000);
+            burnerBoard.setText90(boardState.BOARD_ID, 5000);
             burnerBoard.attach(new BBService.BoardCallback());
 
             boardVisualization = new BoardVisualization(this );
@@ -298,16 +299,16 @@ public class BBService extends Service {
             // Let everyone else know we just decided to be the master
             // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
             // from the client data. XXX is there a better/more useful payload?
-            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteMasterName, hashTrackName(BurnerBoardUtil.BOARD_ID), RFClientServer.kRemoteMasterName);
+            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteMasterName, hashTrackName(boardState.BOARD_ID), RFClientServer.kRemoteMasterName);
 
             burnerBoard.setText("Master", 2000);
-            voice.speak("Master Remote is: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
+            voice.speak("Master Remote is: " + boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             rfClientServer.disableMasterBroadcast();
 
             burnerBoard.setText("Solo", 2000);
-            voice.speak("Disabling Master Remote: " + BurnerBoardUtil.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
+            voice.speak("Disabling Master Remote: " + boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
         }
     }
 
@@ -384,8 +385,7 @@ public class BBService extends Service {
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
         public void BoardId(String str) {
-            boardId = str;
-            l("ardunio BoardID callback:" + str + " " + boardId);
+            l("ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
         }
 
         public void BoardMode(int mode) {

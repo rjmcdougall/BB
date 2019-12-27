@@ -55,7 +55,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mBoardWidth = width;
         mBoardHeight = height;
         mMultipler4Speed = 3;
-        boardId = BurnerBoardUtil.BOARD_ID;
+        boardId = service.boardState.BOARD_ID;
 
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         this.service = service;

@@ -217,7 +217,7 @@ public class RF {
         if (!mUsbManager.hasPermission(mUsbDevice)) {
             //ask for permissionB
             // DIRTY HACK FOR THE MONITOR.
-            if(BurnerBoardUtil.BOARD_ID.equals("VIM2")){
+            if(service.boardState.BOARD_ID.equals("VIM2")){
                 PendingIntent pi = PendingIntent.getBroadcast(service.context, 0, new Intent(GET_USB_PERMISSION), 0);
                 service.context.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
                 mUsbManager.requestPermission(mUsbDevice, pi);

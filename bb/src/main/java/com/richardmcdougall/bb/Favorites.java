@@ -264,7 +264,7 @@ public class Favorites {
 
             JSONArray favorites = new JSONArray(mFavorites);
 
-            FileWriter fw = new FileWriter(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
+            FileWriter fw = new FileWriter(mBBService.boardState.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
             fw.write(favorites.toString());
             fw.close();
         } catch (JSONException e) {
@@ -282,7 +282,7 @@ public class Favorites {
     public void getFavorites() {
         try {
 
-            File f = new File(BurnerBoardUtil.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
+            File f = new File(mBBService.boardState.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);

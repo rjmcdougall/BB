@@ -230,7 +230,7 @@ public class RFClientServer {
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
         l("I'm address " + mBoardAddress);
 
         d("Server reply : " +
@@ -285,7 +285,7 @@ public class RFClientServer {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         if(mBoardAddress <= 0)
-            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
 
         int recvMagicNumber = RFUtil.magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
@@ -373,7 +373,7 @@ public class RFClientServer {
     private void processSyncResponse(byte[] recvPacket) {
 
         if(mBoardAddress<=0)
-            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
 
         d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
@@ -450,7 +450,7 @@ public class RFClientServer {
         mPrefsEditor = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE).edit();
 
         if(mBoardAddress<=0)
-            mBoardAddress = service.allBoards.getBoardAddress(BurnerBoardUtil.BOARD_ID);
+            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
 
         while (true) {
 
@@ -766,7 +766,7 @@ public class RFClientServer {
                     if (service.masterRemote) {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master
-                        String diag = BurnerBoardUtil.BOARD_ID + " is no longer the master. New master: " + client;
+                        String diag = service.boardState.BOARD_ID + " is no longer the master. New master: " + client;
                         l(diag);
                         service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
                         service.enableMaster(false);

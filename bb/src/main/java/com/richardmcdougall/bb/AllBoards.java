@@ -199,7 +199,7 @@ public class AllBoards {
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(BurnerBoardUtil.BOARD_ID)) {
+                    if (board.getString("name").equals(mBBService.boardState.BOARD_ID)) {
                         type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
                     }
                 }
@@ -260,15 +260,15 @@ public class AllBoards {
                 new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
 
                 // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
-                d("Determining public name based on: " + BurnerBoardUtil.DEVICE_ID);
+                d("Determining public name based on: " + mBBService.boardState.DEVICE_ID);
 
-                String newPN = getPublicName(BurnerBoardUtil.DEVICE_ID);
-                String existingPN = BurnerBoardUtil.getPublicName();
+                String newPN = getPublicName(mBBService.boardState.DEVICE_ID);
+                String existingPN = mBBService.boardState.getPublicName();
 
                 d("Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
                 if (newPN != null) {
                     if (existingPN == null || !existingPN.equals(newPN)) {
-                        BurnerBoardUtil.setPublicName(newPN);
+                        mBBService.boardState.setPublicName(newPN);
                         d("Public name updated to: " + newPN);
                     }
                 }
