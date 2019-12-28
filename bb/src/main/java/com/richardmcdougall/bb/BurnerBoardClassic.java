@@ -16,8 +16,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int mBoardSideLights = 79;
     //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
-    private int mDimmerLevel = 255;
-    public int mBatteryLevel = -1;
     private static final String TAG = "BB.BurnerBoardClassic";
 
 
@@ -36,11 +34,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         initUsb();
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
     }
-
-    public void resetParams() {
-        mDimmerLevel = 255;
-    }
-
 
     // Experiments with optimized overlocked Teensy suggest 20 is to high
     // because we don't get battery callbacks
@@ -85,39 +78,6 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     }
 
-    public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            Log.d(TAG, "ardunio default callback:" + str);
-        }
-    }
-
-    public class BoardCallbackTest implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            l("ardunio test callback:" + str);
-        }
-    }
-
-    public class BoardCallbackMode implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            int boardMode = mListener.readIntArg();
-            boardCallback.BoardMode(boardMode);
-        }
-    }
-
-    public class BoardCallbackBoardID implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            //String boardId = mListener.readStringArg();
-            //boardCallback.BoardId(boardId);
-        }
-    }
-
-    public class BoardCallbackEchoRow implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            mEchoString = mListener.readStringArg();
-            l("echoRow: " + mEchoString);
-        }
-    }
-
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             for (int i = 0; i < mBatteryStats.length; i++) {
@@ -132,23 +92,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
-    public int getBattery() {
-        return mBatteryLevel;
-    }
-
-    public String getBatteryStats() {
-        return Arrays.toString(mBatteryStats);
-    }
-
-
     private static final int kClassicBatteryMah = 38000;
 
     public int getBatteryHealth() {
         return 100 * mBatteryStats[5] / kClassicBatteryMah;
-    }
-
-    public int getBatteryVoltage() {
-        return mBatteryStats[5];
     }
 
     //    cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
@@ -240,22 +187,6 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
         }
     }
-
-
-    public void fuzzPixels(int amount) {
-
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
-                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                        (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] - amount);
-                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                        (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] - amount);
-                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                        (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] - amount);
-            }
-        }
-    }
-
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
     public boolean update() {
@@ -358,26 +289,6 @@ public class BurnerBoardClassic extends BurnerBoard {
                 setPixel(x, y, r, g, b);
             }
         }
-    }
-
-    public void fillScreenMask(int r, int g, int b) {
-        //System.out.println("Fillscreen " + r + "," + g + "," + b);
-        int x;
-        int y;
-        for (x = 0; x < mBoardWidth; x++) {
-            for (y = 0; y < mBoardHeight; y++) {
-                if (getPixel(x, y) > 0) {
-                    setPixel(x, y, r, g, b);
-                }
-            }
-        }
-    }
-
-    public int getPixel(int x, int y) {
-        int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-        int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-        int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-        return BurnerBoard.getRGB(r, g, b);
     }
 
     public void setMsg(String msg) {
@@ -515,30 +426,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
-    static int PIXEL_RED = 0;
-    static int PIXEL_GREEN = 1;
-    static int PIXEL_BLUE = 2;
-
     static int[][][] pixel2OffsetTable = new int[255][255][3];
-
-    private void initPixelOffset() {
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
-                for (int rgb = 0; rgb < 3; rgb++) {
-                    pixel2OffsetTable[x][y][rgb] = pixel2OffsetCalc(x, y, rgb);
-                }
-            }
-        }
-    }
-
-    // TODO: Had to hardcode boardwidth to 10 for speed
-    static int pixel2OffsetCalc(int x, int y, int rgb) {
-        return (y * 10 + x) * 3 + rgb;
-    }
-
-    static int pixel2Offset(int x, int y, int rgb) {
-        return pixel2OffsetTable[x][y][rgb];
-    }
 
     // Convert other lights to pixel buffer address
     public static final int kOtherLights = 2;
@@ -548,36 +436,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     int pixelOtherlight2Offset(int pixel, int other, int rgb) {
 
         return (other * mBoardSideLights + pixel) * 3 + rgb;
-    }
-
-    public void setPixel(int x, int y, int r, int g, int b) {
-        //System.out.println("Setting pixel " + x + "," + y + " : " + pixel2Offset(x, y, PIXEL_RED) + " to " + r +  "," + g + "," + b);
-        //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
-        //Sstem.out.println("setpixel r = " + r);
-        if (x < 0 || x >= mBoardWidth || y < 0 || y >= mBoardHeight) {
-            System.out.println("setPixel out of range: " + x + "," + y);
-            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-                System.out.println(ste);
-            }
-            return;
-        }
-        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
-    }
-
-    public void setPixel(int pixel, int r, int g, int b) {
-
-        if (pixel < 0 || pixel >= (mBoardWidth * mBoardHeight)) {
-            System.out.println("setPixel out of range: " + pixel + "," + (mBoardWidth * mBoardHeight));
-            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
-                System.out.println(ste);
-            }
-            return;
-        }
-        mBoardScreen[pixel * 3] = r;
-        mBoardScreen[pixel * 3 + 1] = g;
-        mBoardScreen[pixel * 3 + 2] = b;
     }
 
     public void setSideLight(int leftRight, int pos, int color) {

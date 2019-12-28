@@ -22,6 +22,9 @@ public class BoardView extends View {
     private int mBoardHeight;
     Bitmap mCanvasBitmap;
     Canvas mCanvas;
+    static final int PIXEL_RED = 0;
+    static final int PIXEL_GREEN = 1;
+    static final int PIXEL_BLUE = 2;
 
     public BoardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
@@ -55,9 +58,6 @@ public class BoardView extends View {
         setWillNotDraw(false);
     }
 
-    static int PIXEL_RED = 0;
-    static int PIXEL_GREEN = 1;
-    static int PIXEL_BLUE = 2;
     int pixel2Offset(int x, int y, int rgb) {
         return (y * mBoardWidth + x) * 3 + rgb;
     }
