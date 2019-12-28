@@ -13,12 +13,6 @@ import java.net.URLEncoder;
 public class DownloadManager {
     private static final String TAG = "DownloadManager";
     private BBService service;
-    private String mFilesDir;
-    private JSONObject dataDirectory;
-
-    JSONObject GetDataDirectory() {
-        return dataDirectory;
-    }
 
     interface OnDownloadProgressType {
         void onProgress(String file, long fileSize, long bytesDownloaded);
@@ -39,7 +33,6 @@ public class DownloadManager {
 
     DownloadManager(BBService service ) {
         this.service = service;
-        mFilesDir = service.context.getFilesDir().getAbsolutePath();
 
         this.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
             long lastTextTime = 0;
@@ -64,7 +57,9 @@ public class DownloadManager {
             }
         };
 
-        Log.d(TAG, "Downloading files to: " + mFilesDir);
+        LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
+
+        Log.d(TAG, "Downloading files to: " + service.filesDir);
     }
 
     void Run() {
@@ -78,148 +73,12 @@ public class DownloadManager {
         t.start();
     }
 
-    String GetAudioFile(int index) {
-        try {
-            String fn = mFilesDir + "/" + GetAudio(index).getString("localName");
-            return fn;
-        } catch (JSONException e) {
-            e(e.getMessage());
-            return null;
-        }
-    }
-
-    String GetAudioFileLocalName(int index) {
-        if (index >= 0 && index < GetTotalAudio()) {
-            try {
-                String fn = GetAudio(index).getString("localName");
-                return fn;
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    String GetVideoFileLocalName(int index) {
-        if (index >= 0 && index < GetTotalVideo()) {
-            try {
-                String fn = "";
-                if (GetVideo(index).has("friendlyName")) {
-                    fn = GetVideo(index).getString("friendlyName");
-                } else {
-                    if (GetVideo(index).has("algorithm"))
-                        fn = GetVideo(index).getString("algorithm");
-                    else
-                        fn = GetVideo(index).getString("localName");
-                }
-                return fn;
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    public String GetVideoFile(int index) {
-        try {
-            String fn = mFilesDir + "/" + GetVideo(index).getString("localName");
-            return fn;
-        } catch (JSONException e) {
-            e(e.getMessage());
-            return null;
-        }
-    }
-
-    int GetTotalAudio() {
-        if (dataDirectory == null)
-            return 0;
-        else {
-            try {
-                //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " audio files");
-                return dataDirectory.getJSONArray("audio").length();
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return 0;
-            }
-        }
-    }
-
-    public int GetTotalVideo() {
-        if (dataDirectory == null)
-            return 0;
-        else {
-            try {
-                //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " video files");
-                return dataDirectory.getJSONArray("video").length();
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return 0;
-            }
-        }
-    }
-
-
-    JSONObject GetVideo(int index) {
-        if (dataDirectory == null)
-            return null;
-        if (dataDirectory.has("video")) {
-            try {
-                return dataDirectory.getJSONArray("video").getJSONObject(index);
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return null;
-            }
-        } else
-            return null;
-    }
-
-    String GetAlgorithm(int index) {
-        if (dataDirectory == null)
-            return null;
-        if (dataDirectory.has("video")) {
-            try {
-                return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return null;
-            }
-        } else
-            return null;
-    }
-
-    JSONObject GetAudio(int index) {
-        if (dataDirectory == null)
-            return null;
-        if (dataDirectory.has("audio")) {
-            try {
-                return dataDirectory.getJSONArray("audio").getJSONObject(index);
-            } catch (JSONException e) {
-                e(e.getMessage());
-                return null;
-            }
-        } else
-            return null;
-    }
-
-    long GetAudioLength(int index) {
-        try {
-            return GetAudio(index).getLong("Length");
-        } catch (JSONException e) {
-            e(e.getMessage());
-            return 1000;   // return a dummy value
-        }
-    }
-
 
     public void CleanupOldFiles() {
         try {
             ArrayList<String> refrerencedFiles = new ArrayList<String>();
 
-            JSONObject dir = dataDirectory;
+            JSONObject dir = service.boardState.dataDirectory;
 
             String[] dTypes = new String[]{"audio", "video"};
             String[] extTypes = new String[]{"mp3", "mp4", "m4a"};
@@ -233,8 +92,7 @@ public class DownloadManager {
                 }
             }
 
-            String dataDir = mFilesDir;
-            File[] flist = new File(dataDir).listFiles();
+            File[] flist = new File(service.filesDir).listFiles();
             for (int i = 0; i < flist.length; i++) {
                 String fname = flist[i].getName();
 
@@ -251,15 +109,14 @@ public class DownloadManager {
 
     public void LoadInitialDataDirectory() {
         try {
-            String dataDir = mFilesDir;
-            File[] flist = new File(dataDir).listFiles();
+            File[] flist = new File(service.filesDir).listFiles();
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = FileHelpers.LoadTextFile("directory.json", mFilesDir);
+                String origDir = FileHelpers.LoadTextFile("directory.json", service.filesDir);
                 if (origDir != null) {
                     JSONObject dir = new JSONObject(origDir);
-                    dataDirectory = dir;
+                    service.boardState.dataDirectory = dir;
                     CleanupOldFiles();
                 }
             }
@@ -290,7 +147,7 @@ public class DownloadManager {
 
             String localName = elm.getString("localName");
             boolean upToDate = false;
-            File dstFile = new File(mFilesDir, localName);
+            File dstFile = new File(service.filesDir, localName);
 
             if (elm.has("Size")) {
                 long sz = elm.getLong("Size");
@@ -311,12 +168,12 @@ public class DownloadManager {
         try {
             String localName = elm.getString("localName");
             String url = encodeURL(elm.getString("URL"));
-            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback,mFilesDir);   // download to a "tmp" file
-            File dstFile2 = new File(mFilesDir, localName);   // move to localname so that we can install it
+            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback,service.filesDir);   // download to a "tmp" file
+            File dstFile2 = new File(service.filesDir, localName);   // move to localname so that we can install it
 
             if (dstFile2.exists())
                 dstFile2.delete();
-            new File(mFilesDir, "tmp").renameTo(dstFile2);
+            new File(service.filesDir, "tmp").renameTo(dstFile2);
             return true;
 
         } catch (JSONException jse) {
@@ -339,7 +196,7 @@ public class DownloadManager {
             DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + service.version ;
             boolean returnValue = true;
 
-            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback,mFilesDir);
+            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback,service.filesDir);
             if (ddsz < 0) {
                 d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue  = false;
@@ -347,9 +204,9 @@ public class DownloadManager {
             else {
                 d("Reading Directory from " + DirectoryURL);
 
-                new File(mFilesDir, "tmp").renameTo(new File(mFilesDir, "directory.json.tmp"));
+                new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, "directory.json.tmp"));
 
-                String dirTxt = FileHelpers.LoadTextFile("directory.json.tmp", mFilesDir);
+                String dirTxt = FileHelpers.LoadTextFile("directory.json.tmp", service.filesDir);
                 JSONObject dir = new JSONObject(dirTxt);
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
@@ -402,8 +259,8 @@ public class DownloadManager {
                     }
 
                     // Replace the directory object.
-                    dataDirectory = dir;
-                    new File(mFilesDir, "directory.json.tmp").renameTo(new File(mFilesDir, "directory.json"));
+                    service.boardState.dataDirectory = dir;
+                    new File(service.filesDir, "directory.json.tmp").renameTo(new File(service.filesDir, "directory.json"));
 
                 }
             }
@@ -420,8 +277,6 @@ public class DownloadManager {
     }
 
     public void StartDownloadManager() {
-
-        LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
         try {
             boolean downloadSuccessDirectory = false;

@@ -23,7 +23,7 @@ public class MusicPlayerSupervisor {
         while (true) {
             switch (musicState) {
                 case 0:
-                    if (service.dlManager.GetTotalAudio() != 0) {
+                    if (service.boardState.GetTotalAudio() != 0) {
                         musicState = 1;
                         //d("Downloaded: Starting Radio Mode");
 

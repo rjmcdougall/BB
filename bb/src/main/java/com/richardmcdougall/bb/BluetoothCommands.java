@@ -66,13 +66,13 @@ public class BluetoothCommands {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = null;
-        if (service.dlManager.GetDataDirectory() == null) {
+        if (service.boardState.dataDirectory == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                 audio = new JSONArray(service.dlManager.GetDataDirectory().getJSONArray("audio").toString()) ;
+                 audio = new JSONArray(service.boardState.dataDirectory.getJSONArray("audio").toString()) ;
                 for (int i = 0; i < audio.length(); i++) {
                     JSONObject a = audio.getJSONObject(i);
                     if(a.has("URL"))  a.remove("URL");
@@ -93,13 +93,13 @@ public class BluetoothCommands {
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
          JSONArray video = null;
 
-        if (service.dlManager.GetDataDirectory() == null) {
+        if (service.boardState.dataDirectory == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                video = new JSONArray(service.dlManager.GetDataDirectory().getJSONArray("video").toString());
+                video = new JSONArray(service.boardState.dataDirectory.getJSONArray("video").toString());
                 for (int i = 0; i < video.length(); i++) {
                     JSONObject v = video.getJSONObject(i);
                     if(v.has("URL")) v.remove("URL");

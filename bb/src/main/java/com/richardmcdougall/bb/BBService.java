@@ -72,6 +72,7 @@ public class BBService extends Service {
     private static ButtonReceiver buttonReceiver = null;
     private static BluetoothReceiver btReceive = null;
     public BoardState boardState = null;
+    public String filesDir = "";
 
     public BBService() {
     }
@@ -100,11 +101,11 @@ public class BBService extends Service {
 
             context = getApplicationContext();
 
-            boardState = new BoardState();
-
             PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             version = pinfo.versionCode;
             apkUpdatedDate = new Date(pinfo.lastUpdateTime);
+
+            filesDir = context.getFilesDir().getAbsolutePath();
 
             l("BBService: onCreate");
             l("Manufacturer " + Build.MANUFACTURER);
@@ -168,6 +169,8 @@ public class BBService extends Service {
                     }
                 }
             });
+
+            boardState = new BoardState(this);
 
             iotClient = new IoTClient(this);
 
@@ -357,7 +360,7 @@ public class BBService extends Service {
             mBoardMode = mode;
         }
 
-        int maxModes = dlManager.GetTotalVideo();
+        int maxModes = boardState.GetTotalVideo();
         if (mBoardMode > maxModes)
             mBoardMode = 1;
         else if (mBoardMode < 1)
@@ -366,7 +369,7 @@ public class BBService extends Service {
         // If I am set to be the master, broadcast to other boards
         if (masterRemote && (rfClientServer != null)) {
 
-            String name = dlManager.GetVideoFileLocalName(mBoardMode - 1);
+            String name = boardState.GetVideoFileLocalName(mBoardMode - 1);
             l("Sending video remote for video " + name);
             rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
         }

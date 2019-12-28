@@ -161,10 +161,10 @@ public class BoardVisualization {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = getMode() + 1;
-        if (next > service.dlManager.GetTotalVideo()) {
+        if (next > service.boardState.GetTotalVideo()) {
             next = 1;
         }
-        l("Setting Video to: " + service.dlManager.GetVideoFileLocalName(next - 1));
+        l("Setting Video to: " + service.boardState.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
     }
 
@@ -365,7 +365,7 @@ public class BoardVisualization {
 
         l("Starting board display thread...");
 
-        int nVideos = service.burnerBoard.service.dlManager.GetTotalVideo();
+        int nVideos = service.boardState.GetTotalVideo();
 
         while (true) {
 
@@ -457,12 +457,12 @@ public class BoardVisualization {
         }
 
         // TODO: check perf overhead of checking this every frame
-        JSONObject videos = service.burnerBoard.service.dlManager.GetVideo(mode);
+        JSONObject videos = service.boardState.GetVideo(mode);
         if (videos == null) {
             return mFrameRate;
         }
         if(videos.has("algorithm")){
-            String algorithm = service.burnerBoard.service.dlManager.GetAlgorithm(mode);
+            String algorithm = service.boardState.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
             if (BurnerBoardUtil.kIsRPI) { // nano is fine

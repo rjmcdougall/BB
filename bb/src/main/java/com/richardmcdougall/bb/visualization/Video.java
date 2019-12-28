@@ -21,7 +21,7 @@ public class Video extends Visualization {
 
     public void update(int mode) {
 
-        int nVideos = mBurnerBoard.service.dlManager.GetTotalVideo();
+        int nVideos = mBurnerBoard.service.boardState.GetTotalVideo();
 
         if (nVideos == 0)
             return;
@@ -44,7 +44,7 @@ public class Video extends Visualization {
             };
 
             try {
-                mVideoDecoder.Start(mBurnerBoard.service.dlManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+                mVideoDecoder.Start(mBurnerBoard.service.boardState.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
             } catch (Throwable throwable) {
                 //Log.d(TAG, "Unable to start decoder");
                 //throwable.printStackTrace();
