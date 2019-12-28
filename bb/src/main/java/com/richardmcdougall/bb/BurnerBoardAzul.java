@@ -200,50 +200,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
     }
 
-    public void fillScreen(int r, int g, int b) {
-
-        //System.out.println("Fillscreen " + r + "," + g + "," + b);
-        int x;
-        int y;
-        for (x = 0; x < mBoardWidth; x++) {
-            for (y = 0; y < mBoardHeight; y++) {
-                setPixel(x, y, r, g, b);
-            }
-        }
-    }
-
-
-    public void fadePixels(int amount) {
-
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
-                int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                //System.out.println("br = " + br);
-                if (r >= amount) {
-                    r -= amount;
-                } else {
-                    r = 0;
-                }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-                int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                if (g >= amount) {
-                    g -= amount;
-                } else {
-                    g = 0;
-                }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-                int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                if (b >= amount) {
-                    b -= amount;
-                } else {
-                    b = 0;
-                }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
-            }
-        }
-    }
-
-
     public int [] getPixelBuffer() {
         return mBoardScreen;
     }
@@ -251,27 +207,6 @@ public class BurnerBoardAzul extends BurnerBoard {
     // TODO: gamma correction
     // encoded = ((original / 255) ^ (1 / gamma)) * 255
     // original = ((encoded / 255) ^ gamma) * 255
-
-    // TODO: make faster by using ints
-    private int pixelColorCorrectionRed(int red) {
-        return gammaCorrect(red) ;
-    }
-
-    private int pixelColorCorrectionGreen(int green) {
-        return gammaCorrect(green);
-    }
-
-    private int pixelColorCorrectionBlue(int blue) {
-        return gammaCorrect(blue);
-    }
-
-    public void clearPixels() {
-        Arrays.fill(mBoardScreen, 0);
-    }
-
-    public void dimPixels(int level) {
-        mDimmerLevel = level;
-    }
 
     private int flushCnt = 0;
     long lastFlushTime = java.lang.System.currentTimeMillis();
@@ -392,92 +327,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         return;
     }
 
-    //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
-    public boolean setHeadlight(boolean state) {
-
-        sendVisual(3);
-        l("sendCommand: 3,1");
-        if (mListener != null) {
-            mListener.sendCmdStart(3);
-            mListener.sendCmdArg(state == true ? 1 : 0);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return true;
-        }
-        return false;
-    }
-
-    //    cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 4
-    public boolean clearScreen() {
-
-        sendVisual(5);
-        l("sendCommand: 4");
-        if (mListener != null) {
-            mListener.sendCmd(4);
-            mListener.sendCmdEnd();
-            return true;
-        }
-        return false;
-    }
-
     public void setMsg(String msg) {
-    }
-
-
-    private void setRowVisual(int row, int[] pixels) {
-
-        int[] dimPixels = new int[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 255;
-        }
-
-        // Send pixel row to in-app visual display
-        sendVisual(14, row, dimPixels);
-    }
-
-    // Send a strip of pixels to the board
-    private void setStrip(int strip, int[] pixels, int powerLimitMultiplierPercent) {
-
-        int[] dimPixels = new int[pixels.length];
-
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 256 * powerLimitMultiplierPercent / 100;
-        }
-
-        // Do color correction on burner board display pixels
-        byte [] newPixels = new byte[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
-        }
-
-        //newPixels[30]=(byte)128;
-        //newPixels[31]=(byte)128;
-        //newPixels[32]=(byte)128;
-        //newPixels[3]=2;
-        //newPixels[4]=40;
-        //newPixels[5]=2;
-        //newPixels[6]=2;
-        //newPixels[7]=2;
-        //newPixels[8]=40;
-        //newPixels[9]=2;
-        //newPixels[10]=2;
-        //newPixels[11]=40;
-
-        //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
-
-        //l("sendCommand: 14,n,...");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(10);
-                mListener.sendCmdArg(strip);
-                mListener.sendCmdEscArg(newPixels);
-                mListener.sendCmdEnd();
-            }
-        }
     }
 
     public static class TranslationMap {

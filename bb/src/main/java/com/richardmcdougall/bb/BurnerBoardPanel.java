@@ -178,76 +178,8 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
     }
 
-    public void fillScreen(int r, int g, int b) {
-
-        //System.out.println("Fillscreen " + r + "," + g + "," + b);
-        int x;
-        int y;
-        for (x = 0; x < mBoardWidth; x++) {
-            for (y = 0; y < mBoardHeight; y++) {
-                setPixel(x, y, r, g, b);
-            }
-        }
-    }
-
-    public void fadePixels(int amount) {
-
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
-                int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                //System.out.println("br = " + br);
-                if (r >= amount) {
-                    r -= amount;
-                } else {
-                    r = 0;
-                }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-                int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                if (g >= amount) {
-                    g -= amount;
-                } else {
-                    g = 0;
-                }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-                int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                if (b >= amount) {
-                    b -= amount;
-                } else {
-                    b = 0;
-                }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
-            }
-        }
-    }
-
-
     public int[] getPixelBuffer() {
         return mBoardScreen;
-    }
-
-    // TODO: gamma correction
-    // encoded = ((original / 255) ^ (1 / gamma)) * 255
-    // original = ((encoded / 255) ^ gamma) * 255
-
-    // TODO: make faster by using ints
-    private int pixelColorCorrectionRed(int red) {
-        return red;
-    }
-
-    private int pixelColorCorrectionGreen(int green) {
-        return green;
-    }
-
-    private int pixelColorCorrectionBlue(int blue) {
-        return blue;
-    }
-
-    public void clearPixels() {
-        Arrays.fill(mBoardScreen, 0);
-    }
-
-    public void dimPixels(int level) {
-        mDimmerLevel = level;
     }
 
     private int flushCnt = 0;
@@ -403,46 +335,6 @@ public class BurnerBoardPanel extends BurnerBoard {
             return;
         }
         return;
-    }
-
-    //    cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
-    public boolean setHeadlight(boolean state) {
-
-        sendVisual(3);
-        l("sendCommand: 3,1");
-        if (mListener != null) {
-            mListener.sendCmdStart(3);
-            mListener.sendCmdArg(state == true ? 1 : 0);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return true;
-        }
-        return false;
-    }
-
-    //    cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 4
-    public boolean clearScreen() {
-
-        sendVisual(5);
-        l("sendCommand: 4");
-        if (mListener != null) {
-            mListener.sendCmd(4);
-            mListener.sendCmdEnd();
-            return true;
-        }
-        return false;
-    }
-
-    private void setRowVisual(int row, int[] pixels) {
-
-        int[] dimPixels = new int[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 255;
-        }
-
-        // Send pixel row to in-app visual display
-        sendVisual(14, row, dimPixels);
     }
 
 }
