@@ -26,6 +26,8 @@ public class BoardState {
     public boolean masterRemote = false;
     private static final String TAG = "BoardState";
     private BBService service = null;
+    public boolean gtfo = false;
+    public boolean blockMaster = false;
 
     private void d(String logMsg) {
         if (DebugConfigs.DEBUG_BOARD_STATE) {

@@ -401,7 +401,7 @@ public class BluetoothCommands {
                         l("BBservice got EnableGTFO command:" + payload.toString());
                         try {
                             boolean isGTFO = payload.getBoolean("arg");
-                            service.enableGTFO(isGTFO);
+                            service.gtfo.enableGTFO(isGTFO);
 
                         } catch (Exception e) {
                             l("error setting EnableGTFO: " + e.getMessage());
@@ -426,7 +426,7 @@ public class BluetoothCommands {
                         l("BBservice got BlockMaster command:" + payload.toString());
                         try {
                             boolean blockMaster = payload.getBoolean("arg");
-                            service.blockMaster = blockMaster;
+                            service.boardState.blockMaster = blockMaster;
 
                         } catch (Exception e) {
                             l("error setting BlockMaster: " + e.getMessage());
@@ -717,7 +717,7 @@ public class BluetoothCommands {
             state.put("apkv", service.version);
             state.put("ip", service.wifi.getIPAddress());
             state.put("g", service.gtfo);
-            state.put("bm" , service.blockMaster);
+            state.put("bm" , service.boardState.blockMaster);
             state.put("s", service.wifi.getSSID());
             state.put("c", service.wifi.getConfiguredSSID());
             state.put("p", service.wifi.getConfiguredPassword());

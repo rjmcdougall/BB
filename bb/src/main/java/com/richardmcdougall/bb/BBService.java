@@ -2,12 +2,10 @@ package com.richardmcdougall.bb;
 
 import android.app.Activity;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -15,17 +13,11 @@ import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.Date;
 import android.os.Build;
-import android.bluetooth.BluetoothDevice;
-import android.media.RingtoneManager;
-import android.media.Ringtone;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
@@ -62,9 +54,7 @@ public class BBService extends Service {
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
     public DownloadManager dlManager;
     private Thread musicPlayerThread;
-    public boolean blockMaster = false;
     public boolean voiceAnnouncements = false;
-    public boolean gtfo = false;
     public BBWifi wifi = null;
     public TextToSpeech voice;
     private static USBReceiver usbReceiver = null;
@@ -73,6 +63,7 @@ public class BBService extends Service {
     public BoardState boardState = null;
     public String filesDir = "";
     public BBMasterRemote masterRemote = null;
+    public GTFO gtfo = null;
 
     public BBService() {
     }
@@ -217,6 +208,8 @@ public class BBService extends Service {
 
             masterRemote = new BBMasterRemote(this);
 
+            gtfo = new GTFO(this);
+
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
@@ -296,27 +289,6 @@ public class BBService extends Service {
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-
-    private int stashedAndroidVolumePercent;
-
-    public void enableGTFO(boolean enable) {
-
-        gtfo = enable;
-        if (enable) {
-
-            boardVisualization.inhibitGTFO(true);
-            burnerBoard.setText90("Get The Fuck Off!", 5000);
-            musicPlayer.setVolume(0, 0);
-            stashedAndroidVolumePercent = musicPlayer.getAndroidVolumePercent();
-            musicPlayer.setAndroidVolumePercent(100);
-            voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD, null, "GTFO");
-        } else {
-            boardVisualization.inhibitGTFO(false);
-            musicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
-            musicPlayer.setVolume(1, 1);
-        }
     }
 
     public void setMode(int mode) {

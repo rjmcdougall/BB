@@ -716,7 +716,7 @@ public class RFClientServer {
     public void decodeRemoteControl(String client, int cmd, long value) {
 
 
-        if (service.blockMaster) {
+        if (service.boardState.blockMaster) {
             l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
         } else {
 
