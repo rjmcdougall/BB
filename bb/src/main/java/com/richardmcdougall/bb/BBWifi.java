@@ -30,42 +30,29 @@ import org.json.JSONArray;
 
 public class BBWifi {
 
-    /*
-
-    THIS SETS UP PRETTY / HUMAN NAMES FOR ANY DEVICES
-
-     */
     private static final String WIFI_JSON = "wifi.json";
     private static final String TAG = "BB.BBWifi";
     private static final String WIFI_SSID = "burnerboard";
     private static final String WIFI_PASS = "firetruck";
-
     public boolean enableWifiReconnect = true;
+    public String ipAddress = "";
     private int mWifiReconnectEveryNSeconds = 60;
     private BBService service = null;
     private WifiManager mWiFiManager = null;
-    // IP address of the device
-    public String ipAddress = null;
     private List<ScanResult> mScanResults;
-    private String SSID = "";
-    private String password = "";
-    public String getSSID() {
-        return mWiFiManager.getConnectionInfo().getSSID();
-    }
-    public String getConfiguredSSID(){
-        return SSID;
-    }
-    public JSONArray getScanResults(){
-        JSONArray a = new JSONArray();
-        for(ScanResult s: mScanResults){
-            a.put(s.SSID);
-        }
-        return a;
-    }
-    public String getConfiguredPassword(){
-        return password;
-    }
+    public String SSID = "";
+    public String password = "";
 
+    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context c, Intent intent) {
+            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+                mScanResults = mWiFiManager.getScanResults();
+                d("wifi scan results" + mScanResults.toString());
+            }
+        }
+    };
+    
     BBWifi(BBService service) {
 
         this.service = service;
@@ -89,8 +76,16 @@ public class BBWifi {
         ScanWifi();
     }
 
-    public String getIPAddress() {
-        return ipAddress;
+    public String getConnectedSSID() {
+        return mWiFiManager.getConnectionInfo().getSSID();
+    }
+
+    public JSONArray getScanResults(){
+        JSONArray a = new JSONArray();
+        for(ScanResult s: mScanResults){
+            a.put(s.SSID);
+        }
+        return a;
     }
 
     private void setupWifi() {
@@ -189,7 +184,6 @@ public class BBWifi {
         Log.e(TAG, logMsg);
     }
 
-
     /* On android, wifi SSIDs and passwords MUST be passed quoted. This fixes up the raw SSID & Pass -jib */
     /* XXX TODO this code doesn't get exercised if the SSID is already in the known config it seems
        which makes this code VERY hard to test. What's the right strategy? -jib
@@ -239,7 +233,6 @@ public class BBWifi {
         }
         return false;
     }
-
 
     private void connectWifi(String ssid) {
 
@@ -304,18 +297,6 @@ public class BBWifi {
 
         return ipAddressString;
     }
-
-
-
-    private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context c, Intent intent) {
-            if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                mScanResults = mWiFiManager.getScanResults();
-                d("wifi scan results" + mScanResults.toString());
-            }
-        }
-    };
 
     public void ScanWifi() {
         mWiFiManager.startScan();

@@ -715,12 +715,12 @@ public class BluetoothCommands {
             state.put("am", service.boardState.masterRemote);
             state.put("apkd", service.apkUpdatedDate.toString());
             state.put("apkv", service.version);
-            state.put("ip", service.wifi.getIPAddress());
+            state.put("ip", service.wifi.ipAddress);
             state.put("g", service.boardState.isGTFO);
             state.put("bm" , service.boardState.blockMaster);
-            state.put("s", service.wifi.getSSID());
-            state.put("c", service.wifi.getConfiguredSSID());
-            state.put("p", service.wifi.getConfiguredPassword());
+            state.put("s", service.wifi.getConnectedSSID());
+            state.put("c", service.wifi.SSID);
+            state.put("p", service.wifi.password);
 
         } catch (Exception e) {
             l("Could not get state: " + e.getMessage());
