@@ -9,7 +9,7 @@ import android.util.Log;
 public class BatterySupervisor {
 
     private int loopCnt = 0;
-    private BBService mBBService = null;
+    private BBService service = null;
     private static final String TAG = "BB.Supervisor";
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
@@ -18,7 +18,7 @@ public class BatterySupervisor {
     private int iotReportEveryNSeconds = 10;
 
     BatterySupervisor(BBService service){
-        mBBService = service;
+        this.service = service;
     }
 
     public void d(String logMsg) {
@@ -48,12 +48,12 @@ public class BatterySupervisor {
         /* Communicate the settings for the supervisor thread */
         d("Enable Battery Monitoring? " + enableBatteryMonitoring);
         d("Enable IoT Reporting? " + enableIoTReporting);
-        d("Enable WiFi reconnect? " + mBBService.wifi.mEnableWifiReconnect);
+        d("Enable WiFi reconnect? " + service.wifi.mEnableWifiReconnect);
 
         while (true) {
 
             // Every second, check & update battery
-            if (enableBatteryMonitoring && (mBBService.burnerBoard != null)) {
+            if (enableBatteryMonitoring && (service.burnerBoard != null)) {
                 checkBattery();
 
                 // Every 10 seconds, send battery update via IoT.
@@ -61,7 +61,7 @@ public class BatterySupervisor {
                 if (enableIoTReporting && (loopCnt % iotReportEveryNSeconds == 0)) {
                     d("Sending MQTT update");
                     try {
-                        mBBService.iotClient.sendUpdate("bbtelemetery", mBBService.burnerBoard.getBatteryStats());
+                        service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
                     } catch (Exception e) {
                     }
                 }
@@ -82,7 +82,7 @@ public class BatterySupervisor {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mBBService).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service).sendBroadcast(in);
     }
 
     public void d_battery(String s) {
@@ -95,15 +95,15 @@ public class BatterySupervisor {
     public enum powerStates {STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING}
 
     public void checkBattery() {
-        if ((mBBService.burnerBoard != null) && (mBBService.boardVisualization != null)) {
+        if ((service.burnerBoard != null) && (service.boardVisualization != null)) {
 
             boolean announce = false;
             powerStates powerState = powerStates.STATE_DISPLAYING;
 
-            int level = mBBService.burnerBoard.getBattery();
-            int current = mBBService.burnerBoard.getBatteryCurrent();
-            int currentInstant = mBBService.burnerBoard.getBatteryCurrentInstant();
-            int voltage = mBBService.burnerBoard.getBatteryVoltage();
+            int level = service.burnerBoard.getBattery();
+            int current = service.burnerBoard.getBatteryCurrent();
+            int currentInstant = service.burnerBoard.getBatteryCurrentInstant();
+            int voltage = service.burnerBoard.getBatteryVoltage();
 
             d_battery("Board Current(avg) is " + current);
             d_battery("Board Current(Instant) is " + currentInstant);
@@ -119,42 +119,42 @@ public class BatterySupervisor {
             if ((voltage > 20000) && (current > -150) && (current < 10)) {
                 // Any state -> IDLE
                 powerState = powerStates.STATE_IDLE;
-                mBBService.boardVisualization.inhibit(true);
+                service.boardVisualization.inhibit(true);
             } else if ((voltage > 20000) && (currentInstant < -150)) {
                 // Any state -> Displaying
                 powerState = powerStates.STATE_DISPLAYING;
-                mBBService.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibit(false);
             } else if (powerState == powerStates.STATE_DISPLAYING &&
                     // DISPLAYING -> Charging (avg current)
                     (voltage > 20000) && (current > 10)) {
                 powerState = powerStates.STATE_CHARGING;
-                mBBService.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibit(false);
             } else if (powerState == powerStates.STATE_IDLE &&
                     (voltage > 20000) && (currentInstant > 10)) {
                 // STATE_IDLE -> Charging // instant
                 powerState = powerStates.STATE_CHARGING;
-                mBBService.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibit(false);
             } else if ((voltage > 20000) && (current > 10)) {
                 // Anystate -> Charging // avg current
                 powerState = powerStates.STATE_CHARGING;
-                mBBService.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibit(false);
             } else {
                 d("Unhandled power state " + powerState);
-                mBBService.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibit(false);
             }
 
             d_battery("Power state is " + powerState);
 
             // Show battery if charging
-            mBBService.boardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
+            service.boardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
 
             // Battery voltage is critically low
             // Board will come to a halt in < 60 seconds
             // current is milliamps
             if ((voltage > 20000) && (voltage < 35300)) {
-                mBBService.boardVisualization.emergency(true);
+                service.boardVisualization.emergency(true);
             } else {
-                mBBService.boardVisualization.emergency(false);
+                service.boardVisualization.emergency(false);
             }
 
             announce = false;
@@ -177,7 +177,7 @@ public class BatterySupervisor {
                 }
             }
             if (announce) {
-                mBBService.voice.speak("Battery Level is " +
+                service.voice.speak("Battery Level is " +
                         level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
             }
         }

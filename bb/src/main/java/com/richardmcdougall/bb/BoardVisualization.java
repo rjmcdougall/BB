@@ -443,10 +443,6 @@ public class BoardVisualization {
 
         mode += -1;
 
-        //mBurnerBoard.setMsg(String.format("%04d %04d", mBBservice.GetCurrentClock() % 10000, mBBservice.CurrentClockAdjusted() % 10000));
-        //if (true)
-        //    return 20;
-
         frameCnt++;
         if (frameCnt % 100 == 0) {
             l("Frames: " + frameCnt);

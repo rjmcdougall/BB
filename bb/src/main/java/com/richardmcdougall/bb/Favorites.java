@@ -33,12 +33,7 @@ import java.util.HashMap;
 public class Favorites {
 
     private static final String TAG = "BB.FAV";
-    private Context mContext;
-    private RF mRadio;
-    private AllBoards mAllBoards = null;
-    private Gps mGps;
-    private IoTClient mIotClient;
-    private BBService mBBService;
+    private BBService service;
     private favoritesCallback mFavoritesCallback = null;
     static final int krepeatedBy = 0;
     int mThereAccurate;
@@ -49,20 +44,15 @@ public class Favorites {
 
     public Favorites(Context context, BBService service,
                      final RF radio, Gps gps, IoTClient iotclient) {
-        mContext = context;
-        mRadio = radio;
-        mGps = gps;
-        mIotClient = iotclient;
-        mBBService = service;
+        this.service = service;
         l("Starting favorites");
 
-        if (mRadio == null) {
+        if (service.radio == null) {
             l("No Radio!");
             return;
         }
-        mAllBoards = mRadio.mAllBoards;
 
-        mRadio.attach(new RF.radioEvents() {
+        service.radio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
                 l("Favorites Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
@@ -119,7 +109,7 @@ public class Favorites {
         radioPacket.write(0);
 
         d("Sending Favorites packet...");
-        mRadio.broadcast(radioPacket.toByteArray());
+        service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
         d("Sent Favorites packet...");
 
@@ -150,7 +140,7 @@ public class Favorites {
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(mContext).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     public void l(String s) {
@@ -195,12 +185,12 @@ public class Favorites {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                l(mAllBoards.boardAddressToName(f.r) +
+                l(service.allBoards.boardAddressToName(f.r) +
                         " strength " + sigStrength +
                         "favorites lat = " + f.a + ", " +
                         "favorites Lon = " + f.o);
-                mIotClient.sendUpdate("bbevent", "[" +
-                        mAllBoards.boardAddressToName(f.r) + "," +
+                service.iotClient.sendUpdate("bbevent", "[" +
+                        service.allBoards.boardAddressToName(f.r) + "," +
                         sigStrength + "," + f.a + "," + f.o + "]");
 
 
@@ -264,7 +254,7 @@ public class Favorites {
 
             JSONArray favorites = new JSONArray(mFavorites);
 
-            FileWriter fw = new FileWriter(mBBService.boardState.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
+            FileWriter fw = new FileWriter(service.boardState.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
             fw.write(favorites.toString());
             fw.close();
         } catch (JSONException e) {
@@ -282,7 +272,7 @@ public class Favorites {
     public void getFavorites() {
         try {
 
-            File f = new File(mBBService.boardState.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
+            File f = new File(service.boardState.publicNameDir + "/" + BurnerBoardUtil.favoritesJSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);

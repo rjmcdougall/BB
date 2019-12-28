@@ -1,9 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -14,16 +11,14 @@ import java.io.File;
 public class AllBoards {
 
     private static final String TAG = "AllBoards";
-    public BBService mBBService = null;
-    public Context mContext = null;
-    String mFilesDir = null;
+    private BBService service = null;
+    private String mFilesDir = null;
     public JSONArray dataBoards;
     public DownloadManager.OnDownloadProgressType onProgressCallback = null;
 
     public AllBoards(BBService service) {
-        mBBService = service;
-        mContext = service.context;
-        mFilesDir = mContext.getFilesDir().getAbsolutePath();
+        this.service = service;
+        mFilesDir = service.context.getFilesDir().getAbsolutePath();
         LoadInitialBoardsDirectory();
     }
 
@@ -64,7 +59,7 @@ public class AllBoards {
 
         try {
 
-            if (mBBService.dlManager == null) {
+            if (service.dlManager == null) {
                 d("Could not find board address data");
             } else if (dataBoards == null) {
                 d("Could not find board address data");
@@ -95,7 +90,7 @@ public class AllBoards {
 
         try {
 
-            if (mBBService.dlManager == null) {
+            if (service.dlManager == null) {
                 d("Could not find board name data");
             } else if (dataBoards == null) {
                 d("Could not find board name data");
@@ -127,7 +122,7 @@ public class AllBoards {
 
         try {
 
-            if (mBBService.dlManager == null) {
+            if (service.dlManager == null) {
                 d("Could not find board color data");
             } else if (dataBoards == null) {
                 d("Could not find board color data");
@@ -199,7 +194,7 @@ public class AllBoards {
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(mBBService.boardState.BOARD_ID)) {
+                    if (board.getString("name").equals(service.boardState.BOARD_ID)) {
                         type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
                     }
                 }
@@ -260,15 +255,15 @@ public class AllBoards {
                 new File(dataDir, "boards.json.tmp").renameTo(new File(dataDir, "boards.json"));
 
                 // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
-                d("Determining public name based on: " + mBBService.boardState.DEVICE_ID);
+                d("Determining public name based on: " + service.boardState.DEVICE_ID);
 
-                String newPN = getPublicName(mBBService.boardState.DEVICE_ID);
-                String existingPN = mBBService.boardState.getPublicName();
+                String newPN = getPublicName(service.boardState.DEVICE_ID);
+                String existingPN = service.boardState.getPublicName();
 
                 d("Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
                 if (newPN != null) {
                     if (existingPN == null || !existingPN.equals(newPN)) {
-                        mBBService.boardState.setPublicName(newPN);
+                        service.boardState.setPublicName(newPN);
                         d("Public name updated to: " + newPN);
                     }
                 }
