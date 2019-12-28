@@ -38,6 +38,8 @@ import org.joda.time.DateTime;
 public class IoTClient {
 
     private static final String TAG = "BB.IoTClient";
+    private static final String MQTT_SERVER_URI = "ssl://mqtt.googleapis.com:8883";
+    private static final String DEVICEY_REGISTRY = "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-";
     private volatile MqttAndroidClient mqttClient = null;
     private String deviceId;
     IMqttToken token = null;
@@ -69,7 +71,7 @@ public class IoTClient {
 
         Log.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = this.service.context.getFilesDir().getAbsolutePath();
-        mqttClient = new MqttAndroidClient(service.context, "ssl://mqtt.googleapis.com:8883",
+        mqttClient = new MqttAndroidClient(service.context, MQTT_SERVER_URI,
                 deviceId, new MemoryPersistence());
         doConnect();
 
@@ -287,8 +289,7 @@ public class IoTClient {
 
     private void setClientID() {
         deviceId = new String(
-                "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-" +
-                        service.boardState.BOARD_ID.replaceAll("\\s", ""));
+                DEVICEY_REGISTRY + service.boardState.BOARD_ID.replaceAll("\\s", ""));
     }
 
     /**

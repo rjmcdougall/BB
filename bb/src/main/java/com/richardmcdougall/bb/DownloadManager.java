@@ -3,15 +3,22 @@ package com.richardmcdougall.bb;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.net.URLEncoder;
 
 public class DownloadManager {
     private static final String TAG = "DownloadManager";
+    private static final String DIRECTORY_JSON_FILENAME = "directory.json";
+    private static final String DIRECTORY_JSON_TMP_FILENAME = "directory.json.tmp";
+    private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
+    private static final String DOWNLOAD_DIRECTORY_URL_PATH = "/DownloadDirectoryJSON?APKVersion=";
+
     private BBService service;
     public JSONObject dataDirectory;
 
@@ -28,11 +35,12 @@ public class DownloadManager {
     }
 
     public void e(String logMsg) {
-            Log.e(TAG, logMsg);
+        Log.e(TAG, logMsg);
     }
+
     public OnDownloadProgressType onProgressCallback = null;
 
-    DownloadManager(BBService service ) {
+    DownloadManager(BBService service) {
         this.service = service;
 
         this.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
@@ -65,8 +73,7 @@ public class DownloadManager {
 
     void Run() {
         Thread t = new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 Thread.currentThread().setName("DownloadManager");
                 StartDownloadManager();
             }
@@ -114,7 +121,7 @@ public class DownloadManager {
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = FileHelpers.LoadTextFile("directory.json", service.filesDir);
+                String origDir = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, service.filesDir);
                 if (origDir != null) {
                     JSONObject dir = new JSONObject(origDir);
                     dataDirectory = dir;
@@ -169,7 +176,7 @@ public class DownloadManager {
         try {
             String localName = elm.getString("localName");
             String url = encodeURL(elm.getString("URL"));
-            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback,service.filesDir);   // download to a "tmp" file
+            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback, service.filesDir);   // download to a "tmp" file
             File dstFile2 = new File(service.filesDir, localName);   // move to localname so that we can install it
 
             if (dstFile2.exists())
@@ -190,24 +197,22 @@ public class DownloadManager {
     public boolean GetNewDirectory() {
 
         try {
-            String DirectoryURL = "";
-            DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/" + service.boardState.BOARD_ID;
+            String DirectoryURL = DIRECTORY_URL + service.boardState.BOARD_ID;
 
 
-            DirectoryURL = encodeURL(DirectoryURL) + "/DownloadDirectoryJSON?APKVersion=" + service.version ;
+            DirectoryURL = encodeURL(DirectoryURL) + DOWNLOAD_DIRECTORY_URL_PATH + service.version;
             boolean returnValue = true;
 
-            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback,service.filesDir);
+            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, service.filesDir);
             if (ddsz < 0) {
                 d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
-                returnValue  = false;
-            }
-            else {
+                returnValue = false;
+            } else {
                 d("Reading Directory from " + DirectoryURL);
 
-                new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, "directory.json.tmp"));
+                new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile("directory.json.tmp", service.filesDir);
+                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, service.filesDir);
                 JSONObject dir = new JSONObject(dirTxt);
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
@@ -242,7 +247,7 @@ public class DownloadManager {
                     returnValue = true;
                 }
 
-                if(returnValue) {
+                if (returnValue) {
                     // download changes
                     for (int j = 0; j < changedFiles.length(); j++) {
                         JSONObject elm = changedFiles.getJSONObject(j);
@@ -261,7 +266,7 @@ public class DownloadManager {
 
                     // Replace the directory object.
                     dataDirectory = dir;
-                    new File(service.filesDir, "directory.json.tmp").renameTo(new File(service.filesDir, "directory.json"));
+                    new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, DIRECTORY_JSON_FILENAME));
 
                 }
             }
@@ -269,10 +274,10 @@ public class DownloadManager {
             return returnValue;
 
         } catch (JSONException jse) {
-            e( jse.getMessage());
+            e(jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e( th.getMessage());
+            e(th.getMessage());
             return false;
         }
     }
@@ -375,7 +380,6 @@ public class DownloadManager {
             return 0;
         else {
             try {
-                //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " audio files");
                 return dataDirectory.getJSONArray("audio").length();
             } catch (JSONException e) {
                 e(e.getMessage());
@@ -389,7 +393,6 @@ public class DownloadManager {
             return 0;
         else {
             try {
-                //Log.d(TAG, dataDirectory.getJSONArray("audio").length() + " video files");
                 return dataDirectory.getJSONArray("video").length();
             } catch (JSONException e) {
                 e(e.getMessage());

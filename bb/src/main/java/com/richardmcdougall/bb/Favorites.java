@@ -32,6 +32,7 @@ import java.util.HashMap;
 
 public class Favorites {
 
+    private static final String FAVORITES_JSON = "favorites.json";
     private static final String TAG = "BB.FAV";
     private BBService service;
     private favoritesCallback mFavoritesCallback = null;
@@ -254,7 +255,7 @@ public class Favorites {
 
             JSONArray favorites = new JSONArray(mFavorites);
 
-            FileWriter fw = new FileWriter(service.filesDir + "/" + BurnerBoardUtil.favoritesJSON);
+            FileWriter fw = new FileWriter(service.filesDir + "/" + FAVORITES_JSON);
             fw.write(favorites.toString());
             fw.close();
         } catch (JSONException e) {
@@ -272,7 +273,7 @@ public class Favorites {
     public void getFavorites() {
         try {
 
-            File f = new File( service.filesDir + "/" + BurnerBoardUtil.favoritesJSON);
+            File f = new File( service.filesDir + "/" + FAVORITES_JSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);

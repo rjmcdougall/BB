@@ -2,7 +2,7 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
-import com.richardmcdougall.bb.BurnerBoardUtil;
+import com.richardmcdougall.bb.BurnerBoardDirectMap;
 
 /**
  * Created by jib on 8/15/18.
@@ -20,7 +20,7 @@ public class JosPack extends Visualization {
 
     private Wheel mWheel = new Wheel();
 
-    private final static int kLEDS = BurnerBoardUtil.kVisualizationDirectMapWidth * BurnerBoardUtil.kVisualizationDirectMapHeight;
+    private final static int kLEDS = BurnerBoardDirectMap.kVisualizationDirectMapWidth * BurnerBoardDirectMap.kVisualizationDirectMapHeight;
 
     public JosPack(BurnerBoard bb, BoardVisualization visualization) {
         super(bb, visualization);

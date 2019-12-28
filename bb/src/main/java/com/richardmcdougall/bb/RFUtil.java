@@ -3,17 +3,22 @@ package com.richardmcdougall.bb;
 
 public class RFUtil {
 
-    static final int MAX_LOCATION_STORAGE_MINUTES = 180;
-    static final int LOCATION_INTERVAL_MINUTES = 1;
+    // radio packet codes
+    public  static final int REMOTE_AUDIO_TRACK_CODE = 0x01;
+    public  static final int REMOTE_VIDEO_TRACK_CODE = 0x02;
+    public  static final int REMOTE_MUTE_CODE = 0x03;
+    public static final int REMOTE_MASTER_NAME_CODE = 0x04;
+    public static final int MAX_LOCATION_STORAGE_MINUTES = 180;
+    public static final int LOCATION_INTERVAL_MINUTES = 1;
 
-    static final int [] kClientSyncMagicNumber =        new int[] {0xbb, 0x03};
-    static final int [] kServerSyncMagicNumber =        new int[] {0xbb, 0x04};
-    static final int [] kServerBeaconMagicNumber =      new int[] {0xbb, 0x05};
-    static final int [] kRemoteControlMagicNumber =     new int[] {0xbb, 0x06};
-    static final int [] kTrackerMagicNumber =           new int[] {0x02, 0xcb};
-    static final int [] kGPSMagicNumber =               new int[] {0xbb, 0x01};
-    static final int [] kFavoritesMagicNumber =         new int[] {0xbb, 0x08};
-    static final int kMagicNumberLen = 2;
+    public static final int [] kClientSyncMagicNumber =        new int[] {0xbb, 0x03};
+    public static final int [] kServerSyncMagicNumber =        new int[] {0xbb, 0x04};
+    public static final int [] kServerBeaconMagicNumber =      new int[] {0xbb, 0x05};
+    public static final int [] kRemoteControlMagicNumber =     new int[] {0xbb, 0x06};
+    public static final int [] kTrackerMagicNumber =           new int[] {0x02, 0xcb};
+    public static final int [] kGPSMagicNumber =               new int[] {0xbb, 0x01};
+    public static final int [] kFavoritesMagicNumber =         new int[] {0xbb, 0x08};
+    public static final int kMagicNumberLen = 2;
 
     public static final int magicNumberToInt(int[] magic) {
         int magicNumber = 0;

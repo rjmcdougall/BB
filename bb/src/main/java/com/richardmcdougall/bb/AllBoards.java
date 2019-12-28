@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.content.Context;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -10,7 +9,12 @@ import java.io.File;
 
 public class AllBoards {
 
+    private static final String BOARDS_JSON_FILENAME = "boards.json";
+    private static final String BOARDS_JSON_TMP_FILENAME = "boards.json.tmp";
     private static final String TAG = "AllBoards";
+    private static final String BOARDS_JSON_TEMP2_FILENAME = "boardsTemp";
+    private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
+
     private BBService service = null;
     public DownloadManager.OnDownloadProgressType onProgressCallback = null;
     public JSONArray dataBoards;
@@ -37,7 +41,7 @@ public class AllBoards {
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = FileHelpers.LoadTextFile("boards.json", service.filesDir);
+                String origDir = FileHelpers.LoadTextFile(BOARDS_JSON_FILENAME, service.filesDir);
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataBoards = dir;
@@ -208,22 +212,21 @@ public class AllBoards {
 
         try {
 
-            String DirectoryURL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
             boolean returnValue = true;
 
-            d(DirectoryURL);
+            d(DIRECTORY_URL);
 
             long ddsz = -1;
-            ddsz = FileHelpers.DownloadURL(DirectoryURL, "boardsTemp", "Boards JSON", onProgressCallback, service.filesDir);
+            ddsz = FileHelpers.DownloadURL(DIRECTORY_URL, BOARDS_JSON_TEMP2_FILENAME, "Boards JSON", onProgressCallback, service.filesDir);
 
             if (ddsz < 0) {
                 d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
                 returnValue = false;
             }
             else {
-                new File(service.filesDir, "boardsTemp").renameTo(new File(service.filesDir, "boards.json.tmp"));
+                new File(service.filesDir, BOARDS_JSON_TEMP2_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile("boards.json.tmp", service.filesDir);
+                String dirTxt = FileHelpers.LoadTextFile(BOARDS_JSON_TMP_FILENAME, service.filesDir);
                 JSONArray dir = new JSONArray(dirTxt);
 
                 d("Downloaded Boards JSON: " + dirTxt);
@@ -240,7 +243,7 @@ public class AllBoards {
                 dataBoards = dir;
 
                 // now that you have the media, update the directory so the board can use it.
-                new File(service.filesDir, "boards.json.tmp").renameTo(new File(service.filesDir, "boards.json"));
+                new File(service.filesDir, BOARDS_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_FILENAME));
 
                 // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
                 d("Determining public name based on: " + service.boardState.DEVICE_ID);

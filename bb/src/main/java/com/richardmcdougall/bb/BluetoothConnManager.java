@@ -28,10 +28,11 @@ import java.util.Set;
  * SDP Server for App services
  */
 public class BluetoothConnManager {
-    static final String TAG = "BB.BluetoothConnMgr";
-
-    public static final int kDiscoveryTimeout = 120000;
-
+    // String by which to identify the Satechi remotes; it's their mac address, which always
+    // starts with DC:
+    private static final String MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX = "DC:";
+    private static final String TAG = "BB.BluetoothConnMgr";
+    private static final int kDiscoveryTimeout = 120000;
     private BBService service = null;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mBluetoothDevice;
@@ -236,7 +237,7 @@ public class BluetoothConnManager {
 		HashMap<String, BluetoothDeviceEntry> deviceList = new HashMap<>();
         for (String address: mPairedDevices.keySet()) {
             BluetoothDevice device = mPairedDevices.get(address);
-            if (device != null && device.getAddress().startsWith("DC")) {
+            if (device != null && device.getAddress().startsWith(MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX)) {
                 l("found paired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), true);

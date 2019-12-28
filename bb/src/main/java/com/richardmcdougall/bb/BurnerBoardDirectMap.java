@@ -43,12 +43,21 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     private static final String TAG = "BB.BurnerBoardDirectMap";
     public int mBatteryLevel;
     public int [] mBatteryStats = new int[16];
-    public static final int mPowerMultiplier = BurnerBoardUtil.kVisualizationDirectMapPowerMultiplier;
+    /* JosPacks have more of a power constraint, so we don't want to set it to full brightness. Empirically tested
+        with with a rapidly refreshing pattern (BlueGold):
+        100 -> 1.90a draw
+        50  -> 0.50a draw
+        25  -> 0.35a draw
+    */
+    private static final int kVisualizationDirectMapPowerMultiplier = BoardState.kIsRPI ? 25 : 100; // should be ok for nano
+    private static final int mPowerMultiplier = kVisualizationDirectMapPowerMultiplier;
 
-    // these were the original dimensions used for the direct map. kept here for posterity and re-use
-    // if needed -jib
-    public static final int mDefaultBoardWidth = BurnerBoardUtil.kVisualizationDirectMapDefaultWidth;
-    public static final int mDefaultBoardHeight = BurnerBoardUtil.kVisualizationDirectMapDefaultHeight;
+    /* DIRECT MAP SETTINGS */
+    // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
+    private static final int kVisualizationDirectMapDefaultWidth = 8;
+    private static final int kVisualizationDirectMapWidth = BoardState.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
+    private static final int kVisualizationDirectMapDefaultHeight = 256;
+    private static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
 
     public BurnerBoardDirectMap(BBService service, int width, int height) {
         super(service);

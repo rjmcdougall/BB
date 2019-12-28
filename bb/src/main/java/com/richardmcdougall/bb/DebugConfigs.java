@@ -21,10 +21,11 @@ public class DebugConfigs {
     public static final boolean DEBUG_RF_CLIENT_SERVER = false;
     public static final boolean DEBUG_FAVORITES = false;
     public static final boolean DEBUG_BATTERY = false;
-    public static final boolean DEBUG_ALL_BOARDS = true;
-    public static final boolean DEBUG_DOWNLOAD_MANAGER = true;
+    public static final boolean DEBUG_ALL_BOARDS = false;
+    public static final boolean DEBUG_DOWNLOAD_MANAGER = false;
     public static final boolean DEBUG_BATTERY_SUPERVISOR = false;
     public static final boolean DEBUG_WIFI = false;
+    public static final boolean DEBUG_BOARD_STATE = true;
 
     // name the board as a testing overriden.
     public static final String OVERRIDE_PUBLIC_NAME = "";

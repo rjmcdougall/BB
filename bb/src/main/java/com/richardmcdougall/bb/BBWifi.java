@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +7,6 @@ import android.content.IntentFilter;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.net.wifi.ScanResult;
 
@@ -32,21 +30,25 @@ import org.json.JSONArray;
 
 public class BBWifi {
 
-    /**
-     * Indicates whether Wifi reconnecting is enabled and how often
-     */
-    public boolean mEnableWifiReconnect = true;
-    public int mWifiReconnectEveryNSeconds = 60;
-    private BBService service = null;
-    WifiManager mWiFiManager = null;
-    // IP address of the device
-    public String mIPAddress = null;
-    private static final String TAG = "BB.BBWifi";
-    public static final String ACTION_STATS = "com.richardmcdougall.bb.BBServiceStats";
-    List<ScanResult> mScanResults;
-    public String SSID = "";
-    public String password = "";
+    /*
 
+    THIS SETS UP PRETTY / HUMAN NAMES FOR ANY DEVICES
+
+     */
+    private static final String WIFI_JSON = "wifi.json";
+    private static final String TAG = "BB.BBWifi";
+    private static final String WIFI_SSID = "burnerboard";
+    private static final String WIFI_PASS = "firetruck";
+
+    private boolean mEnableWifiReconnect = true;
+    private int mWifiReconnectEveryNSeconds = 60;
+    private BBService service = null;
+    private WifiManager mWiFiManager = null;
+    // IP address of the device
+    private String mIPAddress = null;
+    private List<ScanResult> mScanResults;
+    private String SSID = "";
+    private String password = "";
     public String getSSID() {
         return mWiFiManager.getConnectionInfo().getSSID();
     }
@@ -74,7 +76,7 @@ public class BBWifi {
         // look for an SSID and password in file system. If it is not there default to firetruck.
         getSSIDAndPassword();
         if (SSID == "") {
-            setSSISAndPassword(BurnerBoardUtil.WIFI_SSID, BurnerBoardUtil.WIFI_PASS);
+            setSSISAndPassword(WIFI_SSID, WIFI_PASS);
             getSSIDAndPassword();
         }
 
@@ -339,7 +341,7 @@ public class BBWifi {
     public boolean setSSISAndPassword(JSONObject wifiSettings) {
 
         try {
-            FileWriter fw = new FileWriter(service.filesDir + "/" + BurnerBoardUtil.wifiJSON);
+            FileWriter fw = new FileWriter(service.filesDir + "/" + WIFI_JSON);
             fw.write(wifiSettings.toString());
             fw.close();
             SSID = wifiSettings.getString("SSID");
@@ -359,7 +361,7 @@ public class BBWifi {
         try {
             ArrayList<String> r = new ArrayList();
 
-            File f = new File(service.filesDir + "/" + BurnerBoardUtil.wifiJSON);
+            File f = new File(service.filesDir + "/" + WIFI_JSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);

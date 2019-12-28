@@ -723,7 +723,7 @@ public class RFClientServer {
             l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
 
             switch (cmd) {
-                case BurnerBoardUtil.kRemoteAudioTrack:
+                case RFUtil.REMOTE_AUDIO_TRACK_CODE:
 
                     for (int i = 1; i <= service.dlManager.GetTotalAudio(); i++) {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
@@ -741,7 +741,7 @@ public class RFClientServer {
                     }
                     break;
 
-                case BurnerBoardUtil.kRemoteVideoTrack:
+                case RFUtil.REMOTE_VIDEO_TRACK_CODE:
                     for (int i = 1; i <= service.dlManager.GetTotalVideo(); i++) {
                         String name = service.dlManager.GetVideoFileLocalName(i - 1);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
@@ -757,12 +757,12 @@ public class RFClientServer {
                         }
                     }
                     break;
-                case BurnerBoardUtil.kRemoteMute:
+                case RFUtil.REMOTE_MUTE_CODE:
                     if (value != service.musicPlayer.getCurrentBoardVol()) {
                         service.musicPlayer.setBoardVolume((int) value);
                     }
                     break;
-                case BurnerBoardUtil.kRemoteMasterName:
+                case RFUtil.REMOTE_MASTER_NAME_CODE:
                     if (service.boardState.masterRemote) {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master

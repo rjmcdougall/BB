@@ -834,8 +834,8 @@ public class BurnerBoard {
                     Log.d(TAG, "Visualization: Using Direct Map");
                     burnerBoard = new BurnerBoardDirectMap(
                             service,
-                            BurnerBoardUtil.kVisualizationDirectMapWidth,
-                            BurnerBoardUtil.kVisualizationDirectMapHeight
+                            BurnerBoardDirectMap.kVisualizationDirectMapWidth,
+                            BurnerBoardDirectMap.kVisualizationDirectMapHeight
                     );
                     break;
             }
@@ -853,8 +853,8 @@ public class BurnerBoard {
                 Log.d(TAG, "Visualization: Using Direct Map");
                 burnerBoard = new BurnerBoardDirectMap(
                         service,
-                        BurnerBoardUtil.kVisualizationDirectMapWidth,
-                        BurnerBoardUtil.kVisualizationDirectMapHeight
+                        BurnerBoardDirectMap.kVisualizationDirectMapWidth,
+                        BurnerBoardDirectMap.kVisualizationDirectMapHeight
                 );
             } else if (service.allBoards.getBoardType() == BurnerBoardUtil.BoardType.azul) {
                 Log.d(TAG, "Visualization: Using Azul");
