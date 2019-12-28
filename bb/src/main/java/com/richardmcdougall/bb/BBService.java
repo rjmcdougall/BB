@@ -107,7 +107,7 @@ public class BBService extends Service {
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
-            ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
+            ufilter.addAction("android.hardware.usb.action.USB_DEVICE_DETACHED");
             usbReceiver = new USBReceiver(this);
             this.registerReceiver(usbReceiver, ufilter);
 

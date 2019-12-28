@@ -79,8 +79,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                     BatteryManager.BATTERY_PLUGGED_USB |
                     BatteryManager.BATTERY_PLUGGED_WIRELESS);
 
-    private usbReceiver mUsbReceiver = new usbReceiver();
-
     private boolean preventDialogs = false;
 
     // Kill popups which steal remote control input button focus from the app
@@ -445,11 +443,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
 //        initUsb();
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
-        filter.addAction("android.hardware.usb.action.USB_DEVICE_DETTACHED");
-        this.registerReceiver(mUsbReceiver, filter);
-
         // Register for the particular broadcast based on Stats Action
         IntentFilter statFilter = new IntentFilter(ACTION.STATS);
         LocalBroadcastManager.getInstance(this).registerReceiver(BBstatsReceiver, statFilter);
@@ -478,7 +471,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         // Unregister the listener when the application is paused
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBstatsReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBgraphicsReceiver);
-        this.unregisterReceiver(mUsbReceiver);
+
 
     }
 
@@ -727,42 +720,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         }
 
     };
-
-    public static class usbReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            //l("usbReceiver");
-            if (intent != null)
-            {
-                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED))
-                {
-                    Log.v(TAG, "ACTION_USB_DEVICE_ATTACHED");
-                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                    // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_ATTACHED);
-                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
-
-                    // Broadcast this event so we can receive it
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
-                }
-                if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED))
-                {
-                    Log.v(TAG,"ACTION_USB_DEVICE_DETACHED");
-
-                    Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                    // Create a new intent and put the usb device in as an extra
-                    Intent broadcastIntent = new Intent(ACTION.USB_DEVICE_DETACHED);
-                    broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
-
-                    // Broadcast this event so we can receive it
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
-                }
-            }
-        }
-
-    }
 
     public void OnSettings(View v) {
 
