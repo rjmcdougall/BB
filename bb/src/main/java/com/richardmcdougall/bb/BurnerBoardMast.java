@@ -43,7 +43,6 @@ public class BurnerBoardMast extends BurnerBoard {
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardMast";
     public int mBatteryLevel;
-    public int [] mBatteryStats = new int[16];
     //public String boardId = Build.MODEL;
 
 
@@ -154,24 +153,6 @@ public class BurnerBoardMast extends BurnerBoard {
 
     public String getBatteryStats() {
         return Arrays.toString(mBatteryStats);
-    }
-
-    public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
     }
 
     public void fuzzPixels(int amount) {

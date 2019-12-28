@@ -42,7 +42,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardDirectMap";
     public int mBatteryLevel;
-    public int [] mBatteryStats = new int[16];
     /* JosPacks have more of a power constraint, so we don't want to set it to full brightness. Empirically tested
         with with a rapidly refreshing pattern (BlueGold):
         100 -> 1.90a draw
@@ -164,24 +163,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     public String getBatteryStats() {
         return Arrays.toString(mBatteryStats);
-    }
-
-    public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
     }
 
     public void fuzzPixels(int amount) {

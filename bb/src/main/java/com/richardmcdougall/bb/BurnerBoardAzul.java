@@ -44,7 +44,6 @@ public class BurnerBoardAzul extends BurnerBoard {
     private int mDimmerLevel = 255;
     private static final String TAG = "BB.BurnerBoardAzul";
     public int mBatteryLevel = -1;
-    public int [] mBatteryStats = new int[16];
     public int [] mLayeredScreen;
 
 
@@ -176,24 +175,6 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public String getBatteryStats() {
         return Arrays.toString(mBatteryStats);
-    }
-
-    public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
     }
 
     public int getBatteryVoltage() {

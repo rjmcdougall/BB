@@ -62,7 +62,7 @@ public class BurnerBoard {
     public IntBuffer mTextBuffer = null;
     public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
-
+    public int [] mBatteryStats = new int[16];
 
     public BurnerBoard(BBService service) {
         this.service = service;
@@ -107,15 +107,25 @@ public class BurnerBoard {
     public int getBattery() {
         return -1;
     }
-
-    // Average current in milliamps
-    public int getBatteryCurrentInstant() {
-        return 0;
-    }
-
+    
     // Instant current in milliamps
     public int getBatteryCurrent() {
-        return 0;
+        int codedLevel = mBatteryStats[6];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
+
+    public int getBatteryCurrentInstant() {
+        int codedLevel = mBatteryStats[9];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
     }
 
     // Voltage in millivolts

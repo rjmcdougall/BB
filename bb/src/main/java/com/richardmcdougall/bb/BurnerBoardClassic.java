@@ -18,7 +18,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int[] mBoardOtherlights;
     private int mDimmerLevel = 255;
     public int mBatteryLevel = -1;
-    public int[] mBatteryStats = new int[16];
     private static final String TAG = "BB.BurnerBoardClassic";
 
 
@@ -146,24 +145,6 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     public int getBatteryHealth() {
         return 100 * mBatteryStats[5] / kClassicBatteryMah;
-    }
-
-    public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
     }
 
     public int getBatteryVoltage() {
