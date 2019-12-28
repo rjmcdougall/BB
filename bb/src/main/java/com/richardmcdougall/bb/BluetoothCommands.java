@@ -37,7 +37,7 @@ public class BluetoothCommands {
     }
 
     public JSONArray Boards() {
-        JSONArray boards = service.allBoards.GetDataBoards();
+        JSONArray boards = service.boardState.dataBoards;
         JSONArray boards2 = null;
         if (boards == null) {
            l( "Could not get boards directory (null)");

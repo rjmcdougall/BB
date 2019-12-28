@@ -2,6 +2,8 @@ package com.richardmcdougall.bb;
 
 import android.os.Build;
 
+import org.json.JSONArray;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,6 +19,7 @@ public class BoardState {
     public static String DEVICE_ID = "";
     public static final String publicNameDir = "/data/data/com.richardmcdougall.bb/files";
     public static final String publicNameFile = "publicName.txt";
+    public JSONArray dataBoards;
 
     BoardState() {
         String serial = Build.SERIAL;
