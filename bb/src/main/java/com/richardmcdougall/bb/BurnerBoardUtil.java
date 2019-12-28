@@ -1,7 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.os.Build;
-import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
@@ -39,9 +37,6 @@ public class BurnerBoardUtil {
     public static final String WIFI_SSID = "burnerboard";
     public static final String WIFI_PASS = "firetruck";
 
-    // Known board types we have
-    public static final String BOARD_TYPE = Build.MANUFACTURER;
-
     // String by which to identify the Satechi remotes; it's their mac address, which always
     // starts with DC:
     public static final String MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX = "DC:";
@@ -52,28 +47,14 @@ public class BurnerBoardUtil {
     public static final int kRemoteMute = 0x03;
     public static final int kRemoteMasterName = 0x04;
 
-    /* XXX TODO refactor out the string use cases and transform to constants -jib
-    public static final String BB_TYPE_AZUL = "Burner Board Azul";
-    public static final String BB_TYPE_CLASSIC = "Burner Board Classi";
-    public static final String BB_TYPE_DIRECT_MAP = "Burner Board DirectMap";
-    public static final String BB_TYPE_MAST = "Burner Board Mast";
-    public static final String BB_TYPE_PANEL = "Burner Board Panel";
-    /*
-
-     */
-    // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
-    public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
-    public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
-
-
 
     /* DIRECT MAP SETTINGS */
     public static final int kVisualizationDirectMapDefaultWidth = 8;
     public static final int kVisualizationDirectMapDefaultHeight = 256;
 
     // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
-    public static final int kVisualizationDirectMapWidth = BurnerBoardUtil.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
-    public static final int kVisualizationDirectMapHeight = BurnerBoardUtil.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
+    public static final int kVisualizationDirectMapWidth = BoardState.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
+    public static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
 
     /* JosPacks have more of a power constraint, so we don't want to set it to full brightness. Empirically tested
         with with a rapidly refreshing pattern (BlueGold):
@@ -81,7 +62,7 @@ public class BurnerBoardUtil {
         50  -> 0.50a draw
         25  -> 0.35a draw
     */
-    public static final int kVisualizationDirectMapPowerMultiplier = BurnerBoardUtil.kIsRPI ? 25 : 100; // should be ok for nano
+    public static final int kVisualizationDirectMapPowerMultiplier = BoardState.kIsRPI ? 25 : 100; // should be ok for nano
 
     /*
 

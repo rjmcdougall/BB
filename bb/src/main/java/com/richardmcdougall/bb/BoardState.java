@@ -3,10 +3,6 @@ package com.richardmcdougall.bb;
 import android.os.Build;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +14,18 @@ import java.io.InputStreamReader;
 
 public class BoardState {
 
+    /* XXX TODO refactor out the string use cases and transform to constants -jib
+    public static final String BB_TYPE_AZUL = "Burner Board Azul";
+    public static final String BB_TYPE_CLASSIC = "Burner Board Classi";
+    public static final String BB_TYPE_DIRECT_MAP = "Burner Board DirectMap";
+    public static final String BB_TYPE_MAST = "Burner Board Mast";
+    public static final String BB_TYPE_PANEL = "Burner Board Panel";
+    /*
+
+     */
+    // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
+    public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
+    public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
     public static String BOARD_ID = "";
     public static String DEVICE_ID = "";
     public static final String publicNameFile = "publicName.txt";
@@ -48,10 +56,10 @@ public class BoardState {
         else
             publicName = getPublicName();
 
-        if (BurnerBoardUtil.kIsRPI) {
+        if (kIsRPI) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
-        } else if (BurnerBoardUtil.kIsNano) {
+        } else if (kIsNano) {
             DEVICE_ID = "npi" + serial.substring(Math.max(serial.length() - 5, 0),
                     serial.length());
         } else {

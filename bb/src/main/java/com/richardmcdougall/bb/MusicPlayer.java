@@ -45,7 +45,7 @@ public class MusicPlayer implements Runnable {
 
         String model = android.os.Build.MODEL;
 
-        if (BurnerBoardUtil.kIsRPI) { // Nano should be OK
+        if (BoardState.kIsRPI) { // Nano should be OK
             phoneModelAudioLatency = 80;
         } else if (model.equals("imx7d_pico")) {
             phoneModelAudioLatency = 110;

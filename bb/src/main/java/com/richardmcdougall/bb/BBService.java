@@ -146,7 +146,7 @@ public class BBService extends Service {
                     }
 
                     // Let the user know they're on a raspberry pi // Skip For IsNano
-                    if (BurnerBoardUtil.kIsRPI) {
+                    if (BoardState.kIsRPI) {
                         String rpiMsg = "Raspberry PI detected";
                         l(rpiMsg);
                         // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.

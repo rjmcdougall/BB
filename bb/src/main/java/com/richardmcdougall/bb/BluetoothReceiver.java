@@ -16,7 +16,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
     String TAG = "BluetoothReceiver";
 
     // RPIs don't always have a screen; use beeps -jib
-    public static final boolean kBeepOnConnect = BurnerBoardUtil.kIsRPI; // Not Done IsNano
+    public static final boolean kBeepOnConnect = BoardState.kIsRPI; // Not Done IsNano
 
     BluetoothReceiver(BBService service){
         this.service = service;

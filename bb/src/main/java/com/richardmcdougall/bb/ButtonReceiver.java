@@ -83,7 +83,7 @@ public class ButtonReceiver extends BroadcastReceiver {
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        if (!BurnerBoardUtil.kIsRPI) {
+        if (!BoardState.kIsRPI) {
             return onKeyDownBurnerBoard(keyCode, event);
         } else {
             return onKeyDownRPI(keyCode, event);

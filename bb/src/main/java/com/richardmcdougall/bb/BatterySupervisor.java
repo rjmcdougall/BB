@@ -13,8 +13,8 @@ public class BatterySupervisor {
     private static final String TAG = "BB.Supervisor";
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
-    private boolean enableBatteryMonitoring = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
-    private boolean enableIoTReporting = !BurnerBoardUtil.kIsRPI; // Keep On For IsNano
+    private boolean enableBatteryMonitoring = !BoardState.kIsRPI; // Keep On For IsNano
+    private boolean enableIoTReporting = !BoardState.kIsRPI; // Keep On For IsNano
     private int iotReportEveryNSeconds = 10;
 
     BatterySupervisor(BBService service){
