@@ -20,7 +20,6 @@ public class BoardState {
 
     public static String BOARD_ID = "";
     public static String DEVICE_ID = "";
-    public static final String publicNameDir = "/data/data/com.richardmcdougall.bb/files";
     public static final String publicNameFile = "publicName.txt";
     public JSONArray dataBoards;
     public JSONObject dataDirectory;
@@ -63,7 +62,7 @@ public class BoardState {
 
     public boolean setPublicName(String name) {
         try {
-            FileWriter fw = new FileWriter(publicNameDir + "/" + publicNameFile);
+            FileWriter fw = new FileWriter(service.filesDir + "/" + publicNameFile);
             fw.write(name);
             fw.close();
         } catch (IOException e) {
@@ -77,7 +76,7 @@ public class BoardState {
     public String getPublicName() {
 
         try {
-            File f = new File(publicNameDir, publicNameFile);
+            File f = new File(service.filesDir, publicNameFile);
             if (!f.exists())
                 return null;
             InputStream is = null;
