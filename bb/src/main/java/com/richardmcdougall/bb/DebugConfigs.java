@@ -25,12 +25,16 @@ public class DebugConfigs {
     public static final boolean DEBUG_DOWNLOAD_MANAGER = false;
     public static final boolean DEBUG_BATTERY_SUPERVISOR = false;
     public static final boolean DEBUG_WIFI = false;
-    public static final boolean DEBUG_BOARD_STATE = true;
+    public static final boolean DEBUG_BOARD_STATE = false;
 
     // name the board as a testing overriden.
     public static final String OVERRIDE_PUBLIC_NAME = "";
 
     // Switch any of these to 'true' to force identification as that board type.
     public static final BurnerBoardUtil.BoardType OVERRIDE_BOARD_TYPE = null;
+
+    //bypass the per-second music sync because of debug perf issues
+    public static final boolean BYPASS_MUSIC_SYNC = true;
+
 
 }

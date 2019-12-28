@@ -186,8 +186,10 @@ public class BBService extends Service {
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();
 
-            musicPlayerSupervisor = new MusicPlayerSupervisor(this);
-            musicPlayerSupervisor.Run();
+            if(!DebugConfigs.BYPASS_MUSIC_SYNC){
+                musicPlayerSupervisor = new MusicPlayerSupervisor(this);
+                musicPlayerSupervisor.Run();
+            }
 
             bluetoothConnManager = new BluetoothConnManager(this);
             bLEServer = new BluetoothLEServer(this);
