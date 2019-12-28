@@ -35,7 +35,6 @@ public class BBService extends Service {
     public Context context;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
-    private int mBoardMode = 1; // Mode of the Ardunio/LEDs
     public int version = 0;
     public Date apkUpdatedDate;
     public AllBoards allBoards = null;
@@ -180,8 +179,8 @@ public class BBService extends Service {
 
             boardVisualization = new BoardVisualization(this );
 
-            Log.d(TAG, "Setting initial visualization mode: " + mBoardMode);
-            boardVisualization.setMode(mBoardMode);
+            Log.d(TAG, "Setting initial visualization mode: " + 1);
+            boardVisualization.setMode(1);
 
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
@@ -291,42 +290,6 @@ public class BBService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-    public void setMode(int mode) {
-
-        // Likely not connected to physical burner board, fallback
-        if (mode == 99) {
-            mBoardMode++;
-        } else if (mode == 98) {
-            mBoardMode--;
-        } else {
-            mBoardMode = mode;
-        }
-
-        int maxModes = boardState.GetTotalVideo();
-        if (mBoardMode > maxModes)
-            mBoardMode = 1;
-        else if (mBoardMode < 1)
-            mBoardMode = maxModes;
-
-        // If I am set to be the master, broadcast to other boards
-        if (boardState.masterRemote && (rfClientServer != null)) {
-
-            String name = boardState.GetVideoFileLocalName(mBoardMode - 1);
-            l("Sending video remote for video " + name);
-            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
-        }
-
-        if (boardVisualization != null && burnerBoard != null) {
-            l("SetMode:" + boardVisualization.getMode() + " -> " + mode);
-            boardVisualization.setMode(mBoardMode);
-            burnerBoard.setMode(mBoardMode);
-        }
-
-        if (voiceAnnouncements) {
-            voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
-        }
-    }
-
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
         public void BoardId(String str) {
@@ -334,7 +297,7 @@ public class BBService extends Service {
         }
 
         public void BoardMode(int mode) {
-            l("ardunio mode callback:" + mBoardMode);
+            l("ardunio mode callback:" + boardVisualization.mBoardMode);
         }
     }
 }

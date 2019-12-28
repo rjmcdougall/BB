@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.audiofx.Visualizer;
 
+import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import org.json.JSONObject;
@@ -82,7 +83,7 @@ public class BoardVisualization {
     public Visualization mVisualizationPlayaMap;
     public Visualization getmVisualizationSyncLights;
 
-    int mBoardMode;
+    public int mBoardMode = 1;
 
     BoardVisualization(BBService service) {
 
@@ -166,15 +167,6 @@ public class BoardVisualization {
         }
         l("Setting Video to: " + service.boardState.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
-    }
-
-    public void setMode(int mode) {
-        Log.d(TAG, "Setting visualization mode to: " + mode);
-
-        mBoardMode = mode;
-        service.burnerBoard.resetParams();
-        service.burnerBoard.clearPixels();
-        // TODO: call visual-specific setmode
     }
 
     public int getMode() {
@@ -535,6 +527,45 @@ public class BoardVisualization {
     private int showingMap = 0;
     public void showMap() {
         showingMap = mFrameRate * 15;
+    }
+
+
+    public void setMode(int mode) {
+
+        // Likely not connected to physical burner board, fallback
+        if (mode == 99) {
+            mBoardMode++;
+        } else if (mode == 98) {
+            mBoardMode--;
+        } else {
+            mBoardMode = mode;
+        }
+
+        int maxModes = service.boardState.GetTotalVideo();
+        if (mBoardMode > maxModes)
+            mBoardMode = 1;
+        else if (mBoardMode < 1)
+            mBoardMode = maxModes;
+
+        // If I am set to be the master, broadcast to other boards
+        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
+
+            String name = service.boardState.GetVideoFileLocalName(mBoardMode - 1);
+            l("Sending video remote for video " + name);
+            service.rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
+        }
+
+        if (service.burnerBoard != null) {
+            Log.d(TAG, "Setting visualization mode to: " + mBoardMode);
+
+            service.burnerBoard.resetParams();
+            service.burnerBoard.clearPixels();
+            service.burnerBoard.setMode(mBoardMode);
+        }
+
+        if (service.voiceAnnouncements) {
+            service.voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+        }
     }
 
 }

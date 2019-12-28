@@ -49,11 +49,11 @@ public class ButtonReceiver extends BroadcastReceiver {
                     break;
                 case BUTTON_MODE_UP:
                     l("BUTTON_MODE_UP");
-                    service.setMode(99);
+                    service.boardVisualization.setMode(99);
                     break;
                 case BUTTON_MODE_DOWN:
                     l("BUTTON_MODE_DOWN");
-                    service.setMode(98);
+                    service.boardVisualization.setMode(98);
                     break;
                 case BUTTON_DRIFT_DOWN:
                     l("BUTTON_DRIFT_DOWN");
@@ -121,13 +121,13 @@ public class ButtonReceiver extends BroadcastReceiver {
                 onBatteryButton();
                 break;
             case 99:
-                service.setMode(99);
+                service.boardVisualization.setMode(99);
                 break;
             case 98:
-                service.setMode(98);
+                service.boardVisualization.setMode(98);
                 break;
             case 88: //satachi left button
-                service.setMode(99);
+                service.boardVisualization.setMode(99);
                 break;
         }
         return true;

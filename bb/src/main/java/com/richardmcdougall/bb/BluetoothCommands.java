@@ -451,7 +451,7 @@ public class BluetoothCommands {
                         l("BBservice got Video command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg") + 1;
-                            service.setMode(track);
+                            service.boardVisualization.setMode(track);
                         } catch (Exception e) {
                             l("error setting video track: " + e.getMessage());
                         }

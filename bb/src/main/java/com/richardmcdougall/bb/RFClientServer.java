@@ -748,7 +748,7 @@ public class RFClientServer {
                         if (hashed == value) {
                             l("Remote Video " + service.boardVisualization.getMode() + " -> " + i);
                             if (service.boardVisualization.getMode() != i) {
-                                service.setMode((int) i);
+                                service.boardVisualization.setMode((int) i);
                                 l("Received remote video switch to mode " + i + " (" + name + ")");
                             } else {
                                 l("Ignored remote video switch to mode " + i + " (" + name + ")");
