@@ -153,8 +153,8 @@ public class BBService extends Service {
                         voice.speak(rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
 
                         // Let's announce the WIFI IP on RPIs - do it here, as we need voice initialized first
-                        if (wifi.mIPAddress != null) {
-                            voice.speak("My WiFi IP is: " + wifi.mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                        if (wifi.ipAddress != null) {
+                            voice.speak("My WiFi IP is: " + wifi.ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
                         }
                     }
                 }

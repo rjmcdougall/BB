@@ -40,12 +40,12 @@ public class BBWifi {
     private static final String WIFI_SSID = "burnerboard";
     private static final String WIFI_PASS = "firetruck";
 
-    private boolean mEnableWifiReconnect = true;
+    public boolean enableWifiReconnect = true;
     private int mWifiReconnectEveryNSeconds = 60;
     private BBService service = null;
     private WifiManager mWiFiManager = null;
     // IP address of the device
-    private String mIPAddress = null;
+    public String ipAddress = null;
     private List<ScanResult> mScanResults;
     private String SSID = "";
     private String password = "";
@@ -90,7 +90,7 @@ public class BBWifi {
     }
 
     public String getIPAddress() {
-        return mIPAddress;
+        return ipAddress;
     }
 
     private void setupWifi() {
@@ -141,28 +141,28 @@ public class BBWifi {
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
 
             if (wifiInfo.getNetworkId() == -1) {
-                mIPAddress = null;
+                ipAddress = null;
                 return false; // Not connected to an access point
             }
 
             d("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(SSID));
             if(!wifiInfo.getSSID().equals(fixWifiSSidAndPass(SSID))){
-                mIPAddress = null;
+                ipAddress = null;
                 return false; // configured for wrong access point.
             }
 
-            mIPAddress = getWifiIpAddress(wifiMgr);
-            if (mIPAddress != null) {
-                d("WIFI IP Address: " + mIPAddress);
+            ipAddress = getWifiIpAddress(wifiMgr);
+            if (ipAddress != null) {
+                d("WIFI IP Address: " + ipAddress);
                 // Text to speach is not set up yet at this time; move it to init loop.
-                //voice.speak("My WIFI IP is " + mIPAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                //voice.speak("My WIFI IP is " + ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
             } else {
                 d("Could not determine WIFI IP at this time");
             }
 
             return true; // Connected to an access point
         } else {
-            mIPAddress = null;
+            ipAddress = null;
             return false; // Wi-Fi adapter is OFF
         }
     }
@@ -398,7 +398,7 @@ public class BBWifi {
         while (true) {
 
             // Every 60 seconds check WIFI
-            if (service.wifi.mEnableWifiReconnect) {
+            if (service.wifi.enableWifiReconnect) {
                 if (service.wifi != null) {
                     d("Check Wifi");
                     checkWifiReconnect();

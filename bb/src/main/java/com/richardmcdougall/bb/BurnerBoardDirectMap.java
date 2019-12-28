@@ -55,9 +55,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     /* DIRECT MAP SETTINGS */
     // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
     private static final int kVisualizationDirectMapDefaultWidth = 8;
-    private static final int kVisualizationDirectMapWidth = BoardState.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
+    public static final int kVisualizationDirectMapWidth = BoardState.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
     private static final int kVisualizationDirectMapDefaultHeight = 256;
-    private static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
+    public static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
 
     public BurnerBoardDirectMap(BBService service, int width, int height) {
         super(service);

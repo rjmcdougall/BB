@@ -48,7 +48,7 @@ public class BatterySupervisor {
         /* Communicate the settings for the supervisor thread */
         d("Enable Battery Monitoring? " + enableBatteryMonitoring);
         d("Enable IoT Reporting? " + enableIoTReporting);
-        d("Enable WiFi reconnect? " + service.wifi.mEnableWifiReconnect);
+        d("Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
 
         while (true) {
 
