@@ -13,7 +13,7 @@ public class GTFO {
 
     public void enableGTFO(boolean enable) {
 
-        service.boardState.gtfo = enable;
+        service.boardState.isGTFO = enable;
         if (enable) {
 
             service.boardVisualization.inhibitGTFO(true);

@@ -716,7 +716,7 @@ public class BluetoothCommands {
             state.put("apkd", service.apkUpdatedDate.toString());
             state.put("apkv", service.version);
             state.put("ip", service.wifi.getIPAddress());
-            state.put("g", service.gtfo);
+            state.put("g", service.boardState.isGTFO);
             state.put("bm" , service.boardState.blockMaster);
             state.put("s", service.wifi.getSSID());
             state.put("c", service.wifi.getConfiguredSSID());
