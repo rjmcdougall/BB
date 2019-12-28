@@ -13,6 +13,7 @@ public class AllBoards {
     private static final String TAG = "AllBoards";
     private BBService service = null;
     public DownloadManager.OnDownloadProgressType onProgressCallback = null;
+    public JSONArray dataBoards;
 
     public AllBoards(BBService service) {
         this.service = service;
@@ -39,7 +40,7 @@ public class AllBoards {
                 String origDir = FileHelpers.LoadTextFile("boards.json", service.filesDir);
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
-                    service.boardState.dataBoards = dir;
+                    dataBoards = dir;
                     d("Dir " + origDir);
                 }
             }
@@ -55,13 +56,11 @@ public class AllBoards {
 
         try {
 
-            if (service.dlManager == null) {
-                d("Could not find board address data");
-            } else if (service.boardState.dataBoards == null) {
+             if (dataBoards == null) {
                 d("Could not find board address data");
             } else {
-                for (int i = 0; i < service.boardState.dataBoards.length(); i++) {
-                    board = service.boardState.dataBoards.getJSONObject(i);
+                for (int i = 0; i <  dataBoards.length(); i++) {
+                    board =  dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardId)) {
                         myAddress = board.getInt("address");
                     }
@@ -86,13 +85,11 @@ public class AllBoards {
 
         try {
 
-            if (service.dlManager == null) {
-                d("Could not find board name data");
-            } else if (service.boardState.dataBoards == null) {
+             if ( dataBoards == null) {
                 d("Could not find board name data");
             } else {
-                for (int i = 0; i < service.boardState.dataBoards.length(); i++) {
-                    board = service.boardState.dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getInt("address") == address) {
                         boardId = board.getString("name");
                     }
@@ -120,11 +117,11 @@ public class AllBoards {
 
             if (service.dlManager == null) {
                 d("Could not find board color data");
-            } else if (service.boardState.dataBoards == null) {
+            } else if ( dataBoards == null) {
                 d("Could not find board color data");
             } else {
-                for (int i = 0; i < service.boardState.dataBoards.length(); i++) {
-                    board = service.boardState.dataBoards.getJSONObject(i);
+                for (int i = 0; i <  dataBoards.length(); i++) {
+                    board =  dataBoards.getJSONObject(i);
                     if (board.getInt("address") == address) {
                         boardColor = board.getString("color");
                     }
@@ -155,8 +152,8 @@ public class AllBoards {
     String getPublicName(String deviceID) {
         String name = deviceID;
         try {
-            for (int i = 0; i < service.boardState.dataBoards.length(); i++) {
-                JSONObject obj = service.boardState.dataBoards.getJSONObject(i);
+            for (int i = 0; i <  dataBoards.length(); i++) {
+                JSONObject obj =  dataBoards.getJSONObject(i);
 
                 if (obj.has("bootName")) {
                     if (obj.getString("bootName").equals(deviceID)) {
@@ -185,11 +182,11 @@ public class AllBoards {
 
         try {
 
-            if (service.boardState.dataBoards == null) {
+            if ( dataBoards == null) {
                 d("Could not find board type");
             } else {
-                for (int i = 0; i < service.boardState.dataBoards.length(); i++) {
-                    board = service.boardState.dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board =  dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(service.boardState.BOARD_ID)) {
                         type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
                     }
@@ -232,7 +229,7 @@ public class AllBoards {
                 d("Downloaded Boards JSON: " + dirTxt);
 
                 if (onProgressCallback != null) {
-                    if (service.boardState.dataBoards == null || dir.length() != service.boardState.dataBoards.length()) {
+                    if (dataBoards == null || dir.length() != dataBoards.length()) {
                         d("A new board was discovered in Boards JSON.");
                         onProgressCallback.onVoiceCue("New Boards available for syncing.");
                     } else
@@ -240,7 +237,7 @@ public class AllBoards {
                 }
 
                 // got new boards.  Update!
-                service.boardState.dataBoards = dir;
+                dataBoards = dir;
 
                 // now that you have the media, update the directory so the board can use it.
                 new File(service.filesDir, "boards.json.tmp").renameTo(new File(service.filesDir, "boards.json"));
@@ -259,8 +256,8 @@ public class AllBoards {
                     }
                 }
 
-                if (service.boardState.dataBoards != null)
-                    if (dir.toString().length() == service.boardState.dataBoards.toString().length()) {
+                if (dataBoards != null)
+                    if (dir.toString().length() == dataBoards.toString().length()) {
                         d("No Changes to Boards JSON.");
                         returnValue = true;
                     }

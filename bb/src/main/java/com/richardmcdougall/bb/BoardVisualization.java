@@ -162,10 +162,10 @@ public class BoardVisualization {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = getMode() + 1;
-        if (next > service.boardState.GetTotalVideo()) {
+        if (next > service.dlManager.GetTotalVideo()) {
             next = 1;
         }
-        l("Setting Video to: " + service.boardState.GetVideoFileLocalName(next - 1));
+        l("Setting Video to: " + service.dlManager.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
     }
 
@@ -357,7 +357,7 @@ public class BoardVisualization {
 
         l("Starting board display thread...");
 
-        int nVideos = service.boardState.GetTotalVideo();
+        int nVideos = service.dlManager.GetTotalVideo();
 
         while (true) {
 
@@ -449,12 +449,12 @@ public class BoardVisualization {
         }
 
         // TODO: check perf overhead of checking this every frame
-        JSONObject videos = service.boardState.GetVideo(mode);
+        JSONObject videos = service.dlManager.GetVideo(mode);
         if (videos == null) {
             return mFrameRate;
         }
         if(videos.has("algorithm")){
-            String algorithm = service.boardState.GetAlgorithm(mode);
+            String algorithm = service.dlManager.GetAlgorithm(mode);
             return displayAlgorithm(algorithm);
         } else {
             if (BurnerBoardUtil.kIsRPI) { // nano is fine
@@ -541,7 +541,7 @@ public class BoardVisualization {
             mBoardMode = mode;
         }
 
-        int maxModes = service.boardState.GetTotalVideo();
+        int maxModes = service.dlManager.GetTotalVideo();
         if (mBoardMode > maxModes)
             mBoardMode = 1;
         else if (mBoardMode < 1)
@@ -550,7 +550,7 @@ public class BoardVisualization {
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-            String name = service.boardState.GetVideoFileLocalName(mBoardMode - 1);
+            String name = service.dlManager.GetVideoFileLocalName(mBoardMode - 1);
             l("Sending video remote for video " + name);
             service.rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }

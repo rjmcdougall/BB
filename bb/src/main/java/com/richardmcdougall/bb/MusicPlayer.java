@@ -113,7 +113,7 @@ public class MusicPlayer implements Runnable {
 
     public void NextStream() {
         nextRadioChannel = currentRadioChannel + 1;
-        if (nextRadioChannel > service.boardState.GetTotalAudio())
+        if (nextRadioChannel > service.dlManager.GetTotalAudio())
             nextRadioChannel = 0;
 
         this.handler.post(() -> mSetRadioChannel(nextRadioChannel) );
@@ -148,7 +148,7 @@ public class MusicPlayer implements Runnable {
     }
 
     private long GetCurrentStreamLengthInSeconds() {
-        return service.boardState.GetAudioLength(currentRadioChannel - 1);
+        return service.dlManager.GetAudioLength(currentRadioChannel - 1);
     }
 
     public void SeekAndPlay() {
@@ -156,7 +156,7 @@ public class MusicPlayer implements Runnable {
     }
 
     private void mSeekAndPlay() {
-        if (player != null && service.boardState.GetTotalAudio() != 0) {
+        if (player != null && service.dlManager.GetTotalAudio() != 0) {
 
             long ms = service.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
@@ -202,7 +202,7 @@ public class MusicPlayer implements Runnable {
     }
 
     public String getRadioChannelInfo(int index) {
-        return service.boardState.GetAudioFileLocalName(index - 1);
+        return service.dlManager.GetAudioFileLocalName(index - 1);
     }
 
     public int getCurrentBoardVol() {
@@ -299,17 +299,17 @@ public class MusicPlayer implements Runnable {
                 service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
             }
 
-            if (player != null && service.boardState.GetTotalAudio() != 0) {
+            if (player != null && service.dlManager.GetTotalAudio() != 0) {
 
                 lastSeekOffset = 0;
 
-                d("playing file " + service.boardState.GetAudioFile(index - 1));
+                d("playing file " + service.dlManager.GetAudioFile(index - 1));
 
                 // Produces DataSource instances through which media data is loaded.
                 DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
                         Util.getUserAgent(service.context, "yourApplicationName"));
 
-                String filePath = service.boardState.GetAudioFile(index - 1);
+                String filePath = service.dlManager.GetAudioFile(index - 1);
                 Uri uri = Uri.parse("file:///" + filePath);
 
                 // This is the MediaSource representing the media to be played.

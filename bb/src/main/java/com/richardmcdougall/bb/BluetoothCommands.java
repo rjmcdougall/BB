@@ -37,7 +37,7 @@ public class BluetoothCommands {
     }
 
     public JSONArray Boards() {
-        JSONArray boards = service.boardState.dataBoards;
+        JSONArray boards = service.allBoards.dataBoards;
         JSONArray boards2 = null;
         if (boards == null) {
            l( "Could not get boards directory (null)");
@@ -66,13 +66,13 @@ public class BluetoothCommands {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = null;
-        if (service.boardState.dataDirectory == null) {
+        if (service.dlManager.dataDirectory == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                 audio = new JSONArray(service.boardState.dataDirectory.getJSONArray("audio").toString()) ;
+                 audio = new JSONArray(service.dlManager.dataDirectory.getJSONArray("audio").toString()) ;
                 for (int i = 0; i < audio.length(); i++) {
                     JSONObject a = audio.getJSONObject(i);
                     if(a.has("URL"))  a.remove("URL");
@@ -93,13 +93,13 @@ public class BluetoothCommands {
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
          JSONArray video = null;
 
-        if (service.boardState.dataDirectory == null) {
+        if (service.dlManager.dataDirectory == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                video = new JSONArray(service.boardState.dataDirectory.getJSONArray("video").toString());
+                video = new JSONArray(service.dlManager.dataDirectory.getJSONArray("video").toString());
                 for (int i = 0; i < video.length(); i++) {
                     JSONObject v = video.getJSONObject(i);
                     if(v.has("URL")) v.remove("URL");

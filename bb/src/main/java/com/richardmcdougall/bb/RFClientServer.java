@@ -725,7 +725,7 @@ public class RFClientServer {
             switch (cmd) {
                 case BurnerBoardUtil.kRemoteAudioTrack:
 
-                    for (int i = 1; i <= service.boardState.GetTotalAudio(); i++) {
+                    for (int i = 1; i <= service.dlManager.GetTotalAudio(); i++) {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
@@ -742,8 +742,8 @@ public class RFClientServer {
                     break;
 
                 case BurnerBoardUtil.kRemoteVideoTrack:
-                    for (int i = 1; i <= service.boardState.GetTotalVideo(); i++) {
-                        String name = service.boardState.GetVideoFileLocalName(i - 1);
+                    for (int i = 1; i <= service.dlManager.GetTotalVideo(); i++) {
+                        String name = service.dlManager.GetVideoFileLocalName(i - 1);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
                             l("Remote Video " + service.boardVisualization.getMode() + " -> " + i);
