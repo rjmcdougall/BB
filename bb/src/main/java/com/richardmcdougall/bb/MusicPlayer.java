@@ -278,12 +278,12 @@ public class MusicPlayer implements Runnable {
         currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
-        if (service.masterRemote && (service.rfClientServer != null)) {
+        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
             d("Sending remote");
 
             String fileName = getRadioChannelInfo(index);
-            service.rfClientServer.sendRemote(BurnerBoardUtil.kRemoteAudioTrack, service.hashTrackName(fileName), RFClientServer.kRemoteAudio);
+            service.rfClientServer.sendRemote(BurnerBoardUtil.kRemoteAudioTrack, BurnerBoardUtil.hashTrackName(fileName), RFClientServer.kRemoteAudio);
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             try {
                 Thread.sleep(service.rfClientServer.getLatency());

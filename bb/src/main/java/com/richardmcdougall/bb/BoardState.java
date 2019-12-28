@@ -23,6 +23,7 @@ public class BoardState {
     public static final String publicNameFile = "publicName.txt";
     public JSONArray dataBoards;
     public JSONObject dataDirectory;
+    public boolean masterRemote = false;
     private static final String TAG = "BoardState";
     private BBService service = null;
 

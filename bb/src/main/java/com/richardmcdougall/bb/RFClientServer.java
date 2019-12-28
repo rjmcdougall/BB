@@ -727,7 +727,7 @@ public class RFClientServer {
 
                     for (int i = 1; i <= service.boardState.GetTotalAudio(); i++) {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
-                        long hashed = service.hashTrackName(name);
+                        long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
                             l("Remote Audio " + service.musicPlayer.getRadioChannel() + " -> " + i);
                             if (service.musicPlayer.getRadioChannel() != i) {
@@ -744,7 +744,7 @@ public class RFClientServer {
                 case BurnerBoardUtil.kRemoteVideoTrack:
                     for (int i = 1; i <= service.boardState.GetTotalVideo(); i++) {
                         String name = service.boardState.GetVideoFileLocalName(i - 1);
-                        long hashed = service.hashTrackName(name);
+                        long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
                             l("Remote Video " + service.boardVisualization.getMode() + " -> " + i);
                             if (service.boardVisualization.getMode() != i) {
@@ -763,13 +763,13 @@ public class RFClientServer {
                     }
                     break;
                 case BurnerBoardUtil.kRemoteMasterName:
-                    if (service.masterRemote) {
+                    if (service.boardState.masterRemote) {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master
                         String diag = service.boardState.BOARD_ID + " is no longer the master. New master: " + client;
                         l(diag);
                         service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
-                        service.enableMaster(false);
+                        service.masterRemote.enableMaster(false);
                     }
 
                 default:

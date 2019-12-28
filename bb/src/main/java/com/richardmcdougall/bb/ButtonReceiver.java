@@ -180,10 +180,10 @@ public class ButtonReceiver extends BroadcastReceiver {
                                 service.boardVisualization.showMap();
                             } else if (pressCnt == 3) {
                                 // Toggle master mode
-                                if (service.masterRemote == true) {
-                                    service.enableMaster(false);
+                                if (service.boardState.masterRemote == true) {
+                                    service.masterRemote.enableMaster(false);
                                 } else {
-                                    service.enableMaster(true);
+                                    service.masterRemote.enableMaster(true);
                                 }
                             }
                         }

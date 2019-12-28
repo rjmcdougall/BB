@@ -62,7 +62,6 @@ public class BBService extends Service {
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
     public DownloadManager dlManager;
     private Thread musicPlayerThread;
-    public boolean masterRemote = false;
     public boolean blockMaster = false;
     public boolean voiceAnnouncements = false;
     public boolean gtfo = false;
@@ -73,6 +72,7 @@ public class BBService extends Service {
     private static BluetoothReceiver btReceive = null;
     public BoardState boardState = null;
     public String filesDir = "";
+    public BBMasterRemote masterRemote = null;
 
     public BBService() {
     }
@@ -215,6 +215,8 @@ public class BBService extends Service {
             batterySupervisor = new BatterySupervisor(this);
             batterySupervisor.Run();
 
+            masterRemote = new BBMasterRemote(this);
+
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
@@ -296,24 +298,6 @@ public class BBService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-    public void enableMaster(boolean enable) {
-        masterRemote = enable;
-        if (enable) {
-            // Let everyone else know we just decided to be the master
-            // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
-            // from the client data. XXX is there a better/more useful payload?
-            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteMasterName, hashTrackName(boardState.BOARD_ID), RFClientServer.kRemoteMasterName);
-
-            burnerBoard.setText("Master", 2000);
-            voice.speak("Master Remote is: " + boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
-        } else {
-            // You explicitly disabled the master. Stop any broadcasting.
-            rfClientServer.disableMasterBroadcast();
-
-            burnerBoard.setText("Solo", 2000);
-            voice.speak("Disabling Master Remote: " + boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
-        }
-    }
 
     private int stashedAndroidVolumePercent;
 
@@ -335,20 +319,6 @@ public class BBService extends Service {
         }
     }
 
-
-    // Hash String as 32-bit
-    public long hashTrackName(String name) {
-        byte[] encoded = {0, 0, 0, 0};
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            encoded = digest.digest(name.getBytes(StandardCharsets.UTF_8));
-        } catch (Exception e) {
-            l("Could not calculate boardAddress");
-            return -1;
-        }
-        return (encoded[0] << 24) + (encoded[1] << 16) + (encoded[2] << 8) + encoded[0];
-    }
-
     public void setMode(int mode) {
 
         // Likely not connected to physical burner board, fallback
@@ -367,11 +337,11 @@ public class BBService extends Service {
             mBoardMode = maxModes;
 
         // If I am set to be the master, broadcast to other boards
-        if (masterRemote && (rfClientServer != null)) {
+        if (boardState.masterRemote && (rfClientServer != null)) {
 
             String name = boardState.GetVideoFileLocalName(mBoardMode - 1);
             l("Sending video remote for video " + name);
-            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, hashTrackName(name), RFClientServer.kRemoteVideo);
+            rfClientServer.sendRemote(BurnerBoardUtil.kRemoteVideoTrack, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
         if (boardVisualization != null && burnerBoard != null) {

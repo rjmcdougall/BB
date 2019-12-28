@@ -376,7 +376,7 @@ public class BluetoothCommands {
                         l("BBservice got EnableMaster command:" + payload.toString());
                         try {
                             boolean isMaster = payload.getBoolean("arg");
-                            service.enableMaster(isMaster);
+                            service.masterRemote.enableMaster(isMaster);
 
                         } catch (Exception e) {
                             l("error setting Master: " + e.getMessage());
@@ -712,7 +712,7 @@ public class BluetoothCommands {
             state.put("vcn", service.boardVisualization.getMode() - 1);
             state.put("v", service.musicPlayer.getBoardVolumePercent());
             state.put("b", service.burnerBoard.getBattery());
-            state.put("am", service.masterRemote);
+            state.put("am", service.boardState.masterRemote);
             state.put("apkd", service.apkUpdatedDate.toString());
             state.put("apkv", service.version);
             state.put("ip", service.wifi.getIPAddress());
