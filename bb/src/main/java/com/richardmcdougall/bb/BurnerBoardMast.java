@@ -54,7 +54,6 @@ public class BurnerBoardMast extends BurnerBoard {
         boardType = "Burner Board Mast";
         l("Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        this.service = service;
         initPixelOffset();
         initpixelMap2Board();
         initUsb();

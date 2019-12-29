@@ -66,7 +66,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardId = service.boardState.BOARD_ID;
 
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        this.service = service;
 
         boardType = "Burner Board DirectMap";
         l(boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);

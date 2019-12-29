@@ -55,7 +55,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         boardType = "Burner Board Azul";
         l("Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        this.service = service;
         initPixelOffset();
         initpixelMap2Board();
         initUsb();

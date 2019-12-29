@@ -53,7 +53,6 @@ public class BurnerBoardPanel extends BurnerBoard {
         boardType = "Burner Board Panel";
         l("Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        this.service = service;
         initPixelOffset();
         initUsb();
         mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];

@@ -29,7 +29,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
-        this.service = service;
         initPixelOffset();
         initUsb();
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
