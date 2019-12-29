@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -9,7 +10,7 @@ import com.richardmcdougall.bb.BurnerBoard;
 
 public class Visualization {
 
-    BurnerBoard mBurnerBoard;
+    protected BurnerBoard mBurnerBoard;
     public int mBoardWidth;
     public int mBoardHeight;
     BoardVisualization mBoardVisualizion;

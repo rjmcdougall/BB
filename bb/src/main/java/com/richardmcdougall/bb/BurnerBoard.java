@@ -1060,11 +1060,6 @@ public class BurnerBoard {
         aRGBtoBoardScreen(mDrawBuffer, mBoardScreen, mBoardScreen);
     }
 
-    public long getCurrentClock() {
-        long curTimeStamp = service.GetCurrentClock();
-        return curTimeStamp;
-    }
-
     public static BurnerBoard Builder(BBService service) {
 
         BurnerBoard burnerBoard = null;

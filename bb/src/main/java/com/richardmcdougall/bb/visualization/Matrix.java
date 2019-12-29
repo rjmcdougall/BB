@@ -185,7 +185,7 @@ public class Matrix extends Visualization {
 
             case kMatrixSync:
                 int syncColor =
-                        mWheel.wheel((int)(mBurnerBoard.getCurrentClock() / 5) % 360);
+                        mWheel.wheel((int)(mBurnerBoard.service.GetCurrentClock() / 5) % 360);
                 if (syncColor > 0) {
                     mBurnerBoard.fillScreenMask(syncColor);
 
