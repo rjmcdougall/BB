@@ -93,15 +93,6 @@ public class BoardVisualization {
         mBoardWidth = service.burnerBoard.getWidth();
         mBoardHeight = service.burnerBoard.getHeight();
         mMultipler4Speed = service.burnerBoard.getMultiplier4Speed();
-
-        // Start Board Display
-        Thread boardDisplay = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("BB Board Display");
-                boardDisplayThread();
-            }
-        });
-        boardDisplay.start();
         mBoardScreen = service.burnerBoard.getPixelBuffer();
         mFrameRate = service.burnerBoard.getFrameRate();
 
@@ -121,6 +112,14 @@ public class BoardVisualization {
         mVisualizationPlayaMap = new PlayaMap(service.burnerBoard, this);
         getmVisualizationSyncLights = new SyncLights(service.burnerBoard, this);
 
+        // Start Board Display
+        Thread boardDisplay = new Thread(new Runnable() {
+            public void run() {
+                Thread.currentThread().setName("BB Board Display");
+                boardDisplayThread();
+            }
+        });
+        boardDisplay.start();
     }
 
     private int boardDisplayCnt = 0;
@@ -437,34 +436,40 @@ public class BoardVisualization {
 
     int runVisualization(int mode) {
 
-        mode += -1;
+        try{
+            mode += -1;
 
-        frameCnt++;
-        if (frameCnt % 100 == 0) {
-            l("Frames: " + frameCnt);
-        }
+            frameCnt++;
+            if (frameCnt % 100 == 0) {
+                l("Frames: " + frameCnt);
+            }
 
-        if (mode < 0) {
-            return mFrameRate;
-        }
-
-        if(service.burnerBoard.service.dlManager == null){
-            return mFrameRate;
-        }
-
-        // TODO: check perf overhead of checking this every frame
-        JSONObject videos = service.dlManager.GetVideo(mode);
-        if (videos == null) {
-            return mFrameRate;
-        }
-        if(videos.has("algorithm")){
-            String algorithm = service.dlManager.GetAlgorithm(mode);
-            return displayAlgorithm(algorithm);
-        } else {
-            if (BoardState.kIsRPI) { // nano is fine
+            if (mode < 0) {
                 return mFrameRate;
             }
-            mVisualizationVideo.update(mode);
+
+            if(service.burnerBoard.service.dlManager == null){
+                return mFrameRate;
+            }
+
+            // TODO: check perf overhead of checking this every frame
+            JSONObject videos = service.dlManager.GetVideo(mode);
+            if (videos == null) {
+                return mFrameRate;
+            }
+            if(videos.has("algorithm")){
+                String algorithm = service.dlManager.GetAlgorithm(mode);
+                return displayAlgorithm(algorithm);
+            } else {
+                if (BoardState.kIsRPI) { // nano is fine
+                    return mFrameRate;
+                }
+                mVisualizationVideo.update(mode);
+                return mFrameRate;
+            }
+        }
+        catch(Exception e){
+            e(e.getMessage());
             return mFrameRate;
         }
     }
