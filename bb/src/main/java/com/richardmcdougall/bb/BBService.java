@@ -89,6 +89,8 @@ public class BBService extends Service {
 
             super.onCreate();
 
+            InitClock();
+
             context = getApplicationContext();
 
             PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -124,8 +126,6 @@ public class BBService extends Service {
             mHandlerThread = new HandlerThread("BBServiceHandlerThread");
             mHandlerThread.start();
             mHandler = new Handler(mHandlerThread.getLooper());
-
-            InitClock();
 
             voice = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
                 @Override
