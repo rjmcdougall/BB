@@ -117,7 +117,7 @@ public class BBDownloadManager {
                     }
                 }
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return 0;
             }
         } else {
@@ -137,7 +137,7 @@ public class BBDownloadManager {
                 return version;
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            e(e.getMessage());
         }
         return 0;
     }
@@ -148,7 +148,7 @@ public class BBDownloadManager {
             String fn = mFilesDir + "/" + GetAPK(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            e.printStackTrace();
+            e(e.getMessage());
             return null;
         }
     }
@@ -160,7 +160,7 @@ public class BBDownloadManager {
             try {
                 return dataDirectory.getJSONArray("application").getJSONObject(index);
             } catch (JSONException e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         }
@@ -187,7 +187,7 @@ public class BBDownloadManager {
                 try {
                     is = new FileInputStream(f);
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                    e(e.getMessage());
                 }
                 BufferedReader buf = new BufferedReader(new InputStreamReader(is));
                 String line = buf.readLine();
@@ -201,7 +201,7 @@ public class BBDownloadManager {
                 return sb.toString();
 
             } catch (Throwable e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return null;
             }
         }
@@ -251,7 +251,7 @@ public class BBDownloadManager {
 
                 return downloadSize;
             } catch (Throwable e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return -1;
             }
         }
@@ -275,7 +275,7 @@ public class BBDownloadManager {
                 urlConnection.disconnect();
                 return -1;
             } catch (Throwable e) {
-                e.printStackTrace();
+                e(e.getMessage());
                 return -1;
             }
         }
@@ -302,7 +302,7 @@ public class BBDownloadManager {
                     return -1;
 
             } catch (Exception e) {
-                e.printStackTrace();
+                e(e.getMessage());
             }
             return -1;
 
@@ -330,7 +330,7 @@ public class BBDownloadManager {
                     return "";
 
             } catch (Exception e) {
-                e.printStackTrace();
+                e(e.getMessage());
             }
             return "";
 
@@ -390,7 +390,7 @@ public class BBDownloadManager {
                     CleanupOldFiles();
                 }
             } catch (Throwable er) {
-                er.printStackTrace();
+                e(er.getMessage());
             }
         }
 

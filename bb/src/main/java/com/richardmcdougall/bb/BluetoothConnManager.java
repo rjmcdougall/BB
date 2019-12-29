@@ -343,7 +343,7 @@ public class BluetoothConnManager {
                     //device.createBond();
                     pairDevice(device.getAddress());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    e(e.getMessage());
                 }
             } else {
                 l("received action: " + action.toString());
@@ -353,5 +353,8 @@ public class BluetoothConnManager {
     };
 
 
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
+    }
 
 }

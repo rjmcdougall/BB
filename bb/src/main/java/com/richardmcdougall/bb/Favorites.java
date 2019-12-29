@@ -269,6 +269,11 @@ public class Favorites {
         return true;
     }
 
+
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
+    }
+
     // keep favorites persisted between reboots.
     public void getFavorites() {
         try {
@@ -278,7 +283,7 @@ public class Favorites {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                e(e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
@@ -299,7 +304,7 @@ public class Favorites {
             }
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            e(e.getMessage());
         }
     }
 }

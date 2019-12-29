@@ -26,6 +26,11 @@ public class BluetoothReceiver extends BroadcastReceiver {
         Log.v(TAG, s);
     }
 
+
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
+    }
+
     public void onReceive(Context context, Intent intent) {
 
         l("Bluetooth connected");
@@ -50,7 +55,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     }
                 }, 3000);
             } catch (Exception e) {
-                e.printStackTrace();
+                e(e.getMessage());
             }
         }
     }

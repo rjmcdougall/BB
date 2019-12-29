@@ -162,7 +162,6 @@ public class IoTClient {
                                 public void onFailure(IMqttToken asyncActionToken,
                                                       Throwable exception) {
                                     Log.d(TAG, "connect.onFailure: " + exception.getMessage());
-                                    exception.printStackTrace();
                                 }
 
                                 @Override

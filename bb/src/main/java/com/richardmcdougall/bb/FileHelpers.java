@@ -28,7 +28,7 @@ public class FileHelpers {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             String line = buf.readLine();
@@ -42,7 +42,7 @@ public class FileHelpers {
             return sb.toString();
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            Log.e(TAG,e.getMessage());
             return null;
         }
     }

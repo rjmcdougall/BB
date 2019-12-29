@@ -113,7 +113,7 @@ public class VideoDecoder extends AndroidTestCase {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    e(e.getMessage());
                 }
             }
         }
@@ -150,7 +150,7 @@ public class VideoDecoder extends AndroidTestCase {
             } catch (Throwable th) {
                 e("extractMpegFrames failed");
                 mThrowable = th;
-                e("extractMpegFrames thread failed" + mThrowable.getMessage() + mThrowable.fillInStackTrace());
+                e("extractMpegFrames thread failed" + mThrowable.getMessage());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -400,7 +400,7 @@ public class VideoDecoder extends AndroidTestCase {
                             try {
                                 Thread.sleep(33 - (curFrameTime - lastFrameTime));
                             } catch (Throwable er) {
-                                er.printStackTrace();
+                                e(er.getMessage());
                             }
                         }
                         lastFrameTime = curFrameTime;

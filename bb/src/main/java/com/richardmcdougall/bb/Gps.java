@@ -144,9 +144,12 @@ public class Gps {
             mSR.start();
             l("SentenceListener started");
         } catch (Exception e) {
-            l("Gps start failed: " + e.getMessage());
-            e.printStackTrace();
+            e("Gps start failed: " + e.getMessage());
         }
+    }
+
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
     }
 
     public void addStr(String str) {

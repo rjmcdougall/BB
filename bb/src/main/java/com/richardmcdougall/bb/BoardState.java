@@ -92,7 +92,7 @@ public class BoardState {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                e(e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             String line = buf.readLine();
@@ -107,7 +107,7 @@ public class BoardState {
             return sb.toString();
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            e(e.getMessage());
             return null;
         }
     }

@@ -52,7 +52,7 @@ public class BBWifi {
             }
         }
     };
-    
+
     BBWifi(BBService service) {
 
         this.service = service;
@@ -347,7 +347,7 @@ public class BBWifi {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                e(e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
@@ -359,7 +359,7 @@ public class BBWifi {
 
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            e(e.getMessage());
         }
     }
 

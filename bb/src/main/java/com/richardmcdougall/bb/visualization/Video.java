@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb.visualization;
 
+import android.util.Log;
+
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 import com.richardmcdougall.bb.SimpleImage;
@@ -10,6 +12,7 @@ import com.richardmcdougall.bb.SimpleImage;
 
 public class Video extends Visualization {
 
+    private String TAG = "Video";
     public SimpleImage currentVideoFrame = null;
     private VideoDecoder mVideoDecoder = new VideoDecoder();
     private int lastVideoMode = -1;
@@ -72,10 +75,15 @@ public class Video extends Visualization {
                     totalPixels--;
                 }
             } catch (Exception e) {
-                e.printStackTrace();;
+                e(e.getMessage());
             }
         }
 
         mBurnerBoard.flush();
+    }
+
+
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
     }
 }

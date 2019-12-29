@@ -349,6 +349,10 @@ public class BoardVisualization {
 
     long debugCnt = 0;
 
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
+    }
+
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
@@ -370,7 +374,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    er.printStackTrace();
+                    e(er.getMessage());
                 }
                 continue;
             }
@@ -384,7 +388,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    er.printStackTrace();
+                    e(er.getMessage());
                 }
                 continue;
             }
@@ -414,7 +418,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
-                    er.printStackTrace();
+                    e(er.getMessage());
                 }
             }
 
