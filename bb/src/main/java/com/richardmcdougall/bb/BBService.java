@@ -183,6 +183,7 @@ public class BBService extends Service {
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();
+            Thread.sleep(1000); // player thread must fully start before supervisor. dkw
 
             if(!DebugConfigs.BYPASS_MUSIC_SYNC){
                 musicPlayerSupervisor = new MusicPlayerSupervisor(this);
