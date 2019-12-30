@@ -42,7 +42,6 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     //public int[] mBoardScreen;
     private static final String TAG = "BB.BurnerBoardAzul";
-    public int mBatteryLevel = -1;
     public int [] mLayeredScreen;
 
 
@@ -114,9 +113,9 @@ public class BurnerBoardAzul extends BurnerBoard {
             if ((tmpBatteryStats[0] > 0) && //flags
                     (tmpBatteryStats[1] != -1) &&  // level
                     (tmpBatteryStats[5] > 20000)) { // voltage
-                mBatteryLevel = tmpBatteryStats[1];
+                service.boardState.batteryLevel = tmpBatteryStats[1];
                 System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
-                l("getBatteryLevel: " + mBatteryLevel + "%, " +
+                l("getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
                         "voltage: " + getBatteryVoltage() + ", " +
                         "current: " + getBatteryCurrent() + ", " +
                         "flags: " + mBatteryStats[0]);
@@ -665,27 +664,3 @@ public class BurnerBoardAzul extends BurnerBoard {
             new TranslationMap(117,26,19,-1,1,536) // trying to fix the back lights direction
     };
 }
-
-/*
-void BBattachCommandCallbacks()
-{
-  // Attach callback methods
-  cmdMessenger.attach(BBCommandList, ShowCommands);     // 0
-  cmdMessenger.attach(BBCmdOne);                        // 1
-  cmdMessenger.attach(BBsetled, Onsetled);              // 2
-  cmdMessenger.attach(BBsetheadlight, Onsetheadlight);  // 3
-  cmdMessenger.attach(BBClearScreen, OnClearScreen);    // 4
-  cmdMessenger.attach(BBUpdate, OnUpdate);              // 5
-  cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 6
-  cmdMessenger.attach(BBGetBatteryLevel, OnGetBatteryLevel);      // 7
-  cmdMessenger.attach(BBFillScreen, OnFillScreen);      // 8
-  cmdMessenger.attach(BBSetRow, OnSetRow);              // 9
-  cmdMessenger.attach(BBPingRow, OnPingRow);            // 10
-  cmdMessenger.attach(BBEchoRow, OnEchoRow);            // 11
-}
- */
-
-
-/*
-
- */
