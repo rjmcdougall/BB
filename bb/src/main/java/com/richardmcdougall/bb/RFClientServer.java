@@ -737,8 +737,8 @@ public class RFClientServer {
                         String name = service.dlManager.GetVideoFileLocalName(i - 1);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Video " + service.boardVisualization.getMode() + " -> " + i);
-                            if (service.boardVisualization.getMode() != i) {
+                            l("Remote Video " + service.boardState.currentVideoMode + " -> " + i);
+                            if (service.boardState.currentVideoMode != i) {
                                 service.boardVisualization.setMode((int) i);
                                 l("Received remote video switch to mode " + i + " (" + name + ")");
                             } else {

@@ -298,7 +298,7 @@ public class BBService extends Service {
         }
 
         public void BoardMode(int mode) {
-            l("ardunio mode callback:" + boardVisualization.mBoardMode);
+            l("ardunio mode callback:" + boardState.currentVideoMode);
         }
     }
 }

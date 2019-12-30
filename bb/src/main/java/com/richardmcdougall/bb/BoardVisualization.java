@@ -83,8 +83,6 @@ public class BoardVisualization {
     public Visualization mVisualizationPlayaMap;
     public Visualization getmVisualizationSyncLights;
 
-    public int mBoardMode = 1;
-
     BoardVisualization(BBService service) {
 
         this.service = service;
@@ -150,16 +148,12 @@ public class BoardVisualization {
     // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
-        int next = getMode() + 1;
+        int next = service.boardState.currentVideoMode + 1;
         if (next > service.dlManager.GetTotalVideo()) {
             next = 1;
         }
         l("Setting Video to: " + service.dlManager.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
-    }
-
-    public int getMode() {
-        return(mBoardMode);
     }
 
     public void attachAudio(int audioSessionId) {
@@ -397,7 +391,7 @@ public class BoardVisualization {
                 continue;
             }
 
-            frameRate = runVisualization(mBoardMode);
+            frameRate = runVisualization(service.boardState.currentVideoMode);
 
             long frameTime = 1000 / frameRate;
             long curFrameTime = System.currentTimeMillis();
@@ -533,37 +527,37 @@ public class BoardVisualization {
 
         // Likely not connected to physical burner board, fallback
         if (mode == 99) {
-            mBoardMode++;
+            service.boardState.currentVideoMode++;
         } else if (mode == 98) {
-            mBoardMode--;
+            service.boardState.currentVideoMode--;
         } else {
-            mBoardMode = mode;
+            service.boardState.currentVideoMode = mode;
         }
 
         int maxModes = service.dlManager.GetTotalVideo();
-        if (mBoardMode > maxModes)
-            mBoardMode = 1;
-        else if (mBoardMode < 1)
-            mBoardMode = maxModes;
+        if (service.boardState.currentVideoMode > maxModes)
+            service.boardState.currentVideoMode = 1;
+        else if (service.boardState.currentVideoMode < 1)
+            service.boardState.currentVideoMode = maxModes;
 
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-            String name = service.dlManager.GetVideoFileLocalName(mBoardMode - 1);
+            String name = service.dlManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
             l("Sending video remote for video " + name);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
         if (service.burnerBoard != null) {
-            Log.d(TAG, "Setting visualization mode to: " + mBoardMode);
+            Log.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
 
             service.burnerBoard.resetParams();
             service.burnerBoard.clearPixels();
-            service.burnerBoard.setMode(mBoardMode);
+            service.burnerBoard.setMode(service.boardState.currentVideoMode);
         }
 
         if (service.voiceAnnouncements) {
-            service.voice.speak("mode" + mBoardMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
+            service.voice.speak("mode" + service.boardState.currentVideoMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
         }
     }
 

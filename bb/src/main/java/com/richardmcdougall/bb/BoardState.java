@@ -41,6 +41,7 @@ public class BoardState {
     public Date apkUpdatedDate;
     public int batteryLevel = -1;
     public int currentRadioChannel = 1;
+    public int currentVideoMode = 1;
 
     private void d(String logMsg) {
         if (DebugConfigs.DEBUG_BOARD_STATE) {

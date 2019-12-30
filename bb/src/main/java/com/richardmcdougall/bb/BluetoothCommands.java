@@ -709,7 +709,7 @@ public class BluetoothCommands {
         JSONObject state = new JSONObject();
         try {
             state.put("acn", service.boardState.currentRadioChannel - 1);
-            state.put("vcn", service.boardVisualization.getMode() - 1);
+            state.put("vcn", service.boardState.currentVideoMode - 1);
             state.put("v", service.musicPlayer.getBoardVolumePercent());
             state.put("b", service.boardState.batteryLevel);
             state.put("am", service.boardState.masterRemote);
