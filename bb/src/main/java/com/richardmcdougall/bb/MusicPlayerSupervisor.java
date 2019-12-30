@@ -45,13 +45,13 @@ public class MusicPlayerSupervisor {
                         Thread.sleep(1000);
                     } catch (Throwable e) {
                     }
-                    if (service.musicPlayer.currentRadioChannel == 0) {
+                    if (service.boardState.currentRadioChannel == 0) {
                         musicState = 2;
                     }
                     break;
 
                 case 2:
-                    if (service.musicPlayer.currentRadioChannel != 0) {
+                    if (service.boardState.currentRadioChannel != 0) {
                         musicState = 1;
                     }
                     break;

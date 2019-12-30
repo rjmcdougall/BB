@@ -708,7 +708,7 @@ public class BluetoothCommands {
     JSONObject getState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("acn", service.musicPlayer.getRadioChannel() - 1);
+            state.put("acn", service.boardState.currentRadioChannel - 1);
             state.put("vcn", service.boardVisualization.getMode() - 1);
             state.put("v", service.musicPlayer.getBoardVolumePercent());
             state.put("b", service.boardState.batteryLevel);

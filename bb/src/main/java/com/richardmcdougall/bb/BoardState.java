@@ -40,6 +40,7 @@ public class BoardState {
     public int version = 0;
     public Date apkUpdatedDate;
     public int batteryLevel = -1;
+    public int currentRadioChannel = 1;
 
     private void d(String logMsg) {
         if (DebugConfigs.DEBUG_BOARD_STATE) {

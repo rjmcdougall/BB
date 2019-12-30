@@ -29,7 +29,6 @@ import android.os.*;
 public class MusicPlayer implements Runnable {
 
     private static final String TAG = "MusicPlayer";
-    public int currentRadioChannel = 1;
     public Handler handler;
     long lastSeekOffset = 0;
     long phoneModelAudioLatency = 0;
@@ -105,14 +104,8 @@ public class MusicPlayer implements Runnable {
         Looper.loop();
     }
 
-    public int getRadioChannel() {
-
-        d("GetRadioChannel: ");
-        return currentRadioChannel;
-    }
-
     public void NextStream() {
-        nextRadioChannel = currentRadioChannel + 1;
+        nextRadioChannel = service.boardState.currentRadioChannel + 1;
         if (nextRadioChannel > service.dlManager.GetTotalAudio())
             nextRadioChannel = 0;
 
@@ -120,7 +113,7 @@ public class MusicPlayer implements Runnable {
     }
 
     public void PreviousStream() {
-        nextRadioChannel = currentRadioChannel - 1;
+        nextRadioChannel = service.boardState.currentRadioChannel - 1;
         if (nextRadioChannel < 0) {
             nextRadioChannel = 0;
         }
@@ -128,7 +121,7 @@ public class MusicPlayer implements Runnable {
     }
 
     public void RadioMode() {
-        this.handler.post(() -> mSetRadioChannel(currentRadioChannel) );
+        this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel) );
     }
 
     private void d(String logMsg) {
@@ -148,7 +141,7 @@ public class MusicPlayer implements Runnable {
     }
 
     private long GetCurrentStreamLengthInSeconds() {
-        return service.dlManager.GetAudioLength(currentRadioChannel - 1);
+        return service.dlManager.GetAudioLength(service.boardState.currentRadioChannel - 1);
     }
 
     public void SeekAndPlay() {
@@ -170,7 +163,7 @@ public class MusicPlayer implements Runnable {
 
             d("SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
                     " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + service.serverRTT + " Strm" + currentRadioChannel);
+                    " RTT " + service.serverRTT + " Strm" + service.boardState.currentRadioChannel);
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);
@@ -189,7 +182,7 @@ public class MusicPlayer implements Runnable {
             in.putExtra("msgType", 1);
             // Put extras into the intent as usual
             in.putExtra("seekErr", seekErr);
-            in.putExtra("", currentRadioChannel);
+            in.putExtra("", service.boardState.currentRadioChannel);
             in.putExtra("userTimeOffset", userTimeOffset);
             in.putExtra("serverTimeOffset", service.serverTimeOffset);
             in.putExtra("serverRTT", service.serverRTT);
@@ -275,7 +268,7 @@ public class MusicPlayer implements Runnable {
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     private void mSetRadioChannel(int index) {
         d("SetRadioChannel: " + index);
-        currentRadioChannel = index;
+        service.boardState.currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {

@@ -720,8 +720,8 @@ public class RFClientServer {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Audio " + service.musicPlayer.getRadioChannel() + " -> " + i);
-                            if (service.musicPlayer.getRadioChannel() != i) {
+                            l("Remote Audio " + service.boardState.currentRadioChannel+ " -> " + i);
+                            if (service.boardState.currentRadioChannel != i) {
                                 service.musicPlayer.SetRadioChannel((int) i);
                                 l("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
