@@ -30,18 +30,13 @@ import org.json.JSONArray;
 
 public class BBWifi {
 
-    private static final String WIFI_JSON = "wifi.json";
     private static final String TAG = "BB.BBWifi";
-    private static final String WIFI_SSID = "burnerboard";
-    private static final String WIFI_PASS = "firetruck";
     public boolean enableWifiReconnect = true;
     public String ipAddress = "";
     private int mWifiReconnectEveryNSeconds = 60;
     private BBService service = null;
     private WifiManager mWiFiManager = null;
     private List<ScanResult> mScanResults;
-    public String SSID = "";
-    public String password = "";
 
     private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
         @Override
@@ -59,13 +54,6 @@ public class BBWifi {
         mWiFiManager = (WifiManager) service.context.getSystemService(Context.WIFI_SERVICE);
         service.context.registerReceiver(mWifiScanReceiver,
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-
-        // look for an SSID and password in file system. If it is not there default to firetruck.
-        getSSIDAndPassword();
-        if (SSID == "") {
-            setSSISAndPassword(WIFI_SSID, WIFI_PASS);
-            getSSIDAndPassword();
-        }
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
@@ -109,13 +97,13 @@ public class BBWifi {
                                                   int mfs = mWiFiManager.getWifiState();
                                                   d("Wifi state is " + mfs);
                                                   d("Checking wifi");
-                                                  if (checkWifiSSid(SSID) == false) {
-                                                      d("adding wifi: " + SSID);
-                                                      addWifi(SSID, password);
+                                                  if (checkWifiSSid(service.boardState.SSID) == false) {
+                                                      d("adding wifi: " + service.boardState.SSID);
+                                                      addWifi(service.boardState.SSID, service.boardState.password);
                                                   }
                                                   d("Connecting to wifi");
                                                   if(!checkWifiOnAndConnected(mWiFiManager))
-                                                        connectWifi(SSID);
+                                                        connectWifi(service.boardState.SSID);
                                                   break;
                                               case WifiManager.WIFI_STATE_ENABLING:
                                                   d("WIFI STATE ENABLING");
@@ -140,8 +128,8 @@ public class BBWifi {
                 return false; // Not connected to an access point
             }
 
-            d("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(SSID));
-            if(!wifiInfo.getSSID().equals(fixWifiSSidAndPass(SSID))){
+            d("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(service.boardState.SSID));
+            if(!wifiInfo.getSSID().equals(fixWifiSSidAndPass(service.boardState.SSID))){
                 ipAddress = null;
                 return false; // configured for wrong access point.
             }
@@ -300,67 +288,6 @@ public class BBWifi {
 
     public void ScanWifi() {
         mWiFiManager.startScan();
-    }
-
-    public boolean setSSISAndPassword(String SSID, String password) {
-
-        try {
-            JSONObject wifiSettings = new JSONObject();
-            wifiSettings.put("SSID", SSID);
-            wifiSettings.put("password", password);
-
-            setSSISAndPassword(wifiSettings);
-
-        } catch (JSONException e) {
-            e(e.getMessage());
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean setSSISAndPassword(JSONObject wifiSettings) {
-
-        try {
-            FileWriter fw = new FileWriter(service.filesDir + "/" + WIFI_JSON);
-            fw.write(wifiSettings.toString());
-            fw.close();
-            SSID = wifiSettings.getString("SSID");
-            password = wifiSettings.getString("password");
-        } catch (JSONException e) {
-            e(e.getMessage());
-            return false;
-        } catch (IOException e) {
-            e(e.getMessage());
-            return false;
-        }
-
-        return true;
-    }
-
-    public void getSSIDAndPassword() {
-        try {
-            ArrayList<String> r = new ArrayList();
-
-            File f = new File(service.filesDir + "/" + WIFI_JSON);
-            InputStream is = null;
-            try {
-                is = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
-                e(e.getMessage());
-            }
-            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-            StringBuilder sb = new StringBuilder(buf.readLine());
-            d("contents of wifi.json: " + sb.toString());
-            JSONObject j = new JSONObject(sb.toString());
-
-            SSID = j.getString("SSID");
-            password = j.getString("password");
-
-
-        } catch (Throwable e) {
-            e(e.getMessage());
-        }
     }
 
     void Run() {

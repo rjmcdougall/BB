@@ -348,7 +348,7 @@ public class BluetoothCommands {
                             String SSIS = payload.getString("arg");
                             if (SSIS != "") {
                                 String[] parts = SSIS.split("__");
-                                service.wifi.setSSISAndPassword(parts[0], parts[1]);
+                                service.boardState.setSSISAndPassword(parts[0], parts[1]);
                             }
                         } catch (Exception e) {
                             e("error setting wifi: " + e.getMessage());

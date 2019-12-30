@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -15,27 +16,25 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class BoardState {
 
-    /* XXX TODO refactor out the string use cases and transform to constants -jib
-    public static final String BB_TYPE_AZUL = "Burner Board Azul";
-    public static final String BB_TYPE_CLASSIC = "Burner Board Classi";
-    public static final String BB_TYPE_DIRECT_MAP = "Burner Board DirectMap";
-    public static final String BB_TYPE_MAST = "Burner Board Mast";
-    public static final String BB_TYPE_PANEL = "Burner Board Panel";
-    /*
+    private static final String WIFI_JSON = "wifi.json";
+    private static final String WIFI_SSID = "burnerboard";
+    private static final String WIFI_PASS = "firetruck";
+    private static final String TAG = "BoardState";
+    private static final String PUBLIC_NAME_FILE = "publicName.txt";
 
-     */
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
     public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
     public static String BOARD_ID = "";
     public static String DEVICE_ID = "";
-    public static final String publicNameFile = "publicName.txt";
+
     public boolean masterRemote = false;
-    private static final String TAG = "BoardState";
+
     private BBService service = null;
     public boolean isGTFO = false;
     public boolean blockMaster = false;
@@ -44,6 +43,8 @@ public class BoardState {
     public int batteryLevel = -1;
     public int currentRadioChannel = 1;
     public int currentVideoMode = 1;
+    public String SSID = "";
+    public String password = "";
 
     private void d(String logMsg) {
         if (DebugConfigs.DEBUG_BOARD_STATE) {
@@ -75,6 +76,13 @@ public class BoardState {
         else
             publicName = getPublicName();
 
+        // look for an SSID and password in file system. If it is not there default to firetruck.
+        getSSIDAndPassword();
+        if (SSID == "") {
+            setSSISAndPassword(WIFI_SSID, WIFI_PASS);
+            getSSIDAndPassword();
+        }
+
         if (kIsRPI) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
@@ -102,8 +110,8 @@ public class BoardState {
             state.put("g", isGTFO);
             state.put("bm" , blockMaster);
             state.put("s", service.wifi.getConnectedSSID());
-            state.put("c", service.wifi.SSID);
-            state.put("p", service.wifi.password);
+            state.put("c", service.boardState.SSID);
+            state.put("p", service.boardState.password);
 
         } catch (Exception e) {
             e("Could not get state: " + e.getMessage());
@@ -113,7 +121,7 @@ public class BoardState {
 
     public boolean setPublicName(String name) {
         try {
-            FileWriter fw = new FileWriter(service.filesDir + "/" + publicNameFile);
+            FileWriter fw = new FileWriter(service.filesDir + "/" + PUBLIC_NAME_FILE);
             fw.write(name);
             fw.close();
         } catch (IOException e) {
@@ -127,7 +135,7 @@ public class BoardState {
     public String getPublicName() {
 
         try {
-            File f = new File(service.filesDir, publicNameFile);
+            File f = new File(service.filesDir, PUBLIC_NAME_FILE);
             if (!f.exists())
                 return null;
             InputStream is = null;
@@ -154,7 +162,62 @@ public class BoardState {
         }
     }
 
+    public boolean setSSISAndPassword(String SSID, String password) {
 
+        try {
+            JSONObject wifiSettings = new JSONObject();
+            wifiSettings.put("SSID", SSID);
+            wifiSettings.put("password", password);
 
+            setSSISAndPassword(wifiSettings);
 
+        } catch (JSONException e) {
+            e(e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean setSSISAndPassword(JSONObject wifiSettings) {
+
+        try {
+            FileWriter fw = new FileWriter(service.filesDir + "/" + WIFI_JSON);
+            fw.write(wifiSettings.toString());
+            fw.close();
+            service.boardState.SSID = wifiSettings.getString("SSID");
+            service.boardState.password = wifiSettings.getString("password");
+        } catch (JSONException e) {
+            e(e.getMessage());
+            return false;
+        } catch (IOException e) {
+            e(e.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    public void getSSIDAndPassword() {
+        try {
+            ArrayList<String> r = new ArrayList();
+
+            File f = new File(service.filesDir + "/" + WIFI_JSON);
+            InputStream is = null;
+            try {
+                is = new FileInputStream(f);
+            } catch (FileNotFoundException e) {
+                e(e.getMessage());
+            }
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder(buf.readLine());
+            d("contents of wifi.json: " + sb.toString());
+            JSONObject j = new JSONObject(sb.toString());
+
+            service.boardState.SSID = j.getString("SSID");
+            service.boardState.password = j.getString("password");
+
+        } catch (Throwable e) {
+            e(e.getMessage());
+        }
+    }
 }
