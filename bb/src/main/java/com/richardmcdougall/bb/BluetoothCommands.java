@@ -35,86 +35,6 @@ public class BluetoothCommands {
         LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
     }
 
-    public JSONArray Boards() {
-        JSONArray boards = service.allBoards.dataBoards;
-        JSONArray boards2 = null;
-        if (boards == null) {
-           l( "Could not get boards directory (null)");
-        }
-        if (boards != null) {
-            try {
-
-                boards2 = new JSONArray(boards.toString()) ;
-                for (int i = 0; i < boards2.length(); i++) {
-                    JSONObject a = boards2.getJSONObject(i);
-                    if(a.has("address"))  a.remove("address");
-                    if(a.has("isProfileGlobal"))  a.remove("isProfileGlobal");
-                    if(a.has("profile"))   a.remove("profile");
-                    if(a.has("isProfileGlobal2"))  a.remove("isProfileGlobal2");
-                    if(a.has("profile2"))   a.remove("profile2");
-                    if(a.has("type"))  a.remove("type");
-                }
-            } catch (Exception e) {
-                l( "Could not get boards directory: " + e.getMessage());
-            }
-        }
-        return boards2;
-    }
-
-    public JSONArray AudioMedia(){
-
-        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
-        JSONArray audio = null;
-        if (service.mediaManager.dataDirectory == null) {
-            l("Could not get media directory (null)");
-        }
-        else {
-            try {
-
-                 audio = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("audio").toString()) ;
-                for (int i = 0; i < audio.length(); i++) {
-                    JSONObject a = audio.getJSONObject(i);
-                    if(a.has("URL"))  a.remove("URL");
-                    if(a.has("ordinal"))  a.remove("ordinal");
-                    if(a.has("Size"))   a.remove("Size");
-                    if(a.has("Length"))  a.remove("Length");
-                }
-
-            } catch (Exception e) {
-               l( "Could not get media directory: " + e.getMessage());
-            }
-        }
-        return audio;
-    }
-
-    public JSONArray VideoMedia(){
-
-        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
-         JSONArray video = null;
-
-        if (service.mediaManager.dataDirectory == null) {
-            l("Could not get media directory (null)");
-        }
-        else {
-            try {
-
-                video = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("video").toString());
-                for (int i = 0; i < video.length(); i++) {
-                    JSONObject v = video.getJSONObject(i);
-                    if(v.has("URL")) v.remove("URL");
-                    if(v.has("ordinal"))v.remove("ordinal");
-                    if(v.has("Size"))v.remove("Size");
-                    if(v.has("SpeachCue"))v.remove("SpeachCue");
-                    if(v.has( "Length"))v.remove( "Length");
-                }
-
-            } catch (Exception e) {
-                l( "Could not get media directory: " + e.getMessage());
-            }
-        }
-        return video;
-    }
-
     public void init() {
 
         service.bLEServer.addCallback("getboards",
@@ -139,7 +59,7 @@ public class BluetoothCommands {
                             error = "Could not insert command: " + e.getMessage();
                         }
                         try{
-                            response.put("boards", Boards());
+                            response.put("boards", service.allBoards.MinimizedBoards());
                         }
                         catch(JSONException e){
                             l(e.getMessage());
@@ -187,10 +107,11 @@ public class BluetoothCommands {
                         }
 
                         try{
-                            if(AudioMedia()==null)
+                            JSONArray audio = service.mediaManager.MinimizedAudio();
+                            if(audio==null)
                                 l("Empty Audio");
                             else
-                                response.put("audio", AudioMedia());
+                                response.put("audio", audio);
                         }
                         catch(JSONException e){
                             l(e.getMessage());
@@ -239,10 +160,11 @@ public class BluetoothCommands {
                         }
 
                         try {
-                            if(VideoMedia()==null)
-                                l("Empty VideoMedia");
+                            JSONArray video = service.mediaManager.MinimizedVideo();
+                            if(video==null)
+                                l("Empty video");
                             else
-                                response.put("video", VideoMedia());
+                                response.put("video", video);
                         }
                         catch(JSONException e){
                             l(e.getMessage());
@@ -290,13 +212,13 @@ public class BluetoothCommands {
                             error = "Could not insert command: " + e.getMessage();
                         }
                         try{
-                            response.put("boards", Boards());
+                            response.put("boards", service.allBoards.MinimizedBoards());
                         }
                         catch(JSONException e){
                             l(e.getMessage());
                         }
                         try{
-                            JSONArray audio = AudioMedia();
+                            JSONArray audio = service.mediaManager.MinimizedAudio();
                             if(audio==null)
                                 l("Empty Audio");
                             else
@@ -306,7 +228,7 @@ public class BluetoothCommands {
                             l(e.getMessage());
                         }
                         try {
-                            JSONArray video = VideoMedia();
+                            JSONArray video = service.mediaManager.MinimizedVideo();
                             if(video==null)
                                 l("Empty VideoMedia");
                             else

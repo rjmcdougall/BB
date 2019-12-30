@@ -20,7 +20,80 @@ public class MediaManager {
     private static final String DOWNLOAD_DIRECTORY_URL_PATH = "/DownloadDirectoryJSON?APKVersion=";
 
     private BBService service;
-    public JSONObject dataDirectory;
+    private JSONObject dataDirectory;
+
+    private JSONArray audio(){
+        JSONArray audio = null;
+        try{
+            audio = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("audio").toString());
+        }
+        catch(JSONException e){
+            e(e.getMessage());
+        }
+        return audio;
+    }
+
+    private JSONArray video(){
+        JSONArray video = null;
+        try{
+            video = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("video").toString());
+        }
+        catch(JSONException e){
+            e(e.getMessage());
+        }
+        return video;
+    }
+
+
+    public JSONArray MinimizedAudio(){
+
+        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
+        JSONArray audio = audio();
+        if (audio() == null) {
+            d("Could not get audio directory (null)");
+        }
+        else {
+            try {
+                for (int i = 0; i < audio.length(); i++) {
+                    JSONObject a = audio.getJSONObject(i);
+                    if(a.has("URL"))  a.remove("URL");
+                    if(a.has("ordinal"))  a.remove("ordinal");
+                    if(a.has("Size"))   a.remove("Size");
+                    if(a.has("Length"))  a.remove("Length");
+                }
+
+            } catch (Exception e) {
+                d( "Could not get audio directory: " + e.getMessage());
+            }
+        }
+        return audio;
+    }
+
+    public JSONArray MinimizedVideo(){
+
+        // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
+        JSONArray video = video();
+
+        if (video == null) {
+            d("Could not get video directory (null)");
+        }
+        else {
+            try {
+                for (int i = 0; i < video.length(); i++) {
+                    JSONObject v = video.getJSONObject(i);
+                    if(v.has("URL")) v.remove("URL");
+                    if(v.has("ordinal"))v.remove("ordinal");
+                    if(v.has("Size"))v.remove("Size");
+                    if(v.has("SpeachCue"))v.remove("SpeachCue");
+                    if(v.has( "Length"))v.remove( "Length");
+                }
+
+            } catch (Exception e) {
+                d( "Could not get video directory: " + e.getMessage());
+            }
+        }
+        return video;
+    }
 
     interface OnDownloadProgressType {
         void onProgress(String file, long fileSize, long bytesDownloaded);
