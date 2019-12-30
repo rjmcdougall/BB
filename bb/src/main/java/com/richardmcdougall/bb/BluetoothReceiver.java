@@ -12,8 +12,8 @@ import android.util.Log;
 
 public class BluetoothReceiver extends BroadcastReceiver {
 
-    BBService service = null;
-    String TAG = "BluetoothReceiver";
+    private BBService service = null;
+    private String TAG = "BluetoothReceiver";
 
     // RPIs don't always have a screen; use beeps -jib
     public static final boolean kBeepOnConnect = BoardState.kIsRPI; // Not Done IsNano

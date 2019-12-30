@@ -16,7 +16,7 @@ import org.json.JSONObject;
 
 public class BluetoothCommands {
     private static final String TAG = "BB.BluetoothCommands";
-    public BBService service = null;
+    private BBService service = null;
     private Handler mHandler;
 
     public BluetoothCommands(BBService service) {

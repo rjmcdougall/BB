@@ -4,7 +4,7 @@ import android.speech.tts.TextToSpeech;
 
 public class GTFO {
 
-    BBService service = null;
+    private BBService service = null;
     private int stashedAndroidVolumePercent;
 
     public GTFO(BBService service) {

@@ -29,15 +29,15 @@ import android.os.*;
 public class MusicPlayer implements Runnable {
 
     private static final String TAG = "MusicPlayer";
-    public Handler handler;
-    long lastSeekOffset = 0;
-    long phoneModelAudioLatency = 0;
-    SimpleExoPlayer player = null;
-    float recallVol = 0;
+    private Handler handler;
+    private long lastSeekOffset = 0;
+    private long phoneModelAudioLatency = 0;
+    private SimpleExoPlayer player = null;
+    private float recallVol = 0;
     private BBService service = null;
     private int userTimeOffset = 0;
     private float vol = 0.80f;
-    int nextRadioChannel;
+    private int nextRadioChannel;
 
     MusicPlayer(BBService service) {
         this.service = service;

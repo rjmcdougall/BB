@@ -37,7 +37,6 @@ SN: 0000000A0026
 
 public class RF {
 
-    public RF.radioEvents radioCallback = null;
     public CmdMessenger mListener = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -48,7 +47,7 @@ public class RF {
     private UsbManager mUsbManager = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.RF";
-    public BBService service = null;
+    private BBService service = null;
     public RF.radioEvents mRadioCallback = null;
 
 

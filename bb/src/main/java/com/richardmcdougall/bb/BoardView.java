@@ -20,11 +20,11 @@ public class BoardView extends View {
     private Rect mRect = new Rect();
     private int mBoardWidth;
     private int mBoardHeight;
-    Bitmap mCanvasBitmap;
-    Canvas mCanvas;
-    static final int PIXEL_RED = 0;
-    static final int PIXEL_GREEN = 1;
-    static final int PIXEL_BLUE = 2;
+    private Bitmap mCanvasBitmap;
+    private Canvas mCanvas;
+    private static final int PIXEL_RED = 0;
+    private static final int PIXEL_GREEN = 1;
+    private static final int PIXEL_BLUE = 2;
 
     public BoardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);

@@ -39,7 +39,7 @@ import java.util.Arrays;
 public class BurnerBoardPanel extends BurnerBoard {
     //public int[] mBoardScreen;
     private static final String TAG = "BB.BurnerBoardPanel";
-    public int [] mLayeredScreen;
+    private int [] mLayeredScreen;
 
 
     public BurnerBoardPanel(BBService service) {

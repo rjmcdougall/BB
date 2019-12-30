@@ -36,12 +36,12 @@ public class Favorites {
     private static final String TAG = "BB.FAV";
     private BBService service;
     private favoritesCallback mFavoritesCallback = null;
-    static final int krepeatedBy = 0;
-    int mThereAccurate;
-    long mLastSend = 0;
-    long mLastRecv = 0;
+    private static final int krepeatedBy = 0;
+    private int mThereAccurate;
+    private long mLastSend = 0;
+    private long mLastRecv = 0;
     private int mBoardAddress = 0;
-    byte[] mLastHeardLocation;
+    private byte[] mLastHeardLocation;
 
     public Favorites(Context context, BBService service,
                      final RF radio, Gps gps, IoTClient iotclient) {

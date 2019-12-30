@@ -2,8 +2,8 @@ package com.richardmcdougall.bb;
 
 public class MusicPlayerSupervisor {
 
-    int musicState = 0;
-    BBService service;
+    private int musicState = 0;
+    private BBService service;
 
     MusicPlayerSupervisor(BBService service) {
         this.service = service;

@@ -30,14 +30,12 @@ import java.util.HashMap;
  */
 
 public class RFClientServer {
-    BBService service;
+    private BBService service;
     public long tSentPackets = 0;
     private long replyCount = 0;
     private static final String TAG = "BB.RFClientServer";
     static final int [] kServerBeaconMagicNumber = new int[] {0xbb, 0x05};
     static final int kThreadSleepTime = 5000;
-
-
     public static final int kRemoteAudio = 0;
     public static final int kRemoteVideo = 1;
     public static final int kRemoteMasterName = 2;

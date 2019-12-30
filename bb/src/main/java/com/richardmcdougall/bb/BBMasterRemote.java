@@ -4,7 +4,7 @@ import android.speech.tts.TextToSpeech;
 
 public class BBMasterRemote {
 
-    BBService service = null;
+    private BBService service = null;
 
     BBMasterRemote(BBService service){
         this.service = service;

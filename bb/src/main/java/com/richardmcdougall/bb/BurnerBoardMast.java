@@ -39,10 +39,8 @@ import java.util.Arrays;
 
 
 public class BurnerBoardMast extends BurnerBoard {
-    //public int[] mBoardScreen;
-    private static final String TAG = "BB.BurnerBoardMast";
-    //public String boardId = Build.MODEL;
 
+    private static final String TAG = "BB.BurnerBoardMast";
 
     public BurnerBoardMast(BBService service) {
         super(service);

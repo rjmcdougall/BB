@@ -33,7 +33,7 @@ public class Gps {
     private PipedInputStream mSentenceInput;
     private PipedOutputStream mSentenceOutput;
     private SentenceReader mSR;
-    PositionProvider provider;
+    private PositionProvider provider;
     private BBService service;
 
     public interface GpsEvents {

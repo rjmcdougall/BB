@@ -1,9 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.speech.tts.TextToSpeech;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 public class BatterySupervisor {

@@ -1,9 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.SystemClock;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -33,22 +30,22 @@ public class FindMyFriends {
     private static final String TAG = "BB.FMF";
     private BBService service;
     private findMyFriendsCallback mFindMyFriendsCallback = null;
-    long mLastFix = 0;
-    static final int kMaxFixAge = 30000;
-    static final int krepeatedBy = 0;
-    int mLat;
-    int mLon;
-    int mAlt;
-    int mAmIAccurate;
-    int mTheirAddress;
-    double mTheirLat;
-    double mTheirLon;
-    int mTheirBatt;
-    int mThereAccurate;
-    long mLastSend = 0;
-    long mLastRecv = 0;
+    private long mLastFix = 0;
+    private static final int kMaxFixAge = 30000;
+    private static final int krepeatedBy = 0;
+    private int mLat;
+    private int mLon;
+    private int mAlt;
+    private int mAmIAccurate;
+    private int mTheirAddress;
+    private double mTheirLat;
+    private double mTheirLon;
+    private int mTheirBatt;
+    private int mThereAccurate;
+    private long mLastSend = 0;
+    private long mLastRecv = 0;
     private int mBoardAddress = 0;
-    byte[] mLastHeardLocation;
+    private byte[] mLastHeardLocation;
 
     public FindMyFriends(BBService service) {
         this.service = service;

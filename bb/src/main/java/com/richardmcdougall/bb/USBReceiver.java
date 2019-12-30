@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class USBReceiver extends BroadcastReceiver {
 
-    BBService service;
+    private BBService service;
     private String TAG = "USBReceiver";
 
     USBReceiver(BBService service) {

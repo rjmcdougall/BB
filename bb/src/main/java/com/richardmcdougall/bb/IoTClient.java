@@ -42,12 +42,12 @@ public class IoTClient {
     private static final String DEVICEY_REGISTRY = "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-";
     private volatile MqttAndroidClient mqttClient = null;
     private String deviceId;
-    IMqttToken token = null;
-    byte[] keyBytes = new byte[16384];
-    String jwtKey = null;
-    boolean haveConnected = false;
-    WifiManager mWiFiManager = null;
-    BBService service = null;
+    private IMqttToken token = null;
+    private byte[] keyBytes = new byte[16384];
+    private String jwtKey = null;
+    private boolean haveConnected = false;
+    private WifiManager mWiFiManager = null;
+    private BBService service = null;
 
     public IoTClient(BBService service) {
         this.service = service;
