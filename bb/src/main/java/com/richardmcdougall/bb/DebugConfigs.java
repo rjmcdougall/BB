@@ -27,7 +27,7 @@ public class DebugConfigs {
     public static final boolean DEBUG_BOARD_STATE = false;
 
     // name the board as a testing overriden.
-    public static final String OVERRIDE_PUBLIC_NAME = "sexy";
+    public static final String OVERRIDE_PUBLIC_NAME = "";
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
