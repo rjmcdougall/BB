@@ -502,18 +502,8 @@ public class BurnerBoard {
 
     public void l(String s) {
         Log.v(TAG, s);
-        sendLogMsg(s);
+        service.sendLogMsg(s);
     }
-
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
 
     private void updateUsbStatus(String status) {
         Intent in = new Intent(ACTION.STATS);
@@ -670,8 +660,7 @@ public class BurnerBoard {
                 sPort = null;
             }
             updateUsbStatus(("Disconnected(1)"));
-            sendLogMsg("USB Disconnected");
-
+            l("USB Disconnected");
         }
     }
 

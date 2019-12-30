@@ -798,17 +798,6 @@ public class BluetoothCommands {
         return (error != null);
     }
 
-
-    private void sendLogMsg(String msg) {
-
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
     public void sendStateResponseAll() {
         //TODO: get to list of connected devices,
         //      else it will get grabbed on location poll
@@ -817,12 +806,12 @@ public class BluetoothCommands {
 
     public void l(String s) {
         Log.v(TAG, s);
-        sendLogMsg(s);
+        service.sendLogMsg(s);
     }
 
     public void d(String s) {
         Log.d(TAG, s);
-        sendLogMsg(s);
+        service.sendLogMsg(s);
     }
 
     // We use this to catch the board events

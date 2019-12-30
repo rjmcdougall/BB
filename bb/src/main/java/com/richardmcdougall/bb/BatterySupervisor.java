@@ -76,19 +76,10 @@ public class BatterySupervisor {
         }
     }
 
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(service).sendBroadcast(in);
-    }
-
     public void d_battery(String s) {
         if (DebugConfigs.DEBUG_BATTERY) {
             Log.v(TAG, s);
-            sendLogMsg(s);
+            service.sendLogMsg(s);
         }
     }
 

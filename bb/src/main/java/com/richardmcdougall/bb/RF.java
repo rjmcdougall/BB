@@ -116,25 +116,16 @@ public class RF {
         }
     }
 
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
     public void d(String s) {
         if (DebugConfigs.DEBUG_RF) {
             Log.v(TAG, s);
-            sendLogMsg(s);
+            service.sendLogMsg(s);
         }
     }
 
     public void l(String s) {
         Log.v(TAG, s);
-        sendLogMsg(s);
+        service.sendLogMsg(s);
     }
 
     private void onDeviceStateChange() {
@@ -247,7 +238,7 @@ public class RF {
             return;
         }
 
-        sendLogMsg("USB: Connected");
+        l("USB: Connected");
         startIoManager();
     }
 
@@ -269,7 +260,7 @@ public class RF {
                 }
                 sPort = null;
             }
-            sendLogMsg("USB Disconnected");
+            l("USB Disconnected");
 
         }
     }
@@ -299,7 +290,7 @@ public class RF {
                         new RF.BBRadioCallbackGPS();
                 mListener.attach(2, gpsCallback);
 
-                sendLogMsg("USB Connected to radio");
+                l("USB Connected to radio");
             }
         }
     }

@@ -66,23 +66,14 @@ public class RFClientServer {
     public void l(String s) {
 
         Log.v(TAG, s);
-        sendLogMsg(s);
+        service.sendLogMsg(s);
     }
 
     public void d(String s) {
         if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
             Log.v(TAG, s);
-            sendLogMsg(s);
+            service.sendLogMsg(s);
         }
-    }
-
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(service).sendBroadcast(in);
     }
 
     private void setupUDPLogger(){

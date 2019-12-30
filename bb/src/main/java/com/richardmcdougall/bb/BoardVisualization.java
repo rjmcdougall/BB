@@ -128,7 +128,7 @@ public class BoardVisualization {
 
     public void l(String s) {
         Log.v(TAG, s);
-        sendLogMsg(s);
+        service.sendLogMsg(s);
     }
 
     public void inhibit(boolean inhibit) {
@@ -146,16 +146,6 @@ public class BoardVisualization {
     public void showBattery(boolean show) {
         showBattery = show;
     }
-
-    private void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
 
     // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
     // VideoMode() = 1 sets it to the beginning of the profile.

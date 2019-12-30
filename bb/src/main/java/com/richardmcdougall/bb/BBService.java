@@ -287,13 +287,13 @@ public class BBService extends Service {
         serverRTT = rtt;
     }
 
-    private void sendLogMsg(String msg) {
+    public void sendLogMsg(String msg) {
         Intent in = new Intent(ACTION.STATS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("msgType", 4);
         // Put extras into the intent as usual
         in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(in);
     }
 
     public class BoardCallback implements BurnerBoard.BoardEvents {
