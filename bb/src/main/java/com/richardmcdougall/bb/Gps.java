@@ -47,7 +47,7 @@ public class Gps {
     }
 
 
-    public Gps(BBService service, Context context) {
+    public Gps(BBService service) {
         this.service = service;
         l("Gps starting");
 

@@ -49,9 +49,7 @@ public class RF {
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private static final String TAG = "BB.RF";
     public BBService service = null;
-    public Gps mGps = null;
     public RF.radioEvents mRadioCallback = null;
-    public AllBoards mAllBoards = null;
 
 
     public RF(BBService service) {
@@ -62,10 +60,8 @@ public class RF {
             this.service.registerReceiver(mUsbReceiver, filter);
             filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
             this.service.registerReceiver(mUsbReceiver, filter);
-            mAllBoards = new AllBoards(service);
             initUsb();
-            mGps = new Gps(this.service, this.service.context);
-            mGps.attach( new Gps.GpsEvents() {
+            service.gps.attach( new Gps.GpsEvents() {
                 public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
                     d("Radio Time: " + time.toString());
                     if (mRadioCallback != null) {
@@ -95,10 +91,6 @@ public class RF {
 
     public void attach(radioEvents newfunction) {
         mRadioCallback = newfunction;
-    }
-
-    public Gps getGps() {
-        return mGps;
     }
 
     public void broadcast(byte[] packet) {
@@ -334,7 +326,7 @@ public class RF {
             //l("GPS: " + gpsStr);
             // TODO: strip string
             try {
-                mGps.addStr(gpsStr);
+                service.gps.addStr(gpsStr);
             } catch (Exception e) {
 
             }

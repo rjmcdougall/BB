@@ -188,11 +188,11 @@ public class BBService extends Service {
             bluetoothConnManager = new BluetoothConnManager(this);
             bLEServer = new BluetoothLEServer(this);
             radio = new RF(this);
+            gps = new Gps(this);
 
             rfClientServer = new RFClientServer(this);
             rfClientServer.Run();
 
-            gps = radio.getGps();
             findMyFriends = new FindMyFriends(this);
 
             bluetoothCommands = new BluetoothCommands(this);
