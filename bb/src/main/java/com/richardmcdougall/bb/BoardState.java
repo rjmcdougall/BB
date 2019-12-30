@@ -32,6 +32,7 @@ public class BoardState {
     public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
     public static String BOARD_ID = "";
     public static String DEVICE_ID = "";
+    public static int address = -1;
 
     public boolean masterRemote = false;
 
@@ -184,8 +185,8 @@ public class BoardState {
             FileWriter fw = new FileWriter(service.filesDir + "/" + WIFI_JSON);
             fw.write(wifiSettings.toString());
             fw.close();
-            service.boardState.SSID = wifiSettings.getString("SSID");
-            service.boardState.password = wifiSettings.getString("password");
+            SSID = wifiSettings.getString("SSID");
+            password = wifiSettings.getString("password");
         } catch (JSONException e) {
             e(e.getMessage());
             return false;
@@ -213,8 +214,8 @@ public class BoardState {
             d("contents of wifi.json: " + sb.toString());
             JSONObject j = new JSONObject(sb.toString());
 
-            service.boardState.SSID = j.getString("SSID");
-            service.boardState.password = j.getString("password");
+            SSID = j.getString("SSID");
+            password = j.getString("password");
 
         } catch (Throwable e) {
             e(e.getMessage());

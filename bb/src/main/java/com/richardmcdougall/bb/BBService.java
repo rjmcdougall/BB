@@ -86,16 +86,15 @@ public class BBService extends Service {
 
             super.onCreate();
 
+            l("onCreate");
+
             InitClock();
-
             context = getApplicationContext();
-
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            l("BBService: onCreate");
-            l("Manufacturer " + Build.MANUFACTURER);
-            l("Model " +  Build.MODEL  );
-            l("Serial " + Build.SERIAL);
+            l("Build Manufacturer " + Build.MANUFACTURER);
+            l("Build Model " +  Build.MODEL  );
+            l("Build Serial " + Build.SERIAL);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -151,18 +150,23 @@ public class BBService extends Service {
                 }
             });
 
-            boardState = new BoardState(this);
+            allBoards = new AllBoards(this);
 
-            l("BurnerBoard Version " + boardState.version);
-            l("BurnerBoard APK Updated Date " + boardState.apkUpdatedDate);
+            boardState = new BoardState(this);
+            boardState.address = allBoards.getBoardAddress(boardState.BOARD_ID);
+            allBoards.Run();
+
+            l("State Version " + boardState.version);
+            l("State APK Updated Date " + boardState.apkUpdatedDate);
+            l("State Address " + boardState.apkUpdatedDate);
+            l("State SSID " + boardState.SSID);
+            l("State Password " + boardState.password);
+            l("State Mode " + boardState.currentVideoMode);
 
             iotClient = new IoTClient(this);
 
             wifi = new BBWifi(this);
             wifi.Run();
-
-            allBoards = new AllBoards(this);
-            allBoards.Run();
 
             mediaManager = new MediaManager(this );
             mediaManager.Run();
@@ -173,8 +177,8 @@ public class BBService extends Service {
 
             boardVisualization = new BoardVisualization(this );
 
-            Log.d(TAG, "Setting initial visualization mode: " + 1);
-            boardVisualization.setMode(1);
+            Log.d(TAG, "Setting initial visualization mode: " + boardState.currentVideoMode);
+            boardVisualization.setMode(boardState.currentVideoMode);
 
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
@@ -221,7 +225,7 @@ public class BBService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        l("BBService: onStartCommand");
+        l("onStartCommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -230,7 +234,7 @@ public class BBService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        l("BBService: onBind");
+        l("onBind");
         return mBinder;
     }
 
@@ -239,7 +243,7 @@ public class BBService extends Service {
      */
     @Override
     public boolean onUnbind(Intent intent) {
-        l("BBService: onUnbind");
+        l("onUnbind");
         return mAllowRebind;
     }
 
@@ -248,7 +252,7 @@ public class BBService extends Service {
      */
     @Override
     public void onRebind(Intent intent) {
-        l("BBService: onRebind");
+        l("onRebind");
     }
 
     /**
@@ -257,7 +261,7 @@ public class BBService extends Service {
     @Override
     public void onDestroy() {
 
-        l("BBService: onDesonDestroy");
+        l("onDesonDestroy");
         voice.shutdown();
     }
 
