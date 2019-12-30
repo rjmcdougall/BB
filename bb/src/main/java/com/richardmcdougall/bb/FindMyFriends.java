@@ -137,8 +137,6 @@ public class FindMyFriends {
     private void broadcastGPSpacket(int lat, int lon, int elev, int iMAccurate,
                                     int heading, int speed) {
 
-        int batt = service.burnerBoard.getBattery();
-
         // Check GPS data is not stale
         int len = 2 * 4 + 1 + RFUtil.kMagicNumberLen + 1;
         ByteArrayOutputStream radioPacket = new ByteArrayOutputStream();
@@ -158,7 +156,7 @@ public class FindMyFriends {
         radioPacket.write((lon >> 8) & 0xFF);
         radioPacket.write((lon >> 16) & 0xFF);
         radioPacket.write((lon >> 24) & 0xFF);
-        radioPacket.write(batt & 0xFF);
+        radioPacket.write(service.boardState.batteryLevel & 0xFF);
         radioPacket.write((0) & 0xFF); // spare
         radioPacket.write((0) & 0xFF); // spare
         radioPacket.write((0) & 0xFF); // spare
@@ -171,7 +169,7 @@ public class FindMyFriends {
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
         updateBoardLocations(mBoardAddress, 999,
-                lat / 1000000.0, lon / 1000000.0, batt, radioPacket.toByteArray());
+                lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
     }
 
 

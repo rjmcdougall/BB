@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb;
 
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
@@ -11,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Date;
 
 public class BoardState {
 
@@ -34,6 +37,9 @@ public class BoardState {
     private BBService service = null;
     public boolean isGTFO = false;
     public boolean blockMaster = false;
+    public int version = 0;
+    public Date apkUpdatedDate;
+    public int batteryLevel = -1;
 
     private void d(String logMsg) {
         if (DebugConfigs.DEBUG_BOARD_STATE) {
@@ -47,6 +53,15 @@ public class BoardState {
 
     BoardState(BBService service) {
         this.service = service;
+
+        try{
+            PackageInfo pinfo = service.context.getPackageManager().getPackageInfo(service.context.getPackageName(), 0);
+            version = pinfo.versionCode;
+            apkUpdatedDate = new Date(pinfo.lastUpdateTime);
+        }
+        catch(PackageManager.NameNotFoundException e){
+            e(e.getMessage());
+        }
 
         String serial = Build.SERIAL;
         String publicName = "";

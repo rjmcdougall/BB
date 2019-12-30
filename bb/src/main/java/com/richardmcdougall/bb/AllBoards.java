@@ -150,7 +150,7 @@ public class AllBoards {
     }
 
     public void e(String logMsg) {
-            Log.e(TAG, logMsg);
+        Log.e(TAG, logMsg);
     }
 
     String getPublicName(String deviceID) {

@@ -91,7 +91,7 @@ public class BatterySupervisor {
             boolean announce = false;
             powerStates powerState = powerStates.STATE_DISPLAYING;
 
-            int level = service.burnerBoard.getBattery();
+            int level = service.boardState.batteryLevel;
             int current = service.burnerBoard.getBatteryCurrent();
             int currentInstant = service.burnerBoard.getBatteryCurrentInstant();
             int voltage = service.burnerBoard.getBatteryVoltage();

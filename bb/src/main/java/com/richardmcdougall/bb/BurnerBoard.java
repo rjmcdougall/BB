@@ -69,7 +69,6 @@ public class BurnerBoard {
     public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
     public int [] mBatteryStats = new int[16];
-    public int mBatteryLevel = -1;
     public static int [][][] pixel2OffsetTable = new int[255][255][3];
     public int mDimmerLevel = 255;
 
@@ -123,11 +122,6 @@ public class BurnerBoard {
 
         void BoardMode(int mode);
     }
-
-    public int getBattery() {
-        return mBatteryLevel;
-    }
-
 
     // Convert from xy to buffer memory
     int pixel2OffsetCalc(int x, int y, int rgb) {

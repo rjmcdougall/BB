@@ -711,10 +711,10 @@ public class BluetoothCommands {
             state.put("acn", service.musicPlayer.getRadioChannel() - 1);
             state.put("vcn", service.boardVisualization.getMode() - 1);
             state.put("v", service.musicPlayer.getBoardVolumePercent());
-            state.put("b", service.burnerBoard.getBattery());
+            state.put("b", service.boardState.batteryLevel);
             state.put("am", service.boardState.masterRemote);
-            state.put("apkd", service.apkUpdatedDate.toString());
-            state.put("apkv", service.version);
+            state.put("apkd", service.boardState.apkUpdatedDate.toString());
+            state.put("apkv", service.boardState.version);
             state.put("ip", service.wifi.ipAddress);
             state.put("g", service.boardState.isGTFO);
             state.put("bm" , service.boardState.blockMaster);

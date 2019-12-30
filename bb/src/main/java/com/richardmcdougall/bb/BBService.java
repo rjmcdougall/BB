@@ -35,8 +35,6 @@ public class BBService extends Service {
     public Context context;
     public long serverTimeOffset = 0;
     public long serverRTT = 0;
-    public int version = 0;
-    public Date apkUpdatedDate;
     public AllBoards allBoards = null;
     public MusicPlayer musicPlayer = null;
     public RF radio = null;
@@ -93,18 +91,12 @@ public class BBService extends Service {
 
             context = getApplicationContext();
 
-            PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            version = pinfo.versionCode;
-            apkUpdatedDate = new Date(pinfo.lastUpdateTime);
-
             filesDir = context.getFilesDir().getAbsolutePath();
 
             l("BBService: onCreate");
             l("Manufacturer " + Build.MANUFACTURER);
             l("Model " +  Build.MODEL  );
             l("Serial " + Build.SERIAL);
-            l("BurnerBoard Version " + version);
-            l("BurnerBoard APK Updated Date " + apkUpdatedDate);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -161,6 +153,9 @@ public class BBService extends Service {
             });
 
             boardState = new BoardState(this);
+
+            l("BurnerBoard Version " + boardState.version);
+            l("BurnerBoard APK Updated Date " + boardState.apkUpdatedDate);
 
             iotClient = new IoTClient(this);
 

@@ -83,11 +83,11 @@ public class BurnerBoardClassic extends BurnerBoard {
                 mBatteryStats[i] = mListener.readIntArg();
             }
             if (mBatteryStats[1] != -1) {
-                mBatteryLevel = mBatteryStats[1];
+                service.boardState.batteryLevel = mBatteryStats[1];
             } else {
-                mBatteryLevel = 100;
+                service.boardState.batteryLevel = 100;
             }
-            l("getBatteryLevel: " + mBatteryLevel);
+            l("getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 

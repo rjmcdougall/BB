@@ -200,7 +200,7 @@ public class DownloadManager {
             String DirectoryURL = DIRECTORY_URL + service.boardState.BOARD_ID;
 
 
-            DirectoryURL = encodeURL(DirectoryURL) + DOWNLOAD_DIRECTORY_URL_PATH + service.version;
+            DirectoryURL = encodeURL(DirectoryURL) + DOWNLOAD_DIRECTORY_URL_PATH + service.boardState.version;
             boolean returnValue = true;
 
             long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, service.filesDir);
