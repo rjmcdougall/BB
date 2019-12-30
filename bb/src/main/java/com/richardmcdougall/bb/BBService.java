@@ -214,8 +214,12 @@ public class BBService extends Service {
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
-            l(e.toString());
+            e(e.getMessage());
         }
+    }
+
+    public void e(String logMsg) {
+        Log.e(TAG, logMsg);
     }
 
     /**

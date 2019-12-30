@@ -8,7 +8,6 @@ public class DebugConfigs {
     // in embedded mode, so conserve the resources.
     // works with BoardType classic and azul to set the screen grid for video display
     public static boolean DISPLAY_VIDEO_IN_APP = false;
-    public static final BurnerBoardUtil.BoardType EMULATING_VISUAL = BurnerBoardUtil.BoardType.azul;
 
     // lots of logging for decoder. LOTS
     public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;
@@ -28,9 +27,10 @@ public class DebugConfigs {
     public static final boolean DEBUG_BOARD_STATE = false;
 
     // name the board as a testing overriden.
-    public static final String OVERRIDE_PUBLIC_NAME = "";
+    public static final String OVERRIDE_PUBLIC_NAME = "sexy";
 
-    // Switch any of these to 'true' to force identification as that board type.
+    //  force identification as that board type.
+    //if you want to debug in the app you need to set this to classic or azul
     public static final BurnerBoardUtil.BoardType OVERRIDE_BOARD_TYPE = null;
 
     //bypass the per-second music sync because of debug perf issues

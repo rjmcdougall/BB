@@ -26,6 +26,8 @@ import java.io.PipedOutputStream;
 
 public class Gps {
 
+    // This enabled GPS Time being polled
+    public static final boolean ENABLE_GPS_TIME = true;
     private static final String TAG = "BB.Gps";
     public GpsEvents mGpsCallback = null;
     private PipedInputStream mSentenceInput;
@@ -53,86 +55,63 @@ public class Gps {
             mSentenceInput = new PipedInputStream();
             mSentenceOutput = new PipedOutputStream(mSentenceInput);
         } catch (Exception e) {
-            l("Gps pipe failed: " + e.getMessage());
+            e("Pipe failed: " + e.getMessage());
         }
         try {
             mSR = new SentenceReader(mSentenceInput);
             mSR.setExceptionListener(new ExceptionListener() {
                 public void onException(Exception e) {
-                    l("exc: " + e.getMessage() + " " + e.getStackTrace());
+                    e("Exception Listener " + e.getMessage() + " " + e.getStackTrace());
                 }
             });
             provider = new PositionProvider(mSR);
             provider.addListener(new PositionListener() {
                 public void providerUpdate(PositionEvent evt) {
-                    /* XXX TODO This event can fail with the following stack trace. However, that exception is handled
-                       in the SentenceReader class, and not thrown up further. So it's hard to diagnose which part of the
-                       calls underneath cause the actual failure -jib
-                        07-13 19:05:40.594   690   911 W SentenceReader: Exception caught from SentenceListener
-                        07-13 19:05:40.594   690   911 W SentenceReader: java.lang.IllegalArgumentException: Year must be two or four digit value
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.nmea.util.Date.setYear(Date.java:191)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.nmea.util.Date.<init>(Date.java:70)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.nmea.parser.RMCParser.getDate(RMCParser.java:93)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.provider.PositionProvider.createProviderEvent(PositionProvider.java:91)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.provider.PositionProvider.createProviderEvent(PositionProvider.java:57)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.provider.AbstractProvider.sentenceRead(AbstractProvider.java:217)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.nmea.io.SentenceReader.fireSentenceEvent(SentenceReader.java:206)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at net.sf.marineapi.nmea.io.AbstractDataReader.run(AbstractDataReader.java:90)
-                        07-13 19:05:40.594   690   911 W SentenceReader: 	at java.lang.Thread.run(Thread.java:764)
-                     */
                     try {
                         // do something with the data..
                         d("TPV: " + evt.toString());
-                        /* XXX So, as long as we look up the year BEFORE letting the callback do it's work, I have not
-                           been able to reproduce the above stacktrace. I can't explain why this would be a workaround,
-                           but, choose your battles :( For now, let's leave the debug statement in place -jib
-                        */
-                        d("GPS Date Year: " + evt.getDate().getYear());
-
+                        int i = evt.getDate().getYear(); // leave this here DKW
                         if (mGpsCallback != null) {
                             mGpsCallback.positionEvent(evt);
                         }
                         Position pos = evt.getPosition();
                         if (pos != null) {
-                            double lat = pos.getLatitude();
-                            double lon = pos.getLongitude();
                             Intent in = new Intent(ACTION.BB_LOCATION);
                             in.putExtra("lat", evt.getPosition().getLatitude());
                             in.putExtra("lon", evt.getPosition().getLatitude());
                             LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
                         }
                     } catch (Exception e) {
-                        l("Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
+                        e("Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
                     }
                 }
             });
 
-            /* XXX TODO this is a RMC experiment, currently not functional; feature flagged -jib */
-            if (BurnerBoardUtil.fEnableGpsTime) {
+            if (ENABLE_GPS_TIME) {
                 l( "Enabling GPS Time collection");
                 mSR.addSentenceListener(new SentenceListener() {
                     @Override
                     public void readingPaused() {
-                        l("readingPaused");
+                        l("Sentence Listener Paused");
                     }
 
                     @Override
                     public void readingStarted() {
-                        l("readingStarted");
+                        l("Sentence Listener Started");
                     }
 
                     @Override
                     public void readingStopped() {
-                        l("readingStopped");
+                        l("Sentence Listener Stopped");
                     }
 
                     @Override
                     public void sentenceRead(SentenceEvent event) {
                         // here we receive each sentence read from the port
-                        l( "Sentence read: " + event.getSentence().toString());
+                        d( "Sentence read: " + event.getSentence().toString());
                         GGASentence s = (GGASentence) event.getSentence();
                         if (s.isValid()) {
-                            l("Sat Time: " + s.getTime().toString());
+                            d("Sat Time: " + s.getTime().toString());
                             if (mGpsCallback != null) {
                                 mGpsCallback.timeEvent(s.getTime());
                             }
@@ -157,7 +136,7 @@ public class Gps {
             mSentenceOutput.write((str + "\n").getBytes());
             mSentenceOutput.flush();
         } catch (Exception e) {
-            l("Gps addStr failed: " + e.getMessage());
+            e("Gps addStr failed: " + e.getMessage());
         }
     }
 

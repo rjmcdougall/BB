@@ -30,9 +30,6 @@ public class BurnerBoardUtil {
         }
     }
 
-    // This enabled GPS Time being polled
-    public static final boolean fEnableGpsTime = false;
-
 
     // Hash String as 32-bit
     public static long hashTrackName(String name) {
