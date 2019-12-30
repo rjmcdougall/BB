@@ -23,6 +23,7 @@ android {
         multiDexEnabled true
 
 
+
     }
     /* The internet tells me this error:
 
@@ -46,6 +47,10 @@ android {
     productFlavors {
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     packagingOptions {
         exclude 'META-INF/NOTICE' // will not include NOTICE file
         exclude 'META-INF/LICENSE' // will not include LICENSE file
@@ -60,6 +65,13 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'hardware/'
+            //jniLibs.srcDirs 'libs/'
+        }
     }
 }
 

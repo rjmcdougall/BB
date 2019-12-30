@@ -2,5 +2,13 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Android-BLE-Library" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/arduino/libraries/RFM69" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/arduino/libraries/TeensyTransfer" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/arduino/libraries/TinyGPS" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/arduino/libraries/i2c_t3" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/hardware/feather/uf2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/hardware/feather/uf2-samd21" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/react-native-ble-manager" vcs="Git" />
   </component>
 </project>

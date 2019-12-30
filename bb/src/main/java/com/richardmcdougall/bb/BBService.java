@@ -26,6 +26,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.ByteOrder;
@@ -127,6 +128,7 @@ public class BBService extends Service {
     public BBWifi wifi = null;
     int currentRadioChannel = 1;
     long phoneModelAudioLatency = 0;
+    private CANBus mCANBus;
 
 
     TextToSpeech voice;
@@ -198,10 +200,21 @@ public class BBService extends Service {
     boolean mEnableWifiReconnect = true;
     int mWifiReconnectEveryNSeconds = 60;
 
+    private Process mProcess;
+
     @Override
     public void onCreate() {
 
         super.onCreate();
+
+        try {
+            mProcess = Runtime.getRuntime().exec("su");
+            DataOutputStream os = new DataOutputStream(mProcess.getOutputStream());
+            os.writeBytes("echo" + 176 + " > /data/misc/rmc\n");
+            os.flush();
+        } catch (Exception e) {
+            System.out.println("BB.BBService: Error in SU process " + e.getMessage());
+        }
 
         IntentFilter ufilter = new IntentFilter();
         ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
@@ -225,6 +238,12 @@ public class BBService extends Service {
         l("BBService: onCreate");
         l("I am " + Build.MANUFACTURER + " / " + Build.MODEL + " / " + Build.SERIAL);
 
+        try {
+            mCANBus = new CANBus(this, mContext);
+            mCANBus.start();
+        } catch (Exception e) {
+            l("Cannot start CANBUS");
+        }
 
         if (iotClient == null) {
             iotClient = new IoTClient(mContext);

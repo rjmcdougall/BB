@@ -6,7 +6,6 @@
       <module fileurl="file://$PROJECT_DIR$/bb/bb.iml" filepath="$PROJECT_DIR$/bb/bb.iml" />
       <module fileurl="file://$PROJECT_DIR$/bbandroid/bbandroid.iml" filepath="$PROJECT_DIR$/bbandroid/bbandroid.iml" />
       <module fileurl="file://$PROJECT_DIR$/bbinstaller/bbinstaller.iml" filepath="$PROJECT_DIR$/bbinstaller/bbinstaller.iml" />
-      <module fileurl="file://$PROJECT_DIR$/bbmonitor/bbmonitor.iml" filepath="$PROJECT_DIR$/bbmonitor/bbmonitor.iml" />
     </modules>
   </component>
 </project>
