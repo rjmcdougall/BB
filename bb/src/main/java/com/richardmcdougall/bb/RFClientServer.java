@@ -51,7 +51,6 @@ public class RFClientServer {
     int kMasterBroadcastsLeft = 0;
 
     private int mServerAddress = 0;
-    private int mBoardAddress;
     private PipedInputStream mReceivedPacketInput;
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
@@ -218,10 +217,6 @@ public class RFClientServer {
     // Send time-sync reply to specific client
     void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
-        if(mBoardAddress<=0)
-            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
-        l("I'm address " + mBoardAddress);
-
         d("Server reply : " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(toClient) + "(" + toClient + ")");
@@ -233,7 +228,7 @@ public class RFClientServer {
         }
 
         // Address of this server (just put this in now?)
-        int16ToPacket(replyPacket,mBoardAddress);
+        int16ToPacket(replyPacket,service.boardState.address);
 
         // Address this packet is for
         int16ToPacket(replyPacket, toClient);
@@ -273,9 +268,6 @@ public class RFClientServer {
     void processReceive(byte [] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
-        if(mBoardAddress <= 0)
-            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
-
         int recvMagicNumber = RFUtil.magicNumberToInt(
                 new int[] { bytes.read(), bytes.read()});
 
@@ -285,7 +277,7 @@ public class RFClientServer {
             int serverAddress = (int)int16FromPacket(bytes);
             clientAddress = (int)int16FromPacket(bytes);
 
-            if (clientAddress == mBoardAddress) {
+            if (clientAddress == service.boardState.address) {
                 d("BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
                 d("BB Sync Packet from Server " + serverAddress +
                         " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
@@ -361,12 +353,9 @@ public class RFClientServer {
 
     private void processSyncResponse(byte[] recvPacket) {
 
-        if(mBoardAddress<=0)
-            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
-
         d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
-                " -> " + service.allBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
         long packetHeader = int16FromPacket(packet);
@@ -438,9 +427,6 @@ public class RFClientServer {
 
         mPrefsEditor = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE).edit();
 
-        if(mBoardAddress<=0)
-            mBoardAddress = service.allBoards.getBoardAddress(service.boardState.BOARD_ID);
-
         while (true) {
 
             /*
@@ -478,7 +464,7 @@ public class RFClientServer {
             if (amServer() == false) {
                 try {
 
-                    d("I'm a client " + service.allBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")");
+                    d("I'm a client " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -487,7 +473,7 @@ public class RFClientServer {
                     }
 
                     // My Client Address
-                    int16ToPacket(clientPacket, mBoardAddress);
+                    int16ToPacket(clientPacket, service.boardState.address);
                     // My timeclock
                     int64ToPacket(clientPacket, service.GetCurrentClock());
                     // Send latency so server knows how much to delay sync'ed start
@@ -498,7 +484,7 @@ public class RFClientServer {
                     // Broadcast, but only server will pick up
                     service.radio.broadcast(clientPacket.toByteArray());
                     d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
-                            service.allBoards.boardAddressToName(mBoardAddress) + "(" + mBoardAddress + ")" +
+                            service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
                     " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
                 } catch(Throwable e) {
@@ -517,8 +503,8 @@ public class RFClientServer {
                 }
 
                 // Address of this server (just put this in now?)
-                replyPacket.write(mBoardAddress & 0xFF);
-                replyPacket.write((mBoardAddress >> 8) & 0xFF);
+                replyPacket.write(service.boardState.address & 0xFF);
+                replyPacket.write((service.boardState.address >> 8) & 0xFF);
 
                 // Broadcast - client will filter for it's address
                 service.radio.broadcast(replyPacket.toByteArray());
@@ -599,7 +585,7 @@ public class RFClientServer {
             // Vote for myself
             // Always vote for myself.
             // I'll get knocked out if there is a higher ranked address with votes
-            incVote(mBoardAddress, kIncMyVote);
+            incVote(service.boardState.address, kIncMyVote);
             mLastVote = SystemClock.elapsedRealtime();
         }
 
@@ -644,7 +630,7 @@ public class RFClientServer {
     // For now; elect the time leader as the server
     // Todo: make it a user-pref driven by a physical switch and the user-app.
     public boolean amServer() {
-        if (mBoardAddress == mServerAddress) {
+        if (service.boardState.address == mServerAddress) {
             // I'm the server!!
             return true;
         }
@@ -658,7 +644,7 @@ public class RFClientServer {
         if (service.radio == null) {
             return;
         }
-        l("Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + mBoardAddress);
+        l("Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + service.boardState.address);
 
         ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -667,7 +653,7 @@ public class RFClientServer {
         }
 
         // Client
-        int16ToPacket(clientPacket, mBoardAddress);
+        int16ToPacket(clientPacket, service.boardState.address);
         // Command
         int16ToPacket(clientPacket, cmd);
         // Value

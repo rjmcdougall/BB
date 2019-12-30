@@ -30,9 +30,9 @@ public class BoardState {
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
     public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
-    public static String BOARD_ID = "";
-    public static String DEVICE_ID = "";
-    public static int address = -1;
+    public String BOARD_ID = "";
+    public String DEVICE_ID = "";
+    public int address = -1;
 
     public boolean masterRemote = false;
 

@@ -44,7 +44,6 @@ public class FindMyFriends {
     private int mThereAccurate;
     private long mLastSend = 0;
     private long mLastRecv = 0;
-    private int mBoardAddress = 0;
     private byte[] mLastHeardLocation;
 
     public FindMyFriends(BBService service) {
@@ -75,15 +74,10 @@ public class FindMyFriends {
                 mAlt = (int)(pos.getAltitude() * 1000000);
                 long sinceLastFix = System.currentTimeMillis() - mLastFix;
 
-                // since the address is loaded from a JSON you may get a race condition
-                // so try to find the address of this board each time until you do.
-                if(mBoardAddress<=0)
-                    mBoardAddress = service.allBoards.getBoardAddress(BoardState.BOARD_ID);
-
                 if (sinceLastFix > kMaxFixAge) {
                     d("FMF: sending GPS update");
                     service.iotClient.sendUpdate("bbevent", "[" +
-                            service.allBoards.boardAddressToName(mBoardAddress) + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
+                            service.boardState.BOARD_ID + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
                     mLastFix = System.currentTimeMillis();
 
@@ -142,8 +136,8 @@ public class FindMyFriends {
             radioPacket.write(RFUtil.kGPSMagicNumber[i]);
         }
 
-        radioPacket.write(mBoardAddress & 0xFF);
-        radioPacket.write((mBoardAddress >> 8) & 0xFF);
+        radioPacket.write(service.boardState.address & 0xFF);
+        radioPacket.write((service.boardState.address >> 8) & 0xFF);
         radioPacket.write(krepeatedBy);
         radioPacket.write(lat & 0xFF);
         radioPacket.write((lat >> 8) & 0xFF);
@@ -165,7 +159,7 @@ public class FindMyFriends {
         service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
         d("Sent packet...");
-        updateBoardLocations(mBoardAddress, 999,
+        updateBoardLocations(service.boardState.address, 999,
                 lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
     }
 
