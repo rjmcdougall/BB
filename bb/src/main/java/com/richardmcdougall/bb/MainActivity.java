@@ -147,42 +147,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     }
 
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionLights(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, BBIntentService.class);
-        intent.setAction(ACTION_LIGHTS);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionMusic(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, BBIntentService.class);
-        intent.setAction(ACTION_MUSIC);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-
-    //private Handler pHandler = new Handler();
-
-    //public String bleStatus = "hello BLE";
-
-
     // function to append a string to a TextView as a new line
     // and scroll to the bottom if needed
     private void l(String msg) {
