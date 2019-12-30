@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -84,6 +86,29 @@ public class BoardState {
         }
 
         BOARD_ID = (publicName == null || publicName.equals("")) ? DEVICE_ID : publicName;
+    }
+
+    public JSONObject MinimizedState() {
+        JSONObject state = new JSONObject();
+        try {
+            state.put("acn",currentRadioChannel - 1);
+            state.put("vcn",currentVideoMode - 1);
+            state.put("v", service.musicPlayer.getBoardVolumePercent());
+            state.put("b", batteryLevel);
+            state.put("am", masterRemote);
+            state.put("apkd", apkUpdatedDate.toString());
+            state.put("apkv", version);
+            state.put("ip", service.wifi.ipAddress);
+            state.put("g", isGTFO);
+            state.put("bm" , blockMaster);
+            state.put("s", service.wifi.getConnectedSSID());
+            state.put("c", service.wifi.SSID);
+            state.put("p", service.wifi.password);
+
+        } catch (Exception e) {
+            e("Could not get state: " + e.getMessage());
+        }
+        return state;
     }
 
     public boolean setPublicName(String name) {

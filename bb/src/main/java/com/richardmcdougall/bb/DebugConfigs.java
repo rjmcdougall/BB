@@ -25,6 +25,7 @@ public class DebugConfigs {
     public static final boolean DEBUG_BATTERY_SUPERVISOR = false;
     public static final boolean DEBUG_WIFI = false;
     public static final boolean DEBUG_BOARD_STATE = false;
+    public static final boolean DEBUG_BLUETOOTH_COMMANDS = false;
 
     // name the board as a testing overriden.
     public static final String OVERRIDE_PUBLIC_NAME = "";

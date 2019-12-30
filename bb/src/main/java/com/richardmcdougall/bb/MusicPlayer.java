@@ -208,7 +208,12 @@ public class MusicPlayer implements Runnable {
     }
 
     public void setBoardVolume(int v) {
-        setAndroidVolumePercent(v);
+        if (v >= 0 && v <= 100) {
+            setAndroidVolumePercent(v);
+        }
+        else {
+            e("Invalid Volume Percent: " + v);
+        }
     }
 
     public int getAndroidVolumePercent() {
