@@ -5,7 +5,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -16,7 +15,7 @@ import android.util.Log;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.Date;
+
 import android.os.Build;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
@@ -49,7 +48,7 @@ public class BBService extends Service {
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
-    public DownloadManager dlManager;
+    public MediaManager mediaManager;
     private Thread musicPlayerThread;
     public boolean voiceAnnouncements = false;
     public BBWifi wifi = null;
@@ -165,8 +164,8 @@ public class BBService extends Service {
             allBoards = new AllBoards(this);
             allBoards.Run();
 
-            dlManager = new DownloadManager(this );
-            dlManager.Run();
+            mediaManager = new MediaManager(this );
+            mediaManager.Run();
 
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.setText90(boardState.BOARD_ID, 5000);

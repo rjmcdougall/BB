@@ -716,7 +716,7 @@ public class RFClientServer {
             switch (cmd) {
                 case RFUtil.REMOTE_AUDIO_TRACK_CODE:
 
-                    for (int i = 1; i <= service.dlManager.GetTotalAudio(); i++) {
+                    for (int i = 1; i <= service.mediaManager.GetTotalAudio(); i++) {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
@@ -733,8 +733,8 @@ public class RFClientServer {
                     break;
 
                 case RFUtil.REMOTE_VIDEO_TRACK_CODE:
-                    for (int i = 1; i <= service.dlManager.GetTotalVideo(); i++) {
-                        String name = service.dlManager.GetVideoFileLocalName(i - 1);
+                    for (int i = 1; i <= service.mediaManager.GetTotalVideo(); i++) {
+                        String name = service.mediaManager.GetVideoFileLocalName(i - 1);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
                             l("Remote Video " + service.boardState.currentVideoMode + " -> " + i);

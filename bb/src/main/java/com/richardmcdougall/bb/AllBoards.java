@@ -16,7 +16,7 @@ public class AllBoards {
     private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
 
     private BBService service = null;
-    public DownloadManager.OnDownloadProgressType onProgressCallback = null;
+    public MediaManager.OnDownloadProgressType onProgressCallback = null;
     public JSONArray dataBoards;
 
     public AllBoards(BBService service) {
@@ -119,9 +119,7 @@ public class AllBoards {
 
         try {
 
-            if (service.dlManager == null) {
-                d("Could not find board color data");
-            } else if ( dataBoards == null) {
+            if ( dataBoards == null) {
                 d("Could not find board color data");
             } else {
                 for (int i = 0; i <  dataBoards.length(); i++) {

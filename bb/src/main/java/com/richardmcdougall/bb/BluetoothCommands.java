@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -66,13 +65,13 @@ public class BluetoothCommands {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = null;
-        if (service.dlManager.dataDirectory == null) {
+        if (service.mediaManager.dataDirectory == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                 audio = new JSONArray(service.dlManager.dataDirectory.getJSONArray("audio").toString()) ;
+                 audio = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("audio").toString()) ;
                 for (int i = 0; i < audio.length(); i++) {
                     JSONObject a = audio.getJSONObject(i);
                     if(a.has("URL"))  a.remove("URL");
@@ -93,13 +92,13 @@ public class BluetoothCommands {
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
          JSONArray video = null;
 
-        if (service.dlManager.dataDirectory == null) {
+        if (service.mediaManager.dataDirectory == null) {
             l("Could not get media directory (null)");
         }
         else {
             try {
 
-                video = new JSONArray(service.dlManager.dataDirectory.getJSONArray("video").toString());
+                video = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("video").toString());
                 for (int i = 0; i < video.length(); i++) {
                     JSONObject v = video.getJSONObject(i);
                     if(v.has("URL")) v.remove("URL");

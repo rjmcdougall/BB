@@ -7,12 +7,10 @@ import com.richardmcdougall.bb.visualization.Mickey;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.*;
 import com.richardmcdougall.bb.visualization.Visualization;
-import android.app.Activity;
-import android.content.Intent;
+
 import android.media.audiofx.Visualizer;
 
 import android.speech.tts.TextToSpeech;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import org.json.JSONObject;
 
@@ -149,10 +147,10 @@ public class BoardVisualization {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = service.boardState.currentVideoMode + 1;
-        if (next > service.dlManager.GetTotalVideo()) {
+        if (next > service.mediaManager.GetTotalVideo()) {
             next = 1;
         }
-        l("Setting Video to: " + service.dlManager.GetVideoFileLocalName(next - 1));
+        l("Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
     }
 
@@ -344,7 +342,7 @@ public class BoardVisualization {
 
         l("Starting board display thread...");
 
-        int nVideos = service.dlManager.GetTotalVideo();
+        int nVideos = service.mediaManager.GetTotalVideo();
 
         while (true) {
 
@@ -432,17 +430,17 @@ public class BoardVisualization {
                 return mFrameRate;
             }
 
-            if(service.burnerBoard.service.dlManager == null){
+            if(service.mediaManager == null){
                 return mFrameRate;
             }
 
             // TODO: check perf overhead of checking this every frame
-            JSONObject videos = service.dlManager.GetVideo(mode);
+            JSONObject videos = service.mediaManager.GetVideo(mode);
             if (videos == null) {
                 return mFrameRate;
             }
             if(videos.has("algorithm")){
-                String algorithm = service.dlManager.GetAlgorithm(mode);
+                String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
                 if (BoardState.kIsRPI) { // nano is fine
@@ -534,7 +532,7 @@ public class BoardVisualization {
             service.boardState.currentVideoMode = mode;
         }
 
-        int maxModes = service.dlManager.GetTotalVideo();
+        int maxModes = service.mediaManager.GetTotalVideo();
         if (service.boardState.currentVideoMode > maxModes)
             service.boardState.currentVideoMode = 1;
         else if (service.boardState.currentVideoMode < 1)
@@ -543,7 +541,7 @@ public class BoardVisualization {
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-            String name = service.dlManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
+            String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
             l("Sending video remote for video " + name);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }

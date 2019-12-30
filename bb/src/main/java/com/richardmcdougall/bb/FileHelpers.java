@@ -47,7 +47,7 @@ public class FileHelpers {
         }
     }
 
-    public static long DownloadURL(String URLString, String filename, String progressName, DownloadManager.OnDownloadProgressType onProgressCallback, String filesDir) {
+    public static long DownloadURL(String URLString, String filename, String progressName, MediaManager.OnDownloadProgressType onProgressCallback, String filesDir) {
         try {
             URL url = new URL(URLString);
 

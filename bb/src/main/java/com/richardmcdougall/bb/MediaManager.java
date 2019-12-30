@@ -12,8 +12,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.net.URLEncoder;
 
-public class DownloadManager {
-    private static final String TAG = "DownloadManager";
+public class MediaManager {
+    private static final String TAG = "MediaManager";
     private static final String DIRECTORY_JSON_FILENAME = "directory.json";
     private static final String DIRECTORY_JSON_TMP_FILENAME = "directory.json.tmp";
     private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
@@ -40,10 +40,10 @@ public class DownloadManager {
 
     public OnDownloadProgressType onProgressCallback = null;
 
-    DownloadManager(BBService service) {
+    MediaManager(BBService service) {
         this.service = service;
 
-        this.onProgressCallback = new DownloadManager.OnDownloadProgressType() {
+        this.onProgressCallback = new MediaManager.OnDownloadProgressType() {
             long lastTextTime = 0;
 
             public void onProgress(String file, long fileSize, long bytesDownloaded) {
@@ -74,7 +74,7 @@ public class DownloadManager {
     void Run() {
         Thread t = new Thread(new Runnable() {
             public void run() {
-                Thread.currentThread().setName("DownloadManager");
+                Thread.currentThread().setName("MediaManager");
                 StartDownloadManager();
             }
         });
