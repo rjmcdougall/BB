@@ -87,18 +87,6 @@ public class RF {
         l("GPS Constructor Completed");
     }
 
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
-    public static String bytesToHex(byte[] bytes) {
-
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-
     public interface radioEvents {
         void receivePacket(byte [] bytes, int sigStrength);
         void GPSevent(net.sf.marineapi.provider.event.PositionEvent gps);
@@ -114,7 +102,7 @@ public class RF {
     }
 
     public void broadcast(byte[] packet) {
-        d("Radio Sending Packet: len(" + packet.length + "), data: " + bytesToHex(packet));
+        d("Radio Sending Packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
         if (mListener != null) {
             synchronized (mSerialConn) {
                 mListener.sendCmdStart(5);
