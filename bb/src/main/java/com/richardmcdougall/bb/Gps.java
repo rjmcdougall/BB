@@ -27,7 +27,7 @@ import java.io.PipedOutputStream;
 public class Gps {
 
     // This enabled GPS Time being polled
-    public static final boolean ENABLE_GPS_TIME = true;
+    public static final boolean ENABLE_GPS_TIME = false;
     private static final String TAG = "BB.Gps";
     public GpsEvents mGpsCallback = null;
     private PipedInputStream mSentenceInput;

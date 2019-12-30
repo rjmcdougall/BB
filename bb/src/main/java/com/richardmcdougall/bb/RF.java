@@ -76,10 +76,10 @@ public class RF {
             });
         }
         catch(Exception e){
-            l(e.getMessage());
+            e(e.getMessage());
         }
 
-        l("GPS Constructor Completed");
+        d("GPS Constructor Completed");
     }
 
     public interface radioEvents {
@@ -114,13 +114,13 @@ public class RF {
         }
     }
 
-    public void l(String s) {
-        Log.v(TAG, s);
+    public void e(String s) {
+        Log.e(TAG, s);
         service.sendLogMsg(s);
     }
 
     private void onDeviceStateChange() {
-        l("RF: onDeviceStateChange()");
+        d("RF: onDeviceStateChange()");
         stopIoManager();
         if (sPort != null) {
             startIoManager();
@@ -130,9 +130,9 @@ public class RF {
     private boolean checkUsbDevice(UsbDevice device) {
         int vid = device.getVendorId();
         int pid = device.getProductId();
-        l("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
+        d("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
         if ((pid == 0x800B) && (vid == 0x239A)) {
-            l("Found Adafruit RADIO module");
+            d("Found Adafruit RADIO module");
             return true;
         }
         /*
@@ -145,10 +145,10 @@ public class RF {
     }
 
     public void initUsb() {
-        l("RF: initUsb()");
+        d("RF: initUsb()");
 
         if (mUsbDevice != null) {
-            l("initUsb: already have a device");
+            d("initUsb: already have a device");
             return;
         }
 
@@ -158,13 +158,13 @@ public class RF {
         List<UsbSerialDriver> availableDrivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
         if (availableDrivers.isEmpty()) {
-            l("USB: No USB Devices");
+            d("USB: No USB Devices");
             return;
         }
 
         // Find the Radio device by pid/vid
         mUsbDevice = null;
-        l("There are " + availableDrivers.size() + " drivers");
+        d("There are " + availableDrivers.size() + " drivers");
         for (int i = 0; i < availableDrivers.size(); i++) {
             mDriver = availableDrivers.get(i);
 
@@ -172,7 +172,7 @@ public class RF {
             mUsbDevice = mDriver.getDevice();
 
             if (checkUsbDevice(mUsbDevice)) {
-                l("found RF");
+                d("found RF");
                 break;
             } else {
                 mUsbDevice = null;
@@ -180,7 +180,7 @@ public class RF {
         }
 
         if (mUsbDevice == null) {
-            l("No Radio device found");
+            d("No Radio device found");
             return;
         }
 
@@ -191,7 +191,7 @@ public class RF {
                 PendingIntent pi = PendingIntent.getBroadcast(service.context, 0, new Intent(GET_USB_PERMISSION), 0);
                 service.context.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
                 mUsbManager.requestPermission(mUsbDevice, pi);
-                l("USB: No Permission");
+                d("USB: No Permission");
             }
             return;
         } else {
@@ -202,15 +202,15 @@ public class RF {
     private void usbConnect(UsbDevice device) {
 
         if (checkUsbDevice(mUsbDevice)) {
-            l("found RF");
+            d("found RF");
         } else {
-            l("not RF");
+            d("not RF");
             return;
         }
 
         UsbDeviceConnection connection = mUsbManager.openDevice(mDriver.getDevice());
         if (connection == null) {
-            l("open device failed");
+            d("open device failed");
             return;
         }
 
@@ -220,16 +220,16 @@ public class RF {
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             sPort.setDTR(true);
         } catch (IOException e) {
-            l("USB: Error setting up device: " + e.getMessage());
+            d("USB: Error setting up device: " + e.getMessage());
             try {
                 sPort.close();
             } catch (IOException e2) {/*ignore*/}
             sPort = null;
-            l(("USB Device Error"));
+            d(("USB Device Error"));
             return;
         }
 
-        l("USB: Connected");
+        d("USB: Connected");
         startIoManager();
     }
 
@@ -238,7 +238,7 @@ public class RF {
         synchronized (mSerialConn) {
             //status.setText("Disconnected");
             if (mSerialIoManager != null) {
-                l("Stopping io manager ..");
+                d("Stopping io manager ..");
                 mSerialIoManager.stop();
                 mSerialIoManager = null;
                 mListener = null;
@@ -251,7 +251,7 @@ public class RF {
                 }
                 sPort = null;
             }
-            l("USB Disconnected");
+            d("USB Disconnected");
 
         }
     }
@@ -260,7 +260,7 @@ public class RF {
 
         synchronized (mSerialConn) {
             if (sPort != null) {
-                l("Starting io manager ..");
+                d("Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
@@ -281,7 +281,7 @@ public class RF {
                         new RF.BBRadioCallbackGPS();
                 mListener.attach(2, gpsCallback);
 
-                l("USB Connected to radio");
+                d("USB Connected to radio");
             }
         }
     }
@@ -337,15 +337,15 @@ public class RF {
         public void onReceive(Context context, Intent intent) {
 
             final String TAG = "mUsbReceiver";
-            l("onReceive entered");
+            d("onReceive entered");
             String action = intent.getAction();
             if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                l("A USB Accessory was detached (" + device + ")");
+                d("A USB Accessory was detached (" + device + ")");
                 if (device != null) {
                     if (mUsbDevice == device) {
-                        l("It's this device, shutting down");
+                        d("It's this device, shutting down");
                         mUsbDevice = null;
                         stopIoManager();
                     }
@@ -353,15 +353,15 @@ public class RF {
             }
             if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                l("USB Accessory attached (" + device + ")");
+                d("USB Accessory attached (" + device + ")");
                 if (mUsbDevice == null) {
-                    l("Calling initUsb to check if we should add this device");
+                    d("Calling initUsb to check if we should add this device");
                     usbConnect(device);;
                 } else {
-                    l("USB already attached");
+                    d("USB already attached");
                 }
             }
-            l("onReceive exited");
+            d("onReceive exited");
         }
     };
 
@@ -373,15 +373,15 @@ public class RF {
             if (intent.getAction().equals(GET_USB_PERMISSION)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    l("USB we got permission");
+                    d("USB we got permission");
                     if (device != null) {
                         usbConnect(device);;
                     } else {
-                        l("USB perm receive device==null");
+                        d("USB perm receive device==null");
                     }
 
                 } else {
-                    l("USB no permission");
+                    d("USB no permission");
                 }
             }
         }

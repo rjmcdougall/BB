@@ -35,7 +35,7 @@ public class DebugConfigs {
     public static final BurnerBoardUtil.BoardType OVERRIDE_BOARD_TYPE = null;
 
     //bypass the per-second music sync because of debug perf issues
-    public static final boolean BYPASS_MUSIC_SYNC = true;
+    public static final boolean BYPASS_MUSIC_SYNC = false;
 
 
 }
