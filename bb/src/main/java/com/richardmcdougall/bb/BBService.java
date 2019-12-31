@@ -162,6 +162,7 @@ public class BBService extends Service {
             l("State SSID " + boardState.SSID);
             l("State Password " + boardState.password);
             l("State Mode " + boardState.currentVideoMode);
+            l("State BOARD_ID " + boardState.BOARD_ID);
 
             iotClient = new IoTClient(this);
 

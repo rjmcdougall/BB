@@ -135,8 +135,10 @@ public class BluetoothLEServer {
     }
 
     public void l(String s) {
-        Log.v(TAG, s);
-        service.sendLogMsg(s);
+        if(DebugConfigs.DEBUG_BLUETOOTH_LE_SERVER) {
+            Log.v(TAG, s);
+            service.sendLogMsg(s);
+        }
     }
 
     private final HashMap<BluetoothDevice, PipedInputStream> mTransmitInput = new HashMap<>();

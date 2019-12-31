@@ -61,9 +61,10 @@ public class RFClientServer {
     private DatagramSocket mUDPSocket;
 
     public void l(String s) {
-
-        Log.v(TAG, s);
-        service.sendLogMsg(s);
+        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
+            Log.v(TAG, s);
+            service.sendLogMsg(s);
+        }
     }
 
     public void d(String s) {
