@@ -108,6 +108,7 @@ public class MediaManager {
     }
 
     public void e(String logMsg) {
+
         Log.e(TAG, logMsg);
     }
 
@@ -285,7 +286,7 @@ public class MediaManager {
 
                 new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, service.filesDir);
+                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_TMP_FILENAME, service.filesDir);
                 JSONObject dir = new JSONObject(dirTxt);
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
