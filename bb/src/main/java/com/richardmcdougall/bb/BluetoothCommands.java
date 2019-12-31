@@ -11,7 +11,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class BluetoothCommands {
@@ -26,13 +25,13 @@ public class BluetoothCommands {
         // Register to receive button messages
         IntentFilter filter;
         filter = new IntentFilter(ACTION.BB_VOLUME);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
         filter = new IntentFilter(ACTION.BB_AUDIOCHANNEL);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
         filter = new IntentFilter(ACTION.BB_VIDEOMODE);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
         filter = new IntentFilter(ACTION.BB_LOCATION);
-        LocalBroadcastManager.getInstance(service).registerReceiver(mBBEventReciever, filter);
+        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
     }
 
     public void init() {
@@ -574,16 +573,15 @@ public class BluetoothCommands {
     }
 
     // We use this to catch the board events
-    private final BroadcastReceiver mBBEventReciever = new BroadcastReceiver() {
+    private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            final String TAG = "mBBEventReciever";
 
             String action = intent.getAction();
 
-            Log.d(TAG, "onReceive entered:" + action);
+            d("onReceive entered:" + action);
 
             if (ACTION.BB_VOLUME.equals(action)) {
-                Log.d(TAG, "Got volume");
+                d( "Got volume");
                 float volume = (float) intent.getSerializableExtra("volume");
 
             }

@@ -47,7 +47,7 @@ public class MusicPlayer implements Runnable {
         if (BoardState.kIsRPI) { // Nano should be OK
             phoneModelAudioLatency = 80;
         } else if (BoardState.kIsNano){
-            phoneModelAudioLatency = 80;
+            phoneModelAudioLatency = 50;
         }
         else if (model.equals("imx7d_pico")) {
             phoneModelAudioLatency = 110;
