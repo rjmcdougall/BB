@@ -10,7 +10,8 @@ import android.os.StrictMode;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+
+import timber.log.Timber;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,8 +34,7 @@ public class RFClientServer {
     private BBService service;
     public long tSentPackets = 0;
     private long replyCount = 0;
-    private static final String TAG = "BB.RFClientServer";
-    static final int [] kServerBeaconMagicNumber = new int[] {0xbb, 0x05};
+    static final int[] kServerBeaconMagicNumber = new int[]{0xbb, 0x05};
     static final int kThreadSleepTime = 5000;
     public static final int kRemoteAudio = 0;
     public static final int kRemoteVideo = 1;
@@ -60,27 +60,13 @@ public class RFClientServer {
     private long mLatency = 150;
     private DatagramSocket mUDPSocket;
 
-    public void l(String s) {
-        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
-            Log.v(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
-    public void d(String s) {
-        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
-            Log.v(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
-    private void setupUDPLogger(){
+    private void setupUDPLogger() {
         if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
             // InetAddress.getByName("0.0.0.0")
             try {
                 mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
             } catch (Exception e) {
-                l("Cannot setup UDP logger socket");
+                Timber.e("Cannot setup UDP logger socket");
             }
         }
     }
@@ -102,7 +88,7 @@ public class RFClientServer {
                         DatagramPacket dp = new DatagramPacket(logPacket, logPacket.length, InetAddress.getByName("10.0.6.255"), 9999);
                         mUDPSocket.send(dp);
                     } catch (Exception e) {
-                        l("UDP Logger Socket send failed:" + e.toString());
+                        Timber.e("UDP Logger Socket send failed:" + e.toString());
                     }
                 }
             });
@@ -118,7 +104,7 @@ public class RFClientServer {
             mReceivedPacketInput = new PipedInputStream();
             mReceivedPacketOutput = new PipedOutputStream(mReceivedPacketInput);
         } catch (Exception e) {
-            l("Receiver pipe failed: " + e.getMessage());
+            Timber.e("Receiver pipe failed: " + e.getMessage());
         }
 
         try {
@@ -134,8 +120,7 @@ public class RFClientServer {
 
     void Run() {
         Thread t = new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 Thread.currentThread().setName("BB RF Client/Server");
                 Start();
             }
@@ -144,9 +129,9 @@ public class RFClientServer {
     }
 
 
-    public static byte[] longToBytes(long l, byte [] result, int offset) {
+    public static byte[] longToBytes(long l, byte[] result, int offset) {
         for (int i = 7; i >= 0; i--) {
-            result[i+offset] = (byte)(l & 0xFF);
+            result[i + offset] = (byte) (l & 0xFF);
             l >>= 8;
         }
         return result;
@@ -163,14 +148,14 @@ public class RFClientServer {
     }
 
     private long int64FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & (long)0xff) +
-                ((bytes.read() & (long)0xff) << 8) +
-                ((bytes.read() & (long)0xff) << 16) +
-                ((bytes.read() & (long)0xff) << 24) +
-                ((bytes.read() & (long)0xff) << 32) +
-                ((bytes.read() & (long)0xff) << 40) +
-                ((bytes.read() & (long)0xff) << 48) +
-                ((bytes.read() & (long)0xff) << 56)));
+        return ((long) ((bytes.read() & (long) 0xff) +
+                ((bytes.read() & (long) 0xff) << 8) +
+                ((bytes.read() & (long) 0xff) << 16) +
+                ((bytes.read() & (long) 0xff) << 24) +
+                ((bytes.read() & (long) 0xff) << 32) +
+                ((bytes.read() & (long) 0xff) << 40) +
+                ((bytes.read() & (long) 0xff) << 48) +
+                ((bytes.read() & (long) 0xff) << 56)));
     }
 
     private void int64ToPacket(ByteArrayOutputStream bytes, long n) {
@@ -185,10 +170,10 @@ public class RFClientServer {
     }
 
     private long int32FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & (long)0xff) +
-                ((bytes.read() & (long)0xff) << 8) +
-                ((bytes.read() & (long)0xff) << 16) +
-                ((bytes.read() & (long)0xff) << 24)));
+        return ((long) ((bytes.read() & (long) 0xff) +
+                ((bytes.read() & (long) 0xff) << 8) +
+                ((bytes.read() & (long) 0xff) << 16) +
+                ((bytes.read() & (long) 0xff) << 24)));
     }
 
     private void int32ToPacket(ByteArrayOutputStream bytes, long n) {
@@ -206,8 +191,8 @@ public class RFClientServer {
     }
 
     private long int16FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & (long)0xff) +
-                ((bytes.read() & (long)0xff) << 8)));
+        return ((long) ((bytes.read() & (long) 0xff) +
+                ((bytes.read() & (long) 0xff) << 8)));
     }
 
     private void int16ToPacket(ByteArrayOutputStream bytes, int n) {
@@ -216,9 +201,9 @@ public class RFClientServer {
     }
 
     // Send time-sync reply to specific client
-    void ServerReply(byte [] packet, int toClient, long clientTimestamp, long curTimeStamp) {
+    void ServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
-        d("Server reply : " +
+        Timber.d("Server reply : " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(toClient) + "(" + toClient + ")");
 
@@ -229,7 +214,7 @@ public class RFClientServer {
         }
 
         // Address of this server (just put this in now?)
-        int16ToPacket(replyPacket,service.boardState.address);
+        int16ToPacket(replyPacket, service.boardState.address);
 
         // Address this packet is for
         int16ToPacket(replyPacket, toClient);
@@ -266,21 +251,21 @@ public class RFClientServer {
     // TODO: Decide if we use static assigned server as the time master
     // TODO: Decode client packet and send to client receive function
     // TODO: Decode server receive packet and send to server receive function
-    void processReceive(byte [] packet, int sigstrength) {
+    void processReceive(byte[] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         int recvMagicNumber = RFUtil.magicNumberToInt(
-                new int[] { bytes.read(), bytes.read()});
+                new int[]{bytes.read(), bytes.read()});
 
         int clientAddress = 0;
 
         if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kServerSyncMagicNumber)) {
-            int serverAddress = (int)int16FromPacket(bytes);
-            clientAddress = (int)int16FromPacket(bytes);
+            int serverAddress = (int) int16FromPacket(bytes);
+            clientAddress = (int) int16FromPacket(bytes);
 
             if (clientAddress == service.boardState.address) {
-                d("BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-                d("BB Sync Packet from Server " + serverAddress +
+                Timber.d("BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+                Timber.d("BB Sync Packet from Server " + serverAddress +
                         " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
                 processSyncResponse(packet);
@@ -288,10 +273,10 @@ public class RFClientServer {
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
-            clientAddress = (int)int16FromPacket(bytes);
+            clientAddress = (int) int16FromPacket(bytes);
 
-            d("BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            d("BB Sync Packet from Client " + clientAddress +
+            Timber.d("BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+            Timber.d("BB Sync Packet from Client " + clientAddress +
                     " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
             long curTimeStamp = service.GetCurrentClock();
@@ -305,9 +290,9 @@ public class RFClientServer {
             logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
 
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
-            int serverAddress = (int)int16FromPacket(bytes);
-            d("BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            d("BB Server Beacon packet from Server " + serverAddress +
+            int serverAddress = (int) int16FromPacket(bytes);
+            Timber.d("BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+            Timber.d("BB Server Beacon packet from Server " + serverAddress +
                     " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
@@ -315,10 +300,10 @@ public class RFClientServer {
             int address = (int) int16FromPacket(bytes);
             int cmd = (int) int16FromPacket(bytes);
             int value = (int) int32FromPacket(bytes);
-            d("Received Remote Control " + cmd + ", " + value + " from " + address);
+            Timber.d("Received Remote Control " + cmd + ", " + value + " from " + address);
             receiveRemoteControl(address, cmd, value);
         } else {
-            d("packet not for sync server!");
+            Timber.d("packet not for sync server!");
         }
         return;
     }
@@ -336,15 +321,15 @@ public class RFClientServer {
         s.roundTripTime = rtt;
         samples.add(samples.size(), s);
         // RMC: trying 10 instead of 100 because of long recovery times when time jumps on master
-        if (samples.size()>10)
+        if (samples.size() > 10)
             samples.remove(0);
     }
 
     Sample BestSample() {
         long rtt = Long.MAX_VALUE;
         Sample ret = null;
-        for (int i=0; i<samples.size(); i++) {
-            if (samples.get(i).roundTripTime<rtt) {
+        for (int i = 0; i < samples.size(); i++) {
+            if (samples.get(i).roundTripTime < rtt) {
                 rtt = samples.get(i).roundTripTime;
                 ret = samples.get(i);
             }
@@ -354,7 +339,7 @@ public class RFClientServer {
 
     private void processSyncResponse(byte[] recvPacket) {
 
-        d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
+        Timber.d("BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
@@ -381,7 +366,7 @@ public class RFClientServer {
             // 4156 - 2208
             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
-            d("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+            Timber.d("Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
             AddSample(adjDrift, roundTripTime);
 
@@ -407,7 +392,7 @@ public class RFClientServer {
                 mPrefsEditor.commit();
             }
 
-            d("Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
+            Timber.d("Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
 
             service.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
             logUDP(service.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + service.CurrentClockAdjusted());
@@ -416,14 +401,14 @@ public class RFClientServer {
 
     // Thread/ loop to send out requests
     void Start() {
-        l("Sync Thread Staring");
+        Timber.d("Sync Thread Staring");
         SharedPreferences prefs = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE);
         mDrift = prefs.getLong("drift", 0);
         mRtt = prefs.getLong("rtt", 100);
         service.SetServerClockOffset(mDrift, mRtt);
 
         // Hack Prevent crash (sending should be done using an async task)
-        StrictMode.ThreadPolicy policy = new   StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
         mPrefsEditor = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE).edit();
@@ -435,14 +420,14 @@ public class RFClientServer {
              */
 
             // Do we need to tell nearby clients who the media master is still?
-            if( kMasterBroadcastsLeft > 0 ) {
-                l("Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
+            if (kMasterBroadcastsLeft > 0) {
+                Timber.d("Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
 
                 for (int i = 0; i < kMasterToClientPacket.length; i++) {
 
-                    byte [] packet = kMasterToClientPacket[i];
+                    byte[] packet = kMasterToClientPacket[i];
                     if (packet != null && packet.length > 0) {
-                        l("Resending master client packet type: " + i);
+                        Timber.d("Resending master client packet type: " + i);
                         service.radio.broadcast(packet);
 
                         // To make sure we don't have collissions with the following TIME broadcast, so
@@ -465,7 +450,7 @@ public class RFClientServer {
             if (amServer() == false) {
                 try {
 
-                    d("I'm a client " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
+                    Timber.d("I'm a client " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -481,18 +466,18 @@ public class RFClientServer {
                     int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
                     int16ToPacket(clientPacket, 0);
-                    d("send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
+                    Timber.d("send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     service.radio.broadcast(clientPacket.toByteArray());
-                    d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
+                    Timber.d("BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
                             service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
-                    " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
+                            " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
-                } catch(Throwable e) {
+                } catch (Throwable e) {
                     //l("Client UDP failed");
                 }
             } else {
-                d("I'm a server: broadcast Server beacon");
+                Timber.d("I'm a server: broadcast Server beacon");
                 mRtt = 0;
                 mDrift = 0;
                 service.SetServerClockOffset(0, 0);
@@ -527,6 +512,7 @@ public class RFClientServer {
         int votes;
         long lastHeard;
     }
+
     private HashMap<Integer, boardVote> mBoardVotes = new HashMap<>();
 
     private void incVote(int address, int amount) {
@@ -546,7 +532,7 @@ public class RFClientServer {
 
     private void decVotes() {
         // Decrement all the board votes
-        for (int board: mBoardVotes.keySet()) {
+        for (int board : mBoardVotes.keySet()) {
             boardVote vote = mBoardVotes.get(board);
             int votes = vote.votes;
             if (votes > 1) {
@@ -563,10 +549,10 @@ public class RFClientServer {
     // Time we hold on to a valid master server is kMaxVotes * kMinVoteTime
     // 30 * 5 secs = 150 seconds
     // have to hear from a master kIncVote/kMaxVotes times in 150 seconds
-    private final static int kMaxVotes    = 30; // max of 30 votes
-    private final static int kMinVotes    = 20; // Must have at least this to be a server
-    private final static int kIncVote     = 10; // have to hear from a master 3 times in 150 seconds
-    private final static int kIncMyVote   = 4;  // inc my vote slower to allow for packet loss
+    private final static int kMaxVotes = 30; // max of 30 votes
+    private final static int kMinVotes = 20; // Must have at least this to be a server
+    private final static int kIncVote = 10; // have to hear from a master 3 times in 150 seconds
+    private final static int kIncMyVote = 4;  // inc my vote slower to allow for packet loss
     private final static int kMinVoteTime = 5000;
 
     private void tryElectServer(int address, int sigstrength) {
@@ -596,7 +582,7 @@ public class RFClientServer {
 
         // Find the leader to elect
         int lowest = 65535;
-        for (int board: mBoardVotes.keySet()) {
+        for (int board : mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             // Not a leader if we haven't heard from you in the last 5 mins
             if ((SystemClock.elapsedRealtime() - v.lastHeard) > 300000) {
@@ -616,13 +602,13 @@ public class RFClientServer {
         }
 
         // Dump the list of votes
-        for (int board: mBoardVotes.keySet()) {
+        for (int board : mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             if (board == mServerAddress) {
-                l("Vote: Server " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                Timber.d("Vote: Server " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             } else {
-                l("Vote: Client " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                Timber.d("Vote: Client " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             }
         }
@@ -639,13 +625,12 @@ public class RFClientServer {
     }
 
 
-
     public void sendRemote(int cmd, long value, int type) {
 
         if (service.radio == null) {
             return;
         }
-        l("Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + service.boardState.address);
+        Timber.d("Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + service.boardState.address);
 
         ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -661,7 +646,7 @@ public class RFClientServer {
         int32ToPacket(clientPacket, value);
 
         // Send 10 times now, and let the supervisor thread send it periodically still
-        byte [] packet = clientPacket.toByteArray();
+        byte[] packet = clientPacket.toByteArray();
 
         for (int i = 0; i < 10; i++) {
             service.radio.broadcast(packet);
@@ -672,11 +657,13 @@ public class RFClientServer {
         // This is the amount of iterations LEFT of broadcasting the client packet.
         // When this routine is invoked again, it'll restart the iteration counter.
         kMasterBroadcastsLeft = kMasterBroadcastTime / kThreadSleepTime;
-        l( "Master client packet will be sent this many more times: " + kMasterBroadcastsLeft);
+        Timber.d("Master client packet will be sent this many more times: " + kMasterBroadcastsLeft);
     }
 
     // Method to abandon rebroadcasts. Needed if a new master shows up.
-    public void disableMasterBroadcast() { kMasterBroadcastsLeft = 0; }
+    public void disableMasterBroadcast() {
+        kMasterBroadcastsLeft = 0;
+    }
 
     // TODO: Put this back as a remote control packet
     public void receiveRemoteControl(int address, int cmd, long value) {
@@ -693,10 +680,10 @@ public class RFClientServer {
 
 
         if (service.boardState.blockMaster) {
-            l("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
+            Timber.d("BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
         } else {
 
-            l("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
+            Timber.d("Received remote cmd, value " + cmd + ", " + value + " from: " + client);
 
             switch (cmd) {
                 case RFUtil.REMOTE_AUDIO_TRACK_CODE:
@@ -705,12 +692,12 @@ public class RFClientServer {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Audio " + service.boardState.currentRadioChannel+ " -> " + i);
+                            Timber.d("Remote Audio " + service.boardState.currentRadioChannel + " -> " + i);
                             if (service.boardState.currentRadioChannel != i) {
                                 service.musicPlayer.SetRadioChannel((int) i);
-                                l("Received remote audio switch to track " + i + " (" + name + ")");
+                                Timber.d("Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
-                                l("Ignored remote audio switch to track " + i + " (" + name + ")");
+                                Timber.d("Ignored remote audio switch to track " + i + " (" + name + ")");
                             }
                             break;
                         }
@@ -722,12 +709,12 @@ public class RFClientServer {
                         String name = service.mediaManager.GetVideoFileLocalName(i - 1);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
-                            l("Remote Video " + service.boardState.currentVideoMode + " -> " + i);
+                            Timber.d("Remote Video " + service.boardState.currentVideoMode + " -> " + i);
                             if (service.boardState.currentVideoMode != i) {
                                 service.boardVisualization.setMode((int) i);
-                                l("Received remote video switch to mode " + i + " (" + name + ")");
+                                Timber.d("Received remote video switch to mode " + i + " (" + name + ")");
                             } else {
-                                l("Ignored remote video switch to mode " + i + " (" + name + ")");
+                                Timber.d("Ignored remote video switch to mode " + i + " (" + name + ")");
                             }
                             break;
                         }
@@ -743,7 +730,7 @@ public class RFClientServer {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master
                         String diag = service.boardState.BOARD_ID + " is no longer the master. New master: " + client;
-                        l(diag);
+                        Timber.d(diag);
                         service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
                         service.masterRemote.enableMaster(false);
                     }

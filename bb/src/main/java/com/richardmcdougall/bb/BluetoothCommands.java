@@ -8,13 +8,13 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+
+import timber.log.Timber;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BluetoothCommands {
-    private static final String TAG = "BB.BluetoothCommands";
     private BBService service = null;
     private Handler mHandler;
 
@@ -49,13 +49,13 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got getboards OnAction");
+                        Timber.d("BBservice got getboards OnAction");
                         JSONObject response = new JSONObject();
                         try {
                             response.put("command", command);
                             response.put("boards", service.allBoards.MinimizedBoards());
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -64,7 +64,7 @@ public class BluetoothCommands {
 
                         service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes());
 
-                        d("BBservice done getboards command: " + response.toString());
+                        Timber.d("BBservice done getboards command: " + response.toString());
                     }
                 });
 
@@ -81,18 +81,18 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got getaudio OnAction");
+                        Timber.d("BBservice got getaudio OnAction");
                         String error = null;
                         JSONObject response = new JSONObject();
                         try {
                             response.put("command", command);
                             JSONArray audio = service.mediaManager.MinimizedAudio();
                             if (audio == null)
-                                d("Empty Audio");
+                                Timber.d("Empty Audio");
                             else
                                 response.put("audio", audio);
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -101,7 +101,7 @@ public class BluetoothCommands {
 
                         service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes());
 
-                        d("BBservice done getaudio command" + response.toString());
+                        Timber.d("BBservice done getaudio command" + response.toString());
                     }
                 });
 
@@ -119,18 +119,18 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got getvideo OnAction");
+                        Timber.d("BBservice got getvideo OnAction");
                         String error = null;
                         JSONObject response = new JSONObject();
                         try {
                             response.put("command", command);
                             JSONArray video = service.mediaManager.MinimizedVideo();
                             if (video == null)
-                                d("Empty video");
+                                Timber.d("Empty video");
                             else
                                 response.put("video", video);
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -139,7 +139,7 @@ public class BluetoothCommands {
 
                         service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes());
 
-                        d("BBservice done getvideo command" + response.toString());
+                        Timber.d("BBservice done getvideo command" + response.toString());
                     }
                 });
 
@@ -156,7 +156,7 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got getall OnAction");
+                        Timber.d("BBservice got getall OnAction");
                         String error = null;
                         JSONObject response = new JSONObject();
                         try {
@@ -164,24 +164,24 @@ public class BluetoothCommands {
                             response.put("boards", service.allBoards.MinimizedBoards());
                             JSONArray audio = service.mediaManager.MinimizedAudio();
                             if (audio == null)
-                                d("Empty Audio");
+                                Timber.d("Empty Audio");
                             else
                                 response.put("audio", audio);
                             JSONArray video = service.mediaManager.MinimizedVideo();
                             if (video == null)
-                                d("Empty VideoMedia");
+                                Timber.d("Empty VideoMedia");
                             else
                                 response.put("video", video);
                             JSONArray btdevs = service.bluetoothConnManager.getDeviceListJSON();
                             if (btdevs == null)
-                                d("Could not get bt devs (null)");
+                                Timber.d("Could not get bt devs (null)");
                             else
                                 response.put("btdevices", btdevs);
 
                             JSONObject state = service.boardState.MinimizedState();
                             response.put("state", state);
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -189,7 +189,7 @@ public class BluetoothCommands {
                         }
                         service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
-                        d("BBservice done getall command" + response.toString());
+                        Timber.d("BBservice done getall command" + response.toString());
                     }
                 });
 
@@ -206,13 +206,13 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got EnableMaster command:" + payload.toString());
+                        Timber.d("BBservice got EnableMaster command:" + payload.toString());
                         try {
                             boolean isMaster = payload.getBoolean("arg");
                             service.masterRemote.enableMaster(isMaster);
 
                         } catch (Exception e) {
-                            e("error setting Master: " + e.getMessage());
+                            Timber.e("error setting Master: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -231,13 +231,13 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got EnableGTFO command:" + payload.toString());
+                        Timber.d("BBservice got EnableGTFO command:" + payload.toString());
                         try {
                             boolean isGTFO = payload.getBoolean("arg");
                             service.gtfo.enableGTFO(isGTFO);
 
                         } catch (Exception e) {
-                            e("error setting EnableGTFO: " + e.getMessage());
+                            Timber.e("error setting EnableGTFO: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -256,13 +256,13 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got BlockMaster command:" + payload.toString());
+                        Timber.d("BBservice got BlockMaster command:" + payload.toString());
                         try {
                             boolean blockMaster = payload.getBoolean("arg");
                             service.boardState.blockMaster = blockMaster;
 
                         } catch (Exception e) {
-                            e("error setting BlockMaster: " + e.getMessage());
+                            Timber.e("error setting BlockMaster: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -281,12 +281,12 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got Video command:" + payload.toString());
+                        Timber.d("BBservice got Video command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg") + 1;
                             service.boardVisualization.setMode(track);
                         } catch (Exception e) {
-                            e("error setting video track: " + e.getMessage());
+                            Timber.e("error setting video track: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -304,18 +304,18 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got getwifi OnAction");
+                        Timber.d("BBservice got getwifi OnAction");
                         String error = null;
                         JSONObject response = new JSONObject();
                         try {
                             response.put("command", command);
                             JSONArray wifi = service.wifi.getScanResults();
                             if (wifi == null)
-                                d("Empty wifi");
+                                Timber.d("Empty wifi");
                             else
                                 response.put("wifi", wifi);
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -326,7 +326,7 @@ public class BluetoothCommands {
                         service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
 
-                        d("BBservice done wifi command: " + response.toString());
+                        Timber.d("BBservice done wifi command: " + response.toString());
                     }
                 });
         service.bLEServer.addCallback("Wifi",
@@ -342,7 +342,7 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got Wifi command:" + payload.toString());
+                        Timber.d("BBservice got Wifi command:" + payload.toString());
                         try {
                             String SSIS = payload.getString("arg");
                             if (SSIS != "") {
@@ -350,7 +350,7 @@ public class BluetoothCommands {
                                 service.boardState.setSSISAndPassword(parts[0], parts[1]);
                             }
                         } catch (Exception e) {
-                            e("error setting wifi: " + e.getMessage());
+                            Timber.e("error setting wifi: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -369,12 +369,12 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got Volume command:" + payload.toString());
+                        Timber.d("BBservice got Volume command:" + payload.toString());
                         try {
                             int volume = payload.getInt("arg");
                             service.musicPlayer.setBoardVolume(volume);
                         } catch (Exception e) {
-                            e("error setting volume: " + e.getMessage());
+                            Timber.e("error setting volume: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -393,12 +393,12 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got Audio command:" + payload.toString());
+                        Timber.d("BBservice got Audio command:" + payload.toString());
                         try {
                             int track = payload.getInt("arg");
                             service.musicPlayer.SetRadioChannel(track + 1);
                         } catch (Exception e) {
-                            e("error setting audio track: " + e.getMessage());
+                            Timber.e("error setting audio track: " + e.getMessage());
                         }
                         sendStateResponse(command, device);
                     }
@@ -418,7 +418,7 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice get state command:" + payload.toString());
+                        Timber.d("BBservice get state command:" + payload.toString());
                         sendStateResponse(command, device);
                     }
                 });
@@ -436,7 +436,7 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got Location command:" + payload.toString());
+                        Timber.d("BBservice got Location command:" + payload.toString());
 
                         JSONObject response = new JSONObject();
                         try {
@@ -448,11 +448,11 @@ public class BluetoothCommands {
                             response.put("command", command);
                             JSONArray locations = service.findMyFriends.getBoardLocationsJSON(age);
                             if (locations == null)
-                                e("Could not get bt locations (null)");
+                                Timber.e("Could not get bt locations (null)");
                             else
                                 response.put("locations", locations);
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -462,7 +462,7 @@ public class BluetoothCommands {
                         // Send payload back to requesting device
                         service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
-                        d("BBservice done sendlocation command");
+                        Timber.d("BBservice done sendlocation command");
                     }
                 });
 
@@ -479,7 +479,7 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got BTScan command:" + payload.toString());
+                        Timber.d("BBservice got BTScan command:" + payload.toString());
 
                         service.bluetoothConnManager.discoverDevices();
 
@@ -488,14 +488,14 @@ public class BluetoothCommands {
                             response.put("command", command);
                             JSONArray btdevs = service.bluetoothConnManager.getDeviceListJSON();
                             if (btdevs == null)
-                                d("Could not get bt devs (null)");
+                                Timber.d("Could not get bt devs (null)");
                             else
                                 response.put("btdevices", btdevs);
 
                             JSONObject state = service.boardState.MinimizedState();
                             response.put("state", state);
                         } catch (Exception e) {
-                            e("error: " + e.getMessage());
+                            Timber.e("error: " + e.getMessage());
                             try {
                                 response.put("error", "");
                             } catch (Exception ex) {
@@ -504,7 +504,7 @@ public class BluetoothCommands {
 
                         service.bLEServer.tx(device,
                                 (String.format("%s;", response.toString())).getBytes());
-                        d("BBservice done sendBTScanResponse command");
+                        Timber.d("BBservice done sendBTScanResponse command");
                     }
                 });
 
@@ -521,12 +521,12 @@ public class BluetoothCommands {
                     @Override
                     public void OnAction(String clientId, BluetoothDevice device,
                                          String command, JSONObject payload) {
-                        d("BBservice got BTSelect command:" + payload.toString());
+                        Timber.d("BBservice got BTSelect command:" + payload.toString());
                         try {
                             String address = payload.getString("arg");
                             service.bluetoothConnManager.togglePairDevice(address);
                         } catch (Exception e) {
-                            e("error setting BTSelect: " + e.getMessage());
+                            Timber.e("error setting BTSelect: " + e.getMessage());
                         }
                     }
                 });
@@ -540,7 +540,7 @@ public class BluetoothCommands {
             JSONObject state = service.boardState.MinimizedState();
             response.put("state", state);
         } catch (Exception e) {
-            e("error: " + e.getMessage());
+            Timber.e("error: " + e.getMessage());
             try {
                 response.put("error", "");
             } catch (Exception ex) {
@@ -551,7 +551,7 @@ public class BluetoothCommands {
         service.bLEServer.tx(device,
                 (String.format("%s;", response.toString())).getBytes());
 
-        d("BBservice done sendStateResponse command");
+        Timber.d("BBservice done sendStateResponse command");
     }
 
     public void sendStateResponseAll() {
@@ -560,28 +560,16 @@ public class BluetoothCommands {
         //sendStateResponse("unsolicited", device);
     }
 
-    public void d(String s) {
-        if (DebugConfigs.DEBUG_BLUETOOTH_COMMANDS) {
-            Log.d(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
-    public void e(String s) {
-        Log.e(TAG, s);
-        service.sendLogMsg(s);
-    }
-
     // We use this to catch the board events
     private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
 
             String action = intent.getAction();
 
-            d("onReceive entered:" + action);
+            Timber.d("onReceive entered:" + action);
 
             if (ACTION.BB_VOLUME.equals(action)) {
-                d( "Got volume");
+                Timber.d("Got volume");
                 float volume = (float) intent.getSerializableExtra("volume");
 
             }

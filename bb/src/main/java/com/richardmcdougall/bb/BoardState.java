@@ -3,7 +3,6 @@ package com.richardmcdougall.bb;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,12 +18,13 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 
+import timber.log.Timber;
+
 public class BoardState {
 
     private static final String WIFI_JSON = "wifi.json";
     private static final String WIFI_SSID = "burnerboard";
     private static final String WIFI_PASS = "firetruck";
-    private static final String TAG = "BoardState";
     private static final String PUBLIC_NAME_FILE = "publicName.txt";
 
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
@@ -47,26 +47,15 @@ public class BoardState {
     public String SSID = "";
     public String password = "";
 
-    private void d(String logMsg) {
-        if (DebugConfigs.DEBUG_BOARD_STATE) {
-            Log.d(TAG, logMsg);
-        }
-    }
-
-    private void e(String logMsg) {
-        Log.e(TAG, logMsg);
-    }
-
     BoardState(BBService service) {
         this.service = service;
 
-        try{
+        try {
             PackageInfo pinfo = service.context.getPackageManager().getPackageInfo(service.context.getPackageName(), 0);
             version = pinfo.versionCode;
             apkUpdatedDate = new Date(pinfo.lastUpdateTime);
-        }
-        catch(PackageManager.NameNotFoundException e){
-            e(e.getMessage());
+        } catch (PackageManager.NameNotFoundException e) {
+            Timber.e(e.getMessage());
         }
 
         String serial = Build.SERIAL;
@@ -100,8 +89,8 @@ public class BoardState {
     public JSONObject MinimizedState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("acn",currentRadioChannel - 1);
-            state.put("vcn",currentVideoMode - 1);
+            state.put("acn", currentRadioChannel - 1);
+            state.put("vcn", currentVideoMode - 1);
             state.put("v", service.musicPlayer.getBoardVolumePercent());
             state.put("b", batteryLevel);
             state.put("am", masterRemote);
@@ -109,13 +98,13 @@ public class BoardState {
             state.put("apkv", version);
             state.put("ip", service.wifi.ipAddress);
             state.put("g", isGTFO);
-            state.put("bm" , blockMaster);
+            state.put("bm", blockMaster);
             state.put("s", service.wifi.getConnectedSSID());
             state.put("c", service.boardState.SSID);
             state.put("p", service.boardState.password);
 
         } catch (Exception e) {
-            e("Could not get state: " + e.getMessage());
+            Timber.e("Could not get state: " + e.getMessage());
         }
         return state;
     }
@@ -143,7 +132,7 @@ public class BoardState {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             String line = buf.readLine();
@@ -158,7 +147,7 @@ public class BoardState {
             return sb.toString();
 
         } catch (Throwable e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return null;
         }
     }
@@ -173,7 +162,7 @@ public class BoardState {
             setSSISAndPassword(wifiSettings);
 
         } catch (JSONException e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return false;
         }
         return true;
@@ -188,10 +177,10 @@ public class BoardState {
             SSID = wifiSettings.getString("SSID");
             password = wifiSettings.getString("password");
         } catch (JSONException e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return false;
         } catch (IOException e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return false;
         }
 
@@ -207,18 +196,18 @@ public class BoardState {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
-            d("contents of wifi.json: " + sb.toString());
+            Timber.d("contents of wifi.json: " + sb.toString());
             JSONObject j = new JSONObject(sb.toString());
 
             SSID = j.getString("SSID");
             password = j.getString("password");
 
         } catch (Throwable e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
         }
     }
 }

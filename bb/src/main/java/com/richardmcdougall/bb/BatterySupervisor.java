@@ -1,38 +1,26 @@
 package com.richardmcdougall.bb;
 
 import android.speech.tts.TextToSpeech;
-import android.util.Log;
+
+import timber.log.Timber;
 
 public class BatterySupervisor {
 
     private int loopCnt = 0;
     private BBService service = null;
-    private static final String TAG = "BB.Supervisor";
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
     private boolean enableBatteryMonitoring = !BoardState.kIsRPI; // Keep On For IsNano
     private boolean enableIoTReporting = !BoardState.kIsRPI; // Keep On For IsNano
     private int iotReportEveryNSeconds = 10;
 
-    BatterySupervisor(BBService service){
+    BatterySupervisor(BBService service) {
         this.service = service;
     }
 
-    public void d(String logMsg) {
-        if (DebugConfigs.DEBUG_BATTERY_SUPERVISOR) {
-            Log.d(TAG, logMsg);
-        }
-    }
-
-    public void e(String logMsg) {
-        Log.e(TAG, logMsg);
-    }
-
-
     void Run() {
         Thread t = new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 Thread.currentThread().setName("Supervisor");
                 runSupervisor();
             }
@@ -43,9 +31,9 @@ public class BatterySupervisor {
     private void runSupervisor() {
 
         /* Communicate the settings for the supervisor thread */
-        d("Enable Battery Monitoring? " + enableBatteryMonitoring);
-        d("Enable IoT Reporting? " + enableIoTReporting);
-        d("Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
+        Timber.d("Enable Battery Monitoring? " + enableBatteryMonitoring);
+        Timber.d("Enable IoT Reporting? " + enableIoTReporting);
+        Timber.d("Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
 
         while (true) {
 
@@ -56,7 +44,7 @@ public class BatterySupervisor {
                 // Every 10 seconds, send battery update via IoT.
                 // Only do this if we're actively checking the battery.
                 if (enableIoTReporting && (loopCnt % iotReportEveryNSeconds == 0)) {
-                    d("Sending MQTT update");
+                    Timber.d("Sending MQTT update");
                     try {
                         service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
                     } catch (Exception e) {
@@ -73,13 +61,6 @@ public class BatterySupervisor {
         }
     }
 
-    public void d_battery(String s) {
-        if (DebugConfigs.DEBUG_BATTERY) {
-            Log.v(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
     public enum powerStates {STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING}
 
     public void checkBattery() {
@@ -93,9 +74,9 @@ public class BatterySupervisor {
             int currentInstant = service.burnerBoard.getBatteryCurrentInstant();
             int voltage = service.burnerBoard.getBatteryVoltage();
 
-            d_battery("Board Current(avg) is " + current);
-            d_battery("Board Current(Instant) is " + currentInstant);
-            d_battery("Board Voltage is " + voltage);
+            Timber.d("Board Current(avg) is " + current);
+            Timber.d("Board Current(Instant) is " + currentInstant);
+            Timber.d("Board Voltage is " + voltage);
 
             // Save CPU cycles for lower power mode
             // current is milliamps
@@ -127,11 +108,11 @@ public class BatterySupervisor {
                 powerState = powerStates.STATE_CHARGING;
                 service.boardVisualization.inhibit(false);
             } else {
-                d("Unhandled power state " + powerState);
+                Timber.d("Unhandled power state " + powerState);
                 service.boardVisualization.inhibit(false);
             }
 
-            d_battery("Power state is " + powerState);
+            Timber.d("Power state is " + powerState);
 
             // Show battery if charging
             service.boardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);

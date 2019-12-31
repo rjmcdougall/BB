@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb;
 
+import timber.log.Timber;
+
 public class MusicPlayerSupervisor {
 
     private int musicState = 0;
@@ -13,6 +15,7 @@ public class MusicPlayerSupervisor {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB Music Player");
+                Timber.i("Starting Music Supervisor");
                 SupervisorThread();
             }
         });
@@ -25,7 +28,6 @@ public class MusicPlayerSupervisor {
                 case 0:
                     if (service.mediaManager.GetTotalAudio() != 0) {
                         musicState = 1;
-                        //d("Downloaded: Starting Radio Mode");
 
                         service.musicPlayer.RadioMode();
 

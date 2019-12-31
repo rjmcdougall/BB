@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -12,6 +11,7 @@ import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
 
 import org.json.JSONArray;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Iterator;
@@ -21,13 +21,10 @@ import java.util.List;
 
 import android.content.ContentValues;
 
-/**
- * Created by rmc on 2/7/18.
- */
+import timber.log.Timber;
 
 public class FindMyFriends {
 
-    private static final String TAG = "BB.FMF";
     private BBService service;
     private findMyFriendsCallback mFindMyFriendsCallback = null;
     private long mLastFix = 0;
@@ -48,18 +45,18 @@ public class FindMyFriends {
 
     public FindMyFriends(BBService service) {
         this.service = service;
-        l("Starting FindMyFriends");
+        Timber.d("Starting FindMyFriends");
 
 
         if (service.radio == null) {
-            l("No Radio!");
+            Timber.d("No Radio!");
             return;
         }
 
         service.radio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                l("FMF Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
+                Timber.d("FMF Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -67,17 +64,17 @@ public class FindMyFriends {
 
             @Override
             public void GPSevent(PositionEvent gps) {
-                d("FMF Position: " + gps.toString());
+                Timber.d("FMF Position: " + gps.toString());
                 Position pos = gps.getPosition();
-                mLat = (int)(pos.getLatitude() * 1000000);
-                mLon = (int)(pos.getLongitude() * 1000000);
-                mAlt = (int)(pos.getAltitude() * 1000000);
+                mLat = (int) (pos.getLatitude() * 1000000);
+                mLon = (int) (pos.getLongitude() * 1000000);
+                mAlt = (int) (pos.getAltitude() * 1000000);
                 long sinceLastFix = System.currentTimeMillis() - mLastFix;
 
                 if (sinceLastFix > kMaxFixAge) {
-                    d("FMF: sending GPS update");
+                    Timber.d("FMF: sending GPS update");
                     service.iotClient.sendUpdate("bbevent", "[" +
-                            service.boardState.BOARD_ID + "," + 0 + "," + mLat  / 1000000.0 + "," + mLon  / 1000000.0 + "]");
+                            service.boardState.BOARD_ID + "," + 0 + "," + mLat / 1000000.0 + "," + mLon / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
                     mLastFix = System.currentTimeMillis();
 
@@ -86,12 +83,12 @@ public class FindMyFriends {
 
             @Override
             public void timeEvent(Time time) {
-                d("FMF Time: " + time.toString());
+                Timber.d("FMF Time: " + time.toString());
             }
         });
         addTestBoardLocations();
-        
-     }
+
+    }
 
     // GPS Packet format =
     //         [0] kGPSMagicNumber byte one
@@ -155,10 +152,10 @@ public class FindMyFriends {
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
 
-        d("Sending packet...");
+        Timber.d("Sending packet...");
         service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
-        d("Sent packet...");
+        Timber.d("Sent packet...");
         updateBoardLocations(service.boardState.address, 999,
                 lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
     }
@@ -167,7 +164,9 @@ public class FindMyFriends {
     public interface findMyFriendsCallback {
 
         public void audioTrack(int track);
+
         public void videoTrack(int track);
+
         public void globalAlert(int alert);
 
     }
@@ -177,30 +176,16 @@ public class FindMyFriends {
         mFindMyFriendsCallback = newfunction;
     }
 
-    public void l(String s) {
-        if (DebugConfigs.DEBUG_FMF) {
-            Log.v(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
-    public void d(String s) {
-        if (DebugConfigs.DEBUG_FMF) {
-            Log.v(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
-    boolean processReceive(byte [] packet, int sigStrength) {
+    boolean processReceive(byte[] packet, int sigStrength) {
 
         try {
             ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
             int recvMagicNumber = RFUtil.magicNumberToInt(
-                    new int[] { bytes.read(), bytes.read()});
+                    new int[]{bytes.read(), bytes.read()});
 
             if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kGPSMagicNumber)) {
-                d("BB GPS Packet");
+                Timber.d("BB GPS Packet");
                 mTheirAddress = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
                 int repeatedBy = bytes.read();
@@ -208,18 +193,18 @@ public class FindMyFriends {
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
-                mTheirLon = (double)((bytes.read() & 0xff) +
+                mTheirLon = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
-                mTheirBatt = (int)(bytes.read() & 0xff);
+                mTheirBatt = (int) (bytes.read() & 0xff);
                 bytes.read(); // spare
                 bytes.read(); // spare
                 bytes.read(); // spare
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                l(service.allBoards.boardAddressToName(mTheirAddress) +
+                Timber.d(service.allBoards.boardAddressToName(mTheirAddress) +
                         " strength " + sigStrength +
                         "theirLat = " + mTheirLat + ", " +
                         "theirLon = " + mTheirLon +
@@ -227,15 +212,15 @@ public class FindMyFriends {
                 service.iotClient.sendUpdate("bbevent", "[" +
                         service.allBoards.boardAddressToName(mTheirAddress) + "," +
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
-                updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt ,packet.clone());
+                updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone());
                 return true;
-            } else if (recvMagicNumber == RFUtil.magicNumberToInt( RFUtil.kTrackerMagicNumber)) {
-                d("tracker packet");
+            } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kTrackerMagicNumber)) {
+                Timber.d("tracker packet");
                 mTheirLat = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
-                mTheirLon = (double)((bytes.read() & 0xff) +
+                mTheirLon = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
@@ -243,18 +228,17 @@ public class FindMyFriends {
                 mLastRecv = System.currentTimeMillis();
                 return true;
             } else {
-                d("rogue packet not for us!");
+                Timber.d("rogue packet not for us!");
             }
             return false;
-        }
-        catch(Exception e){
-            l("Error processing a received packet " + e.getMessage());
+        } catch (Exception e) {
+            Timber.e("Error processing a received packet " + e.getMessage());
             return false;
         }
     }
 
     // keep a historical list of minimal location data
-    public class locationHistory{
+    public class locationHistory {
         public long d; // dateTime
         public double a; // latitude
         public double o; // longitude
@@ -270,6 +254,7 @@ public class FindMyFriends {
         public long lastHeardDate;
         public String board;
     }
+
     private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
 
     private class boardLocationHistory {
@@ -279,24 +264,24 @@ public class FindMyFriends {
 
         List<locationHistory> locations = new ArrayList<>();
 
-        public void AddLocationHistory(long lastHeardDate, double latitude, double longitude){
+        public void AddLocationHistory(long lastHeardDate, double latitude, double longitude) {
 
-            try{
+            try {
                 // we only want to store one location every minute and drop everything older than 15 minutes
                 // not using a hash because it dorks the json.
-                long minute =  lastHeardDate/(1000*60 * RFUtil.LOCATION_INTERVAL_MINUTES);
+                long minute = lastHeardDate / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
 
                 boolean found = false;
-                for(locationHistory l: locations) {
-                    long lMinutes = l.d/(1000*60 * RFUtil.LOCATION_INTERVAL_MINUTES);
-                    if(minute==lMinutes) {
+                for (locationHistory l : locations) {
+                    long lMinutes = l.d / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
+                    if (minute == lMinutes) {
                         l.d = lastHeardDate;
                         l.a = latitude;
                         l.o = longitude;
                         found = true;
                     }
                 }
-                if(!found){
+                if (!found) {
                     locationHistory lh = new locationHistory();
                     lh.d = lastHeardDate;
                     lh.a = latitude;
@@ -305,22 +290,21 @@ public class FindMyFriends {
                 }
 
                 //remove locations older than 30 minutes.
-                long maxAge = System.currentTimeMillis()-(RFUtil.MAX_LOCATION_STORAGE_MINUTES*1000*60);
+                long maxAge = System.currentTimeMillis() - (RFUtil.MAX_LOCATION_STORAGE_MINUTES * 1000 * 60);
 
                 Iterator<locationHistory> iter = locations.iterator();
-                while(iter.hasNext()){
-                    if(iter.next().d < maxAge)
+                while (iter.hasNext()) {
+                    if (iter.next().d < maxAge)
                         iter.remove();
                 }
 
-            }
-            catch(Exception e){
-                l("Error Adding a Location History for " + a + " " + e.getMessage());
+            } catch (Exception e) {
+                Timber.e("Error Adding a Location History for " + a + " " + e.getMessage());
             }
         }
     }
-    private HashMap<Integer, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
 
+    private HashMap<Integer, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
 
 
     public void updateBoardLocations(int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket) {
@@ -335,48 +319,45 @@ public class FindMyFriends {
             loc.latitude = lat;
             loc.longitude = lon;
             mBoardLocations.put(address, loc); // add to current locations
-        }
-        catch(Exception e){
-            l("Error storing the current location for " + address + " " + e.getMessage());
+        } catch (Exception e) {
+            Timber.e("Error storing the current location for " + address + " " + e.getMessage());
         }
 
-        try{
+        try {
             boardLocationHistory blh;
 
-            if(mBoardLocationHistory.containsKey(address)) {
+            if (mBoardLocationHistory.containsKey(address)) {
                 blh = mBoardLocationHistory.get(address);
-            }
-            else {
+            } else {
                 blh = new boardLocationHistory();
             }
             blh.a = loc.address;
             blh.b = bat;
-            blh.AddLocationHistory(loc.lastHeardDate,lat,lon);
-            mBoardLocationHistory.put(address,blh);
+            blh.AddLocationHistory(loc.lastHeardDate, lat, lon);
+            mBoardLocationHistory.put(address, blh);
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
             JSONArray ct = getBoardLocationsJSON(15);
             ContentValues v = new ContentValues(ct.length());
             for (int i = 0; i < ct.length(); i++) {
-                v.put(String.valueOf(i),ct.getJSONObject(i).toString());
+                v.put(String.valueOf(i), ct.getJSONObject(i).toString());
             }
 
             service.context.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
-            for (int addr: mBoardLocations.keySet()) {
+            for (int addr : mBoardLocations.keySet()) {
                 boardLocation l = mBoardLocations.get(addr);
-                d("Location Entry:" + service.allBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+                Timber.d("Location Entry:" + service.allBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
             }
-        }
-        catch(Exception e){
-            l("Error storing the board location history for " + address + " " + e.getMessage());
+        } catch (Exception e) {
+            Timber.e("Error storing the board location history for " + address + " " + e.getMessage());
         }
 
     }
 
     private void addTestBoardLocations() {
 
-     //   updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
+        //   updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
     }
 
     public List<boardLocation> getBoardLocations() {
@@ -384,11 +365,12 @@ public class FindMyFriends {
         return list;
     }
 
-    public HashMap<Integer, boardLocationHistory>  DeepCloneHashMap(HashMap<Integer, boardLocationHistory> blh){
+    public HashMap<Integer, boardLocationHistory> DeepCloneHashMap(HashMap<Integer, boardLocationHistory> blh) {
         Gson gson = new Gson();
         String jsonString = gson.toJson(blh);
 
-        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, boardLocationHistory>>(){}.getType();
+        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, boardLocationHistory>>() {
+        }.getType();
         HashMap<Integer, boardLocationHistory> clonedMap = gson.fromJson(jsonString, type);
         return clonedMap;
 
@@ -398,39 +380,40 @@ public class FindMyFriends {
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
         JsonArray list = null;
-        HashMap<Integer, boardLocationHistory> blh =  DeepCloneHashMap(mBoardLocationHistory);
+        HashMap<Integer, boardLocationHistory> blh = DeepCloneHashMap(mBoardLocationHistory);
 
         List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
-            for (boardLocationHistory b : locs){
+            for (boardLocationHistory b : locs) {
                 b.board = service.allBoards.boardAddressToName(b.a);
 
                 Iterator<locationHistory> iter = b.locations.iterator();
-                while(iter.hasNext()){
+                while (iter.hasNext()) {
                     locationHistory lll = iter.next();
                     long d = lll.d;
-                    long min =  System.currentTimeMillis()-(age*60*1000);
-                    if(d < min)
+                    long min = System.currentTimeMillis() - (age * 60 * 1000);
+                    if (d < min)
                         iter.remove();
                 }
             }
             //list = new JSONArray(valuesList);
-            list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocationHistory>>() {}.getType());
+            list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocationHistory>>() {
+            }.getType());
 
 
         } catch (Exception e) {
-            l("Error building board location json");
+            Timber.e("Error building board location json");
             return null;
         }
 
         JSONArray json = null;
         try {
             json = new JSONArray(list.toString());
-        } catch (Exception e)  {
-            l("Cannot convert locations to json: " + e.getMessage());
+        } catch (Exception e) {
+            Timber.e("Cannot convert locations to json: " + e.getMessage());
         }
 
-        l("location JSON max age " + age + " : " + json.toString());
+        Timber.d("location JSON max age " + age + " : " + json.toString());
 
         return (json);
     }

@@ -7,17 +7,16 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
-import java.lang.reflect.Array;
+import timber.log.Timber;
+
 import java.util.ArrayList;
 
 import static java.lang.Integer.parseInt;
 
 public class BoardsContentProvider extends ContentProvider {
 
-    private static final String TAG = BoardsContentProvider.class.getSimpleName();
-    public ArrayList<String>  mData = new ArrayList<>();
+    public ArrayList<String> mData = new ArrayList<>();
 
     // UriMatcher is a helper class for processing the accepted Uri schemes
     // for this content provider.
@@ -33,10 +32,10 @@ public class BoardsContentProvider extends ContentProvider {
     }
 
     /**
-`     * Defines the accepted Uri schemes for this content provider.
+     * `     * Defines the accepted Uri schemes for this content provider.
      * Calls addURI()for all of the content URI patterns that the provide should recognize.
      */
-    private void initializeUriMatching(){
+    private void initializeUriMatching() {
         // Matches a URI that references one word in the list by its index.
         // The # symbol matches a string of numeric characters of any length.
         // For this sample, this references the first, second, etc. words in the list.
@@ -51,16 +50,16 @@ public class BoardsContentProvider extends ContentProvider {
 
     /**
      * Matches the URI, converts it to a query, executes the query, and returns the result.
-     *
+     * <p>
      * The arguments to this method represent the parts of an SQL query.
      * If you are using another kind of backend, you must still accept a query in this style,
      * but handle the arguments appropriately.
      *
-     * @param uri The complete URI queried. This cannot be null.
-     * @param projection Indicates which columns/attributes you want to access.
-     * @param selection Indicates which rows/records of the objects you want to access
+     * @param uri           The complete URI queried. This cannot be null.
+     * @param projection    Indicates which columns/attributes you want to access.
+     * @param selection     Indicates which rows/records of the objects you want to access
      * @param selectionArgs The binding parameters to the previous selection argument.
-     * @param sortOrder Whether to sort, and if so, whether ascending or descending.
+     * @param sortOrder     Whether to sort, and if so, whether ascending or descending.
      * @return a Cursor of any kind with the response data inside.
      */
     @Nullable
@@ -83,7 +82,7 @@ public class BoardsContentProvider extends ContentProvider {
                 // In this example, we only support getting a specific entry by id. Not full search.
                 // For a real-life app, you need error-catching code; here we assume that the
                 // value we need is actually in selectionArgs and valid.
-                if (selection != null){
+                if (selection != null) {
                     id = Integer.parseInt(selectionArgs[0]);
                 }
                 break;
@@ -98,15 +97,15 @@ public class BoardsContentProvider extends ContentProvider {
 
             case UriMatcher.NO_MATCH:
                 // You should do some error handling here.
-                Log.d(TAG, "NO MATCH FOR THIS URI IN SCHEME.");
+                Timber.d("NO MATCH FOR THIS URI IN SCHEME.");
                 id = -1;
                 break;
             default:
                 // You should do some error handling here.
-                Log.d(TAG, "INVALID URI - URI NOT RECOGNZED.");
+                Timber.d("INVALID URI - URI NOT RECOGNZED.");
                 id = -1;
         }
-        Log.d(TAG, "query: " + id);
+        Timber.d("query: " + id);
         return populateCursor(id);
     }
 
@@ -115,7 +114,7 @@ public class BoardsContentProvider extends ContentProvider {
         // If you are not using data storage that returns a cursor,
         // you can use a simple MatrixCursor to hold the data to return.
         // https://developer.android.com/reference/android/database/MatrixCursor.html
-        MatrixCursor cursor = new MatrixCursor(new String[] { Contract.CONTENT_PATH });
+        MatrixCursor cursor = new MatrixCursor(new String[]{Contract.CONTENT_PATH});
 
         // If there is a valid query, execute it and add the result to the cursor.
         if (id == Contract.ALL_ITEMS) {
@@ -153,7 +152,7 @@ public class BoardsContentProvider extends ContentProvider {
     // Returns a URI that points to the newly inserted record.
     // We will implement this method in the next practical.
     public Uri insert(Uri uri, ContentValues values) {
-        Log.e(TAG, "Not implemented: insert uri: " + uri.toString());
+        Timber.e("Not implemented: insert uri: " + uri.toString());
         return null;
     }
 
@@ -162,7 +161,7 @@ public class BoardsContentProvider extends ContentProvider {
     // We will implement this method in the next practical.
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        Log.e(TAG, "Not implemented: delete uri: " + uri.toString());
+        Timber.e("Not implemented: delete uri: " + uri.toString());
         return 0;
     }
 
@@ -176,15 +175,10 @@ public class BoardsContentProvider extends ContentProvider {
 
         for (int i = 0; i < values.size(); i++) {
             mData.add(values.get(String.valueOf(i)).toString());
-            d("Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
+            Timber.d("Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
         }
 
         return 1;
     }
 
-    public void d(String s) {
-        if (DebugConfigs.DEBUG_CONTENT_PROVIDER) {
-            Log.d(TAG, s);
-        }
-    }
 }

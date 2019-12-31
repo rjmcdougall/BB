@@ -2,7 +2,8 @@ package com.richardmcdougall.bb;
 
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
-import android.util.Log;
+
+import timber.log.Timber;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.net.URLEncoder;
 
 public class MediaManager {
-    private static final String TAG = "MediaManager";
+
     private static final String DIRECTORY_JSON_FILENAME = "directory.json";
     private static final String DIRECTORY_JSON_TMP_FILENAME = "directory.json.tmp";
     private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
@@ -22,74 +23,70 @@ public class MediaManager {
     private BBService service;
     private JSONObject dataDirectory;
 
-    private JSONArray audio(){
+    private JSONArray audio() {
         JSONArray audio = null;
-        try{
+        try {
             audio = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("audio").toString());
-        }
-        catch(JSONException e){
-            e(e.getMessage());
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
         }
         return audio;
     }
 
-    private JSONArray video(){
+    private JSONArray video() {
         JSONArray video = null;
-        try{
+        try {
             video = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("video").toString());
-        }
-        catch(JSONException e){
-            e(e.getMessage());
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
         }
         return video;
     }
 
 
-    public JSONArray MinimizedAudio(){
+    public JSONArray MinimizedAudio() {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = audio();
         if (audio() == null) {
-            d("Could not get audio directory (null)");
-        }
-        else {
+            Timber.d("Could not get audio directory (null)");
+        } else {
             try {
                 for (int i = 0; i < audio.length(); i++) {
                     JSONObject a = audio.getJSONObject(i);
-                    if(a.has("URL"))  a.remove("URL");
-                    if(a.has("ordinal"))  a.remove("ordinal");
-                    if(a.has("Size"))   a.remove("Size");
-                    if(a.has("Length"))  a.remove("Length");
+                    if (a.has("URL")) a.remove("URL");
+                    if (a.has("ordinal")) a.remove("ordinal");
+                    if (a.has("Size")) a.remove("Size");
+                    if (a.has("Length")) a.remove("Length");
                 }
 
             } catch (Exception e) {
-                d( "Could not get audio directory: " + e.getMessage());
+                Timber.e("Could not get audio directory: " + e.getMessage());
             }
         }
         return audio;
     }
 
-    public JSONArray MinimizedVideo(){
+    public JSONArray MinimizedVideo() {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray video = video();
 
         if (video == null) {
-            d("Could not get video directory (null)");
-        }
-        else {
+            Timber.d("Could not get video directory (null)");
+        } else {
             try {
                 for (int i = 0; i < video.length(); i++) {
                     JSONObject v = video.getJSONObject(i);
-                    if(v.has("URL")) v.remove("URL");
-                    if(v.has("ordinal"))v.remove("ordinal");
-                    if(v.has("Size"))v.remove("Size");
-                    if(v.has("SpeachCue"))v.remove("SpeachCue");
-                    if(v.has( "Length"))v.remove( "Length");
+                    if (v.has("URL")) v.remove("URL");
+                    if (v.has("ordinal")) v.remove("ordinal");
+                    if (v.has("Size")) v.remove("Size");
+                    if (v.has("SpeachCue")) v.remove("SpeachCue");
+                    if (v.has("Length")) v.remove("Length");
                 }
 
             } catch (Exception e) {
-                d( "Could not get video directory: " + e.getMessage());
+                Timber.e("Could not get video directory: " + e.getMessage());
             }
         }
         return video;
@@ -101,16 +98,6 @@ public class MediaManager {
         void onVoiceCue(String err);
     }
 
-    public void d(String logMsg) {
-        if (DebugConfigs.DEBUG_DOWNLOAD_MANAGER) {
-            Log.d(TAG, logMsg);
-        }
-    }
-
-    public void e(String logMsg) {
-
-        Log.e(TAG, logMsg);
-    }
 
     public OnDownloadProgressType onProgressCallback = null;
 
@@ -131,7 +118,7 @@ public class MediaManager {
 
                     service.voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
                     lastTextTime = curTime;
-                    d("Downloading " + file + ", " + percent + " Percent");
+                    Timber.d("Downloading " + file + ", " + percent + " Percent");
                 }
             }
 
@@ -142,7 +129,7 @@ public class MediaManager {
 
         LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
-        Log.d(TAG, "Downloading files to: " + service.filesDir);
+        Timber.d("Downloading files to: " + service.filesDir);
     }
 
     void Run() {
@@ -204,7 +191,7 @@ public class MediaManager {
             }
 
         } catch (Throwable e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             onProgressCallback.onVoiceCue("Error loading media error due to jason error");
         }
     }
@@ -240,7 +227,7 @@ public class MediaManager {
             return upToDate;
 
         } catch (JSONException jse) {
-            e("Error " + jse.getMessage());
+            Timber.e("Error " + jse.getMessage());
             return false;
         }
     }
@@ -259,10 +246,10 @@ public class MediaManager {
             return true;
 
         } catch (JSONException jse) {
-            e(jse.getMessage());
+            Timber.e(jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e(th.getMessage());
+            Timber.e(th.getMessage());
             return false;
         }
 
@@ -273,16 +260,15 @@ public class MediaManager {
         try {
             String DirectoryURL = DIRECTORY_URL + service.boardState.BOARD_ID;
 
-
             DirectoryURL = encodeURL(DirectoryURL) + DOWNLOAD_DIRECTORY_URL_PATH + service.boardState.version;
             boolean returnValue = true;
 
             long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, service.filesDir);
             if (ddsz < 0) {
-                d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
+                Timber.d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue = false;
             } else {
-                d("Reading Directory from " + DirectoryURL);
+                Timber.d("Reading Directory from " + DirectoryURL);
 
                 new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME));
 
@@ -291,7 +277,7 @@ public class MediaManager {
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
 
-                d("Downloaded JSON: " + dirTxt);
+                Timber.d("Downloaded JSON: " + dirTxt);
 
                 // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
@@ -317,7 +303,7 @@ public class MediaManager {
                     if (onProgressCallback != null)
                         onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
                 } else {
-                    d("No Changes to Directory JSON.");
+                    Timber.d("No Changes to Directory JSON.");
                     returnValue = true;
                 }
 
@@ -333,7 +319,7 @@ public class MediaManager {
                         CleanupOldFiles();
                         if (onProgressCallback != null) {
                             String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
-                            d(diag);
+                            Timber.d(diag);
                             onProgressCallback.onVoiceCue(diag);
                         }
                     }
@@ -348,10 +334,10 @@ public class MediaManager {
             return returnValue;
 
         } catch (JSONException jse) {
-            e(jse.getMessage());
+            Timber.e(jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e(th.getMessage());
+            Timber.e(th.getMessage());
             return false;
         }
     }
@@ -395,7 +381,7 @@ public class MediaManager {
             String fn = service.filesDir + "/" + GetAudio(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return null;
         }
     }
@@ -407,7 +393,7 @@ public class MediaManager {
                 String fn = GetAudio(index).getString("localName");
                 return fn;
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return null;
             }
         } else {
@@ -430,7 +416,7 @@ public class MediaManager {
                 }
                 return fn;
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return null;
             }
         } else {
@@ -443,7 +429,7 @@ public class MediaManager {
             String fn = service.filesDir + "/" + GetVideo(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return null;
         }
     }
@@ -456,7 +442,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("audio").length();
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return 0;
             }
         }
@@ -469,7 +455,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").length();
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return 0;
             }
         }
@@ -483,7 +469,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index);
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return null;
             }
         } else
@@ -497,7 +483,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return null;
             }
         } else
@@ -511,7 +497,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("audio").getJSONObject(index);
             } catch (JSONException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
                 return null;
             }
         } else
@@ -522,7 +508,7 @@ public class MediaManager {
         try {
             return GetAudio(index).getLong("Length");
         } catch (JSONException e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
             return 1000;   // return a dummy value
         }
     }

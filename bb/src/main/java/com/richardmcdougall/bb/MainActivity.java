@@ -31,6 +31,8 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.provider.Settings;
 
+import timber.log.Timber;
+
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";

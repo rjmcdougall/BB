@@ -1,10 +1,8 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+
+import timber.log.Timber;
 
 import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
@@ -33,7 +31,6 @@ import java.util.HashMap;
 public class Favorites {
 
     private static final String FAVORITES_JSON = "favorites.json";
-    private static final String TAG = "BB.FAV";
     private BBService service;
     private favoritesCallback mFavoritesCallback = null;
     private static final int krepeatedBy = 0;
@@ -46,17 +43,17 @@ public class Favorites {
     public Favorites(Context context, BBService service,
                      final RF radio, Gps gps, IoTClient iotclient) {
         this.service = service;
-        l("Starting favorites");
+        Timber.d("Starting favorites");
 
         if (service.radio == null) {
-            l("No Radio!");
+            Timber.d("No Radio!");
             return;
         }
 
         service.radio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                l("Favorites Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
+                Timber.d("Favorites Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -64,23 +61,23 @@ public class Favorites {
 
             @Override
             public void GPSevent(PositionEvent gps) {
-                d("Favorites GPS Event" );
+                Timber.d("Favorites GPS Event");
             }
 
             @Override
             public void timeEvent(Time time) {
-                d("Favorites Time: " + time.toString());
+                Timber.d("Favorites Time: " + time.toString());
             }
         });
         addTestFavorite();
         getFavorites(); // load from disk
-     }
+    }
 
     public final static int BBFavoritesPacketSize = 18;
 
-    private void broadcastFavoritesPacket(int lat, int lon,  int iMAccurate, String message) {
+    private void broadcastFavoritesPacket(int lat, int lon, int iMAccurate, String message) {
 
-        byte[] b = message.substring(0,4).getBytes();
+        byte[] b = message.substring(0, 4).getBytes();
 
         // Check GPS data is not stale
         int len = 2 * 4 + 1 + RFUtil.kMagicNumberLen + 1;
@@ -109,10 +106,10 @@ public class Favorites {
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
 
-        d("Sending Favorites packet...");
+        Timber.d("Sending Favorites packet...");
         service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
-        d("Sent Favorites packet...");
+        Timber.d("Sent Favorites packet...");
 
         Fav f = new Fav();
         f.r = mBoardAddress;
@@ -134,19 +131,7 @@ public class Favorites {
         mFavoritesCallback = newfunction;
     }
 
-    public void l(String s) {
-        Log.v(TAG, s);
-        service.sendLogMsg(s);
-    }
-
-    public void d(String s) {
-        if (DebugConfigs.DEBUG_FAVORITES == true) {
-            Log.v(TAG, s);
-            service.sendLogMsg(s);
-        }
-    }
-
-    boolean processReceive(byte [] packet, int sigStrength) {
+    boolean processReceive(byte[] packet, int sigStrength) {
 
         try {
             ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
@@ -154,10 +139,10 @@ public class Favorites {
             Fav f = new Fav();
 
             int recvMagicNumber = RFUtil.magicNumberToInt(
-                    new int[] { bytes.read(), bytes.read()});
+                    new int[]{bytes.read(), bytes.read()});
 
             if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kFavoritesMagicNumber)) {
-                d("BB Favorites Packet");
+                Timber.d("BB Favorites Packet");
                 f.r = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
                 int repeatedBy = bytes.read();
@@ -165,7 +150,7 @@ public class Favorites {
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
-                f.o = (double)((bytes.read() & 0xff) +
+                f.o = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
@@ -176,7 +161,7 @@ public class Favorites {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                l(service.allBoards.boardAddressToName(f.r) +
+                Timber.d(service.allBoards.boardAddressToName(f.r) +
                         " strength " + sigStrength +
                         "favorites lat = " + f.a + ", " +
                         "favorites Lon = " + f.o);
@@ -188,18 +173,17 @@ public class Favorites {
                 UpdateFavorites(f);
                 return true;
             } else {
-                d("rogue packet not for us!");
+                Timber.d("rogue packet not for us!");
             }
             return false;
-        }
-        catch(Exception e){
-            l("Error processing a received packet " + e.getMessage());
+        } catch (Exception e) {
+            Timber.e("Error processing a received packet " + e.getMessage());
             return false;
         }
     }
 
     // keep a historical list of minimal location data
-    private class Fav{
+    private class Fav {
         public int r; // address
         public DateTime d; // dateTime
         public double a; // latitude
@@ -210,20 +194,19 @@ public class Favorites {
     private HashMap<String, Fav> mFavorites = new HashMap<>();
 
     public void UpdateFavorites(Fav fav) {
-        try{
+        try {
 
-            if(!mFavorites.containsKey(fav.n)){
-                mFavorites.put(fav.n,fav);
+            if (!mFavorites.containsKey(fav.n)) {
+                mFavorites.put(fav.n, fav);
                 saveFavorites();
             }
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
             //ContentValues v = new ContentValues(1);
-           // v.put("0",getBoardLocationsJSON().toString());
+            // v.put("0",getBoardLocationsJSON().toString());
             //mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
-        }
-        catch(Exception e){
-            l("Error storing the favorites history " + e.getMessage());
+        } catch (Exception e) {
+            Timber.e("Error storing the favorites history " + e.getMessage());
         }
 
     }
@@ -249,52 +232,47 @@ public class Favorites {
             fw.write(favorites.toString());
             fw.close();
         } catch (JSONException e) {
-            l(e.getMessage());
+            Timber.e(e.getMessage());
             return false;
         } catch (IOException e) {
-            l(e.getMessage());
+            Timber.e(e.getMessage());
             return false;
         }
 
         return true;
     }
 
-
-    public void e(String logMsg) {
-        Log.e(TAG, logMsg);
-    }
-
     // keep favorites persisted between reboots.
     public void getFavorites() {
         try {
 
-            File f = new File( service.filesDir + "/" + FAVORITES_JSON);
+            File f = new File(service.filesDir + "/" + FAVORITES_JSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                e(e.getMessage());
+                Timber.e(e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
-            l("contents of favorites.json: " + sb.toString());
+            Timber.d("contents of favorites.json: " + sb.toString());
             JSONArray j = new JSONArray(sb.toString());
 
-            HashMap<String, Fav> favs  = new HashMap<>();
+            HashMap<String, Fav> favs = new HashMap<>();
             for (int i = 0; i < j.length(); i++) {
                 JSONObject jFav = j.getJSONObject(i);
                 Fav ff = new Fav();
                 ff.r = jFav.getInt("r");
-                ff.o =  jFav.getInt("o");
-                ff.a =  jFav.getInt("a");
-              //  ff.d =  jFav.get("");
-                ff.n =  jFav.getString("n");
+                ff.o = jFav.getInt("o");
+                ff.a = jFav.getInt("a");
+                //  ff.d =  jFav.get("");
+                ff.n = jFav.getString("n");
                 UpdateFavorites(ff);
-                favs.put(jFav.getString(""),ff );
+                favs.put(jFav.getString(""), ff);
             }
 
         } catch (Throwable e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
         }
     }
 }

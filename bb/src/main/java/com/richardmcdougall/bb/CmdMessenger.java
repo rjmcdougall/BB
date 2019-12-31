@@ -12,6 +12,7 @@ import java.io.PipedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
+import timber.log.Timber;
 
 /**
  * A java clone of CmdMessenger by rjmcdougall on 8/8/16.
@@ -97,7 +98,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 Serial.write(sendBuffer.toByteArray(), 500);
                 sendBuffer.reset();
             } catch (Exception e) {
-                l("Write Failed: " + e.toString());
+                Timber.e("Write Failed: " + e.toString());
             }
         }
     }
@@ -599,38 +600,9 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
 
-    // comms stuff
-
-    private void l(String str) {
-        Log.d(TAG, ">>>>>" + str);
-    }
-
     private void e(String str) {
         Log.e(TAG, ">>>>>" + str);
     }
-
-/*
-    public void logInNewThread(String s) {
-
-        mLogLineRunnable = new logLineRunnable(s);
-        mHandler.post(mLogLineRunnable);
-    }
-
-    class logLineRunnable implements Runnable {
-
-        private String mStr = null;
-
-        public logLineRunnable(String s) {
-            mStr = s;
-        }
-
-        @Override
-        public void run() {
-            if (mStr != null) default_callback.CmdAction(">>>USB " + mStr + "\n");
-            return;
-        }
-
-    }*/
 
     //listener interface
     @Override

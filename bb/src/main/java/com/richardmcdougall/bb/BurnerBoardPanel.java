@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
-import java.util.Arrays;
+import timber.log.Timber;
 
 /**
  * Created by rmc on 5/20/18.
@@ -38,7 +37,6 @@ import java.util.Arrays;
 
 public class BurnerBoardPanel extends BurnerBoard {
     //public int[] mBoardScreen;
-    private static final String TAG = "BB.BurnerBoardPanel";
     private int [] mLayeredScreen;
 
 
@@ -50,7 +48,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         mMultipler4Speed = 3;
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Panel";
-        l("Burner Board Panel initting...");
+       Timber.d("Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         initPixelOffset();
         initUsb();
@@ -105,7 +103,7 @@ public class BurnerBoardPanel extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            l("getBatteryLevel: " + service.boardState.batteryLevel);
+           Timber.d("getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -190,13 +188,11 @@ public class BurnerBoardPanel extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+           Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
-
-
-
+        
         // Here we calculate the total power percentage of the whole board
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
@@ -325,7 +321,7 @@ public class BurnerBoardPanel extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        l("sendCommand: 7");
+       Timber.d("sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();
