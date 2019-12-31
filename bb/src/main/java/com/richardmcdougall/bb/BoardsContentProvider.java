@@ -176,9 +176,15 @@ public class BoardsContentProvider extends ContentProvider {
 
         for (int i = 0; i < values.size(); i++) {
             mData.add(values.get(String.valueOf(i)).toString());
-            Log.i(TAG, "Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
+            d("Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
         }
 
         return 1;
+    }
+
+    public void d(String s) {
+        if (DebugConfigs.DEBUG_CONTENT_PROVIDER) {
+            Log.d(TAG, s);
+        }
     }
 }

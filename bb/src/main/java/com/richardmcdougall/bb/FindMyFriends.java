@@ -178,8 +178,10 @@ public class FindMyFriends {
     }
 
     public void l(String s) {
-        Log.v(TAG, s);
-        service.sendLogMsg(s);
+        if (DebugConfigs.DEBUG_FMF) {
+            Log.v(TAG, s);
+            service.sendLogMsg(s);
+        }
     }
 
     public void d(String s) {
