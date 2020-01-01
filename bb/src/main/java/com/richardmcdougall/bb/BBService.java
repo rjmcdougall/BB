@@ -5,25 +5,26 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.Date;
+
+import timber.log.Timber;
+
 import android.os.Build;
+
+import static timber.log.Timber.DebugTree;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
-
-    private static final String TAG = "BB.BBService";
 
     public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
@@ -49,7 +50,7 @@ public class BBService extends Service {
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
-    public DownloadManager dlManager;
+    public MediaManager mediaManager;
     private Thread musicPlayerThread;
     public boolean voiceAnnouncements = false;
     public BBWifi wifi = null;
@@ -63,11 +64,6 @@ public class BBService extends Service {
     public GTFO gtfo = null;
 
     public BBService() {
-    }
-
-    public void l(String s) {
-        Log.v(TAG, s);
-        sendLogMsg(s);
     }
 
     /**
@@ -87,16 +83,19 @@ public class BBService extends Service {
 
             super.onCreate();
 
+            if (BuildConfig.DEBUG) {
+                Timber.plant(new LoggingTree(this));
+            }
+
+            Timber.i("onCreate");
+
             InitClock();
-
             context = getApplicationContext();
-
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            l("BBService: onCreate");
-            l("Manufacturer " + Build.MANUFACTURER);
-            l("Model " +  Build.MODEL  );
-            l("Serial " + Build.SERIAL);
+            Timber.i("Build Manufacturer " + Build.MANUFACTURER);
+            Timber.i("Build Model " + Build.MODEL);
+            Timber.i("Build Serial " + Build.SERIAL);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -126,7 +125,7 @@ public class BBService extends Service {
                     if (status == TextToSpeech.SUCCESS) {
                         if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                             voice.setLanguage(Locale.US);
-                        l("Text To Speech ready...");
+                        Timber.i("Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         String utteranceId = UUID.randomUUID().toString();
                         System.out.println("Where do you want to go, " + boardState.BOARD_ID + "?");
@@ -134,13 +133,13 @@ public class BBService extends Service {
                         voice.speak("I am " + boardState.BOARD_ID + "?",
                                 TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                     } else if (status == TextToSpeech.ERROR) {
-                        l("Sorry! Text To Speech failed...");
+                        Timber.i("Sorry! Text To Speech failed...");
                     }
 
                     // Let the user know they're on a raspberry pi // Skip For IsNano
                     if (BoardState.kIsRPI) {
                         String rpiMsg = "Raspberry PI detected";
-                        l(rpiMsg);
+                        Timber.i(rpiMsg);
                         // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
                         voice.speak(rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
 
@@ -152,48 +151,56 @@ public class BBService extends Service {
                 }
             });
 
-            boardState = new BoardState(this);
+            allBoards = new AllBoards(this);
 
-            l("BurnerBoard Version " + boardState.version);
-            l("BurnerBoard APK Updated Date " + boardState.apkUpdatedDate);
+            boardState = new BoardState(this);
+            boardState.address = allBoards.getBoardAddress(boardState.BOARD_ID);
+            allBoards.Run();
+
+            Timber.i("State Version " + boardState.version);
+            Timber.i("State APK Updated Date " + boardState.apkUpdatedDate);
+            Timber.i("State Address " + boardState.apkUpdatedDate);
+            Timber.i("State SSID " + boardState.SSID);
+            Timber.i("State Password " + boardState.password);
+            Timber.i("State Mode " + boardState.currentVideoMode);
+            Timber.i("State BOARD_ID " + boardState.BOARD_ID);
+            Timber.i("State Tyoe " + allBoards.getBoardType());
 
             iotClient = new IoTClient(this);
 
             wifi = new BBWifi(this);
             wifi.Run();
 
-            allBoards = new AllBoards(this);
-            allBoards.Run();
-
-            dlManager = new DownloadManager(this );
-            dlManager.Run();
+            mediaManager = new MediaManager(this);
+            mediaManager.Run();
 
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.setText90(boardState.BOARD_ID, 5000);
             burnerBoard.attach(new BBService.BoardCallback());
 
-            boardVisualization = new BoardVisualization(this );
+            boardVisualization = new BoardVisualization(this);
 
-            Log.d(TAG, "Setting initial visualization mode: " + 1);
-            boardVisualization.setMode(1);
+            Timber.i("Setting initial visualization mode: " + boardState.currentVideoMode);
+            boardVisualization.setMode(boardState.currentVideoMode);
 
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();
+            Thread.sleep(1000); // player thread must fully start before supervisor. dkw
 
-            if(!DebugConfigs.BYPASS_MUSIC_SYNC){
+            if (!DebugConfigs.BYPASS_MUSIC_SYNC) {
                 musicPlayerSupervisor = new MusicPlayerSupervisor(this);
                 musicPlayerSupervisor.Run();
             }
 
             bluetoothConnManager = new BluetoothConnManager(this);
             bLEServer = new BluetoothLEServer(this);
+            gps = new Gps(this);
             radio = new RF(this);
 
             rfClientServer = new RFClientServer(this);
             rfClientServer.Run();
 
-            gps = radio.getGps();
             findMyFriends = new FindMyFriends(this);
 
             bluetoothCommands = new BluetoothCommands(this);
@@ -209,12 +216,8 @@ public class BBService extends Service {
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
-            e(e.getMessage());
+            Timber.e(e.getMessage());
         }
-    }
-
-    public void e(String logMsg) {
-        Log.e(TAG, logMsg);
     }
 
     /**
@@ -222,7 +225,7 @@ public class BBService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        l("BBService: onStartCommand");
+        Timber.i("onStartCommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -231,7 +234,7 @@ public class BBService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        l("BBService: onBind");
+        Timber.i("onBind");
         return mBinder;
     }
 
@@ -240,7 +243,7 @@ public class BBService extends Service {
      */
     @Override
     public boolean onUnbind(Intent intent) {
-        l("BBService: onUnbind");
+        Timber.i("onUnbind");
         return mAllowRebind;
     }
 
@@ -249,7 +252,7 @@ public class BBService extends Service {
      */
     @Override
     public void onRebind(Intent intent) {
-        l("BBService: onRebind");
+        Timber.i("onRebind");
     }
 
     /**
@@ -258,7 +261,7 @@ public class BBService extends Service {
     @Override
     public void onDestroy() {
 
-        l("BBService: onDesonDestroy");
+        Timber.i("onDesonDestroy");
         voice.shutdown();
     }
 
@@ -282,23 +285,14 @@ public class BBService extends Service {
         serverRTT = rtt;
     }
 
-    public void sendLogMsg(String msg) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 4);
-        // Put extras into the intent as usual
-        in.putExtra("logMsg", msg);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(in);
-    }
-
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
         public void BoardId(String str) {
-            l("ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
+            Timber.i("ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
         }
 
         public void BoardMode(int mode) {
-            l("ardunio mode callback:" + boardState.currentVideoMode);
+            Timber.i("ardunio mode callback:" + boardState.currentVideoMode);
         }
     }
 }

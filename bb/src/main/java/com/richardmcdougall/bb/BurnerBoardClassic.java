@@ -1,9 +1,8 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
+import timber.log.Timber;
 
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 
 /**
@@ -37,7 +36,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     // Experiments with optimized overlocked Teensy suggest 20 is to high
     // because we don't get battery callbacks
     public int getFrameRate() {
-            return 16;
+        return 16;
     }
 
     public void start() {
@@ -87,7 +86,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            l("getBatteryLevel: " + service.boardState.batteryLevel);
+            Timber.d("getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -115,7 +114,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean setModeRetired(int mode) {
 
-        l("sendCommand: 4," + mode);
+        Timber.d("sendCommand: 4," + mode);
         if (mListener == null) {
             initUsb();
         }
@@ -177,7 +176,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        l("sendCommand: 9");
+        Timber.d("sendCommand: 9");
         if (mListener != null) {
             mListener.sendCmd(9);
             mListener.sendCmdEnd();
@@ -206,7 +205,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
     public int getMode() {
 
-        l("sendCommand: 12");
+        Timber.d("sendCommand: 12");
         int mode;
 
         if (mListener != null) {
@@ -501,7 +500,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+            Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }

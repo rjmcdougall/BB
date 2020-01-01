@@ -1,9 +1,8 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
+import timber.log.Timber;
 
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 /**
  * Created by rmc on 7/25/17.
@@ -52,7 +51,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         mMultipler4Speed = 2;
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Azul";
-        l("Burner Board Azul initing...");
+       Timber.d("Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
@@ -115,12 +114,12 @@ public class BurnerBoardAzul extends BurnerBoard {
                     (tmpBatteryStats[5] > 20000)) { // voltage
                 service.boardState.batteryLevel = tmpBatteryStats[1];
                 System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
-                l("getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
+               Timber.d("getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
                         "voltage: " + getBatteryVoltage() + ", " +
                         "current: " + getBatteryCurrent() + ", " +
                         "flags: " + mBatteryStats[0]);
             } else {
-                l("getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
+               Timber.d("getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
                         "voltage: " + tmpBatteryStats[5] + ", " +
                         "flags: " + tmpBatteryStats[0]);
             }
@@ -216,7 +215,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+           Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
@@ -315,7 +314,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        l("sendCommand: 7");
+       Timber.d("sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();

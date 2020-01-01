@@ -1,9 +1,11 @@
 package com.richardmcdougall.bb;
 
+import timber.log.Timber;
+
 public class MusicPlayerSupervisor {
 
-    int musicState = 0;
-    BBService service;
+    private int musicState = 0;
+    private BBService service;
 
     MusicPlayerSupervisor(BBService service) {
         this.service = service;
@@ -13,6 +15,7 @@ public class MusicPlayerSupervisor {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB Music Player");
+                Timber.i("Starting Music Supervisor");
                 SupervisorThread();
             }
         });
@@ -23,9 +26,8 @@ public class MusicPlayerSupervisor {
         while (true) {
             switch (musicState) {
                 case 0:
-                    if (service.dlManager.GetTotalAudio() != 0) {
+                    if (service.mediaManager.GetTotalAudio() != 0) {
                         musicState = 1;
-                        //d("Downloaded: Starting Radio Mode");
 
                         service.musicPlayer.RadioMode();
 

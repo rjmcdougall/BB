@@ -31,13 +31,13 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.provider.Settings;
 
+import timber.log.Timber;
+
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";
 
     public static final boolean kThings = true;
-
-    boolean imRunning = false;
 
     TextView voltage;
     TextView status;
@@ -53,8 +53,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     TextView modeStatus;
     private android.widget.Switch switchHeadlight;
 
-    protected static final String GET_USB_PERMISSION = "GetUsbPermission";
-
     private BoardView mBoardView;
     private String stateMsgAudio = "";
     private String stateMsgConn = "";
@@ -62,18 +60,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     private InputManagerCompat remoteControl;
 
-    // TODO: Rename actions, choose action names that describe tasks that this
-    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    private static final String ACTION_LIGHTS = "com.richardmcdougall.bb.action.LIGHTS";
-    private static final String ACTION_MUSIC = "com.richardmcdougall.bb.action.MUSIC";
-
-    // TODO: Rename parameters
-    private static final String EXTRA_PARAM1 = "com.richardmcdougall.bb.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.richardmcdougall.bb.extra.PARAM2";
-
-    private ComponentName mAdminComponentName;
-    private DevicePolicyManager mDevicePolicyManager;
-    private PackageManager mPackageManager;
     private static final String Battery_PLUGGED_ANY = Integer.toString(
             BatteryManager.BATTERY_PLUGGED_AC |
                     BatteryManager.BATTERY_PLUGGED_USB |
@@ -146,42 +132,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                 Battery_PLUGGED_ANY);
 
     }
-
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionLights(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, BBIntentService.class);
-        intent.setAction(ACTION_LIGHTS);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionMusic(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, BBIntentService.class);
-        intent.setAction(ACTION_MUSIC);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
-
-
-    //private Handler pHandler = new Handler();
-
-    //public String bleStatus = "hello BLE";
-
 
     // function to append a string to a TextView as a new line
     // and scroll to the bottom if needed
@@ -345,12 +295,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             becomeHomeActivity(this.getApplicationContext());
         }
 
-        //UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-        //static PendingIntent mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-        //mUsbManager.requestPermission(accessory, mPermissionIntent);
-
-
-
         // Connect the remote control
         remoteControl = InputManagerCompat.Factory.getInputManager(getApplicationContext());
         remoteControl.registerInputDeviceListener(this, null);
@@ -386,9 +330,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
         log.setMaxLines(40);
 
-        //int maxLength = 500;
-        //log.setFilters(new InputFilter[] {new InputFilter.LengthFilter(maxLength)});
-
         voltage.setText("0.0v");
         log.setFocusable(false);
 
@@ -399,35 +340,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                 //boardSetHeadlight(isChecked);
             }
         });
-
-
-        //startActionMusic(getApplicationContext(), "", "");
-
-        //MusicReset();
-
-
-        //try {
-        //    mVisualizerView.link(mediaPlayer.getAudioSessionId());
-        //    mVisualizerView.addBarGraphRendererBottom();
-        //mVisualizerView.addBurnerBoardRenderer(this);
-        //} catch (Exception e) {
-        //    l("Cannot start visualizer!" + e.getMessage());
-        //
-
-    }
-
-
-
-    private void updateStatus() {
-        float volts;
-
-//        volts = boardGetVoltage();
-        volts = 0.0f;
-
-        if (volts > 0) {
-            voltage.setText(String.format("%.2f", volts) + "v");
-        }
-
     }
 
     @Override
@@ -435,13 +347,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         super.onResume();
         l("MainActivity: onResume()");
-
-//        if (mWifi != null)
-//            mWifi.onResume();
-
-//        loadPrefs();
-
-//        initUsb();
 
         // Register for the particular broadcast based on Stats Action
         IntentFilter statFilter = new IntentFilter(ACTION.STATS);
@@ -459,33 +364,16 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         super.onPause();
         l("MainActivity: onPause()");
 
-
-        //       if (mWifi != null)
-        //         mWifi.onPause();
-
-
-//        savePrefs();
-
-//        stopIoManager();
-
         // Unregister the listener when the application is paused
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBstatsReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBgraphicsReceiver);
-
-
     }
-
-
 
     public void onModeDown(View v) {
         Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_MODE_DOWN);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-        //   boardSetMode(98);
-        //  if ((boardMode = boardGetMode()) == -1)
-        //     boardMode--;
-        //modeStatus.setText(String.format("%d", boardMode));
     }
 
     public void onModeUp(View v) {
@@ -493,10 +381,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_MODE_UP);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-        //   boardSetMode(99);
-        // if ((boardMode = boardGetMode()) == -1)
-        //    boardMode++;
-        //modeStatus.setText(String.format("%d", boardMode));
     }
 
 
@@ -504,22 +388,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_TRACK);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-        //NextStream();
-    }
-
-    public void onDriftDown(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_DRIFT_DOWN);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-        //MusicOffset(-2);
-    }
-
-    public void onDriftUp(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_DRIFT_UP);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
@@ -544,38 +412,16 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-    /*
-   * When an input device is added, we add a ship based upon the device.
-   * @see
-   * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-   * #onInputDeviceAdded(int)
-   */
     @Override
     public void onInputDeviceAdded(int deviceId) {
         l("MainActivity: onInputDeviceAdded");
-
     }
 
-    /*
-     * This is an unusual case. Input devices don't typically change, but they
-     * certainly can --- for example a device may have different modes. We use
-     * this to make sure that the ship has an up-to-date InputDevice.
-     * @see
-     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-     * #onInputDeviceChanged(int)
-     */
     @Override
     public void onInputDeviceChanged(int deviceId) {
         l("MainAcitivity: onInputDeviceChanged");
-
     }
 
-    /*
-     * Remove any ship associated with the ID.
-     * @see
-     * com.example.inputmanagercompat.InputManagerCompat.InputDeviceListener
-     * #onInputDeviceRemoved(int)
-     */
     @Override
     public void onInputDeviceRemoved(int deviceId) {
         l("onInputDeviceRemoved");
@@ -585,7 +431,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
             l("Keycode:" + keyCode);
-            //System.out.println("Keycode: " + keyCode);
         }
 
         Intent in = new Intent(ACTION.BUTTONS);
@@ -595,7 +440,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         in.putExtra("keyEvent", event);
         // Fire the broadcast with intent packaged
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-
 
         if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
                 == InputDevice.SOURCE_GAMEPAD) {
@@ -642,7 +486,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         }
 
     }
-
 
     // If we want to do anything when permissions are granted or denied
     @Override

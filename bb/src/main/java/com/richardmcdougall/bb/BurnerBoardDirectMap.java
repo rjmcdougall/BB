@@ -1,9 +1,7 @@
 
 package com.richardmcdougall.bb;
-import android.util.Log;
-
+import timber.log.Timber;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 /**
  * Created by rmc on 5/28/18.
@@ -68,7 +66,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
 
         boardType = "Burner Board DirectMap";
-        l(boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);
+       Timber.d(boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);
 
         mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
         initPixelOffset();
@@ -119,7 +117,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            l("getBatteryLevel: " + service.boardState.batteryLevel);
+           Timber.d("getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -203,7 +201,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+           Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
@@ -304,7 +302,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        l("sendCommand: 7");
+       Timber.d("sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();

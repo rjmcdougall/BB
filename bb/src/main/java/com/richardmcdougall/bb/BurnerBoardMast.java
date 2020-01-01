@@ -1,6 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
+import timber.log.Timber;
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -39,11 +39,6 @@ import java.util.Arrays;
 
 
 public class BurnerBoardMast extends BurnerBoard {
-    //public int[] mBoardScreen;
-    private static final String TAG = "BB.BurnerBoardMast";
-    //public String boardId = Build.MODEL;
-
-
     public BurnerBoardMast(BBService service) {
         super(service);
         mBoardWidth = 24;
@@ -51,7 +46,7 @@ public class BurnerBoardMast extends BurnerBoard {
         mMultipler4Speed = 3;
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Mast";
-        l("Burner Board Mast initing...");
+        Timber.d("Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
@@ -107,7 +102,7 @@ public class BurnerBoardMast extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            l("getBatteryLevel: " + service.boardState.batteryLevel);
+            Timber.d("getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -176,7 +171,7 @@ public class BurnerBoardMast extends BurnerBoard {
         }
     }
 
-    public int [] getPixelBuffer() {
+    public int[] getPixelBuffer() {
         return mBoardScreen;
     }
 
@@ -194,7 +189,7 @@ public class BurnerBoardMast extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            l("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+            Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
@@ -273,8 +268,7 @@ public class BurnerBoardMast extends BurnerBoard {
                 mListener.sendCmd(6);
                 mListener.sendCmdEnd();
                 return true;
-            }
-            else {
+            } else {
                 // Emulate board's 30ms refresh time
                 try {
                     Thread.sleep(5);
@@ -291,7 +285,7 @@ public class BurnerBoardMast extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        l("sendCommand: 7");
+        Timber.d("sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();
@@ -328,8 +322,7 @@ public class BurnerBoardMast extends BurnerBoard {
         }
     }
 
-    static int pixelMap2Board(int s, int offset)
-    {
+    static int pixelMap2Board(int s, int offset) {
         return pixelMap2BoardTable[s][offset];
     }
 
@@ -345,7 +338,7 @@ public class BurnerBoardMast extends BurnerBoard {
 
     // Two primary mapping functions
     static int kStrips = 8;
-    static int [][] pixelMap2BoardTable = new int[8][4096];
+    static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;
 
     private void initpixelMap2Board() {

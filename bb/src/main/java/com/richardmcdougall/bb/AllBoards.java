@@ -6,17 +6,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.File;
+import timber.log.Timber;
 
 public class AllBoards {
 
     private static final String BOARDS_JSON_FILENAME = "boards.json";
     private static final String BOARDS_JSON_TMP_FILENAME = "boards.json.tmp";
-    private static final String TAG = "AllBoards";
     private static final String BOARDS_JSON_TEMP2_FILENAME = "boardsTemp";
     private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
 
     private BBService service = null;
-    public DownloadManager.OnDownloadProgressType onProgressCallback = null;
+    public MediaManager.OnDownloadProgressType onProgressCallback = null;
     public JSONArray dataBoards;
 
     public AllBoards(BBService service) {
@@ -45,14 +45,41 @@ public class AllBoards {
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataBoards = dir;
-                    d("Dir " + origDir);
+                   Timber.d("Dir " + origDir);
                 }
             }
 
         } catch (Throwable er) {
-            e(er.getMessage()) ;
+            Timber.e(er.getMessage()) ;
         }
     }
+
+    public JSONArray MinimizedBoards() {
+        JSONArray boards = dataBoards;
+        JSONArray boards2 = null;
+        if (boards == null) {
+           Timber.d( "Could not get boards directory (null)");
+        }
+        if (boards != null) {
+            try {
+
+                boards2 = new JSONArray(boards.toString()) ;
+                for (int i = 0; i < boards2.length(); i++) {
+                    JSONObject a = boards2.getJSONObject(i);
+                    if(a.has("address"))  a.remove("address");
+                    if(a.has("isProfileGlobal"))  a.remove("isProfileGlobal");
+                    if(a.has("profile"))   a.remove("profile");
+                    if(a.has("isProfileGlobal2"))  a.remove("isProfileGlobal2");
+                    if(a.has("profile2"))   a.remove("profile2");
+                    if(a.has("type"))  a.remove("type");
+                }
+            } catch (Exception e) {
+               Timber.d( "Could not get boards directory: " + e.getMessage());
+            }
+        }
+        return boards2;
+    }
+
     public int getBoardAddress(String boardId) {
 
         JSONObject board;
@@ -61,7 +88,7 @@ public class AllBoards {
         try {
 
              if (dataBoards == null) {
-                d("Could not find board address data");
+               Timber.d("Could not find board address data");
             } else {
                 for (int i = 0; i <  dataBoards.length(); i++) {
                     board =  dataBoards.getJSONObject(i);
@@ -70,13 +97,13 @@ public class AllBoards {
                     }
                 }
             }
-            d("Address " + String.valueOf(myAddress));
+           Timber.d("Address " + String.valueOf(myAddress));
             return myAddress;
         } catch (JSONException e) {
-            d(e.getMessage());
+            Timber.e(e.getMessage());
             return myAddress;
         } catch (Exception e) {
-            d(e.getMessage());
+            Timber.e(e.getMessage());
             return myAddress;
         }
 
@@ -90,7 +117,7 @@ public class AllBoards {
         try {
 
              if ( dataBoards == null) {
-                d("Could not find board name data");
+               Timber.d("Could not find board name data");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -100,13 +127,13 @@ public class AllBoards {
                 }
             }
 
-            d("Address " +  address + " To Name " + boardId);
+           Timber.d("Address " +  address + " To Name " + boardId);
             return boardId;
 
         } catch (JSONException e) {
-            e(e.getMessage());
+           Timber.e(e.getMessage());
         } catch (Exception e) {
-            e(e.getMessage());
+           Timber.e(e.getMessage());
         }
 
         return boardId;
@@ -119,10 +146,8 @@ public class AllBoards {
 
         try {
 
-            if (service.dlManager == null) {
-                d("Could not find board color data");
-            } else if ( dataBoards == null) {
-                d("Could not find board color data");
+            if ( dataBoards == null) {
+               Timber.d("Could not find board color data");
             } else {
                 for (int i = 0; i <  dataBoards.length(); i++) {
                     board =  dataBoards.getJSONObject(i);
@@ -132,25 +157,15 @@ public class AllBoards {
                 }
             }
 
-            d("Color " + boardColor);
+           Timber.d("Color " + boardColor);
             return boardColor;
         } catch (JSONException e) {
-            e(e.getMessage());
+           Timber.e(e.getMessage());
             return boardColor;
         } catch (Exception e) {
-            e(e.getMessage());
+           Timber.e(e.getMessage());
             return boardColor;
         }
-    }
-
-    public void d(String logMsg) {
-        if (DebugConfigs.DEBUG_ALL_BOARDS) {
-            Log.d(TAG, logMsg);
-        }
-    }
-
-    public void e(String logMsg) {
-        Log.e(TAG, logMsg);
     }
 
     String getPublicName(String deviceID) {
@@ -161,18 +176,18 @@ public class AllBoards {
 
                 if (obj.has("bootName")) {
                     if (obj.getString("bootName").equals(deviceID)) {
-                        d("Found bootName: " + deviceID);
+                       Timber.d("Found bootName: " + deviceID);
                         name = obj.getString("name");
 
-                        d("Found publicName: " + name);
+                       Timber.d("Found publicName: " + name);
                         return name;
                     }
                 }
             }
 
-            d("No special publicName found for: " + deviceID);
+           Timber.d("No special publicName found for: " + deviceID);
         } catch (JSONException e) {
-            e( "Could not find publicName for: " + deviceID + " " + e.toString());
+           Timber.e( "Could not find publicName for: " + deviceID + " " + e.toString());
         }
 
         // We got here, we got nothing...
@@ -187,7 +202,7 @@ public class AllBoards {
         try {
 
             if ( dataBoards == null) {
-                d("Could not find board type");
+               Timber.d("Could not find board type");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board =  dataBoards.getJSONObject(i);
@@ -196,12 +211,12 @@ public class AllBoards {
                     }
                 }
             }
-            d("Board Type " + String.valueOf(type));
+           Timber.d("Board Type " + String.valueOf(type));
             return type;
         } catch (JSONException e) {
-            d(e.getMessage());
+            Timber.e(e.getMessage());
         } catch (Exception e) {
-            d(e.getMessage());
+            Timber.e(e.getMessage());
         }
         finally {
             return type;
@@ -214,13 +229,13 @@ public class AllBoards {
 
             boolean returnValue = true;
 
-            d(DIRECTORY_URL);
+           Timber.d(DIRECTORY_URL);
 
             long ddsz = -1;
             ddsz = FileHelpers.DownloadURL(DIRECTORY_URL, BOARDS_JSON_TEMP2_FILENAME, "Boards JSON", onProgressCallback, service.filesDir);
 
             if (ddsz < 0) {
-                d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
+               Timber.d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
                 returnValue = false;
             }
             else {
@@ -229,14 +244,14 @@ public class AllBoards {
                 String dirTxt = FileHelpers.LoadTextFile(BOARDS_JSON_TMP_FILENAME, service.filesDir);
                 JSONArray dir = new JSONArray(dirTxt);
 
-                d("Downloaded Boards JSON: " + dirTxt);
+               Timber.d("Downloaded Boards JSON: " + dirTxt);
 
                 if (onProgressCallback != null) {
                     if (dataBoards == null || dir.length() != dataBoards.length()) {
-                        d("A new board was discovered in Boards JSON.");
+                       Timber.d("A new board was discovered in Boards JSON.");
                         onProgressCallback.onVoiceCue("New Boards available for syncing.");
                     } else
-                        d("A minor change was discovered in Boards JSON.");
+                       Timber.d("A minor change was discovered in Boards JSON.");
                 }
 
                 // got new boards.  Update!
@@ -246,22 +261,22 @@ public class AllBoards {
                 new File(service.filesDir, BOARDS_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_FILENAME));
 
                 // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
-                d("Determining public name based on: " + service.boardState.DEVICE_ID);
+               Timber.d("Determining public name based on: " + service.boardState.DEVICE_ID);
 
                 String newPN = getPublicName(service.boardState.DEVICE_ID);
                 String existingPN = service.boardState.getPublicName();
 
-                d("Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
+               Timber.d("Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
                 if (newPN != null) {
                     if (existingPN == null || !existingPN.equals(newPN)) {
                         service.boardState.setPublicName(newPN);
-                        d("Public name updated to: " + newPN);
+                       Timber.d("Public name updated to: " + newPN);
                     }
                 }
 
                 if (dataBoards != null)
                     if (dir.toString().length() == dataBoards.toString().length()) {
-                        d("No Changes to Boards JSON.");
+                       Timber.d("No Changes to Boards JSON.");
                         returnValue = true;
                     }
             }
@@ -269,10 +284,10 @@ public class AllBoards {
 
             return returnValue;
         } catch (JSONException jse) {
-            e( jse.getMessage());
+           Timber.e( jse.getMessage());
             return false;
         } catch (Throwable th) {
-            e( th.getMessage());
+           Timber.e( th.getMessage());
             return false;
         }
     }

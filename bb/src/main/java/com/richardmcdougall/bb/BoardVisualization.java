@@ -3,17 +3,17 @@ package com.richardmcdougall.bb;
 import com.richardmcdougall.bb.visualization.Fire;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.Mickey;
-;
+
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.*;
 import com.richardmcdougall.bb.visualization.Visualization;
-import android.app.Activity;
-import android.content.Intent;
+
 import android.media.audiofx.Visualizer;
 
 import android.speech.tts.TextToSpeech;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
+
+import timber.log.Timber;
+
 import org.json.JSONObject;
 
 import java.util.Random;
@@ -52,7 +52,6 @@ import java.util.Random;
 
 public class BoardVisualization {
 
-    private static final String TAG = "BB.BoardVisualization";
     private BBService service;
     public Random mRandom = new Random();
     public byte[] mBoardFFT;
@@ -86,7 +85,7 @@ public class BoardVisualization {
     BoardVisualization(BBService service) {
 
         this.service = service;
-        l("Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
+       Timber.d("Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
 
         mBoardWidth = service.burnerBoard.getWidth();
         mBoardHeight = service.burnerBoard.getHeight();
@@ -94,7 +93,7 @@ public class BoardVisualization {
         mBoardScreen = service.burnerBoard.getPixelBuffer();
         mFrameRate = service.burnerBoard.getFrameRate();
 
-        l("Board framerate set to " + mFrameRate);
+       Timber.d("Board framerate set to " + mFrameRate);
 
         mVisualizationFire = new Fire(service.burnerBoard, this);
         mVisualizationMatrix = new Matrix(service.burnerBoard, this);
@@ -124,11 +123,6 @@ public class BoardVisualization {
     private Visualizer mVisualizer;
     private int mAudioSessionId;
 
-    public void l(String s) {
-        Log.v(TAG, s);
-        service.sendLogMsg(s);
-    }
-
     public void inhibit(boolean inhibit) {
         inhibitVisual = inhibit;
     }
@@ -149,17 +143,17 @@ public class BoardVisualization {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = service.boardState.currentVideoMode + 1;
-        if (next > service.dlManager.GetTotalVideo()) {
+        if (next > service.mediaManager.GetTotalVideo()) {
             next = 1;
         }
-        l("Setting Video to: " + service.dlManager.GetVideoFileLocalName(next - 1));
+        Timber.d("Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
     }
 
     public void attachAudio(int audioSessionId) {
         int vSize;
 
-        l("session=" + audioSessionId);
+        Timber.d("session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
 
         try {
@@ -176,11 +170,11 @@ public class BoardVisualization {
                 mVisualizer.setEnabled(true);
             }
         } catch (Exception e) {
-            l("Error enabling visualizer: " + e.getMessage());
+            Timber.e("Error enabling visualizer: " + e.getMessage());
             //System.out.println("Error enabling visualizer:" + e.getMessage());
             return;
         }
-        l("Enabled visualizer with " + vSize + " bytes");
+        Timber.d("Enabled visualizer with " + vSize + " bytes");
     }
 
     public int displayAlgorithm(String algorithm) {
@@ -332,38 +326,34 @@ public class BoardVisualization {
 
     long debugCnt = 0;
 
-    public void e(String logMsg) {
-        Log.e(TAG, logMsg);
-    }
-
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
         long lastFrameTime = System.currentTimeMillis();
         int frameRate = 11;
 
-        l("Starting board display thread...");
+        Timber.d("Starting board display thread...");
 
-        int nVideos = service.dlManager.GetTotalVideo();
+        int nVideos = service.mediaManager.GetTotalVideo();
 
         while (true) {
 
             // Power saving when board top not turned on
             if (inhibitVisual || inhibitVisualGTFO) {
-                l("inhibit");
+                Timber.d("inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.showBattery();
                 service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    e(er.getMessage());
+                    Timber.e(er.getMessage());
                 }
                 continue;
             }
 
             if (emergencyVisual) {
-                l("inhibit");
+                Timber.d("inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
                 service.burnerBoard.showBattery();
@@ -371,7 +361,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    e(er.getMessage());
+                    Timber.e(er.getMessage());
                 }
                 continue;
             }
@@ -395,17 +385,17 @@ public class BoardVisualization {
 
             long frameTime = 1000 / frameRate;
             long curFrameTime = System.currentTimeMillis();
-            long thisFrame = (curFrameTime-lastFrameTime);
+            long thisFrame = (curFrameTime - lastFrameTime);
 
             if (thisFrame < frameTime) {
                 try {
                     Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
-                    e(er.getMessage());
+                    Timber.e(er.getMessage());
                 }
             }
 
-            lastFrameTime =  System.currentTimeMillis();
+            lastFrameTime = System.currentTimeMillis();
 
             boardDisplayCnt++;
             if (boardDisplayCnt > 1000) {
@@ -420,29 +410,29 @@ public class BoardVisualization {
 
     int runVisualization(int mode) {
 
-        try{
+        try {
             mode += -1;
 
             frameCnt++;
             if (frameCnt % 100 == 0) {
-                l("Frames: " + frameCnt);
+                Timber.d("Frames: " + frameCnt);
             }
 
             if (mode < 0) {
                 return mFrameRate;
             }
 
-            if(service.burnerBoard.service.dlManager == null){
+            if (service.mediaManager == null) {
                 return mFrameRate;
             }
 
             // TODO: check perf overhead of checking this every frame
-            JSONObject videos = service.dlManager.GetVideo(mode);
+            JSONObject videos = service.mediaManager.GetVideo(mode);
             if (videos == null) {
                 return mFrameRate;
             }
-            if(videos.has("algorithm")){
-                String algorithm = service.dlManager.GetAlgorithm(mode);
+            if (videos.has("algorithm")) {
+                String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
                 if (BoardState.kIsRPI) { // nano is fine
@@ -451,9 +441,8 @@ public class BoardVisualization {
                 mVisualizationVideo.update(mode);
                 return mFrameRate;
             }
-        }
-        catch(Exception e){
-            e(e.getMessage());
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
             return mFrameRate;
         }
     }
@@ -518,6 +507,7 @@ public class BoardVisualization {
     }
 
     private int showingMap = 0;
+
     public void showMap() {
         showingMap = mFrameRate * 15;
     }
@@ -534,7 +524,7 @@ public class BoardVisualization {
             service.boardState.currentVideoMode = mode;
         }
 
-        int maxModes = service.dlManager.GetTotalVideo();
+        int maxModes = service.mediaManager.GetTotalVideo();
         if (service.boardState.currentVideoMode > maxModes)
             service.boardState.currentVideoMode = 1;
         else if (service.boardState.currentVideoMode < 1)
@@ -543,13 +533,13 @@ public class BoardVisualization {
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-            String name = service.dlManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
-            l("Sending video remote for video " + name);
+            String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
+            Timber.d("Sending video remote for video " + name);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
         if (service.burnerBoard != null) {
-            Log.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
+            Timber.d("Setting visualization mode to: " + service.boardState.currentVideoMode);
 
             service.burnerBoard.resetParams();
             service.burnerBoard.clearPixels();
