@@ -1,55 +1,30 @@
 package com.richardmcdougall.bb.visualization;
 
-/**
- * Created by Jonathan on 8/5/2017.
- */
-/*
- * Copyright 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-        import com.richardmcdougall.bb.DebugConfigs;
-        import com.richardmcdougall.bb.SimpleImage;
+import com.richardmcdougall.bb.SimpleImage;
 
-        import android.graphics.SurfaceTexture;
-        import android.media.MediaCodec;
-        import android.media.MediaExtractor;
-        import android.media.MediaFormat;
-        import android.opengl.EGL14;
-        import android.opengl.EGLConfig;
-        import android.opengl.EGLContext;
-        import android.opengl.EGLDisplay;
-        import android.opengl.EGLSurface;
-        import android.opengl.GLES11Ext;
-        import android.opengl.GLES20;
-        import android.opengl.Matrix;
-        import android.test.AndroidTestCase;
-        import android.util.Log;
-        import android.view.Surface;
+import android.graphics.SurfaceTexture;
+import android.media.MediaCodec;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.opengl.EGL14;
+import android.opengl.EGLConfig;
+import android.opengl.EGLContext;
+import android.opengl.EGLDisplay;
+import android.opengl.EGLSurface;
+import android.opengl.GLES11Ext;
+import android.opengl.GLES20;
+import android.opengl.Matrix;
+import android.test.AndroidTestCase;
+import android.util.Log;
+import android.view.Surface;
 
-        import java.io.File;
-        import java.io.FileNotFoundException;
-        import java.io.IOException;
-        import java.nio.ByteBuffer;
-        import java.nio.ByteOrder;
-        import java.nio.FloatBuffer;
-
-//20131122: minor tweaks to saveFrame() I/O
-//20131205: add alpha to EGLConfig (huge glReadPixels speedup); pre-allocate pixel buffers;
-//          log time to run saveFrame()
-//20140123: correct error checks on glGet*Location() and program creation (they don't set error)
-//20140212: eliminate byte swap
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import timber.log.Timber;
 /**
  * Extract frames from an MP4 using MediaExtractor, MediaCodec, and GLES.  Put a .mp4 file
  * in "/sdcard/source.mp4" and look for output files named "/sdcard/frame-XX.png".
@@ -60,7 +35,6 @@ package com.richardmcdougall.bb.visualization;
  * currently part of CTS.)
  */
 public class VideoDecoder extends AndroidTestCase {
-    private static final String TAG = "BB.VideoDecoder";
 
     // where to find files (note: requires WRITE_EXTERNAL_STORAGE permission)
 
@@ -82,7 +56,7 @@ public class VideoDecoder extends AndroidTestCase {
     public Boolean IsRunning() {
         Thread dt = decodeThread;
         if (dt!=null && !dt.isAlive()) {
-            d("IsRunning() found decode thread dead");
+            Timber.v("IsRunning() found decode thread dead");
             stopRequested = true;
             state = StateType.STOPPED;
             return false;
@@ -92,7 +66,7 @@ public class VideoDecoder extends AndroidTestCase {
 
     /** test entry point */
     public void Start(String fname, int xRes, int yRes) throws Throwable {
-        d("starting decodeThread");
+        Timber.v("starting decodeThread");
         Stop();
         stopRequested = false;
         sourceFilename = fname;
@@ -100,12 +74,12 @@ public class VideoDecoder extends AndroidTestCase {
         outHeight = yRes;
         state = StateType.DECODING;
         wrapper = ExtractMpegFramesWrapper.Start(this);
-        d("starteddecodeThread");
+        Timber.v("starteddecodeThread");
 
     }
 
     public void Stop() {
-        d( "stopping decodeThread");
+        Timber.v( "stopping decodeThread");
         Thread waitThread = decodeThread;
         if (waitThread!=null) {
             stopRequested = true;
@@ -113,11 +87,11 @@ public class VideoDecoder extends AndroidTestCase {
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
-                    e(e.getMessage());
+                    Timber.e(e.getMessage());
                 }
             }
         }
-        d( "stopped decodeThread");
+        Timber.v( "stopped decodeThread");
     }
 
 
@@ -148,15 +122,15 @@ public class VideoDecoder extends AndroidTestCase {
             try {
                 mTest.extractMpegFrames();
             } catch (Throwable th) {
-                e("extractMpegFrames failed");
+                Timber.e("extractMpegFrames failed");
                 mThrowable = th;
-                e("extractMpegFrames thread failed" + mThrowable.getMessage());
+                Timber.e("extractMpegFrames thread failed" + mThrowable.getMessage());
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                 }
             }
-            d("extractMpegFrames thread exiting");
+            Timber.v("extractMpegFrames thread exiting");
 
         }
 
@@ -196,7 +170,7 @@ public class VideoDecoder extends AndroidTestCase {
                 File inputFile = new File(sourceFilename);   // must be an absolute path
                 // The MediaExtractor error messages aren't very useful.  Check to see if the input
                 // file exists so we can throw a better one if it's not there.
-                d("filename: " + sourceFilename);
+                Timber.v("filename: " + sourceFilename);
 
                 if (!inputFile.canRead()) {
                     throw new FileNotFoundException("Unable to read " + inputFile);
@@ -229,16 +203,16 @@ public class VideoDecoder extends AndroidTestCase {
 
                 codec.configure(format, outputSurface.getSurface(), null, 0);
 
-                d( "Dec: Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" + format.getInteger(MediaFormat.KEY_HEIGHT));
-                d("Dec: Duration: " + format.getLong(MediaFormat.KEY_DURATION));
+                Timber.v( "Dec: Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" + format.getInteger(MediaFormat.KEY_HEIGHT));
+                Timber.v("Dec: Duration: " + format.getLong(MediaFormat.KEY_DURATION));
 
                 // dkw note that this does not exist on Dragonboard
                 try{
-                    d("Dec: Frame Rate: " + format.getInteger(MediaFormat.KEY_FRAME_RATE));
+                    Timber.v("Dec: Frame Rate: " + format.getInteger(MediaFormat.KEY_FRAME_RATE));
                 }
                 catch(Exception e){  }
-                d("Dec: MIME: " + format.getString(MediaFormat.KEY_MIME));
-                d("Dec: Codec: " + codec.getName());
+                Timber.v("Dec: MIME: " + format.getString(MediaFormat.KEY_MIME));
+                Timber.v("Dec: Codec: " + codec.getName());
 
                 codec.start();
 
@@ -246,7 +220,7 @@ public class VideoDecoder extends AndroidTestCase {
 
             } finally {
                 // release everything we grabbed
-                d("Exiting extractMpegFrames");
+                Timber.v("Exiting extractMpegFrames");
                 if (outputSurface != null) {
                     outputSurface.release();
                     outputSurface = null;
@@ -278,22 +252,12 @@ public class VideoDecoder extends AndroidTestCase {
             MediaFormat format = extractor.getTrackFormat(i);
             String mime = format.getString(MediaFormat.KEY_MIME);
             if (mime.startsWith("video/")) {
-                d("Extractor selected track " + i + " (" + mime + "): " + format);
+                Timber.v("Extractor selected track " + i + " (" + mime + "): " + format);
                 return i;
             }
         }
 
         return -1;
-    }
-
-
-    static void d(String logMsg){
-        if (DebugConfigs.VIDEO_DECODER_VERBOSE_LOGGING)
-            Log.d(TAG, logMsg);
-    }
-
-    static void e(String logMsg){
-            Log.e(TAG, logMsg);
     }
 
     /**
@@ -313,7 +277,7 @@ public class VideoDecoder extends AndroidTestCase {
         long lastFrameTime = System.currentTimeMillis();
 
         while (!outputDone && !parent.stopRequested) {
-            d("loop");
+            Timber.v("loop");
 
             // Feed more data to the decoder.
             if (!inputDone) {
@@ -324,29 +288,29 @@ public class VideoDecoder extends AndroidTestCase {
                     // Read the sample data into the ByteBuffer.  This neither respects nor
                     // updates inputBuf's position, limit, etc.
                    int chunkSize = extractor.readSampleData(inputBuf, 0);
-                    d("chuck size" + chunkSize);
+                    Timber.v("chuck size" + chunkSize);
                     if (chunkSize < 0) {
                         // End of stream -- send empty frame with EOS flag set.
                         codec.queueInputBuffer(inputBufIndex, 0, 0, 0L,
                                 MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         inputDone = true;
-                        d("sent input EOS");
+                        Timber.v("sent input EOS");
                     } else {
                         if (extractor.getSampleTrackIndex() != trackIndex) {
-                            Log.w(TAG, "WEIRD: got sample from track " +
+                            Timber.w( "WEIRD: got sample from track " +
                                     extractor.getSampleTrackIndex() + ", expected " + trackIndex);
                         }
                         long presentationTimeUs = extractor.getSampleTime();
                         codec.queueInputBuffer(inputBufIndex, 0, chunkSize,
                                 presentationTimeUs, 0 /*flags*/);
-                        d ("submitted frame " + inputChunk + " to dec, size=" +
+                        Timber.v ("submitted frame " + inputChunk + " to dec, size=" +
                                     chunkSize + " presentation time: " + presentationTimeUs);
 
                         inputChunk++;
                         extractor.advance();
                     }
                 } else {
-                    d("input buffer not available");
+                    Timber.v("input buffer not available");
                 }
             }
 
@@ -355,20 +319,20 @@ public class VideoDecoder extends AndroidTestCase {
                 int decoderStatus = codec.dequeueOutputBuffer(info,TIMEOUT_USEC);
                 if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
                     // no output available yet
-                    d( "no output from decoder available");
+                    Timber.v( "no output from decoder available");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                     // not important for us, since we're using Surface
-                    d("decoder output buffers changed");
+                    Timber.v("decoder output buffers changed");
                 } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                     MediaFormat newFormat = codec.getOutputFormat();
-                    d("decoder output format changed: " + newFormat);
+                    Timber.v("decoder output format changed: " + newFormat);
                 } else if (decoderStatus < 0) {
                     fail("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus);
                 } else { // decoderStatus >= 0
-                    d("surface decoder given buffer " + decoderStatus +
+                    Timber.v("surface decoder given buffer " + decoderStatus +
                             " (size=" + info.size + ")");
                     if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                        d("output EOS");
+                        Timber.v("output EOS");
                         outputDone = true;
                     }
 
@@ -381,7 +345,7 @@ public class VideoDecoder extends AndroidTestCase {
                     codec.releaseOutputBuffer(decoderStatus, doRender);
 
                     if (doRender) {
-                        d("awaiting decode of frame " + decodeCount);
+                        Timber.v("awaiting decode of frame " + decodeCount);
                         outputSurface.awaitNewImage();
                         outputSurface.drawImage(true);
 
@@ -400,12 +364,12 @@ public class VideoDecoder extends AndroidTestCase {
                             try {
                                 Thread.sleep(33 - (curFrameTime - lastFrameTime));
                             } catch (Throwable er) {
-                                e(er.getMessage());
+                                Timber.e(er.getMessage());
                             }
                         }
                         lastFrameTime = curFrameTime;
 
-                        d( "Decoding frame " + decodeCount);
+                        Timber.v( "Decoding frame " + decodeCount);
                         decodeCount++;
                     }
                 }
@@ -413,7 +377,7 @@ public class VideoDecoder extends AndroidTestCase {
         }
 
         int numSaved = (MAX_FRAMES < decodeCount) ? MAX_FRAMES : decodeCount;
-        d("Saving " + numSaved);
+        Timber.v("Saving " + numSaved);
     }
 
 
@@ -468,7 +432,7 @@ public class VideoDecoder extends AndroidTestCase {
             mTextureRender = new VideoDecoder.STextureRender();
             mTextureRender.surfaceCreated();
 
-            d("textureID=" + mTextureRender.getTextureId());
+            Timber.v("textureID=" + mTextureRender.getTextureId());
             mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
 
             // This doesn't work if this object is created on the thread that CTS started for
@@ -630,7 +594,7 @@ public class VideoDecoder extends AndroidTestCase {
         // SurfaceTexture callback
         @Override
         public void onFrameAvailable(SurfaceTexture st) {
-            d("new frame available");
+            Timber.v("new frame available");
             synchronized (mFrameSyncObject) {
                 if (mFrameAvailable) {
                     throw new RuntimeException("mFrameAvailable already set, frame could be dropped");
@@ -817,8 +781,8 @@ public class VideoDecoder extends AndroidTestCase {
             int[] compiled = new int[1];
             GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
             if (compiled[0] == 0) {
-                Log.e(TAG, "Could not compile shader " + shaderType + ":");
-                Log.e(TAG, " " + GLES20.glGetShaderInfoLog(shader));
+                Timber.e( "Could not compile shader " + shaderType + ":");
+                Timber.e( " " + GLES20.glGetShaderInfoLog(shader));
                 GLES20.glDeleteShader(shader);
                 shader = 0;
             }
@@ -837,7 +801,7 @@ public class VideoDecoder extends AndroidTestCase {
 
             int program = GLES20.glCreateProgram();
             if (program == 0) {
-                Log.e(TAG, "Could not create program");
+                Timber.e( "Could not create program");
             }
             GLES20.glAttachShader(program, vertexShader);
             checkGlError("glAttachShader");
@@ -847,8 +811,8 @@ public class VideoDecoder extends AndroidTestCase {
             int[] linkStatus = new int[1];
             GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
             if (linkStatus[0] != GLES20.GL_TRUE) {
-                Log.e(TAG, "Could not link program: ");
-                Log.e(TAG, GLES20.glGetProgramInfoLog(program));
+                Timber.e( "Could not link program: ");
+                Timber.e( GLES20.glGetProgramInfoLog(program));
                 GLES20.glDeleteProgram(program);
                 program = 0;
             }
@@ -858,7 +822,7 @@ public class VideoDecoder extends AndroidTestCase {
         public void checkGlError(String op) {
             int error;
             while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
-                Log.e(TAG, op + ": glError " + error);
+                Timber.e( op + ": glError " + error);
                 throw new RuntimeException(op + ": glError " + error);
             }
         }

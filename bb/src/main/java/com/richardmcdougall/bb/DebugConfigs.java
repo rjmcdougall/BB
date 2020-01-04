@@ -15,19 +15,22 @@ public class DebugConfigs {
     public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;
 
     static final ArrayList<String> ExcludeFromLogs = new ArrayList<String>() {{
-        add("MusicPlayer");
-//        add("BatterySupervisor");
-//        add("FindMyFriends");
-//        add("RF");
-//        add("RFClientServer");
-//        add("Favorites");
-//        add("AllBoards");
-//        add("MediaManager");
-//        add("BBWifi");
 //        add("BoardState");
-//        add("BluetoothCommands");
-//        add("BluetoothLEServer");
-//        add("ContentProvider");
+//        add("BBService");
+        add("MusicPlayer");
+        add("BatterySupervisor");
+        add("FindMyFriends");
+        add("RF");
+        add("RFClientServer");
+        add("Favorites");
+        add("AllBoards");
+        add("MediaManager");
+        add("BBWifi");
+        add("BoardsContentProvider");
+        add("BluetoothCommands");
+        add("BluetoothLEServer");
+        add("BluetoothConnManager");
+        add("ContentProvider");
 //        add("BoardVisualization");
 //        add("BurnerBoardUtil");
 //        add("BurnerBoardAzul");
@@ -35,13 +38,19 @@ public class DebugConfigs {
 //        add("BurnerBoardClassic");
 //        add("BurnerBoardDirectMap");
 //        add("BurnerBoardMast");
-        //add("BBService");
+        add("FileHelpers");
+        add("RF$BBRadioCallbackReceive");
+        add("Gps");
+        add("IoTClient");
+        add("VideoDecoder");
+        add("VideoDecoder$CodecOutputSurface");
+
     }};
 
     public static final boolean DEBUG_RF_CLIENT_SERVER = false;
 
     // name the board as a testing overriden.
-    public static final String OVERRIDE_PUBLIC_NAME = "";
+    public static final String OVERRIDE_PUBLIC_NAME = "sexy";
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
