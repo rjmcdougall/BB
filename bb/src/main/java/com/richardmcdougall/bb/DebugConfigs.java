@@ -16,25 +16,25 @@ public class DebugConfigs {
 
     static final ArrayList<String> ExcludeFromLogs = new ArrayList<String>() {{
         add("MusicPlayer");
-        add("BatterySupervisor");
-        add("FindMyFriends");
-        add("RF");
-        add("RFClientServer");
-        add("Favorites");
-        add("AllBoards");
-        add("MediaManager");
-        add("BBWifi");
-        add("BoardState");
-        add("BluetoothCommands");
-        add("BluetoothLEServer");
-        add("ContentProvider");
-        add("BoardVisualization");
-        add("BurnerBoardUtil");
-        add("BurnerBoardAzul");
-        add("BurnerBoardPanel");
-        add("BurnerBoardClassic");
-        add("BurnerBoardDirectMap");
-        add("BurnerBoardMast");
+//        add("BatterySupervisor");
+//        add("FindMyFriends");
+//        add("RF");
+//        add("RFClientServer");
+//        add("Favorites");
+//        add("AllBoards");
+//        add("MediaManager");
+//        add("BBWifi");
+//        add("BoardState");
+//        add("BluetoothCommands");
+//        add("BluetoothLEServer");
+//        add("ContentProvider");
+//        add("BoardVisualization");
+//        add("BurnerBoardUtil");
+//        add("BurnerBoardAzul");
+//        add("BurnerBoardPanel");
+//        add("BurnerBoardClassic");
+//        add("BurnerBoardDirectMap");
+//        add("BurnerBoardMast");
         //add("BBService");
     }};
 

@@ -21,7 +21,7 @@ public class LoggingTree extends Timber.DebugTree {
         if((priority == Log.VERBOSE || priority == Log.DEBUG) && DebugConfigs.ExcludeFromLogs.contains(tag))
             return;
         else {
-            super.log(priority,tag,"BB." + message,t);
+            super.log(priority,"BB." + tag,message,t);
             sendLogMsg(tag + ": " + message);
         }
 
