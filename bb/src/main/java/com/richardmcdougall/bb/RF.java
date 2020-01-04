@@ -257,7 +257,7 @@ public class RF {
                 Timber.d("Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
-                mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+                mSerialIoManager = new SerialInputOutputManager(sPort, mListener, null);
                 mExecutor.submit(mSerialIoManager);
 
                 // attach default cmdMessenger callback

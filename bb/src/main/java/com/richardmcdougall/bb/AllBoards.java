@@ -109,6 +109,36 @@ public class AllBoards {
 
     }
 
+    public BoardState.TeensyType getDisplayTeensy(String boardId) {
+
+        JSONObject board;
+        BoardState.TeensyType displayTeensy = BoardState.TeensyType.teensy3;
+
+        try {
+
+            if (dataBoards == null) {
+                Timber.d("Could not find board address data");
+            } else {
+                for (int i = 0; i <  dataBoards.length(); i++) {
+                    board =  dataBoards.getJSONObject(i);
+                    if (board.getString("name").equals(boardId)) {
+                        if(!board.getString("displayTeensy").isEmpty())
+                            displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
+                    }
+                }
+            }
+            Timber.d("Address " + String.valueOf(displayTeensy));
+            return displayTeensy;
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+            return displayTeensy;
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+            return displayTeensy;
+        }
+
+    }
+
     public String boardAddressToName(int address) {
 
         JSONObject board;

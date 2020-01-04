@@ -25,6 +25,8 @@ import android.hardware.usb.UsbRequest;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BoardState;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,14 +43,14 @@ public class SerialInputOutputManager implements Runnable {
     private static final boolean DEBUG = false;
 
     private static final int READ_WAIT_MILLIS = 200;
-    private static final int BUFSIZ = 4096;
+    private int BUFSIZE = 4096;
 
-    private final UsbSerialPort mPort;
+    private UsbSerialPort mPort = null;
 
-    private final ByteBuffer mReadBuffer = ByteBuffer.allocate(BUFSIZ);
+    private ByteBuffer mReadBuffer = null;
 
     // Synchronized by 'mWriteBuffer'
-    private final ByteBuffer mWriteBuffer = ByteBuffer.allocate(BUFSIZ);
+    private ByteBuffer mWriteBuffer = null;
 
     private enum State {
         STOPPED,
@@ -79,15 +81,25 @@ public class SerialInputOutputManager implements Runnable {
      * Creates a new instance with no listener.
      */
     public SerialInputOutputManager(UsbSerialPort port) {
-        this(port, null);
+        this(port, null, null);
     }
 
     /**
      * Creates a new instance with the provided listener.
      */
-    public SerialInputOutputManager(UsbSerialPort port, Listener listener) {
+    public SerialInputOutputManager(UsbSerialPort port, Listener listener, BBService service) {
         mPort = port;
         mListener = listener;
+        if(service != null){ // RF shouldnt have the buffer changed
+            if(service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
+                BUFSIZE = 4096;
+            else
+                BUFSIZE = 16384;
+        }
+
+        mReadBuffer = ByteBuffer.allocate(BUFSIZE);
+        mWriteBuffer = ByteBuffer.allocate(BUFSIZE);
+
     }
 
     public synchronized void setListener(Listener listener) {

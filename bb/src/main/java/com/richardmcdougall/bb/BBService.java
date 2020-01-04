@@ -1,6 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
+import android.util.Log;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -93,9 +93,9 @@ public class BBService extends Service {
             context = getApplicationContext();
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            Timber.i("Build Manufacturer " + Build.MANUFACTURER);
-            Timber.i("Build Model " + Build.MODEL);
-            Timber.i("Build Serial " + Build.SERIAL);
+            Log.i("BB.BBService","Build Manufacturer " + Build.MANUFACTURER);
+            Log.i("BB.BBService","Build Model " + Build.MODEL);
+            Log.i("BB.BBService","Build Serial " + Build.SERIAL);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -155,16 +155,18 @@ public class BBService extends Service {
 
             boardState = new BoardState(this);
             boardState.address = allBoards.getBoardAddress(boardState.BOARD_ID);
+            boardState.displayTeensy = allBoards.getDisplayTeensy(boardState.BOARD_ID);
             allBoards.Run();
 
-            Timber.i("State Version " + boardState.version);
-            Timber.i("State APK Updated Date " + boardState.apkUpdatedDate);
-            Timber.i("State Address " + boardState.address);
-            Timber.i("State SSID " + boardState.SSID);
-            Timber.i("State Password " + boardState.password);
-            Timber.i("State Mode " + boardState.currentVideoMode);
-            Timber.i("State BOARD_ID " + boardState.BOARD_ID);
-            Timber.i("State Tyoe " + allBoards.getBoardType());
+            Log.i("BB.BBService","State Version " + boardState.version);
+            Log.i("BB.BBService","State APK Updated Date " + boardState.apkUpdatedDate);
+            Log.i("BB.BBService","State Address " + boardState.address);
+            Log.i("BB.BBService","State SSID " + boardState.SSID);
+            Log.i("BB.BBService","State Password " + boardState.password);
+            Log.i("BB.BBService","State Mode " + boardState.currentVideoMode);
+            Log.i("BB.BBService","State BOARD_ID " + boardState.BOARD_ID);
+            Log.i("BB.BBService","State Tyoe " + allBoards.getBoardType());
+            Log.i("BB.BBService","Display Teensy " + boardState.displayTeensy);
 
             iotClient = new IoTClient(this);
 

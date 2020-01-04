@@ -17,20 +17,20 @@ public class DebugConfigs {
     static final ArrayList<String> ExcludeFromLogs = new ArrayList<String>() {{
 //        add("BoardState");
 //        add("BBService");
-        add("MusicPlayer");
-        add("BatterySupervisor");
-        add("FindMyFriends");
-        add("RF");
-        add("RFClientServer");
-        add("Favorites");
-        add("AllBoards");
-        add("MediaManager");
-        add("BBWifi");
-        add("BoardsContentProvider");
-        add("BluetoothCommands");
-        add("BluetoothLEServer");
-        add("BluetoothConnManager");
-        add("ContentProvider");
+//        add("MusicPlayer");
+//        add("BatterySupervisor");
+//        add("FindMyFriends");
+//        add("RF");
+//        add("RFClientServer");
+//        add("Favorites");
+//        add("AllBoards");
+//        add("MediaManager");
+//        add("BBWifi");
+//        add("BoardsContentProvider");
+//        add("BluetoothCommands");
+//        add("BluetoothLEServer");
+//        add("BluetoothConnManager");
+//        add("ContentProvider");
 //        add("BoardVisualization");
 //        add("BurnerBoardUtil");
 //        add("BurnerBoardAzul");
@@ -38,19 +38,19 @@ public class DebugConfigs {
 //        add("BurnerBoardClassic");
 //        add("BurnerBoardDirectMap");
 //        add("BurnerBoardMast");
-        add("FileHelpers");
-        add("RF$BBRadioCallbackReceive");
-        add("Gps");
-        add("IoTClient");
-        add("VideoDecoder");
-        add("VideoDecoder$CodecOutputSurface");
+//        add("FileHelpers");
+//        add("RF$BBRadioCallbackReceive");
+//        add("Gps");
+//        add("IoTClient");
+//        add("VideoDecoder");
+//        add("VideoDecoder$CodecOutputSurface");
 
     }};
 
     public static final boolean DEBUG_RF_CLIENT_SERVER = false;
 
     // name the board as a testing overriden.
-    public static final String OVERRIDE_PUBLIC_NAME = "sexy";
+    public static final String OVERRIDE_PUBLIC_NAME = "";
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul

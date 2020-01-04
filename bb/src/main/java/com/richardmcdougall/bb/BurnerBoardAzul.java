@@ -48,7 +48,10 @@ public class BurnerBoardAzul extends BurnerBoard {
         super(service);
         mBoardWidth = 46;
         mBoardHeight = 118;
-        mMultipler4Speed = 2;
+        if(service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
+            mMultipler4Speed = 1; // dkw need to config this
+        else
+            mMultipler4Speed = 2; // dkw need to config this
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Azul";
        Timber.d("Burner Board Azul initing...");
@@ -98,7 +101,10 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 18;
+        if(this.service.boardState.BOARD_ID=="candy")
+            return 25;
+        else
+            return 45;
     }
 
 
@@ -215,7 +221,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-           Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+           android.util.Log.d("BB.BurnerBoardAzul","Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
@@ -277,7 +283,8 @@ public class BurnerBoardAzul extends BurnerBoard {
             }
             setStrip(s, stripPixels, powerLimitMultiplierPercent);
             // Send to board
-            flush2Board();
+            if(this.service.boardState.displayTeensy==BoardState.TeensyType.teensy3)
+                flush2Board();
         }
         // Render on board
         update();

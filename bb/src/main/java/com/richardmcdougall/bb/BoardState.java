@@ -46,6 +46,7 @@ public class BoardState {
     public int currentVideoMode = 1;
     public String SSID = "";
     public String password = "";
+    public TeensyType displayTeensy = BoardState.TeensyType.teensy3;
 
     BoardState(BBService service) {
         this.service = service;
@@ -208,6 +209,22 @@ public class BoardState {
 
         } catch (Throwable e) {
             Timber.e(e.getMessage());
+        }
+    }
+
+    public enum TeensyType {
+        teensy3("teensy3"),
+        teensy4("teensy4");
+
+        private String stringValue;
+
+        TeensyType(final String toString) {
+            stringValue = toString;
+        }
+
+        @Override
+        public String toString() {
+            return stringValue;
         }
     }
 }

@@ -659,7 +659,7 @@ public class BurnerBoard {
                Timber.d("Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
-                mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+                mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
                 mExecutor.submit(mSerialIoManager);
 
                 start();
