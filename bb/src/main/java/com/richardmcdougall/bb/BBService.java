@@ -159,7 +159,7 @@ public class BBService extends Service {
 
             Timber.i("State Version " + boardState.version);
             Timber.i("State APK Updated Date " + boardState.apkUpdatedDate);
-            Timber.i("State Address " + boardState.apkUpdatedDate);
+            Timber.i("State Address " + boardState.address);
             Timber.i("State SSID " + boardState.SSID);
             Timber.i("State Password " + boardState.password);
             Timber.i("State Mode " + boardState.currentVideoMode);
