@@ -89,13 +89,18 @@ public class BBService extends Service {
 
             Timber.i("onCreate");
 
+            //Thread.sleep(500); // player thread must fully start before supervisor. dkw
             InitClock();
             context = getApplicationContext();
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            Log.i("BB.BBService","Build Manufacturer " + Build.MANUFACTURER);
-            Log.i("BB.BBService","Build Model " + Build.MODEL);
-            Log.i("BB.BBService","Build Serial " + Build.SERIAL);
+            Log.i(TAG, "startClock: " + startClock);
+            Log.i(TAG, "Current Clock: " + GetCurrentClock());
+            Log.i(TAG, "startElapsedTime: " + startElapsedTime);
+
+            Log.i(TAG,"Build Manufacturer " + Build.MANUFACTURER);
+            Log.i(TAG,"Build Model " + Build.MODEL);
+            Log.i(TAG,"Build Serial " + Build.SERIAL);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -188,7 +193,7 @@ public class BBService extends Service {
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();
-            Thread.sleep(1000); // player thread must fully start before supervisor. dkw
+            Thread.sleep(500); // player thread must fully start before supervisor. dkw
 
             if (!DebugConfigs.BYPASS_MUSIC_SYNC) {
                 musicPlayerSupervisor = new MusicPlayerSupervisor(this);
@@ -273,6 +278,8 @@ public class BBService extends Service {
         startElapsedTime = SystemClock.elapsedRealtime();
         startClock = Calendar.getInstance().getTimeInMillis();
     }
+
+    String TAG = "BB.BBService";
 
     public long GetCurrentClock() {
         return SystemClock.elapsedRealtime() - startElapsedTime + startClock;

@@ -23,7 +23,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.audio.AudioAttributes;
-
+import android.util.Log;
 import android.os.*;
 
 public class MusicPlayer implements Runnable {
@@ -153,9 +153,9 @@ public class MusicPlayer implements Runnable {
 
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
-           Timber.d("SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
+           Log.d("BB.MusicPlayer", "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
                     " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + service.serverRTT + " Strm" + service.boardState.currentRadioChannel);
+                    " RTT " + service.serverRTT + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + service.GetCurrentClock());
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);

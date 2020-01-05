@@ -101,10 +101,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        if(this.service.boardState.BOARD_ID=="candy")
-            return 25;
-        else
-            return 45;
+        return 45;
     }
 
 
