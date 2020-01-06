@@ -1,13 +1,12 @@
 package com.richardmcdougall.bb.visualization;
 
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.richardmcdougall.bb.BBColor;
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BoardState;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
-import com.richardmcdougall.bb.BurnerBoardUtil;
 import com.richardmcdougall.bb.FindMyFriends;
 
 import java.util.List;
@@ -56,7 +55,7 @@ public class PlayaMap extends Visualization {
 
     public void update(int mode) {
 
-        if (service.boardState.boardType == BurnerBoardUtil.BoardType.azul) {
+        if (service.boardState.boardType == BoardState.BoardType.azul) {
             final float outerRing = mBoardWidth * (float)kMapSizeRatio;
             final float innerRing = outerRing / (float)kRingRatio;
             final float theMan = 2;
@@ -109,7 +108,7 @@ public class PlayaMap extends Visualization {
                 }
             }
 
-        } else if (BurnerBoardUtil.BoardType.panel == service.boardState.boardType) {
+        } else if (BoardState.BoardType.panel == service.boardState.boardType) {
             mBurnerBoard.fillScreen(30, 30, 30);
             mBurnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
                     (float)kDegrees2, (float)(kDegrees10 - kDegrees2),
@@ -117,7 +116,7 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(50, 50, 50));
 
-        } else if (BurnerBoardUtil.BoardType.classic == service.boardState.boardType) {
+        } else if (BoardState.BoardType.classic == service.boardState.boardType) {
             mBurnerBoard.fillScreen(30, 0, 0);
 
         }

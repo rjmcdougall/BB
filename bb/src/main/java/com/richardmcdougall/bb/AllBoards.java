@@ -1,7 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -201,10 +199,10 @@ public class AllBoards {
         }
     }
 
-    public BurnerBoardUtil.BoardType getBoardType(String boardID) {
+    public BoardState.BoardType getBoardType(String boardID) {
 
         JSONObject board;
-        BurnerBoardUtil.BoardType type = BurnerBoardUtil.BoardType.unknown;
+        BoardState.BoardType type = BoardState.BoardType.unknown;
 
         try {
 
@@ -214,7 +212,7 @@ public class AllBoards {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardID)) {
-                        type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
+                        type = BoardState.BoardType.valueOf(board.getString("type"));
                     }
                 }
             }

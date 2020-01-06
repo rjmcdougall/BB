@@ -47,7 +47,7 @@ public class BoardState {
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy = BoardState.TeensyType.teensy3;
-    public BurnerBoardUtil.BoardType boardType = null;
+    public BoardType boardType = null;
     public String serial = Build.SERIAL;
 
     BoardState(BBService service) {
@@ -181,6 +181,27 @@ public class BoardState {
         private String stringValue;
 
         TeensyType(final String toString) {
+            stringValue = toString;
+        }
+
+        @Override
+        public String toString() {
+            return stringValue;
+        }
+    }
+
+    public enum BoardType {
+        azul("azul"),
+        panel("panel"),
+        mast("mast"),
+        classic("classic"),
+        boombox("boombox"),
+        backpack("backpack"),
+        unknown("unknown");
+
+        private String stringValue;
+
+        BoardType(final String toString) {
             stringValue = toString;
         }
 

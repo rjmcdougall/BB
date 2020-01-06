@@ -9,27 +9,6 @@ public class BurnerBoardUtil {
         Feature flag section here
     */
 
-    public enum BoardType {
-        azul("azul"),
-        panel("panel"),
-        mast("mast"),
-        classic("classic"),
-        boombox("boombox"),
-        backpack("backpack"),
-        unknown("unknown");
-
-        private String stringValue;
-
-        BoardType(final String toString) {
-            stringValue = toString;
-        }
-
-        @Override
-        public String toString() {
-            return stringValue;
-        }
-    }
-
 
     // Hash String as 32-bit
     public static long hashTrackName(String name) {

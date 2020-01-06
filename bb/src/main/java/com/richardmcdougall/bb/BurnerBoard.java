@@ -1069,23 +1069,23 @@ public class BurnerBoard {
                     break;
             }
         } else {
-            if (service.boardState.boardType == BurnerBoardUtil.BoardType.classic) {
+            if (service.boardState.boardType == BoardState.BoardType.classic) {
                 BLog.d(TAG, "Visualization: Using Classic");
                 burnerBoard = new BurnerBoardClassic(service);
-            } else if (BurnerBoardUtil.BoardType.mast == service.boardState.boardType) {
+            } else if (BoardState.BoardType.mast == service.boardState.boardType) {
                 BLog.d(TAG, "Visualization: Using Mast");
                 burnerBoard = new BurnerBoardMast(service);
-            } else if (BurnerBoardUtil.BoardType.panel == service.boardState.boardType) {
+            } else if (BoardState.BoardType.panel == service.boardState.boardType) {
                 BLog.d(TAG, "Visualization: Using Panel");
                 burnerBoard = new BurnerBoardPanel(service);
-            } else if (BurnerBoardUtil.BoardType.backpack == service.boardState.boardType) {
+            } else if (BoardState.BoardType.backpack == service.boardState.boardType) {
                 BLog.d(TAG, "Visualization: Using Direct Map");
                 burnerBoard = new BurnerBoardDirectMap(
                         service,
                         BurnerBoardDirectMap.kVisualizationDirectMapWidth,
                         BurnerBoardDirectMap.kVisualizationDirectMapHeight
                 );
-            } else if (service.boardState.boardType == BurnerBoardUtil.BoardType.azul) {
+            } else if (service.boardState.boardType == BoardState.BoardType.azul) {
                 BLog.d(TAG, "Visualization: Using Azul");
                 burnerBoard = new BurnerBoardAzul(service);
             } else {
