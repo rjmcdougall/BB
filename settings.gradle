@@ -1,1 +1,1 @@
-include ':bb', ':bbinstaller'
+include ':bb'

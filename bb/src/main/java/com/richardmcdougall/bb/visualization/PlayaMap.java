@@ -56,7 +56,7 @@ public class PlayaMap extends Visualization {
 
     public void update(int mode) {
 
-        if (service.allBoards.getBoardType() == BurnerBoardUtil.BoardType.azul) {
+        if (service.boardState.boardType == BurnerBoardUtil.BoardType.azul) {
             final float outerRing = mBoardWidth * (float)kMapSizeRatio;
             final float innerRing = outerRing / (float)kRingRatio;
             final float theMan = 2;
@@ -109,7 +109,7 @@ public class PlayaMap extends Visualization {
                 }
             }
 
-        } else if (BurnerBoardUtil.BoardType.panel == service.allBoards.getBoardType()) {
+        } else if (BurnerBoardUtil.BoardType.panel == service.boardState.boardType) {
             mBurnerBoard.fillScreen(30, 30, 30);
             mBurnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
                     (float)kDegrees2, (float)(kDegrees10 - kDegrees2),
@@ -117,7 +117,7 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(50, 50, 50));
 
-        } else if (BurnerBoardUtil.BoardType.classic == service.allBoards.getBoardType()) {
+        } else if (BurnerBoardUtil.BoardType.classic == service.boardState.boardType) {
             mBurnerBoard.fillScreen(30, 0, 0);
 
         }

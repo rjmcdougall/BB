@@ -157,11 +157,13 @@ public class BBService extends Service {
             });
 
             allBoards = new AllBoards(this);
-
-            boardState = new BoardState(this);
-            boardState.address = allBoards.getBoardAddress(boardState.BOARD_ID);
-            boardState.displayTeensy = allBoards.getDisplayTeensy(boardState.BOARD_ID);
             allBoards.Run();
+
+            while(allBoards.dataBoards==null){
+                Log.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
+                Thread.sleep(2000);
+            }
+            boardState = new BoardState(this);
 
             Log.i("BB.BBService","State Version " + boardState.version);
             Log.i("BB.BBService","State APK Updated Date " + boardState.apkUpdatedDate);
@@ -170,7 +172,7 @@ public class BBService extends Service {
             Log.i("BB.BBService","State Password " + boardState.password);
             Log.i("BB.BBService","State Mode " + boardState.currentVideoMode);
             Log.i("BB.BBService","State BOARD_ID " + boardState.BOARD_ID);
-            Log.i("BB.BBService","State Tyoe " + allBoards.getBoardType());
+            Log.i("BB.BBService","State Tyoe " + boardState.boardType);
             Log.i("BB.BBService","Display Teensy " + boardState.displayTeensy);
 
             iotClient = new IoTClient(this);

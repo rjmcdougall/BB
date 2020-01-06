@@ -1069,23 +1069,23 @@ public class BurnerBoard {
                     break;
             }
         } else {
-            if (service.allBoards.getBoardType() == BurnerBoardUtil.BoardType.classic) {
+            if (service.boardState.boardType == BurnerBoardUtil.BoardType.classic) {
                 Timber.d( "Visualization: Using Classic");
                 burnerBoard = new BurnerBoardClassic(service);
-            } else if (BurnerBoardUtil.BoardType.mast == service.allBoards.getBoardType()) {
+            } else if (BurnerBoardUtil.BoardType.mast == service.boardState.boardType) {
                 Timber.d( "Visualization: Using Mast");
                 burnerBoard = new BurnerBoardMast(service);
-            } else if (BurnerBoardUtil.BoardType.panel == service.allBoards.getBoardType()) {
+            } else if (BurnerBoardUtil.BoardType.panel == service.boardState.boardType) {
                 Timber.d( "Visualization: Using Panel");
                 burnerBoard = new BurnerBoardPanel(service);
-            } else if (BurnerBoardUtil.BoardType.backpack == service.allBoards.getBoardType()) {
+            } else if (BurnerBoardUtil.BoardType.backpack == service.boardState.boardType) {
                 Timber.d( "Visualization: Using Direct Map");
                 burnerBoard = new BurnerBoardDirectMap(
                         service,
                         BurnerBoardDirectMap.kVisualizationDirectMapWidth,
                         BurnerBoardDirectMap.kVisualizationDirectMapHeight
                 );
-            } else if (service.allBoards.getBoardType() == BurnerBoardUtil.BoardType.azul) {
+            } else if (service.boardState.boardType == BurnerBoardUtil.BoardType.azul) {
                 Timber.d( "Visualization: Using Azul");
                 burnerBoard = new BurnerBoardAzul(service);
             } else {

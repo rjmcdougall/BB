@@ -25,7 +25,6 @@ public class BoardState {
     private static final String WIFI_JSON = "wifi.json";
     private static final String WIFI_SSID = "burnerboard";
     private static final String WIFI_PASS = "firetruck";
-    private static final String PUBLIC_NAME_FILE = "publicName.txt";
 
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
@@ -47,6 +46,8 @@ public class BoardState {
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy = BoardState.TeensyType.teensy3;
+    public BurnerBoardUtil.BoardType boardType = null;
+    public String serial = Build.SERIAL;
 
     BoardState(BBService service) {
         this.service = service;
@@ -59,21 +60,6 @@ public class BoardState {
             Timber.e(e.getMessage());
         }
 
-        String serial = Build.SERIAL;
-        String publicName = "";
-
-        if (DebugConfigs.OVERRIDE_PUBLIC_NAME != "")
-            publicName = DebugConfigs.OVERRIDE_PUBLIC_NAME;
-        else
-            publicName = getPublicName();
-
-        // look for an SSID and password in file system. If it is not there default to firetruck.
-        getSSIDAndPassword();
-        if (SSID == "") {
-            setSSISAndPassword(WIFI_SSID, WIFI_PASS);
-            getSSIDAndPassword();
-        }
-
         if (kIsRPI) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
@@ -84,7 +70,25 @@ public class BoardState {
             DEVICE_ID = Build.MODEL;
         }
 
-        BOARD_ID = (publicName == null || publicName.equals("")) ? DEVICE_ID : publicName;
+        if (DebugConfigs.OVERRIDE_PUBLIC_NAME != "")
+            BOARD_ID = DebugConfigs.OVERRIDE_PUBLIC_NAME;
+        else {
+            BOARD_ID = service.allBoards.getBOARD_ID(DEVICE_ID);
+            if(BOARD_ID=="")
+                BOARD_ID = DEVICE_ID;
+        }
+
+        address = service.allBoards.getBoardAddress(BOARD_ID);
+        displayTeensy = service.allBoards.getDisplayTeensy(BOARD_ID);
+        boardType = service.allBoards.getBoardType(BOARD_ID);
+
+        // look for an SSID and password in file system. If it is not there default to firetruck.
+        getSSIDAndPassword();
+        if (SSID == "") {
+            setSSISAndPassword(WIFI_SSID, WIFI_PASS);
+            getSSIDAndPassword();
+        }
+
     }
 
     public JSONObject MinimizedState() {
@@ -108,49 +112,6 @@ public class BoardState {
             Timber.e("Could not get state: " + e.getMessage());
         }
         return state;
-    }
-
-    public boolean setPublicName(String name) {
-        try {
-            FileWriter fw = new FileWriter(service.filesDir + "/" + PUBLIC_NAME_FILE);
-            fw.write(name);
-            fw.close();
-        } catch (IOException e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    // Cargo culted from Download manager.
-    public String getPublicName() {
-
-        try {
-            File f = new File(service.filesDir, PUBLIC_NAME_FILE);
-            if (!f.exists())
-                return null;
-            InputStream is = null;
-            try {
-                is = new FileInputStream(f);
-            } catch (FileNotFoundException e) {
-                Timber.e(e.getMessage());
-            }
-            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-            String line = buf.readLine();
-            StringBuilder sb = new StringBuilder();
-
-            // We only expect one line - this is a shortcut! -jib
-            while (line != null) {
-                sb.append(line);
-                line = buf.readLine();
-            }
-
-            return sb.toString();
-
-        } catch (Throwable e) {
-            Timber.e(e.getMessage());
-            return null;
-        }
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {

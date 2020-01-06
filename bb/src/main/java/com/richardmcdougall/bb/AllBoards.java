@@ -5,7 +5,9 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.File;
+
 import timber.log.Timber;
 
 public class AllBoards {
@@ -26,8 +28,7 @@ public class AllBoards {
 
     void Run() {
         Thread t = new Thread(new Runnable() {
-            public void run()
-            {
+            public void run() {
                 Thread.currentThread().setName("AllBoards");
                 StartDownloadManager();
             }
@@ -45,12 +46,12 @@ public class AllBoards {
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataBoards = dir;
-                   Timber.d("Dir " + origDir);
+                    Timber.d("Dir " + origDir);
                 }
             }
 
         } catch (Throwable er) {
-            Timber.e(er.getMessage()) ;
+            Timber.e(er.getMessage());
         }
     }
 
@@ -58,23 +59,23 @@ public class AllBoards {
         JSONArray boards = dataBoards;
         JSONArray boards2 = null;
         if (boards == null) {
-           Timber.d( "Could not get boards directory (null)");
+            Timber.d("Could not get boards directory (null)");
         }
         if (boards != null) {
             try {
 
-                boards2 = new JSONArray(boards.toString()) ;
+                boards2 = new JSONArray(boards.toString());
                 for (int i = 0; i < boards2.length(); i++) {
                     JSONObject a = boards2.getJSONObject(i);
-                    if(a.has("address"))  a.remove("address");
-                    if(a.has("isProfileGlobal"))  a.remove("isProfileGlobal");
-                    if(a.has("profile"))   a.remove("profile");
-                    if(a.has("isProfileGlobal2"))  a.remove("isProfileGlobal2");
-                    if(a.has("profile2"))   a.remove("profile2");
-                    if(a.has("type"))  a.remove("type");
+                    if (a.has("address")) a.remove("address");
+                    if (a.has("isProfileGlobal")) a.remove("isProfileGlobal");
+                    if (a.has("profile")) a.remove("profile");
+                    if (a.has("isProfileGlobal2")) a.remove("isProfileGlobal2");
+                    if (a.has("profile2")) a.remove("profile2");
+                    if (a.has("type")) a.remove("type");
                 }
             } catch (Exception e) {
-               Timber.d( "Could not get boards directory: " + e.getMessage());
+                Timber.d("Could not get boards directory: " + e.getMessage());
             }
         }
         return boards2;
@@ -87,17 +88,17 @@ public class AllBoards {
 
         try {
 
-             if (dataBoards == null) {
-               Timber.d("Could not find board address data");
+            if (dataBoards == null) {
+                Timber.d("Could not find board address data");
             } else {
-                for (int i = 0; i <  dataBoards.length(); i++) {
-                    board =  dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardId)) {
                         myAddress = board.getInt("address");
                     }
                 }
             }
-           Timber.d("Address " + String.valueOf(myAddress));
+            Timber.d("Address " + String.valueOf(myAddress));
             return myAddress;
         } catch (JSONException e) {
             Timber.e(e.getMessage());
@@ -119,10 +120,10 @@ public class AllBoards {
             if (dataBoards == null) {
                 Timber.d("Could not find board address data");
             } else {
-                for (int i = 0; i <  dataBoards.length(); i++) {
-                    board =  dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardId)) {
-                        if(!board.getString("displayTeensy").isEmpty())
+                        if (!board.getString("displayTeensy").isEmpty())
                             displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
                     }
                 }
@@ -146,8 +147,8 @@ public class AllBoards {
 
         try {
 
-             if ( dataBoards == null) {
-               Timber.d("Could not find board name data");
+            if (dataBoards == null) {
+                Timber.d("Could not find board name data");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -157,13 +158,13 @@ public class AllBoards {
                 }
             }
 
-           Timber.d("Address " +  address + " To Name " + boardId);
+            Timber.d("Address " + address + " To Name " + boardId);
             return boardId;
 
         } catch (JSONException e) {
-           Timber.e(e.getMessage());
+            Timber.e(e.getMessage());
         } catch (Exception e) {
-           Timber.e(e.getMessage());
+            Timber.e(e.getMessage());
         }
 
         return boardId;
@@ -176,29 +177,58 @@ public class AllBoards {
 
         try {
 
-            if ( dataBoards == null) {
-               Timber.d("Could not find board color data");
+            if (dataBoards == null) {
+                Timber.d("Could not find board color data");
             } else {
-                for (int i = 0; i <  dataBoards.length(); i++) {
-                    board =  dataBoards.getJSONObject(i);
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
                     if (board.getInt("address") == address) {
                         boardColor = board.getString("color");
                     }
                 }
             }
 
-           Timber.d("Color " + boardColor);
+            Timber.d("Color " + boardColor);
             return boardColor;
         } catch (JSONException e) {
-           Timber.e(e.getMessage());
+            Timber.e(e.getMessage());
             return boardColor;
         } catch (Exception e) {
-           Timber.e(e.getMessage());
+            Timber.e(e.getMessage());
             return boardColor;
         }
     }
 
-    String getPublicName(String deviceID) {
+    public BurnerBoardUtil.BoardType getBoardType(String boardID) {
+
+        JSONObject board;
+        BurnerBoardUtil.BoardType type = BurnerBoardUtil.BoardType.unknown;
+
+        try {
+
+            if (dataBoards == null) {
+                Timber.d("Could not find board type");
+            } else {
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
+                    if (board.getString("name").equals(boardID)) {
+                        type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
+                    }
+                }
+            }
+            Timber.d("Board Type " + String.valueOf(type));
+            return type;
+        } catch (JSONException e) {
+            Timber.e(e.getMessage());
+        } catch (Exception e) {
+            Timber.e(e.getMessage());
+        } finally {
+            return type;
+        }
+    }
+
+
+    String getBOARD_ID(String deviceID) {
         String name = deviceID;
         try {
             for (int i = 0; i <  dataBoards.length(); i++) {
@@ -206,51 +236,22 @@ public class AllBoards {
 
                 if (obj.has("bootName")) {
                     if (obj.getString("bootName").equals(deviceID)) {
-                       Timber.d("Found bootName: " + deviceID);
+                        Timber.d("Found bootName: " + deviceID);
                         name = obj.getString("name");
 
-                       Timber.d("Found publicName: " + name);
+                        Timber.d("Found publicName: " + name);
                         return name;
                     }
                 }
             }
 
-           Timber.d("No special publicName found for: " + deviceID);
+            Timber.d("No special publicName found for: " + deviceID);
         } catch (JSONException e) {
-           Timber.e( "Could not find publicName for: " + deviceID + " " + e.toString());
+            Timber.e( "Could not find publicName for: " + deviceID + " " + e.toString());
         }
 
         // We got here, we got nothing...
         return name;
-    }
-
-    public BurnerBoardUtil.BoardType getBoardType() {
-
-        JSONObject board;
-        BurnerBoardUtil.BoardType type = BurnerBoardUtil.BoardType.unknown;
-
-        try {
-
-            if ( dataBoards == null) {
-               Timber.d("Could not find board type");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board =  dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(service.boardState.BOARD_ID)) {
-                        type = BurnerBoardUtil.BoardType.valueOf(board.getString("type"));
-                    }
-                }
-            }
-           Timber.d("Board Type " + String.valueOf(type));
-            return type;
-        } catch (JSONException e) {
-            Timber.e(e.getMessage());
-        } catch (Exception e) {
-            Timber.e(e.getMessage());
-        }
-        finally {
-            return type;
-        }
     }
 
     public boolean GetNewBoardsJSON() {
@@ -259,29 +260,28 @@ public class AllBoards {
 
             boolean returnValue = true;
 
-           Timber.d(DIRECTORY_URL);
+            Timber.d(DIRECTORY_URL);
 
             long ddsz = -1;
             ddsz = FileHelpers.DownloadURL(DIRECTORY_URL, BOARDS_JSON_TEMP2_FILENAME, "Boards JSON", onProgressCallback, service.filesDir);
 
             if (ddsz < 0) {
-               Timber.d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
+                Timber.d("Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
                 returnValue = false;
-            }
-            else {
+            } else {
                 new File(service.filesDir, BOARDS_JSON_TEMP2_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_TMP_FILENAME));
 
                 String dirTxt = FileHelpers.LoadTextFile(BOARDS_JSON_TMP_FILENAME, service.filesDir);
                 JSONArray dir = new JSONArray(dirTxt);
 
-               Timber.d("Downloaded Boards JSON: " + dirTxt);
+                Timber.d("Downloaded Boards JSON: " + dirTxt);
 
                 if (onProgressCallback != null) {
                     if (dataBoards == null || dir.length() != dataBoards.length()) {
-                       Timber.d("A new board was discovered in Boards JSON.");
+                        Timber.d("A new board was discovered in Boards JSON.");
                         onProgressCallback.onVoiceCue("New Boards available for syncing.");
                     } else
-                       Timber.d("A minor change was discovered in Boards JSON.");
+                        Timber.d("A minor change was discovered in Boards JSON.");
                 }
 
                 // got new boards.  Update!
@@ -290,23 +290,9 @@ public class AllBoards {
                 // now that you have the media, update the directory so the board can use it.
                 new File(service.filesDir, BOARDS_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_FILENAME));
 
-                // XXX this may not be the right location for it, post refactor. but for now it's the best hook -jib
-               Timber.d("Determining public name based on: " + service.boardState.DEVICE_ID);
-
-                String newPN = getPublicName(service.boardState.DEVICE_ID);
-                String existingPN = service.boardState.getPublicName();
-
-               Timber.d("Checking if Public Name should be updated: Existing: " + existingPN + " New: " + newPN);
-                if (newPN != null) {
-                    if (existingPN == null || !existingPN.equals(newPN)) {
-                        service.boardState.setPublicName(newPN);
-                       Timber.d("Public name updated to: " + newPN);
-                    }
-                }
-
                 if (dataBoards != null)
                     if (dir.toString().length() == dataBoards.toString().length()) {
-                       Timber.d("No Changes to Boards JSON.");
+                        Timber.d("No Changes to Boards JSON.");
                         returnValue = true;
                     }
             }
@@ -314,10 +300,10 @@ public class AllBoards {
 
             return returnValue;
         } catch (JSONException jse) {
-           Timber.e( jse.getMessage());
+            Timber.e(jse.getMessage());
             return false;
         } catch (Throwable th) {
-           Timber.e( th.getMessage());
+            Timber.e(th.getMessage());
             return false;
         }
     }
