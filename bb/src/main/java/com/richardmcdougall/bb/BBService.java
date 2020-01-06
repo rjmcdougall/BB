@@ -98,6 +98,27 @@ public class BBService extends Service {
             BLog.i(TAG,"Build Model " + Build.MODEL);
             BLog.i(TAG,"Build Serial " + Build.SERIAL);
 
+
+            allBoards = new AllBoards(this);
+            allBoards.Run();
+
+            while(allBoards.dataBoards==null){
+                BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
+                Thread.sleep(2000);
+            }
+            boardState = new BoardState(this);
+
+
+            BLog.i(TAG,"State Version " + boardState.version);
+            BLog.i(TAG,"State APK Updated Date " + boardState.apkUpdatedDate);
+            BLog.i(TAG,"State Address " + boardState.address);
+            BLog.i(TAG,"State SSID " + boardState.SSID);
+            BLog.i(TAG,"State Password " + boardState.password);
+            BLog.i(TAG,"State Mode " + boardState.currentVideoMode);
+            BLog.i(TAG,"State BOARD_ID " + boardState.BOARD_ID);
+            BLog.i(TAG,"State Tyoe " + boardState.boardType);
+            BLog.i(TAG,"Display Teensy " + boardState.displayTeensy);
+
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
             ufilter.addAction("android.hardware.usb.action.USB_DEVICE_ATTACHED");
@@ -129,7 +150,6 @@ public class BBService extends Service {
                         BLog.i(TAG,"Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         String utteranceId = UUID.randomUUID().toString();
-                        System.out.println("Where do you want to go, " + boardState.BOARD_ID + "?");
                         voice.setSpeechRate((float) 0.9);
                         voice.speak("I am " + boardState.BOARD_ID + "?",
                                 TextToSpeech.QUEUE_FLUSH, null, utteranceId);
@@ -137,7 +157,7 @@ public class BBService extends Service {
                         BLog.i(TAG,"Sorry! Text To Speech failed...");
                     }
 
-                    // Let the user know they're on a raspberry pi // Skip For IsNano
+                    // Let the user know they're on a raspberry pi
                     if (boardState.platformType == BoardState.PlatformType.rpi) {
                         String rpiMsg = "Raspberry PI detected";
                         BLog.i(TAG,rpiMsg);
@@ -151,25 +171,6 @@ public class BBService extends Service {
                     }
                 }
             });
-
-            allBoards = new AllBoards(this);
-            allBoards.Run();
-
-            while(allBoards.dataBoards==null){
-                BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
-                Thread.sleep(2000);
-            }
-            boardState = new BoardState(this);
-
-            BLog.i(TAG,"State Version " + boardState.version);
-            BLog.i(TAG,"State APK Updated Date " + boardState.apkUpdatedDate);
-            BLog.i(TAG,"State Address " + boardState.address);
-            BLog.i(TAG,"State SSID " + boardState.SSID);
-            BLog.i(TAG,"State Password " + boardState.password);
-            BLog.i(TAG,"State Mode " + boardState.currentVideoMode);
-            BLog.i(TAG,"State BOARD_ID " + boardState.BOARD_ID);
-            BLog.i(TAG,"State Tyoe " + boardState.boardType);
-            BLog.i(TAG,"Display Teensy " + boardState.displayTeensy);
 
             iotClient = new IoTClient(this);
 

@@ -47,8 +47,8 @@ public class BoardState {
     public int currentVideoMode = 1;
     public String SSID = "";
     public String password = "";
-    public TeensyType displayTeensy = BoardState.TeensyType.teensy3;
-    public BoardType boardType = null;
+    public TeensyType displayTeensy;
+    public BoardType boardType;
     public String serial = Build.SERIAL;
     public PlatformType platformType = PlatformType.dragonboard;
 
