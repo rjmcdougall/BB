@@ -245,10 +245,10 @@ public class MusicPlayer implements Runnable {
 
     public void Mute() {
         if (isMuted) {
-            player.setVolume(1f);
+            handler.post(() -> player.setVolume(1f));
             isMuted = false;
         } else {
-            player.setVolume(0f);
+            handler.post(() -> player.setVolume(0f));
             isMuted = true;
         }
     }

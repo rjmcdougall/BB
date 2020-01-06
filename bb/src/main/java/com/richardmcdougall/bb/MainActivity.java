@@ -34,44 +34,66 @@ import android.provider.Settings;
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";
-
-    TextView modeStatus;
-    private android.widget.Switch switchHeadlight;
-
-    private BoardView mBoardView;
-
-    private InputManagerCompat remoteControl;
-
     private static final String Battery_PLUGGED_ANY = Integer.toString(
             BatteryManager.BATTERY_PLUGGED_AC |
                     BatteryManager.BATTERY_PLUGGED_USB |
                     BatteryManager.BATTERY_PLUGGED_WIRELESS);
-
+    TextView modeStatus;
+    private android.widget.Switch switchHeadlight;
+    private BoardView mBoardView;
+    private InputManagerCompat remoteControl;
     private boolean preventDialogs = false;
 
     // Kill popups which steal remote control input button focus from the app
     // http://www.andreas-schrade.de/2015/02/16/android-tutorial-how-to-create-a-kiosk-mode-in-android/
     private boolean mIsCustomized = false;
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        l("MainActivity: onWindowFocusChanged()");
+    // Define the callback for what to do when graphics are received
+    private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!DebugConfigs.DISPLAY_VIDEO_IN_APP)
+                return;
+            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
+            int visualId = intent.getIntExtra("visualId", 0);
+            //l("Graphics " + visualId);
+            if (resultCode == RESULT_OK) {
+                switch (visualId) {
+                    case 13:
+                        byte r = (byte)intent.getIntExtra("arg1", 0);
+                        byte g = (byte)intent.getIntExtra("arg2", 0);
+                        byte b = (byte)intent.getIntExtra("arg3", 0);
+                        mBoardView.fillScreen(r, g, b);
+                        break;
+                    case 8:
+                        mBoardView.invalidate();
+                        break;
 
-        if (preventDialogs == false) {
-            return;
+                    case 6:
+                        int direction = intent.getIntExtra("arg1", 0);
+                        mBoardView.scroll(direction);
+                        break;
+                    case 7:
+                        int amount = intent.getIntExtra("arg1", 0);
+                        mBoardView.fadeScreen(amount);
+                        break;
+                    case 14:
+                        int row = intent.getIntExtra("arg1", 0);
+                        byte [] pixels = intent.getByteArrayExtra("arg2").clone();
+                        //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
+                        mBoardView.setRow(row, pixels);
+                        break;
+                    case 15:
+                        int other = intent.getIntExtra("arg1", 0);
+                        byte [] otherPixels = intent.getByteArrayExtra("arg2").clone();
+                        mBoardView.setOtherLight(other, otherPixels);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
-        //if(!hasFocus) {
-        if (!mIsCustomized) {
-            // Close every kind of system dialog
-            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-            this.sendBroadcast(closeDialog);
-            //}
-            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-            am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
-        }
-    }
-
+    };
 
     static void showToast(Context context, String text) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
@@ -113,6 +135,26 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                 Settings.Global.STAY_ON_WHILE_PLUGGED_IN,
                 Battery_PLUGGED_ANY);
 
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        l("MainActivity: onWindowFocusChanged()");
+
+        if (preventDialogs == false) {
+            return;
+        }
+
+        //if(!hasFocus) {
+        if (!mIsCustomized) {
+            // Close every kind of system dialog
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            this.sendBroadcast(closeDialog);
+            //}
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
+        }
     }
 
     // function to append a string to a TextView as a new line
@@ -230,32 +272,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-
     public void onNextTrack(View v) {
         Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_TRACK);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-    public void onVolDown(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_DOWN);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-    public void onVolUp(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_UP);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-    public void onVolPause(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_PAUSE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
@@ -272,31 +292,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     @Override
     public void onInputDeviceRemoved(int deviceId) {
         l("onInputDeviceRemoved");
-    }
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        boolean handled = false;
-        if (event.getRepeatCount() == 0) {
-            l("Keycode:" + keyCode);
-        }
-
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_KEYCODE);
-        in.putExtra("keyCode", keyCode);
-        in.putExtra("keyEvent", event);
-        // Fire the broadcast with intent packaged
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-
-        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
-                == InputDevice.SOURCE_GAMEPAD) {
-
-            if (handled) {
-                return true;
-            }
-        }
-
-        return super.onKeyDown(keyCode, event);
     }
 
     private void setupPermissions(String permission, int permissionId) {
@@ -362,54 +357,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             // permissions this app might request
         }
     }
-
-    // Define the callback for what to do when graphics are received
-    private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!DebugConfigs.DISPLAY_VIDEO_IN_APP)
-                return;
-            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
-            int visualId = intent.getIntExtra("visualId", 0);
-            //l("Graphics " + visualId);
-            if (resultCode == RESULT_OK) {
-                switch (visualId) {
-                    case 13:
-                        byte r = (byte)intent.getIntExtra("arg1", 0);
-                        byte g = (byte)intent.getIntExtra("arg2", 0);
-                        byte b = (byte)intent.getIntExtra("arg3", 0);
-                        mBoardView.fillScreen(r, g, b);
-                        break;
-                    case 8:
-                        mBoardView.invalidate();
-                        break;
-
-                    case 6:
-                        int direction = intent.getIntExtra("arg1", 0);
-                        mBoardView.scroll(direction);
-                        break;
-                    case 7:
-                        int amount = intent.getIntExtra("arg1", 0);
-                        mBoardView.fadeScreen(amount);
-                        break;
-                    case 14:
-                        int row = intent.getIntExtra("arg1", 0);
-                        byte [] pixels = intent.getByteArrayExtra("arg2").clone();
-                        //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
-                        mBoardView.setRow(row, pixels);
-                        break;
-                    case 15:
-                        int other = intent.getIntExtra("arg1", 0);
-                        byte [] otherPixels = intent.getByteArrayExtra("arg2").clone();
-                        mBoardView.setOtherLight(other, otherPixels);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-    };
 }
 
 
