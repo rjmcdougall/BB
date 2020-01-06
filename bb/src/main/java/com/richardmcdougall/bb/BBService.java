@@ -168,6 +168,7 @@ public class BBService extends Service {
             }
 
             iotClient = new IoTClient(this);
+            iotClient.Run();
 
             wifi = new BBWifi(this);
             wifi.Run();
@@ -180,6 +181,7 @@ public class BBService extends Service {
             burnerBoard.attach(new BBService.BoardCallback());
 
             boardVisualization = new BoardVisualization(this);
+            boardVisualization.Run();
 
             BLog.i(TAG,"Setting initial visualization mode: " + boardState.currentVideoMode);
             boardVisualization.setMode(boardState.currentVideoMode);

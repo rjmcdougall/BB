@@ -54,7 +54,7 @@ public class IoTClient {
     public IoTClient(BBService service) {
         this.service = service;
 
-        BLog.d(TAG,"Creating MQTT Client");
+        BLog.d(TAG, "Creating MQTT Client");
         IntentFilter intentf = new IntentFilter();
         setClientID();
         InputStream keyfile = service.context.getResources().openRawResource(service.context.
@@ -63,7 +63,7 @@ public class IoTClient {
         try {
             kfSize = keyfile.read(keyBytes);
         } catch (Exception e) {
-            BLog.d(TAG,"Unable to open keyfile");
+            BLog.d(TAG, "Unable to open keyfile");
         }
         byte[] compactKey = new byte[kfSize];
         System.arraycopy(keyBytes, 0, compactKey, 0, kfSize);
@@ -71,86 +71,93 @@ public class IoTClient {
 
         mWiFiManager = (WifiManager) this.service.context.getSystemService(Context.WIFI_SERVICE);
 
-        BLog.d(TAG,"connect(google, " + deviceId + ")");
+        BLog.d(TAG, "connect(google, " + deviceId + ")");
         String filesDir = this.service.context.getFilesDir().getAbsolutePath();
         mqttClient = new MqttAndroidClient(service.context, MQTT_SERVER_URI,
                 deviceId, new MemoryPersistence());
-        doConnect();
 
     }
 
-    public void doConnect() {
-        Thread connectThread = new Thread(new Runnable() {
+    void Run() {
+        Thread t = new Thread(new Runnable() {
             public void run() {
+                Thread.currentThread().setName("BB Board Display");
+                MQTTThread();
+            }
+        });
+        t.start();
+    }
 
-                Thread.currentThread().setName("BB MQTT Monitor");
+    public void MQTTThread() {
 
-                while (true) {
+        Thread.currentThread().setName("BB MQTT Monitor");
 
-                    if (haveConnected == false) {
+        while (true) {
+
+            if (haveConnected == false) {
+                try {
+                    // Disconnect if we were connected
+                    // Required to recalculate jwtkey
+                    if (mqttClient != null) {
+                        BLog.d(TAG, "Disconnecting MQTT Client");
+                        if (mqttClient.isConnected()) {
+                            mqttClient.disconnect();
+                        }
+                        //mqttClient.close();
+                    }
+                } catch (Exception e) {
+                }
+                try {
+
+                    BLog.d(TAG, "Connecting MQTT Client");
+
+                    jwtKey = createJwtRsa("burner-board");
+                    BLog.d(TAG, "Created key " + jwtKey.toString());
+
+
+                    MqttConnectOptions options = new MqttConnectOptions();
+                    options.setCleanSession(false);
+                    options.setAutomaticReconnect(false);
+                    options.setUserName("burnerboard");
+                    options.setPassword(jwtKey.toCharArray());
+                    options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
+                    mqttClient.setCallback(new MqttEventCallback());
+                    mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
+                    mqttClient.setTraceEnabled(false);
+
+                    mqttClient.connect(options, null, new IMqttActionListener() {
+
+                        @Override
+                        public void onFailure(IMqttToken asyncActionToken,
+                                              Throwable exception) {
+                            BLog.e(TAG, "onFailure: " + exception.getMessage());
+                        }
+
+                        @Override
+                        public void onSuccess(IMqttToken iMqttToken) {
+                            BLog.i(TAG, "onSuccess");
+                            haveConnected = true;
+                        }
+                    });
+                } catch (Exception e) {
+                    BLog.e(TAG, "connect: " + e.getMessage());
+                }
+            } else {
+                // We get failed reconnects because JWT key expires in Google IoT
+                // Force a disconnect then reconnect
+                android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
+                NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
+                if (state == NetworkInfo.DetailedState.CONNECTED) {
+                    if (mqttClient.isConnected() == false) {
                         try {
-                            // Disconnect if we were connected
-                            // Required to recalculate jwtkey
-                            if (mqttClient != null) {
-                                BLog.d(TAG,"Disconnecting MQTT Client");
-                                if (mqttClient.isConnected()) {
-                                    mqttClient.disconnect();
-                                }
-                                //mqttClient.close();
-                            }
+                            BLog.d(TAG, "MQTT disconnected but Wifi connected, forcing disconnect");
+                            haveConnected = false;
                         } catch (Exception e) {
                         }
-                        try {
+                    }
+                }
 
-                            BLog.d(TAG,"Connecting MQTT Client");
-
-                            jwtKey = createJwtRsa("burner-board");
-                            BLog.d(TAG,"Created key " + jwtKey.toString());
-
-
-                            MqttConnectOptions options = new MqttConnectOptions();
-                            options.setCleanSession(false);
-                            options.setAutomaticReconnect(false);
-                            options.setUserName("burnerboard");
-                            options.setPassword(jwtKey.toCharArray());
-                            options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
-                            mqttClient.setCallback(new MqttEventCallback());
-                            mqttClient.setTraceCallback(new MqttTraceHandlerCallback());
-                            mqttClient.setTraceEnabled(false);
-
-                            mqttClient.connect(options, null, new IMqttActionListener() {
-
-                                @Override
-                                public void onFailure(IMqttToken asyncActionToken,
-                                                      Throwable exception) {
-                                    BLog.e(TAG,"onFailure: " + exception.getMessage());
-                                }
-
-                                @Override
-                                public void onSuccess(IMqttToken iMqttToken) {
-                                    BLog.i(TAG,"onSuccess");
-                                    haveConnected = true;
-                                }
-                            });
-                        } catch (Exception e) {
-                            BLog.e(TAG,"connect: " + e.getMessage());
-                        }
-                    } else {
-                        // We get failed reconnects because JWT key expires in Google IoT
-                        // Force a disconnect then reconnect
-                        android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
-                        NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
-                        if (state == NetworkInfo.DetailedState.CONNECTED) {
-                            if (mqttClient.isConnected() == false) {
-                                try {
-                                    BLog.d(TAG,"MQTT disconnected but Wifi connected, forcing disconnect");
-                                    haveConnected = false;
-                                } catch (Exception e) {
-                                }
-                            }
-                        }
-
-                        // Sent fake wake-up event to android MQTT Client
+                // Sent fake wake-up event to android MQTT Client
                         /*
                         try {
                             Intent in = new Intent(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -160,24 +167,21 @@ public class IoTClient {
                         }
                         */
 
-                    }
-                    try {
-                        Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
-                        service.context.sendBroadcast(intent);
-                    } catch (Exception e) {
-                        BLog.e(TAG,"Cannot send force-time-sync");
-                    }
-
-                    // Every  minute
-                    try {
-                        Thread.sleep(300000);
-                    } catch (Exception e) {
-                    }
-
-                }
             }
-        });
-        connectThread.start();
+            try {
+                Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
+                service.context.sendBroadcast(intent);
+            } catch (Exception e) {
+                BLog.e(TAG, "Cannot send force-time-sync");
+            }
+
+            // Every  minute
+            try {
+                Thread.sleep(300000);
+            } catch (Exception e) {
+            }
+
+        }
     }
 
     private class MqttEventCallback implements MqttCallbackExtended {
@@ -185,16 +189,16 @@ public class IoTClient {
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
             if (reconnect) {
-                BLog.i(TAG,"Reconnection complete, " +
+                BLog.i(TAG, "Reconnection complete, " +
                         mqttClient.getBufferedMessageCount() + " messages ready to send");
             } else {
-                BLog.i(TAG,"Connection complete");
+                BLog.i(TAG, "Connection complete");
             }
         }
 
         @Override
         public void connectionLost(Throwable arg0) {
-            BLog.i(TAG,"Connection Lost");
+            BLog.i(TAG, "Connection Lost");
             try {
                 //mqttClient.disconnect();
                 //mqttClient.close();
@@ -212,7 +216,7 @@ public class IoTClient {
         @Override
         @SuppressLint("NewApi")
         public void messageArrived(String topic, final MqttMessage msg) throws Exception {
-            BLog.i(TAG,"Message arrived from topic " + topic + ": " + msg.getPayload().toString());
+            BLog.i(TAG, "Message arrived from topic " + topic + ": " + msg.getPayload().toString());
             Handler h = new Handler(service.context.getMainLooper());
             h.post(new Runnable() {
                 @Override
@@ -228,18 +232,18 @@ public class IoTClient {
     private class MqttTraceHandlerCallback implements MqttTraceHandler {
         @Override
         public void traceDebug(String tag, String message) {
-            BLog.d(TAG,"trace: " + tag + " : " + message);
+            BLog.d(TAG, "trace: " + tag + " : " + message);
         }
 
         @Override
         public void traceError(String tag, String message) {
-            BLog.e(TAG,"trace error: " + tag + " : " + message);
+            BLog.e(TAG, "trace error: " + tag + " : " + message);
 
         }
 
         @Override
         public void traceException(String tag, String message, Exception e) {
-            BLog.e(TAG,"trace exception: " + tag + " : " + message);
+            BLog.e(TAG, "trace exception: " + tag + " : " + message);
         }
     }
 
@@ -278,11 +282,11 @@ public class IoTClient {
             //Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
         } catch (Exception e) {
-            BLog.e(TAG,"Failed to send:" + e.toString());
+            BLog.e(TAG, "Failed to send:" + e.toString());
         }
 
         if (mqttClient.isConnected() == false && haveConnected) {
-            BLog.d(TAG,mqttClient.getBufferedMessageCount() + " messages in buffer");
+            BLog.d(TAG, mqttClient.getBufferedMessageCount() + " messages in buffer");
         }
     }
 
@@ -313,14 +317,14 @@ public class IoTClient {
         try {
             key = kf.generatePrivate(spec);
         } catch (Exception e1) {
-            BLog.e(TAG,e1.toString());
+            BLog.e(TAG, e1.toString());
         }
 
         String s = "none";
         try {
             s = jwtBuilder.signWith(SignatureAlgorithm.RS256, key).compact();
         } catch (Exception e) {
-            BLog.e(TAG,e.toString());
+            BLog.e(TAG, e.toString());
         }
         return s;
     }

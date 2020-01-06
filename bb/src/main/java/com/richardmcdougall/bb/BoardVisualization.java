@@ -110,14 +110,16 @@ public class BoardVisualization {
         mVisualizationPlayaMap = new PlayaMap(service.burnerBoard, this);
         getmVisualizationSyncLights = new SyncLights(service.burnerBoard, this);
 
-        // Start Board Display
-        Thread boardDisplay = new Thread(new Runnable() {
+    }
+
+    void Run() {
+        Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB Board Display");
                 boardDisplayThread();
             }
         });
-        boardDisplay.start();
+        t.start();
     }
 
     private int boardDisplayCnt = 0;
