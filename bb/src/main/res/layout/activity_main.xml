@@ -16,8 +16,6 @@
         android:layout_width="match_parent"
         android:orientation="horizontal"
         android:layout_height="wrap_content"/>
-
-
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -30,9 +28,6 @@
             android:textSize="10sp"
             android:text="Lights Mode"
             android:id="@+id/textView" />
-
-
-
         <Button
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
@@ -54,10 +49,7 @@
             android:text="+"
             android:id="@+id/modeUpbutton"
             android:onClick="onModeUp" />
-
     </LinearLayout>
-
-
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

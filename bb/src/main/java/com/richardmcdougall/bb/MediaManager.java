@@ -40,10 +40,7 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
         }
         return video;
-    }
-
-
-    public JSONArray MinimizedAudio() {
+    }public JSONArray MinimizedAudio() {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = audio();
@@ -95,10 +92,7 @@ public class MediaManager {
         void onProgress(String file, long fileSize, long bytesDownloaded);
 
         void onVoiceCue(String err);
-    }
-
-
-    public OnDownloadProgressType onProgressCallback = null;
+    }public OnDownloadProgressType onProgressCallback = null;
 
     MediaManager(BBService service) {
         this.service = service;
@@ -139,10 +133,7 @@ public class MediaManager {
             }
         });
         t.start();
-    }
-
-
-    public void CleanupOldFiles() {
+    }public void CleanupOldFiles() {
         try {
             ArrayList<String> refrerencedFiles = new ArrayList<String>();
 
@@ -372,10 +363,7 @@ public class MediaManager {
 
             }
         }
-    }
-
-
-    String GetAudioFile(int index) {
+    }String GetAudioFile(int index) {
         try {
             String fn = service.filesDir + "/" + GetAudio(index).getString("localName");
             return fn;
@@ -383,10 +371,7 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
             return null;
         }
-    }
-
-
-    String GetAudioFileLocalName(int index) {
+    }String GetAudioFileLocalName(int index) {
         if (index >= 0 && index < GetTotalAudio()) {
             try {
                 String fn = GetAudio(index).getString("localName");
@@ -398,10 +383,7 @@ public class MediaManager {
         } else {
             return null;
         }
-    }
-
-
-    String GetVideoFileLocalName(int index) {
+    }String GetVideoFileLocalName(int index) {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
@@ -431,10 +413,7 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
             return null;
         }
-    }
-
-
-    int GetTotalAudio() {
+    }int GetTotalAudio() {
         if (dataDirectory == null)
             return 0;
         else {
@@ -458,10 +437,7 @@ public class MediaManager {
                 return 0;
             }
         }
-    }
-
-
-    JSONObject GetVideo(int index) {
+    }JSONObject GetVideo(int index) {
         if (dataDirectory == null)
             return null;
         if (dataDirectory.has("video")) {
@@ -512,5 +488,3 @@ public class MediaManager {
         }
     }
 }
-
-

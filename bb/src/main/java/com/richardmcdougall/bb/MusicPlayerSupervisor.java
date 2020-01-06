@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-
 public class MusicPlayerSupervisor {
     private String TAG = this.getClass().getSimpleName();
 

@@ -104,7 +104,6 @@ public class BluetoothCommands {
                     }
                 });
 
-
         service.bLEServer.addCallback("getvideo",
                 new BluetoothLEServer.BLECallback() {
                     @Override

@@ -1,21 +1,13 @@
 package com.richardmcdougall.bb;
 
-
 import java.nio.IntBuffer;
 
-
-/**
- * Created by rmc on 7/24/17.
- */
-
 public class BurnerBoardClassic extends BurnerBoard {
-
 
     private int mBoardSideLights = 79;
     //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
     private static final String TAG = "BB.BurnerBoardClassic";
-
 
     public BurnerBoardClassic(BBService service) {
         super(service);
@@ -107,10 +99,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             return (id);
         }
         return "";
-    }
-
-
-    //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
+    }//    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean setModeRetired(int mode) {
 
         BLog.d(TAG, "sendCommand: 4," + mode);
@@ -137,10 +126,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return true;
         */
-    }
-
-
-    //    cmdMessenger.attach(BBFade, OnFade);                  // 7
+    }//    cmdMessenger.attach(BBFade, OnFade);                  // 7
     public boolean fadeBoard(int amount) {
 
         //l("sendCommand: 7");
@@ -168,10 +154,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
         }
         return false;
-    }
-
-
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
+    }//    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
     public void showBattery() {
 
         sendVisual(9);
@@ -218,10 +201,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
     public void setMsg(String msg) {
-    }
-
-
-    //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+    }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     // row is 12 pixels : board has 10
     private boolean setRow(int row, int[] pixels) {
 
@@ -255,12 +235,8 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
         }
         return false;
-    }
-
-
-    //    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+    }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     public boolean setOtherlight(int other, int[] pixels) {
-
 
         // Send pixel row to in-app visual display
         sendVisual(15, other, pixels);
@@ -288,10 +264,7 @@ public class BurnerBoardClassic extends BurnerBoard {
                 mListener.sendCmdEnd();
                 return true;
             }
-        }
-
-
-        return false;
+        }return false;
     }
 
     // Other lights
@@ -458,17 +431,13 @@ public class BurnerBoardClassic extends BurnerBoard {
             // TODO: scroll up side lights
         }
 
-    }
-
-
-    public int[] getPixelBuffer() {
+    }public int[] getPixelBuffer() {
         return mBoardScreen;
     }
 
     // TODO: gamma correction
     // encoded = ((original / 255) ^ (1 / gamma)) * 255
     // original = ((encoded / 255) ^ gamma) * 255
-
 
     /*
     private int pixelColorCorrectionRed(int red) {
@@ -487,7 +456,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return (blue * 350) / 1000;
     }
 */
-
 
     private int flushCnt = 0;
     long lastFlushTime = java.lang.System.currentTimeMillis();
@@ -537,10 +505,7 @@ public class BurnerBoardClassic extends BurnerBoard {
                 */
                 setRow(y, rowPixels);
                 //update();
-            }
-
-
-            for (int x = 0; x < kOtherLights; x++) {
+            }for (int x = 0; x < kOtherLights; x++) {
                 int[] otherPixels = new int[mBoardSideLights * 3];
                 for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
                     otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =

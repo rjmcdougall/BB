@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-
 public class FindMyFriends {
     private String TAG = this.getClass().getSimpleName();
 
@@ -45,7 +44,6 @@ public class FindMyFriends {
     public FindMyFriends(BBService service) {
         this.service = service;
         BLog.d(TAG, "Starting FindMyFriends");
-
 
         if (service.radio == null) {
             BLog.d(TAG, "No Radio!");
@@ -118,7 +116,6 @@ public class FindMyFriends {
     //         [24] speed bits 16-23
     //         [25] speed bits 24-31
 
-
     public final static int BBGPSPACKETSIZE = 18;
 
     private void broadcastGPSpacket(int lat, int lon, int elev, int iMAccurate,
@@ -158,7 +155,6 @@ public class FindMyFriends {
         updateBoardLocations(service.boardState.address, 999,
                 lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
     }
-
 
     public interface findMyFriendsCallback {
 
@@ -305,7 +301,6 @@ public class FindMyFriends {
 
     private HashMap<Integer, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
 
-
     public void updateBoardLocations(int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket) {
 
         boardLocation loc = new boardLocation();
@@ -375,7 +370,6 @@ public class FindMyFriends {
 
     }
 
-
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
         JsonArray list = null;
@@ -398,7 +392,6 @@ public class FindMyFriends {
             //list = new JSONArray(valuesList);
             list = (JsonArray) new Gson().toJsonTree(locs, new TypeToken<List<boardLocationHistory>>() {
             }.getType());
-
 
         } catch (Exception e) {
             BLog.e(TAG, "Error building board location json");

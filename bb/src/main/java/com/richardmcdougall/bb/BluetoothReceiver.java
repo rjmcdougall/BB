@@ -9,7 +9,6 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 
-
 public class BluetoothReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();
 

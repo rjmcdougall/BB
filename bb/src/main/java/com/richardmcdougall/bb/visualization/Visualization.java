@@ -16,7 +16,6 @@ public class Visualization {
     BoardVisualization mBoardVisualizion;
     public static final int kDefault = 0;
 
-
     public Visualization(BurnerBoard bb, BoardVisualization visualization) {
         mBurnerBoard = bb;
         mBoardWidth = bb.getWidth();

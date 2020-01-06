@@ -123,7 +123,6 @@ public class ProlificSerialDriver implements UsbSerialDriver {
         boolean mStopReadStatusThread = false;
         private IOException mReadStatusException = null;
 
-
         public ProlificSerialPort(UsbDevice device, int portNumber) {
             super(device, portNumber);
         }

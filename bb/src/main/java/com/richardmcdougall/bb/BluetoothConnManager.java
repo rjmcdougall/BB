@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -250,7 +249,6 @@ public class BluetoothConnManager {
             }
         }
     };
-
 
     //you can get notified when a new device is connected using Broadcast receiver
     private final BroadcastReceiver btReceive = new BroadcastReceiver() {

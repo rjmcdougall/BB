@@ -22,7 +22,6 @@ android {
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
 
-
     }
     /* The internet tells me this error:
 

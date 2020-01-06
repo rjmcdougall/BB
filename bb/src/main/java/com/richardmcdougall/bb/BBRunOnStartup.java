@@ -25,5 +25,3 @@ public class BBRunOnStartup extends BroadcastReceiver {
     }
 
 }
-
-

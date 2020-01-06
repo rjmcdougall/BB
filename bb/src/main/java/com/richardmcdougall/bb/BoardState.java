@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 
-
 public class BoardState {
     private String TAG = this.getClass().getSimpleName();
 

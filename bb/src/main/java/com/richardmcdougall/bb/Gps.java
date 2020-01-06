@@ -17,7 +17,6 @@ import net.sf.marineapi.provider.event.PositionListener;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-
 /**
  * Created by rmc on 2/6/18.
  */
@@ -44,7 +43,6 @@ public class Gps {
 
         mGpsCallback = newfunction;
     }
-
 
     public Gps(BBService service) {
         this.service = service;
@@ -134,6 +132,4 @@ public class Gps {
             BLog.e(TAG, "Gps addStr failed: " + e.getMessage());
         }
     }
-
-
 }

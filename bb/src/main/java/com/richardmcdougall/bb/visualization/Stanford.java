@@ -15,10 +15,6 @@ public class Stanford extends Visualization {
         super(bb, visualization);
     }
 
-
-
-
-
     void drawStanford(BurnerBoard bb, int color, int width) {
         int x;
         int row;

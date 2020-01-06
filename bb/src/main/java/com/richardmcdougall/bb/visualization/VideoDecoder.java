@@ -94,13 +94,11 @@ public class VideoDecoder extends AndroidTestCase {
         BLog.v(TAG, "stopped decodeThread");
     }
 
-
     interface OnFrameReadyCallback {
         public void callbackCall(SimpleImage out);
     }
 
     OnFrameReadyCallback onFrameReady = null;
-
 
     /**
      * Wraps extractMpegFrames().  This is necessary because SurfaceTexture will try to use
@@ -164,7 +162,6 @@ public class VideoDecoder extends AndroidTestCase {
         int saveWidth = outWidth;
         int saveHeight = outHeight;
 
-
         while (!stopRequested) {
             try {
 
@@ -186,7 +183,6 @@ public class VideoDecoder extends AndroidTestCase {
                 extractor.selectTrack(trackIndex);
 
                 MediaFormat format = extractor.getTrackFormat(trackIndex);
-
 
                 // Could use width/height from the MediaFormat to get full-size frames.
                 outputSurface = new CodecOutputSurface(saveWidth, saveHeight);
@@ -380,7 +376,6 @@ public class VideoDecoder extends AndroidTestCase {
         int numSaved = (MAX_FRAMES < decodeCount) ? MAX_FRAMES : decodeCount;
         BLog.v(TAG,"Saving " + numSaved);
     }
-
 
     /**
      * Holds state associated with a Surface used for MediaCodec decoder output.
@@ -614,10 +609,7 @@ public class VideoDecoder extends AndroidTestCase {
                 throw new RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error));
             }
         }
-    }
-
-
-    /**
+    }/**
      * Code for rendering a texture onto a surface using OpenGL ES 2.0.
      */
     private static class STextureRender {

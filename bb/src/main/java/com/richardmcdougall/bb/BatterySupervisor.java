@@ -2,7 +2,6 @@ package com.richardmcdougall.bb;
 
 import android.speech.tts.TextToSpeech;
 
-
 public class BatterySupervisor {
     private String TAG = this.getClass().getSimpleName();
 

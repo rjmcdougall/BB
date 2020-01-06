@@ -6,7 +6,6 @@ import java.nio.IntBuffer;
  * Created by rmc on 5/28/18.
  */
 
-
 /*
 
    bottom
@@ -33,7 +32,6 @@ import java.nio.IntBuffer;
  top
 
  */
-
 
 public class BurnerBoardDirectMap extends BurnerBoard {
 
@@ -294,7 +292,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
         return false;
     }
-
 
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {

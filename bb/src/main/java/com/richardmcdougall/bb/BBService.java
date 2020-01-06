@@ -95,7 +95,6 @@ public class BBService extends Service {
             BLog.i(TAG, "Build Model " + Build.MODEL);
             BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
-
             allBoards = new AllBoards(this);
             allBoards.Run();
 
@@ -104,7 +103,6 @@ public class BBService extends Service {
                 Thread.sleep(2000);
             }
             boardState = new BoardState(this);
-
 
             BLog.i(TAG, "State Version " + boardState.version);
             BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);
@@ -294,7 +292,3 @@ public class BBService extends Service {
         }
     }
 }
-
-
-
-

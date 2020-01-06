@@ -124,19 +124,13 @@ public class RFClientServer {
             }
         });
         t.start();
-    }
-
-
-    public static byte[] longToBytes(long l, byte[] result, int offset) {
+    }public static byte[] longToBytes(long l, byte[] result, int offset) {
         for (int i = 7; i >= 0; i--) {
             result[i + offset] = (byte) (l & 0xFF);
             l >>= 8;
         }
         return result;
-    }
-
-
-    public static long bytesToLong(byte[] b, int offset) {
+    }public static long bytesToLong(byte[] b, int offset) {
         long result = 0;
         for (int i = 0; i < 8; i++) {
             result <<= 8;
@@ -244,7 +238,6 @@ public class RFClientServer {
             processReceive(packet, sigStrength);
         }
     };
-
 
     // TODO: Decide if we use static assigned server as the time master
     // TODO: Decode client packet and send to client receive function
@@ -572,10 +565,7 @@ public class RFClientServer {
             // I'll get knocked out if there is a higher ranked address with votes
             incVote(service.boardState.address, kIncMyVote);
             mLastVote = SystemClock.elapsedRealtime();
-        }
-
-
-        // Vote for the heard board
+        }// Vote for the heard board
         incVote(address, kIncVote);
 
         // Find the leader to elect
@@ -620,10 +610,7 @@ public class RFClientServer {
             return true;
         }
         return false;
-    }
-
-
-    public void sendRemote(int cmd, long value, int type) {
+    }public void sendRemote(int cmd, long value, int type) {
 
         if (service.radio == null) {
             return;
@@ -669,13 +656,9 @@ public class RFClientServer {
 
         String client = service.allBoards.boardAddressToName(address);
         decodeRemoteControl(client, cmd, value);
-    }
-
-
-    // TODO: Put this back as a remote control packet
+    }// TODO: Put this back as a remote control packet
     // Change value -> hash lookup
     public void decodeRemoteControl(String client, int cmd, long value) {
-
 
         if (service.boardState.blockMaster) {
             BLog.d(TAG, "BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);

@@ -18,11 +18,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Created by rmc on 2/5/18.
- */
-
-
 /*
 BN: Adafruit Feather M0
 VID: 239A
@@ -44,7 +39,6 @@ public class RF {
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private BBService service = null;
     public RF.radioEvents mRadioCallback = null;
-
 
     public RF(BBService service) {
         try {
@@ -207,7 +201,6 @@ public class RF {
         BLog.d(TAG, "USB: Connected");
         startIoManager();
     }
-
 
     public void stopIoManager() {
         synchronized (mSerialConn) {

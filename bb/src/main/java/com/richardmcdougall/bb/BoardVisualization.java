@@ -22,11 +22,6 @@ import org.json.JSONObject;
 
 import java.util.Random;
 
-/**
- * Created by rmc on 3/8/17.
- */
-
-
 /*
 
    Back
@@ -409,10 +404,7 @@ public class BoardVisualization {
             }
         }
 
-    }
-
-
-    int frameCnt = 0;
+    }int frameCnt = 0;
 
     int runVisualization(int mode) {
 
@@ -451,10 +443,7 @@ public class BoardVisualization {
             BLog.e(TAG, e.getMessage());
             return mFrameRate;
         }
-    }
-
-
-    // Get levels from Android visualizer engine
+    }// Get levels from Android visualizer engine
     // 16 int buckets of frequency levels from low to high
     // Range is 0-255 per bucket
     public int[] getLevels() {
@@ -516,10 +505,7 @@ public class BoardVisualization {
 
     public void showMap() {
         showingMap = mFrameRate * 15;
-    }
-
-
-    public void setMode(int mode) {
+    }public void setMode(int mode) {
 
         // Likely not connected to physical burner board, fallback
         if (mode == 99) {

@@ -21,5 +21,4 @@ public class DebugConfigs {
     //bypass the per-second music sync because of debug perf issues
     public static final boolean BYPASS_MUSIC_SYNC = false;
 
-
 }

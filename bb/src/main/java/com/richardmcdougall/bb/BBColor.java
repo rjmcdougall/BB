@@ -153,7 +153,6 @@ public class BBColor {
         return colorList;
     }
 
-
     public String getColorNameFromRgb(int r, int g, int b) {
         ArrayList<ColorName> colorList = initColorList();
         ColorName closestMatch = null;
@@ -183,15 +182,6 @@ public class BBColor {
         }
         return null;
     }
-
-
-    public String getColorNameFromHex(int hexColor) {
-        int r = (hexColor & 0xFF0000) >> 16;
-        int g = (hexColor & 0xFF00) >> 8;
-        int b = (hexColor & 0xFF);
-        return getColorNameFromRgb(r, g, b);
-    }
-
 
     public class ColorName {
         public int r, g, b;

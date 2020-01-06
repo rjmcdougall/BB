@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-
 public class RFUtil {
 
     // radio packet codes

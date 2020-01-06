@@ -4,7 +4,6 @@ package com.richardmcdougall.bb;
  * Created by rmc on 2/12/17.
  */
 
-
 import android.app.admin.DeviceAdminReceiver;
 import android.content.Context;
 import android.content.Intent;

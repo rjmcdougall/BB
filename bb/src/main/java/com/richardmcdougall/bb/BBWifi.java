@@ -16,7 +16,6 @@ import java.net.InetAddress;
 import java.nio.ByteOrder;
 import java.util.List;
 
-
 public class BBWifi {
     private String TAG = this.getClass().getSimpleName();
 

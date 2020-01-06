@@ -113,7 +113,6 @@ public class IoTClient {
                     jwtKey = createJwtRsa("burner-board");
                     BLog.d(TAG, "Created key " + jwtKey.toString());
 
-
                     MqttConnectOptions options = new MqttConnectOptions();
                     options.setCleanSession(false);
                     options.setAutomaticReconnect(false);
@@ -311,7 +310,6 @@ public class IoTClient {
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory kf = KeyFactory.getInstance("RSA");
 
-
         Key key = null;
         try {
             key = kf.generatePrivate(spec);
@@ -329,5 +327,3 @@ public class IoTClient {
     }
 
 }
-
-

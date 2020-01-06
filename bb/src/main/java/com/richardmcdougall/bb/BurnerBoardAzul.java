@@ -1,12 +1,6 @@
 package com.richardmcdougall.bb;
 
-
 import java.nio.IntBuffer;
-
-/**
- * Created by rmc on 7/25/17.
- */
-
 
 /*
 
@@ -34,14 +28,11 @@ import java.nio.IntBuffer;
  Front
 
  */
-
-
 public class BurnerBoardAzul extends BurnerBoard {
 
     //public int[] mBoardScreen;
     private static final String TAG = "BB.BurnerBoardAzul";
     public int[] mLayeredScreen;
-
 
     public BurnerBoardAzul(BBService service) {
         super(service);
@@ -106,7 +97,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         else
             return 45;
     }
-
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
@@ -226,7 +216,6 @@ public class BurnerBoardAzul extends BurnerBoard {
             flushCnt = 0;
         }
 
-
         // Here we calculate the total power percentage of the whole board
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
@@ -314,7 +303,6 @@ public class BurnerBoardAzul extends BurnerBoard {
 
         return false;
     }
-
 
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
@@ -544,7 +532,6 @@ public class BurnerBoardAzul extends BurnerBoard {
             new TranslationMap(116, 14, 31, 1, 1, 518),
             new TranslationMap(117, 26, 19, -1, 1, 536) // trying to fix the back lights direction
     };
-
 
     static TranslationMap[] boardMapCandy = {
 //Y,StartX,End X,Direction,Strip #,Offset in strip

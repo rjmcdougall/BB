@@ -120,7 +120,6 @@ public class Favorites {
         UpdateFavorites(f);
     }
 
-
     public interface favoritesCallback {
 
     }
@@ -167,7 +166,6 @@ public class Favorites {
                 service.iotClient.sendUpdate("bbevent", "[" +
                         service.allBoards.boardAddressToName(f.r) + "," +
                         sigStrength + "," + f.a + "," + f.o + "]");
-
 
                 UpdateFavorites(f);
                 return true;

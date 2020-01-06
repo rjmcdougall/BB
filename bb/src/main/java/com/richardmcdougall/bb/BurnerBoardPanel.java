@@ -1,11 +1,5 @@
 package com.richardmcdougall.bb;
 
-
-/**
- * Created by rmc on 5/20/18.
- */
-
-
 /*
 
    Back
@@ -33,12 +27,10 @@ package com.richardmcdougall.bb;
 
  */
 
-
 public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
 
     private int[] mLayeredScreen;
-
 
     public BurnerBoardPanel(BBService service) {
         super(service);
@@ -291,10 +283,7 @@ public class BurnerBoardPanel extends BurnerBoard {
             }
             flush2Board();
         }
-    }
-
-
-    //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
+    }//    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
     public boolean update() {
 
         sendVisual(8);
@@ -315,10 +304,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
 
         return false;
-    }
-
-
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
+    }//    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
         sendVisual(9);

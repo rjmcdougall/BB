@@ -92,16 +92,12 @@ public class BluetoothLEServer {
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         //context.registerReceiver(mBluetoothReceiver, filter);
 
-    }
-
-
-    // Callbacks for consumers of Bluetooth events
+    }// Callbacks for consumers of Bluetooth events
     private HashMap<Integer, BLECallback> callbackFuncs =
             new HashMap<Integer, BLECallback>();
     private HashMap<Integer, String> callbackCommands =
             new HashMap<>();
     private int callbackId = 0;
-
 
     // TODO: do we need per-connection contexts in callbacks?
 
@@ -170,10 +166,7 @@ public class BluetoothLEServer {
             }
         });
         t.start();
-    }
-
-
-    /**
+    }/**
      * Begin advertising over Bluetooth that this device is connectable
      * and supports the Current Time Service.
      */
@@ -382,10 +375,7 @@ public class BluetoothLEServer {
                         0,
                         null);
             }
-        }
-
-
-        @Override
+        }@Override
         public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
                                             BluetoothGattDescriptor descriptor) {
             if (CCCD.equals(descriptor.getUuid())) {
@@ -442,10 +432,7 @@ public class BluetoothLEServer {
                         0,
                         null);
             }
-        }
-
-
-        // Process stream fragments and delimeters
+        }// Process stream fragments and delimeters
         boolean processReceive(BluetoothDevice device, byte[] bytes) {
 
             boolean success = false;

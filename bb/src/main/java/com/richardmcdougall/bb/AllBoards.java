@@ -6,7 +6,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 
-
 public class AllBoards {
 
     private String TAG = this.getClass().getSimpleName();
@@ -226,7 +225,6 @@ public class AllBoards {
         }
     }
 
-
     String getBOARD_ID(String deviceID) {
         String name = deviceID;
         try {
@@ -295,7 +293,6 @@ public class AllBoards {
                         returnValue = true;
                     }
             }
-
 
             return returnValue;
         } catch (JSONException jse) {

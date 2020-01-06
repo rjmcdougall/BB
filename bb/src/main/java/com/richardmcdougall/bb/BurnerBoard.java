@@ -126,7 +126,6 @@ public class BurnerBoard {
         return (y * mBoardWidth + x) * 3 + rgb;
     }
 
-
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
 
@@ -181,7 +180,6 @@ public class BurnerBoard {
         }
     }
 
-
     public int getBatteryCurrentInstant() {
         int codedLevel = mBatteryStats[9];
         if (codedLevel > 32768) {
@@ -217,7 +215,6 @@ public class BurnerBoard {
         mDimmerLevel = 255;
     }
 
-
     public void clearPixels() {
         Arrays.fill(mBoardScreen, 0);
     }
@@ -251,7 +248,6 @@ public class BurnerBoard {
     public void attach(BurnerBoard.BoardEvents newfunction) {
         boardCallback = newfunction;
     }
-
 
     public void fillScreen(int r, int g, int b) {
 
@@ -340,10 +336,7 @@ public class BurnerBoard {
             return true;
         }
         return false;
-    }
-
-
-    // TODO: gamma correction
+    }// TODO: gamma correction
     // encoded = ((original / 255) ^ (1 / gamma)) * 255
     // original = ((encoded / 255) ^ gamma) * 255
 
@@ -358,10 +351,7 @@ public class BurnerBoard {
 
     protected int pixelColorCorrectionBlue(int blue) {
         return gammaCorrect(blue);
-    }
-
-
-    // Send a strip of pixels to the board
+    }// Send a strip of pixels to the board
     protected void setStrip(int strip, int[] pixels, int powerLimitMultiplierPercent) {
 
         int[] dimPixels = new int[pixels.length];
@@ -456,10 +446,7 @@ public class BurnerBoard {
     public boolean setMode(int mode) {
         setText(String.valueOf(mode), 2000);
         return true;
-    }
-
-
-    public void fadePixels(int amount) {
+    }public void fadePixels(int amount) {
 
         for (int x = 0; x < mBoardWidth; x++) {
             for (int y = 0; y < mBoardHeight; y++) {
@@ -499,10 +486,7 @@ public class BurnerBoard {
         // Put extras into the intent as usual
         in.putExtra("ledStatus", status);
         LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
-
-    private void onDeviceStateChange() {
+    }private void onDeviceStateChange() {
         BLog.d(TAG, "BurnerBoard: onDeviceStateChange()");
 
         stopIoManager();
@@ -729,10 +713,7 @@ public class BurnerBoard {
             }
         }
         return false;
-    }
-
-
-    public boolean echoRow(int row, byte[] pixels) {
+    }public boolean echoRow(int row, byte[] pixels) {
 
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -743,10 +724,7 @@ public class BurnerBoard {
             }
         }
         return false;
-    }
-
-
-    // We use this to catch the USB accessory detached message
+    }// We use this to catch the USB accessory detached message
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
 
@@ -778,7 +756,6 @@ public class BurnerBoard {
             BLog.d(TAG, "onReceive exited");
         }
     };
-
 
     public void flush2Board() {
 
@@ -870,7 +847,6 @@ public class BurnerBoard {
             144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
             177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
             215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255};
-
 
     static int gammaCorrect(int value) {
         //return ((value / 255) ^ (1 / gamma)) * 255;
@@ -1095,6 +1071,3 @@ public class BurnerBoard {
         return burnerBoard;
     }
 }
-
-
-

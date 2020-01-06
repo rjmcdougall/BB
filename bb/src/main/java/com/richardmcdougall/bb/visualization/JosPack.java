@@ -73,7 +73,6 @@ public class JosPack extends Visualization {
         mBurnerBoard.flush();
     }
 
-
     private int jpSparkleNo = 0;
     private final static int kJPSparkleMiddle = kLEDS / 2;
 
@@ -165,7 +164,6 @@ public class JosPack extends Visualization {
         mBurnerBoard.flush();
     }
 
-
     private int bgRotate = 0;
     void modeJPBlueGold() {
 
@@ -180,7 +178,6 @@ public class JosPack extends Visualization {
         bgRotate++;
         bgRotate %= 360;
     }
-
 
     private int bpRotate = 0;
     void modeJPBluePurple() {

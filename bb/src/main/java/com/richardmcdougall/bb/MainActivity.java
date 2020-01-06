@@ -352,5 +352,3 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         }
     }
 }
-
-

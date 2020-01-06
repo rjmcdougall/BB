@@ -78,7 +78,6 @@ public class Matrix extends Visualization {
         }
         sideLight = mBoardSideLights - 1;
 
-
         for (x = 0; x < mBoardWidth / pixelSkip; x++) {
             //Chance of 1/3rd
             switch (mode) {
@@ -155,9 +154,6 @@ public class Matrix extends Visualization {
                             mFireColors[fireColor][2]);
                     mBurnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
-
-
-
                 default:
                     color = 0;
             }

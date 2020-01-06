@@ -9,11 +9,9 @@ import com.richardmcdougall.bb.BurnerBoard;
 
 public class AudioBar extends Visualization {
 
-
     public AudioBar(BurnerBoard bb, BoardVisualization visualization) {
         super(bb, visualization);
     }
-
 
     public void update(int mode) {
 

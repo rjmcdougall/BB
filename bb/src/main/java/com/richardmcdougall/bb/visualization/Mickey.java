@@ -70,10 +70,7 @@ public class Mickey extends Visualization {
     void modeMickeyGold() {
         mBurnerBoard.fillScreen(255, 147, 41);
         mBurnerBoard.flush();
-    }
-
-
-    private int mickeySparkleNo = 0;
+    }private int mickeySparkleNo = 0;
     private final static int kMikeySparkleMiddle = (kLEDS1 + kLEDS2)/ 2;
 
     void modeMickey2a() {
@@ -153,10 +150,7 @@ public class Mickey extends Visualization {
 
         mBurnerBoard.fillScreen(0, 0, 0);
         mBurnerBoard.flush();
-    }
-
-
-    private int mickeyRotate = 0;
+    }private int mickeyRotate = 0;
     void modeMickeyBlueGold() {
 
         int ledNo;

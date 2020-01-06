@@ -80,10 +80,7 @@ public class Video extends Visualization {
         }
 
         mBurnerBoard.flush();
-    }
-
-
-    public void e(String logMsg) {
+    }public void e(String logMsg) {
         Log.e(TAG, logMsg);
     }
 }

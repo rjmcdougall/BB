@@ -3,11 +3,7 @@ package com.richardmcdougall.bb;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
-
 public class BurnerBoardUtil {
-    /*
-        Feature flag section here
-    */
 
 
     // Hash String as 32-bit

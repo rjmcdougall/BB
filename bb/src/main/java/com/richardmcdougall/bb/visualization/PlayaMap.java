@@ -11,7 +11,6 @@ import com.richardmcdougall.bb.FindMyFriends;
 
 import java.util.List;
 
-
 public class PlayaMap extends Visualization {
 
     String TAG = "BB.PlayaMap";
@@ -84,7 +83,6 @@ public class PlayaMap extends Visualization {
                     true,
                     true,
                     BurnerBoard.getRGB(0, 0, 0));
-
 
             List<FindMyFriends.boardLocation> boardLocations = mFMF.getBoardLocations();
 
@@ -191,7 +189,6 @@ public class PlayaMap extends Visualization {
     static final double  kManLon = -119.206500;
     */
 
-
     // Test Man =  Shop
     /*
     static final double  kManLat = 37.4829995;
@@ -214,7 +211,6 @@ public class PlayaMap extends Visualization {
 
     static final double kCenterCampLat = 40.780822;
     static final double kCenterCampLon = -119.213934;
-
 
     static final double k6LLat = 40.775561;
     static final double k6LLon = -119.220796;
@@ -334,7 +330,4 @@ public class PlayaMap extends Visualization {
         return clock_disp + " & " + getRefDisp(refRing) + (refDeltaRounded >= 0 ? "+" : "-") +
                 String.valueOf(refDeltaRounded < 0 ? -refDeltaRounded : refDeltaRounded) + "m" +
                 (accurate ? "" : "-ish");
-    }
-
-
-}
+    }}

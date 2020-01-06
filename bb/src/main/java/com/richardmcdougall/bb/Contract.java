@@ -50,7 +50,6 @@ public final class Contract {
     // or in this example, the name of a list.
     public static final String CONTENT_PATH = "locationsJSON";
 
-
     // A content:// style URI to the authority for this table */
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + CONTENT_PATH);
 

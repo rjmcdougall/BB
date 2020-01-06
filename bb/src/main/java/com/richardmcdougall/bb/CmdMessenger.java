@@ -14,10 +14,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.HashMap;
 
-
-/**
- * A java clone of CmdMessenger by rjmcdougall on 8/8/16.
- */
 public class CmdMessenger implements SerialInputOutputManager.Listener {
 
     static final int MESSENGERBUFFERSIZE = 64;   // The length of the commandBufferTmpIn  (default: 64)
@@ -126,10 +122,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     void attach(int msgId, CmdEvents newFunction) {
         if (msgId >= 0)
             callbackList.put(msgId, newFunction);
-    }
-
-
-    /**
+    }/**
      * Waits for reply from sender or timeout before continuing
      */
     boolean blockedTillReply(int timeout, int ackCmdId) {
@@ -146,10 +139,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             time++;
         }
         return receivedAck;
-    }
-
-
-    /**
+    }/**
      * Loops as long data is available to determine if acknowledge has come in
      */
     boolean checkForAck(int ackCommand) {
@@ -223,9 +213,6 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     int commandID() {
         return lastCommandId;
     }
-
-    // ****  Command sending ****
-
 
     /**
      * Send start of command. This makes it easy to send multiple arguments per command
@@ -434,10 +421,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         }
         ArgOk = false;
         return "";
-    }
-
-
-    /**
+    }/**
      * Compare the next argument with a string
      */
     int compareStringArg(String string) {
@@ -491,10 +475,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             }
         }
         return (outputStream.toByteArray());
-    }
-
-
-    void printInt(int i) {
+    }void printInt(int i) {
         ;
         String s = String.format("%d", i);
         printStr(s.getBytes().clone());
@@ -598,10 +579,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         String output;
         output = String.format(format, whole, part, exponent);
         printStr(output.getBytes());
-    }
-
-
-    private void e(String str) {
+    }private void e(String str) {
         Log.e(TAG, ">>>>>" + str);
     }
 
@@ -649,10 +627,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         mHandler.post(mProcessMessageRunnable);
         //Thread myThread = new Thread(new ProcessMessageRunnable());
         //myThread.start();
-    }
-
-
-    // **** Command processing ****
+    }// **** Command processing ****
 
     /**
      * Processes bytes and determines message state
@@ -696,10 +671,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             return ret;
         }//sync
 
-    }
-
-
-    int processLine() {
+    }int processLine() {
         int ch;
 
         /*
@@ -731,10 +703,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             }
         }
         return (messageState);
-    }
-
-
-    /**
+    }/**
      * Dispatches attached callbacks based on command
      */
     void handleMessage() {
@@ -765,8 +734,5 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     public void onRunError(Exception e) {
 
         e("onRunError: " + e.getMessage());
-    }
-
-
-}
+    }}
 

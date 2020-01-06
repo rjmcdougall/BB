@@ -22,7 +22,6 @@ public class BoardsContentProvider extends ContentProvider {
     // https://developer.android.com/reference/android/content/UriMatcher.html
     private static UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
-
     @Override
     public boolean onCreate() {
         // Set up the URI scheme for this content provider.

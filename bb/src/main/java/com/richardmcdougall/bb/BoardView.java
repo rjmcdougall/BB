@@ -168,10 +168,7 @@ public class BoardView extends View {
 
         // TODO: invalidate only on update()
         invalidate();
-    }
-
-
-    public void setOtherLight(int other, byte[] pixels) {
+    }public void setOtherLight(int other, byte[] pixels) {
         //System.out.print("setRow " + row + ":" + bytesToHex(pixels));
         //System.out.println("BB setRow " + row + " length " + pixels.length);
         if (mCanvas == null)
@@ -179,10 +176,7 @@ public class BoardView extends View {
 
         // TODO: invalidate only on update()
         invalidate();
-    }
-
-
-    @Override
+    }@Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 

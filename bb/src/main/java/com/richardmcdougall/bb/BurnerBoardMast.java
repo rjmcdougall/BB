@@ -1,12 +1,6 @@
 package com.richardmcdougall.bb;
 
-
 import java.nio.IntBuffer;
-
-/**
- * Created by rmc on 7/25/17.
- */
-
 
 /*
 
@@ -34,7 +28,6 @@ import java.nio.IntBuffer;
  top
 
  */
-
 
 public class BurnerBoardMast extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
@@ -248,10 +241,7 @@ public class BurnerBoardMast extends BurnerBoard {
                 setStrip(s, stripPixels, powerLimitMultiplierPercent);
                 // Send to board
                 flush2Board();
-            }
-
-
-            // Render on board
+            }// Render on board
             update();
             flush2Board();
         }
@@ -278,10 +268,7 @@ public class BurnerBoardMast extends BurnerBoard {
         }
 
         return false;
-    }
-
-
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
+    }//    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
         sendVisual(9);
@@ -333,10 +320,7 @@ public class BurnerBoardMast extends BurnerBoard {
                 pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_GREEN);
         pixelMap2BoardTable[stripNo][stripOffset + 2] =
                 pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_BLUE);
-    }
-
-
-    // Two primary mapping functions
+    }// Two primary mapping functions
     static int kStrips = 8;
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;

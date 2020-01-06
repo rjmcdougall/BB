@@ -13,7 +13,6 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
 
-
 public class FileHelpers {
     private static String TAG = "FileHelpers";
 

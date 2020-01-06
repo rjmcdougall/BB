@@ -131,8 +131,6 @@ public class Fire extends Visualization {
             BurnerBoard.getRGB(255, 250, 16)
     };
 
-
-
     /*
     * From PixelController Fire.java
     * Originally modeled from http://lodev.org/cgtutor/fire.html
@@ -155,7 +153,6 @@ public class Fire extends Visualization {
                 mFireScreen[j + i] = 0;
             }
         }
-
 
 		/* move fire upwards, start at bottom*/
         int temp;

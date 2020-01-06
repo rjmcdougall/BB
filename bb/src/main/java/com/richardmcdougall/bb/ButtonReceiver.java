@@ -7,7 +7,6 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.view.KeyEvent;
 
-
 public class ButtonReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();
 
