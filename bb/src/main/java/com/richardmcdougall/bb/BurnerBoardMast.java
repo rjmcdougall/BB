@@ -1,6 +1,6 @@
 package com.richardmcdougall.bb;
 
-import timber.log.Timber;
+
 
 import java.nio.IntBuffer;
 import java.util.Arrays;
@@ -39,6 +39,8 @@ import java.util.Arrays;
 
 
 public class BurnerBoardMast extends BurnerBoard {
+    private String TAG = this.getClass().getSimpleName();
+
     public BurnerBoardMast(BBService service) {
         super(service);
         mBoardWidth = 24;
@@ -46,7 +48,7 @@ public class BurnerBoardMast extends BurnerBoard {
         mMultipler4Speed = 3;
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Mast";
-        Timber.d("Burner Board Mast initing...");
+        BLog.d(TAG,"Burner Board Mast initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
@@ -102,7 +104,7 @@ public class BurnerBoardMast extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            Timber.d("getBatteryLevel: " + service.boardState.batteryLevel);
+            BLog.d(TAG,"getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -189,7 +191,7 @@ public class BurnerBoardMast extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+            BLog.d(TAG,"Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
@@ -285,7 +287,7 @@ public class BurnerBoardMast extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        Timber.d("sendCommand: 7");
+        BLog.d(TAG,"sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();

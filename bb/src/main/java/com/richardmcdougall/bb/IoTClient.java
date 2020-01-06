@@ -9,8 +9,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 
-import timber.log.Timber;
-
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.android.service.MqttTraceHandler;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -40,6 +38,7 @@ import org.joda.time.DateTime;
  */
 
 public class IoTClient {
+    private String TAG = this.getClass().getSimpleName();
 
     private static final String MQTT_SERVER_URI = "ssl://mqtt.googleapis.com:8883";
     private static final String DEVICEY_REGISTRY = "projects/burner-board/locations/us-central1/registries/bb-registry/devices/bb-";
@@ -55,7 +54,7 @@ public class IoTClient {
     public IoTClient(BBService service) {
         this.service = service;
 
-        Timber.d("Creating MQTT Client");
+        BLog.d(TAG,"Creating MQTT Client");
         IntentFilter intentf = new IntentFilter();
         setClientID();
         InputStream keyfile = service.context.getResources().openRawResource(service.context.
@@ -64,7 +63,7 @@ public class IoTClient {
         try {
             kfSize = keyfile.read(keyBytes);
         } catch (Exception e) {
-            Timber.d("Unable to open keyfile");
+            BLog.d(TAG,"Unable to open keyfile");
         }
         byte[] compactKey = new byte[kfSize];
         System.arraycopy(keyBytes, 0, compactKey, 0, kfSize);
@@ -72,7 +71,7 @@ public class IoTClient {
 
         mWiFiManager = (WifiManager) this.service.context.getSystemService(Context.WIFI_SERVICE);
 
-        Timber.d("connect(google, " + deviceId + ")");
+        BLog.d(TAG,"connect(google, " + deviceId + ")");
         String filesDir = this.service.context.getFilesDir().getAbsolutePath();
         mqttClient = new MqttAndroidClient(service.context, MQTT_SERVER_URI,
                 deviceId, new MemoryPersistence());
@@ -93,7 +92,7 @@ public class IoTClient {
                             // Disconnect if we were connected
                             // Required to recalculate jwtkey
                             if (mqttClient != null) {
-                                Timber.d("Disconnecting MQTT Client");
+                                BLog.d(TAG,"Disconnecting MQTT Client");
                                 if (mqttClient.isConnected()) {
                                     mqttClient.disconnect();
                                 }
@@ -103,10 +102,10 @@ public class IoTClient {
                         }
                         try {
 
-                            Timber.d("Connecting MQTT Client");
+                            BLog.d(TAG,"Connecting MQTT Client");
 
                             jwtKey = createJwtRsa("burner-board");
-                            Timber.d("Created key " + jwtKey.toString());
+                            BLog.d(TAG,"Created key " + jwtKey.toString());
 
 
                             MqttConnectOptions options = new MqttConnectOptions();
@@ -124,17 +123,17 @@ public class IoTClient {
                                 @Override
                                 public void onFailure(IMqttToken asyncActionToken,
                                                       Throwable exception) {
-                                    Timber.e("onFailure: " + exception.getMessage());
+                                    BLog.e(TAG,"onFailure: " + exception.getMessage());
                                 }
 
                                 @Override
                                 public void onSuccess(IMqttToken iMqttToken) {
-                                    Timber.i("onSuccess");
+                                    BLog.i(TAG,"onSuccess");
                                     haveConnected = true;
                                 }
                             });
                         } catch (Exception e) {
-                            Timber.e("connect: " + e.getMessage());
+                            BLog.e(TAG,"connect: " + e.getMessage());
                         }
                     } else {
                         // We get failed reconnects because JWT key expires in Google IoT
@@ -144,7 +143,7 @@ public class IoTClient {
                         if (state == NetworkInfo.DetailedState.CONNECTED) {
                             if (mqttClient.isConnected() == false) {
                                 try {
-                                    Timber.d("MQTT disconnected but Wifi connected, forcing disconnect");
+                                    BLog.d(TAG,"MQTT disconnected but Wifi connected, forcing disconnect");
                                     haveConnected = false;
                                 } catch (Exception e) {
                                 }
@@ -166,7 +165,7 @@ public class IoTClient {
                         Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
                         service.context.sendBroadcast(intent);
                     } catch (Exception e) {
-                        Timber.e("Cannot send force-time-sync");
+                        BLog.e(TAG,"Cannot send force-time-sync");
                     }
 
                     // Every  minute
@@ -186,16 +185,16 @@ public class IoTClient {
         @Override
         public void connectComplete(boolean reconnect, String serverURI) {
             if (reconnect) {
-                Timber.i("Reconnection complete, " +
+                BLog.i(TAG,"Reconnection complete, " +
                         mqttClient.getBufferedMessageCount() + " messages ready to send");
             } else {
-                Timber.i("Connection complete");
+                BLog.i(TAG,"Connection complete");
             }
         }
 
         @Override
         public void connectionLost(Throwable arg0) {
-            Timber.i("Connection Lost");
+            BLog.i(TAG,"Connection Lost");
             try {
                 //mqttClient.disconnect();
                 //mqttClient.close();
@@ -213,7 +212,7 @@ public class IoTClient {
         @Override
         @SuppressLint("NewApi")
         public void messageArrived(String topic, final MqttMessage msg) throws Exception {
-            Timber.i("Message arrived from topic " + topic + ": " + msg.getPayload().toString());
+            BLog.i(TAG,"Message arrived from topic " + topic + ": " + msg.getPayload().toString());
             Handler h = new Handler(service.context.getMainLooper());
             h.post(new Runnable() {
                 @Override
@@ -229,18 +228,18 @@ public class IoTClient {
     private class MqttTraceHandlerCallback implements MqttTraceHandler {
         @Override
         public void traceDebug(String tag, String message) {
-            Timber.d("trace: " + tag + " : " + message);
+            BLog.d(TAG,"trace: " + tag + " : " + message);
         }
 
         @Override
         public void traceError(String tag, String message) {
-            Timber.e("trace error: " + tag + " : " + message);
+            BLog.e(TAG,"trace error: " + tag + " : " + message);
 
         }
 
         @Override
         public void traceException(String tag, String message, Exception e) {
-            Timber.e("trace exception: " + tag + " : " + message);
+            BLog.e(TAG,"trace exception: " + tag + " : " + message);
         }
     }
 
@@ -279,11 +278,11 @@ public class IoTClient {
             //Log.d(TAG, "mqttClient(" + t + ", " + fullMessage + ")");
             mqttClient.publish(t, message);
         } catch (Exception e) {
-            Timber.e("Failed to send:" + e.toString());
+            BLog.e(TAG,"Failed to send:" + e.toString());
         }
 
         if (mqttClient.isConnected() == false && haveConnected) {
-            Timber.d(mqttClient.getBufferedMessageCount() + " messages in buffer");
+            BLog.d(TAG,mqttClient.getBufferedMessageCount() + " messages in buffer");
         }
     }
 
@@ -314,14 +313,14 @@ public class IoTClient {
         try {
             key = kf.generatePrivate(spec);
         } catch (Exception e1) {
-            Timber.e(e1.toString());
+            BLog.e(TAG,e1.toString());
         }
 
         String s = "none";
         try {
             s = jwtBuilder.signWith(SignatureAlgorithm.RS256, key).compact();
         } catch (Exception e) {
-            Timber.e(e.toString());
+            BLog.e(TAG,e.toString());
         }
         return s;
     }

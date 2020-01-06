@@ -7,9 +7,10 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.view.KeyEvent;
 
-import timber.log.Timber;
+
 
 public class ButtonReceiver extends BroadcastReceiver {
+    private String TAG = this.getClass().getSimpleName();
 
     private BBService service;
     // Single press to show battery
@@ -29,45 +30,45 @@ public class ButtonReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         if (ACTION.BUTTONS.equals(action)) {
-            Timber.d("Received BlueTooth key press");
+            BLog.d(TAG,"Received BlueTooth key press");
             BBService.buttons actionType = (BBService.buttons) intent.getSerializableExtra("buttonType");
             switch (actionType) {
                 case BUTTON_KEYCODE:
-                    Timber.d("BUTTON_KEYCODE ");
+                    BLog.d(TAG,"BUTTON_KEYCODE ");
                     int keyCode = intent.getIntExtra("keyCode", 0);
                     KeyEvent event = (KeyEvent) intent.getParcelableExtra("keyEvent");
                     onKeyDown(keyCode, event);
                     break;
                 case BUTTON_TRACK:
-                    Timber.d("BUTTON_TRACK");
+                    BLog.d(TAG,"BUTTON_TRACK");
                     service.musicPlayer.NextStream();
                     break;
                 case BUTTON_MODE_UP:
-                    Timber.d("BUTTON_MODE_UP");
+                    BLog.d(TAG,"BUTTON_MODE_UP");
                     service.boardVisualization.setMode(99);
                     break;
                 case BUTTON_MODE_DOWN:
-                    Timber.d("BUTTON_MODE_DOWN");
+                    BLog.d(TAG,"BUTTON_MODE_DOWN");
                     service.boardVisualization.setMode(98);
                     break;
                 case BUTTON_DRIFT_DOWN:
-                    Timber.d("BUTTON_DRIFT_DOWN");
+                    BLog.d(TAG,"BUTTON_DRIFT_DOWN");
                     service.musicPlayer.MusicOffset(-10);
                     break;
                 case BUTTON_DRIFT_UP:
-                    Timber.d("BUTTON_DRIFT_UP");
+                    BLog.d(TAG,"BUTTON_DRIFT_UP");
                     service.musicPlayer.MusicOffset(10);
                     break;
                 case BUTTON_VOL_DOWN:
-                    Timber.d("BUTTON_VOL_DOWN");
+                    BLog.d(TAG,"BUTTON_VOL_DOWN");
                     service.musicPlayer.onVolDown();
                     break;
                 case BUTTON_VOL_UP:
-                    Timber.d("BUTTON_VOL_UP");
+                    BLog.d(TAG,"BUTTON_VOL_UP");
                     service.musicPlayer.onVolUp();
                     break;
                 case BUTTON_VOL_PAUSE:
-                    Timber.d("BUTTON_VOL_PAUSE");
+                    BLog.d(TAG,"BUTTON_VOL_PAUSE");
                     service.musicPlayer.onVolPause();
                     break;
                 default:
@@ -88,7 +89,7 @@ public class ButtonReceiver extends BroadcastReceiver {
     public boolean onKeyDownBurnerBoard(int keyCode, KeyEvent event) {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
-            Timber.d("BurnerBoard Keycode:" + keyCode);
+            BLog.d(TAG,"BurnerBoard Keycode:" + keyCode);
         }
 
         switch (keyCode) {
@@ -131,7 +132,7 @@ public class ButtonReceiver extends BroadcastReceiver {
     public boolean onKeyDownRPI(int keyCode, KeyEvent event) {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
-            Timber.d("RPI Keycode:" + keyCode);
+            BLog.d(TAG,"RPI Keycode:" + keyCode);
         }
 
         switch (keyCode) {
@@ -141,21 +142,21 @@ public class ButtonReceiver extends BroadcastReceiver {
 
             /* Audio stream control */
             case 87: // satachi right button
-                Timber.d("RPI Bluetooth Right Button");
+                BLog.d(TAG,"RPI Bluetooth Right Button");
                 service.musicPlayer.NextStream();
                 break;
             case 88: //satachi left button
-                Timber.d("RPI Bluetooth Left Button");
+                BLog.d(TAG,"RPI Bluetooth Left Button");
                 service.musicPlayer.PreviousStream();
                 break;
 
             /* Volume control */
             case 24:   // satachi & native volume up button
-                Timber.d("RPI Bluetooth Volume Up Button");
+                BLog.d(TAG,"RPI Bluetooth Volume Up Button");
                 service.musicPlayer.onVolUp();
                 return false;
             case 25:  // satachi & native volume down button
-                Timber.d("RPI Bluetooth Volume Down Button");
+                BLog.d(TAG,"RPI Bluetooth Volume Down Button");
                 service.musicPlayer.onVolDown();
                 return false;
         }

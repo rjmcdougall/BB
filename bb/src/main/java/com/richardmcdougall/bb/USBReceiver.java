@@ -6,9 +6,10 @@ import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
-import timber.log.Timber;
+
 
 public class USBReceiver extends BroadcastReceiver {
+    private String TAG = this.getClass().getSimpleName();
 
     private BBService service;
     USBReceiver(BBService service) {
@@ -19,7 +20,7 @@ public class USBReceiver extends BroadcastReceiver {
         //l("usbReceiver");
         if (intent != null) {
             if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                Timber.d("ACTION_USB_DEVICE_ATTACHED");
+                BLog.d(TAG,"ACTION_USB_DEVICE_ATTACHED");
                 Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                 // Create a new intent and put the usb device in as an extra
@@ -34,7 +35,7 @@ public class USBReceiver extends BroadcastReceiver {
                 }
             }
             if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
-                Timber.d( "ACTION_USB_DEVICE_DETACHED");
+                BLog.d(TAG, "ACTION_USB_DEVICE_DETACHED");
 
                 Parcelable usbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 

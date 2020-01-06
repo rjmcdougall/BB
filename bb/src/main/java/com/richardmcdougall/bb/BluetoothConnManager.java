@@ -9,7 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-import timber.log.Timber;
+
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -49,7 +49,7 @@ public class BluetoothConnManager {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
-            Timber.d("No default Bluetooth adapter. Device likely does not support bluetooth.");
+            BLog.d(TAG,"No default Bluetooth adapter. Device likely does not support bluetooth.");
             return;
         }
 
@@ -57,15 +57,15 @@ public class BluetoothConnManager {
 
         String name = service.boardState.BOARD_ID.substring(0, Math.min(service.boardState.BOARD_ID.length(), 8));
         mBluetoothAdapter.setName(name);
-        Timber.d("Bluetooth packet name set to: " + name);
+        BLog.d(TAG,"Bluetooth packet name set to: " + name);
 
         //service.registerReceiver(mAdapterStateChangeReceiver, new IntentFilter(
         //        BluetoothAdapter.ACTION_STATE_CHANGED));
 
         if (mBluetoothAdapter.isEnabled()) {
-            Timber.d("Bluetooth Adapter is already enabled.");
+            BLog.d(TAG,"Bluetooth Adapter is already enabled.");
         } else {
-            Timber.d("Bluetooth adapter not enabled. Enabling.");
+            BLog.d(TAG,"Bluetooth adapter not enabled. Enabling.");
             mBluetoothAdapter.enable();
         }
 
@@ -89,7 +89,7 @@ public class BluetoothConnManager {
      * the next {@link #kDiscoveryTimeout} ms.
      */
     private void enableDiscoverable() {
-        Timber.d("Registering for discovery.");
+        BLog.d(TAG,"Registering for discovery.");
         Intent discoverableIntent =
                 new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
@@ -100,7 +100,7 @@ public class BluetoothConnManager {
     }
 
     public void discoverDevices() {
-        Timber.d("discoverDevices()");
+        BLog.d(TAG,"discoverDevices()");
 
         // Get a set of currently paired devices
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -108,7 +108,7 @@ public class BluetoothConnManager {
         // If there are already paired devices, add each one to the paired list
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
-                Timber.d("found paired device: " + device.getAddress() + "-" + device.getAddress());
+                BLog.d(TAG,"found paired device: " + device.getAddress() + "-" + device.getAddress());
                 mPairedDevices.put(device.getAddress(), device);
             }
         }
@@ -123,7 +123,7 @@ public class BluetoothConnManager {
     }
 
     public void discoverCancel() {
-        Timber.d("discoverCancel()");
+        BLog.d(TAG,"discoverCancel()");
 
         // If we're already discovering, stop it
         if (mBluetoothAdapter.isDiscovering()) {
@@ -133,7 +133,7 @@ public class BluetoothConnManager {
 
     public void pairDevice(String address) {
         BluetoothDevice device;
-        Timber.d("pair device ");
+        BLog.d(TAG,"pair device ");
 
         // Cancel discovery because it's costly and we're about to connect
         mBluetoothAdapter.cancelDiscovery();
@@ -142,35 +142,35 @@ public class BluetoothConnManager {
         try {
             device = mBluetoothAdapter.getRemoteDevice(address);
         } catch (Exception e) {
-            Timber.e("Invalid device address: " + address);
+            BLog.e(TAG,"Invalid device address: " + address);
             return;
         }
         // Attempt to pair device
-        Timber.d("Pair device " + device);
+        BLog.d(TAG,"Pair device " + device);
         //connect(device);
         // TODO: check if this is needed to avoid popups
         // Needs system app permission!!
         // device.setPairingConfirmation(false);
         boolean result = device.createBond();
-        Timber.d("createBond() = " + result);
+        BLog.d(TAG,"createBond() = " + result);
     }
 
     ;
 
     public void unpairDevice(String address) {
         BluetoothDevice device;
-        Timber.d("unpairDevice");
+        BLog.d(TAG,"unpairDevice");
         // Cancel discovery because it's costly and we're about to connect
         mBluetoothAdapter.cancelDiscovery();
         // Get the BluetoothDevice object
         try {
             device = mBluetoothAdapter.getRemoteDevice(address);
         } catch (Exception e) {
-            Timber.e("Invalid device address: " + address);
+            BLog.e(TAG,"Invalid device address: " + address);
             return;
         }
         // Attempt to connect to the device
-        Timber.d("Unpair device " + device);
+        BLog.d(TAG,"Unpair device " + device);
         // TODO
     }
 
@@ -202,7 +202,7 @@ public class BluetoothConnManager {
             list = (JsonArray) new Gson().toJsonTree(valuesList, new TypeToken<ArrayList<BluetoothDeviceEntry>>() {
             }.getType());
         } catch (Exception e) {
-            Timber.e("Error creating device list");
+            BLog.e(TAG,"Error creating device list");
             return null;
         }
 
@@ -210,7 +210,7 @@ public class BluetoothConnManager {
         try {
             json = new JSONArray(list.toString());
         } catch (Exception e) {
-            Timber.e("Cannot convert devices to json: " + e.getMessage());
+            BLog.e(TAG,"Cannot convert devices to json: " + e.getMessage());
         }
 
         return (json);
@@ -222,7 +222,7 @@ public class BluetoothConnManager {
         for (String address : mPairedDevices.keySet()) {
             BluetoothDevice device = mPairedDevices.get(address);
             if (device != null && device.getAddress().startsWith(MEDIA_CONTROLLER_MAC_ADDRESS_PREFIX)) {
-                Timber.d("found paired: " + device.getAddress() + ", " + device.getName());
+                BLog.d(TAG,"found paired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), true);
                 deviceList.put(address, d);
@@ -231,7 +231,7 @@ public class BluetoothConnManager {
         for (String address : mNewDevices.keySet()) {
             BluetoothDevice device = mNewDevices.get(address);
             if (device != null && device.getAddress().startsWith("DC")) {
-                Timber.d("found unpaired: " + device.getAddress() + ", " + device.getName());
+                BLog.d(TAG,"found unpaired: " + device.getAddress() + ", " + device.getName());
                 BluetoothDeviceEntry d = new BluetoothDeviceEntry(device.getName(),
                         device.getAddress(), false);
                 deviceList.put(address, d);
@@ -245,10 +245,10 @@ public class BluetoothConnManager {
         BluetoothDeviceEntry device;
         if ((device = devices.get(address)) != null) {
             if (device.paired) {
-                Timber.d("unpairing " + address);
+                BLog.d(TAG,"unpairing " + address);
                 unpairDevice(address);
             } else {
-                Timber.e("pairing " + address);
+                BLog.e(TAG,"pairing " + address);
                 pairDevice(address);
             }
         }
@@ -295,7 +295,7 @@ public class BluetoothConnManager {
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 if (mNewDevices.isEmpty()) {
-                    Timber.d("No new bluetooth devices");
+                    BLog.d(TAG,"No new bluetooth devices");
                 }
             }
         }
@@ -307,21 +307,21 @@ public class BluetoothConnManager {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            Timber.d("Bluetooth action");
+            BLog.d(TAG,"Bluetooth action");
 
             String action = intent.getAction();
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
             if (BluetoothDevice.ACTION_PAIRING_REQUEST.equals(action)) {
                 try {
-                    Timber.d("received pairing request");
+                    BLog.d(TAG,"received pairing request");
                     //device.createBond();
                     pairDevice(device.getAddress());
                 } catch (Exception e) {
-                    Timber.e(e.getMessage());
+                    BLog.e(TAG,e.getMessage());
                 }
             } else {
-                Timber.d("received action: " + action.toString());
+                BLog.d(TAG,"received action: " + action.toString());
 
             }
         }

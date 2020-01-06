@@ -16,15 +16,15 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.UUID;
 
-import timber.log.Timber;
+
 
 import android.os.Build;
-
-import static timber.log.Timber.DebugTree;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
 public class BBService extends Service {
+
+    private String TAG = this.getClass().getSimpleName();
 
     public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
@@ -83,24 +83,20 @@ public class BBService extends Service {
 
             super.onCreate();
 
-            if (BuildConfig.DEBUG) {
-                Timber.plant(new LoggingTree(this));
-            }
-
-            Timber.i("onCreate");
+            BLog.i(TAG,"onCreate");
 
             //Thread.sleep(500); // player thread must fully start before supervisor. dkw
             InitClock();
             context = getApplicationContext();
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            Log.i(TAG, "startClock: " + startClock);
-            Log.i(TAG, "Current Clock: " + GetCurrentClock());
-            Log.i(TAG, "startElapsedTime: " + startElapsedTime);
+            BLog.i(TAG, "startClock: " + startClock);
+            BLog.i(TAG, "Current Clock: " + GetCurrentClock());
+            BLog.i(TAG, "startElapsedTime: " + startElapsedTime);
 
-            Log.i(TAG,"Build Manufacturer " + Build.MANUFACTURER);
-            Log.i(TAG,"Build Model " + Build.MODEL);
-            Log.i(TAG,"Build Serial " + Build.SERIAL);
+            BLog.i(TAG,"Build Manufacturer " + Build.MANUFACTURER);
+            BLog.i(TAG,"Build Model " + Build.MODEL);
+            BLog.i(TAG,"Build Serial " + Build.SERIAL);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -130,7 +126,7 @@ public class BBService extends Service {
                     if (status == TextToSpeech.SUCCESS) {
                         if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                             voice.setLanguage(Locale.US);
-                        Timber.i("Text To Speech ready...");
+                        BLog.i(TAG,"Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         String utteranceId = UUID.randomUUID().toString();
                         System.out.println("Where do you want to go, " + boardState.BOARD_ID + "?");
@@ -138,13 +134,13 @@ public class BBService extends Service {
                         voice.speak("I am " + boardState.BOARD_ID + "?",
                                 TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                     } else if (status == TextToSpeech.ERROR) {
-                        Timber.i("Sorry! Text To Speech failed...");
+                        BLog.i(TAG,"Sorry! Text To Speech failed...");
                     }
 
                     // Let the user know they're on a raspberry pi // Skip For IsNano
                     if (BoardState.kIsRPI) {
                         String rpiMsg = "Raspberry PI detected";
-                        Timber.i(rpiMsg);
+                        BLog.i(TAG,rpiMsg);
                         // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
                         voice.speak(rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
 
@@ -160,20 +156,20 @@ public class BBService extends Service {
             allBoards.Run();
 
             while(allBoards.dataBoards==null){
-                Log.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
+                BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
                 Thread.sleep(2000);
             }
             boardState = new BoardState(this);
 
-            Log.i("BB.BBService","State Version " + boardState.version);
-            Log.i("BB.BBService","State APK Updated Date " + boardState.apkUpdatedDate);
-            Log.i("BB.BBService","State Address " + boardState.address);
-            Log.i("BB.BBService","State SSID " + boardState.SSID);
-            Log.i("BB.BBService","State Password " + boardState.password);
-            Log.i("BB.BBService","State Mode " + boardState.currentVideoMode);
-            Log.i("BB.BBService","State BOARD_ID " + boardState.BOARD_ID);
-            Log.i("BB.BBService","State Tyoe " + boardState.boardType);
-            Log.i("BB.BBService","Display Teensy " + boardState.displayTeensy);
+            BLog.i(TAG,"State Version " + boardState.version);
+            BLog.i(TAG,"State APK Updated Date " + boardState.apkUpdatedDate);
+            BLog.i(TAG,"State Address " + boardState.address);
+            BLog.i(TAG,"State SSID " + boardState.SSID);
+            BLog.i(TAG,"State Password " + boardState.password);
+            BLog.i(TAG,"State Mode " + boardState.currentVideoMode);
+            BLog.i(TAG,"State BOARD_ID " + boardState.BOARD_ID);
+            BLog.i(TAG,"State Tyoe " + boardState.boardType);
+            BLog.i(TAG,"Display Teensy " + boardState.displayTeensy);
 
             iotClient = new IoTClient(this);
 
@@ -189,7 +185,7 @@ public class BBService extends Service {
 
             boardVisualization = new BoardVisualization(this);
 
-            Timber.i("Setting initial visualization mode: " + boardState.currentVideoMode);
+            BLog.i(TAG,"Setting initial visualization mode: " + boardState.currentVideoMode);
             boardVisualization.setMode(boardState.currentVideoMode);
 
             musicPlayer = new MusicPlayer(this);
@@ -225,7 +221,7 @@ public class BBService extends Service {
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
         }
     }
 
@@ -234,7 +230,7 @@ public class BBService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Timber.i("onStartCommand");
+        BLog.i(TAG,"onStartCommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -243,7 +239,7 @@ public class BBService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        Timber.i("onBind");
+        BLog.i(TAG,"onBind");
         return mBinder;
     }
 
@@ -252,7 +248,7 @@ public class BBService extends Service {
      */
     @Override
     public boolean onUnbind(Intent intent) {
-        Timber.i("onUnbind");
+        BLog.i(TAG,"onUnbind");
         return mAllowRebind;
     }
 
@@ -261,7 +257,7 @@ public class BBService extends Service {
      */
     @Override
     public void onRebind(Intent intent) {
-        Timber.i("onRebind");
+        BLog.i(TAG,"onRebind");
     }
 
     /**
@@ -270,7 +266,7 @@ public class BBService extends Service {
     @Override
     public void onDestroy() {
 
-        Timber.i("onDesonDestroy");
+        BLog.i(TAG,"onDesonDestroy");
         voice.shutdown();
     }
 
@@ -280,8 +276,6 @@ public class BBService extends Service {
         startElapsedTime = SystemClock.elapsedRealtime();
         startClock = Calendar.getInstance().getTimeInMillis();
     }
-
-    String TAG = "BB.BBService";
 
     public long GetCurrentClock() {
         return SystemClock.elapsedRealtime() - startElapsedTime + startClock;
@@ -299,11 +293,11 @@ public class BBService extends Service {
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
         public void BoardId(String str) {
-            Timber.i("ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
+            BLog.i(TAG,"ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
         }
 
         public void BoardMode(int mode) {
-            Timber.i("ardunio mode callback:" + boardState.currentVideoMode);
+            BLog.i(TAG,"ardunio mode callback:" + boardState.currentVideoMode);
         }
     }
 }

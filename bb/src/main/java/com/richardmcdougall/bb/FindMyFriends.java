@@ -21,9 +21,10 @@ import java.util.List;
 
 import android.content.ContentValues;
 
-import timber.log.Timber;
+
 
 public class FindMyFriends {
+    private String TAG = this.getClass().getSimpleName();
 
     private BBService service;
     private findMyFriendsCallback mFindMyFriendsCallback = null;
@@ -45,18 +46,18 @@ public class FindMyFriends {
 
     public FindMyFriends(BBService service) {
         this.service = service;
-        Timber.d("Starting FindMyFriends");
+        BLog.d(TAG,"Starting FindMyFriends");
 
 
         if (service.radio == null) {
-            Timber.d("No Radio!");
+            BLog.d(TAG,"No Radio!");
             return;
         }
 
         service.radio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                Timber.d("FMF Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
+                BLog.d(TAG,"FMF Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -64,7 +65,7 @@ public class FindMyFriends {
 
             @Override
             public void GPSevent(PositionEvent gps) {
-                Timber.d("FMF Position: " + gps.toString());
+                BLog.d(TAG,"FMF Position: " + gps.toString());
                 Position pos = gps.getPosition();
                 mLat = (int) (pos.getLatitude() * 1000000);
                 mLon = (int) (pos.getLongitude() * 1000000);
@@ -72,7 +73,7 @@ public class FindMyFriends {
                 long sinceLastFix = System.currentTimeMillis() - mLastFix;
 
                 if (sinceLastFix > kMaxFixAge) {
-                    Timber.d("FMF: sending GPS update");
+                    BLog.d(TAG,"FMF: sending GPS update");
                     service.iotClient.sendUpdate("bbevent", "[" +
                             service.boardState.BOARD_ID + "," + 0 + "," + mLat / 1000000.0 + "," + mLon / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
@@ -83,7 +84,7 @@ public class FindMyFriends {
 
             @Override
             public void timeEvent(Time time) {
-                Timber.d("FMF Time: " + time.toString());
+                BLog.d(TAG,"FMF Time: " + time.toString());
             }
         });
         addTestBoardLocations();
@@ -152,10 +153,10 @@ public class FindMyFriends {
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
 
-        Timber.d("Sending packet...");
+        BLog.d(TAG,"Sending packet...");
         service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
-        Timber.d("Sent packet...");
+        BLog.d(TAG,"Sent packet...");
         updateBoardLocations(service.boardState.address, 999,
                 lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
     }
@@ -185,7 +186,7 @@ public class FindMyFriends {
                     new int[]{bytes.read(), bytes.read()});
 
             if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kGPSMagicNumber)) {
-                Timber.d("BB GPS Packet");
+                BLog.d(TAG,"BB GPS Packet");
                 mTheirAddress = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
                 int repeatedBy = bytes.read();
@@ -204,7 +205,7 @@ public class FindMyFriends {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                Timber.d(service.allBoards.boardAddressToName(mTheirAddress) +
+                BLog.d(TAG,service.allBoards.boardAddressToName(mTheirAddress) +
                         " strength " + sigStrength +
                         "theirLat = " + mTheirLat + ", " +
                         "theirLon = " + mTheirLon +
@@ -215,7 +216,7 @@ public class FindMyFriends {
                 updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone());
                 return true;
             } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kTrackerMagicNumber)) {
-                Timber.d("tracker packet");
+                BLog.d(TAG,"tracker packet");
                 mTheirLat = (double) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8) +
                         ((bytes.read() & 0xff) << 16) +
@@ -228,11 +229,11 @@ public class FindMyFriends {
                 mLastRecv = System.currentTimeMillis();
                 return true;
             } else {
-                Timber.d("rogue packet not for us!");
+                BLog.d(TAG,"rogue packet not for us!");
             }
             return false;
         } catch (Exception e) {
-            Timber.e("Error processing a received packet " + e.getMessage());
+            BLog.e(TAG,"Error processing a received packet " + e.getMessage());
             return false;
         }
     }
@@ -299,7 +300,7 @@ public class FindMyFriends {
                 }
 
             } catch (Exception e) {
-                Timber.e("Error Adding a Location History for " + a + " " + e.getMessage());
+                BLog.e(TAG,"Error Adding a Location History for " + a + " " + e.getMessage());
             }
         }
     }
@@ -320,7 +321,7 @@ public class FindMyFriends {
             loc.longitude = lon;
             mBoardLocations.put(address, loc); // add to current locations
         } catch (Exception e) {
-            Timber.e("Error storing the current location for " + address + " " + e.getMessage());
+            BLog.e(TAG,"Error storing the current location for " + address + " " + e.getMessage());
         }
 
         try {
@@ -347,10 +348,10 @@ public class FindMyFriends {
 
             for (int addr : mBoardLocations.keySet()) {
                 boardLocation l = mBoardLocations.get(addr);
-                Timber.d("Location Entry:" + service.allBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+                BLog.d(TAG,"Location Entry:" + service.allBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
             }
         } catch (Exception e) {
-            Timber.e("Error storing the board location history for " + address + " " + e.getMessage());
+            BLog.e(TAG,"Error storing the board location history for " + address + " " + e.getMessage());
         }
 
     }
@@ -402,7 +403,7 @@ public class FindMyFriends {
 
 
         } catch (Exception e) {
-            Timber.e("Error building board location json");
+            BLog.e(TAG,"Error building board location json");
             return null;
         }
 
@@ -410,10 +411,10 @@ public class FindMyFriends {
         try {
             json = new JSONArray(list.toString());
         } catch (Exception e) {
-            Timber.e("Cannot convert locations to json: " + e.getMessage());
+            BLog.e(TAG,"Cannot convert locations to json: " + e.getMessage());
         }
 
-        Timber.d("location JSON max age " + age + " : " + json.toString());
+        BLog.d(TAG,"location JSON max age " + age + " : " + json.toString());
 
         return (json);
     }

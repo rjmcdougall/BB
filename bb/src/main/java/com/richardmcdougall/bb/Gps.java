@@ -17,13 +17,14 @@ import net.sf.marineapi.provider.event.PositionListener;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import timber.log.Timber;
+
 
 /**
  * Created by rmc on 2/6/18.
  */
 
 public class Gps {
+    private String TAG = this.getClass().getSimpleName();
 
     // This enabled GPS Time being polled
     public static final boolean ENABLE_GPS_TIME = false;
@@ -48,19 +49,19 @@ public class Gps {
 
     public Gps(BBService service) {
         this.service = service;
-        Timber.d("Gps starting");
+        BLog.d(TAG,"Gps starting");
 
         try {
             mSentenceInput = new PipedInputStream();
             mSentenceOutput = new PipedOutputStream(mSentenceInput);
         } catch (Exception e) {
-            Timber.e("Pipe failed: " + e.getMessage());
+            BLog.e(TAG,"Pipe failed: " + e.getMessage());
         }
         try {
             mSR = new SentenceReader(mSentenceInput);
             mSR.setExceptionListener(new ExceptionListener() {
                 public void onException(Exception e) {
-                    Timber.e("Exception Listener " + e.getMessage() + " " + e.getStackTrace());
+                    BLog.e(TAG,"Exception Listener " + e.getMessage() + " " + e.getStackTrace());
                 }
             });
             provider = new PositionProvider(mSR);
@@ -68,7 +69,7 @@ public class Gps {
                 public void providerUpdate(PositionEvent evt) {
                     try {
                         // do something with the data..
-                        Timber.d("TPV: " + evt.toString());
+                        BLog.d(TAG,"TPV: " + evt.toString());
                         int i = evt.getDate().getYear(); // leave this here DKW
                         if (mGpsCallback != null) {
                             mGpsCallback.positionEvent(evt);
@@ -81,36 +82,36 @@ public class Gps {
                             LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
                         }
                     } catch (Exception e) {
-                        Timber.e("Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
+                        BLog.e(TAG,"Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
                     }
                 }
             });
 
             if (ENABLE_GPS_TIME) {
-                Timber.d("Enabling GPS Time collection");
+                BLog.d(TAG,"Enabling GPS Time collection");
                 mSR.addSentenceListener(new SentenceListener() {
                     @Override
                     public void readingPaused() {
-                        Timber.d("Sentence Listener Paused");
+                        BLog.d(TAG,"Sentence Listener Paused");
                     }
 
                     @Override
                     public void readingStarted() {
-                        Timber.d("Sentence Listener Started");
+                        BLog.d(TAG,"Sentence Listener Started");
                     }
 
                     @Override
                     public void readingStopped() {
-                        Timber.d("Sentence Listener Stopped");
+                        BLog.d(TAG,"Sentence Listener Stopped");
                     }
 
                     @Override
                     public void sentenceRead(SentenceEvent event) {
                         // here we receive each sentence read from the port
-                        Timber.d("Sentence read: " + event.getSentence().toString());
+                        BLog.d(TAG,"Sentence read: " + event.getSentence().toString());
                         GGASentence s = (GGASentence) event.getSentence();
                         if (s.isValid()) {
-                            Timber.d("Sat Time: " + s.getTime().toString());
+                            BLog.d(TAG,"Sat Time: " + s.getTime().toString());
                             if (mGpsCallback != null) {
                                 mGpsCallback.timeEvent(s.getTime());
                             }
@@ -120,9 +121,9 @@ public class Gps {
             }
 
             mSR.start();
-            Timber.d("SentenceListener started");
+            BLog.d(TAG,"SentenceListener started");
         } catch (Exception e) {
-            Timber.e("Gps start failed: " + e.getMessage());
+            BLog.e(TAG,"Gps start failed: " + e.getMessage());
         }
     }
 
@@ -131,7 +132,7 @@ public class Gps {
             mSentenceOutput.write((str + "\n").getBytes());
             mSentenceOutput.flush();
         } catch (Exception e) {
-            Timber.e("Gps addStr failed: " + e.getMessage());
+            BLog.e(TAG,"Gps addStr failed: " + e.getMessage());
         }
     }
 

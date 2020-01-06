@@ -9,7 +9,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.support.v4.content.LocalBroadcastManager;
 
-import timber.log.Timber;
+
 
 import android.app.PendingIntent;
 
@@ -37,6 +37,7 @@ SN: 0000000A0026
  */
 
 public class RF {
+    private String TAG = this.getClass().getSimpleName();
 
     public CmdMessenger mListener = null;
     private SerialInputOutputManager mSerialIoManager;
@@ -62,7 +63,7 @@ public class RF {
             initUsb();
             service.gps.attach(new Gps.GpsEvents() {
                 public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
-                    Timber.d("Radio Time: " + time.toString());
+                    BLog.d(TAG,"Radio Time: " + time.toString());
                     if (mRadioCallback != null) {
                         mRadioCallback.timeEvent(time);
                     }
@@ -71,7 +72,7 @@ public class RF {
                 ;
 
                 public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
-                    Timber.d("Radio Position: " + gps.toString());
+                    BLog.d(TAG,"Radio Position: " + gps.toString());
                     if (mRadioCallback != null) {
                         mRadioCallback.GPSevent(gps);
                     }
@@ -80,10 +81,10 @@ public class RF {
                 ;
             });
         } catch (Exception e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
         }
 
-        Timber.d("GPS Constructor Completed");
+        BLog.d(TAG,"GPS Constructor Completed");
     }
 
     public interface radioEvents {
@@ -99,7 +100,7 @@ public class RF {
     }
 
     public void broadcast(byte[] packet) {
-        Timber.d("Radio Sending Packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+        BLog.d(TAG,"Radio Sending Packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
         if (mListener != null) {
             synchronized (mSerialConn) {
                 mListener.sendCmdStart(5);
@@ -114,7 +115,7 @@ public class RF {
     }
 
     private void onDeviceStateChange() {
-        Timber.d("RF: onDeviceStateChange()");
+        BLog.d(TAG,"RF: onDeviceStateChange()");
         stopIoManager();
         if (sPort != null) {
             startIoManager();
@@ -124,9 +125,9 @@ public class RF {
     private boolean checkUsbDevice(UsbDevice device) {
         int vid = device.getVendorId();
         int pid = device.getProductId();
-        Timber.d("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
+        BLog.d(TAG,"checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
         if ((pid == 0x800B) && (vid == 0x239A)) {
-            Timber.d("Found Adafruit RADIO module");
+            BLog.d(TAG,"Found Adafruit RADIO module");
             return true;
         }
         /*
@@ -139,10 +140,10 @@ public class RF {
     }
 
     public void initUsb() {
-        Timber.d("RF: initUsb()");
+        BLog.d(TAG,"RF: initUsb()");
 
         if (mUsbDevice != null) {
-            Timber.d("initUsb: already have a device");
+            BLog.d(TAG,"initUsb: already have a device");
             return;
         }
 
@@ -152,13 +153,13 @@ public class RF {
         List<UsbSerialDriver> availableDrivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(mUsbManager);
         if (availableDrivers.isEmpty()) {
-            Timber.d("USB: No USB Devices");
+            BLog.d(TAG,"USB: No USB Devices");
             return;
         }
 
         // Find the Radio device by pid/vid
         mUsbDevice = null;
-        Timber.d("There are " + availableDrivers.size() + " drivers");
+        BLog.d(TAG,"There are " + availableDrivers.size() + " drivers");
         for (int i = 0; i < availableDrivers.size(); i++) {
             mDriver = availableDrivers.get(i);
 
@@ -166,7 +167,7 @@ public class RF {
             mUsbDevice = mDriver.getDevice();
 
             if (checkUsbDevice(mUsbDevice)) {
-                Timber.d("found RF");
+                BLog.d(TAG,"found RF");
                 break;
             } else {
                 mUsbDevice = null;
@@ -174,7 +175,7 @@ public class RF {
         }
 
         if (mUsbDevice == null) {
-            Timber.d("No Radio device found");
+            BLog.d(TAG,"No Radio device found");
             return;
         }
 
@@ -185,7 +186,7 @@ public class RF {
                 PendingIntent pi = PendingIntent.getBroadcast(service.context, 0, new Intent(GET_USB_PERMISSION), 0);
                 service.context.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
                 mUsbManager.requestPermission(mUsbDevice, pi);
-                Timber.d("USB: No Permission");
+                BLog.d(TAG,"USB: No Permission");
             }
             return;
         } else {
@@ -196,15 +197,15 @@ public class RF {
     private void usbConnect(UsbDevice device) {
 
         if (checkUsbDevice(mUsbDevice)) {
-            Timber.d("found RF");
+            BLog.d(TAG,"found RF");
         } else {
-            Timber.d("not RF");
+            BLog.d(TAG,"not RF");
             return;
         }
 
         UsbDeviceConnection connection = mUsbManager.openDevice(mDriver.getDevice());
         if (connection == null) {
-            Timber.d("open device failed");
+            BLog.d(TAG,"open device failed");
             return;
         }
 
@@ -214,16 +215,16 @@ public class RF {
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             sPort.setDTR(true);
         } catch (IOException e) {
-            Timber.d("USB: Error setting up device: " + e.getMessage());
+            BLog.d(TAG,"USB: Error setting up device: " + e.getMessage());
             try {
                 sPort.close();
             } catch (IOException e2) {/*ignore*/}
             sPort = null;
-            Timber.d(("USB Device Error"));
+            BLog.d(TAG,("USB Device Error"));
             return;
         }
 
-        Timber.d("USB: Connected");
+        BLog.d(TAG,"USB: Connected");
         startIoManager();
     }
 
@@ -232,7 +233,7 @@ public class RF {
         synchronized (mSerialConn) {
             //status.setText("Disconnected");
             if (mSerialIoManager != null) {
-                Timber.d("Stopping io manager ..");
+                BLog.d(TAG,"Stopping io manager ..");
                 mSerialIoManager.stop();
                 mSerialIoManager = null;
                 mListener = null;
@@ -245,7 +246,7 @@ public class RF {
                 }
                 sPort = null;
             }
-            Timber.d("USB Disconnected");
+            BLog.d(TAG,"USB Disconnected");
 
         }
     }
@@ -254,7 +255,7 @@ public class RF {
 
         synchronized (mSerialConn) {
             if (sPort != null) {
-                Timber.d("Starting io manager ..");
+                BLog.d(TAG,"Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener, null);
@@ -275,7 +276,7 @@ public class RF {
                         new RF.BBRadioCallbackGPS();
                 mListener.attach(2, gpsCallback);
 
-                Timber.d("USB Connected to radio");
+                BLog.d(TAG,"USB Connected to radio");
             }
         }
     }
@@ -283,7 +284,7 @@ public class RF {
     public class BBRadioCallbackDefault implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
 
-            Timber.d( "ardunio default callback:" + str);
+            BLog.d(TAG, "ardunio default callback:" + str);
         }
     }
 
@@ -292,7 +293,7 @@ public class RF {
 
             int sigStrength = mListener.readIntArg();
             int len = mListener.readIntArg();
-            Timber.d("radio receive callback: sigstrength" + sigStrength + ", " + len + " bytes");
+            BLog.d(TAG,"radio receive callback: sigstrength" + sigStrength + ", " + len + " bytes");
             ByteArrayOutputStream recvBytes = new ByteArrayOutputStream();
             for (int i = 0; i < len; i++) {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));
@@ -331,15 +332,15 @@ public class RF {
         public void onReceive(Context context, Intent intent) {
 
             final String TAG = "mUsbReceiver";
-            Timber.d("onReceive entered");
+            BLog.d(TAG,"onReceive entered");
             String action = intent.getAction();
             if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-                Timber.d("A USB Accessory was detached (" + device + ")");
+                BLog.d(TAG,"A USB Accessory was detached (" + device + ")");
                 if (device != null) {
                     if (mUsbDevice == device) {
-                        Timber.d("It's this device, shutting down");
+                        BLog.d(TAG,"It's this device, shutting down");
                         mUsbDevice = null;
                         stopIoManager();
                     }
@@ -347,16 +348,16 @@ public class RF {
             }
             if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                Timber.d("USB Accessory attached (" + device + ")");
+                BLog.d(TAG,"USB Accessory attached (" + device + ")");
                 if (mUsbDevice == null) {
-                    Timber.d("Calling initUsb to check if we should add this device");
+                    BLog.d(TAG,"Calling initUsb to check if we should add this device");
                     usbConnect(device);
                     ;
                 } else {
-                    Timber.d("USB already attached");
+                    BLog.d(TAG,"USB already attached");
                 }
             }
-            Timber.d("onReceive exited");
+            BLog.d(TAG,"onReceive exited");
         }
     };
 
@@ -368,16 +369,16 @@ public class RF {
             if (intent.getAction().equals(GET_USB_PERMISSION)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    Timber.d("USB we got permission");
+                    BLog.d(TAG,"USB we got permission");
                     if (device != null) {
                         usbConnect(device);
                         ;
                     } else {
-                        Timber.d("USB perm receive device==null");
+                        BLog.d(TAG,"USB perm receive device==null");
                     }
 
                 } else {
-                    Timber.d("USB no permission");
+                    BLog.d(TAG,"USB no permission");
                 }
             }
         }

@@ -8,7 +8,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
-import timber.log.Timber;
+
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -27,6 +27,7 @@ import android.util.Log;
 import android.os.*;
 
 public class MusicPlayer implements Runnable {
+    private String TAG = this.getClass().getSimpleName();
 
     private Handler handler;
     private long lastSeekOffset = 0;
@@ -58,21 +59,21 @@ public class MusicPlayer implements Runnable {
         boolean hasLowLatencyFeature =
                 this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
 
-       Timber.d("has audio LowLatencyFeature: " + hasLowLatencyFeature);
+       BLog.d(TAG,"has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
                 this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-       Timber.d("has audio ProFeature: " + hasProFeature);
+       BLog.d(TAG,"has audio ProFeature: " + hasProFeature);
 
         AudioManager am = (AudioManager) this.service.context.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         int sampleRate = Integer.parseInt(sampleRateStr);
 
-       Timber.d("audio sampleRate: " + sampleRate);
+       BLog.d(TAG,"audio sampleRate: " + sampleRate);
 
         String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
         int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
 
-       Timber.d("audio framesPerBufferInt: " + framesPerBufferInt);
+       BLog.d(TAG,"audio framesPerBufferInt: " + framesPerBufferInt);
 
     }
 
@@ -87,19 +88,19 @@ public class MusicPlayer implements Runnable {
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onSeekProcessed(EventTime eventTime) {
-               Timber.d("SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
+               BLog.d(TAG,"SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
             }
         });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onSeekStarted(EventTime eventTime) {
-               Timber.d("SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
+               BLog.d(TAG,"SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
             }
         });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
-               Timber.d("SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
+               BLog.d(TAG,"SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
             }
         });
 
@@ -129,7 +130,7 @@ public class MusicPlayer implements Runnable {
    public void MusicOffset(int ms) {
         userTimeOffset += ms;
         this.handler.post(() -> mSeekAndPlay() );
-       Timber.d("UserTimeOffset = " + userTimeOffset);
+       BLog.d(TAG,"UserTimeOffset = " + userTimeOffset);
     }
 
     private long GetCurrentStreamLengthInSeconds() {
@@ -153,7 +154,7 @@ public class MusicPlayer implements Runnable {
 
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
-           Log.d("BB.MusicPlayer", "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
+            BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
                     " User " + userTimeOffset + " SeekOff " + seekOff +
                     " RTT " + service.serverRTT + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + service.GetCurrentClock());
 
@@ -165,7 +166,7 @@ public class MusicPlayer implements Runnable {
                     player.setPlaybackParameters(param);
 
                 } catch (Throwable err) {
-                    Timber.e("SeekAndPlay Error: " + err.getMessage());
+                    BLog.e(TAG,"SeekAndPlay Error: " + err.getMessage());
                 }
             }
 
@@ -204,7 +205,7 @@ public class MusicPlayer implements Runnable {
             setAndroidVolumePercent(v);
         }
         else {
-            Timber.e("Invalid Volume Percent: " + v);
+            BLog.e(TAG,"Invalid Volume Percent: " + v);
         }
     }
 
@@ -237,14 +238,14 @@ public class MusicPlayer implements Runnable {
         vol += 0.01;
         if (vol > 1) vol = 1;
         setVolume(vol, vol);
-       Timber.d("Volume " + vol * 100.0f + "%");
+       BLog.d(TAG,"Volume " + vol * 100.0f + "%");
     }
 
     public void onVolDown() {
         vol -= 0.01;
         if (vol < 0) vol = 0;
         setVolume(vol, vol);
-       Timber.d("Volume " + vol * 100.0f + "%");
+       BLog.d(TAG,"Volume " + vol * 100.0f + "%");
     }
 
     public void onVolPause() {
@@ -255,7 +256,7 @@ public class MusicPlayer implements Runnable {
             vol = recallVol;
         }
         setVolume(vol, vol);
-       Timber.d("Volume " + vol * 100.0f + "%");
+       BLog.d(TAG,"Volume " + vol * 100.0f + "%");
     }
 
     public void SetRadioChannel(int index) {
@@ -264,13 +265,13 @@ public class MusicPlayer implements Runnable {
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     private void mSetRadioChannel(int index) {
-       Timber.d("SetRadioChannel: " + index);
+       BLog.d(TAG,"SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-           Timber.d("Sending remote");
+           BLog.d(TAG,"Sending remote");
 
             String fileName = getRadioChannelInfo(index);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, BurnerBoardUtil.hashTrackName(fileName), RFClientServer.kRemoteAudio);
@@ -282,7 +283,7 @@ public class MusicPlayer implements Runnable {
         }
 
         try {
-           Timber.d("Radio Mode");
+           BLog.d(TAG,"Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
             service.burnerBoard.setText(shortName[0], 2000);
             if (service.voiceAnnouncements) {
@@ -293,7 +294,7 @@ public class MusicPlayer implements Runnable {
 
                 lastSeekOffset = 0;
 
-               Timber.d("playing file " + service.mediaManager.GetAudioFile(index - 1));
+               BLog.d(TAG,"playing file " + service.mediaManager.GetAudioFile(index - 1));
 
                 // Produces DataSource instances through which media data is loaded.
                 DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
@@ -323,7 +324,7 @@ public class MusicPlayer implements Runnable {
 
             this.handler.post(() -> mSeekAndPlay() );
         } catch (Throwable err) {
-            Timber.e("Radio mode failed" + err.getMessage());
+            BLog.e(TAG,"Radio mode failed" + err.getMessage());
         }
 
     }

@@ -8,13 +8,14 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
-import timber.log.Timber;
+
 
 import java.util.ArrayList;
 
 import static java.lang.Integer.parseInt;
 
 public class BoardsContentProvider extends ContentProvider {
+    private String TAG = this.getClass().getSimpleName();
 
     public ArrayList<String> mData = new ArrayList<>();
 
@@ -97,15 +98,15 @@ public class BoardsContentProvider extends ContentProvider {
 
             case UriMatcher.NO_MATCH:
                 // You should do some error handling here.
-                Timber.d("NO MATCH FOR THIS URI IN SCHEME.");
+                BLog.d(TAG,"NO MATCH FOR THIS URI IN SCHEME.");
                 id = -1;
                 break;
             default:
                 // You should do some error handling here.
-                Timber.d("INVALID URI - URI NOT RECOGNZED.");
+                BLog.d(TAG,"INVALID URI - URI NOT RECOGNZED.");
                 id = -1;
         }
-        Timber.d("query: " + id);
+        BLog.d(TAG,"query: " + id);
         return populateCursor(id);
     }
 
@@ -152,7 +153,7 @@ public class BoardsContentProvider extends ContentProvider {
     // Returns a URI that points to the newly inserted record.
     // We will implement this method in the next practical.
     public Uri insert(Uri uri, ContentValues values) {
-        Timber.e("Not implemented: insert uri: " + uri.toString());
+        BLog.e(TAG,"Not implemented: insert uri: " + uri.toString());
         return null;
     }
 
@@ -161,7 +162,7 @@ public class BoardsContentProvider extends ContentProvider {
     // We will implement this method in the next practical.
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        Timber.e("Not implemented: delete uri: " + uri.toString());
+        BLog.e(TAG,"Not implemented: delete uri: " + uri.toString());
         return 0;
     }
 
@@ -175,7 +176,7 @@ public class BoardsContentProvider extends ContentProvider {
 
         for (int i = 0; i < values.size(); i++) {
             mData.add(values.get(String.valueOf(i)).toString());
-            Timber.d("Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
+            BLog.d(TAG,"Added to content provider JSON item " + i + " : " + values.get(String.valueOf(i)));
         }
 
         return 1;

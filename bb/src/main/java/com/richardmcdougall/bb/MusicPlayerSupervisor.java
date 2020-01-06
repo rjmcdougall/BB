@@ -1,8 +1,9 @@
 package com.richardmcdougall.bb;
 
-import timber.log.Timber;
+
 
 public class MusicPlayerSupervisor {
+    private String TAG = this.getClass().getSimpleName();
 
     private int musicState = 0;
     private BBService service;
@@ -15,7 +16,7 @@ public class MusicPlayerSupervisor {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB Music Player");
-                Timber.i("Starting Music Supervisor");
+                BLog.i(TAG,"Starting Music Supervisor");
                 SupervisorThread();
             }
         });

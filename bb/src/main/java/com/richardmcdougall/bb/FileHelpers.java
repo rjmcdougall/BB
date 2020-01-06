@@ -1,7 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,9 +13,10 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
 
-import timber.log.Timber;
+
 
 public class FileHelpers {
+    private static String TAG = "FileHelpers";
 
     public static String LoadTextFile(String filename, String fileDir) {
         try {
@@ -29,7 +28,7 @@ public class FileHelpers {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG,e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             String line = buf.readLine();
@@ -43,7 +42,7 @@ public class FileHelpers {
             return sb.toString();
 
         } catch (Throwable e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
             return null;
         }
     }
@@ -74,7 +73,7 @@ public class FileHelpers {
                 }
             }
 
-            Timber.d("Downloading " + URLString);
+            BLog.d(TAG,"Downloading " + URLString);
             while ((bufferLength = inputStream.read(buffer)) > 0) {
                 fileOutput.write(buffer, 0, bufferLength);
                 downloadSize += bufferLength;
@@ -90,16 +89,16 @@ public class FileHelpers {
             return downloadSize;
 
         } catch (FileNotFoundException e) {
-            Timber.e("An exception occured access the file from burnerboard.com. This is likely the result of having an unregistered board.");
+            BLog.e(TAG,"An exception occured access the file from burnerboard.com. This is likely the result of having an unregistered board.");
             return -1;
         } catch (UnknownHostException e) {
-            Timber.e("An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
+            BLog.e(TAG,"An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
             return -1;
         } catch (ConnectException e) {
-            Timber.e("An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
+            BLog.e(TAG,"An exception occured access the boards file from burnerboard.com. This is likely the result of not having an internet connection.");
             return -1;
         } catch (Exception e) {
-            Timber.e("An exception occured access the boards file from burnerboard.com. " + e.getMessage());
+            BLog.e(TAG,"An exception occured access the boards file from burnerboard.com. " + e.getMessage());
             return -1;
         }
     }

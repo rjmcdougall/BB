@@ -2,9 +2,10 @@ package com.richardmcdougall.bb;
 
 import android.speech.tts.TextToSpeech;
 
-import timber.log.Timber;
+
 
 public class BatterySupervisor {
+    private String TAG = this.getClass().getSimpleName();
 
     private int loopCnt = 0;
     private BBService service = null;
@@ -31,9 +32,9 @@ public class BatterySupervisor {
     private void runSupervisor() {
 
         /* Communicate the settings for the supervisor thread */
-        Timber.d("Enable Battery Monitoring? " + enableBatteryMonitoring);
-        Timber.d("Enable IoT Reporting? " + enableIoTReporting);
-        Timber.d("Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
+        BLog.d(TAG,"Enable Battery Monitoring? " + enableBatteryMonitoring);
+        BLog.d(TAG,"Enable IoT Reporting? " + enableIoTReporting);
+        BLog.d(TAG,"Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
 
         while (true) {
 
@@ -44,7 +45,7 @@ public class BatterySupervisor {
                 // Every 10 seconds, send battery update via IoT.
                 // Only do this if we're actively checking the battery.
                 if (enableIoTReporting && (loopCnt % iotReportEveryNSeconds == 0)) {
-                    Timber.d("Sending MQTT update");
+                    BLog.d(TAG,"Sending MQTT update");
                     try {
                         service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
                     } catch (Exception e) {
@@ -74,9 +75,9 @@ public class BatterySupervisor {
             int currentInstant = service.burnerBoard.getBatteryCurrentInstant();
             int voltage = service.burnerBoard.getBatteryVoltage();
 
-            Timber.d("Board Current(avg) is " + current);
-            Timber.d("Board Current(Instant) is " + currentInstant);
-            Timber.d("Board Voltage is " + voltage);
+            BLog.d(TAG,"Board Current(avg) is " + current);
+            BLog.d(TAG,"Board Current(Instant) is " + currentInstant);
+            BLog.d(TAG,"Board Voltage is " + voltage);
 
             // Save CPU cycles for lower power mode
             // current is milliamps
@@ -108,11 +109,11 @@ public class BatterySupervisor {
                 powerState = powerStates.STATE_CHARGING;
                 service.boardVisualization.inhibit(false);
             } else {
-                Timber.d("Unhandled power state " + powerState);
+                BLog.d(TAG,"Unhandled power state " + powerState);
                 service.boardVisualization.inhibit(false);
             }
 
-            Timber.d("Power state is " + powerState);
+            BLog.d(TAG,"Power state is " + powerState);
 
             // Show battery if charging
             service.boardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);

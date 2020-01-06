@@ -1,6 +1,6 @@
 package com.richardmcdougall.bb;
 
-import timber.log.Timber;
+
 
 import java.nio.IntBuffer;
 
@@ -54,7 +54,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             mMultipler4Speed = 2; // dkw need to config this
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Azul";
-       Timber.d("Burner Board Azul initing...");
+       BLog.d(TAG,"Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
@@ -121,12 +121,12 @@ public class BurnerBoardAzul extends BurnerBoard {
                     (tmpBatteryStats[5] > 20000)) { // voltage
                 service.boardState.batteryLevel = tmpBatteryStats[1];
                 System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
-               Timber.d("getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
+               BLog.d(TAG,"getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
                         "voltage: " + getBatteryVoltage() + ", " +
                         "current: " + getBatteryCurrent() + ", " +
                         "flags: " + mBatteryStats[0]);
             } else {
-               Timber.d("getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
+               BLog.d(TAG,"getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
                         "voltage: " + tmpBatteryStats[5] + ", " +
                         "flags: " + tmpBatteryStats[0]);
             }
@@ -322,7 +322,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-       Timber.d("sendCommand: 7");
+       BLog.d(TAG,"sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();

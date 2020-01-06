@@ -16,9 +16,10 @@ import java.util.List;
 
 import org.json.JSONArray;
 
-import timber.log.Timber;
+
 
 public class BBWifi {
+    private String TAG = this.getClass().getSimpleName();
 
     public boolean enableWifiReconnect = true;
     public String ipAddress = "";
@@ -32,7 +33,7 @@ public class BBWifi {
         public void onReceive(Context c, Intent intent) {
             if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                 mScanResults = mWiFiManager.getScanResults();
-                Timber.i("wifi scan results" + mScanResults.toString());
+                BLog.i(TAG,"wifi scan results" + mScanResults.toString());
             }
         }
     };
@@ -46,7 +47,7 @@ public class BBWifi {
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
-            Timber.d("Enabling Wifi...");
+            BLog.d(TAG,"Enabling Wifi...");
             setupWifi();
 
         }
@@ -76,29 +77,29 @@ public class BBWifi {
 
                                                  switch (extraWifiState) {
                                                      case WifiManager.WIFI_STATE_DISABLED:
-                                                         Timber.d("WIFI STATE DISABLED");
+                                                         BLog.d(TAG,"WIFI STATE DISABLED");
                                                          break;
                                                      case WifiManager.WIFI_STATE_DISABLING:
-                                                         Timber.d("WIFI STATE DISABLING");
+                                                         BLog.d(TAG,"WIFI STATE DISABLING");
                                                          break;
                                                      case WifiManager.WIFI_STATE_ENABLED:
-                                                         Timber.d("WIFI STATE ENABLED");
+                                                         BLog.d(TAG,"WIFI STATE ENABLED");
                                                          int mfs = mWiFiManager.getWifiState();
-                                                         Timber.d("Wifi state is " + mfs);
-                                                         Timber.d("Checking wifi");
+                                                         BLog.d(TAG,"Wifi state is " + mfs);
+                                                         BLog.d(TAG,"Checking wifi");
                                                          if (checkWifiSSid(service.boardState.SSID) == false) {
-                                                             Timber.d("adding wifi: " + service.boardState.SSID);
+                                                             BLog.d(TAG,"adding wifi: " + service.boardState.SSID);
                                                              addWifi(service.boardState.SSID, service.boardState.password);
                                                          }
-                                                         Timber.d("Connecting to wifi");
+                                                         BLog.d(TAG,"Connecting to wifi");
                                                          if (!checkWifiOnAndConnected(mWiFiManager))
                                                              connectWifi(service.boardState.SSID);
                                                          break;
                                                      case WifiManager.WIFI_STATE_ENABLING:
-                                                         Timber.d("WIFI STATE ENABLING");
+                                                         BLog.d(TAG,"WIFI STATE ENABLING");
                                                          break;
                                                      case WifiManager.WIFI_STATE_UNKNOWN:
-                                                         Timber.d("WIFI STATE UNKNOWN");
+                                                         BLog.d(TAG,"WIFI STATE UNKNOWN");
                                                          break;
                                                  }
                                              }
@@ -117,7 +118,7 @@ public class BBWifi {
                 return false; // Not connected to an access point
             }
 
-            Timber.d("Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(service.boardState.SSID));
+            BLog.d(TAG,"Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(service.boardState.SSID));
             if (!wifiInfo.getSSID().equals(fixWifiSSidAndPass(service.boardState.SSID))) {
                 ipAddress = null;
                 return false; // configured for wrong access point.
@@ -125,11 +126,11 @@ public class BBWifi {
 
             ipAddress = getWifiIpAddress(wifiMgr);
             if (ipAddress != null) {
-                Timber.d("WIFI IP Address: " + ipAddress);
+                BLog.d(TAG,"WIFI IP Address: " + ipAddress);
                 // Text to speach is not set up yet at this time; move it to init loop.
                 //voice.speak("My WIFI IP is " + ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
             } else {
-                Timber.d("Could not determine WIFI IP at this time");
+                BLog.d(TAG,"Could not determine WIFI IP at this time");
             }
 
             return true; // Connected to an access point
@@ -141,12 +142,12 @@ public class BBWifi {
 
     public void checkWifiReconnect() {
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
-            Timber.d("Enabling Wifi...");
+            BLog.d(TAG,"Enabling Wifi...");
             if (mWiFiManager.setWifiEnabled(true) == false) {
-                Timber.d("Failed to enable wifi");
+                BLog.d(TAG,"Failed to enable wifi");
             }
             if (mWiFiManager.reassociate() == false) {
-                Timber.d("Failed to associate wifi");
+                BLog.d(TAG,"Failed to associate wifi");
             }
         }
     }
@@ -190,7 +191,7 @@ public class BBWifi {
             if (wifiList != null) {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
-                    Timber.d("Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    BLog.d(TAG,"Found wifi:" + newSSID + " == " + aWifi + " ?");
                     if (aWifi.equals(newSSID)) {
                         return true;
                     }
@@ -211,10 +212,10 @@ public class BBWifi {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
 
-                    Timber.d("Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    BLog.d(TAG,"Found wifi:" + newSSID + " == " + aWifi + " ?");
 
                     if (aWifi.equalsIgnoreCase(newSSID)) {
-                        Timber.d("connecting wifi:" + newSSID);
+                        BLog.d(TAG,"connecting wifi:" + newSSID);
                         mWiFiManager.disconnect();
                         mWiFiManager.enableNetwork(config.networkId, true);
                         mWiFiManager.reconnect();
@@ -258,7 +259,7 @@ public class BBWifi {
         try {
             ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
         } catch (Exception ex) {
-            Timber.e("Unable to get host address: " + ex.toString());
+            BLog.e(TAG,"Unable to get host address: " + ex.toString());
             ipAddressString = null;
         }
 
@@ -286,7 +287,7 @@ public class BBWifi {
             // Every 60 seconds check WIFI
             if (service.wifi.enableWifiReconnect) {
                 if (service.wifi != null) {
-                    Timber.d("Check Wifi");
+                    BLog.d(TAG,"Check Wifi");
                     checkWifiReconnect();
                 }
             }

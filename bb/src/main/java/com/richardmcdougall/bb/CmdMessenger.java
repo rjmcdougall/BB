@@ -12,7 +12,7 @@ import java.io.PipedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
-import timber.log.Timber;
+
 
 /**
  * A java clone of CmdMessenger by rjmcdougall on 8/8/16.
@@ -98,7 +98,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 Serial.write(sendBuffer.toByteArray(), 500);
                 sendBuffer.reset();
             } catch (Exception e) {
-                Timber.e("Write Failed: " + e.toString());
+                BLog.e(TAG,"Write Failed: " + e.toString());
             }
         }
     }

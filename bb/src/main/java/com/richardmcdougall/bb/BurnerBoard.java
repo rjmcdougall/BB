@@ -17,7 +17,7 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextPaint;
-import timber.log.Timber;
+
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -37,7 +37,7 @@ import java.util.concurrent.Executors;
  */
 
 public class BurnerBoard {
-
+    private static String TAG = "BurnerBoard";
 
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
@@ -96,7 +96,7 @@ public class BurnerBoard {
     public void setPixel(int pixel, int r, int g, int b) {
 
         if (pixel < 0 || pixel >= (mBoardWidth * mBoardHeight)) {
-           Timber.d("setPixel out of range: " + pixel);
+           BLog.d(TAG,"setPixel out of range: " + pixel);
             return;
         }
         mBoardScreen[pixel * 3] = r;
@@ -131,13 +131,13 @@ public class BurnerBoard {
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             
-            Timber.d( "ardunio default callback:" + str);
+            BLog.d(TAG, "ardunio default callback:" + str);
         }
     }
 
     public class BoardCallbackTest implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
-           Timber.d("ardunio test callback:" + str);
+           BLog.d(TAG,"ardunio test callback:" + str);
         }
     }
 
@@ -158,7 +158,7 @@ public class BurnerBoard {
     public class BoardCallbackEchoRow implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             mEchoString = mListener.readStringArg();
-           Timber.d("echoRow: " + mEchoString);
+           BLog.d(TAG,"echoRow: " + mEchoString);
         }
     }
 
@@ -241,7 +241,7 @@ public class BurnerBoard {
         //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
         //Sstem.out.println("setpixel r = " + r);
         if (x < 0 || x >= mBoardWidth || y < 0 || y >= mBoardHeight) {
-           Timber.d("setPixel out of range: " + x + "," + y);
+           BLog.d(TAG,"setPixel out of range: " + x + "," + y);
             return;
         }
         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
@@ -334,7 +334,7 @@ public class BurnerBoard {
     public boolean clearScreen() {
 
         sendVisual(5);
-       Timber.d("sendCommand: 4");
+       BLog.d(TAG,"sendCommand: 4");
         if (mListener != null) {
             mListener.sendCmd(4);
             mListener.sendCmdEnd();
@@ -421,7 +421,7 @@ public class BurnerBoard {
     public boolean setHeadlight(boolean state) {
 
         sendVisual(3);
-       Timber.d("sendCommand: 3,1");
+       BLog.d(TAG,"sendCommand: 3,1");
         if (mListener != null) {
             mListener.sendCmdStart(3);
             mListener.sendCmdArg(state == true ? 1 : 0);
@@ -504,7 +504,7 @@ public class BurnerBoard {
 
 
     private void onDeviceStateChange() {
-       Timber.d("BurnerBoard: onDeviceStateChange()");
+       BLog.d(TAG,"BurnerBoard: onDeviceStateChange()");
 
         stopIoManager();
         if (sPort != null) {
@@ -516,7 +516,7 @@ public class BurnerBoard {
 
         int vid = device.getVendorId();
         int pid = device.getProductId();
-       Timber.d("checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
+       BLog.d(TAG,"checking device " + device.describeContents() + ", pid:" + pid + ", vid: " + vid);
         if ((pid == 1155) && (vid == 5824)) {
             return true;
         } else {
@@ -526,10 +526,10 @@ public class BurnerBoard {
     }
 
     public void initUsb() {
-       Timber.d("BurnerBoard: initUsb()");
+       BLog.d(TAG,"BurnerBoard: initUsb()");
 
         if (mUsbDevice != null) {
-           Timber.d("initUsb: already have a device");
+           BLog.d(TAG,"initUsb: already have a device");
             return;
         }
 
@@ -539,7 +539,7 @@ public class BurnerBoard {
         List<UsbSerialDriver> availableDrivers =
                 UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
-           Timber.d("USB: No device/driver");
+           BLog.d(TAG,"USB: No device/driver");
             updateUsbStatus(("No BB Plugged in"));
             return;
         }
@@ -557,7 +557,7 @@ public class BurnerBoard {
             mUsbDevice = mDriver.getDevice();
 
             if (checkUsbDevice(mUsbDevice)) {
-               Timber.d("found Burnerboard");
+               BLog.d(TAG,"found Burnerboard");
                 break;
             } else {
                 mUsbDevice = null;
@@ -565,7 +565,7 @@ public class BurnerBoard {
         }
 
         if (mUsbDevice == null) {
-           Timber.d("No BurnerBoard USB device found");
+           BLog.d(TAG,"No BurnerBoard USB device found");
             return;
         }
 
@@ -577,14 +577,14 @@ public class BurnerBoard {
             //manager.requestPermission(mUsbDevice, pi);
             //return;
 
-           Timber.d("USB: No Permission");
+           BLog.d(TAG,"USB: No Permission");
             updateUsbStatus(("No USB Permission"));
             return;
         }
 
         UsbDeviceConnection connection = manager.openDevice(mDriver.getDevice());
         if (connection == null) {
-           Timber.d("USB connection == null");
+           BLog.d(TAG,"USB connection == null");
             updateUsbStatus(("No USB device"));
             return;
         }
@@ -595,7 +595,7 @@ public class BurnerBoard {
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             sPort.setDTR(true);
         } catch (IOException e) {
-           Timber.d("USB: Error setting up device: " + e.getMessage());
+           BLog.d(TAG,"USB: Error setting up device: " + e.getMessage());
             try {
                 sPort.close();
             } catch (IOException e2) {/*ignore*/}
@@ -605,7 +605,7 @@ public class BurnerBoard {
         }
 
         updateUsbStatus(("Connected to BB"));
-       Timber.d("USB: Connected");
+       BLog.d(TAG,"USB: Connected");
         startIoManager();
     }
 
@@ -616,15 +616,15 @@ public class BurnerBoard {
             if (intent.getAction().equals(GET_USB_PERMISSION)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                 if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                   Timber.d("USB we got permission");
+                   BLog.d(TAG,"USB we got permission");
                     if (device != null) {
                         initUsb();
                     } else {
-                       Timber.d("USB perm receive device==null");
+                       BLog.d(TAG,"USB perm receive device==null");
                     }
 
                 } else {
-                   Timber.d("USB no permission");
+                   BLog.d(TAG,"USB no permission");
                 }
             }
         }
@@ -634,7 +634,7 @@ public class BurnerBoard {
         synchronized (mSerialConn) {
             //status.setText("Disconnected");
             if (mSerialIoManager != null) {
-               Timber.d("Stopping io manager ..");
+               BLog.d(TAG,"Stopping io manager ..");
                 mSerialIoManager.stop();
                 mSerialIoManager = null;
                 mListener = null;
@@ -648,7 +648,7 @@ public class BurnerBoard {
                 sPort = null;
             }
             updateUsbStatus(("Disconnected(1)"));
-           Timber.d("USB Disconnected");
+           BLog.d(TAG,"USB Disconnected");
         }
     }
 
@@ -656,7 +656,7 @@ public class BurnerBoard {
 
         synchronized (mSerialConn) {
             if (sPort != null) {
-               Timber.d("Starting io manager ..");
+               BLog.d(TAG,"Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
@@ -665,7 +665,7 @@ public class BurnerBoard {
                 start();
 
                 updateUsbStatus(("Connected to ") + boardId);
-               Timber.d("USB Connected to " + boardId);
+               BLog.d(TAG,"USB Connected to " + boardId);
                 // Perf Tests thare are useful during debugging
                 //setMode(50);
                 //testTeensy();
@@ -693,7 +693,7 @@ public class BurnerBoard {
         int elapsedTime = (int) (java.lang.System.currentTimeMillis() - startTime);
         int bytes = Iters * Rows * testRow1.length;
 
-       Timber.d("USB Benchmark: " + bytes + " bytes in " + elapsedTime + ", " +
+       BLog.d(TAG,"USB Benchmark: " + bytes + " bytes in " + elapsedTime + ", " +
                 (bytes * 1000 / elapsedTime / 1024) + " kbytes/sec");
         return;
     }
@@ -712,7 +712,7 @@ public class BurnerBoard {
             Thread.sleep(1000);
         } catch (Throwable e) {
         }
-       Timber.d("testTeensy: " + mEchoString);
+       BLog.d(TAG,"testTeensy: " + mEchoString);
 
         return;
     }
@@ -752,15 +752,15 @@ public class BurnerBoard {
         public void onReceive(Context context, Intent intent) {
 
             final String TAG = "mUsbReceiver";
-           Timber.d("onReceive entered");
+           BLog.d(TAG,"onReceive entered");
             String action = intent.getAction();
             if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-               Timber.d("A USB Accessory was detached (" + device + ")");
+               BLog.d(TAG,"A USB Accessory was detached (" + device + ")");
                 if (device != null) {
                     if (mUsbDevice == device) {
-                       Timber.d("It's this device");
+                       BLog.d(TAG,"It's this device");
                         mUsbDevice = null;
                         stopIoManager();
                     }
@@ -768,15 +768,15 @@ public class BurnerBoard {
             }
             if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
                 UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-               Timber.d("USB Accessory attached (" + device + ")");
+               BLog.d(TAG,"USB Accessory attached (" + device + ")");
                 if (mUsbDevice == null) {
-                   Timber.d("Calling initUsb to check if we should add this device");
+                   BLog.d(TAG,"Calling initUsb to check if we should add this device");
                     initUsb();
                 } else {
-                   Timber.d("this USB already attached");
+                   BLog.d(TAG,"this USB already attached");
                 }
             }
-           Timber.d("onReceive exited");
+           BLog.d(TAG,"onReceive exited");
         }
     };
 
@@ -1044,23 +1044,23 @@ public class BurnerBoard {
         if (DebugConfigs.OVERRIDE_BOARD_TYPE != null) {
             switch (DebugConfigs.OVERRIDE_BOARD_TYPE) {
                 case classic:
-                    Timber.d( "Visualization: Using Classic");
+                    BLog.d(TAG, "Visualization: Using Classic");
                     burnerBoard = new BurnerBoardClassic(service);
                     break;
                 case azul:
-                    Timber.d( "Visualization: Using Azul");
+                    BLog.d(TAG, "Visualization: Using Azul");
                     burnerBoard = new BurnerBoardAzul(service);
                     break;
                 case mast:
-                    Timber.d( "Visualization: Using Mast");
+                    BLog.d(TAG, "Visualization: Using Mast");
                     burnerBoard = new BurnerBoardMast(service);
                     break;
                 case panel:
-                    Timber.d( "Visualization: Using Panel");
+                    BLog.d(TAG, "Visualization: Using Panel");
                     burnerBoard = new BurnerBoardPanel(service);
                     break;
                 case backpack:
-                    Timber.d( "Visualization: Using Direct Map");
+                    BLog.d(TAG, "Visualization: Using Direct Map");
                     burnerBoard = new BurnerBoardDirectMap(
                             service,
                             BurnerBoardDirectMap.kVisualizationDirectMapWidth,
@@ -1070,26 +1070,26 @@ public class BurnerBoard {
             }
         } else {
             if (service.boardState.boardType == BurnerBoardUtil.BoardType.classic) {
-                Timber.d( "Visualization: Using Classic");
+                BLog.d(TAG, "Visualization: Using Classic");
                 burnerBoard = new BurnerBoardClassic(service);
             } else if (BurnerBoardUtil.BoardType.mast == service.boardState.boardType) {
-                Timber.d( "Visualization: Using Mast");
+                BLog.d(TAG, "Visualization: Using Mast");
                 burnerBoard = new BurnerBoardMast(service);
             } else if (BurnerBoardUtil.BoardType.panel == service.boardState.boardType) {
-                Timber.d( "Visualization: Using Panel");
+                BLog.d(TAG, "Visualization: Using Panel");
                 burnerBoard = new BurnerBoardPanel(service);
             } else if (BurnerBoardUtil.BoardType.backpack == service.boardState.boardType) {
-                Timber.d( "Visualization: Using Direct Map");
+                BLog.d(TAG, "Visualization: Using Direct Map");
                 burnerBoard = new BurnerBoardDirectMap(
                         service,
                         BurnerBoardDirectMap.kVisualizationDirectMapWidth,
                         BurnerBoardDirectMap.kVisualizationDirectMapHeight
                 );
             } else if (service.boardState.boardType == BurnerBoardUtil.BoardType.azul) {
-                Timber.d( "Visualization: Using Azul");
+                BLog.d(TAG, "Visualization: Using Azul");
                 burnerBoard = new BurnerBoardAzul(service);
             } else {
-                Timber.d( "Could not identify board type! Falling back to Azul for backwards compatibility");
+                BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
                 burnerBoard = new BurnerBoardAzul(service);
             }
         }

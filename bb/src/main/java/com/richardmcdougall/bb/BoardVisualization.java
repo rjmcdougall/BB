@@ -12,7 +12,7 @@ import android.media.audiofx.Visualizer;
 
 import android.speech.tts.TextToSpeech;
 
-import timber.log.Timber;
+
 
 import org.json.JSONObject;
 
@@ -51,6 +51,7 @@ import java.util.Random;
  */
 
 public class BoardVisualization {
+    private String TAG = this.getClass().getSimpleName();
 
     private BBService service;
     public Random mRandom = new Random();
@@ -85,7 +86,7 @@ public class BoardVisualization {
     BoardVisualization(BBService service) {
 
         this.service = service;
-       Timber.d("Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
+       BLog.d(TAG,"Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
 
         mBoardWidth = service.burnerBoard.getWidth();
         mBoardHeight = service.burnerBoard.getHeight();
@@ -93,7 +94,7 @@ public class BoardVisualization {
         mBoardScreen = service.burnerBoard.getPixelBuffer();
         mFrameRate = service.burnerBoard.getFrameRate();
 
-       Timber.d("Board framerate set to " + mFrameRate);
+       BLog.d(TAG,"Board framerate set to " + mFrameRate);
 
         mVisualizationFire = new Fire(service.burnerBoard, this);
         mVisualizationMatrix = new Matrix(service.burnerBoard, this);
@@ -146,14 +147,14 @@ public class BoardVisualization {
         if (next > service.mediaManager.GetTotalVideo()) {
             next = 1;
         }
-        Timber.d("Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
+        BLog.d(TAG,"Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
     }
 
     public void attachAudio(int audioSessionId) {
         int vSize;
 
-        Timber.d("session=" + audioSessionId);
+        BLog.d(TAG,"session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
 
         try {
@@ -170,11 +171,11 @@ public class BoardVisualization {
                 mVisualizer.setEnabled(true);
             }
         } catch (Exception e) {
-            Timber.e("Error enabling visualizer: " + e.getMessage());
+            BLog.e(TAG,"Error enabling visualizer: " + e.getMessage());
             //System.out.println("Error enabling visualizer:" + e.getMessage());
             return;
         }
-        Timber.d("Enabled visualizer with " + vSize + " bytes");
+        BLog.d(TAG,"Enabled visualizer with " + vSize + " bytes");
     }
 
     public int displayAlgorithm(String algorithm) {
@@ -332,7 +333,7 @@ public class BoardVisualization {
         long lastFrameTime = System.currentTimeMillis();
         int frameRate = 11;
 
-        Timber.d("Starting board display thread...");
+        BLog.d(TAG,"Starting board display thread...");
 
         int nVideos = service.mediaManager.GetTotalVideo();
 
@@ -340,20 +341,20 @@ public class BoardVisualization {
 
             // Power saving when board top not turned on
             if (inhibitVisual || inhibitVisualGTFO) {
-                Timber.d("inhibit");
+                BLog.d(TAG,"inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.showBattery();
                 service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    Timber.e(er.getMessage());
+                    BLog.e(TAG,er.getMessage());
                 }
                 continue;
             }
 
             if (emergencyVisual) {
-                Timber.d("inhibit");
+                BLog.d(TAG,"inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
                 service.burnerBoard.showBattery();
@@ -361,7 +362,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    Timber.e(er.getMessage());
+                    BLog.e(TAG,er.getMessage());
                 }
                 continue;
             }
@@ -391,7 +392,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
-                    Timber.e(er.getMessage());
+                    BLog.e(TAG,er.getMessage());
                 }
             }
 
@@ -415,7 +416,7 @@ public class BoardVisualization {
 
             frameCnt++;
             if (frameCnt % 100 == 0) {
-                Timber.d("Frames: " + frameCnt);
+                BLog.d(TAG,"Frames: " + frameCnt);
             }
 
             if (mode < 0) {
@@ -442,7 +443,7 @@ public class BoardVisualization {
                 return mFrameRate;
             }
         } catch (Exception e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
             return mFrameRate;
         }
     }
@@ -534,12 +535,12 @@ public class BoardVisualization {
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
             String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
-            Timber.d("Sending video remote for video " + name);
+            BLog.d(TAG,"Sending video remote for video " + name);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
         if (service.burnerBoard != null) {
-            Timber.d("Setting visualization mode to: " + service.boardState.currentVideoMode);
+            BLog.d(TAG,"Setting visualization mode to: " + service.boardState.currentVideoMode);
 
             service.burnerBoard.resetParams();
             service.burnerBoard.clearPixels();

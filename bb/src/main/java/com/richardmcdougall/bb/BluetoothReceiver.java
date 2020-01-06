@@ -9,9 +9,10 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 
-import timber.log.Timber;
+
 
 public class BluetoothReceiver extends BroadcastReceiver {
+    private String TAG = this.getClass().getSimpleName();
 
     private BBService service = null;
 
@@ -24,7 +25,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
 
-        Timber.d("Bluetooth connected");
+        BLog.d(TAG,"Bluetooth connected");
 
         String action = intent.getAction();
         //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
@@ -46,7 +47,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     }
                 }, 3000);
             } catch (Exception e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG,e.getMessage());
             }
         }
     }

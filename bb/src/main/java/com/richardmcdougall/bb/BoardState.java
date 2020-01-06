@@ -18,9 +18,10 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 
-import timber.log.Timber;
+
 
 public class BoardState {
+    private String TAG = this.getClass().getSimpleName();
 
     private static final String WIFI_JSON = "wifi.json";
     private static final String WIFI_SSID = "burnerboard";
@@ -57,7 +58,7 @@ public class BoardState {
             version = pinfo.versionCode;
             apkUpdatedDate = new Date(pinfo.lastUpdateTime);
         } catch (PackageManager.NameNotFoundException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
         }
 
         if (kIsRPI) {
@@ -109,7 +110,7 @@ public class BoardState {
             state.put("p", service.boardState.password);
 
         } catch (Exception e) {
-            Timber.e("Could not get state: " + e.getMessage());
+            BLog.e(TAG,"Could not get state: " + e.getMessage());
         }
         return state;
     }
@@ -124,7 +125,7 @@ public class BoardState {
             setSSISAndPassword(wifiSettings);
 
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
             return false;
         }
         return true;
@@ -139,10 +140,10 @@ public class BoardState {
             SSID = wifiSettings.getString("SSID");
             password = wifiSettings.getString("password");
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
             return false;
         } catch (IOException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
             return false;
         }
 
@@ -158,18 +159,18 @@ public class BoardState {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG,e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
-            Timber.d("contents of wifi.json: " + sb.toString());
+            BLog.d(TAG,"contents of wifi.json: " + sb.toString());
             JSONObject j = new JSONObject(sb.toString());
 
             SSID = j.getString("SSID");
             password = j.getString("password");
 
         } catch (Throwable e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG,e.getMessage());
         }
     }
 
