@@ -1,14 +1,10 @@
 package com.richardmcdougall.bb;
 
 import android.Manifest;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -17,10 +13,7 @@ import android.util.Log;
 import android.app.Activity;
 import android.view.WindowManager;
 import android.view.InputDevice;
-import android.view.KeyEvent;
 import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.content.BroadcastReceiver;
 import android.widget.Toast;
@@ -100,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     }
 
     static String getHomeActivity(Context c) {
+
+        Log.v(TAG, "getHomeActivity");
         PackageManager pm = c.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
@@ -110,8 +105,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             return "none";
     }
 
-
     static void becomeHomeActivity(Context c) {
+        Log.v(TAG, "becomeHomeActivity");
         ComponentName deviceAdmin = new ComponentName(c, AdminReceiver.class);
         DevicePolicyManager dpm = (DevicePolicyManager) c.getSystemService(Context.DEVICE_POLICY_SERVICE);
 
@@ -209,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
 
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             becomeHomeActivity(this.getApplicationContext());
