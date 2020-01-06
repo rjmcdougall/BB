@@ -436,7 +436,7 @@ public class BoardVisualization {
                 String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
-                if (BoardState.kIsRPI) { // nano is fine
+                if (!(service.boardState.platformType == BoardState.PlatformType.rpi)) {
                     return mFrameRate;
                 }
                 mVisualizationVideo.update(mode);

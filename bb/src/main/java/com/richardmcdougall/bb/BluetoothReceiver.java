@@ -17,10 +17,11 @@ public class BluetoothReceiver extends BroadcastReceiver {
     private BBService service = null;
 
     // RPIs don't always have a screen; use beeps -jib
-    public static final boolean kBeepOnConnect = BoardState.kIsRPI; // Not Done IsNano
+    public boolean kBeepOnConnect = false;
 
     BluetoothReceiver(BBService service) {
         this.service = service;
+        kBeepOnConnect = (service.boardState.platformType == BoardState.PlatformType.rpi);
     }
 
     public void onReceive(Context context, Intent intent) {

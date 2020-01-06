@@ -138,7 +138,7 @@ public class BBService extends Service {
                     }
 
                     // Let the user know they're on a raspberry pi // Skip For IsNano
-                    if (BoardState.kIsRPI) {
+                    if (boardState.platformType == BoardState.PlatformType.rpi) {
                         String rpiMsg = "Raspberry PI detected";
                         BLog.i(TAG,rpiMsg);
                         // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
