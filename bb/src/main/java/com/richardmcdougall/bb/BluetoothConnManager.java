@@ -84,21 +84,6 @@ public class BluetoothConnManager {
 
     private static final int REQUEST_CODE_ENABLE_DISCOVERABLE = 100;
 
-    /**
-     * Enable the current {@link BluetoothAdapter} to be discovered (available for pairing) for
-     * the next {@link #kDiscoveryTimeout} ms.
-     */
-    private void enableDiscoverable() {
-        BLog.d(TAG,"Registering for discovery.");
-        Intent discoverableIntent =
-                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
-                kDiscoveryTimeout);
-        discoverableIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        //mContext.startActivityForResult(discoverableIntent, REQUEST_CODE_ENABLE_DISCOVERABLE);
-        service.context.startActivity(discoverableIntent);
-    }
-
     public void discoverDevices() {
         BLog.d(TAG,"discoverDevices()");
 
@@ -120,15 +105,6 @@ public class BluetoothConnManager {
 
         // Request discover from BluetoothAdapter
         mBluetoothAdapter.startDiscovery();
-    }
-
-    public void discoverCancel() {
-        BLog.d(TAG,"discoverCancel()");
-
-        // If we're already discovering, stop it
-        if (mBluetoothAdapter.isDiscovering()) {
-            mBluetoothAdapter.cancelDiscovery();
-        }
     }
 
     public void pairDevice(String address) {
@@ -155,8 +131,6 @@ public class BluetoothConnManager {
         BLog.d(TAG,"createBond() = " + result);
     }
 
-    ;
-
     public void unpairDevice(String address) {
         BluetoothDevice device;
         BLog.d(TAG,"unpairDevice");
@@ -173,8 +147,6 @@ public class BluetoothConnManager {
         BLog.d(TAG,"Unpair device " + device);
         // TODO
     }
-
-    ;
 
     // Data structure we'll return in JSON to the app
     public static class BluetoothDeviceEntry {
@@ -252,26 +224,6 @@ public class BluetoothConnManager {
                 pairDevice(address);
             }
         }
-    }
-
-
-    // Get devices indexed starting at zero
-    // First character is P or blank for pairing status
-    public String getDeviceAddress(int deviceNo) {
-        int cnt = 0;
-        for (String address : mPairedDevices.keySet()) {
-            if (cnt == deviceNo) {
-                return "P" + address;
-            }
-            cnt++;
-        }
-        for (String address : mNewDevices.keySet()) {
-            if (cnt == deviceNo) {
-                return " " + address;
-            }
-            cnt++;
-        }
-        return null;
     }
 
     /**

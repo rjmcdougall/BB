@@ -16,7 +16,6 @@ public class BluetoothReceiver extends BroadcastReceiver {
 
     private BBService service = null;
 
-    // RPIs don't always have a screen; use beeps -jib
     public boolean kBeepOnConnect = false;
 
     BluetoothReceiver(BBService service) {
@@ -29,7 +28,6 @@ public class BluetoothReceiver extends BroadcastReceiver {
         BLog.d(TAG,"Bluetooth connected");
 
         String action = intent.getAction();
-        //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
         if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
             try {

@@ -10,7 +10,6 @@ import android.support.v4.content.LocalBroadcastManager;
 
 public class USBReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();
-
     private BBService service;
     USBReceiver(BBService service) {
         this.service = service;

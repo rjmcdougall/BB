@@ -9,8 +9,6 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.support.v4.content.LocalBroadcastManager;
 
-
-
 import android.app.PendingIntent;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -55,11 +53,6 @@ public class RF {
     public RF(BBService service) {
         try {
             this.service = service;
-            // Register to receive attach/detached messages that are proxied from MainActivity
-            IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-            this.service.registerReceiver(mUsbReceiver, filter);
-            filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-            this.service.registerReceiver(mUsbReceiver, filter);
             initUsb();
             service.gps.attach(new Gps.GpsEvents() {
                 public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
@@ -68,9 +61,6 @@ public class RF {
                         mRadioCallback.timeEvent(time);
                     }
                 }
-
-                ;
-
                 public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
                     BLog.d(TAG,"Radio Position: " + gps.toString());
                     if (mRadioCallback != null) {
@@ -180,14 +170,7 @@ public class RF {
         }
 
         if (!mUsbManager.hasPermission(mUsbDevice)) {
-            //ask for permissionB
-            // DIRTY HACK FOR THE MONITOR.
-            if (service.boardState.BOARD_ID.equals("VIM2")) {
-                PendingIntent pi = PendingIntent.getBroadcast(service.context, 0, new Intent(GET_USB_PERMISSION), 0);
-                service.context.registerReceiver(new RF.PermissionReceiver(), new IntentFilter(GET_USB_PERMISSION));
-                mUsbManager.requestPermission(mUsbDevice, pi);
-                BLog.d(TAG,"USB: No Permission");
-            }
+            BLog.d(TAG,"USB: No Permission");
             return;
         } else {
             usbConnect(mUsbDevice);
@@ -326,62 +309,4 @@ public class RF {
             }
         }
     }
-
-    // We use this to catch the USB accessory detached message
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-
-            final String TAG = "mUsbReceiver";
-            BLog.d(TAG,"onReceive entered");
-            String action = intent.getAction();
-            if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                BLog.d(TAG,"A USB Accessory was detached (" + device + ")");
-                if (device != null) {
-                    if (mUsbDevice == device) {
-                        BLog.d(TAG,"It's this device, shutting down");
-                        mUsbDevice = null;
-                        stopIoManager();
-                    }
-                }
-            }
-            if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                BLog.d(TAG,"USB Accessory attached (" + device + ")");
-                if (mUsbDevice == null) {
-                    BLog.d(TAG,"Calling initUsb to check if we should add this device");
-                    usbConnect(device);
-                    ;
-                } else {
-                    BLog.d(TAG,"USB already attached");
-                }
-            }
-            BLog.d(TAG,"onReceive exited");
-        }
-    };
-
-    // Receive permission if it's being asked for (typically for the first time)
-    private class PermissionReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            service.context.unregisterReceiver(this);
-            if (intent.getAction().equals(GET_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    BLog.d(TAG,"USB we got permission");
-                    if (device != null) {
-                        usbConnect(device);
-                        ;
-                    } else {
-                        BLog.d(TAG,"USB perm receive device==null");
-                    }
-
-                } else {
-                    BLog.d(TAG,"USB no permission");
-                }
-            }
-        }
-    }
-
 }
