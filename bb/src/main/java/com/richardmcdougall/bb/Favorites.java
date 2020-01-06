@@ -2,8 +2,6 @@ package com.richardmcdougall.bb;
 
 import android.content.Context;
 
-
-
 import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
 
@@ -44,17 +42,17 @@ public class Favorites {
     public Favorites(Context context, BBService service,
                      final RF radio, Gps gps, IoTClient iotclient) {
         this.service = service;
-        BLog.d(TAG,"Starting favorites");
+        BLog.d(TAG, "Starting favorites");
 
         if (service.radio == null) {
-            BLog.d(TAG,"No Radio!");
+            BLog.d(TAG, "No Radio!");
             return;
         }
 
         service.radio.attach(new RF.radioEvents() {
             @Override
             public void receivePacket(byte[] bytes, int sigStrength) {
-                BLog.d(TAG,"Favorites Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
+                BLog.d(TAG, "Favorites Packet: len(" + bytes.length + "), data: " + RFUtil.bytesToHex(bytes));
                 if (processReceive(bytes, sigStrength)) {
 
                 }
@@ -62,12 +60,12 @@ public class Favorites {
 
             @Override
             public void GPSevent(PositionEvent gps) {
-                BLog.d(TAG,"Favorites GPS Event");
+                BLog.d(TAG, "Favorites GPS Event");
             }
 
             @Override
             public void timeEvent(Time time) {
-                BLog.d(TAG,"Favorites Time: " + time.toString());
+                BLog.d(TAG, "Favorites Time: " + time.toString());
             }
         });
         addTestFavorite();
@@ -107,10 +105,10 @@ public class Favorites {
         radioPacket.write(iMAccurate);
         radioPacket.write(0);
 
-        BLog.d(TAG,"Sending Favorites packet...");
+        BLog.d(TAG, "Sending Favorites packet...");
         service.radio.broadcast(radioPacket.toByteArray());
         mLastSend = System.currentTimeMillis();
-        BLog.d(TAG,"Sent Favorites packet...");
+        BLog.d(TAG, "Sent Favorites packet...");
 
         Fav f = new Fav();
         f.r = mBoardAddress;
@@ -143,7 +141,7 @@ public class Favorites {
                     new int[]{bytes.read(), bytes.read()});
 
             if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kFavoritesMagicNumber)) {
-                BLog.d(TAG,"BB Favorites Packet");
+                BLog.d(TAG, "BB Favorites Packet");
                 f.r = (int) ((bytes.read() & 0xff) +
                         ((bytes.read() & 0xff) << 8));
                 int repeatedBy = bytes.read();
@@ -162,7 +160,7 @@ public class Favorites {
                 mThereAccurate = bytes.read();
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
-                BLog.d(TAG,service.allBoards.boardAddressToName(f.r) +
+                BLog.d(TAG, service.allBoards.boardAddressToName(f.r) +
                         " strength " + sigStrength +
                         "favorites lat = " + f.a + ", " +
                         "favorites Lon = " + f.o);
@@ -174,11 +172,11 @@ public class Favorites {
                 UpdateFavorites(f);
                 return true;
             } else {
-                BLog.d(TAG,"rogue packet not for us!");
+                BLog.d(TAG, "rogue packet not for us!");
             }
             return false;
         } catch (Exception e) {
-            BLog.e(TAG,"Error processing a received packet " + e.getMessage());
+            BLog.e(TAG, "Error processing a received packet " + e.getMessage());
             return false;
         }
     }
@@ -207,7 +205,7 @@ public class Favorites {
             //mContext.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
         } catch (Exception e) {
-            BLog.e(TAG,"Error storing the favorites history " + e.getMessage());
+            BLog.e(TAG, "Error storing the favorites history " + e.getMessage());
         }
 
     }
@@ -233,10 +231,10 @@ public class Favorites {
             fw.write(favorites.toString());
             fw.close();
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return false;
         } catch (IOException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return false;
         }
 
@@ -252,11 +250,11 @@ public class Favorites {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
-            BLog.d(TAG,"contents of favorites.json: " + sb.toString());
+            BLog.d(TAG, "contents of favorites.json: " + sb.toString());
             JSONArray j = new JSONArray(sb.toString());
 
             HashMap<String, Fav> favs = new HashMap<>();
@@ -273,7 +271,7 @@ public class Favorites {
             }
 
         } catch (Throwable e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
     }
 }

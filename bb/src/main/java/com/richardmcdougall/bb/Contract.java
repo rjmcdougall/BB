@@ -21,21 +21,22 @@ public final class Contract {
 
     // To prevent someone from accidentally instantiating the contract class,
     // give it an empty private constructor. This is a standard pattern.
-    private Contract() {}
+    private Contract() {
+    }
 
     /**
      * The content URI needs the following structure:
-     *     * scheme (or content URIs, this is always content://)
-     *     * authority (this represents the domain)
-     *     * path (this represents the path to the page)
-     *     * ID (this is the name of the file/table, unique within the namespace)
-     *
+     * * scheme (or content URIs, this is always content://)
+     * * authority (this represents the domain)
+     * * path (this represents the path to the page)
+     * * ID (this is the name of the file/table, unique within the namespace)
+     * <p>
      * Accessing the FIRST word in the list requires this URI for this app sample.
      * content://com.android.example.minimalistcontentprovider.provider/words/0
-     *
+     * <p>
      * This URI will return all the words:
      * content://com.android.example.minimalistcontentprovider.provider/words
-     *
+     * <p>
      * Designing a good URI scheme is a topic in itself and not covered in this practical.
      */
 

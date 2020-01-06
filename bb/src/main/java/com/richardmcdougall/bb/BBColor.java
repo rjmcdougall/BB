@@ -154,9 +154,6 @@ public class BBColor {
     }
 
 
-
-
-
     public String getColorNameFromRgb(int r, int g, int b) {
         ArrayList<ColorName> colorList = initColorList();
         ColorName closestMatch = null;

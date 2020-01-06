@@ -8,7 +8,6 @@ import android.os.SystemClock;
 import android.view.KeyEvent;
 
 
-
 public class ButtonReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();
 
@@ -30,28 +29,28 @@ public class ButtonReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         if (ACTION.BUTTONS.equals(action)) {
-            BLog.d(TAG,"Received BlueTooth key press");
+            BLog.d(TAG, "Received BlueTooth key press");
             BBService.buttons actionType = (BBService.buttons) intent.getSerializableExtra("buttonType");
             switch (actionType) {
                 case BUTTON_KEYCODE:
-                    BLog.d(TAG,"BUTTON_KEYCODE ");
+                    BLog.d(TAG, "BUTTON_KEYCODE ");
                     int keyCode = intent.getIntExtra("keyCode", 0);
                     KeyEvent event = (KeyEvent) intent.getParcelableExtra("keyEvent");
                     onKeyDown(keyCode, event);
                     break;
                 case BUTTON_TRACK:
-                    BLog.d(TAG,"BUTTON_TRACK");
+                    BLog.d(TAG, "BUTTON_TRACK");
                     service.musicPlayer.NextStream();
                     break;
                 case BUTTON_MODE_UP:
-                    BLog.d(TAG,"BUTTON_MODE_UP");
+                    BLog.d(TAG, "BUTTON_MODE_UP");
                     service.boardVisualization.setMode(99);
                     break;
                 case BUTTON_MODE_DOWN:
-                    BLog.d(TAG,"BUTTON_MODE_DOWN");
+                    BLog.d(TAG, "BUTTON_MODE_DOWN");
                     service.boardVisualization.setMode(98);
                     break;
-               default:
+                default:
                     break;
             }
         }
@@ -69,7 +68,7 @@ public class ButtonReceiver extends BroadcastReceiver {
     public boolean onKeyDownBurnerBoard(int keyCode, KeyEvent event) {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
-            BLog.d(TAG,"BurnerBoard Keycode:" + keyCode);
+            BLog.d(TAG, "BurnerBoard Keycode:" + keyCode);
         }
 
         switch (keyCode) {
@@ -103,7 +102,7 @@ public class ButtonReceiver extends BroadcastReceiver {
     public boolean onKeyDownRPI(int keyCode, KeyEvent event) {
         boolean handled = false;
         if (event.getRepeatCount() == 0) {
-            BLog.d(TAG,"RPI Keycode:" + keyCode);
+            BLog.d(TAG, "RPI Keycode:" + keyCode);
         }
 
         switch (keyCode) {
@@ -113,11 +112,11 @@ public class ButtonReceiver extends BroadcastReceiver {
 
             /* Audio stream control */
             case 87: // satachi right button
-                BLog.d(TAG,"RPI Bluetooth Right Button");
+                BLog.d(TAG, "RPI Bluetooth Right Button");
                 service.musicPlayer.NextStream();
                 break;
             case 88: //satachi left button
-                BLog.d(TAG,"RPI Bluetooth Left Button");
+                BLog.d(TAG, "RPI Bluetooth Left Button");
                 service.musicPlayer.PreviousStream();
                 break;
         }

@@ -1,18 +1,22 @@
 package com.richardmcdougall.bb;
 
-import com.richardmcdougall.bb.visualization.Fire;
-import com.richardmcdougall.bb.visualization.Matrix;
-import com.richardmcdougall.bb.visualization.Mickey;
-
-import com.richardmcdougall.bb.visualization.JosPack;
-import com.richardmcdougall.bb.visualization.*;
-import com.richardmcdougall.bb.visualization.Visualization;
-
 import android.media.audiofx.Visualizer;
-
 import android.speech.tts.TextToSpeech;
 
-
+import com.richardmcdougall.bb.visualization.AudioBar;
+import com.richardmcdougall.bb.visualization.AudioCenter;
+import com.richardmcdougall.bb.visualization.AudioTile;
+import com.richardmcdougall.bb.visualization.Fire;
+import com.richardmcdougall.bb.visualization.JosPack;
+import com.richardmcdougall.bb.visualization.Matrix;
+import com.richardmcdougall.bb.visualization.Meteor;
+import com.richardmcdougall.bb.visualization.Mickey;
+import com.richardmcdougall.bb.visualization.PlayaMap;
+import com.richardmcdougall.bb.visualization.SyncLights;
+import com.richardmcdougall.bb.visualization.TestColors;
+import com.richardmcdougall.bb.visualization.TheMan;
+import com.richardmcdougall.bb.visualization.Video;
+import com.richardmcdougall.bb.visualization.Visualization;
 
 import org.json.JSONObject;
 
@@ -86,7 +90,7 @@ public class BoardVisualization {
     BoardVisualization(BBService service) {
 
         this.service = service;
-       BLog.d(TAG,"Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
+        BLog.d(TAG, "Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
 
         mBoardWidth = service.burnerBoard.getWidth();
         mBoardHeight = service.burnerBoard.getHeight();
@@ -94,7 +98,7 @@ public class BoardVisualization {
         mBoardScreen = service.burnerBoard.getPixelBuffer();
         mFrameRate = service.burnerBoard.getFrameRate();
 
-       BLog.d(TAG,"Board framerate set to " + mFrameRate);
+        BLog.d(TAG, "Board framerate set to " + mFrameRate);
 
         mVisualizationFire = new Fire(service.burnerBoard, this);
         mVisualizationMatrix = new Matrix(service.burnerBoard, this);
@@ -149,14 +153,14 @@ public class BoardVisualization {
         if (next > service.mediaManager.GetTotalVideo()) {
             next = 1;
         }
-        BLog.d(TAG,"Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
+        BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
         service.boardVisualization.setMode(next);
     }
 
     public void attachAudio(int audioSessionId) {
         int vSize;
 
-        BLog.d(TAG,"session=" + audioSessionId);
+        BLog.d(TAG, "session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
 
         try {
@@ -173,10 +177,10 @@ public class BoardVisualization {
                 mVisualizer.setEnabled(true);
             }
         } catch (Exception e) {
-            BLog.e(TAG,"Error enabling visualizer: " + e.getMessage());
+            BLog.e(TAG, "Error enabling visualizer: " + e.getMessage());
             return;
         }
-        BLog.d(TAG,"Enabled visualizer with " + vSize + " bytes");
+        BLog.d(TAG, "Enabled visualizer with " + vSize + " bytes");
     }
 
     public int displayAlgorithm(String algorithm) {
@@ -334,7 +338,7 @@ public class BoardVisualization {
         long lastFrameTime = System.currentTimeMillis();
         int frameRate = 11;
 
-        BLog.d(TAG,"Starting board display thread...");
+        BLog.d(TAG, "Starting board display thread...");
 
         int nVideos = service.mediaManager.GetTotalVideo();
 
@@ -342,20 +346,20 @@ public class BoardVisualization {
 
             // Power saving when board top not turned on
             if (inhibitVisual || inhibitVisualGTFO) {
-                BLog.d(TAG,"inhibit");
+                BLog.d(TAG, "inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.showBattery();
                 service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    BLog.e(TAG,er.getMessage());
+                    BLog.e(TAG, er.getMessage());
                 }
                 continue;
             }
 
             if (emergencyVisual) {
-                BLog.d(TAG,"inhibit");
+                BLog.d(TAG, "inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
                 service.burnerBoard.showBattery();
@@ -363,7 +367,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    BLog.e(TAG,er.getMessage());
+                    BLog.e(TAG, er.getMessage());
                 }
                 continue;
             }
@@ -393,7 +397,7 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
-                    BLog.e(TAG,er.getMessage());
+                    BLog.e(TAG, er.getMessage());
                 }
             }
 
@@ -417,7 +421,7 @@ public class BoardVisualization {
 
             frameCnt++;
             if (frameCnt % 100 == 0) {
-                BLog.d(TAG,"Frames: " + frameCnt);
+                BLog.d(TAG, "Frames: " + frameCnt);
             }
 
             if (mode < 0) {
@@ -444,7 +448,7 @@ public class BoardVisualization {
                 return mFrameRate;
             }
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return mFrameRate;
         }
     }
@@ -536,12 +540,12 @@ public class BoardVisualization {
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
             String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
-            BLog.d(TAG,"Sending video remote for video " + name);
+            BLog.d(TAG, "Sending video remote for video " + name);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
         }
 
         if (service.burnerBoard != null) {
-            BLog.d(TAG,"Setting visualization mode to: " + service.boardState.currentVideoMode);
+            BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
 
             service.burnerBoard.resetParams();
             service.burnerBoard.clearPixels();

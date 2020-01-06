@@ -13,10 +13,8 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -66,7 +64,7 @@ public class RFClientServer {
             try {
                 mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
             } catch (Exception e) {
-                BLog.e(TAG,"Cannot setup UDP logger socket");
+                BLog.e(TAG, "Cannot setup UDP logger socket");
             }
         }
     }
@@ -88,7 +86,7 @@ public class RFClientServer {
                         DatagramPacket dp = new DatagramPacket(logPacket, logPacket.length, InetAddress.getByName("10.0.6.255"), 9999);
                         mUDPSocket.send(dp);
                     } catch (Exception e) {
-                        BLog.e(TAG,"UDP Logger Socket send failed:" + e.toString());
+                        BLog.e(TAG, "UDP Logger Socket send failed:" + e.toString());
                     }
                 }
             });
@@ -104,7 +102,7 @@ public class RFClientServer {
             mReceivedPacketInput = new PipedInputStream();
             mReceivedPacketOutput = new PipedOutputStream(mReceivedPacketInput);
         } catch (Exception e) {
-            BLog.e(TAG,"Receiver pipe failed: " + e.getMessage());
+            BLog.e(TAG, "Receiver pipe failed: " + e.getMessage());
         }
 
         try {
@@ -203,7 +201,7 @@ public class RFClientServer {
     // Send time-sync reply to specific client
     void ServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
-        BLog.d(TAG,"Server reply : " +
+        BLog.d(TAG, "Server reply : " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(toClient) + "(" + toClient + ")");
 
@@ -264,8 +262,8 @@ public class RFClientServer {
             clientAddress = (int) int16FromPacket(bytes);
 
             if (clientAddress == service.boardState.address) {
-                BLog.d(TAG,"BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-                BLog.d(TAG,"BB Sync Packet from Server " + serverAddress +
+                BLog.d(TAG, "BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+                BLog.d(TAG, "BB Sync Packet from Server " + serverAddress +
                         " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
                 processSyncResponse(packet);
@@ -275,8 +273,8 @@ public class RFClientServer {
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
             clientAddress = (int) int16FromPacket(bytes);
 
-            BLog.d(TAG,"BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            BLog.d(TAG,"BB Sync Packet from Client " + clientAddress +
+            BLog.d(TAG, "BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+            BLog.d(TAG, "BB Sync Packet from Client " + clientAddress +
                     " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = int64FromPacket(bytes);
             long curTimeStamp = service.GetCurrentClock();
@@ -291,8 +289,8 @@ public class RFClientServer {
 
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int) int16FromPacket(bytes);
-            BLog.d(TAG,"BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            BLog.d(TAG,"BB Server Beacon packet from Server " + serverAddress +
+            BLog.d(TAG, "BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+            BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +
                     " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
@@ -300,10 +298,10 @@ public class RFClientServer {
             int address = (int) int16FromPacket(bytes);
             int cmd = (int) int16FromPacket(bytes);
             int value = (int) int32FromPacket(bytes);
-            BLog.d(TAG,"Received Remote Control " + cmd + ", " + value + " from " + address);
+            BLog.d(TAG, "Received Remote Control " + cmd + ", " + value + " from " + address);
             receiveRemoteControl(address, cmd, value);
         } else {
-            BLog.d(TAG,"packet not for sync server!");
+            BLog.d(TAG, "packet not for sync server!");
         }
         return;
     }
@@ -339,7 +337,7 @@ public class RFClientServer {
 
     private void processSyncResponse(byte[] recvPacket) {
 
-        BLog.d(TAG,"BB Sync Packet receive from server len (" + recvPacket.length + ") " +
+        BLog.d(TAG, "BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
@@ -366,7 +364,7 @@ public class RFClientServer {
             // 4156 - 2208
             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
-            BLog.d(TAG,"Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+            BLog.d(TAG, "Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
             AddSample(adjDrift, roundTripTime);
 
@@ -392,7 +390,7 @@ public class RFClientServer {
                 mPrefsEditor.commit();
             }
 
-            BLog.d(TAG,"Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
+            BLog.d(TAG, "Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
 
             service.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
             logUDP(service.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + service.CurrentClockAdjusted());
@@ -401,7 +399,7 @@ public class RFClientServer {
 
     // Thread/ loop to send out requests
     void Start() {
-        BLog.d(TAG,"Sync Thread Staring");
+        BLog.d(TAG, "Sync Thread Staring");
         SharedPreferences prefs = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE);
         mDrift = prefs.getLong("drift", 0);
         mRtt = prefs.getLong("rtt", 100);
@@ -421,13 +419,13 @@ public class RFClientServer {
 
             // Do we need to tell nearby clients who the media master is still?
             if (kMasterBroadcastsLeft > 0) {
-                BLog.d(TAG,"Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
+                BLog.d(TAG, "Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
 
                 for (int i = 0; i < kMasterToClientPacket.length; i++) {
 
                     byte[] packet = kMasterToClientPacket[i];
                     if (packet != null && packet.length > 0) {
-                        BLog.d(TAG,"Resending master client packet type: " + i);
+                        BLog.d(TAG, "Resending master client packet type: " + i);
                         service.radio.broadcast(packet);
 
                         // To make sure we don't have collissions with the following TIME broadcast, so
@@ -450,7 +448,7 @@ public class RFClientServer {
             if (amServer() == false) {
                 try {
 
-                    BLog.d(TAG,"I'm a client " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
+                    BLog.d(TAG, "I'm a client " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -466,10 +464,10 @@ public class RFClientServer {
                     int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
                     int16ToPacket(clientPacket, 0);
-                    BLog.d(TAG,"send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
+                    BLog.d(TAG, "send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     service.radio.broadcast(clientPacket.toByteArray());
-                    BLog.d(TAG,"BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
+                    BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
                             service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
                             " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
@@ -477,7 +475,7 @@ public class RFClientServer {
                     //l("Client UDP failed");
                 }
             } else {
-                BLog.d(TAG,"I'm a server: broadcast Server beacon");
+                BLog.d(TAG, "I'm a server: broadcast Server beacon");
                 mRtt = 0;
                 mDrift = 0;
                 service.SetServerClockOffset(0, 0);
@@ -605,10 +603,10 @@ public class RFClientServer {
         for (int board : mBoardVotes.keySet()) {
             boardVote v = mBoardVotes.get(board);
             if (board == mServerAddress) {
-                BLog.d(TAG,"Vote: Server " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                BLog.d(TAG, "Vote: Server " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             } else {
-                BLog.d(TAG,"Vote: Client " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
+                BLog.d(TAG, "Vote: Client " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
                         + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
             }
         }
@@ -630,7 +628,7 @@ public class RFClientServer {
         if (service.radio == null) {
             return;
         }
-        BLog.d(TAG,"Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + service.boardState.address);
+        BLog.d(TAG, "Sending remote control command: " + cmd + ", " + value + ", " + type + ", " + service.boardState.address);
 
         ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
@@ -657,7 +655,7 @@ public class RFClientServer {
         // This is the amount of iterations LEFT of broadcasting the client packet.
         // When this routine is invoked again, it'll restart the iteration counter.
         kMasterBroadcastsLeft = kMasterBroadcastTime / kThreadSleepTime;
-        BLog.d(TAG,"Master client packet will be sent this many more times: " + kMasterBroadcastsLeft);
+        BLog.d(TAG, "Master client packet will be sent this many more times: " + kMasterBroadcastsLeft);
     }
 
     // Method to abandon rebroadcasts. Needed if a new master shows up.
@@ -680,10 +678,10 @@ public class RFClientServer {
 
 
         if (service.boardState.blockMaster) {
-            BLog.d(TAG,"BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
+            BLog.d(TAG, "BLOCKED remote cmd, value " + cmd + ", " + value + " from: " + client);
         } else {
 
-            BLog.d(TAG,"Received remote cmd, value " + cmd + ", " + value + " from: " + client);
+            BLog.d(TAG, "Received remote cmd, value " + cmd + ", " + value + " from: " + client);
 
             switch (cmd) {
                 case RFUtil.REMOTE_AUDIO_TRACK_CODE:
@@ -692,12 +690,12 @@ public class RFClientServer {
                         String name = service.musicPlayer.getRadioChannelInfo(i);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
-                            BLog.d(TAG,"Remote Audio " + service.boardState.currentRadioChannel + " -> " + i);
+                            BLog.d(TAG, "Remote Audio " + service.boardState.currentRadioChannel + " -> " + i);
                             if (service.boardState.currentRadioChannel != i) {
                                 service.musicPlayer.SetRadioChannel((int) i);
-                                BLog.d(TAG,"Received remote audio switch to track " + i + " (" + name + ")");
+                                BLog.d(TAG, "Received remote audio switch to track " + i + " (" + name + ")");
                             } else {
-                                BLog.d(TAG,"Ignored remote audio switch to track " + i + " (" + name + ")");
+                                BLog.d(TAG, "Ignored remote audio switch to track " + i + " (" + name + ")");
                             }
                             break;
                         }
@@ -709,12 +707,12 @@ public class RFClientServer {
                         String name = service.mediaManager.GetVideoFileLocalName(i - 1);
                         long hashed = BurnerBoardUtil.hashTrackName(name);
                         if (hashed == value) {
-                            BLog.d(TAG,"Remote Video " + service.boardState.currentVideoMode + " -> " + i);
+                            BLog.d(TAG, "Remote Video " + service.boardState.currentVideoMode + " -> " + i);
                             if (service.boardState.currentVideoMode != i) {
                                 service.boardVisualization.setMode((int) i);
-                                BLog.d(TAG,"Received remote video switch to mode " + i + " (" + name + ")");
+                                BLog.d(TAG, "Received remote video switch to mode " + i + " (" + name + ")");
                             } else {
-                                BLog.d(TAG,"Ignored remote video switch to mode " + i + " (" + name + ")");
+                                BLog.d(TAG, "Ignored remote video switch to mode " + i + " (" + name + ")");
                             }
                             break;
                         }
@@ -730,7 +728,7 @@ public class RFClientServer {
                         // This board thinks it's the master, but apparently it's no longer. Reset master
                         // mode and follow the new master
                         String diag = service.boardState.BOARD_ID + " is no longer the master. New master: " + client;
-                        BLog.d(TAG,diag);
+                        BLog.d(TAG, diag);
                         service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
                         service.masterRemote.enableMaster(false);
                     }

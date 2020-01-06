@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 
-
 /**
  * Created by rmc on 5/20/18.
  */
@@ -38,7 +37,7 @@ package com.richardmcdougall.bb;
 public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
 
-    private int [] mLayeredScreen;
+    private int[] mLayeredScreen;
 
 
     public BurnerBoardPanel(BBService service) {
@@ -49,7 +48,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         mMultipler4Speed = 3;
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Panel";
-       BLog.d(TAG,"Burner Board Panel initting...");
+        BLog.d(TAG, "Burner Board Panel initting...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
         initPixelOffset();
         initUsb();
@@ -104,7 +103,7 @@ public class BurnerBoardPanel extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-           BLog.d(TAG,"getBatteryLevel: " + service.boardState.batteryLevel);
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -189,11 +188,11 @@ public class BurnerBoardPanel extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-           BLog.d(TAG,"Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+            BLog.d(TAG, "Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
-        
+
         // Here we calculate the total power percentage of the whole board
         // We want to limit the board to no more than 50% of pixel output total
         // This is because the board is setup to flip the breaker at 200 watts
@@ -219,7 +218,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
 
         // Render text on board
-        int [] mOutputScreen;
+        int[] mOutputScreen;
         if (renderText(mLayeredScreen, mBoardScreen) != null) {
             mOutputScreen = mLayeredScreen;
         } else {
@@ -247,18 +246,18 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     private boolean setRow(int row, int[] pixels) {
 
-        int [] dimPixels = new int [pixels.length];
+        int[] dimPixels = new int[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             dimPixels[pixel] =
                     (mDimmerLevel * pixels[pixel]) / 255;
         }
 
         // Do color correction on burner board display pixels
-        byte [] newPixels = new byte[mBoardWidth * 3];
+        byte[] newPixels = new byte[mBoardWidth * 3];
         for (int pixel = 0; pixel < mBoardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = (byte)pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte)pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte)pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+            newPixels[pixel] = (byte) pixelColorCorrectionRed(dimPixels[pixel]);
+            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);
         }
 
         //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
@@ -277,6 +276,7 @@ public class BurnerBoardPanel extends BurnerBoard {
     }
 
     boolean haveUpdated = false;
+
     public void setMsg(String msg) {
         //l("sendCommand: 10,n,...");
         synchronized (mSerialConn) {
@@ -322,7 +322,7 @@ public class BurnerBoardPanel extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-       BLog.d(TAG,"sendCommand: 7");
+        BLog.d(TAG, "sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();

@@ -3,12 +3,12 @@ package com.richardmcdougall.bb;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
-import net.sf.marineapi.nmea.event.SentenceListener;
 import net.sf.marineapi.nmea.event.SentenceEvent;
+import net.sf.marineapi.nmea.event.SentenceListener;
+import net.sf.marineapi.nmea.io.ExceptionListener;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.sentence.GGASentence;
 import net.sf.marineapi.nmea.sentence.SentenceId;
-import net.sf.marineapi.nmea.io.ExceptionListener;
 import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.provider.PositionProvider;
 import net.sf.marineapi.provider.event.PositionEvent;
@@ -16,7 +16,6 @@ import net.sf.marineapi.provider.event.PositionListener;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
 
 
 /**
@@ -49,19 +48,19 @@ public class Gps {
 
     public Gps(BBService service) {
         this.service = service;
-        BLog.d(TAG,"Gps starting");
+        BLog.d(TAG, "Gps starting");
 
         try {
             mSentenceInput = new PipedInputStream();
             mSentenceOutput = new PipedOutputStream(mSentenceInput);
         } catch (Exception e) {
-            BLog.e(TAG,"Pipe failed: " + e.getMessage());
+            BLog.e(TAG, "Pipe failed: " + e.getMessage());
         }
         try {
             mSR = new SentenceReader(mSentenceInput);
             mSR.setExceptionListener(new ExceptionListener() {
                 public void onException(Exception e) {
-                    BLog.e(TAG,"Exception Listener " + e.getMessage() + " " + e.getStackTrace());
+                    BLog.e(TAG, "Exception Listener " + e.getMessage() + " " + e.getStackTrace());
                 }
             });
             provider = new PositionProvider(mSR);
@@ -69,7 +68,7 @@ public class Gps {
                 public void providerUpdate(PositionEvent evt) {
                     try {
                         // do something with the data..
-                        BLog.d(TAG,"TPV: " + evt.toString());
+                        BLog.d(TAG, "TPV: " + evt.toString());
                         int i = evt.getDate().getYear(); // leave this here DKW
                         if (mGpsCallback != null) {
                             mGpsCallback.positionEvent(evt);
@@ -82,36 +81,36 @@ public class Gps {
                             LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
                         }
                     } catch (Exception e) {
-                        BLog.e(TAG,"Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
+                        BLog.e(TAG, "Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
                     }
                 }
             });
 
             if (ENABLE_GPS_TIME) {
-                BLog.d(TAG,"Enabling GPS Time collection");
+                BLog.d(TAG, "Enabling GPS Time collection");
                 mSR.addSentenceListener(new SentenceListener() {
                     @Override
                     public void readingPaused() {
-                        BLog.d(TAG,"Sentence Listener Paused");
+                        BLog.d(TAG, "Sentence Listener Paused");
                     }
 
                     @Override
                     public void readingStarted() {
-                        BLog.d(TAG,"Sentence Listener Started");
+                        BLog.d(TAG, "Sentence Listener Started");
                     }
 
                     @Override
                     public void readingStopped() {
-                        BLog.d(TAG,"Sentence Listener Stopped");
+                        BLog.d(TAG, "Sentence Listener Stopped");
                     }
 
                     @Override
                     public void sentenceRead(SentenceEvent event) {
                         // here we receive each sentence read from the port
-                        BLog.d(TAG,"Sentence read: " + event.getSentence().toString());
+                        BLog.d(TAG, "Sentence read: " + event.getSentence().toString());
                         GGASentence s = (GGASentence) event.getSentence();
                         if (s.isValid()) {
-                            BLog.d(TAG,"Sat Time: " + s.getTime().toString());
+                            BLog.d(TAG, "Sat Time: " + s.getTime().toString());
                             if (mGpsCallback != null) {
                                 mGpsCallback.timeEvent(s.getTime());
                             }
@@ -121,9 +120,9 @@ public class Gps {
             }
 
             mSR.start();
-            BLog.d(TAG,"SentenceListener started");
+            BLog.d(TAG, "SentenceListener started");
         } catch (Exception e) {
-            BLog.e(TAG,"Gps start failed: " + e.getMessage());
+            BLog.e(TAG, "Gps start failed: " + e.getMessage());
         }
     }
 
@@ -132,7 +131,7 @@ public class Gps {
             mSentenceOutput.write((str + "\n").getBytes());
             mSentenceOutput.flush();
         } catch (Exception e) {
-            BLog.e(TAG,"Gps addStr failed: " + e.getMessage());
+            BLog.e(TAG, "Gps addStr failed: " + e.getMessage());
         }
     }
 

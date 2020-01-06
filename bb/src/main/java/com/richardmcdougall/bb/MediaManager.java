@@ -3,15 +3,13 @@ package com.richardmcdougall.bb;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 
-
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 
 public class MediaManager {
     private String TAG = this.getClass().getSimpleName();
@@ -29,7 +27,7 @@ public class MediaManager {
         try {
             audio = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("audio").toString());
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
         return audio;
     }
@@ -39,7 +37,7 @@ public class MediaManager {
         try {
             video = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("video").toString());
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
         return video;
     }
@@ -50,7 +48,7 @@ public class MediaManager {
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = audio();
         if (audio() == null) {
-            BLog.d(TAG,"Could not get audio directory (null)");
+            BLog.d(TAG, "Could not get audio directory (null)");
         } else {
             try {
                 for (int i = 0; i < audio.length(); i++) {
@@ -62,7 +60,7 @@ public class MediaManager {
                 }
 
             } catch (Exception e) {
-                BLog.e(TAG,"Could not get audio directory: " + e.getMessage());
+                BLog.e(TAG, "Could not get audio directory: " + e.getMessage());
             }
         }
         return audio;
@@ -74,7 +72,7 @@ public class MediaManager {
         JSONArray video = video();
 
         if (video == null) {
-            BLog.d(TAG,"Could not get video directory (null)");
+            BLog.d(TAG, "Could not get video directory (null)");
         } else {
             try {
                 for (int i = 0; i < video.length(); i++) {
@@ -87,7 +85,7 @@ public class MediaManager {
                 }
 
             } catch (Exception e) {
-                BLog.e(TAG,"Could not get video directory: " + e.getMessage());
+                BLog.e(TAG, "Could not get video directory: " + e.getMessage());
             }
         }
         return video;
@@ -119,7 +117,7 @@ public class MediaManager {
 
                     service.voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
                     lastTextTime = curTime;
-                    BLog.d(TAG,"Downloading " + file + ", " + percent + " Percent");
+                    BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
                 }
             }
 
@@ -130,7 +128,7 @@ public class MediaManager {
 
         LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
-        BLog.d(TAG,"Downloading files to: " + service.filesDir);
+        BLog.d(TAG, "Downloading files to: " + service.filesDir);
     }
 
     void Run() {
@@ -192,7 +190,7 @@ public class MediaManager {
             }
 
         } catch (Throwable e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             onProgressCallback.onVoiceCue("Error loading media error due to jason error");
         }
     }
@@ -228,7 +226,7 @@ public class MediaManager {
             return upToDate;
 
         } catch (JSONException jse) {
-            BLog.e(TAG,"Error " + jse.getMessage());
+            BLog.e(TAG, "Error " + jse.getMessage());
             return false;
         }
     }
@@ -247,10 +245,10 @@ public class MediaManager {
             return true;
 
         } catch (JSONException jse) {
-            BLog.e(TAG,jse.getMessage());
+            BLog.e(TAG, jse.getMessage());
             return false;
         } catch (Throwable th) {
-            BLog.e(TAG,th.getMessage());
+            BLog.e(TAG, th.getMessage());
             return false;
         }
 
@@ -266,10 +264,10 @@ public class MediaManager {
 
             long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, service.filesDir);
             if (ddsz < 0) {
-                BLog.d(TAG,"Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
+                BLog.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue = false;
             } else {
-                BLog.d(TAG,"Reading Directory from " + DirectoryURL);
+                BLog.d(TAG, "Reading Directory from " + DirectoryURL);
 
                 new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME));
 
@@ -278,7 +276,7 @@ public class MediaManager {
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
 
-                BLog.d(TAG,"Downloaded JSON: " + dirTxt);
+                BLog.d(TAG, "Downloaded JSON: " + dirTxt);
 
                 // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
@@ -304,7 +302,7 @@ public class MediaManager {
                     if (onProgressCallback != null)
                         onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
                 } else {
-                    BLog.d(TAG,"No Changes to Directory JSON.");
+                    BLog.d(TAG, "No Changes to Directory JSON.");
                     returnValue = true;
                 }
 
@@ -320,7 +318,7 @@ public class MediaManager {
                         CleanupOldFiles();
                         if (onProgressCallback != null) {
                             String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
-                            BLog.d(TAG,diag);
+                            BLog.d(TAG, diag);
                             onProgressCallback.onVoiceCue(diag);
                         }
                     }
@@ -335,10 +333,10 @@ public class MediaManager {
             return returnValue;
 
         } catch (JSONException jse) {
-            BLog.e(TAG,jse.getMessage());
+            BLog.e(TAG, jse.getMessage());
             return false;
         } catch (Throwable th) {
-            BLog.e(TAG,th.getMessage());
+            BLog.e(TAG, th.getMessage());
             return false;
         }
     }
@@ -382,7 +380,7 @@ public class MediaManager {
             String fn = service.filesDir + "/" + GetAudio(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return null;
         }
     }
@@ -394,7 +392,7 @@ public class MediaManager {
                 String fn = GetAudio(index).getString("localName");
                 return fn;
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else {
@@ -417,7 +415,7 @@ public class MediaManager {
                 }
                 return fn;
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else {
@@ -430,7 +428,7 @@ public class MediaManager {
             String fn = service.filesDir + "/" + GetVideo(index).getString("localName");
             return fn;
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return null;
         }
     }
@@ -443,7 +441,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("audio").length();
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return 0;
             }
         }
@@ -456,7 +454,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").length();
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return 0;
             }
         }
@@ -470,7 +468,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index);
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else
@@ -484,7 +482,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else
@@ -498,7 +496,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("audio").getJSONObject(index);
             } catch (JSONException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else
@@ -509,7 +507,7 @@ public class MediaManager {
         try {
             return GetAudio(index).getLong("Length");
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return 1000;   // return a dummy value
         }
     }

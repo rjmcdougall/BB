@@ -98,11 +98,11 @@ public class BoardView extends View {
             for (x = 0; x < mBoardWidth; x++) {
                 for (y = 0; y < mBoardHeight; y++) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            (byte)(mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] & 0xFF - amount);
+                            (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] & 0xFF - amount);
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            (byte)(mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF - amount);
+                            (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF - amount);
                     mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            (byte)(mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF - amount);
+                            (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF - amount);
                 }
             }
             //System.out.println("fillScreen end" + (byte)r + "," + (byte)g + "," + (byte)b);
@@ -121,7 +121,7 @@ public class BoardView extends View {
                     for (y = 0; y < mBoardHeight - 1; y++) {
                         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                                 mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                        mBoardScreen[pixel2Offset(x, y , PIXEL_GREEN)] =
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
                                 mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
                         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                                 mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
@@ -132,7 +132,7 @@ public class BoardView extends View {
                     for (y = mBoardHeight - 2; y >= 0; y--) {
                         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                                 mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                        mBoardScreen[pixel2Offset(x, y , PIXEL_GREEN)] =
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
                                 mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
                         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                                 mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
@@ -169,7 +169,6 @@ public class BoardView extends View {
         // TODO: invalidate only on update()
         invalidate();
     }
-
 
 
     public void setOtherLight(int other, byte[] pixels) {
@@ -217,8 +216,8 @@ public class BoardView extends View {
                     int g = (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF);
                     int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
                     //if (isBoardPixel(x, y)) {
-                        paint.setColor(Color.argb(255, r, g, b));
-                        mCanvas.drawCircle(15 + y * 5, 5 + x * 5, 2, paint);
+                    paint.setColor(Color.argb(255, r, g, b));
+                    mCanvas.drawCircle(15 + y * 5, 5 + x * 5, 2, paint);
                     //}
                     //System.out.println("setcolor " + mBoardScreen[(x * mBoardHeight + y) * 3]);
                 }
@@ -239,7 +238,7 @@ public class BoardView extends View {
         int newpixel = 0;
 
         //1  20-50->1-31
-        if (pixel >= 20 && pixel <=50)
+        if (pixel >= 20 && pixel <= 50)
             newpixel = pixel - 19;
         //2 83-127->76-32
         if (pixel >= 83 && pixel <= 127)
@@ -254,7 +253,7 @@ public class BoardView extends View {
         if (pixel >= 281 && pixel <= 350)
             newpixel = pixel - 281 + 203;
         //6 351-420->342-273
-        if (pixel >= 351 && pixel <=420)
+        if (pixel >= 351 && pixel <= 420)
             newpixel = 420 - pixel + 273;
         //7 423-488->343-408
         if (pixel >= 423 && pixel <= 488)

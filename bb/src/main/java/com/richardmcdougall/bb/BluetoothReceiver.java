@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Handler;
 
 
-
 public class BluetoothReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();
 
@@ -25,7 +24,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
 
-        BLog.d(TAG,"Bluetooth connected");
+        BLog.d(TAG, "Bluetooth connected");
 
         String action = intent.getAction();
 
@@ -46,7 +45,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     }
                 }, 3000);
             } catch (Exception e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
             }
         }
     }

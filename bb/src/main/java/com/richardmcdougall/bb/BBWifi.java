@@ -4,18 +4,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.net.wifi.ScanResult;
+
+import org.json.JSONArray;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteOrder;
 import java.util.List;
-
-import org.json.JSONArray;
-
 
 
 public class BBWifi {
@@ -33,7 +32,7 @@ public class BBWifi {
         public void onReceive(Context c, Intent intent) {
             if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                 mScanResults = mWiFiManager.getScanResults();
-                BLog.i(TAG,"wifi scan results" + mScanResults.toString());
+                BLog.i(TAG, "wifi scan results" + mScanResults.toString());
             }
         }
     };
@@ -47,7 +46,7 @@ public class BBWifi {
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
 
-            BLog.d(TAG,"Enabling Wifi...");
+            BLog.d(TAG, "Enabling Wifi...");
             setupWifi();
 
         }
@@ -77,29 +76,29 @@ public class BBWifi {
 
                                                  switch (extraWifiState) {
                                                      case WifiManager.WIFI_STATE_DISABLED:
-                                                         BLog.d(TAG,"WIFI STATE DISABLED");
+                                                         BLog.d(TAG, "WIFI STATE DISABLED");
                                                          break;
                                                      case WifiManager.WIFI_STATE_DISABLING:
-                                                         BLog.d(TAG,"WIFI STATE DISABLING");
+                                                         BLog.d(TAG, "WIFI STATE DISABLING");
                                                          break;
                                                      case WifiManager.WIFI_STATE_ENABLED:
-                                                         BLog.d(TAG,"WIFI STATE ENABLED");
+                                                         BLog.d(TAG, "WIFI STATE ENABLED");
                                                          int mfs = mWiFiManager.getWifiState();
-                                                         BLog.d(TAG,"Wifi state is " + mfs);
-                                                         BLog.d(TAG,"Checking wifi");
+                                                         BLog.d(TAG, "Wifi state is " + mfs);
+                                                         BLog.d(TAG, "Checking wifi");
                                                          if (checkWifiSSid(service.boardState.SSID) == false) {
-                                                             BLog.d(TAG,"adding wifi: " + service.boardState.SSID);
+                                                             BLog.d(TAG, "adding wifi: " + service.boardState.SSID);
                                                              addWifi(service.boardState.SSID, service.boardState.password);
                                                          }
-                                                         BLog.d(TAG,"Connecting to wifi");
+                                                         BLog.d(TAG, "Connecting to wifi");
                                                          if (!checkWifiOnAndConnected(mWiFiManager))
                                                              connectWifi(service.boardState.SSID);
                                                          break;
                                                      case WifiManager.WIFI_STATE_ENABLING:
-                                                         BLog.d(TAG,"WIFI STATE ENABLING");
+                                                         BLog.d(TAG, "WIFI STATE ENABLING");
                                                          break;
                                                      case WifiManager.WIFI_STATE_UNKNOWN:
-                                                         BLog.d(TAG,"WIFI STATE UNKNOWN");
+                                                         BLog.d(TAG, "WIFI STATE UNKNOWN");
                                                          break;
                                                  }
                                              }
@@ -118,7 +117,7 @@ public class BBWifi {
                 return false; // Not connected to an access point
             }
 
-            BLog.d(TAG,"Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(service.boardState.SSID));
+            BLog.d(TAG, "Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(service.boardState.SSID));
             if (!wifiInfo.getSSID().equals(fixWifiSSidAndPass(service.boardState.SSID))) {
                 ipAddress = null;
                 return false; // configured for wrong access point.
@@ -126,11 +125,11 @@ public class BBWifi {
 
             ipAddress = getWifiIpAddress(wifiMgr);
             if (ipAddress != null) {
-                BLog.d(TAG,"WIFI IP Address: " + ipAddress);
+                BLog.d(TAG, "WIFI IP Address: " + ipAddress);
                 // Text to speach is not set up yet at this time; move it to init loop.
                 //voice.speak("My WIFI IP is " + ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
             } else {
-                BLog.d(TAG,"Could not determine WIFI IP at this time");
+                BLog.d(TAG, "Could not determine WIFI IP at this time");
             }
 
             return true; // Connected to an access point
@@ -142,12 +141,12 @@ public class BBWifi {
 
     public void checkWifiReconnect() {
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
-            BLog.d(TAG,"Enabling Wifi...");
+            BLog.d(TAG, "Enabling Wifi...");
             if (mWiFiManager.setWifiEnabled(true) == false) {
-                BLog.d(TAG,"Failed to enable wifi");
+                BLog.d(TAG, "Failed to enable wifi");
             }
             if (mWiFiManager.reassociate() == false) {
-                BLog.d(TAG,"Failed to associate wifi");
+                BLog.d(TAG, "Failed to associate wifi");
             }
         }
     }
@@ -191,7 +190,7 @@ public class BBWifi {
             if (wifiList != null) {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
-                    BLog.d(TAG,"Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    BLog.d(TAG, "Found wifi:" + newSSID + " == " + aWifi + " ?");
                     if (aWifi.equals(newSSID)) {
                         return true;
                     }
@@ -212,10 +211,10 @@ public class BBWifi {
                 for (WifiConfiguration config : wifiList) {
                     String newSSID = config.SSID;
 
-                    BLog.d(TAG,"Found wifi:" + newSSID + " == " + aWifi + " ?");
+                    BLog.d(TAG, "Found wifi:" + newSSID + " == " + aWifi + " ?");
 
                     if (aWifi.equalsIgnoreCase(newSSID)) {
-                        BLog.d(TAG,"connecting wifi:" + newSSID);
+                        BLog.d(TAG, "connecting wifi:" + newSSID);
                         mWiFiManager.disconnect();
                         mWiFiManager.enableNetwork(config.networkId, true);
                         mWiFiManager.reconnect();
@@ -259,7 +258,7 @@ public class BBWifi {
         try {
             ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
         } catch (Exception ex) {
-            BLog.e(TAG,"Unable to get host address: " + ex.toString());
+            BLog.e(TAG, "Unable to get host address: " + ex.toString());
             ipAddressString = null;
         }
 
@@ -287,7 +286,7 @@ public class BBWifi {
             // Every 60 seconds check WIFI
             if (service.wifi.enableWifiReconnect) {
                 if (service.wifi != null) {
-                    BLog.d(TAG,"Check Wifi");
+                    BLog.d(TAG, "Check Wifi");
                     checkWifiReconnect();
                 }
             }

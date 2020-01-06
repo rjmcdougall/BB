@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 public class SimpleImage {
     public ByteBuffer mPixelBuf;
     public int width, height;
+
     public SimpleImage dup() {
         SimpleImage r = new SimpleImage();
         r.mPixelBuf = ByteBuffer.allocate(mPixelBuf.array().length);

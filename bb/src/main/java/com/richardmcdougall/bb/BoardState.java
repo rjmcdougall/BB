@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Date;
 
 
-
 public class BoardState {
     private String TAG = this.getClass().getSimpleName();
 
@@ -30,7 +29,7 @@ public class BoardState {
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
     public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
-   
+
     public String BOARD_ID = "";
     public String DEVICE_ID = "";
     public int address = -1;
@@ -60,12 +59,12 @@ public class BoardState {
             version = pinfo.versionCode;
             apkUpdatedDate = new Date(pinfo.lastUpdateTime);
         } catch (PackageManager.NameNotFoundException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
 
-        if(Build.MODEL.contains("rpi3"))
+        if (Build.MODEL.contains("rpi3"))
             platformType = PlatformType.rpi;
-        else if(Build.MODEL.contains("NanoPC-T4"))
+        else if (Build.MODEL.contains("NanoPC-T4"))
             platformType = PlatformType.npi;
         // else dragonboard
 
@@ -83,7 +82,7 @@ public class BoardState {
             BOARD_ID = DebugConfigs.OVERRIDE_PUBLIC_NAME;
         else {
             BOARD_ID = service.allBoards.getBOARD_ID(DEVICE_ID);
-            if(BOARD_ID=="")
+            if (BOARD_ID == "")
                 BOARD_ID = DEVICE_ID;
         }
 
@@ -118,7 +117,7 @@ public class BoardState {
             state.put("p", service.boardState.password);
 
         } catch (Exception e) {
-            BLog.e(TAG,"Could not get state: " + e.getMessage());
+            BLog.e(TAG, "Could not get state: " + e.getMessage());
         }
         return state;
     }
@@ -133,7 +132,7 @@ public class BoardState {
             setSSISAndPassword(wifiSettings);
 
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return false;
         }
         return true;
@@ -148,10 +147,10 @@ public class BoardState {
             SSID = wifiSettings.getString("SSID");
             password = wifiSettings.getString("password");
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return false;
         } catch (IOException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return false;
         }
 
@@ -167,18 +166,18 @@ public class BoardState {
             try {
                 is = new FileInputStream(f);
             } catch (FileNotFoundException e) {
-                BLog.e(TAG,e.getMessage());
+                BLog.e(TAG, e.getMessage());
             }
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             StringBuilder sb = new StringBuilder(buf.readLine());
-            BLog.d(TAG,"contents of wifi.json: " + sb.toString());
+            BLog.d(TAG, "contents of wifi.json: " + sb.toString());
             JSONObject j = new JSONObject(sb.toString());
 
             SSID = j.getString("SSID");
             password = j.getString("password");
 
         } catch (Throwable e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
     }
 

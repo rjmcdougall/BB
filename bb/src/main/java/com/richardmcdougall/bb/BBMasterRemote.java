@@ -6,7 +6,7 @@ public class BBMasterRemote {
 
     private BBService service = null;
 
-    BBMasterRemote(BBService service){
+    BBMasterRemote(BBService service) {
         this.service = service;
     }
 

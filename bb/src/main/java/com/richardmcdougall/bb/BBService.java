@@ -1,10 +1,10 @@
 package com.richardmcdougall.bb;
 
-import android.util.Log;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -14,11 +14,6 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.UUID;
-
-
-
-import android.os.Build;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
@@ -85,7 +80,7 @@ public class BBService extends Service {
 
             super.onCreate();
 
-            BLog.i(TAG,"onCreate");
+            BLog.i(TAG, "onCreate");
 
             //Thread.sleep(500); // player thread must fully start before supervisor. dkw
             InitClock();
@@ -96,30 +91,30 @@ public class BBService extends Service {
             BLog.i(TAG, "Current Clock: " + GetCurrentClock());
             BLog.i(TAG, "startElapsedTime: " + startElapsedTime);
 
-            BLog.i(TAG,"Build Manufacturer " + Build.MANUFACTURER);
-            BLog.i(TAG,"Build Model " + Build.MODEL);
-            BLog.i(TAG,"Build Serial " + Build.SERIAL);
+            BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
+            BLog.i(TAG, "Build Model " + Build.MODEL);
+            BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
 
             allBoards = new AllBoards(this);
             allBoards.Run();
 
-            while(allBoards.dataBoards==null){
+            while (allBoards.dataBoards == null) {
                 BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
                 Thread.sleep(2000);
             }
             boardState = new BoardState(this);
 
 
-            BLog.i(TAG,"State Version " + boardState.version);
-            BLog.i(TAG,"State APK Updated Date " + boardState.apkUpdatedDate);
-            BLog.i(TAG,"State Address " + boardState.address);
-            BLog.i(TAG,"State SSID " + boardState.SSID);
-            BLog.i(TAG,"State Password " + boardState.password);
-            BLog.i(TAG,"State Mode " + boardState.currentVideoMode);
-            BLog.i(TAG,"State BOARD_ID " + boardState.BOARD_ID);
-            BLog.i(TAG,"State Tyoe " + boardState.boardType);
-            BLog.i(TAG,"Display Teensy " + boardState.displayTeensy);
+            BLog.i(TAG, "State Version " + boardState.version);
+            BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);
+            BLog.i(TAG, "State Address " + boardState.address);
+            BLog.i(TAG, "State SSID " + boardState.SSID);
+            BLog.i(TAG, "State Password " + boardState.password);
+            BLog.i(TAG, "State Mode " + boardState.currentVideoMode);
+            BLog.i(TAG, "State BOARD_ID " + boardState.BOARD_ID);
+            BLog.i(TAG, "State Tyoe " + boardState.boardType);
+            BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -149,18 +144,18 @@ public class BBService extends Service {
                     if (status == TextToSpeech.SUCCESS) {
                         if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                             voice.setLanguage(Locale.US);
-                        BLog.i(TAG,"Text To Speech ready...");
+                        BLog.i(TAG, "Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         voice.setSpeechRate((float) 0.9);
                     } else if (status == TextToSpeech.ERROR) {
-                        BLog.i(TAG,"Sorry! Text To Speech failed...");
+                        BLog.i(TAG, "Sorry! Text To Speech failed...");
                     }
                 }
             });
 
             voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
 
-            if(boardState.platformType== BoardState.PlatformType.rpi){
+            if (boardState.platformType == BoardState.PlatformType.rpi) {
                 voice.speak("Raspberry PI detected", TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
                 if (wifi.ipAddress != null) {
                     voice.speak("My WiFi IP is: " + wifi.ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
@@ -183,7 +178,7 @@ public class BBService extends Service {
             boardVisualization = new BoardVisualization(this);
             boardVisualization.Run();
 
-            BLog.i(TAG,"Setting initial visualization mode: " + boardState.currentVideoMode);
+            BLog.i(TAG, "Setting initial visualization mode: " + boardState.currentVideoMode);
             boardVisualization.setMode(boardState.currentVideoMode);
 
             musicPlayer = new MusicPlayer(this);
@@ -219,7 +214,7 @@ public class BBService extends Service {
             // mFavorites = new Favorites(context, this, radio, gps, iotClient);
 
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
     }
 
@@ -228,7 +223,7 @@ public class BBService extends Service {
      */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        BLog.i(TAG,"onStartCommand");
+        BLog.i(TAG, "onStartCommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -237,7 +232,7 @@ public class BBService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        BLog.i(TAG,"onBind");
+        BLog.i(TAG, "onBind");
         return mBinder;
     }
 
@@ -246,7 +241,7 @@ public class BBService extends Service {
      */
     @Override
     public boolean onUnbind(Intent intent) {
-        BLog.i(TAG,"onUnbind");
+        BLog.i(TAG, "onUnbind");
         return mAllowRebind;
     }
 
@@ -255,7 +250,7 @@ public class BBService extends Service {
      */
     @Override
     public void onRebind(Intent intent) {
-        BLog.i(TAG,"onRebind");
+        BLog.i(TAG, "onRebind");
     }
 
     /**
@@ -264,7 +259,7 @@ public class BBService extends Service {
     @Override
     public void onDestroy() {
 
-        BLog.i(TAG,"onDesonDestroy");
+        BLog.i(TAG, "onDesonDestroy");
         voice.shutdown();
     }
 
@@ -291,11 +286,11 @@ public class BBService extends Service {
     public class BoardCallback implements BurnerBoard.BoardEvents {
 
         public void BoardId(String str) {
-            BLog.i(TAG,"ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
+            BLog.i(TAG, "ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
         }
 
         public void BoardMode(int mode) {
-            BLog.i(TAG,"ardunio mode callback:" + boardState.currentVideoMode);
+            BLog.i(TAG, "ardunio mode callback:" + boardState.currentVideoMode);
         }
     }
 }

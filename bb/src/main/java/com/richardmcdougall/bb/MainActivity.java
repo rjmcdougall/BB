@@ -1,28 +1,28 @@
 package com.richardmcdougall.bb;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.app.Activity;
-import android.view.WindowManager;
 import android.view.InputDevice;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.TextView;
-import android.content.BroadcastReceiver;
 import android.widget.Toast;
-import android.app.admin.DevicePolicyManager;
-import android.app.ActivityManager;
-import android.content.ComponentName;
-import android.content.pm.PackageManager;
-import android.os.BatteryManager;
-import android.provider.Settings;
 
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
@@ -52,9 +52,9 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             if (resultCode == RESULT_OK) {
                 switch (visualId) {
                     case 13:
-                        byte r = (byte)intent.getIntExtra("arg1", 0);
-                        byte g = (byte)intent.getIntExtra("arg2", 0);
-                        byte b = (byte)intent.getIntExtra("arg3", 0);
+                        byte r = (byte) intent.getIntExtra("arg1", 0);
+                        byte g = (byte) intent.getIntExtra("arg2", 0);
+                        byte b = (byte) intent.getIntExtra("arg3", 0);
                         mBoardView.fillScreen(r, g, b);
                         break;
                     case 8:
@@ -71,13 +71,13 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                         break;
                     case 14:
                         int row = intent.getIntExtra("arg1", 0);
-                        byte [] pixels = intent.getByteArrayExtra("arg2").clone();
+                        byte[] pixels = intent.getByteArrayExtra("arg2").clone();
                         //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
                         mBoardView.setRow(row, pixels);
                         break;
                     case 15:
                         int other = intent.getIntExtra("arg1", 0);
-                        byte [] otherPixels = intent.getByteArrayExtra("arg2").clone();
+                        byte[] otherPixels = intent.getByteArrayExtra("arg2").clone();
                         mBoardView.setOtherLight(other, otherPixels);
                         break;
                     default:
@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         this.sendBroadcast(closeDialog);
 
-        ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
 
         setupPermissions(Manifest.permission.RECORD_AUDIO, 1);

@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 
-
 public class MusicPlayerSupervisor {
     private String TAG = this.getClass().getSimpleName();
 
@@ -16,7 +15,7 @@ public class MusicPlayerSupervisor {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB Music Player");
-                BLog.i(TAG,"Starting Music Supervisor");
+                BLog.i(TAG, "Starting Music Supervisor");
                 SupervisorThread();
             }
         });

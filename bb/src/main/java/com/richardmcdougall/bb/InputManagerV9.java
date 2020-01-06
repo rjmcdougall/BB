@@ -105,11 +105,11 @@ public class InputManagerV9 implements InputManagerCompat {
         // collection of watched input devices
         int[] activeDevices = InputDevice.getDeviceIds();
         long time = SystemClock.elapsedRealtime();
-        for ( int id : activeDevices ) {
+        for (int id : activeDevices) {
             long[] lastContact = mDevices.get(id);
-            if ( null == lastContact ) {
+            if (null == lastContact) {
                 // we have a new device
-                mDevices.put(id, new long[] { time });
+                mDevices.put(id, new long[]{time});
             }
         }
         return activeDevices;
@@ -152,7 +152,7 @@ public class InputManagerV9 implements InputManagerCompat {
         }
 
         static DeviceEvent getDeviceEvent(int messageType, int id,
-                InputDeviceListener listener) {
+                                          InputDeviceListener listener) {
             DeviceEvent curChanged = sEventQueue.poll();
             if (null == curChanged) {
                 curChanged = new DeviceEvent();

@@ -7,7 +7,6 @@ import org.json.JSONObject;
 import java.io.File;
 
 
-
 public class AllBoards {
 
     private String TAG = this.getClass().getSimpleName();
@@ -46,12 +45,12 @@ public class AllBoards {
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataBoards = dir;
-                    BLog.d(TAG,"Dir " + origDir);
+                    BLog.d(TAG, "Dir " + origDir);
                 }
             }
 
         } catch (Throwable er) {
-            BLog.e(TAG,er.getMessage());
+            BLog.e(TAG, er.getMessage());
         }
     }
 
@@ -59,7 +58,7 @@ public class AllBoards {
         JSONArray boards = dataBoards;
         JSONArray boards2 = null;
         if (boards == null) {
-            BLog.d(TAG,"Could not get boards directory (null)");
+            BLog.d(TAG, "Could not get boards directory (null)");
         }
         if (boards != null) {
             try {
@@ -75,7 +74,7 @@ public class AllBoards {
                     if (a.has("type")) a.remove("type");
                 }
             } catch (Exception e) {
-                BLog.d(TAG,"Could not get boards directory: " + e.getMessage());
+                BLog.d(TAG, "Could not get boards directory: " + e.getMessage());
             }
         }
         return boards2;
@@ -89,7 +88,7 @@ public class AllBoards {
         try {
 
             if (dataBoards == null) {
-                BLog.d(TAG,"Could not find board address data");
+                BLog.d(TAG, "Could not find board address data");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -98,13 +97,13 @@ public class AllBoards {
                     }
                 }
             }
-            BLog.d(TAG,"Address " + String.valueOf(myAddress));
+            BLog.d(TAG, "Address " + String.valueOf(myAddress));
             return myAddress;
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return myAddress;
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return myAddress;
         }
 
@@ -118,7 +117,7 @@ public class AllBoards {
         try {
 
             if (dataBoards == null) {
-                BLog.d(TAG,"Could not find board address data");
+                BLog.d(TAG, "Could not find board address data");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -128,13 +127,13 @@ public class AllBoards {
                     }
                 }
             }
-            BLog.d(TAG,"Address " + String.valueOf(displayTeensy));
+            BLog.d(TAG, "Address " + String.valueOf(displayTeensy));
             return displayTeensy;
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return displayTeensy;
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return displayTeensy;
         }
 
@@ -148,7 +147,7 @@ public class AllBoards {
         try {
 
             if (dataBoards == null) {
-                BLog.d(TAG,"Could not find board name data");
+                BLog.d(TAG, "Could not find board name data");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -158,13 +157,13 @@ public class AllBoards {
                 }
             }
 
-            BLog.d(TAG,"Address " + address + " To Name " + boardId);
+            BLog.d(TAG, "Address " + address + " To Name " + boardId);
             return boardId;
 
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
 
         return boardId;
@@ -178,7 +177,7 @@ public class AllBoards {
         try {
 
             if (dataBoards == null) {
-                BLog.d(TAG,"Could not find board color data");
+                BLog.d(TAG, "Could not find board color data");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -188,13 +187,13 @@ public class AllBoards {
                 }
             }
 
-            BLog.d(TAG,"Color " + boardColor);
+            BLog.d(TAG, "Color " + boardColor);
             return boardColor;
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return boardColor;
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return boardColor;
         }
     }
@@ -207,7 +206,7 @@ public class AllBoards {
         try {
 
             if (dataBoards == null) {
-                BLog.d(TAG,"Could not find board type");
+                BLog.d(TAG, "Could not find board type");
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
@@ -216,12 +215,12 @@ public class AllBoards {
                     }
                 }
             }
-            BLog.d(TAG,"Board Type " + String.valueOf(type));
+            BLog.d(TAG, "Board Type " + String.valueOf(type));
             return type;
         } catch (JSONException e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         } catch (Exception e) {
-            BLog.e(TAG,e.getMessage());
+            BLog.e(TAG, e.getMessage());
         } finally {
             return type;
         }
@@ -231,21 +230,21 @@ public class AllBoards {
     String getBOARD_ID(String deviceID) {
         String name = deviceID;
         try {
-            for (int i = 0; i <  dataBoards.length(); i++) {
-                JSONObject obj =  dataBoards.getJSONObject(i);
+            for (int i = 0; i < dataBoards.length(); i++) {
+                JSONObject obj = dataBoards.getJSONObject(i);
 
                 if (obj.has("bootName")) {
                     if (obj.getString("bootName").equals(deviceID)) {
-                        BLog.d(TAG,"Found bootName: " + deviceID);
+                        BLog.d(TAG, "Found bootName: " + deviceID);
                         name = obj.getString("name");
 
-                        BLog.d(TAG,"Found publicName: " + name);
+                        BLog.d(TAG, "Found publicName: " + name);
                         return name;
                     }
                 }
             }
 
-            BLog.d(TAG,"No special publicName found for: " + deviceID);
+            BLog.d(TAG, "No special publicName found for: " + deviceID);
         } catch (JSONException e) {
             BLog.e(TAG, "Could not find publicName for: " + deviceID + " " + e.toString());
         }
@@ -260,13 +259,13 @@ public class AllBoards {
 
             boolean returnValue = true;
 
-            BLog.d(TAG,DIRECTORY_URL);
+            BLog.d(TAG, DIRECTORY_URL);
 
             long ddsz = -1;
             ddsz = FileHelpers.DownloadURL(DIRECTORY_URL, BOARDS_JSON_TEMP2_FILENAME, "Boards JSON", onProgressCallback, service.filesDir);
 
             if (ddsz < 0) {
-                BLog.d(TAG,"Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
+                BLog.d(TAG, "Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
                 returnValue = false;
             } else {
                 new File(service.filesDir, BOARDS_JSON_TEMP2_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_TMP_FILENAME));
@@ -274,14 +273,14 @@ public class AllBoards {
                 String dirTxt = FileHelpers.LoadTextFile(BOARDS_JSON_TMP_FILENAME, service.filesDir);
                 JSONArray dir = new JSONArray(dirTxt);
 
-                BLog.d(TAG,"Downloaded Boards JSON: " + dirTxt);
+                BLog.d(TAG, "Downloaded Boards JSON: " + dirTxt);
 
                 if (onProgressCallback != null) {
                     if (dataBoards == null || dir.length() != dataBoards.length()) {
-                        BLog.d(TAG,"A new board was discovered in Boards JSON.");
+                        BLog.d(TAG, "A new board was discovered in Boards JSON.");
                         onProgressCallback.onVoiceCue("New Boards available for syncing.");
                     } else
-                        BLog.d(TAG,"A minor change was discovered in Boards JSON.");
+                        BLog.d(TAG, "A minor change was discovered in Boards JSON.");
                 }
 
                 // got new boards.  Update!
@@ -292,7 +291,7 @@ public class AllBoards {
 
                 if (dataBoards != null)
                     if (dir.toString().length() == dataBoards.toString().length()) {
-                        BLog.d(TAG,"No Changes to Boards JSON.");
+                        BLog.d(TAG, "No Changes to Boards JSON.");
                         returnValue = true;
                     }
             }
@@ -300,10 +299,10 @@ public class AllBoards {
 
             return returnValue;
         } catch (JSONException jse) {
-            BLog.e(TAG,jse.getMessage());
+            BLog.e(TAG, jse.getMessage());
             return false;
         } catch (Throwable th) {
-            BLog.e(TAG,th.getMessage());
+            BLog.e(TAG, th.getMessage());
             return false;
         }
     }

@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -17,10 +16,9 @@ import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
-
-
 
 import org.json.JSONObject;
 
@@ -35,8 +33,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import android.os.Handler;
 
 /**
  * Created by rmc on 2/19/18.
@@ -73,20 +69,20 @@ public class BluetoothLEServer {
 
         // We can't continue without proper Bluetooth support
         if (bluetoothAdapter == null) {
-            BLog.d(TAG,"Bluetooth is not supported");
+            BLog.d(TAG, "Bluetooth is not supported");
             return;
         }
 
         if (!service.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            BLog.d(TAG,"Bluetooth LE is not supported");
+            BLog.d(TAG, "Bluetooth LE is not supported");
             return;
         }
 
         if (!bluetoothAdapter.isEnabled()) {
-            BLog.d(TAG,"Bluetooth is currently disabled...enabling");
+            BLog.d(TAG, "Bluetooth is currently disabled...enabling");
             bluetoothAdapter.enable();
         } else {
-            BLog.d(TAG,"Bluetooth enabled...starting services");
+            BLog.d(TAG, "Bluetooth enabled...starting services");
             // Start the server
             // Advertising will be called from the start server callback
         }
@@ -147,7 +143,7 @@ public class BluetoothLEServer {
             public void run() {
                 try {
                     Thread.currentThread().setName("Bluetooth TX Response.");
-                    BLog.d(TAG,"Creating Thread to service Bluetooth tx response");
+                    BLog.d(TAG, "Creating Thread to service Bluetooth tx response");
 
                     ByteArrayInputStream buffer = new ByteArrayInputStream(data);
                     byte[] txBuf = new byte[20];
@@ -168,7 +164,7 @@ public class BluetoothLEServer {
                         //l("notify: " + status);
                     }
                 } catch (Exception e) {
-                    BLog.e(TAG,"Bluetooth tx response failed.");
+                    BLog.e(TAG, "Bluetooth tx response failed.");
                 }
                 return;
             }
@@ -185,7 +181,7 @@ public class BluetoothLEServer {
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
         mBluetoothLeAdvertiser = bluetoothAdapter.getBluetoothLeAdvertiser();
         if (mBluetoothLeAdvertiser == null) {
-            BLog.d(TAG,"Failed to create advertiser");
+            BLog.d(TAG, "Failed to create advertiser");
             return;
         }
 
@@ -205,7 +201,7 @@ public class BluetoothLEServer {
         mBluetoothLeAdvertiser
                 .startAdvertising(settings, data, mAdvertiseCallback);
 
-        BLog.d(TAG,"LE Advertising Start");
+        BLog.d(TAG, "LE Advertising Start");
     }
 
     /**
@@ -214,7 +210,7 @@ public class BluetoothLEServer {
     private void stopAdvertising() {
         if (mBluetoothLeAdvertiser == null) return;
 
-        BLog.d(TAG,"LE Advertising Stop");
+        BLog.d(TAG, "LE Advertising Stop");
         mBluetoothLeAdvertiser.stopAdvertising(mAdvertiseCallback);
     }
 
@@ -225,7 +221,7 @@ public class BluetoothLEServer {
     private void startServer() {
         mBluetoothGattServer = mBluetoothManager.openGattServer(service, mGattServerCallback);
         if (mBluetoothGattServer == null) {
-            BLog.d(TAG,"Unable to create GATT server");
+            BLog.d(TAG, "Unable to create GATT server");
             return;
         }
         // Add service to allow remote service discovery
@@ -255,13 +251,13 @@ public class BluetoothLEServer {
     private AdvertiseCallback mAdvertiseCallback = new AdvertiseCallback() {
         @Override
         public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-            BLog.d(TAG,"LE Advertise Started: " + settingsInEffect.toString());
+            BLog.d(TAG, "LE Advertise Started: " + settingsInEffect.toString());
         }
 
         @Override
         public void onStartFailure(int errorCode) {
 
-            BLog.e(TAG,"LE Advertise Failed: " + errorCode);
+            BLog.e(TAG, "LE Advertise Failed: " + errorCode);
         }
     };
 
@@ -284,7 +280,7 @@ public class BluetoothLEServer {
 
         @Override
         public void onServiceAdded(int service, BluetoothGattService gattService) {
-            BLog.d(TAG,"Gattserver onServiceAdded");
+            BLog.d(TAG, "Gattserver onServiceAdded");
             // We have only one service (serial), so it's save to start advertising
             startAdvertising();
         }
@@ -294,7 +290,7 @@ public class BluetoothLEServer {
             super.onConnectionStateChange(device, status, newState);
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
                 //stopAdvertising();
-                BLog.d(TAG,"BluetoothDevice CONNECTED: " + device);
+                BLog.d(TAG, "BluetoothDevice CONNECTED: " + device);
                 try {
                     // Setup tx buffer
                     if (!mTransmitInput.containsKey(device)) {
@@ -309,16 +305,16 @@ public class BluetoothLEServer {
                         mReceiveBuffers.put(device, new ByteArrayOutputStream());
                     }
                 } catch (Exception e) {
-                    BLog.e(TAG,"write buffer pipe failed: " + e.getMessage());
+                    BLog.e(TAG, "write buffer pipe failed: " + e.getMessage());
                 }
             } else if (newState == android.bluetooth.BluetoothProfile.STATE_DISCONNECTED) {
-                BLog.d(TAG,"BluetoothDevice DISCONNECTED: " + device);
+                BLog.d(TAG, "BluetoothDevice DISCONNECTED: " + device);
                 //Remove device from any active subscriptions
                 mRegisteredDevices.remove(device);
                 stopAdvertising();
                 startAdvertising();
             } else {
-                BLog.d(TAG,"BluetoothDevice State Change: " + device + " status: " + status +
+                BLog.d(TAG, "BluetoothDevice State Change: " + device + " status: " + status +
                         " newstate:" + newState);
             }
         }
@@ -331,10 +327,10 @@ public class BluetoothLEServer {
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
                                                 BluetoothGattCharacteristic characteristic) {
             long now = System.currentTimeMillis();
-            BLog.d(TAG,"Read characteristic...");
+            BLog.d(TAG, "Read characteristic...");
             if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
                 // We notified the client that there is Tx data available, now they are reading it
-                BLog.d(TAG,"Client reads our Tx data");
+                BLog.d(TAG, "Client reads our Tx data");
                 PipedInputStream TxStream = mTransmitInput.get(device);
                 if (TxStream != null) {
                     try {
@@ -347,13 +343,13 @@ public class BluetoothLEServer {
                                 0,
                                 sendBuf);
                     } catch (Exception e) {
-                        BLog.e(TAG,"could not read tx bytes: " + e.getMessage());
+                        BLog.e(TAG, "could not read tx bytes: " + e.getMessage());
                     }
                 } else {
-                    BLog.d(TAG,"No tx buffer stream");
+                    BLog.d(TAG, "No tx buffer stream");
                 }
             } else {
-                BLog.d(TAG,"read of undefined characteristic: " + characteristic.getUuid());
+                BLog.d(TAG, "read of undefined characteristic: " + characteristic.getUuid());
             }
         }
 
@@ -365,9 +361,9 @@ public class BluetoothLEServer {
                                                  boolean responseNeeded,
                                                  int offset,
                                                  byte[] value) {
-            BLog.d(TAG,"Write characteristic...");
+            BLog.d(TAG, "Write characteristic...");
             if (RX_CHAR_UUID.equals(characteristic.getUuid())) {
-                BLog.d(TAG,"Client wrote us Rx data: " + new String(value));
+                BLog.d(TAG, "Client wrote us Rx data: " + new String(value));
                 // Acknowledge or they will disconnect
                 if (responseNeeded) {
                     mBluetoothGattServer.sendResponse(device,
@@ -379,7 +375,7 @@ public class BluetoothLEServer {
                 processReceive(device, value);
             } else {
                 // Invalid characteristic
-                BLog.d(TAG,"Invalid Characteristic Write: " + characteristic.getUuid());
+                BLog.d(TAG, "Invalid Characteristic Write: " + characteristic.getUuid());
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_FAILURE,
@@ -393,7 +389,7 @@ public class BluetoothLEServer {
         public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
                                             BluetoothGattDescriptor descriptor) {
             if (CCCD.equals(descriptor.getUuid())) {
-                BLog.d(TAG,"Tx descriptor read, offset: " + offset);
+                BLog.d(TAG, "Tx descriptor read, offset: " + offset);
                 byte[] returnValue;
                 if (mRegisteredDevices.contains(device)) {
                     returnValue = BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
@@ -408,7 +404,7 @@ public class BluetoothLEServer {
                         0,
                         returnValue);
             } else {
-                BLog.d(TAG,"Unknown descriptor read request");
+                BLog.d(TAG, "Unknown descriptor read request");
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_FAILURE,
@@ -422,7 +418,7 @@ public class BluetoothLEServer {
                                              BluetoothGattDescriptor descriptor,
                                              boolean preparedWrite, boolean responseNeeded,
                                              int offset, byte[] value) {
-            BLog.d(TAG,"Tx descriptor write " + descriptor.toString() + ", offset: " + offset + ", " + new String(value));
+            BLog.d(TAG, "Tx descriptor write " + descriptor.toString() + ", offset: " + offset + ", " + new String(value));
 
             if (CCCD.equals(descriptor.getUuid())) {
                 byte[] returnValue;
@@ -439,7 +435,7 @@ public class BluetoothLEServer {
                         0,
                         returnValue);
             } else {
-                BLog.d(TAG,"Unknown descriptor write request");
+                BLog.d(TAG, "Unknown descriptor write request");
                 mBluetoothGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_FAILURE,
@@ -455,7 +451,7 @@ public class BluetoothLEServer {
             boolean success = false;
             ByteArrayOutputStream rxBuffer = mReceiveBuffers.get(device);
             if (rxBuffer == null) {
-                BLog.d(TAG,"No rx buffer");
+                BLog.d(TAG, "No rx buffer");
                 return false;
             }
             for (byte oneChar : bytes) {
@@ -472,7 +468,7 @@ public class BluetoothLEServer {
                     try {
                         rxBuffer.write(oneChar);
                     } catch (Exception e) {
-                        BLog.e(TAG,"could not write bytes: " + e.getMessage());
+                        BLog.e(TAG, "could not write bytes: " + e.getMessage());
                     }
                 }
             }
@@ -482,18 +478,18 @@ public class BluetoothLEServer {
         // Checks and extracts the commmand in JSON format from the string
         JSONObject extractCommand(String cmd) {
             JSONObject command = null;
-            BLog.d(TAG,"Received JSON: <" + cmd + ">");
+            BLog.d(TAG, "Received JSON: <" + cmd + ">");
             try {
                 command = new JSONObject(cmd);
             } catch (Exception e) {
-                BLog.e(TAG,"Could not parse message");
+                BLog.e(TAG, "Could not parse message");
                 return null;
             }
             if (!command.has("command")) {
-                BLog.d(TAG,"Command has no command field");
+                BLog.d(TAG, "Command has no command field");
                 return null;
             }
-            BLog.d(TAG,"Got command: " + command);
+            BLog.d(TAG, "Got command: " + command);
             return (command);
         }
 
@@ -501,13 +497,13 @@ public class BluetoothLEServer {
         // TODO: do we run these on the calling thread, or a separate thread?
         boolean processCommand(BluetoothDevice device, JSONObject cmdJson) {
 
-            BLog.d(TAG,"callbackFuncs = " + callbackFuncs.toString());
-            BLog.d(TAG,"callbackCommands = " + callbackCommands.toString());
+            BLog.d(TAG, "callbackFuncs = " + callbackFuncs.toString());
+            BLog.d(TAG, "callbackCommands = " + callbackCommands.toString());
 
             Iterator it = callbackCommands.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry callbackCmd = (Map.Entry) it.next();
-                BLog.d(TAG,"checking callback: " + callbackCmd.getKey() + " = " + callbackCmd.getValue());
+                BLog.d(TAG, "checking callback: " + callbackCmd.getKey() + " = " + callbackCmd.getValue());
                 try {
                     String thisCallbackCmd = (String) callbackCmd.getValue();
                     int thisCallbackId = (int) callbackCmd.getKey();
@@ -516,14 +512,14 @@ public class BluetoothLEServer {
                     if (requestedCommand.equals(thisCallbackCmd)) {
                         BLECallback bcb = callbackFuncs.get(thisCallbackId);
                         if (bcb == null) {
-                            BLog.d(TAG,"Could not find callback for id: " + thisCallbackId);
+                            BLog.d(TAG, "Could not find callback for id: " + thisCallbackId);
                             return false;
                         }
                         runOnServiceThread(() -> bcb.OnAction("test",
                                 device, requestedCommand, cmdJson));
                     }
                 } catch (Exception e) {
-                    BLog.e(TAG,"error on bluetooth command: " + e.getMessage());
+                    BLog.e(TAG, "error on bluetooth command: " + e.getMessage());
                     return false;
                 }
                 //it.remove(); // avoids a ConcurrentModificationException

@@ -2,15 +2,16 @@ package com.richardmcdougall.bb;
 
 import android.os.Handler;
 import android.util.Log;
+
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
+
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
-import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 
 
@@ -98,7 +99,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 Serial.write(sendBuffer.toByteArray(), 500);
                 sendBuffer.reset();
             } catch (Exception e) {
-                BLog.e(TAG,"Write Failed: " + e.toString());
+                BLog.e(TAG, "Write Failed: " + e.toString());
             }
         }
     }
@@ -518,11 +519,11 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
                 sendBuffer.write(escape_character);
             }
             if (ch == 0) {
-                sendBuffer.write((byte)1);
+                sendBuffer.write((byte) 1);
             } else if (ch == 1) {
                 //sendBuffer.write(escape_character);
                 //sendBuffer.write((byte)'1');
-                sendBuffer.write((byte)2);
+                sendBuffer.write((byte) 2);
             } else {
                 sendBuffer.write(ch);
             }
@@ -537,10 +538,10 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             printByte(escape_character);
         }
         if (ch == 0) {
-            printByte((byte)1);
+            printByte((byte) 1);
         } else if (ch == 1) {
             printByte(escape_character);
-            printByte((byte)'1');
+            printByte((byte) '1');
         } else {
             printByte(ch);
         }

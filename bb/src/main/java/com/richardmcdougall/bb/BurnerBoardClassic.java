@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 
-
 import java.nio.IntBuffer;
 
 
@@ -86,7 +85,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            BLog.d(TAG,"getBatteryLevel: " + service.boardState.batteryLevel);
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -114,7 +113,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     //    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
     public boolean setModeRetired(int mode) {
 
-        BLog.d(TAG,"sendCommand: 4," + mode);
+        BLog.d(TAG, "sendCommand: 4," + mode);
         if (mListener == null) {
             initUsb();
         }
@@ -176,7 +175,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        BLog.d(TAG,"sendCommand: 9");
+        BLog.d(TAG, "sendCommand: 9");
         if (mListener != null) {
             mListener.sendCmd(9);
             mListener.sendCmdEnd();
@@ -205,7 +204,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
     public int getMode() {
 
-        BLog.d(TAG,"sendCommand: 12");
+        BLog.d(TAG, "sendCommand: 12");
         int mode;
 
         if (mListener != null) {
@@ -500,7 +499,7 @@ public class BurnerBoardClassic extends BurnerBoard {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = java.lang.System.currentTimeMillis();
 
-            BLog.d(TAG,"Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+            BLog.d(TAG, "Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
