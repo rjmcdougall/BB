@@ -30,6 +30,7 @@ public class BoardState {
     // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
     public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
     public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
+   
     public String BOARD_ID = "";
     public String DEVICE_ID = "";
     public int address = -1;
@@ -49,6 +50,7 @@ public class BoardState {
     public TeensyType displayTeensy = BoardState.TeensyType.teensy3;
     public BoardType boardType = null;
     public String serial = Build.SERIAL;
+    public PlatformType platformType = PlatformType.dragonboard;
 
     BoardState(BBService service) {
         this.service = service;
@@ -61,13 +63,19 @@ public class BoardState {
             BLog.e(TAG,e.getMessage());
         }
 
-        if (kIsRPI) {
+        if(Build.MODEL.contains("rpi3"))
+            platformType = PlatformType.rpi;
+        else if(Build.MODEL.contains("NanoPC-T4"))
+            platformType = PlatformType.npi;
+        // else dragonboard
+
+        if (platformType == PlatformType.rpi) {
             DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                     serial.length());
-        } else if (kIsNano) {
+        } else if (platformType == PlatformType.npi) {
             DEVICE_ID = "npi" + serial.substring(Math.max(serial.length() - 5, 0),
                     serial.length());
-        } else {
+        } else { // dragonboard
             DEVICE_ID = Build.MODEL;
         }
 
@@ -202,6 +210,23 @@ public class BoardState {
         private String stringValue;
 
         BoardType(final String toString) {
+            stringValue = toString;
+        }
+
+        @Override
+        public String toString() {
+            return stringValue;
+        }
+    }
+
+    public enum PlatformType {
+        rpi("rpi"),
+        npi("npi"),
+        dragonboard("dragonboard");
+
+        private String stringValue;
+
+        PlatformType(final String toString) {
             stringValue = toString;
         }
 

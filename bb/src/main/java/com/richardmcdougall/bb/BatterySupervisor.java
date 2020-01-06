@@ -11,12 +11,17 @@ public class BatterySupervisor {
     private BBService service = null;
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
-    private boolean enableBatteryMonitoring = !BoardState.kIsRPI; // Keep On For IsNano
-    private boolean enableIoTReporting = !BoardState.kIsRPI; // Keep On For IsNano
+    private boolean enableBatteryMonitoring = true;
+    private boolean enableIoTReporting = true;
     private int iotReportEveryNSeconds = 10;
 
     BatterySupervisor(BBService service) {
         this.service = service;
+
+        if(!(service.boardState.platformType == BoardState.PlatformType.rpi)){
+            enableBatteryMonitoring = false;
+            enableIoTReporting = false;
+        }
     }
 
     void Run() {
