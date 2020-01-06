@@ -159,7 +159,7 @@ public class BoardVisualization {
 
         try {
             if (mVisualizer != null) {
-                //mVisualizer.release();
+                mVisualizer.release();
             }
             mVisualizer = new Visualizer(audioSessionId);
             synchronized (mVisualizer) {
@@ -172,7 +172,6 @@ public class BoardVisualization {
             }
         } catch (Exception e) {
             BLog.e(TAG,"Error enabling visualizer: " + e.getMessage());
-            //System.out.println("Error enabling visualizer:" + e.getMessage());
             return;
         }
         BLog.d(TAG,"Enabled visualizer with " + vSize + " bytes");

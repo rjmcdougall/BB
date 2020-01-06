@@ -11,42 +11,6 @@ public class DebugConfigs {
     // works with BoardType classic and azul to set the screen grid for video display
     public static boolean DISPLAY_VIDEO_IN_APP = false;
 
-    // lots of logging for decoder. LOTS
-    public static boolean VIDEO_DECODER_VERBOSE_LOGGING = false;
-
-    static final ArrayList<String> ExcludeFromLogs = new ArrayList<String>() {{
-//        add("BoardState");
-//        add("BBService");
-//        add("MusicPlayer");
-//        add("BatterySupervisor");
-//        add("FindMyFriends");
-//        add("RF");
-//        add("RFClientServer");
-//        add("Favorites");
-//        add("AllBoards");
-//        add("MediaManager");
-//        add("BBWifi");
-//        add("BoardsContentProvider");
-//        add("BluetoothCommands");
-//        add("BluetoothLEServer");
-//        add("BluetoothConnManager");
-//        add("ContentProvider");
-//        add("BoardVisualization");
-//        add("BurnerBoardUtil");
-//        add("BurnerBoardAzul");
-//        add("BurnerBoardPanel");
-//        add("BurnerBoardClassic");
-//        add("BurnerBoardDirectMap");
-//        add("BurnerBoardMast");
-//        add("FileHelpers");
-//        add("RF$BBRadioCallbackReceive");
-//        add("Gps");
-//        add("IoTClient");
-//        add("VideoDecoder");
-//        add("VideoDecoder$CodecOutputSurface");
-
-    }};
-
     public static final boolean DEBUG_RF_CLIENT_SERVER = false;
 
     // name the board as a testing overriden.

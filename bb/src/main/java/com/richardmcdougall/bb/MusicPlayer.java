@@ -23,6 +23,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.audio.AudioAttributes;
+
 import android.util.Log;
 import android.os.*;
 
@@ -59,21 +60,21 @@ public class MusicPlayer implements Runnable {
         boolean hasLowLatencyFeature =
                 this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
 
-       BLog.d(TAG,"has audio LowLatencyFeature: " + hasLowLatencyFeature);
+        BLog.d(TAG, "has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
                 this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-       BLog.d(TAG,"has audio ProFeature: " + hasProFeature);
+        BLog.d(TAG, "has audio ProFeature: " + hasProFeature);
 
         AudioManager am = (AudioManager) this.service.context.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         int sampleRate = Integer.parseInt(sampleRateStr);
 
-       BLog.d(TAG,"audio sampleRate: " + sampleRate);
+        BLog.d(TAG, "audio sampleRate: " + sampleRate);
 
         String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
         int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
 
-       BLog.d(TAG,"audio framesPerBufferInt: " + framesPerBufferInt);
+        BLog.d(TAG, "audio framesPerBufferInt: " + framesPerBufferInt);
 
     }
 
@@ -82,29 +83,58 @@ public class MusicPlayer implements Runnable {
         Looper.prepare();
         handler = new Handler(Looper.myLooper());
 
+        CreateExoplayer();;
+
+        Looper.loop();
+    }
+
+    private void CreateExoplayer() {
         player = ExoPlayerFactory.newSimpleInstance(service.context);
         player.setSeekParameters(SeekParameters.EXACT);
 
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onSeekProcessed(EventTime eventTime) {
-               BLog.d(TAG,"SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
+                BLog.d(TAG, "SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
             }
         });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onSeekStarted(EventTime eventTime) {
-               BLog.d(TAG,"SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
+                BLog.d(TAG, "SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
             }
         });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
-               BLog.d(TAG,"SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
+                BLog.d(TAG, "SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
             }
         });
 
-        Looper.loop();
+        BLog.d(TAG, "playing file " + service.mediaManager.GetAudioFile(service.boardState.currentRadioChannel - 1));
+
+        // Produces DataSource instances through which media data is loaded.
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
+                Util.getUserAgent(service.context, "yourApplicationName"));
+
+        String filePath = service.mediaManager.GetAudioFile(service.boardState.currentRadioChannel - 1);
+        Uri uri = Uri.parse("file:///" + filePath);
+
+        // This is the MediaSource representing the media to be played.
+        MediaSource audioSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(uri);
+
+        AudioAttributes a = player.getAudioAttributes();
+
+        AudioAttributes.Builder b = new AudioAttributes.Builder();
+        b.setContentType(C.CONTENT_TYPE_MUSIC);
+        b.setUsage(C.USAGE_MEDIA);
+        player.setAudioAttributes(b.build());
+
+        player.prepare(audioSource, false, false);
+        player.setPlayWhenReady(true);
+        player.setRepeatMode(Player.REPEAT_MODE_ALL);
+        player.setVolume(1);
     }
 
     public void NextStream() {
@@ -112,7 +142,7 @@ public class MusicPlayer implements Runnable {
         if (nextRadioChannel > service.mediaManager.GetTotalAudio())
             nextRadioChannel = 0;
 
-        this.handler.post(() -> mSetRadioChannel(nextRadioChannel) );
+        this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
     }
 
     public void PreviousStream() {
@@ -120,17 +150,17 @@ public class MusicPlayer implements Runnable {
         if (nextRadioChannel < 0) {
             nextRadioChannel = 0;
         }
-        this.handler.post(() -> mSetRadioChannel(nextRadioChannel) );
+        this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
     }
 
     public void RadioMode() {
-        this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel) );
+        this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel));
     }
 
-   public void MusicOffset(int ms) {
+    public void MusicOffset(int ms) {
         userTimeOffset += ms;
-        this.handler.post(() -> mSeekAndPlay() );
-       BLog.d(TAG,"UserTimeOffset = " + userTimeOffset);
+        this.handler.post(() -> mSeekAndPlay());
+        BLog.d(TAG, "UserTimeOffset = " + userTimeOffset);
     }
 
     private long GetCurrentStreamLengthInSeconds() {
@@ -166,7 +196,7 @@ public class MusicPlayer implements Runnable {
                     player.setPlaybackParameters(param);
 
                 } catch (Throwable err) {
-                    BLog.e(TAG,"SeekAndPlay Error: " + err.getMessage());
+                    BLog.e(TAG, "SeekAndPlay Error: " + err.getMessage());
                 }
             }
 
@@ -203,9 +233,8 @@ public class MusicPlayer implements Runnable {
     public void setBoardVolume(int v) {
         if (v >= 0 && v <= 100) {
             setAndroidVolumePercent(v);
-        }
-        else {
-            BLog.e(TAG,"Invalid Volume Percent: " + v);
+        } else {
+            BLog.e(TAG, "Invalid Volume Percent: " + v);
         }
     }
 
@@ -238,14 +267,14 @@ public class MusicPlayer implements Runnable {
         vol += 0.01;
         if (vol > 1) vol = 1;
         setVolume(vol, vol);
-       BLog.d(TAG,"Volume " + vol * 100.0f + "%");
+        BLog.d(TAG, "Volume " + vol * 100.0f + "%");
     }
 
     public void onVolDown() {
         vol -= 0.01;
         if (vol < 0) vol = 0;
         setVolume(vol, vol);
-       BLog.d(TAG,"Volume " + vol * 100.0f + "%");
+        BLog.d(TAG, "Volume " + vol * 100.0f + "%");
     }
 
     public void onVolPause() {
@@ -256,7 +285,7 @@ public class MusicPlayer implements Runnable {
             vol = recallVol;
         }
         setVolume(vol, vol);
-       BLog.d(TAG,"Volume " + vol * 100.0f + "%");
+        BLog.d(TAG, "Volume " + vol * 100.0f + "%");
     }
 
     public void SetRadioChannel(int index) {
@@ -265,13 +294,13 @@ public class MusicPlayer implements Runnable {
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     private void mSetRadioChannel(int index) {
-       BLog.d(TAG,"SetRadioChannel: " + index);
+        BLog.d(TAG, "SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-           BLog.d(TAG,"Sending remote");
+            BLog.d(TAG, "Sending remote");
 
             String fileName = getRadioChannelInfo(index);
             service.rfClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, BurnerBoardUtil.hashTrackName(fileName), RFClientServer.kRemoteAudio);
@@ -283,7 +312,7 @@ public class MusicPlayer implements Runnable {
         }
 
         try {
-           BLog.d(TAG,"Radio Mode");
+            BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
             service.burnerBoard.setText(shortName[0], 2000);
             if (service.voiceAnnouncements) {
@@ -294,37 +323,16 @@ public class MusicPlayer implements Runnable {
 
                 lastSeekOffset = 0;
 
-               BLog.d(TAG,"playing file " + service.mediaManager.GetAudioFile(index - 1));
-
-                // Produces DataSource instances through which media data is loaded.
-                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
-                        Util.getUserAgent(service.context, "yourApplicationName"));
-
-                String filePath = service.mediaManager.GetAudioFile(index - 1);
-                Uri uri = Uri.parse("file:///" + filePath);
-
-                // This is the MediaSource representing the media to be played.
-                MediaSource audioSource = new ExtractorMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(uri);
-
-                AudioAttributes a = player.getAudioAttributes();
-
-                AudioAttributes.Builder b = new AudioAttributes.Builder();
-                b.setContentType(C.CONTENT_TYPE_MUSIC);
-                b.setUsage(C.USAGE_MEDIA);
-                player.setAudioAttributes(b.build());
-
-                player.prepare(audioSource, false, false);
-                player.setPlayWhenReady(true);
-                player.setRepeatMode(Player.REPEAT_MODE_ALL);
-                player.setVolume(1);
+                player.release();
+                player = null;
+                CreateExoplayer();
 
                 service.boardVisualization.attachAudio(player.getAudioSessionId());
             }
 
-            this.handler.post(() -> mSeekAndPlay() );
+            this.handler.post(() -> mSeekAndPlay());
         } catch (Throwable err) {
-            BLog.e(TAG,"Radio mode failed" + err.getMessage());
+            BLog.e(TAG, "Radio mode failed" + err.getMessage());
         }
 
     }

@@ -54,7 +54,7 @@ public class BBService extends Service {
     private Thread musicPlayerThread;
     public boolean voiceAnnouncements = false;
     public BBWifi wifi = null;
-    public TextToSpeech voice;
+
     private static USBReceiver usbReceiver = null;
     private static ButtonReceiver buttonReceiver = null;
     private static BluetoothReceiver btReceive = null;
@@ -62,6 +62,8 @@ public class BBService extends Service {
     public String filesDir = "";
     public BBMasterRemote masterRemote = null;
     public GTFO gtfo = null;
+
+    public TextToSpeech voice;
 
     public BBService() {
     }
@@ -140,7 +142,7 @@ public class BBService extends Service {
             mHandlerThread.start();
             mHandler = new Handler(mHandlerThread.getLooper());
 
-            voice = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
+            voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
                 @Override
                 public void onInit(int status) {
                     // check for successful instantiation
@@ -149,28 +151,21 @@ public class BBService extends Service {
                             voice.setLanguage(Locale.US);
                         BLog.i(TAG,"Text To Speech ready...");
                         voice.setPitch((float) 0.8);
-                        String utteranceId = UUID.randomUUID().toString();
                         voice.setSpeechRate((float) 0.9);
-                        voice.speak("I am " + boardState.BOARD_ID + "?",
-                                TextToSpeech.QUEUE_FLUSH, null, utteranceId);
                     } else if (status == TextToSpeech.ERROR) {
                         BLog.i(TAG,"Sorry! Text To Speech failed...");
                     }
-
-                    // Let the user know they're on a raspberry pi
-                    if (boardState.platformType == BoardState.PlatformType.rpi) {
-                        String rpiMsg = "Raspberry PI detected";
-                        BLog.i(TAG,rpiMsg);
-                        // Use TTS.QUEUE_ADD or it'll talk over the speak() of its name above.
-                        voice.speak(rpiMsg, TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
-
-                        // Let's announce the WIFI IP on RPIs - do it here, as we need voice initialized first
-                        if (wifi.ipAddress != null) {
-                            voice.speak("My WiFi IP is: " + wifi.ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
-                        }
-                    }
                 }
             });
+
+            voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
+
+            if(boardState.platformType== BoardState.PlatformType.rpi){
+                voice.speak("Raspberry PI detected", TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
+                if (wifi.ipAddress != null) {
+                    voice.speak("My WiFi IP is: " + wifi.ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                }
+            }
 
             iotClient = new IoTClient(this);
 
