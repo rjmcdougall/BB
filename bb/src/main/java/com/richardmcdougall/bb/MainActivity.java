@@ -31,32 +31,14 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.provider.Settings;
 
-
-
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";
 
-    public static final boolean kThings = true;
-
-    TextView voltage;
-    TextView status;
-    EditText log;
-    TextView syncStatus = null;
-    TextView syncPeers = null;
-    TextView syncReplies = null;
-    TextView syncAdjust;
-    TextView syncTrack;
-    TextView syncUsroff;
-    TextView syncSrvoff;
-    TextView syncRTT;
     TextView modeStatus;
     private android.widget.Switch switchHeadlight;
 
     private BoardView mBoardView;
-    private String stateMsgAudio = "";
-    private String stateMsgConn = "";
-    private String stateMsg = "";
 
     private InputManagerCompat remoteControl;
 
@@ -136,109 +118,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     // function to append a string to a TextView as a new line
     // and scroll to the bottom if needed
     private void l(String msg) {
-        if (log == null)
-            return;
-
         Log.v(TAG, msg);
-        logToScreen(msg);
     }
-
-    // function to append a string to a TextView as a new line
-    // and scroll to the bottom if needed
-    private void logToScreen(String msg) {
-        if (log == null)
-            return;
-
-        // append the new string
-        log.append(msg + "\n");
-
-        String tMsg = log.getText().toString();
-        int msgLen = tMsg.length();
-        if (msgLen > 1000) {
-            tMsg = tMsg.substring(msgLen - 1000, msgLen);
-        }
-        log.setText(tMsg);
-
-        // find the amount we need to scroll.  This works by
-        // asking the TextView's internal layout for the position
-        // of the final line and then subtracting the TextView's height
-        final android.text.Layout layout = log.getLayout();
-
-        if (layout != null) {
-            final int scrollAmount = layout.getLineTop(log.getLineCount()) - log.getHeight();
-            // if there is no need to scroll, scrollAmount will be <=0
-            if (scrollAmount > 0)
-                log.scrollTo(0, scrollAmount);
-            else
-                log.scrollTo(0, 0);
-        }
-    }
-
-    public void setStateMsgConn(String str) {
-        synchronized (stateMsg) {
-            stateMsgConn = str;
-            stateMsg = stateMsgConn + "," + stateMsgAudio;
-
-        }
-    }
-
-    public void setStateMsgAudio(String str) {
-        synchronized (stateMsg) {
-            stateMsgAudio = str;
-            stateMsg = stateMsgConn + "," + stateMsgAudio;
-        }
-    }
-
-    // Define the callback for what to do when stats are received
-    private BroadcastReceiver BBstatsReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            if (kThings) {
-                return;
-            }
-
-            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
-            int msgType = intent.getIntExtra("msgType", 0);
-            if (resultCode == RESULT_OK) {
-                switch (msgType) {
-                    case 1:
-                        long seekErr = intent.getLongExtra("seekErr", 0);
-                        syncAdjust.setText(String.format("%1$d", seekErr));
-                        int currentRadioChannel = intent.getIntExtra("currentRadioChannel", 0);
-                        syncTrack.setText(String.format("%1$d", currentRadioChannel));
-                        int userTimeOffset = intent.getIntExtra("userTimeOffset", 0);
-                        syncUsroff.setText(String.format("%1$d", userTimeOffset));
-                        long serverTimeOffset = intent.getLongExtra("serverTimeOffset", 0);
-                        syncSrvoff.setText(String.format("%1$d", serverTimeOffset));
-                        long serverRTT = intent.getLongExtra("serverRTT", 0);
-                        syncRTT.setText(String.format("%1$d", serverRTT));
-                        String stateMsgAudio = intent.getStringExtra("stateMsgAudio");
-                        setStateMsgAudio(stateMsgAudio);
-                        break;
-                    case 2:
-                        long stateReplies = intent.getLongExtra("stateReplies", 0);
-                        syncReplies.setText(String.format("%1$d", stateReplies));
-                        String stateMsgWifi = intent.getStringExtra("stateMsgWifi");
-                        setStateMsgConn(stateMsgWifi);
-                        break;
-                    case 3:
-                        String statusMsg = intent.getStringExtra("ledStatus");
-                        status.setText(statusMsg);
-                        break;
-                    case 4:
-                        String logMsg = intent.getStringExtra("logMsg");
-                        logToScreen(logMsg);
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-            syncStatus.setText(stateMsg);
-        }
-
-    };
 
     @Override
     protected void onStart() {
@@ -254,9 +135,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             // Pin the app
             // startLockTask();
         }
-
-        //Intent startServiceIntent = new Intent(this, BBService.class);
-        //startWakefulService(this, startServiceIntent);
 
     }
 
@@ -312,34 +190,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         // Create the graphic equalizer
         mBoardView = (BoardView) findViewById(R.id.myBoardview);
 
-        // Create textview
-        voltage = (TextView) findViewById(R.id.textViewVoltage);
         modeStatus = (TextView) findViewById(R.id.modeStatus);
-        status = (TextView) findViewById(R.id.textViewStatus);
-        syncStatus = (TextView) findViewById(R.id.textViewsyncstatus);
-        syncPeers = (TextView) findViewById(R.id.textViewsyncpeers);
-        syncReplies = (TextView) findViewById(R.id.textViewsyncreplies);
-        syncAdjust = (TextView) findViewById(R.id.textViewsyncadjust);
-        syncTrack = (TextView) findViewById(R.id.textViewsynctrack);
-        syncUsroff = (TextView) findViewById(R.id.textViewsyncusroff);
-        syncSrvoff = (TextView) findViewById(R.id.textViewsyncsrvoff);
-        syncRTT = (TextView) findViewById(R.id.textViewsyncrtt);
 
-        // Create the logging window
-        log = (EditText) findViewById(R.id.editTextLog);
-        log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
-        log.setMaxLines(40);
-
-        voltage.setText("0.0v");
-        log.setFocusable(false);
-
-        switchHeadlight = (android.widget.Switch) findViewById(R.id.switchHeadlight);
-        switchHeadlight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                //boardSetHeadlight(isChecked);
-            }
-        });
     }
 
     @Override
@@ -347,10 +199,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         super.onResume();
         l("MainActivity: onResume()");
-
-        // Register for the particular broadcast based on Stats Action
-        IntentFilter statFilter = new IntentFilter(ACTION.STATS);
-        LocalBroadcastManager.getInstance(this).registerReceiver(BBstatsReceiver, statFilter);
 
         // Register for the particular broadcast based on Graphics Action
         IntentFilter gfxFilter = new IntentFilter(ACTION.GRAPHICS);
@@ -365,7 +213,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         l("MainActivity: onPause()");
 
         // Unregister the listener when the application is paused
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(BBstatsReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBgraphicsReceiver);
     }
 
@@ -563,44 +410,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         }
 
     };
-
-    public void OnSettings(View v) {
-
-        l("MainActivity: settings()");
-
-        // Allow pop-ups; disables aumatic closing of pop up dialogues
-        // which we use in production
-        mIsCustomized = true;
-
-        Intent dialogIntent = new Intent(android.provider.Settings.ACTION_SETTINGS);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(dialogIntent);
-    }
-
-    // Receive permission if it's being asked for (typically for the first time)
-    private class PermissionReceiver extends BroadcastReceiver {
-        protected static final String GET_USB_PERMISSION = "GetUsbPermission";
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            context.unregisterReceiver(this);
-            if (intent.getAction().equals(GET_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    l("USB we got permission");
-                    if (device != null) {
-                        l("Got USB perm receive device==" + device);
-                    } else {
-                        l("USB perm receive device==null");
-                    }
-
-                } else {
-                    l("USB no permission");
-                }
-            }
-        }
-    }
-
 }
 
 

@@ -51,27 +51,7 @@ public class ButtonReceiver extends BroadcastReceiver {
                     BLog.d(TAG,"BUTTON_MODE_DOWN");
                     service.boardVisualization.setMode(98);
                     break;
-                case BUTTON_DRIFT_DOWN:
-                    BLog.d(TAG,"BUTTON_DRIFT_DOWN");
-                    service.musicPlayer.MusicOffset(-10);
-                    break;
-                case BUTTON_DRIFT_UP:
-                    BLog.d(TAG,"BUTTON_DRIFT_UP");
-                    service.musicPlayer.MusicOffset(10);
-                    break;
-                case BUTTON_VOL_DOWN:
-                    BLog.d(TAG,"BUTTON_VOL_DOWN");
-                    service.musicPlayer.onVolDown();
-                    break;
-                case BUTTON_VOL_UP:
-                    BLog.d(TAG,"BUTTON_VOL_UP");
-                    service.musicPlayer.onVolUp();
-                    break;
-                case BUTTON_VOL_PAUSE:
-                    BLog.d(TAG,"BUTTON_VOL_PAUSE");
-                    service.musicPlayer.onVolPause();
-                    break;
-                default:
+               default:
                     break;
             }
         }
@@ -104,15 +84,6 @@ public class ButtonReceiver extends BroadcastReceiver {
             case 19:
                 service.musicPlayer.MusicOffset(10);
                 break;
-            case 24:   // native volume up button
-            case 21:
-                service.musicPlayer.onVolUp();
-
-                return false;
-            case 25:  // native volume down button
-            case 22:
-                service.musicPlayer.onVolDown();
-                return false;
             case 85: // Play button - show battery
                 onBatteryButton();
                 break;
@@ -149,16 +120,6 @@ public class ButtonReceiver extends BroadcastReceiver {
                 BLog.d(TAG,"RPI Bluetooth Left Button");
                 service.musicPlayer.PreviousStream();
                 break;
-
-            /* Volume control */
-            case 24:   // satachi & native volume up button
-                BLog.d(TAG,"RPI Bluetooth Volume Up Button");
-                service.musicPlayer.onVolUp();
-                return false;
-            case 25:  // satachi & native volume down button
-                BLog.d(TAG,"RPI Bluetooth Volume Down Button");
-                service.musicPlayer.onVolDown();
-                return false;
         }
         return true;
     }

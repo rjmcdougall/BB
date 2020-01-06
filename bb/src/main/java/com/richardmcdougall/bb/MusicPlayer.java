@@ -24,21 +24,18 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 
-import android.util.Log;
 import android.os.*;
 
 public class MusicPlayer implements Runnable {
     private String TAG = this.getClass().getSimpleName();
 
     private Handler handler;
-    private long lastSeekOffset = 0;
     private long phoneModelAudioLatency = 0;
     private SimpleExoPlayer player = null;
-    private float recallVol = 0;
     private BBService service = null;
     private int userTimeOffset = 0;
-    private float vol = 0.80f;
     private int nextRadioChannel;
+    private boolean isMuted = false;
 
     MusicPlayer(BBService service) {
         this.service = service;
@@ -83,7 +80,8 @@ public class MusicPlayer implements Runnable {
         Looper.prepare();
         handler = new Handler(Looper.myLooper());
 
-        CreateExoplayer();;
+        CreateExoplayer();
+        ;
 
         Looper.loop();
     }
@@ -213,10 +211,6 @@ public class MusicPlayer implements Runnable {
         }
     }
 
-    public void setVolume(float vol1, float vol2) {
-        player.setVolume(vol1);
-    }
-
     public String getRadioChannelInfo(int index) {
         return service.mediaManager.GetAudioFileLocalName(index - 1);
     }
@@ -244,16 +238,26 @@ public class MusicPlayer implements Runnable {
 
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        vol = ((float) volume / (float) maxVolume);
+        float vol = ((float) volume / (float) maxVolume);
         int v = (int) (vol * (float) 100);
         return v;
+    }
+
+    public void Mute() {
+        if (isMuted) {
+            player.setVolume(1f);
+            isMuted = false;
+        } else {
+            player.setVolume(0f);
+            isMuted = true;
+        }
     }
 
     public void setAndroidVolumePercent(int v) {
         AudioManager audioManager =
                 (AudioManager) service.context.getSystemService(Context.AUDIO_SERVICE);
 
-        vol = v / (float) 100;
+        float vol = v / (float) 100;
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int setVolume = (int) ((float) maxVolume * (float) v / (float) 100);
 
@@ -261,31 +265,6 @@ public class MusicPlayer implements Runnable {
                 AudioManager.STREAM_MUSIC,
                 setVolume,
                 0);
-    }
-
-    public void onVolUp() {
-        vol += 0.01;
-        if (vol > 1) vol = 1;
-        setVolume(vol, vol);
-        BLog.d(TAG, "Volume " + vol * 100.0f + "%");
-    }
-
-    public void onVolDown() {
-        vol -= 0.01;
-        if (vol < 0) vol = 0;
-        setVolume(vol, vol);
-        BLog.d(TAG, "Volume " + vol * 100.0f + "%");
-    }
-
-    public void onVolPause() {
-        if (vol > 0) {
-            recallVol = vol;
-            vol = 0;
-        } else {
-            vol = recallVol;
-        }
-        setVolume(vol, vol);
-        BLog.d(TAG, "Volume " + vol * 100.0f + "%");
     }
 
     public void SetRadioChannel(int index) {
@@ -320,8 +299,6 @@ public class MusicPlayer implements Runnable {
             }
 
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
-
-                lastSeekOffset = 0;
 
                 player.release();
                 player = null;
