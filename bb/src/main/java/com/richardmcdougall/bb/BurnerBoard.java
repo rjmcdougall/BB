@@ -479,14 +479,7 @@ public class BurnerBoard {
     public void setMsg(String msg) {
     }
 
-    private void updateUsbStatus(String status) {
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 3);
-        // Put extras into the intent as usual
-        in.putExtra("ledStatus", status);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }private void onDeviceStateChange() {
+    private void onDeviceStateChange() {
         BLog.d(TAG, "BurnerBoard: onDeviceStateChange()");
 
         stopIoManager();
@@ -523,7 +516,6 @@ public class BurnerBoard {
                 UsbSerialProber.getDefaultProber().findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
             BLog.d(TAG, "USB: No device/driver");
-            updateUsbStatus(("No BB Plugged in"));
             return;
         }
 
@@ -561,14 +553,12 @@ public class BurnerBoard {
             //return;
 
             BLog.d(TAG, "USB: No Permission");
-            updateUsbStatus(("No USB Permission"));
             return;
         }
 
         UsbDeviceConnection connection = manager.openDevice(mDriver.getDevice());
         if (connection == null) {
             BLog.d(TAG, "USB connection == null");
-            updateUsbStatus(("No USB device"));
             return;
         }
 
@@ -583,11 +573,9 @@ public class BurnerBoard {
                 sPort.close();
             } catch (IOException e2) {/*ignore*/}
             sPort = null;
-            updateUsbStatus(("USB Device Error"));
             return;
         }
 
-        updateUsbStatus(("Connected to BB"));
         BLog.d(TAG, "USB: Connected");
         startIoManager();
     }
@@ -630,7 +618,6 @@ public class BurnerBoard {
                 }
                 sPort = null;
             }
-            updateUsbStatus(("Disconnected(1)"));
             BLog.d(TAG, "USB Disconnected");
         }
     }
@@ -647,7 +634,6 @@ public class BurnerBoard {
 
                 start();
 
-                updateUsbStatus(("Connected to ") + boardId);
                 BLog.d(TAG, "USB Connected to " + boardId);
                 // Perf Tests thare are useful during debugging
                 //setMode(50);

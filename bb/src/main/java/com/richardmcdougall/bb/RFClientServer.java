@@ -149,14 +149,6 @@ public class RFClientServer {
         service.radio.broadcast(replyPacket.toByteArray());
         tSentPackets++;
         replyCount++;
-
-        Intent in = new Intent(ACTION.STATS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("msgType", 2);
-        // Put extras into the intent as usual
-        in.putExtra("stateReplies", replyCount);
-        in.putExtra("stateMsgWifi", "Server");
-        LocalBroadcastManager.getInstance(service).sendBroadcast(in);
     }
 
     // Define the callback for what to do when stats are received
@@ -204,7 +196,7 @@ public class RFClientServer {
             mLatency = RFUtil.int64FromPacket(bytes);
             // Try to re-elect server based on the heard board
             service.serverElector.tryElectServer(clientAddress, sigstrength);
-            if (amServer()) {
+            if (service.serverElector.amServer()) {
                 // Send response back to client
                 ServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
             }
@@ -295,17 +287,6 @@ public class RFClientServer {
             mLatency = s.roundTripTime;
 
             replyCount++;
-            Intent in = new Intent(ACTION.STATS);
-            in.putExtra("resultCode", Activity.RESULT_OK);
-            in.putExtra("msgType", 2);
-            // Put extras into the intent as usual
-            in.putExtra("stateReplies", replyCount);
-
-            in.putExtra("stateMsgWifi", "Client");
-            //mActivity.setStateMsgConn("Connected");
-
-            // Fire the broadcast with intent packaged
-            LocalBroadcastManager.getInstance(service).sendBroadcast(in);
 
             if (mLastSample == null || !s.equals(mLastSample)) {
                 mPrefsEditor.putLong("drift", s.drift);
@@ -368,7 +349,7 @@ public class RFClientServer {
              */
 
             // This section is for TIME syncing. NOT media syncing!!!
-            if (amServer() == false) {
+            if (service.serverElector.amServer() == false) {
                 try {
 
                     BLog.d(TAG, "I'm a client " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
@@ -424,15 +405,7 @@ public class RFClientServer {
         }
     }
 
-    // For now; elect the time leader as the server
-    // Todo: make it a user-pref driven by a physical switch and the user-app.
-    public boolean amServer() {
-        if (service.boardState.address == service.serverElector.serverAddress) {
-            // I'm the server!!
-            return true;
-        }
-        return false;
-    }public void sendRemote(int cmd, long value, int type) {
+    public void sendRemote(int cmd, long value, int type) {
 
         if (service.radio == null) {
             return;

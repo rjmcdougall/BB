@@ -196,17 +196,6 @@ public class MusicPlayer implements Runnable {
                     BLog.e(TAG, "SeekAndPlay Error: " + err.getMessage());
                 }
             }
-
-            Intent in = new Intent(ACTION.STATS);
-            in.putExtra("resultCode", Activity.RESULT_OK);
-            in.putExtra("msgType", 1);
-            // Put extras into the intent as usual
-            in.putExtra("seekErr", seekErr);
-            in.putExtra("", service.boardState.currentRadioChannel);
-            in.putExtra("userTimeOffset", userTimeOffset);
-            in.putExtra("serverTimeOffset", TimeSync.serverTimeOffset);
-            in.putExtra("serverRTT", TimeSync.serverRTT);
-            LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
         }
     }
 

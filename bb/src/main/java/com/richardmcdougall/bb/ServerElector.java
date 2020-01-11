@@ -118,4 +118,14 @@ public class ServerElector {
         long lastHeard;
     }
 
+
+    // For now; elect the time leader as the server
+    // Todo: make it a user-pref driven by a physical switch and the user-app.
+    public boolean amServer() {
+        if (service.boardState.address == service.serverElector.serverAddress) {
+            // I'm the server!!
+            return true;
+        }
+        return false;
+    }
 }
