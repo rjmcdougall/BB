@@ -29,8 +29,6 @@ public class BBService extends Service {
 
     public Handler mHandler = null;
     public Context context;
-    public long serverTimeOffset = 0;
-    public long serverRTT = 0;
     public AllBoards allBoards = null;
     public MusicPlayer musicPlayer = null;
     public RF radio = null;
@@ -83,13 +81,13 @@ public class BBService extends Service {
             BLog.i(TAG, "onCreate");
 
             //Thread.sleep(500); // player thread must fully start before supervisor. dkw
-            InitClock();
+            TimeSync.InitClock();
             context = getApplicationContext();
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            BLog.i(TAG, "startClock: " + startClock);
-            BLog.i(TAG, "Current Clock: " + GetCurrentClock());
-            BLog.i(TAG, "startElapsedTime: " + startElapsedTime);
+            BLog.i(TAG, "startClock: " + TimeSync.startClock);
+            BLog.i(TAG, "Current Clock: " + TimeSync.GetCurrentClock());
+            BLog.i(TAG, "startElapsedTime: " + TimeSync.startElapsedTime);
 
             BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
             BLog.i(TAG, "Build Model " + Build.MODEL);
@@ -261,26 +259,6 @@ public class BBService extends Service {
 
         BLog.i(TAG, "onDesonDestroy");
         voice.shutdown();
-    }
-
-    long startElapsedTime, startClock;
-
-    public void InitClock() {
-        startElapsedTime = SystemClock.elapsedRealtime();
-        startClock = Calendar.getInstance().getTimeInMillis();
-    }
-
-    public long GetCurrentClock() {
-        return SystemClock.elapsedRealtime() - startElapsedTime + startClock;
-    }
-
-    public long CurrentClockAdjusted() {
-        return GetCurrentClock() + serverTimeOffset;
-    }
-
-    public void SetServerClockOffset(long serverClockOffset, long rtt) {
-        serverTimeOffset = serverClockOffset;
-        serverRTT = rtt;
     }
 
     public class BoardCallback implements BurnerBoard.BoardEvents {

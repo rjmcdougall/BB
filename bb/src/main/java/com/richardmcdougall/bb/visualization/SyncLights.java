@@ -1,7 +1,8 @@
 package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BoardVisualization;
-import com.richardmcdougall.bb.BurnerBoard; 
+import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.TimeSync;
 
 public class SyncLights extends Visualization {
     private Wheel mWheel = new Wheel();
@@ -11,7 +12,7 @@ public class SyncLights extends Visualization {
     }
 
     public void update(int mode) {
-        int color = mWheel.wheel((int) mBurnerBoard.service.GetCurrentClock() % 256);
+        int color = mWheel.wheel((int) TimeSync.GetCurrentClock() % 256);
         mBurnerBoard.fillScreen(color);
     }
 

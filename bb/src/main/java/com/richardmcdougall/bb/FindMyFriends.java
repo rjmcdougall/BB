@@ -231,9 +231,4 @@ public class FindMyFriends {
             return false;
         }
     }
-
-    public String getBoardColor(int address) {
-        return service.allBoards.boardAddressToColor(address);
-    }
-
 }

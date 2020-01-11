@@ -171,7 +171,7 @@ public class MusicPlayer implements Runnable {
     private void mSeekAndPlay() {
         if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 
-            long ms = service.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
+            long ms = TimeSync.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
 
             long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
@@ -181,9 +181,9 @@ public class MusicPlayer implements Runnable {
 
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
-            BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
+            BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + TimeSync.serverTimeOffset +
                     " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + service.serverRTT + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + service.GetCurrentClock());
+                    " RTT " + TimeSync.serverRTT + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);
@@ -204,8 +204,8 @@ public class MusicPlayer implements Runnable {
             in.putExtra("seekErr", seekErr);
             in.putExtra("", service.boardState.currentRadioChannel);
             in.putExtra("userTimeOffset", userTimeOffset);
-            in.putExtra("serverTimeOffset", service.serverTimeOffset);
-            in.putExtra("serverRTT", service.serverRTT);
+            in.putExtra("serverTimeOffset", TimeSync.serverTimeOffset);
+            in.putExtra("serverRTT", TimeSync.serverRTT);
             LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
         }
     }

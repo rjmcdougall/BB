@@ -1,5 +1,8 @@
 package com.richardmcdougall.bb;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+
 public class RFUtil {
 
     // radio packet codes
@@ -38,6 +41,79 @@ public class RFUtil {
             hexChars[j * 2 + 1] = hexArray[v & 0x0F];
         }
         return new String(hexChars);
+    }
+
+
+    public static byte[] longToBytes(long l, byte[] result, int offset) {
+        for (int i = 7; i >= 0; i--) {
+            result[i + offset] = (byte) (l & 0xFF);
+            l >>= 8;
+        }
+        return result;
+    }
+
+    public static long bytesToLong(byte[] b, int offset) {
+        long result = 0;
+        for (int i = 0; i < 8; i++) {
+            result <<= 8;
+            result |= (b[i + offset] & 0xFF);
+        }
+        return result;
+    }
+
+
+    public static void int32ToPacket(ByteArrayOutputStream bytes, long n) {
+        bytes.write((byte) (n & 0xFF));
+        bytes.write((byte) ((n >> 8) & 0xFF));
+        bytes.write((byte) ((n >> 16) & 0xFF));
+        bytes.write((byte) ((n >> 24) & 0xFF));
+    }
+
+    public static void stringToPacket(ByteArrayOutputStream bytes, String s) {
+        try {
+            bytes.write(s.getBytes());
+        } catch (Exception e) {
+        }
+    }
+
+    public static long int16FromPacket(ByteArrayInputStream bytes) {
+        return ((long) ((bytes.read() & (long) 0xff) +
+                ((bytes.read() & (long) 0xff) << 8)));
+    }
+
+    public static void int16ToPacket(ByteArrayOutputStream bytes, int n) {
+        bytes.write((byte) (n & 0xFF));
+        bytes.write((byte) ((n >> 8) & 0xFF));
+    }
+
+
+    public static long int64FromPacket(ByteArrayInputStream bytes) {
+        return ((long) ((bytes.read() & (long) 0xff) +
+                ((bytes.read() & (long) 0xff) << 8) +
+                ((bytes.read() & (long) 0xff) << 16) +
+                ((bytes.read() & (long) 0xff) << 24) +
+                ((bytes.read() & (long) 0xff) << 32) +
+                ((bytes.read() & (long) 0xff) << 40) +
+                ((bytes.read() & (long) 0xff) << 48) +
+                ((bytes.read() & (long) 0xff) << 56)));
+    }
+
+    public static void int64ToPacket(ByteArrayOutputStream bytes, long n) {
+        bytes.write((byte) (n & 0xFF));
+        bytes.write((byte) ((n >> 8) & 0xFF));
+        bytes.write((byte) ((n >> 16) & 0xFF));
+        bytes.write((byte) ((n >> 24) & 0xFF));
+        bytes.write((byte) ((n >> 32) & 0xFF));
+        bytes.write((byte) ((n >> 40) & 0xFF));
+        bytes.write((byte) ((n >> 48) & 0xFF));
+        bytes.write((byte) ((n >> 56) & 0xFF));
+    }
+
+    public static long int32FromPacket(ByteArrayInputStream bytes) {
+        return ((long) ((bytes.read() & (long) 0xff) +
+                ((bytes.read() & (long) 0xff) << 8) +
+                ((bytes.read() & (long) 0xff) << 16) +
+                ((bytes.read() & (long) 0xff) << 24)));
     }
 
 }

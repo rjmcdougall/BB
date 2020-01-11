@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.TimeSync;
 
 /**
  * Created by rmc on 6/21/18.
@@ -181,7 +182,7 @@ public class Matrix extends Visualization {
 
             case kMatrixSync:
                 int syncColor =
-                        mWheel.wheel((int)(mBurnerBoard.service.GetCurrentClock() / 5) % 360);
+                        mWheel.wheel((int)(TimeSync.GetCurrentClock() / 5) % 360);
                 if (syncColor > 0) {
                     mBurnerBoard.fillScreenMask(syncColor);
 

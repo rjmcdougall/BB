@@ -88,7 +88,8 @@ public class PlayaMap extends Visualization {
             List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
             for (BoardLocations.boardLocation location: boardLocations) {
-                String color = mFMF.getBoardColor(location.address);
+
+                String color = service.allBoards.boardAddressToColor(location.address);
                 boardColor = null;
                 if (color != null) {
                     boardColor = bbColor.getColor(color);

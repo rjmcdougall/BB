@@ -74,8 +74,8 @@ public class RFClientServer {
         if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
             ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
 
-            stringToPacket(logPacketTmp, String.valueOf(timestamp));
-            stringToPacket(logPacketTmp, msg);
+            RFUtil.stringToPacket(logPacketTmp, String.valueOf(timestamp));
+            RFUtil.stringToPacket(logPacketTmp, msg);
 
             final byte[] logPacket = logPacketTmp.toByteArray();
 
@@ -124,72 +124,6 @@ public class RFClientServer {
             }
         });
         t.start();
-    }public static byte[] longToBytes(long l, byte[] result, int offset) {
-        for (int i = 7; i >= 0; i--) {
-            result[i + offset] = (byte) (l & 0xFF);
-            l >>= 8;
-        }
-        return result;
-    }public static long bytesToLong(byte[] b, int offset) {
-        long result = 0;
-        for (int i = 0; i < 8; i++) {
-            result <<= 8;
-            result |= (b[i + offset] & 0xFF);
-        }
-        return result;
-    }
-
-    private long int64FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & (long) 0xff) +
-                ((bytes.read() & (long) 0xff) << 8) +
-                ((bytes.read() & (long) 0xff) << 16) +
-                ((bytes.read() & (long) 0xff) << 24) +
-                ((bytes.read() & (long) 0xff) << 32) +
-                ((bytes.read() & (long) 0xff) << 40) +
-                ((bytes.read() & (long) 0xff) << 48) +
-                ((bytes.read() & (long) 0xff) << 56)));
-    }
-
-    private void int64ToPacket(ByteArrayOutputStream bytes, long n) {
-        bytes.write((byte) (n & 0xFF));
-        bytes.write((byte) ((n >> 8) & 0xFF));
-        bytes.write((byte) ((n >> 16) & 0xFF));
-        bytes.write((byte) ((n >> 24) & 0xFF));
-        bytes.write((byte) ((n >> 32) & 0xFF));
-        bytes.write((byte) ((n >> 40) & 0xFF));
-        bytes.write((byte) ((n >> 48) & 0xFF));
-        bytes.write((byte) ((n >> 56) & 0xFF));
-    }
-
-    private long int32FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & (long) 0xff) +
-                ((bytes.read() & (long) 0xff) << 8) +
-                ((bytes.read() & (long) 0xff) << 16) +
-                ((bytes.read() & (long) 0xff) << 24)));
-    }
-
-    private void int32ToPacket(ByteArrayOutputStream bytes, long n) {
-        bytes.write((byte) (n & 0xFF));
-        bytes.write((byte) ((n >> 8) & 0xFF));
-        bytes.write((byte) ((n >> 16) & 0xFF));
-        bytes.write((byte) ((n >> 24) & 0xFF));
-    }
-
-    private void stringToPacket(ByteArrayOutputStream bytes, String s) {
-        try {
-            bytes.write(s.getBytes());
-        } catch (Exception e) {
-        }
-    }
-
-    private long int16FromPacket(ByteArrayInputStream bytes) {
-        return ((long) ((bytes.read() & (long) 0xff) +
-                ((bytes.read() & (long) 0xff) << 8)));
-    }
-
-    private void int16ToPacket(ByteArrayOutputStream bytes, int n) {
-        bytes.write((byte) (n & 0xFF));
-        bytes.write((byte) ((n >> 8) & 0xFF));
     }
 
     // Send time-sync reply to specific client
@@ -206,14 +140,14 @@ public class RFClientServer {
         }
 
         // Address of this server (just put this in now?)
-        int16ToPacket(replyPacket, service.boardState.address);
+        RFUtil.int16ToPacket(replyPacket, service.boardState.address);
 
         // Address this packet is for
-        int16ToPacket(replyPacket, toClient);
+        RFUtil.int16ToPacket(replyPacket, toClient);
 
         // send the client's timestamp back along with ours so it can figure out how to adjust it's clock
-        int64ToPacket(replyPacket, clientTimestamp);
-        int64ToPacket(replyPacket, curTimeStamp);
+        RFUtil.int64ToPacket(replyPacket, clientTimestamp);
+        RFUtil.int64ToPacket(replyPacket, curTimeStamp);
 
         // Broadcast - client will filter for it's address
         service.radio.broadcast(replyPacket.toByteArray());
@@ -251,8 +185,8 @@ public class RFClientServer {
         int clientAddress = 0;
 
         if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kServerSyncMagicNumber)) {
-            int serverAddress = (int) int16FromPacket(bytes);
-            clientAddress = (int) int16FromPacket(bytes);
+            int serverAddress = (int) RFUtil.int16FromPacket(bytes);
+            clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
             if (clientAddress == service.boardState.address) {
                 BLog.d(TAG, "BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
@@ -264,14 +198,14 @@ public class RFClientServer {
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
-            clientAddress = (int) int16FromPacket(bytes);
+            clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
             BLog.d(TAG, "BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             BLog.d(TAG, "BB Sync Packet from Client " + clientAddress +
                     " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
-            long clientTimestamp = int64FromPacket(bytes);
-            long curTimeStamp = service.GetCurrentClock();
-            mLatency = int64FromPacket(bytes);
+            long clientTimestamp = RFUtil.int64FromPacket(bytes);
+            long curTimeStamp = TimeSync.GetCurrentClock();
+            mLatency = RFUtil.int64FromPacket(bytes);
             // Try to re-elect server based on the heard board
             tryElectServer(clientAddress, sigstrength);
             if (amServer()) {
@@ -281,16 +215,16 @@ public class RFClientServer {
             logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
 
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
-            int serverAddress = (int) int16FromPacket(bytes);
+            int serverAddress = (int) RFUtil.int16FromPacket(bytes);
             BLog.d(TAG, "BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +
                     " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
-            int address = (int) int16FromPacket(bytes);
-            int cmd = (int) int16FromPacket(bytes);
-            int value = (int) int32FromPacket(bytes);
+            int address = (int) RFUtil.int16FromPacket(bytes);
+            int cmd = (int) RFUtil.int16FromPacket(bytes);
+            int value = (int) RFUtil.int32FromPacket(bytes);
             BLog.d(TAG, "Received Remote Control " + cmd + ", " + value + " from " + address);
             receiveRemoteControl(address, cmd, value);
         } else {
@@ -335,12 +269,12 @@ public class RFClientServer {
                 " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
-        long packetHeader = int16FromPacket(packet);
-        long clientAddress = int16FromPacket(packet);
-        long serverAddress = int16FromPacket(packet);
-        long myTimeStamp = int64FromPacket(packet);
-        long svTimeStamp = int64FromPacket(packet);
-        long curTime = service.GetCurrentClock();
+        long packetHeader = RFUtil.int16FromPacket(packet);
+        long clientAddress = RFUtil.int16FromPacket(packet);
+        long serverAddress = RFUtil.int16FromPacket(packet);
+        long myTimeStamp = RFUtil.int64FromPacket(packet);
+        long svTimeStamp = RFUtil.int64FromPacket(packet);
+        long curTime = TimeSync.GetCurrentClock();
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
         //l("client time stamp " + String.format("0x%16X", myTimeStamp));
@@ -385,8 +319,8 @@ public class RFClientServer {
 
             BLog.d(TAG, "Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
 
-            service.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
-            logUDP(service.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + service.CurrentClockAdjusted());
+            TimeSync.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
+            logUDP(TimeSync.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + TimeSync.CurrentClockAdjusted());
         }
     }
 
@@ -396,7 +330,7 @@ public class RFClientServer {
         SharedPreferences prefs = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE);
         mDrift = prefs.getLong("drift", 0);
         mRtt = prefs.getLong("rtt", 100);
-        service.SetServerClockOffset(mDrift, mRtt);
+        TimeSync.SetServerClockOffset(mDrift, mRtt);
 
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -450,17 +384,17 @@ public class RFClientServer {
                     }
 
                     // My Client Address
-                    int16ToPacket(clientPacket, service.boardState.address);
+                    RFUtil.int16ToPacket(clientPacket, service.boardState.address);
                     // My timeclock
-                    int64ToPacket(clientPacket, service.GetCurrentClock());
+                    RFUtil.int64ToPacket(clientPacket, TimeSync.GetCurrentClock());
                     // Send latency so server knows how much to delay sync'ed start
-                    int64ToPacket(clientPacket, mLatency);
+                    RFUtil.int64ToPacket(clientPacket, mLatency);
                     // Pad to balance send-receive round trip time for average calculation
-                    int16ToPacket(clientPacket, 0);
+                    RFUtil.int16ToPacket(clientPacket, 0);
                     BLog.d(TAG, "send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     service.radio.broadcast(clientPacket.toByteArray());
-                    BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", service.GetCurrentClock()) +
+                    BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", TimeSync.GetCurrentClock()) +
                             service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
                             " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
 
@@ -471,7 +405,7 @@ public class RFClientServer {
                 BLog.d(TAG, "I'm a server: broadcast Server beacon");
                 mRtt = 0;
                 mDrift = 0;
-                service.SetServerClockOffset(0, 0);
+                TimeSync.SetServerClockOffset(0, 0);
 
                 ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
@@ -624,11 +558,11 @@ public class RFClientServer {
         }
 
         // Client
-        int16ToPacket(clientPacket, service.boardState.address);
+        RFUtil.int16ToPacket(clientPacket, service.boardState.address);
         // Command
-        int16ToPacket(clientPacket, cmd);
+        RFUtil.int16ToPacket(clientPacket, cmd);
         // Value
-        int32ToPacket(clientPacket, value);
+        RFUtil.int32ToPacket(clientPacket, value);
 
         // Send 10 times now, and let the supervisor thread send it periodically still
         byte[] packet = clientPacket.toByteArray();
