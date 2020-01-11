@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +7,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.StrictMode;
 import android.support.v4.content.LocalBroadcastManager;
+
+import com.richardmcdougall.bb.visualization.DriftCalculator;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,6 +35,7 @@ public class RFClientServer {
     public static final int kRemoteAudio = 0;
     public static final int kRemoteVideo = 1;
     public static final int kRemoteMasterName = 2;
+    private DriftCalculator driftCalculator = new DriftCalculator();
 
     // Use this to store the client packet the master needs to send to take over audio & video
     byte[][] kMasterToClientPacket = new byte[3][];
@@ -49,7 +51,7 @@ public class RFClientServer {
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
     long mRtt;
-    Sample mLastSample = null;
+
     SharedPreferences.Editor mPrefsEditor;
     private long mLatency = 150;
     private DatagramSocket mUDPSocket;
@@ -116,14 +118,14 @@ public class RFClientServer {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB RF Client/Server");
-                Start();
+                RunBroadcastLoop();
             }
         });
         t.start();
     }
 
     // Send time-sync reply to specific client
-    void ServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
+    void ProcessServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         BLog.d(TAG, "Server reply : " +
                 service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")" +
@@ -161,36 +163,36 @@ public class RFClientServer {
         }
     };
 
-    // TODO: Decide if we use static assigned server as the time master
-    // TODO: Decode client packet and send to client receive function
-    // TODO: Decode server receive packet and send to server receive function
     void processReceive(byte[] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
-        int recvMagicNumber = RFUtil.magicNumberToInt(
-                new int[]{bytes.read(), bytes.read()});
+        int recvMagicNumber = RFUtil.magicNumberToInt(new int[]{bytes.read(), bytes.read()});
 
         int clientAddress = 0;
 
+        //if you requested a time sync from the server, you will receive this packet.
+        // there you will adjust your time to match the servers time.
         if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kServerSyncMagicNumber)) {
             int serverAddress = (int) RFUtil.int16FromPacket(bytes);
             clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
             if (clientAddress == service.boardState.address) {
                 BLog.d(TAG, "BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-                BLog.d(TAG, "BB Sync Packet from Server " + serverAddress +
-                        " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
+                BLog.d(TAG, "BB Sync Packet from Server " + serverAddress +  " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
-                processSyncResponse(packet);
+                ProcessTimeFromServer(packet);
             }
             // Try to re-elect server based on the heard board
             service.serverElector.tryElectServer(serverAddress, sigstrength);
-        } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
+        }
+
+        // if you receive a client sync request AND YOU are the server you need to reply back
+        // and tell the client what the correct time offset is.
+        else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
             clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
             BLog.d(TAG, "BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            BLog.d(TAG, "BB Sync Packet from Client " + clientAddress +
-                    " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
+            BLog.d(TAG, "BB Sync Packet from Client " + clientAddress +  " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
             long clientTimestamp = RFUtil.int64FromPacket(bytes);
             long curTimeStamp = TimeSync.GetCurrentClock();
             mLatency = RFUtil.int64FromPacket(bytes);
@@ -198,18 +200,27 @@ public class RFClientServer {
             service.serverElector.tryElectServer(clientAddress, sigstrength);
             if (service.serverElector.amServer()) {
                 // Send response back to client
-                ServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
+                ProcessServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
             }
             logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
 
-        } else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
+        }
+
+        // receive a beacon from a server, nothing to do except increment your elections
+        // this is because you dont want the server to adjust its own time, but you want
+        // to keep including it in the algorithm.
+        else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int) RFUtil.int16FromPacket(bytes);
             BLog.d(TAG, "BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +
-                    " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
+            BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +  " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
             service.serverElector.tryElectServer(serverAddress, sigstrength);
-        } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
+
+        }
+
+        //master is configured in the app. If you receive a master command, you must do it.
+        //this is not related to the others in this method.
+        else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
             int address = (int) RFUtil.int16FromPacket(bytes);
             int cmd = (int) RFUtil.int16FromPacket(bytes);
             int value = (int) RFUtil.int32FromPacket(bytes);
@@ -221,88 +232,41 @@ public class RFClientServer {
         return;
     }
 
-    class Sample {
-        long drift;
-        long roundTripTime;
-    }
-
-    ArrayList<Sample> samples = new ArrayList<Sample>();
-
-    void AddSample(long drift, long rtt) {
-        Sample s = new Sample();
-        s.drift = drift;
-        s.roundTripTime = rtt;
-        samples.add(samples.size(), s);
-        // RMC: trying 10 instead of 100 because of long recovery times when time jumps on master
-        if (samples.size() > 10)
-            samples.remove(0);
-    }
-
-    Sample BestSample() {
-        long rtt = Long.MAX_VALUE;
-        Sample ret = null;
-        for (int i = 0; i < samples.size(); i++) {
-            if (samples.get(i).roundTripTime < rtt) {
-                rtt = samples.get(i).roundTripTime;
-                ret = samples.get(i);
-            }
-        }
-        return ret;
-    }
-
-    private void processSyncResponse(byte[] recvPacket) {
+    private void ProcessTimeFromServer(byte[] recvPacket) {
 
         BLog.d(TAG, "BB Sync Packet receive from server len (" + recvPacket.length + ") " +
                 service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
-        long packetHeader = RFUtil.int16FromPacket(packet);
-        long clientAddress = RFUtil.int16FromPacket(packet);
-        long serverAddress = RFUtil.int16FromPacket(packet);
         long myTimeStamp = RFUtil.int64FromPacket(packet);
         long svTimeStamp = RFUtil.int64FromPacket(packet);
         long curTime = TimeSync.GetCurrentClock();
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
-        //l("client time stamp " + String.format("0x%16X", myTimeStamp));
-        //l("server time stamp " + String.format("0x%16X", svTimeStamp));
-        //l("Round trip time is " + roundTripTime);
-
-        long driftAdjust = -00;
 
         if (roundTripTime < 300) {
-            //if (svTimeStamp < myTimeStamp) {
-            //    adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
-            //} else
-            // adjDrift = mytime delta from server
-            // 4156 - 2208
+
             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
             BLog.d(TAG, "Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
-            AddSample(adjDrift, roundTripTime);
+            driftCalculator.AddSample(adjDrift, roundTripTime);
 
-            Sample s = BestSample();
+            DriftCalculator.Sample s = driftCalculator.BestSample();
             mLatency = s.roundTripTime;
 
             replyCount++;
 
-            if (mLastSample == null || !s.equals(mLastSample)) {
-                mPrefsEditor.putLong("drift", s.drift);
-                mPrefsEditor.putLong("rtt", s.roundTripTime);
-                mPrefsEditor.commit();
-            }
+            BLog.d(TAG, "Final Drift=" + (s.drift) + " RTT=" + s.roundTripTime);
 
-            BLog.d(TAG, "Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
-
-            TimeSync.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
+            TimeSync.SetServerClockOffset(s.drift, s.roundTripTime);
             logUDP(TimeSync.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + TimeSync.CurrentClockAdjusted());
         }
     }
 
     // Thread/ loop to send out requests
-    void Start() {
+    void RunBroadcastLoop() {
         BLog.d(TAG, "Sync Thread Staring");
         SharedPreferences prefs = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE);
         mDrift = prefs.getLong("drift", 0);
@@ -356,9 +320,7 @@ public class RFClientServer {
 
                     ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
-                    for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
-                        clientPacket.write(RFUtil.kClientSyncMagicNumber[i]);
-                    }
+                    RFUtil.WriteMagicNumber(clientPacket,RFUtil.kClientSyncMagicNumber);
 
                     // My Client Address
                     RFUtil.int16ToPacket(clientPacket, service.boardState.address);
@@ -386,9 +348,7 @@ public class RFClientServer {
 
                 ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
 
-                for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
-                    replyPacket.write(RFUtil.kServerBeaconMagicNumber[i]);
-                }
+                RFUtil.WriteMagicNumber(replyPacket,RFUtil.kServerBeaconMagicNumber);
 
                 // Address of this server (just put this in now?)
                 replyPacket.write(service.boardState.address & 0xFF);
@@ -414,9 +374,7 @@ public class RFClientServer {
 
         ByteArrayOutputStream clientPacket = new ByteArrayOutputStream();
 
-        for (int i = 0; i < RFUtil.kMagicNumberLen; i++) {
-            clientPacket.write(RFUtil.kRemoteControlMagicNumber[i]);
-        }
+        RFUtil.WriteMagicNumber(clientPacket,RFUtil.kRemoteControlMagicNumber);
 
         // Client
         RFUtil.int16ToPacket(clientPacket, service.boardState.address);

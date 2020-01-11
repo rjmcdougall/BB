@@ -10,7 +10,7 @@ public class TimeSync {
     public static long startClock;
 
     public static long serverTimeOffset = 0;
-    public static long serverRTT = 0;
+    public static long serverRoundTripTime = 0;
 
     public static void InitClock() {
         startElapsedTime = SystemClock.elapsedRealtime();
@@ -25,8 +25,9 @@ public class TimeSync {
         return GetCurrentClock() + serverTimeOffset;
     }
 
-    public static void SetServerClockOffset(long serverClockOffset, long rtt) {
+    public static void SetServerClockOffset(long serverClockOffset, long roundTripTime) {
         serverTimeOffset = serverClockOffset;
-        serverRTT = rtt;
+        serverRoundTripTime = roundTripTime;
     }
+
 }

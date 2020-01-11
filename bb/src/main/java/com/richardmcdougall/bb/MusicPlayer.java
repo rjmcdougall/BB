@@ -1,15 +1,12 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -183,7 +180,7 @@ public class MusicPlayer implements Runnable {
 
             BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + TimeSync.serverTimeOffset +
                     " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + TimeSync.serverRTT + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
+                    " RTT " + TimeSync.serverRoundTripTime + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);

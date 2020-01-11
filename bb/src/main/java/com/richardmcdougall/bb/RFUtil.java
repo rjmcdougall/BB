@@ -61,6 +61,11 @@ public class RFUtil {
         return result;
     }
 
+    public static void WriteMagicNumber(ByteArrayOutputStream bytes, int[] magicNumber){
+        for (int i = 0; i < magicNumber.length; i++) {
+            bytes.write(magicNumber[i]);
+        }
+    }
 
     public static void int32ToPacket(ByteArrayOutputStream bytes, long n) {
         bytes.write((byte) (n & 0xFF));

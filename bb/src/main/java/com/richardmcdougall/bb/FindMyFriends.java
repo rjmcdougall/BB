@@ -1,24 +1,11 @@
 package com.richardmcdougall.bb;
 
-import android.content.ContentValues;
-import android.os.SystemClock;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.reflect.TypeToken;
-
 import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.nmea.util.Time;
 import net.sf.marineapi.provider.event.PositionEvent;
 
-import org.json.JSONArray;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 public class FindMyFriends {
     private String TAG = this.getClass().getSimpleName();
