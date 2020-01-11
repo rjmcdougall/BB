@@ -12,9 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 
 /**
  * Created by jonathan
@@ -51,42 +48,6 @@ public class RFClientServer {
     DriftCalculator.Sample mLastSample = null;
     SharedPreferences.Editor mPrefsEditor;
     private long mLatency = 150;
-    private DatagramSocket mUDPSocket;
-
-    private void setupUDPLogger() {
-        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
-            // InetAddress.getByName("0.0.0.0")
-            try {
-                mUDPSocket = new DatagramSocket(9999, InetAddress.getByName("0.0.0.0"));
-            } catch (Exception e) {
-                BLog.e(TAG, "Cannot setup UDP logger socket");
-            }
-        }
-    }
-
-    public void logUDP(long timestamp, String msg) {
-
-        if (DebugConfigs.DEBUG_RF_CLIENT_SERVER) {
-            ByteArrayOutputStream logPacketTmp = new ByteArrayOutputStream();
-
-            RFUtil.stringToPacket(logPacketTmp, String.valueOf(timestamp));
-            RFUtil.stringToPacket(logPacketTmp, msg);
-
-            final byte[] logPacket = logPacketTmp.toByteArray();
-
-            service.mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        DatagramPacket dp = new DatagramPacket(logPacket, logPacket.length, InetAddress.getByName("10.0.6.255"), 9999);
-                        mUDPSocket.send(dp);
-                    } catch (Exception e) {
-                        BLog.e(TAG, "UDP Logger Socket send failed:" + e.toString());
-                    }
-                }
-            });
-        }
-    }
 
     RFClientServer(BBService service) {
 
@@ -107,7 +68,6 @@ public class RFClientServer {
         } catch (Exception e) {
 
         }
-        setupUDPLogger();
     
     }
 
@@ -199,8 +159,6 @@ public class RFClientServer {
                 // Send response back to client
                 ProcessServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
             }
-            logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
-
         } 
 
         // receive a beacon from a server, nothing to do except increment your elections
@@ -242,8 +200,6 @@ public class RFClientServer {
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
 
-        long driftAdjust = -00;
-
         if (roundTripTime < 300) {
             //if (svTimeStamp < myTimeStamp) {
             //    adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
@@ -261,7 +217,7 @@ public class RFClientServer {
 
             replyCount++;
  
-            BLog.d(TAG, "Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
+            BLog.d(TAG, "Final Drift=" + (s.drift) + " RTT=" + s.roundTripTime);
  
             if (mLastSample == null || !s.equals(mLastSample)) {
                 mPrefsEditor.putLong("drift", s.drift);
@@ -269,8 +225,7 @@ public class RFClientServer {
                 mPrefsEditor.commit();
             }
 
-            TimeSync.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
-            logUDP(TimeSync.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + TimeSync.CurrentClockAdjusted());
+            TimeSync.SetServerClockOffset(s.drift, s.roundTripTime);
         }
     }
 

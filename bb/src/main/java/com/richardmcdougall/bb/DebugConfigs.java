@@ -9,8 +9,6 @@ public class DebugConfigs {
     // works with BoardType classic and azul to set the screen grid for video display
     public static boolean DISPLAY_VIDEO_IN_APP = false;
 
-    public static final boolean DEBUG_RF_CLIENT_SERVER = false;
-
     // name the board as a testing overriden.
     public static final String OVERRIDE_PUBLIC_NAME = "";
 
