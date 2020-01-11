@@ -8,8 +8,6 @@ import android.content.SharedPreferences;
 import android.os.StrictMode;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.richardmcdougall.bb.visualization.DriftCalculator;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PipedInputStream;
@@ -17,7 +15,6 @@ import java.io.PipedOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.ArrayList;
 
 /**
  * Created by jonathan
@@ -51,7 +48,7 @@ public class RFClientServer {
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
     long mRtt;
-
+    DriftCalculator.Sample mLastSample = null;
     SharedPreferences.Editor mPrefsEditor;
     private long mLatency = 150;
     private DatagramSocket mUDPSocket;
@@ -111,7 +108,7 @@ public class RFClientServer {
 
         }
         setupUDPLogger();
-
+    
     }
 
     void Run() {
@@ -172,7 +169,7 @@ public class RFClientServer {
 
         //if you requested a time sync from the server, you will receive this packet.
         // there you will adjust your time to match the servers time.
-        if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kServerSyncMagicNumber)) {
+       if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kServerSyncMagicNumber)) {
             int serverAddress = (int) RFUtil.int16FromPacket(bytes);
             clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
@@ -184,7 +181,7 @@ public class RFClientServer {
             }
             // Try to re-elect server based on the heard board
             service.serverElector.tryElectServer(serverAddress, sigstrength);
-        }
+        } 
 
         // if you receive a client sync request AND YOU are the server you need to reply back
         // and tell the client what the correct time offset is.
@@ -197,14 +194,14 @@ public class RFClientServer {
             long curTimeStamp = TimeSync.GetCurrentClock();
             mLatency = RFUtil.int64FromPacket(bytes);
             // Try to re-elect server based on the heard board
-            service.serverElector.tryElectServer(clientAddress, sigstrength);
+           service.serverElector.tryElectServer(clientAddress, sigstrength);
             if (service.serverElector.amServer()) {
                 // Send response back to client
                 ProcessServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
             }
             logUDP(curTimeStamp, "Server: curTimeStamp: " + curTimeStamp);
 
-        }
+        } 
 
         // receive a beacon from a server, nothing to do except increment your elections
         // this is because you dont want the server to adjust its own time, but you want
@@ -214,10 +211,10 @@ public class RFClientServer {
             BLog.d(TAG, "BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
             BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +  " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
-            service.serverElector.tryElectServer(serverAddress, sigstrength);
+           service.serverElector.tryElectServer(serverAddress, sigstrength);
 
-        }
-
+        }        
+        
         //master is configured in the app. If you receive a master command, you must do it.
         //this is not related to the others in this method.
         else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
@@ -245,8 +242,14 @@ public class RFClientServer {
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
 
-        if (roundTripTime < 300) {
+        long driftAdjust = -00;
 
+        if (roundTripTime < 300) {
+            //if (svTimeStamp < myTimeStamp) {
+            //    adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
+            //} else
+            // adjDrift = mytime delta from server
+            // 4156 - 2208
             adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
 
             BLog.d(TAG, "Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
@@ -257,10 +260,16 @@ public class RFClientServer {
             mLatency = s.roundTripTime;
 
             replyCount++;
+ 
+            BLog.d(TAG, "Final Drift=" + (s.drift + driftAdjust) + " RTT=" + s.roundTripTime);
+ 
+            if (mLastSample == null || !s.equals(mLastSample)) {
+                mPrefsEditor.putLong("drift", s.drift);
+                mPrefsEditor.putLong("rtt", s.roundTripTime);
+                mPrefsEditor.commit();
+            }
 
-            BLog.d(TAG, "Final Drift=" + (s.drift) + " RTT=" + s.roundTripTime);
-
-            TimeSync.SetServerClockOffset(s.drift, s.roundTripTime);
+            TimeSync.SetServerClockOffset(s.drift + driftAdjust, s.roundTripTime);
             logUDP(TimeSync.CurrentClockAdjusted(), "client: CurrentClockAdjusted: " + TimeSync.CurrentClockAdjusted());
         }
     }
