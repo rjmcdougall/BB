@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.StrictMode;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -45,8 +44,6 @@ public class RFClientServer {
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
     long mRtt;
-    DriftCalculator.Sample mLastSample = null;
-    SharedPreferences.Editor mPrefsEditor;
     private long mLatency = 150;
 
     RFClientServer(BBService service) {
@@ -201,12 +198,10 @@ public class RFClientServer {
         long roundTripTime = (curTime - myTimeStamp);
 
         if (roundTripTime < 300) {
-            //if (svTimeStamp < myTimeStamp) {
-            //    adjDrift = (curTime - myTimeStamp) / 2 + (svTimeStamp - myTimeStamp);
-            //} else
-            // adjDrift = mytime delta from server
-            // 4156 - 2208
-            adjDrift = (svTimeStamp - myTimeStamp) - (curTime - myTimeStamp) / 2;
+
+            //waht is the difference between my time i sent the server and its time?
+
+            adjDrift = (svTimeStamp - myTimeStamp) - roundTripTime / 2;
 
             BLog.d(TAG, "Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
@@ -218,12 +213,6 @@ public class RFClientServer {
             replyCount++;
  
             BLog.d(TAG, "Final Drift=" + (s.drift) + " RTT=" + s.roundTripTime);
- 
-            if (mLastSample == null || !s.equals(mLastSample)) {
-                mPrefsEditor.putLong("drift", s.drift);
-                mPrefsEditor.putLong("rtt", s.roundTripTime);
-                mPrefsEditor.commit();
-            }
 
             TimeSync.SetServerClockOffset(s.drift, s.roundTripTime);
         }
@@ -232,16 +221,15 @@ public class RFClientServer {
     // Thread/ loop to send out requests
     void RunBroadcastLoop() {
         BLog.d(TAG, "Sync Thread Staring");
-        SharedPreferences prefs = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE);
-        mDrift = prefs.getLong("drift", 0);
-        mRtt = prefs.getLong("rtt", 100);
+
+        mDrift = 0;
+        mRtt = 100;
+
         TimeSync.SetServerClockOffset(mDrift, mRtt);
 
         // Hack Prevent crash (sending should be done using an async task)
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
-        mPrefsEditor = service.getSharedPreferences("driftInfo", service.MODE_PRIVATE).edit();
 
         while (true) {
 

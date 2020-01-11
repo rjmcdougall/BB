@@ -4,8 +4,11 @@ import android.os.SystemClock;
 
 import java.util.Calendar;
 
+// TESTING after time has been reset to 1970
+// adb shell "su 0 toybox date 010100071970.00"
+// adb shell "su 0 toybox date 010100072020.00"
 public class TimeSync {
-
+    private static String TAG = "TimeSync";
     public static long startElapsedTime;
     public static long startClock;
 
@@ -18,11 +21,13 @@ public class TimeSync {
     }
 
     public static long GetCurrentClock() {
-        return SystemClock.elapsedRealtime() - startElapsedTime + startClock;
+        long t = SystemClock.elapsedRealtime() - startElapsedTime + startClock;
+        return t;
     }
 
     public static long CurrentClockAdjusted() {
-        return GetCurrentClock() + serverTimeOffset;
+        long cca = GetCurrentClock() + serverTimeOffset;
+        return cca;
     }
 
     public static void SetServerClockOffset(long serverClockOffset, long roundTripTime) {
