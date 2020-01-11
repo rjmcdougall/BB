@@ -57,7 +57,7 @@ public class BBService extends Service {
     public String filesDir = "";
     public BBMasterRemote masterRemote = null;
     public GTFO gtfo = null;
-
+    public BoardLocations boardLocations = null;
     public TextToSpeech voice;
 
     public BBService() {
@@ -103,6 +103,8 @@ public class BBService extends Service {
                 Thread.sleep(2000);
             }
             boardState = new BoardState(this);
+
+            boardLocations = new BoardLocations(this);
 
             BLog.i(TAG, "State Version " + boardState.version);
             BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);

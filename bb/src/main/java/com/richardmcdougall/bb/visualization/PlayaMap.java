@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.richardmcdougall.bb.BBColor;
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bb.BoardState;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
@@ -49,7 +50,7 @@ public class PlayaMap extends Visualization {
     static final double kMapSizeRatio = 2. / 3.;
 
     private int updateCnt = 0;
-    private FindMyFriends.boardLocation boardLocation = null;
+    private BoardLocations.boardLocation boardLocation = null;
     BBColor.ColorName boardColor = null;
 
     public void update(int mode) {
@@ -84,9 +85,9 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(0, 0, 0));
 
-            List<FindMyFriends.boardLocation> boardLocations = mFMF.getBoardLocations();
+            List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
-            for (FindMyFriends.boardLocation location: boardLocations) {
+            for (BoardLocations.boardLocation location: boardLocations) {
                 String color = mFMF.getBoardColor(location.address);
                 boardColor = null;
                 if (color != null) {

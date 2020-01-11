@@ -444,7 +444,7 @@ public class BluetoothCommands {
                                 age = 999999999;
 
                             response.put("command", command);
-                            JSONArray locations = service.findMyFriends.getBoardLocationsJSON(age);
+                            JSONArray locations = service.boardLocations.getBoardLocationsJSON(age);
                             if (locations == null)
                                 BLog.e(TAG, "Could not get bt locations (null)");
                             else
