@@ -8,11 +8,9 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
-import java.util.Calendar;
 import java.util.Locale;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
@@ -57,6 +55,7 @@ public class BBService extends Service {
     public GTFO gtfo = null;
     public BoardLocations boardLocations = null;
     public TextToSpeech voice;
+    public ServerElector serverElector = null;
 
     public BBService() {
     }
@@ -103,6 +102,7 @@ public class BBService extends Service {
             boardState = new BoardState(this);
 
             boardLocations = new BoardLocations(this);
+            serverElector = new ServerElector(this);
 
             BLog.i(TAG, "State Version " + boardState.version);
             BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);

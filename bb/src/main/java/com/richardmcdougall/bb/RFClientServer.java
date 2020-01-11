@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.StrictMode;
-import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -19,7 +18,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Created by jonathan
@@ -48,7 +46,6 @@ public class RFClientServer {
     // the value set when a master command is issued
     int kMasterBroadcastsLeft = 0;
 
-    private int mServerAddress = 0;
     private PipedInputStream mReceivedPacketInput;
     private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
@@ -113,7 +110,7 @@ public class RFClientServer {
 
         }
         setupUDPLogger();
-        mLastVote = SystemClock.elapsedRealtime();
+
     }
 
     void Run() {
@@ -130,7 +127,7 @@ public class RFClientServer {
     void ServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 
         BLog.d(TAG, "Server reply : " +
-                service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(toClient) + "(" + toClient + ")");
 
         ByteArrayOutputStream replyPacket = new ByteArrayOutputStream();
@@ -196,7 +193,7 @@ public class RFClientServer {
                 processSyncResponse(packet);
             }
             // Try to re-elect server based on the heard board
-            tryElectServer(serverAddress, sigstrength);
+            service.serverElector.tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
             clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
@@ -207,7 +204,7 @@ public class RFClientServer {
             long curTimeStamp = TimeSync.GetCurrentClock();
             mLatency = RFUtil.int64FromPacket(bytes);
             // Try to re-elect server based on the heard board
-            tryElectServer(clientAddress, sigstrength);
+            service.serverElector.tryElectServer(clientAddress, sigstrength);
             if (amServer()) {
                 // Send response back to client
                 ServerReply(packet, clientAddress, clientTimestamp, curTimeStamp);
@@ -220,7 +217,7 @@ public class RFClientServer {
             BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +
                     " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
-            tryElectServer(serverAddress, sigstrength);
+            service.serverElector.tryElectServer(serverAddress, sigstrength);
         } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kRemoteControlMagicNumber)) {
             int address = (int) RFUtil.int16FromPacket(bytes);
             int cmd = (int) RFUtil.int16FromPacket(bytes);
@@ -265,7 +262,7 @@ public class RFClientServer {
     private void processSyncResponse(byte[] recvPacket) {
 
         BLog.d(TAG, "BB Sync Packet receive from server len (" + recvPacket.length + ") " +
-                service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")" +
+                service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")" +
                 " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
@@ -396,7 +393,7 @@ public class RFClientServer {
                     service.radio.broadcast(clientPacket.toByteArray());
                     BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", TimeSync.GetCurrentClock()) +
                             service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
-                            " -> " + service.allBoards.boardAddressToName(mServerAddress) + "(" + mServerAddress + ")");
+                            " -> " + service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")");
 
                 } catch (Throwable e) {
                     //l("Client UDP failed");
@@ -428,118 +425,10 @@ public class RFClientServer {
         }
     }
 
-    // Keep score of boards's we've heard from
-    // If in range, vote +2 for it
-    // If not in range, vote -1
-    // From this list, pick the lowest address with votes = 10
-    // If my address is lower than the lowest, then I'm the server!
-    class boardVote {
-        int votes;
-        long lastHeard;
-    }
-
-    private HashMap<Integer, boardVote> mBoardVotes = new HashMap<>();
-
-    private void incVote(int address, int amount) {
-        // Increment the vote for me
-        boardVote meVote = mBoardVotes.get(address);
-        if (meVote == null) {
-            meVote = new boardVote();
-            meVote.votes = 0;
-        }
-        meVote.votes = meVote.votes + amount;
-        if (meVote.votes > kMaxVotes) {
-            meVote.votes = kMaxVotes;
-        }
-        meVote.lastHeard = SystemClock.elapsedRealtime();
-        mBoardVotes.put(address, meVote);
-    }
-
-    private void decVotes() {
-        // Decrement all the board votes
-        for (int board : mBoardVotes.keySet()) {
-            boardVote vote = mBoardVotes.get(board);
-            int votes = vote.votes;
-            if (votes > 1) {
-                votes = votes - 1;
-            }
-            vote.votes = votes;
-            mBoardVotes.put(board, vote);
-        }
-    }
-
-    private long mLastVote;
-
-    // Parameters for voting
-    // Time we hold on to a valid master server is kMaxVotes * kMinVoteTime
-    // 30 * 5 secs = 150 seconds
-    // have to hear from a master kIncVote/kMaxVotes times in 150 seconds
-    private final static int kMaxVotes = 30; // max of 30 votes
-    private final static int kMinVotes = 20; // Must have at least this to be a server
-    private final static int kIncVote = 10; // have to hear from a master 3 times in 150 seconds
-    private final static int kIncMyVote = 4;  // inc my vote slower to allow for packet loss
-    private final static int kMinVoteTime = 5000;
-
-    private void tryElectServer(int address, int sigstrength) {
-
-        // Ignore server if it's far away
-        // 80db is typically further than you can hear the audio
-        //if (sigstrength > 80) {
-        //    return;
-        //}
-
-        // Decrement all votes by one as often as every kMinVoteTime seconds.
-        // This makes the stickyness for a heard master
-        // kMaxVotes / kMinVoteTime
-        long timeSinceVote = SystemClock.elapsedRealtime() - mLastVote;
-        if (timeSinceVote > kMinVoteTime) {
-            decVotes();
-            // Vote for myself
-            // Always vote for myself.
-            // I'll get knocked out if there is a higher ranked address with votes
-            incVote(service.boardState.address, kIncMyVote);
-            mLastVote = SystemClock.elapsedRealtime();
-        }// Vote for the heard board
-        incVote(address, kIncVote);
-
-        // Find the leader to elect
-        int lowest = 65535;
-        for (int board : mBoardVotes.keySet()) {
-            boardVote v = mBoardVotes.get(board);
-            // Not a leader if we haven't heard from you in the last 5 mins
-            if ((SystemClock.elapsedRealtime() - v.lastHeard) > 300000) {
-                continue;
-            }
-            // Not a leader if you aren't reliably there
-            if (v.votes < kMinVotes) {
-                continue;
-            }
-            // Elect you if you are the lowest heard from
-            if (board < lowest) {
-                lowest = board;
-            }
-        }
-        if (lowest < 65535) {
-            mServerAddress = lowest;
-        }
-
-        // Dump the list of votes
-        for (int board : mBoardVotes.keySet()) {
-            boardVote v = mBoardVotes.get(board);
-            if (board == mServerAddress) {
-                BLog.d(TAG, "Vote: Server " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
-                        + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
-            } else {
-                BLog.d(TAG, "Vote: Client " + service.allBoards.boardAddressToName(board) + "(" + board + ") : " + v.votes
-                        + ", lastheard: " + (SystemClock.elapsedRealtime() - v.lastHeard));
-            }
-        }
-    }
-
     // For now; elect the time leader as the server
     // Todo: make it a user-pref driven by a physical switch and the user-app.
     public boolean amServer() {
-        if (service.boardState.address == mServerAddress) {
+        if (service.boardState.address == service.serverElector.serverAddress) {
             // I'm the server!!
             return true;
         }
