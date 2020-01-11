@@ -51,7 +51,7 @@ public class BBService extends Service {
     private static BluetoothReceiver btReceive = null;
     public BoardState boardState = null;
     public String filesDir = "";
-    public BBMasterRemote masterRemote = null;
+    public MasterController masterController = null;
     public GTFO gtfo = null;
     public BoardLocations boardLocations = null;
     public TextToSpeech voice;
@@ -205,7 +205,7 @@ public class BBService extends Service {
             batterySupervisor = new BatterySupervisor(this);
             batterySupervisor.Run();
 
-            masterRemote = new BBMasterRemote(this);
+            masterController = new MasterController(this);
 
             gtfo = new GTFO(this);
 

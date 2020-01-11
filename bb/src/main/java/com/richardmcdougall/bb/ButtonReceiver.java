@@ -136,9 +136,9 @@ public class ButtonReceiver extends BroadcastReceiver {
                             } else if (pressCnt == 3) {
                                 // Toggle master mode
                                 if (service.boardState.masterRemote == true) {
-                                    service.masterRemote.enableMaster(false);
+                                    service.masterController.enableMaster(false);
                                 } else {
-                                    service.masterRemote.enableMaster(true);
+                                    service.masterController.enableMaster(true);
                                 }
                             }
                         }

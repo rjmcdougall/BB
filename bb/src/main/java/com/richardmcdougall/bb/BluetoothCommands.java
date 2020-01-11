@@ -207,7 +207,7 @@ public class BluetoothCommands {
                         BLog.d(TAG, "BBservice got EnableMaster command:" + payload.toString());
                         try {
                             boolean isMaster = payload.getBoolean("arg");
-                            service.masterRemote.enableMaster(isMaster);
+                            service.masterController.enableMaster(isMaster);
 
                         } catch (Exception e) {
                             BLog.e(TAG, "error setting Master: " + e.getMessage());

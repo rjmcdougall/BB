@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.StrictMode;
-import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.ByteArrayInputStream;
@@ -491,54 +490,16 @@ public class RFClientServer {
 
             switch (cmd) {
                 case RFUtil.REMOTE_AUDIO_TRACK_CODE:
-
-                    for (int i = 1; i <= service.mediaManager.GetTotalAudio(); i++) {
-                        String name = service.musicPlayer.getRadioChannelInfo(i);
-                        long hashed = BurnerBoardUtil.hashTrackName(name);
-                        if (hashed == value) {
-                            BLog.d(TAG, "Remote Audio " + service.boardState.currentRadioChannel + " -> " + i);
-                            if (service.boardState.currentRadioChannel != i) {
-                                service.musicPlayer.SetRadioChannel((int) i);
-                                BLog.d(TAG, "Received remote audio switch to track " + i + " (" + name + ")");
-                            } else {
-                                BLog.d(TAG, "Ignored remote audio switch to track " + i + " (" + name + ")");
-                            }
-                            break;
-                        }
-                    }
+                    this.service.masterController.RemoteAudio(value);
                     break;
-
                 case RFUtil.REMOTE_VIDEO_TRACK_CODE:
-                    for (int i = 1; i <= service.mediaManager.GetTotalVideo(); i++) {
-                        String name = service.mediaManager.GetVideoFileLocalName(i - 1);
-                        long hashed = BurnerBoardUtil.hashTrackName(name);
-                        if (hashed == value) {
-                            BLog.d(TAG, "Remote Video " + service.boardState.currentVideoMode + " -> " + i);
-                            if (service.boardState.currentVideoMode != i) {
-                                service.boardVisualization.setMode((int) i);
-                                BLog.d(TAG, "Received remote video switch to mode " + i + " (" + name + ")");
-                            } else {
-                                BLog.d(TAG, "Ignored remote video switch to mode " + i + " (" + name + ")");
-                            }
-                            break;
-                        }
-                    }
+                    this.service.masterController.RemoteVideo(value);
                     break;
                 case RFUtil.REMOTE_MUTE_CODE:
-                    if (value != service.musicPlayer.getCurrentBoardVol()) {
-                        service.musicPlayer.setBoardVolume((int) value);
-                    }
+                    this.service.masterController.RemoteVolume(value);
                     break;
                 case RFUtil.REMOTE_MASTER_NAME_CODE:
-                    if (service.boardState.masterRemote) {
-                        // This board thinks it's the master, but apparently it's no longer. Reset master
-                        // mode and follow the new master
-                        String diag = service.boardState.BOARD_ID + " is no longer the master. New master: " + client;
-                        BLog.d(TAG, diag);
-                        service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
-                        service.masterRemote.enableMaster(false);
-                    }
-
+                    this.service.masterController.NameMaster(client);
                 default:
                     break;
             }
