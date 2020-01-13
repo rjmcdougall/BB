@@ -77,10 +77,10 @@ public class ButtonReceiver extends BroadcastReceiver {
                 break;
             case 97:
             case 20:
-                service.musicPlayer.MusicOffset(-10);
+                //service.musicPlayer.MusicOffset(-10);
                 break;
             case 19:
-                service.musicPlayer.MusicOffset(10);
+                //service.musicPlayer.MusicOffset(10);
                 break;
             case 85: // Play button - show battery
                 onBatteryButton();

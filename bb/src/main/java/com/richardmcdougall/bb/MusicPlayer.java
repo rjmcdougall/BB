@@ -29,7 +29,6 @@ public class MusicPlayer implements Runnable {
     private long phoneModelAudioLatency = 0;
     private SimpleExoPlayer player = null;
     private BBService service = null;
-    private int userTimeOffset = 0;
     private int nextRadioChannel;
     private boolean isMuted = false;
 
@@ -151,12 +150,6 @@ public class MusicPlayer implements Runnable {
         this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel));
     }
 
-    public void MusicOffset(int ms) {
-        userTimeOffset += ms;
-        this.handler.post(() -> mSeekAndPlay());
-        BLog.d(TAG, "UserTimeOffset = " + userTimeOffset);
-    }
-
     private long GetCurrentStreamLengthInSeconds() {
         return service.mediaManager.GetAudioLength(service.boardState.currentRadioChannel - 1);
     }
@@ -168,7 +161,7 @@ public class MusicPlayer implements Runnable {
     private void mSeekAndPlay() {
         if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 
-            long ms = TimeSync.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
+            long ms = TimeSync.CurrentClockAdjusted() - phoneModelAudioLatency;
 
             long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
@@ -179,8 +172,7 @@ public class MusicPlayer implements Runnable {
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
             BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + TimeSync.serverTimeOffset +
-                    " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + TimeSync.serverRoundTripTime + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
+                    " SeekOff " + seekOff + " RTT " + TimeSync.serverRoundTripTime + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);
