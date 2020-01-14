@@ -131,7 +131,6 @@ public class RFClientServer {
             clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
             if (clientAddress == service.boardState.address) {
-                BLog.d(TAG, "BB Sync Packet from Server: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
                 BLog.d(TAG, "BB Sync Packet from Server " + serverAddress +  " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
                 // Send to client loop to process the server's response
                 ProcessTimeFromServer(packet);
@@ -145,11 +144,15 @@ public class RFClientServer {
         else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kClientSyncMagicNumber)) {
             clientAddress = (int) RFUtil.int16FromPacket(bytes);
 
-            BLog.d(TAG, "BB Sync Packet from Client: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
-            BLog.d(TAG, "BB Sync Packet from Client " + clientAddress +  " (" + service.allBoards.boardAddressToName(clientAddress) + ")");
-            long clientTimestamp = RFUtil.int64FromPacket(bytes);
-            long curTimeStamp = TimeSync.GetCurrentClock();
-            mLatency = RFUtil.int64FromPacket(bytes);
+           long clientTimestamp = RFUtil.int64FromPacket(bytes);
+           long curTimeStamp = TimeSync.GetCurrentClock();
+           mLatency = RFUtil.int64FromPacket(bytes);
+           
+            BLog.d(TAG, "Sync Packet from Client " + service.allBoards.boardAddressToName(clientAddress) +
+                    " client timestamp: " + clientTimestamp +
+                    " my timestamp: " + curTimeStamp +
+                    " latency: " + mLatency);
+            
             // Try to re-elect server based on the heard board
            service.serverElector.tryElectServer(clientAddress, sigstrength);
             if (service.serverElector.amServer()) {
@@ -163,7 +166,7 @@ public class RFClientServer {
         // to keep including it in the algorithm.
         else if (recvMagicNumber == RFUtil.magicNumberToInt(kServerBeaconMagicNumber)) {
             int serverAddress = (int) RFUtil.int16FromPacket(bytes);
-            BLog.d(TAG, "BB Server Beacon packet: len(" + packet.length + "), data: " + RFUtil.bytesToHex(packet));
+            
             BLog.d(TAG, "BB Server Beacon packet from Server " + serverAddress +  " (" + service.allBoards.boardAddressToName(serverAddress) + ")");
             // Try to re-elect server based on the heard board
            service.serverElector.tryElectServer(serverAddress, sigstrength);
@@ -191,6 +194,9 @@ public class RFClientServer {
                 " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
+        long packetHeader = RFUtil.int16FromPacket(packet);
+        long clientAddress = RFUtil.int16FromPacket(packet);
+        long serverAddress = RFUtil.int16FromPacket(packet);
         long myTimeStamp = RFUtil.int64FromPacket(packet);
         long svTimeStamp = RFUtil.int64FromPacket(packet);
         long curTime = TimeSync.GetCurrentClock();

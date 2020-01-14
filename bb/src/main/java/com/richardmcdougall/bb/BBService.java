@@ -79,12 +79,9 @@ public class BBService extends Service {
 
             BLog.i(TAG, "onCreate");
 
-            //Thread.sleep(500); // player thread must fully start before supervisor. dkw
-            TimeSync.InitClock();
             context = getApplicationContext();
             filesDir = context.getFilesDir().getAbsolutePath();
 
-            BLog.i(TAG, "startClock: " + TimeSync.startClock);
             BLog.i(TAG, "Current Clock: " + TimeSync.GetCurrentClock());
             BLog.i(TAG, "startElapsedTime: " + TimeSync.startElapsedTime);
 
@@ -179,6 +176,8 @@ public class BBService extends Service {
             BLog.i(TAG, "Setting initial visualization mode: " + boardState.currentVideoMode);
             boardVisualization.setMode(boardState.currentVideoMode);
 
+            //Thread.sleep(500); // player thread must fully start before supervisor. dkw
+            TimeSync.InitClock();
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();

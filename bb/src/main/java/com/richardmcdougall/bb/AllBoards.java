@@ -121,12 +121,11 @@ public class AllBoards {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardId)) {
-                        if (!board.getString("displayTeensy").isEmpty())
-                            displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
+                        if (board.has("displayTeensy"))
+                            displayTeensy = BoardState.TeensyType.valueOf("displayTeensy");
                     }
                 }
             }
-            BLog.d(TAG, "Address " + String.valueOf(displayTeensy));
             return displayTeensy;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());

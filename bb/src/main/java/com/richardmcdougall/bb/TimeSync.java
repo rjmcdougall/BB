@@ -10,10 +10,9 @@ import java.util.Calendar;
 public class TimeSync {
     private static String TAG = "TimeSync";
     public static long startElapsedTime;
-    public static long startClock;
-
     public static long serverTimeOffset = 0;
     public static long serverRoundTripTime = 0;
+    public static long startClock = 0;
 
     public static void InitClock() {
         startElapsedTime = SystemClock.elapsedRealtime();
@@ -21,8 +20,7 @@ public class TimeSync {
     }
 
     public static long GetCurrentClock() {
-        long t = SystemClock.elapsedRealtime() - startElapsedTime + startClock;
-        return t;
+        return SystemClock.elapsedRealtime() - startElapsedTime ;
     }
 
     public static long CurrentClockAdjusted() {
