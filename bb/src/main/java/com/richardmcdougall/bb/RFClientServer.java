@@ -40,8 +40,6 @@ public class RFClientServer {
     // the value set when a master command is issued
     int kMasterBroadcastsLeft = 0;
 
-    private PipedInputStream mReceivedPacketInput;
-    private PipedOutputStream mReceivedPacketOutput;
     long mDrift;
     long mRtt;
     private long mLatency = 150;
@@ -49,14 +47,6 @@ public class RFClientServer {
     RFClientServer(BBService service) {
 
         this.service = service;
-
-        // Make a pipe for packet receive
-        try {
-            mReceivedPacketInput = new PipedInputStream();
-            mReceivedPacketOutput = new PipedOutputStream(mReceivedPacketInput);
-        } catch (Exception e) {
-            BLog.e(TAG, "Receiver pipe failed: " + e.getMessage());
-        }
 
         try {
             // Register for the particular broadcast based on Graphics Action
@@ -367,8 +357,8 @@ public class RFClientServer {
 
         String client = service.allBoards.boardAddressToName(address);
         decodeRemoteControl(client, cmd, value);
-    }// TODO: Put this back as a remote control packet
-    // Change value -> hash lookup
+    }
+
     public void decodeRemoteControl(String client, int cmd, long value) {
 
         if (service.boardState.blockMaster) {
