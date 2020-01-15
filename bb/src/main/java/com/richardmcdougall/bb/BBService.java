@@ -208,8 +208,6 @@ public class BBService extends Service {
 
             gtfo = new GTFO(this);
 
-            // mFavorites = new Favorites(context, this, radio, gps, iotClient);
-
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
