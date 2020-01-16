@@ -1,36 +1,15 @@
 package com.richardmcdougall.bb;
 
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.v4.content.LocalBroadcastManager;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BluetoothCommands {
     private String TAG = this.getClass().getSimpleName();
     private BBService service = null;
-    private Handler mHandler;
 
     public BluetoothCommands(BBService service) {
         this.service = service;
-        mHandler = new Handler(Looper.getMainLooper());
-
-        // Register to receive button messages
-        IntentFilter filter;
-        filter = new IntentFilter(ACTION.BB_VOLUME);
-        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
-        filter = new IntentFilter(ACTION.BB_AUDIOCHANNEL);
-        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
-        filter = new IntentFilter(ACTION.BB_VIDEOMODE);
-        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
-        filter = new IntentFilter(ACTION.BB_LOCATION);
-        LocalBroadcastManager.getInstance(service).registerReceiver(eventReceiver, filter);
     }
 
     public void init() {
@@ -551,27 +530,4 @@ public class BluetoothCommands {
 
         BLog.d(TAG, "BBservice done sendStateResponse command");
     }
-
-    public void sendStateResponseAll() {
-        //TODO: get to list of connected devices,
-        //      else it will get grabbed on location poll
-        //sendStateResponse("unsolicited", device);
-    }
-
-    // We use this to catch the board events
-    private final BroadcastReceiver eventReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-
-            String action = intent.getAction();
-
-            BLog.d(TAG, "onReceive entered:" + action);
-
-            if (ACTION.BB_VOLUME.equals(action)) {
-                BLog.d(TAG, "Got volume");
-                float volume = (float) intent.getSerializableExtra("volume");
-
-            }
-            sendStateResponseAll();
-        }
-    };
 }
