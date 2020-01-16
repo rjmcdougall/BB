@@ -19,7 +19,6 @@ public class RFUtil {
     public static final int[] kRemoteControlMagicNumber = new int[]{0xbb, 0x06};
     public static final int[] kTrackerMagicNumber = new int[]{0x02, 0xcb};
     public static final int[] kGPSMagicNumber = new int[]{0xbb, 0x01};
-    public static final int[] kFavoritesMagicNumber = new int[]{0xbb, 0x08};
     public static final int kMagicNumberLen = 2;
 
     public static final int magicNumberToInt(int[] magic) {

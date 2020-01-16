@@ -11,7 +11,6 @@ public class FindMyFriends {
     private String TAG = this.getClass().getSimpleName();
 
     private BBService service;
-    private findMyFriendsCallback mFindMyFriendsCallback = null;
     private long mLastFix = 0;
     private static final int kMaxFixAge = 30000;
     private static final int krepeatedBy = 0;
@@ -141,21 +140,6 @@ public class FindMyFriends {
         BLog.d(TAG, "Sent packet...");
         this.service.boardLocations.updateBoardLocations(service.boardState.address, 999,
                 lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
-    }
-
-    public interface findMyFriendsCallback {
-
-        public void audioTrack(int track);
-
-        public void videoTrack(int track);
-
-        public void globalAlert(int alert);
-
-    }
-
-    public void attach(FindMyFriends.findMyFriendsCallback newfunction) {
-
-        mFindMyFriendsCallback = newfunction;
     }
 
     boolean processReceive(byte[] packet, int sigStrength) {

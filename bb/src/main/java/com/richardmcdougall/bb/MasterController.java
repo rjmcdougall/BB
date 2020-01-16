@@ -17,13 +17,13 @@ public class MasterController {
             // Let everyone else know we just decided to be the master
             // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
             // from the client data. XXX is there a better/more useful payload?
-            service.rfClientServer.sendRemote(RFUtil.REMOTE_MASTER_NAME_CODE, BurnerBoardUtil.hashTrackName(service.boardState.BOARD_ID), RFClientServer.kRemoteMasterName);
+            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_MASTER_NAME_CODE, BurnerBoardUtil.hashTrackName(service.boardState.BOARD_ID), RFMasterClientServer.kRemoteMasterName);
 
             service.burnerBoard.setText("Master", 2000);
             service.voice.speak("Master Remote is: " + service.boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
-            service.rfClientServer.disableMasterBroadcast();
+            service.rfMasterClientServer.disableMasterBroadcast();
 
             service.burnerBoard.setText("Solo", 2000);
             service.voice.speak("Disabling Master Remote: " + service.boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");

@@ -56,6 +56,7 @@ public class BBService extends Service {
     public BoardLocations boardLocations = null;
     public TextToSpeech voice;
     public ServerElector serverElector = null;
+    public RFMasterClientServer rfMasterClientServer = null;
 
     public BBService() {
     }
@@ -195,6 +196,9 @@ public class BBService extends Service {
 
             rfClientServer = new RFClientServer(this);
             rfClientServer.Run();
+
+            rfMasterClientServer = new RFMasterClientServer(this);
+            rfMasterClientServer.Run();
 
             findMyFriends = new FindMyFriends(this);
 
