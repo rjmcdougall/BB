@@ -85,7 +85,7 @@ public class BoardVisualization {
     BoardVisualization(BBService service) {
 
         this.service = service;
-        BLog.d(TAG, "Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
+        BLog.d(TAG, "Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.boardState.BOARD_ID);
 
         mBoardWidth = service.burnerBoard.getWidth();
         mBoardHeight = service.burnerBoard.getHeight();

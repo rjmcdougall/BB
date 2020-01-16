@@ -42,7 +42,6 @@ public class BurnerBoardAzul extends BurnerBoard {
             mMultipler4Speed = 1; // dkw need to config this
         else
             mMultipler4Speed = 2; // dkw need to config this
-        boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Azul";
         BLog.d(TAG, "Burner Board Azul initing...");
         mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
@@ -367,12 +366,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     private void initpixelMap2Board() {
         int x, y;
 
-        // Sadly Candy is wired up and sealed with an error
-        if (boardId.contains(new String("grumpy"))) {
-            boardMap = boardMapCandy;
-        } else {
-            boardMap = boardMapStd;
-        }
+        boardMap = boardMapStd;
+
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {

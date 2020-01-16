@@ -54,7 +54,6 @@ public class BurnerBoard {
     private static UsbSerialDriver mDriver = null;
     private UsbDevice mUsbDevice = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
-    public String boardId;
     public BBService service = null;
     public String mEchoString = "";
     public int[] mBoardScreen;
@@ -634,7 +633,7 @@ public class BurnerBoard {
 
                 start();
 
-                BLog.d(TAG, "USB Connected to " + boardId);
+                BLog.d(TAG, "USB Connected to " + service.boardState.BOARD_ID);
                 // Perf Tests thare are useful during debugging
                 //setMode(50);
                 //testTeensy();
