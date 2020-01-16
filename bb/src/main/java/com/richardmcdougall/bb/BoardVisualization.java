@@ -527,7 +527,7 @@ public class BoardVisualization {
 
             String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
             BLog.d(TAG, "Sending video remote for video " + name);
-            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFMasterClientServer.kRemoteVideo);
+            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, MediaManager.hashTrackName(name), RFMasterClientServer.kRemoteVideo);
         }
 
         if (service.burnerBoard != null) {

@@ -259,7 +259,7 @@ public class MusicPlayer implements Runnable {
             BLog.d(TAG, "Sending remote");
 
             String fileName = getRadioChannelInfo(index);
-            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, BurnerBoardUtil.hashTrackName(fileName), RFMasterClientServer.kRemoteAudio);
+            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, MediaManager.hashTrackName(fileName), RFMasterClientServer.kRemoteAudio);
             // Wait for 1/2 RTT so that we all select the same track/video at the same time
             try {
                 Thread.sleep(service.rfClientServer.getLatency());

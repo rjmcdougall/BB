@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb;
 
+import android.provider.MediaStore;
 import android.speech.tts.TextToSpeech;
 
 public class MasterController {
@@ -17,7 +18,7 @@ public class MasterController {
             // Let everyone else know we just decided to be the master
             // Encoding the BOARD_ID as the payload; it's not really needed as we can read that
             // from the client data. XXX is there a better/more useful payload?
-            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_MASTER_NAME_CODE, BurnerBoardUtil.hashTrackName(service.boardState.BOARD_ID), RFMasterClientServer.kRemoteMasterName);
+            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_MASTER_NAME_CODE, MediaManager.hashTrackName(service.boardState.BOARD_ID), RFMasterClientServer.kRemoteMasterName);
 
             service.burnerBoard.setText("Master", 2000);
             service.voice.speak("Master Remote is: " + service.boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
@@ -34,7 +35,7 @@ public class MasterController {
 
         for (int i = 1; i <= service.mediaManager.GetTotalAudio(); i++) {
             String name = service.musicPlayer.getRadioChannelInfo(i);
-            long hashed = BurnerBoardUtil.hashTrackName(name);
+            long hashed = MediaManager.hashTrackName(name);
             if (hashed == value) {
                 BLog.d(TAG, "Remote Audio " + service.boardState.currentRadioChannel + " -> " + i);
                 if (service.boardState.currentRadioChannel != i) {
@@ -51,7 +52,7 @@ public class MasterController {
     public void RemoteVideo(long value){
         for (int i = 1; i <= service.mediaManager.GetTotalVideo(); i++) {
             String name = service.mediaManager.GetVideoFileLocalName(i - 1);
-            long hashed = BurnerBoardUtil.hashTrackName(name);
+            long hashed = MediaManager.hashTrackName(name);
             if (hashed == value) {
                 BLog.d(TAG, "Remote Video " + service.boardState.currentVideoMode + " -> " + i);
                 if (service.boardState.currentVideoMode != i) {
