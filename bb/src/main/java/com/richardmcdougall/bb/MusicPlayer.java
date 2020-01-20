@@ -235,14 +235,22 @@ public class MusicPlayer implements Runnable {
         AudioManager audioManager =
                 (AudioManager) service.context.getSystemService(Context.AUDIO_SERVICE);
 
-        float vol = v / (float) 100;
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int setVolume = (int) ((float) maxVolume * (float) v / (float) 100);
+        int newVolume = (int) ((float) maxVolume * (float) v / (float) 100);
 
         audioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC,
-                setVolume,
+                newVolume,
                 0);
+
+        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
+            BLog.d(TAG, "Sending remote volume");
+            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VOLUME_CODE, newVolume, RFMasterClientServer.kRemoteAudio);
+            try {
+                Thread.sleep(service.rfClientServer.getLatency());
+            } catch (Exception e) {
+            }
+        }
     }
 
     public void SetRadioChannel(int index) {
@@ -254,7 +262,6 @@ public class MusicPlayer implements Runnable {
         BLog.d(TAG, "SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
-        // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
             BLog.d(TAG, "Sending remote");

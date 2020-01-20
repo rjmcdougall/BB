@@ -186,7 +186,7 @@ public class RFMasterClientServer {
                 case RFUtil.REMOTE_VIDEO_TRACK_CODE:
                     this.service.masterController.RemoteVideo(value);
                     break;
-                case RFUtil.REMOTE_MUTE_CODE:
+                case RFUtil.REMOTE_VOLUME_CODE:
                     this.service.masterController.RemoteVolume(value);
                     break;
                 case RFUtil.REMOTE_MASTER_NAME_CODE:
