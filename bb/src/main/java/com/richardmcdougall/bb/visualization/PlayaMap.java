@@ -2,7 +2,6 @@ package com.richardmcdougall.bb.visualization;
 
 import android.util.Log;
 
-import com.richardmcdougall.bb.BBColor;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bb.BoardState;
