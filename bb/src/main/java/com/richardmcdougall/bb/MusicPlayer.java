@@ -198,10 +198,6 @@ public class MusicPlayer implements Runnable {
         return (v);
     }
 
-    public int getBoardVolumePercent() {
-        return getAndroidVolumePercent();
-    }
-
     public void setBoardVolume(int v) {
         if (v >= 0 && v <= 100) {
             setAndroidVolumePercent(v);
@@ -243,14 +239,9 @@ public class MusicPlayer implements Runnable {
                 newVolume,
                 0);
 
-        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
-            BLog.d(TAG, "Sending remote volume");
-            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VOLUME_CODE, newVolume, RFMasterClientServer.kRemoteAudio);
-            try {
-                Thread.sleep(service.rfClientServer.getLatency());
-            } catch (Exception e) {
-            }
-        }
+        if (service.boardState.masterRemote)
+            service.masterController.SendVolume();
+
     }
 
     public void SetRadioChannel(int index) {
@@ -262,18 +253,8 @@ public class MusicPlayer implements Runnable {
         BLog.d(TAG, "SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
-        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
-
-            BLog.d(TAG, "Sending remote");
-
-            String fileName = getRadioChannelInfo(index);
-            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, MediaManager.hashTrackName(fileName), RFMasterClientServer.kRemoteAudio);
-            // Wait for 1/2 RTT so that we all select the same track/video at the same time
-            try {
-                Thread.sleep(service.rfClientServer.getLatency());
-            } catch (Exception e) {
-            }
-        }
+        if (service.boardState.masterRemote)
+            service.masterController.SendAudio();
 
         try {
             BLog.d(TAG, "Radio Mode");

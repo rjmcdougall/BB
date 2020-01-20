@@ -474,13 +474,8 @@ public class BoardVisualization {
         else if (service.boardState.currentVideoMode < 1)
             service.boardState.currentVideoMode = maxModes;
 
-        // If I am set to be the master, broadcast to other boards
-        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
-
-            String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
-            BLog.d(TAG, "Sending video remote for video " + name);
-            service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, MediaManager.hashTrackName(name), RFMasterClientServer.kRemoteVideo);
-        }
+        if (service.boardState.masterRemote)
+            service.masterController.SendVideo();
 
         if (service.burnerBoard != null) {
             BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);

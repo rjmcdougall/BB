@@ -103,7 +103,7 @@ public class BoardState {
         try {
             state.put("acn", currentRadioChannel - 1);
             state.put("vcn", currentVideoMode - 1);
-            state.put("v", service.musicPlayer.getBoardVolumePercent());
+            state.put("v", service.musicPlayer.getAndroidVolumePercent());
             state.put("b", batteryLevel);
             state.put("am", masterRemote);
             state.put("apkd", apkUpdatedDate.toString());

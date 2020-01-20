@@ -23,11 +23,13 @@ public class RFMasterClientServer {
     public static final int kRemoteAudio = 0;
     public static final int kRemoteVideo = 1;
     public static final int kRemoteMasterName = 2;
+    public static final int kRemoteVolume = 3;
+
     static final int kThreadSleepTime = 5000;
     // How long does the master need to keep communicating that it's the master (in milliseconds)?
     static final int kMasterBroadcastTime = 5 * 60 * 1000;
     // Use this to store the client packet the master needs to send to take over audio & video
-    byte[][] kMasterToClientPacket = new byte[3][];
+    byte[][] kMasterToClientPacket = new byte[4][];
     // How many iterations are LEFT for the master to tell the client? Initialize at 0 and have
     // the value set when a master command is issued
     int kMasterBroadcastsLeft = 0;
