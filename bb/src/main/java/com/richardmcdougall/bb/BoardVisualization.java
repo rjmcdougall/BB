@@ -433,7 +433,7 @@ public class BoardVisualization {
                 String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
-                if (!(service.boardState.platformType == BoardState.PlatformType.rpi)) {
+                if (service.boardState.platformType == BoardState.PlatformType.rpi) {
                     return mFrameRate;
                 }
                 mVisualizationVideo.update(mode);
