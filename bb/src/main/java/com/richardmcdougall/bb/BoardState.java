@@ -164,16 +164,17 @@ public class BoardState {
             InputStream is = null;
             try {
                 is = new FileInputStream(f);
+
+                BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+                StringBuilder sb = new StringBuilder(buf.readLine());
+                BLog.d(TAG, "contents of wifi.json: " + sb.toString());
+                JSONObject j = new JSONObject(sb.toString());
+
+                SSID = j.getString("SSID");
+                password = j.getString("password");
             } catch (FileNotFoundException e) {
                 BLog.e(TAG, e.getMessage());
             }
-            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-            StringBuilder sb = new StringBuilder(buf.readLine());
-            BLog.d(TAG, "contents of wifi.json: " + sb.toString());
-            JSONObject j = new JSONObject(sb.toString());
-
-            SSID = j.getString("SSID");
-            password = j.getString("password");
 
         } catch (Throwable e) {
             BLog.e(TAG, e.getMessage());
