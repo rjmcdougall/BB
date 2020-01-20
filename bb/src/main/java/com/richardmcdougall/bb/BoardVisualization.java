@@ -15,7 +15,7 @@ import com.richardmcdougall.bb.visualization.PlayaMap;
 import com.richardmcdougall.bb.visualization.SyncLights;
 import com.richardmcdougall.bb.visualization.TestColors;
 import com.richardmcdougall.bb.visualization.TheMan;
-import com.richardmcdougall.bb.visualization.Video;
+import com.richardmcdougall.bb.video.Video;
 import com.richardmcdougall.bb.visualization.Visualization;
 
 import org.json.JSONObject;

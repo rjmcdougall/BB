@@ -1,9 +1,10 @@
-package com.richardmcdougall.bb.visualization;
+package com.richardmcdougall.bb.video;
 
 import android.util.Log;
 
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.visualization.Visualization;
 
 /**
  * Created by rmc on 6/21/18.
