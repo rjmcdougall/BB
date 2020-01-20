@@ -48,7 +48,7 @@ public class Video extends Visualization {
             };
 
             try {
-                mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+                mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), service.burnerBoard.boardWidth, service.burnerBoard.boardHeight);
             } catch (Throwable throwable) {
                 //Log.d(TAG, "Unable to start decoder");
                 //throwable.printStackTrace();

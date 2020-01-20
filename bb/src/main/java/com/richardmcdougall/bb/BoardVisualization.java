@@ -87,8 +87,8 @@ public class BoardVisualization {
         this.service = service;
         BLog.d(TAG, "Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.boardState.BOARD_ID);
 
-        mBoardWidth = service.burnerBoard.getWidth();
-        mBoardHeight = service.burnerBoard.getHeight();
+        mBoardWidth = service.burnerBoard.boardWidth;
+        mBoardHeight = service.burnerBoard.boardHeight;
         mMultipler4Speed = service.burnerBoard.getMultiplier4Speed();
         mBoardScreen = service.burnerBoard.getPixelBuffer();
         mFrameRate = service.burnerBoard.getFrameRate();

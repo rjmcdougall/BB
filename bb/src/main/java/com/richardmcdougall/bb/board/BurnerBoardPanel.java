@@ -38,16 +38,16 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     public BurnerBoardPanel(BBService service) {
         super(service);
-        mBoardWidth = 32;
-        mBoardHeight = 64;
-        super.setTextBuffer(mBoardWidth, mBoardHeight);
+        boardWidth = 32;
+        boardHeight = 64;
+        super.setTextBuffer(boardWidth, boardHeight);
         mMultipler4Speed = 3;
         boardType = "Burner Board Panel";
         BLog.d(TAG, "Burner Board Panel initting...");
-        mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
+        mBoardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initUsb();
-        mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
+        mLayeredScreen = new int[boardWidth * boardHeight * 3];
     }
 
     public int getFrameRate() {
@@ -110,8 +110,8 @@ public class BurnerBoardPanel extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -121,8 +121,8 @@ public class BurnerBoardPanel extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
@@ -141,8 +141,8 @@ public class BurnerBoardPanel extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
@@ -156,8 +156,8 @@ public class BurnerBoardPanel extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -220,14 +220,14 @@ public class BurnerBoardPanel extends BurnerBoard {
             mOutputScreen = mBoardScreen;
         }
 
-        int[] rowPixels = new int[mBoardWidth * 3];
-        for (int y = 0; y < mBoardHeight; y++) {
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                if (y < mBoardHeight) {
-                    rowPixels[(mBoardWidth - 1 - x) * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[(mBoardWidth - 1 - x) * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[(mBoardWidth - 1 - x) * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[(boardWidth - 1 - x) * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
             //setRowVisual(y, rowPixels);
@@ -248,8 +248,8 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
 
         // Do color correction on burner board display pixels
-        byte[] newPixels = new byte[mBoardWidth * 3];
-        for (int pixel = 0; pixel < mBoardWidth * 3; pixel = pixel + 3) {
+        byte[] newPixels = new byte[boardWidth * 3];
+        for (int pixel = 0; pixel < boardWidth * 3; pixel = pixel + 3) {
             newPixels[pixel] = (byte) pixelColorCorrectionRed(dimPixels[pixel]);
             newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
             newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);

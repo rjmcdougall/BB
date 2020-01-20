@@ -41,21 +41,21 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public BurnerBoardAzul(BBService service) {
         super(service);
-        mBoardWidth = 46;
-        mBoardHeight = 118;
+        boardWidth = 46;
+        boardHeight = 118;
         if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
             mMultipler4Speed = 1; // dkw need to config this
         else
             mMultipler4Speed = 2; // dkw need to config this
         boardType = "Burner Board Azul";
         BLog.d(TAG, "Burner Board Azul initing...");
-        mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
+        mBoardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
-        mLayeredScreen = new int[mBoardWidth * mBoardHeight * 3];
-        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
-        mDrawBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
+        mLayeredScreen = new int[boardWidth * boardHeight * 3];
+        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        mDrawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
         mTextSizeHorizontal = 14;
         mTextSizeVerical = 10;
     }
@@ -138,8 +138,8 @@ public class BurnerBoardAzul extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -149,8 +149,8 @@ public class BurnerBoardAzul extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
@@ -169,8 +169,8 @@ public class BurnerBoardAzul extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
@@ -184,8 +184,8 @@ public class BurnerBoardAzul extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -244,11 +244,11 @@ public class BurnerBoardAzul extends BurnerBoard {
         final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
         powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
 
-        int[] rowPixels = new int[mBoardWidth * 3];
-        for (int y = 0; y < mBoardHeight; y++) {
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                if (y < mBoardHeight) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
                     rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                     rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
                     rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
@@ -355,11 +355,11 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     private void pixelRemap(int x, int y, int stripOffset) {
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_RED);
+                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_GREEN);
+                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_BLUE);
+                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     // Two primary mapping functions

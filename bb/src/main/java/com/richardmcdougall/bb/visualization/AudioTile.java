@@ -18,8 +18,8 @@ public class AudioTile extends Visualization {
 
     public void update(int mode) {
 
-        int mTileHeight = mBoardWidth > 10 ? mBoardWidth  / 3 :  mBoardWidth;
-        final int tiles = 2 * mBoardHeight / mTileHeight + 1;
+        int mTileHeight = service.burnerBoard.boardWidth > 10 ? service.burnerBoard.boardWidth / 3 : service.burnerBoard.boardWidth;
+        final int tiles = 2 * service.burnerBoard.boardHeight / mTileHeight + 1;
 
         //int [] dbLevels = getLevels();
         service.burnerBoard.fadePixels(5);
@@ -47,28 +47,28 @@ public class AudioTile extends Visualization {
     private void drawRectTile(int tileNo, int color) {
         int x1 = 0;
         int y1 = 0;
-        int mTileHeight = mBoardWidth > 10 ? mBoardWidth  / 3 :  mBoardWidth;
-        final int tiles = mBoardHeight / mTileHeight + 1;
+        int mTileHeight = service.burnerBoard.boardWidth > 10 ? service.burnerBoard.boardWidth / 3 : service.burnerBoard.boardWidth;
+        final int tiles = service.burnerBoard.boardHeight / mTileHeight + 1;
         if (tileNo >= tiles * 2)
             return;
         if (tileNo < tiles) {
             x1 = 0;
             y1 = tileNo * mTileHeight;
         } else {
-            x1 = mBoardWidth / 2;
+            x1 = service.burnerBoard.boardWidth / 2;
             y1 = (tileNo - tiles) * mTileHeight;
         }
-        int x2 = x1 + mBoardWidth / 2 - 1;
+        int x2 = x1 + service.burnerBoard.boardWidth / 2 - 1;
         int y2 = y1 + mTileHeight - 1;
         for (int x = x1; x <= x2; x++) {
             for (int y = y1; y <= y2; y++) {
                 if (x == x1 || x == x2 || y == y1 || y == y2) {
                     service.burnerBoard.setPixel(x,
-                            java.lang.Math.min(y, mBoardHeight - 1),
+                            java.lang.Math.min(y, service.burnerBoard.boardHeight - 1),
                             BurnerBoard.colorDim(100, color));
                 } else {
                     service.burnerBoard.setPixel(x,
-                            java.lang.Math.min(y, mBoardHeight - 1), color);
+                            java.lang.Math.min(y, service.burnerBoard.boardHeight - 1), color);
                 }
             }
         }

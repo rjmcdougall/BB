@@ -48,8 +48,8 @@ public class BurnerBoard {
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
 
-    public int mBoardWidth = 1;
-    public int mBoardHeight = 1;
+    public int boardWidth = 1;
+    public int boardHeight = 1;
     public int mMultipler4Speed = 1;
     public BurnerBoard.BoardEvents boardCallback = null;
     public CmdMessenger mListener = null;
@@ -99,21 +99,13 @@ public class BurnerBoard {
 
     public void setPixel(int pixel, int r, int g, int b) {
 
-        if (pixel < 0 || pixel >= (mBoardWidth * mBoardHeight)) {
+        if (pixel < 0 || pixel >= (boardWidth * boardHeight)) {
             BLog.d(TAG, "setPixel out of range: " + pixel);
             return;
         }
         mBoardScreen[pixel * 3] = r;
         mBoardScreen[pixel * 3 + 1] = g;
         mBoardScreen[pixel * 3 + 2] = b;
-    }
-
-    public int getWidth() {
-        return mBoardWidth;
-    }
-
-    public int getHeight() {
-        return mBoardHeight;
     }
 
     public int getMultiplier4Speed() {
@@ -128,7 +120,7 @@ public class BurnerBoard {
 
     // Convert from xy to buffer memory
     int pixel2OffsetCalc(int x, int y, int rgb) {
-        return (y * mBoardWidth + x) * 3 + rgb;
+        return (y * boardWidth + x) * 3 + rgb;
     }
 
     public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
@@ -166,8 +158,8 @@ public class BurnerBoard {
     }
 
     protected void initPixelOffset() {
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
+        for (int x = 0; x < boardWidth; x++) {
+            for (int y = 0; y < boardHeight; y++) {
                 for (int rgb = 0; rgb < 3; rgb++) {
                     pixel2OffsetTable[x][y][rgb] = pixel2OffsetCalc(x, y, rgb);
                 }
@@ -241,7 +233,7 @@ public class BurnerBoard {
         //System.out.println("Setting pixel " + x + "," + y + " : " + pixel2Offset(x, y, PIXEL_RED) + " to " + r +  "," + g + "," + b);
         //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
         //Sstem.out.println("setpixel r = " + r);
-        if (x < 0 || x >= mBoardWidth || y < 0 || y >= mBoardHeight) {
+        if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight) {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
             return;
         }
@@ -259,8 +251,8 @@ public class BurnerBoard {
         //System.out.println("Fillscreen " + r + "," + g + "," + b);
         int x;
         int y;
-        for (x = 0; x < mBoardWidth; x++) {
-            for (y = 0; y < mBoardHeight; y++) {
+        for (x = 0; x < boardWidth; x++) {
+            for (y = 0; y < boardHeight; y++) {
                 setPixel(x, y, r, g, b);
             }
         }
@@ -287,8 +279,8 @@ public class BurnerBoard {
         //System.out.println("Fillscreen " + r + "," + g + "," + b);
         int x;
         int y;
-        for (x = 0; x < mBoardWidth; x++) {
-            for (y = 0; y < mBoardHeight; y++) {
+        for (x = 0; x < boardWidth; x++) {
+            for (y = 0; y < boardHeight; y++) {
                 if (getPixel(x, y) > 0) {
                     setPixel(x, y, r, g, b);
                 }
@@ -436,8 +428,8 @@ public class BurnerBoard {
 
     public void fuzzPixels(int amount) {
 
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
+        for (int x = 0; x < boardWidth; x++) {
+            for (int y = 0; y < boardHeight; y++) {
                 mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                         (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] - amount);
                 mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -453,8 +445,8 @@ public class BurnerBoard {
         return true;
     }public void fadePixels(int amount) {
 
-        for (int x = 0; x < mBoardWidth; x++) {
-            for (int y = 0; y < mBoardHeight; y++) {
+        for (int x = 0; x < boardWidth; x++) {
+            for (int y = 0; y < boardHeight; y++) {
                 int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                 //System.out.println("br = " + br);
                 if (r >= amount) {
@@ -854,7 +846,7 @@ public class BurnerBoard {
 
         int[] buffer = (int[]) buf.array();
 
-        for (int pixelNo = 0; pixelNo < (mBoardWidth * mBoardHeight); pixelNo++) {
+        for (int pixelNo = 0; pixelNo < (boardWidth * boardHeight); pixelNo++) {
             int pixel_offset = pixelNo * 3;
             int pixel = buffer[pixelNo];
             int a = pixel & 0xff;
@@ -886,17 +878,17 @@ public class BurnerBoard {
         isTextDisplaying = delay * mRefreshRate / 1000;
 
         // Lowres boards only display horizontal
-        if (mBoardWidth < 15) {
+        if (boardWidth < 15) {
             setText90(text, delay);
             return;
         }
 
         Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
-        //canvas.translate(0, mBoardHeight - 20);
-        //canvas.rotate(90, mBoardWidth / 2, mBoardHeight / 2);
+        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
+        //canvas.translate(0, boardHeight - 20);
+        //canvas.rotate(90, boardWidth / 2, boardHeight / 2);
         Paint textPaint = new TextPaint();
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setColor(Color.WHITE); // Text Color
@@ -905,7 +897,7 @@ public class BurnerBoard {
         textPaint.setTextSize(mTextSizeVerical); // Text Size
         //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
         canvas.drawText(text.substring(0, Math.min(text.length(), 4)),
-                (mBoardWidth / 2), 30, textPaint);//mBoardHeight / 2 + (mTextSizeVerical / 3), textPaint);
+                (boardWidth / 2), 30, textPaint);//boardHeight / 2 + (mTextSizeVerical / 3), textPaint);
         if (mTextBuffer != null) {
             mTextBuffer.rewind();
             bitmap.copyPixelsToBuffer(mTextBuffer);
@@ -917,17 +909,17 @@ public class BurnerBoard {
         isTextDisplaying = delay * mRefreshRate / 1000;
 
         Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
-        canvas.rotate(90, mBoardWidth / 2, mBoardHeight / 2);
+        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
+        canvas.rotate(90, boardWidth / 2, boardHeight / 2);
         Paint textPaint = new TextPaint();
         textPaint.setDither(true);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setColor(Color.WHITE); // Text Color
         textPaint.setTextSize(mTextSizeHorizontal); // Text Size
         //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
-        canvas.drawText(text, (mBoardWidth / 2), mBoardHeight / 2 + (mTextSizeHorizontal / 3), textPaint);
+        canvas.drawText(text, (boardWidth / 2), boardHeight / 2 + (mTextSizeHorizontal / 3), textPaint);
         if (mTextBuffer != null) {
             mTextBuffer.rewind();
             bitmap.copyPixelsToBuffer(mTextBuffer);
@@ -937,7 +929,7 @@ public class BurnerBoard {
     // TODO: Implement generic layers
     public void fillScreenLayer(int[] layer, int r, int g, int b) {
 
-        for (int x = 0; x < mBoardWidth * mBoardHeight; x++) {
+        for (int x = 0; x < boardWidth * boardHeight; x++) {
             layer[x * 3 + 0] = r;
             layer[x * 3 + 1] = g;
             layer[x * 3 + 2] = b;
@@ -977,9 +969,9 @@ public class BurnerBoard {
                         boolean fill, int color) {
 
         Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(mBoardWidth, mBoardHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, mBoardWidth / 2, mBoardHeight / 2);
+        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
         Paint arcPaint = new Paint();
         arcPaint.setColor(rgbToArgb(color)); //  Color
         arcPaint.setStrokeWidth(1);
@@ -994,7 +986,7 @@ public class BurnerBoard {
         canvas.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, arcPaint);
         //canvas.drawArc(0, 0, canvas.getWidth() / 2, canvas.getHeight() / 2, 0, 90, true, arcPaint);
 
-        //canvas.drawText("hello", (mBoardWidth / 2), mBoardHeight / 2 + (mTextSizeHorizontal / 3), arcPaint);
+        //canvas.drawText("hello", (boardWidth / 2), boardHeight / 2 + (mTextSizeHorizontal / 3), arcPaint);
 
         if (mDrawBuffer != null) {
             mDrawBuffer.rewind();

@@ -60,10 +60,10 @@ public class Mickey extends Visualization {
             return;
         }
         if (n < kLEDS1) {
-            service.burnerBoard.setPixel(n / mBoardHeight, (kLEDS1 - n - 1) % mBoardHeight, color);
+            service.burnerBoard.setPixel(n / service.burnerBoard.boardHeight, (kLEDS1 - n - 1) % service.burnerBoard.boardHeight, color);
         } else {
-            service.burnerBoard.setPixel(1 + kLEDS1 / mBoardHeight +
-                    ((n - kLEDS1) / mBoardHeight),  (n - kLEDS1) % mBoardHeight, color);
+            service.burnerBoard.setPixel(1 + kLEDS1 / service.burnerBoard.boardHeight +
+                    ((n - kLEDS1) / service.burnerBoard.boardHeight),  (n - kLEDS1) % service.burnerBoard.boardHeight, color);
         }
     }
 

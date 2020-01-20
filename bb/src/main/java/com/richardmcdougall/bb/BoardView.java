@@ -213,7 +213,7 @@ public class BoardView extends View {
                     paint.setColor(Color.argb(255, r, g, b));
                     mCanvas.drawCircle(15 + y * 5, 5 + x * 5, 2, paint);
                     //}
-                    //System.out.println("setcolor " + mBoardScreen[(x * mBoardHeight + y) * 3]);
+                    //System.out.println("setcolor " + mBoardScreen[(x * boardHeight + y) * 3]);
                 }
             }
             // Update board view

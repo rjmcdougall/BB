@@ -60,16 +60,16 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     public BurnerBoardDirectMap(BBService service, int width, int height) {
         super(service);
-        mBoardWidth = width;
-        mBoardHeight = height;
+        boardWidth = width;
+        boardHeight = height;
         mMultipler4Speed = 3;
 
-        mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
+        mBoardScreen = new int[boardWidth * boardHeight * 3];
 
         boardType = "Burner Board DirectMap";
-        BLog.d(TAG, boardType + " initializing at: " + mBoardWidth + " x " + mBoardHeight);
+        BLog.d(TAG, boardType + " initializing at: " + boardWidth + " x " + boardHeight);
 
-        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
+        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
         initPixelOffset();
         initUsb();
     }
@@ -128,8 +128,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -139,8 +139,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
@@ -159,8 +159,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
@@ -174,8 +174,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -241,11 +241,11 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             //powerLimitMultiplierPercent = 100;// - java.lang.Math.max(powerPercent - 12, 0);
             */
 
-            int[] rowPixels = new int[mBoardWidth * 3];
-            for (int y = 0; y < mBoardHeight; y++) {
+            int[] rowPixels = new int[boardWidth * 3];
+            for (int y = 0; y < boardHeight; y++) {
                 //for (int y = 30; y < 31; y++) {
-                for (int x = 0; x < mBoardWidth; x++) {
-                    if (y < mBoardHeight) {
+                for (int x = 0; x < boardWidth; x++) {
+                    if (y < boardHeight) {
                         rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                         rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
                         rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
@@ -256,9 +256,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
             // Walk through each strip and fill from the graphics buffer
             for (int s = 0; s < kStrips; s++) {
-                int[] stripPixels = new int[mBoardHeight * 3];
+                int[] stripPixels = new int[boardHeight * 3];
                 // Walk through all the pixels in the strip
-                for (int y = 0; y < mBoardHeight; y++) {
+                for (int y = 0; y < boardHeight; y++) {
                     stripPixels[y * 3] = mBoardScreen[pixel2Offset(s, y, PIXEL_RED)];
                     stripPixels[y * 3 + 1] = mBoardScreen[pixel2Offset(s, y, PIXEL_GREEN)];
                     stripPixels[y * 3 + 2] = mBoardScreen[pixel2Offset(s, y, PIXEL_BLUE)];

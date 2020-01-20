@@ -20,8 +20,8 @@ public class Fire extends Visualization {
     public Fire(BBService service) {
         super(service);
 
-        mFireHeight = mBoardHeight;
-        mFireScreen = new int[mBoardWidth * 2 * (mFireHeight + 6)];
+        mFireHeight = service.burnerBoard.boardHeight;
+        mFireScreen = new int[service.burnerBoard.boardWidth * 2 * (mFireHeight + 6)];
     }
 
     private void getFirePixels(int color) {
@@ -139,9 +139,9 @@ public class Fire extends Visualization {
     int fireCnt = 0;
 
     public void update(int mode) {
-        int j = mBoardWidth * 2 * (mFireHeight + 1);
+        int j = service.burnerBoard.boardWidth * 2 * (mFireHeight + 1);
         int random;
-        for (int i = 0; i < (mBoardWidth * 2); i++) {
+        for (int i = 0; i < (service.burnerBoard.boardWidth * 2); i++) {
             random = service.boardVisualization.mRandom.nextInt(16);
             // the lower the value, the intense the fire,
             // compensate a lower value with a higher decay value
@@ -156,26 +156,26 @@ public class Fire extends Visualization {
 
 		/* move fire upwards, start at bottom*/
         int temp;
-        int[] lastTemps = new int[mBoardWidth * 2];
+        int[] lastTemps = new int[service.burnerBoard.boardWidth * 2];
         for (int index = 0; index < mFireHeight + 1; index++) {
-            for (int i = 0; i < mBoardWidth * 2; i++) {
+            for (int i = 0; i < service.burnerBoard.boardWidth * 2; i++) {
                 if (i == 0) {
 					/* at the left border*/
                     temp = mFireScreen[j];
                     temp += mFireScreen[j + 1];
-                    temp += mFireScreen[j - mBoardWidth * 2];
+                    temp += mFireScreen[j - service.burnerBoard.boardWidth * 2];
                     temp /= 3;
-                } else if (i == mBoardWidth * 2) {
+                } else if (i == service.burnerBoard.boardWidth * 2) {
                     /* at the right border*/
                     temp = mFireScreen[j + i];
-                    temp += mFireScreen[j - mBoardWidth * 2 + i];
+                    temp += mFireScreen[j - service.burnerBoard.boardWidth * 2 + i];
                     temp += mFireScreen[j + i - 1];
                     temp /= 3;
                 } else {
                     temp = mFireScreen[j + i];
                     temp += mFireScreen[j + i + 1];
                     temp += mFireScreen[j + i - 1];
-                    temp += mFireScreen[j - mBoardWidth * 2 + i];
+                    temp += mFireScreen[j - service.burnerBoard.boardWidth * 2 + i];
                     temp >>= 2;
                 }
 
@@ -186,12 +186,12 @@ public class Fire extends Visualization {
                     //temp /= 3;
                 }
 
-                int dofs = j - mBoardWidth * 2 + i;
+                int dofs = j - service.burnerBoard.boardWidth * 2 + i;
                 mFireScreen[dofs] = temp;
-                if (dofs < (mBoardWidth * 2 * mFireHeight)) {
-                    int x = dofs % (mBoardWidth * 2);
+                if (dofs < (service.burnerBoard.boardWidth * 2 * mFireHeight)) {
+                    int x = dofs % (service.burnerBoard.boardWidth * 2);
                     int y = java.lang.Math.min(java.lang.Math.max(0,
-                            (dofs / (mBoardWidth * 2)) + 1), mBoardHeight - 1);
+                            (dofs / (service.burnerBoard.boardWidth * 2)) + 1), service.burnerBoard.boardHeight - 1);
                     // Bigger number leaves more flame tails
                     // BB Classic was 55
                     if (true || lastTemps[i] > 50) {
@@ -214,21 +214,21 @@ public class Fire extends Visualization {
                     lastTemps[i] = temp;
                 }
             }
-            j -= mBoardWidth * 2;
+            j -= service.burnerBoard.boardWidth * 2;
         }
-        //for (j = 1; j < mBoardHeight - 1; j++) {
-        //    System.arraycopy(mFireScreen, j * mBoardWidth * 2,
-        //            mFireScreen, (j + 1) * mBoardWidth * 2, mBoardWidth * 2);
+        //for (j = 1; j < service.burnerBoard.boardHeight - 1; j++) {
+        //    System.arraycopy(mFireScreen, j * service.burnerBoard.boardWidth * 2,
+        //            mFireScreen, (j + 1) * service.burnerBoard.boardWidth * 2, service.burnerBoard.boardWidth * 2);
         //}
 
         switch (mode) {
             case kModeFireDistrikt:
                 service.burnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
-                Distrikt.drawDistrikt(service.burnerBoard, BurnerBoard.getRGB(255, 255, 255), mBoardWidth);
+                Distrikt.drawDistrikt(service.burnerBoard, BurnerBoard.getRGB(255, 255, 255), service.burnerBoard.boardWidth);
                 break;
             case kModeFireTheMan:
                 TheMan.drawTheMan(service.burnerBoard, BurnerBoard.getRGB(mFireColors[200][0],
-                        mFireColors[100][1], mFireColors[200][2]), mBoardWidth);
+                        mFireColors[100][1], mFireColors[200][2]), service.burnerBoard.boardWidth);
                 service.burnerBoard.scrollPixelsExcept(true,
                         BurnerBoard.getRGB(mFireColors[200][0],
                                 mFireColors[100][1], mFireColors[200][2]));

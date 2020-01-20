@@ -55,7 +55,7 @@ public class Matrix extends Visualization {
     public void update(int mode) {
 
         // Row plus two pixels for side lights
-        int[] pixels = new int[mBoardWidth * 3 + 6];
+        int[] pixels = new int[service.burnerBoard.boardWidth * 3 + 6];
 
         int color;
         int colorDim;
@@ -65,7 +65,7 @@ public class Matrix extends Visualization {
         int pixelSkip;
         boolean isReverse = (mode == kMatrixReverse) || (mode ==kMatrixMickey);
 
-        if (mBoardWidth > 10) {
+        if (service.burnerBoard.boardWidth > 10) {
             pixelSkip = 3;
         } else {
             pixelSkip = 1;
@@ -75,11 +75,11 @@ public class Matrix extends Visualization {
         if (isReverse) {
             y = 0;
         } else {
-            y = mBoardHeight - 1;
+            y = service.burnerBoard.boardHeight - 1;
         }
         sideLight = mBoardSideLights - 1;
 
-        for (x = 0; x < mBoardWidth / pixelSkip; x++) {
+        for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x++) {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixBurnerColor:
@@ -143,7 +143,7 @@ public class Matrix extends Visualization {
                     break;
                 case kMatrixIrukandji:
                     color = mWheel.wheelState();
-                    if (x > 0 || x < mBoardWidth) {
+                    if (x > 0 || x < service.burnerBoard.boardWidth) {
                         service.burnerBoard.setPixel(pixelSkip * x, y, BurnerBoard.getRGB(0, 0, 0));
                     }
                     mWheel.wheelInc(1);

@@ -62,7 +62,7 @@ public class JosPack extends Visualization {
         if (n < 0 || n >= kLEDS) {
             return;
         }
-        service.burnerBoard.setPixel(n / mBoardHeight, (kLEDS - n - 1) % mBoardHeight, color);
+        service.burnerBoard.setPixel(n / service.burnerBoard.boardHeight, (kLEDS - n - 1) % service.burnerBoard.boardHeight, color);
     }
 
     void modeJPGold() {

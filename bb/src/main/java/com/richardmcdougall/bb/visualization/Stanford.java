@@ -248,6 +248,6 @@ public class Stanford extends Visualization {
         color = service.boardVisualization.mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80) : mWheel.wheelState(); //Chance of 1/3rd
         mWheel.wheelInc(1);
         service.burnerBoard.clearPixels();
-        drawStanford(service.burnerBoard, color, mBoardWidth);
+        drawStanford(service.burnerBoard, color, service.burnerBoard.boardWidth);
     }
 }

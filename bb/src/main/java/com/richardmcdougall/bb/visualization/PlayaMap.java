@@ -52,7 +52,7 @@ public class PlayaMap extends Visualization {
     public void update(int mode) {
 
         if (service.boardState.boardType == BoardState.BoardType.azul) {
-            final float outerRing = mBoardWidth * (float)kMapSizeRatio;
+            final float outerRing = service.burnerBoard.service.burnerBoard.boardWidth * (float)kMapSizeRatio;
             final float innerRing = outerRing / (float)kRingRatio;
             final float theMan = 2;
 
@@ -61,20 +61,20 @@ public class PlayaMap extends Visualization {
             service.burnerBoard.fillScreen(0, 0, 0);
 
             // Outer ring
-            service.burnerBoard.drawArc((mBoardWidth - outerRing) / 2,
-                    (mBoardHeight - outerRing) / 2,
-                    (mBoardWidth - outerRing) / 2 + outerRing,
-                    (mBoardHeight - outerRing) / 2 + outerRing,
+            service.burnerBoard.drawArc((service.burnerBoard.boardWidth - outerRing) / 2,
+                    (service.burnerBoard.boardHeight - outerRing) / 2,
+                    (service.burnerBoard.boardWidth - outerRing) / 2 + outerRing,
+                    (service.burnerBoard.boardHeight - outerRing) / 2 + outerRing,
                     (float)(kDegrees2 - 90),
                     (float)(kDegrees10 - kDegrees2),
                     true,
                     true,
                     BurnerBoard.getRGB(100, 100, 100));
             // Inner ring
-            service.burnerBoard.drawArc((mBoardWidth - innerRing) / 2,
-                    (mBoardHeight - innerRing) / 2,
-                    (mBoardWidth - innerRing) / 2 + innerRing,
-                    (mBoardHeight - innerRing) / 2 + innerRing,
+            service.burnerBoard.drawArc((service.burnerBoard.boardWidth - innerRing) / 2,
+                    (service.burnerBoard.boardHeight - innerRing) / 2,
+                    (service.burnerBoard.boardWidth - innerRing) / 2 + innerRing,
+                    (service.burnerBoard.boardHeight - innerRing) / 2 + innerRing,
                     (float) (kDegrees2 - 90),
                     (float) (kDegrees10 - kDegrees2),
                     true,
@@ -106,7 +106,7 @@ public class PlayaMap extends Visualization {
 
         } else if (BoardState.BoardType.panel == service.boardState.boardType) {
             service.burnerBoard.fillScreen(30, 30, 30);
-            service.burnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
+            service.burnerBoard.drawArc(0, service.burnerBoard.boardHeight, service.burnerBoard.boardWidth,0,
                     (float)kDegrees2, (float)(kDegrees10 - kDegrees2),
             true,
                     true,
@@ -160,8 +160,8 @@ public class PlayaMap extends Visualization {
         //System.out.println("new dx/dy = " + new_dx + "," + new_dy);
         //System.out.println("adjusted bearing = " + adjustedBearing);
 
-        int x = mBoardWidth / 2 + (int) (new_dx / kBurnRadius * mBoardWidth  / 2 * kMapSizeRatio);
-        int y = mBoardHeight / 2 + (int) (new_dy / kBurnRadius * mBoardWidth  / 2 * kMapSizeRatio);
+        int x = service.burnerBoard.boardWidth / 2 + (int) (new_dx / kBurnRadius * service.burnerBoard.boardWidth / 2 * kMapSizeRatio);
+        int y = service.burnerBoard.boardHeight / 2 + (int) (new_dy / kBurnRadius * service.burnerBoard.boardWidth / 2 * kMapSizeRatio);
 
         //System.out.println("x/y = " + x + "," + y + " color = " + color);
 
