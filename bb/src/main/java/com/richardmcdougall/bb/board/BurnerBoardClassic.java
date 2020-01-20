@@ -28,7 +28,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
     public int getMultiplier4Speed() {
-            return 1; 
+            return 1;
     }
 
     // Experiments with optimized overlocked Teensy suggest 20 is to high

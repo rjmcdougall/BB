@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 import android.media.audiofx.Visualizer;
 import android.speech.tts.TextToSpeech;
 
+import com.richardmcdougall.bb.rf.RFMasterClientServer;
+import com.richardmcdougall.bb.rf.RFUtil;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;

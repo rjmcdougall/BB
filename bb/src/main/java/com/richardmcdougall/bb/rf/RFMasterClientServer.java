@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.rf;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,6 +6,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.StrictMode;
 import android.support.v4.content.LocalBroadcastManager;
+
+import com.richardmcdougall.bb.ACTION;
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BLog;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,7 +43,7 @@ public class RFMasterClientServer {
         }
     };
 
-    RFMasterClientServer(BBService service) {
+    public RFMasterClientServer(BBService service) {
 
         this.service = service;
 
@@ -52,7 +56,7 @@ public class RFMasterClientServer {
 
     }
 
-    void Run() {
+    public void Run() {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB RF Client/Server");

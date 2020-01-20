@@ -6,6 +6,7 @@ import android.os.SystemClock;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
+import com.richardmcdougall.bb.rf.RFUtil;
 
 import org.json.JSONArray;
 

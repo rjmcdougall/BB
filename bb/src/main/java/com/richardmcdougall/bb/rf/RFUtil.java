@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.rf;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -12,6 +12,10 @@ import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.board.BurnerBoard;
+import com.richardmcdougall.bb.rf.FindMyFriends;
+import com.richardmcdougall.bb.rf.RF;
+import com.richardmcdougall.bb.rf.RFClientServer;
+import com.richardmcdougall.bb.rf.RFMasterClientServer;
 
 import java.util.Locale;
 

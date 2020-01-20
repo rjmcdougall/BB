@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.rf;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,10 +7,14 @@ import android.content.IntentFilter;
 import android.os.StrictMode;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.richardmcdougall.bb.ACTION;
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BLog;
+import com.richardmcdougall.bb.DriftCalculator;
+import com.richardmcdougall.bb.TimeSync;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 
 /**
  * Created by jonathan
@@ -30,7 +34,7 @@ public class RFClientServer {
     long mRtt;
     private long mLatency = 150;
 
-    RFClientServer(BBService service) {
+    public RFClientServer(BBService service) {
 
         this.service = service;
 
@@ -41,7 +45,7 @@ public class RFClientServer {
         }
     }
 
-    void Run() {
+    public void Run() {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 Thread.currentThread().setName("BB RF Client/Server");
