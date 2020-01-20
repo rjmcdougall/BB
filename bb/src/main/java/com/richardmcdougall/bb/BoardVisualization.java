@@ -337,8 +337,6 @@ public class BoardVisualization {
 
         BLog.d(TAG, "Starting board display thread...");
 
-        int nVideos = service.mediaManager.GetTotalVideo();
-
         while (true) {
 
             // Power saving when board top not turned on

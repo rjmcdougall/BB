@@ -27,7 +27,9 @@ android {
             signingConfig signingConfigs.burnerboard
         }
         debug {
+            minifyEnabled false
             signingConfig signingConfigs.burnerboard
+            debuggable true
         }
     }
     packagingOptions {
