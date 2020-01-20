@@ -75,8 +75,7 @@ public class MusicPlayer implements Runnable {
         Looper.prepare();
         handler = new Handler(Looper.myLooper());
 
-        CreateExoplayer();
-        ;
+        SetRadioChannel(0);
 
         Looper.loop();
     }
@@ -269,22 +268,21 @@ public class MusicPlayer implements Runnable {
 
         try {
             BLog.d(TAG, "Radio Mode");
-            String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
-            service.burnerBoard.setText(shortName[0], 2000);
-            if (service.voiceAnnouncements) {
-                service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
-            }
-
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
+                String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
+                service.burnerBoard.setText(shortName[0], 2000);
+                if (service.voiceAnnouncements) {
+                    service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
+                }
 
                 player.release();
                 player = null;
                 CreateExoplayer();
 
                 service.boardVisualization.attachAudio(player.getAudioSessionId());
-            }
 
-            this.handler.post(() -> mSeekAndPlay());
+                this.handler.post(() -> mSeekAndPlay());
+            }
         } catch (Throwable err) {
             BLog.e(TAG, "Radio mode failed" + err.getMessage());
         }
