@@ -6,8 +6,7 @@ import com.richardmcdougall.bb.BBColor;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bb.BoardState;
-import com.richardmcdougall.bb.BoardVisualization;
-import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.FindMyFriends;
 
 import java.util.List;

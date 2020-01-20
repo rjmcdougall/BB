@@ -103,7 +103,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Enables printing newline after a sent command
      */
-    void printLfCr(boolean addNewLine) {
+    public void printLfCr(boolean addNewLine) {
 
         print_newlines = addNewLine;
     }
@@ -119,13 +119,13 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Attaches a function to a command ID
      */
-    void attach(int msgId, CmdEvents newFunction) {
+    public void attach(int msgId, CmdEvents newFunction) {
         if (msgId >= 0)
             callbackList.put(msgId, newFunction);
     }/**
      * Waits for reply from sender or timeout before continuing
      */
-    boolean blockedTillReply(int timeout, int ackCmdId) {
+    public boolean blockedTillReply(int timeout, int ackCmdId) {
 
         int time = 0;
         boolean receivedAck = false;
@@ -217,7 +217,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send start of command. This makes it easy to send multiple arguments per command
      */
-    void sendCmdStart(int cmdId) {
+    public void sendCmdStart(int cmdId) {
         if (!startCommand) {
             startCommand = true;
             pauseProcessing = true;
@@ -228,7 +228,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send an escaped command argument
      */
-    void sendCmdEscArg(byte[] arg) {
+    public void sendCmdEscArg(byte[] arg) {
         if (startCommand) {
             printByte(field_separator);
             printEsc(arg);
@@ -239,7 +239,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Send formatted argument.
      * Note that floating points are not supported and resulting string is limited to 128 chars
      */
-    void sendCmdfArg(String template, String... args) {
+    public void sendCmdfArg(String template, String... args) {
         String tmp;
         String[] theargs = new String[args.length + 1];
         // fill the array 'theargs'
@@ -255,7 +255,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Send double argument in scientific format.
      * This will overcome the boundary of normal float sending which is limited to abs(f) <= MAXLONG
      */
-    void sendCmdSciArg(double arg, int n) {
+    public void sendCmdSciArg(double arg, int n) {
         if (startCommand) {
             printByte(field_separator);
             printSci(arg, n);
@@ -265,7 +265,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send int argument
      */
-    void sendCmdArg(int arg) {
+    public void sendCmdArg(int arg) {
         if (startCommand) {
             printByte(field_separator);
             printInt(arg);
@@ -275,7 +275,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send string argument
      */
-    void sendCmdArg(String arg) {
+    public void sendCmdArg(String arg) {
         if (startCommand) {
             printByte(field_separator);
             printStr(arg.getBytes());
@@ -285,7 +285,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send end of command
      */
-    boolean sendCmdEnd(boolean reqAc, int ackCmdId, int timeout) {
+    public boolean sendCmdEnd(boolean reqAc, int ackCmdId, int timeout) {
         boolean ackReply = false;
         if (startCommand) {
             printByte(command_separator);
@@ -304,14 +304,14 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send end of command
      */
-    boolean sendCmdEnd() {
+    public boolean sendCmdEnd() {
         return sendCmdEnd(false, 1, DEFAULT_TIMEOUT);
     }
 
     /**
      * Send a command without arguments, with acknowledge
      */
-    boolean sendCmd(int cmdId, boolean reqAc, int ackCmdId) {
+    public boolean sendCmd(int cmdId, boolean reqAc, int ackCmdId) {
         if (!startCommand) {
             sendCmdStart(cmdId);
             return sendCmdEnd(reqAc, ackCmdId, DEFAULT_TIMEOUT);
@@ -322,7 +322,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Send a command without arguments, without acknowledge
      */
-    boolean sendCmd(int cmdId) {
+    public boolean sendCmd(int cmdId) {
         if (!startCommand) {
             sendCmdStart(cmdId);
             return sendCmdEnd(false, 1, DEFAULT_TIMEOUT);
@@ -424,7 +424,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }/**
      * Compare the next argument with a string
      */
-    int compareStringArg(String string) {
+    public int compareStringArg(String string) {
         if (next()) {
             if (string.compareTo(new String(currentArg)) == 0) {
                 dumped = true;
@@ -444,7 +444,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Unescapes a string
      * Note that this is done inline
      */
-    byte[] unescape(byte[] str) {
+    public byte[] unescape(byte[] str) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         // Skip escaped chars
         for (byte ch : str) {
@@ -460,7 +460,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Split string in different tokens, based on delimiter
      * Note that this is basically strtok_r, but with support for an escape character
      */
-    byte[] getArg(final int delim) {
+    public byte[] getArg(final int delim) {
         int ch = 0;
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -475,17 +475,19 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
             }
         }
         return (outputStream.toByteArray());
-    }void printInt(int i) {
+    }
+
+    public void printInt(int i) {
         ;
         String s = String.format("%d", i);
         printStr(s.getBytes().clone());
     }
 
-    void printByte(byte b) {
+    public void printByte(byte b) {
         sendBuffer.write(b);
     }
 
-    void printStr(byte[] str) {
+    public void printStr(byte[] str) {
         //System.out.println("cmdMessenger: Send \"" + new String(str) + "\"");
         sendBuffer.write(str, 0, str.length);
     }
@@ -494,7 +496,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
      * Escape and print a string
      */
     // TODO: Fix the re-write of encoded 1's
-    void printEsc(byte[] str) {
+    public void printEsc(byte[] str) {
         for (byte ch : str) {
             if (ch == field_separator || ch == command_separator || ch == escape_character) {
                 sendBuffer.write(escape_character);
@@ -514,7 +516,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Escape and print a character
      */
-    void printEsc(byte ch) {
+    public void printEsc(byte ch) {
         if (ch == field_separator || ch == command_separator || ch == escape_character) {
             printByte(escape_character);
         }
@@ -531,7 +533,7 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     /**
      * Print float and double in scientific format
      */
-    void printSci(double f, int digits) {
+    public void printSci(double f, int digits) {
         // handle sign
         if (f < 0.0) {
             printStr("-".getBytes());
@@ -579,7 +581,9 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         String output;
         output = String.format(format, whole, part, exponent);
         printStr(output.getBytes());
-    }private void e(String str) {
+    }
+
+    private void e(String str) {
         Log.e(TAG, ">>>>>" + str);
     }
 

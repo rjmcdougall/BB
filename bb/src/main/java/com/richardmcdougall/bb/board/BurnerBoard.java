@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.board;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -22,6 +22,12 @@ import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
+import com.richardmcdougall.bb.ACTION;
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BLog;
+import com.richardmcdougall.bb.BoardState;
+import com.richardmcdougall.bb.CmdMessenger;
+import com.richardmcdougall.bb.DebugConfigs;
 
 import java.io.IOException;
 import java.nio.Buffer;

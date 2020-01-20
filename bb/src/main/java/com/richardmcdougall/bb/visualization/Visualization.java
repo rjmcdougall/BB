@@ -1,8 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BoardVisualization;
-import com.richardmcdougall.bb.BurnerBoard;
 
 /**
  * Created by rmc on 6/18/18.

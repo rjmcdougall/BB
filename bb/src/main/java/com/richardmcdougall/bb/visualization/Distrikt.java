@@ -1,6 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
-import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.board.BurnerBoard;
 
 /**
  * Created by rmc on 6/21/18.

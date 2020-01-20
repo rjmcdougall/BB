@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.board;
 
 /*
 
@@ -26,6 +26,10 @@ package com.richardmcdougall.bb;
  Front
 
  */
+
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BLog;
+import com.richardmcdougall.bb.CmdMessenger;
 
 public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();

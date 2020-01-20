@@ -3,8 +3,7 @@ package com.richardmcdougall.bb.video;
 import android.util.Log;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BoardVisualization;
-import com.richardmcdougall.bb.BurnerBoard;
+import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.visualization.Visualization;
 
 /**

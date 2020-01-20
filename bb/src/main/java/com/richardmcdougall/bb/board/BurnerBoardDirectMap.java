@@ -1,4 +1,9 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.board;
+
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BLog;
+import com.richardmcdougall.bb.BoardState;
+import com.richardmcdougall.bb.CmdMessenger;
 
 import java.nio.IntBuffer;
 

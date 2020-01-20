@@ -11,6 +11,8 @@ import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.richardmcdougall.bb.board.BurnerBoard;
+
 import java.util.Locale;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
