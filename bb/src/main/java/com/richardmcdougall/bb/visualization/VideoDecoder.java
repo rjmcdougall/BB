@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb.visualization;
 
-import com.richardmcdougall.bb.SimpleImage;
 import com.richardmcdougall.bb.BLog;
 import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;

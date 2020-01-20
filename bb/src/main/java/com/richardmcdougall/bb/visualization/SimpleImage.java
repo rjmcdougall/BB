@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.visualization;
 
 import java.nio.ByteBuffer;
 

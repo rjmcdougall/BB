@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
-import com.richardmcdougall.bb.SimpleImage;
 
 /**
  * Created by rmc on 6/21/18.
