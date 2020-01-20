@@ -34,7 +34,12 @@ import java.nio.IntBuffer;
  */
 
 public class BurnerBoardMast extends BurnerBoard {
+    // Two primary mapping functions
+    static int kStrips = 8;
+    static int[][] pixelMap2BoardTable = new int[8][4096];
+    long lastFlushTime = java.lang.System.currentTimeMillis();
     private String TAG = this.getClass().getSimpleName();
+    private int flushCnt = 0;
 
     public BurnerBoardMast(BBService service) {
         super(service);
@@ -91,27 +96,6 @@ public class BurnerBoardMast extends BurnerBoard {
         mListener.attach(8, getBatteryLevelCallback);
 
     }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
-        }
-    }
-
-    // TODO: gamma correction
-    // encoded = ((original / 255) ^ (1 / gamma)) * 255
-    // original = ((encoded / 255) ^ gamma) * 255
-
-    private int flushCnt = 0;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
 
     public void flush() {
 
@@ -185,7 +169,6 @@ public class BurnerBoardMast extends BurnerBoard {
         }
     }
 
-
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
         pixelMap2BoardTable[stripNo][stripOffset] =
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
@@ -194,11 +177,6 @@ public class BurnerBoardMast extends BurnerBoard {
         pixelMap2BoardTable[stripNo][stripOffset + 2] =
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
-
-    // Two primary mapping functions
-    static int kStrips = 8;
-    static int[][] pixelMap2BoardTable = new int[8][4096];
-    private TranslationMap[] boardMap;
 
     private void initpixelMap2Board() {
 
@@ -220,6 +198,20 @@ public class BurnerBoardMast extends BurnerBoard {
 
         }
 
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            if (mBatteryStats[1] != -1) {
+                service.boardState.batteryLevel = mBatteryStats[1];
+            } else {
+                service.boardState.batteryLevel = 100;
+            }
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
+        }
     }
 }
 

@@ -42,23 +42,20 @@ import java.util.concurrent.Executors;
  */
 
 public abstract class BurnerBoard {
-    private static String TAG = "BurnerBoard";
-
+    protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-
+    public static int[][][] pixel2OffsetTable = new int[255][255][3];
+    private static String TAG = "BurnerBoard";
+    private static UsbSerialPort sPort = null;
+    private static UsbSerialDriver mDriver = null;
+    protected final Object mSerialConn = new Object();
+    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     public int boardWidth = 1;
     public int boardHeight = 1;
     public BurnerBoard.BoardEvents boardCallback = null;
     public CmdMessenger mListener = null;
-    private SerialInputOutputManager mSerialIoManager;
-    private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    protected final Object mSerialConn = new Object();
-    private static UsbSerialPort sPort = null;
-    private static UsbSerialDriver mDriver = null;
-    private UsbDevice mUsbDevice = null;
-    protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     public BBService service = null;
     public String mEchoString = "";
     public int[] mBoardScreen;
@@ -71,8 +68,40 @@ public abstract class BurnerBoard {
     public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
     public int[] mBatteryStats = new int[16];
-    public static int[][][] pixel2OffsetTable = new int[255][255][3];
     public int mDimmerLevel = 255;
+    private SerialInputOutputManager mSerialIoManager;
+    private UsbDevice mUsbDevice = null;
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+
+            final String TAG = "mUsbReceiver";
+            BLog.d(TAG, "onReceive entered");
+            String action = intent.getAction();
+            if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                BLog.d(TAG, "A USB Accessory was detached (" + device + ")");
+                if (device != null) {
+                    if (mUsbDevice == device) {
+                        BLog.d(TAG, "It's this device");
+                        mUsbDevice = null;
+                        stopIoManager();
+                    }
+                }
+            }
+            if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                BLog.d(TAG, "USB Accessory attached (" + device + ")");
+                if (mUsbDevice == null) {
+                    BLog.d(TAG, "Calling initUsb to check if we should add this device");
+                    initUsb();
+                } else {
+                    BLog.d(TAG, "this USB already attached");
+                }
+            }
+            BLog.d(TAG, "onReceive exited");
+        }
+    };
 
     public BurnerBoard(BBService service) {
         this.service = service;
@@ -83,8 +112,86 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
     }
 
-    public BBService getBBService() {
-        return service;
+    static public int getRGB(int r, int g, int b) {
+
+        return (r * 65536 + g * 256 + b);
+    }
+
+    static public int colorDim(int dimValue, int color) {
+        int b = (dimValue * (color & 0xff)) / 255;
+        int g = (dimValue * ((color & 0xff00) >> 8) / 255);
+        int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
+        return (BurnerBoard.getRGB(r, g, b));
+    }
+
+    static int pixel2Offset(int x, int y, int rgb) {
+        return pixel2OffsetTable[x][y][rgb];
+    }
+
+    static int gammaCorrect(int value) {
+        //return ((value / 255) ^ (1 / gamma)) * 255;
+        if (value > 255) value = 255;
+        if (value < 0) value = 0;
+        return GammaCorrection.gamma8[value];
+    }
+
+    public static BurnerBoard Builder(BBService service) {
+
+        BurnerBoard burnerBoard = null;
+
+        if (DebugConfigs.OVERRIDE_BOARD_TYPE != null) {
+            switch (DebugConfigs.OVERRIDE_BOARD_TYPE) {
+                case classic:
+                    BLog.d(TAG, "Visualization: Using Classic");
+                    burnerBoard = new BurnerBoardClassic(service);
+                    break;
+                case azul:
+                    BLog.d(TAG, "Visualization: Using Azul");
+                    burnerBoard = new BurnerBoardAzul(service);
+                    break;
+                case mast:
+                    BLog.d(TAG, "Visualization: Using Mast");
+                    burnerBoard = new BurnerBoardMast(service);
+                    break;
+                case panel:
+                    BLog.d(TAG, "Visualization: Using Panel");
+                    burnerBoard = new BurnerBoardPanel(service);
+                    break;
+                case backpack:
+                    BLog.d(TAG, "Visualization: Using Direct Map");
+                    burnerBoard = new BurnerBoardDirectMap(
+                            service,
+                            BurnerBoardDirectMap.kVisualizationDirectMapWidth,
+                            BurnerBoardDirectMap.kVisualizationDirectMapHeight
+                    );
+                    break;
+            }
+        } else {
+            if (service.boardState.boardType == BoardState.BoardType.classic) {
+                BLog.d(TAG, "Visualization: Using Classic");
+                burnerBoard = new BurnerBoardClassic(service);
+            } else if (BoardState.BoardType.mast == service.boardState.boardType) {
+                BLog.d(TAG, "Visualization: Using Mast");
+                burnerBoard = new BurnerBoardMast(service);
+            } else if (BoardState.BoardType.panel == service.boardState.boardType) {
+                BLog.d(TAG, "Visualization: Using Panel");
+                burnerBoard = new BurnerBoardPanel(service);
+            } else if (BoardState.BoardType.backpack == service.boardState.boardType) {
+                BLog.d(TAG, "Visualization: Using Direct Map");
+                burnerBoard = new BurnerBoardDirectMap(
+                        service,
+                        BurnerBoardDirectMap.kVisualizationDirectMapWidth,
+                        BurnerBoardDirectMap.kVisualizationDirectMapHeight
+                );
+            } else if (service.boardState.boardType == BoardState.BoardType.azul) {
+                BLog.d(TAG, "Visualization: Using Azul");
+                burnerBoard = new BurnerBoardAzul(service);
+            } else {
+                BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
+                burnerBoard = new BurnerBoardAzul(service);
+            }
+        }
+        return burnerBoard;
     }
 
     public void setTextBuffer(int width, int height) {
@@ -109,49 +216,9 @@ public abstract class BurnerBoard {
 
     public abstract int getMultiplier4Speed();
 
-    public interface BoardEvents {
-        void BoardId(String msg);
-
-        void BoardMode(int mode);
-    }
-
     // Convert from xy to buffer memory
     int pixel2OffsetCalc(int x, int y, int rgb) {
         return (y * boardWidth + x) * 3 + rgb;
-    }
-
-    public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-
-            BLog.d(TAG, "ardunio default callback:" + str);
-        }
-    }
-
-    public class BoardCallbackTest implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            BLog.d(TAG, "ardunio test callback:" + str);
-        }
-    }
-
-    public class BoardCallbackMode implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            int boardMode = mListener.readIntArg();
-            boardCallback.BoardMode(boardMode);
-        }
-    }
-
-    public class BoardCallbackBoardID implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            String boardId = mListener.readStringArg();
-            boardCallback.BoardId(boardId);
-        }
-    }
-
-    public class BoardCallbackEchoRow implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            mEchoString = mListener.readStringArg();
-            BLog.d(TAG, "echoRow: " + mEchoString);
-        }
     }
 
     protected void initPixelOffset() {
@@ -211,11 +278,6 @@ public abstract class BurnerBoard {
 
     public void clearPixels() {
         Arrays.fill(mBoardScreen, 0);
-    }
-
-    static public int getRGB(int r, int g, int b) {
-
-        return (r * 65536 + g * 256 + b);
     }
 
     public void setPixel(int x, int y, int color) {
@@ -386,13 +448,6 @@ public abstract class BurnerBoard {
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
     }
 
-    static public int colorDim(int dimValue, int color) {
-        int b = (dimValue * (color & 0xff)) / 255;
-        int g = (dimValue * ((color & 0xff00) >> 8) / 255);
-        int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
-        return (BurnerBoard.getRGB(r, g, b));
-    }
-
     public boolean clearScreen() {
 
         sendVisual(5);
@@ -404,13 +459,13 @@ public abstract class BurnerBoard {
         }
         return false;
     }// TODO: gamma correction
-    // encoded = ((original / 255) ^ (1 / gamma)) * 255
-    // original = ((encoded / 255) ^ gamma) * 255
 
     // TODO: make faster by using ints
     protected int pixelColorCorrectionRed(int red) {
         return gammaCorrect(red);
     }
+    // encoded = ((original / 255) ^ (1 / gamma)) * 255
+    // original = ((encoded / 255) ^ gamma) * 255
 
     protected int pixelColorCorrectionGreen(int green) {
         return gammaCorrect(green);
@@ -419,6 +474,7 @@ public abstract class BurnerBoard {
     protected int pixelColorCorrectionBlue(int blue) {
         return gammaCorrect(blue);
     }// Send a strip of pixels to the board
+
     protected void setStrip(int strip, int[] pixels, int powerLimitMultiplierPercent) {
 
         int[] dimPixels = new int[pixels.length];
@@ -478,10 +534,6 @@ public abstract class BurnerBoard {
         mDimmerLevel = level;
     }
 
-    static int pixel2Offset(int x, int y, int rgb) {
-        return pixel2OffsetTable[x][y][rgb];
-    }
-
     public void fuzzPixels(int amount) {
 
         for (int x = 0; x < boardWidth; x++) {
@@ -496,10 +548,12 @@ public abstract class BurnerBoard {
         }
     }
 
-    public boolean setMode(int mode) {
+public boolean setMode(int mode) {
         setText(String.valueOf(mode), 2000);
         return true;
-    }public void fadePixels(int amount) {
+    }
+
+public void fadePixels(int amount) {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {
@@ -529,7 +583,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    private boolean checkUsbDevice(UsbDevice device) {
+        private boolean checkUsbDevice(UsbDevice device) {
 
         int vid = device.getVendorId();
         int pid = device.getProductId();
@@ -541,7 +595,6 @@ public abstract class BurnerBoard {
         }
 
     }
-
     public void initUsb() {
         BLog.d(TAG, "BurnerBoard: initUsb()");
 
@@ -619,27 +672,6 @@ public abstract class BurnerBoard {
 
         BLog.d(TAG, "USB: Connected");
         startIoManager();
-    }
-
-    private class PermissionReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            service.context.unregisterReceiver(this);
-            if (intent.getAction().equals(GET_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    BLog.d(TAG, "USB we got permission");
-                    if (device != null) {
-                        initUsb();
-                    } else {
-                        BLog.d(TAG, "USB perm receive device==null");
-                    }
-
-                } else {
-                    BLog.d(TAG, "USB no permission");
-                }
-            }
-        }
     }
 
     public void stopIoManager() {
@@ -727,7 +759,7 @@ public abstract class BurnerBoard {
         return;
     }
 
-    public boolean pingRow(int row, byte[] pixels) {
+public boolean pingRow(int row, byte[] pixels) {
 
         //l("sendCommand: 16,n,...");
         synchronized (mSerialConn) {
@@ -740,7 +772,9 @@ public abstract class BurnerBoard {
             }
         }
         return false;
-    }public boolean echoRow(int row, byte[] pixels) {
+    }
+
+public boolean echoRow(int row, byte[] pixels) {
 
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -752,37 +786,6 @@ public abstract class BurnerBoard {
         }
         return false;
     }// We use this to catch the USB accessory detached message
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-
-            final String TAG = "mUsbReceiver";
-            BLog.d(TAG, "onReceive entered");
-            String action = intent.getAction();
-            if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                BLog.d(TAG, "A USB Accessory was detached (" + device + ")");
-                if (device != null) {
-                    if (mUsbDevice == device) {
-                        BLog.d(TAG, "It's this device");
-                        mUsbDevice = null;
-                        stopIoManager();
-                    }
-                }
-            }
-            if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                BLog.d(TAG, "USB Accessory attached (" + device + ")");
-                if (mUsbDevice == null) {
-                    BLog.d(TAG, "Calling initUsb to check if we should add this device");
-                    initUsb();
-                } else {
-                    BLog.d(TAG, "this USB already attached");
-                }
-            }
-            BLog.d(TAG, "onReceive exited");
-        }
-    };
 
     public void flush2Board() {
 
@@ -797,7 +800,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void sendVisual(int visualId) {
+        public void sendVisual(int visualId) {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
@@ -807,7 +810,6 @@ public abstract class BurnerBoard {
         in.putExtra("visualId", visualId);
         LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
-
     public void sendVisual(int visualId, int arg) {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
@@ -854,32 +856,6 @@ public abstract class BurnerBoard {
 
     public void batteryActions(int level) {
 
-    }
-
-    // Gamma correcttion for LEDs
-    static int gamma8[] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-            1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
-            2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5,
-            5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10,
-            10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
-            17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
-            25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
-            37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
-            51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
-            69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
-            90, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 109, 110, 112, 114,
-            115, 117, 119, 120, 122, 124, 126, 127, 129, 131, 133, 135, 137, 138, 140, 142,
-            144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
-            177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
-            215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255};
-
-    static int gammaCorrect(int value) {
-        //return ((value / 255) ^ (1 / gamma)) * 255;
-        if (value > 255) value = 255;
-        if (value < 0) value = 0;
-        return gamma8[value];
     }
 
     public void aRGBtoBoardScreen(Buffer buf, int[] sourceScreen, int[] destScreen) {
@@ -1039,62 +1015,64 @@ public abstract class BurnerBoard {
         aRGBtoBoardScreen(mDrawBuffer, mBoardScreen, mBoardScreen);
     }
 
-    public static BurnerBoard Builder(BBService service) {
+    public interface BoardEvents {
+        void BoardId(String msg);
 
-        BurnerBoard burnerBoard = null;
+        void BoardMode(int mode);
+    }
 
-        if (DebugConfigs.OVERRIDE_BOARD_TYPE != null) {
-            switch (DebugConfigs.OVERRIDE_BOARD_TYPE) {
-                case classic:
-                    BLog.d(TAG, "Visualization: Using Classic");
-                    burnerBoard = new BurnerBoardClassic(service);
-                    break;
-                case azul:
-                    BLog.d(TAG, "Visualization: Using Azul");
-                    burnerBoard = new BurnerBoardAzul(service);
-                    break;
-                case mast:
-                    BLog.d(TAG, "Visualization: Using Mast");
-                    burnerBoard = new BurnerBoardMast(service);
-                    break;
-                case panel:
-                    BLog.d(TAG, "Visualization: Using Panel");
-                    burnerBoard = new BurnerBoardPanel(service);
-                    break;
-                case backpack:
-                    BLog.d(TAG, "Visualization: Using Direct Map");
-                    burnerBoard = new BurnerBoardDirectMap(
-                            service,
-                            BurnerBoardDirectMap.kVisualizationDirectMapWidth,
-                            BurnerBoardDirectMap.kVisualizationDirectMapHeight
-                    );
-                    break;
-            }
-        } else {
-            if (service.boardState.boardType == BoardState.BoardType.classic) {
-                BLog.d(TAG, "Visualization: Using Classic");
-                burnerBoard = new BurnerBoardClassic(service);
-            } else if (BoardState.BoardType.mast == service.boardState.boardType) {
-                BLog.d(TAG, "Visualization: Using Mast");
-                burnerBoard = new BurnerBoardMast(service);
-            } else if (BoardState.BoardType.panel == service.boardState.boardType) {
-                BLog.d(TAG, "Visualization: Using Panel");
-                burnerBoard = new BurnerBoardPanel(service);
-            } else if (BoardState.BoardType.backpack == service.boardState.boardType) {
-                BLog.d(TAG, "Visualization: Using Direct Map");
-                burnerBoard = new BurnerBoardDirectMap(
-                        service,
-                        BurnerBoardDirectMap.kVisualizationDirectMapWidth,
-                        BurnerBoardDirectMap.kVisualizationDirectMapHeight
-                );
-            } else if (service.boardState.boardType == BoardState.BoardType.azul) {
-                BLog.d(TAG, "Visualization: Using Azul");
-                burnerBoard = new BurnerBoardAzul(service);
-            } else {
-                BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
-                burnerBoard = new BurnerBoardAzul(service);
+    public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+
+            BLog.d(TAG, "ardunio default callback:" + str);
+        }
+    }
+
+    public class BoardCallbackTest implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            BLog.d(TAG, "ardunio test callback:" + str);
+        }
+    }
+
+    public class BoardCallbackMode implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            int boardMode = mListener.readIntArg();
+            boardCallback.BoardMode(boardMode);
+        }
+    }
+
+    public class BoardCallbackBoardID implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            String boardId = mListener.readStringArg();
+            boardCallback.BoardId(boardId);
+        }
+    }
+
+    public class BoardCallbackEchoRow implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            mEchoString = mListener.readStringArg();
+            BLog.d(TAG, "echoRow: " + mEchoString);
+        }
+    }
+
+    private class PermissionReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            service.context.unregisterReceiver(this);
+            if (intent.getAction().equals(GET_USB_PERMISSION)) {
+                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    BLog.d(TAG, "USB we got permission");
+                    if (device != null) {
+                        initUsb();
+                    } else {
+                        BLog.d(TAG, "USB perm receive device==null");
+                    }
+
+                } else {
+                    BLog.d(TAG, "USB no permission");
+                }
             }
         }
-        return burnerBoard;
     }
 }

@@ -57,6 +57,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     public static final int kVisualizationDirectMapWidth = BoardState.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
     private static final int kVisualizationDirectMapDefaultHeight = 256;
     public static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
+    static int kStrips = 8;
+    long lastFlushTime = java.lang.System.currentTimeMillis();
+    private int flushCnt = 0;
 
     public BurnerBoardDirectMap(BBService service, int width, int height) {
         super(service);
@@ -111,24 +114,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mListener.attach(8, getBatteryLevelCallback);
 
     }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
-        }
-    }
-
-    private int flushCnt = 0;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
-    static int kStrips = 8;
 
     public void flush() {
 
@@ -206,6 +191,20 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             // Render on board
             update();
             flush2Board();
+        }
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            if (mBatteryStats[1] != -1) {
+                service.boardState.batteryLevel = mBatteryStats[1];
+            } else {
+                service.boardState.batteryLevel = 100;
+            }
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }

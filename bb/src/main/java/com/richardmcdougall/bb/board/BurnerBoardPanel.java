@@ -32,9 +32,10 @@ import com.richardmcdougall.bb.BLog;
 import com.richardmcdougall.bb.CmdMessenger;
 
 public class BurnerBoardPanel extends BurnerBoard {
+    long lastFlushTime = java.lang.System.currentTimeMillis();
     private String TAG = this.getClass().getSimpleName();
-
     private int[] mLayeredScreen;
+    private int flushCnt = 0;
 
     public BurnerBoardPanel(BBService service) {
         super(service);
@@ -91,23 +92,6 @@ public class BurnerBoardPanel extends BurnerBoard {
         mListener.attach(8, getBatteryLevelCallback);
 
     }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
-        }
-    }
-
-    private int flushCnt = 0;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
 
     public void flush() {
 
@@ -214,5 +198,19 @@ public class BurnerBoardPanel extends BurnerBoard {
             }
         }
         return false;
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            if (mBatteryStats[1] != -1) {
+                service.boardState.batteryLevel = mBatteryStats[1];
+            } else {
+                service.boardState.batteryLevel = 100;
+            }
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
+        }
     }
 }

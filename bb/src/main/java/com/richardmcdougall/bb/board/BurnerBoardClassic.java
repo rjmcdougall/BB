@@ -39,9 +39,6 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     public void start() {
 
-        getBoardId();
-        getMode();
-
         // attach default cmdMessenger callback
         BurnerBoardClassic.BoardCallbackDefault defaultCallback =
                 new BurnerBoardClassic.BoardCallbackDefault();
@@ -94,20 +91,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return 100 * mBatteryStats[5] / kClassicBatteryMah;
     }
 
-    //    cmdMessenger.attach(BBGetBoardID, OnGetBoardID);      // 11
-    public String getBoardId() {
-
-        String id;
-        if (mListener != null) {
-            mListener.sendCmdStart(11);
-            mListener.sendCmdEnd(true, 0, 1000);
-            flush2Board();
-            id = mListener.readStringArg();
-            return (id);
-        }
-        return "";
-    }//    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
-
     @Override
     public boolean update() {
 
@@ -135,22 +118,6 @@ public class BurnerBoardClassic extends BurnerBoard {
             return;
         }
         return;
-    }
-
-    //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
-    public int getMode() {
-
-        BLog.d(TAG, "sendCommand: 12");
-        int mode;
-
-        if (mListener != null) {
-            mListener.sendCmd(12);
-            mListener.sendCmdEnd();
-            flush2Board();
-            mode = mListener.readIntArg();
-            return (mode);
-        }
-        return -1;
     }
 
     // row is 12 pixels : board has 10
@@ -233,21 +200,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_GREEN)] = g;
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_BLUE)] = b;
     }
-
-    public void fillOtherlight(int other, int r, int g, int b) {
-        int nPixels = 0;
-        final int pixelOffset = pixelOtherlight2Offset(0, other, 0);
-        if (other == kRightSidelight || other == kLeftSightlight) {
-            nPixels = mBoardSideLights;
-        }
-        for (int pixel = 0; pixel < nPixels * 3; pixel += 3) {
-            mBoardOtherlights[pixel + pixelOffset] = r;
-            mBoardOtherlights[pixel + pixelOffset + 1] = b;
-            mBoardOtherlights[pixel + pixelOffset + 2] = g;
-        }
-    }
-
-    static int[][][] pixel2OffsetTable = new int[255][255][3];
 
     // Convert other lights to pixel buffer address
     public static final int kOtherLights = 2;
@@ -363,28 +315,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
 
     }
-
-    // TODO: gamma correction
-    // encoded = ((original / 255) ^ (1 / gamma)) * 255
-    // original = ((encoded / 255) ^ gamma) * 255
-
-    /*
-    private int pixelColorCorrectionRed(int red) {
-        // convert signed byte to double
-        return red;
-    }
-
-    private int pixelColorCorrectionGreen(int green) {
-        return (green * 450) / 1000;
-    }
-
-    private int pixelColorCorrectionBlue(int blue) {
-        // convert signed byte to double
-        double correctedBlue = blue & 0xff;
-        correctedBlue = correctedBlue * .2;
-        return (blue * 350) / 1000;
-    }
-*/
 
     private int flushCnt = 0;
     long lastFlushTime = java.lang.System.currentTimeMillis();
