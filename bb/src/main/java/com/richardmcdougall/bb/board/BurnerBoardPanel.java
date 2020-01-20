@@ -106,77 +106,6 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
     }
 
-    static int[][][] pixel2OffsetTable = new int[255][255][3];
-
-    public void scrollPixels(boolean down) {
-
-        if (mBoardScreen == null) {
-            return;
-        }
-        if (down) {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight - 1; y++) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                }
-            }
-        } else {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                }
-            }
-        }
-
-    }
-
-    public void scrollPixelsExcept(boolean down, int color) {
-
-        if (mBoardScreen == null) {
-            return;
-        }
-        if (down) {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight - 1; y++) {
-                    if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                    }
-                }
-            }
-        } else {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                }
-            }
-        }
-    }
-
-    public int[] getPixelBuffer() {
-        return mBoardScreen;
-    }
-
     private int flushCnt = 0;
     long lastFlushTime = java.lang.System.currentTimeMillis();
 
@@ -274,44 +203,6 @@ public class BurnerBoardPanel extends BurnerBoard {
         return false;
     }
 
-    boolean haveUpdated = false;
-
-    public void setMsg(String msg) {
-        //l("sendCommand: 10,n,...");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(13);
-                mListener.sendCmdArg(msg);
-                mListener.sendCmdEnd();
-            }
-            if (!haveUpdated) {
-                haveUpdated = true;
-                update();
-            }
-            flush2Board();
-        }
-    }//    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
-    public boolean update() {
-
-        sendVisual(8);
-
-        //l("sendCommand: 5");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmd(6);
-                mListener.sendCmdEnd();
-                return true;
-            } else {
-                // Emulate board's 30ms refresh time
-                try {
-                    Thread.sleep(5);
-                } catch (Throwable e) {
-                }
-            }
-        }
-
-        return false;
-    }//    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
         sendVisual(9);

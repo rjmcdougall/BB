@@ -107,48 +107,8 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return "";
     }//    cmdMessenger.attach(BBsetmode, Onsetmode);            // 4
-    public boolean setModeRetired(int mode) {
 
-        BLog.d(TAG, "sendCommand: 4," + mode);
-        if (mListener == null) {
-            initUsb();
-        }
-        // Disable now that the board doesn't have a selector switch
-        return true;
-
-        /*
-        if (mListener == null)
-
-            return false;
-
-        synchronized (mSerialConn) {
-
-            if (mListener != null) {
-                mListener.sendCmdStart(4);
-                mListener.sendCmdArg(mode);
-                mListener.sendCmdEnd();
-                flush2Board();
-                return true;
-            }
-        }
-        return true;
-        */
-    }//    cmdMessenger.attach(BBFade, OnFade);                  // 7
-    public boolean fadeBoard(int amount) {
-
-        //l("sendCommand: 7");
-        sendVisual(7, amount);
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmd(7);
-                mListener.sendCmdEnd();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 8
+    @Override
     public boolean update() {
 
         sendVisual(8);
@@ -161,7 +121,9 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
         }
         return false;
-    }//    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
+    }
+    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
+
     public void showBattery() {
 
         sendVisual(9);
@@ -173,22 +135,6 @@ public class BurnerBoardClassic extends BurnerBoard {
             return;
         }
         return;
-    }
-
-    //    cmdMessenger.attach(BBScroll, OnScroll);              // 6
-    public boolean scroll(boolean down) {
-
-        sendVisual(6, down == true ? 1 : 0);
-        //l("sendCommand: 6,1");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(6);
-                mListener.sendCmdArg(down == true ? 1 : 0);
-                mListener.sendCmdEnd();
-                return true;
-            }
-        }
-        return false;
     }
 
     //    cmdMessenger.attach(BBGetMode, OnGetMode);            // 12
@@ -207,8 +153,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return -1;
     }
 
-    public void setMsg(String msg) {
-    }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
     // row is 12 pixels : board has 10
     private boolean setRow(int row, int[] pixels) {
 
@@ -274,16 +218,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         }return false;
     }
 
-    // Other lights
-    // Side lights: other = 1 left, other = 2 right
-    public void setPixelOtherlight(int pixel, int other, int color) {
-
-        int r = (color & 0xff);
-        int g = ((color & 0xff00) >> 8);
-        int b = ((color & 0xff0000) >> 16);
-        setPixelOtherlight(pixel, other, r, g, b);
-    }
-
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
 
         //System.out.println("setpixelotherlight pixel:" + pixel + " light:" + other);
@@ -298,14 +232,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_RED)] = r;
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_GREEN)] = g;
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_BLUE)] = b;
-    }
-
-    public void fillOtherlight(int other, int color) {
-
-        int r = (color & 0xff);
-        int g = ((color & 0xff00) >> 8);
-        int b = ((color & 0xff0000) >> 16);
-        fillOtherlight(other, r, g, b);
     }
 
     public void fillOtherlight(int other, int r, int g, int b) {
@@ -333,10 +259,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return (other * mBoardSideLights + pixel) * 3 + rgb;
     }
 
-    public void setSideLight(int leftRight, int pos, int color) {
-        /// TODO: implement these
-    }
-
     public void setOtherlightsAutomatically() {
         for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
             // Calculate sidelight proportional to lengths
@@ -352,6 +274,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
+    @Override // looks like the side lights are controlled differently so this varies
     public void scrollPixels(boolean down) {
 
         if (mBoardScreen == null) {
@@ -394,6 +317,7 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     }
 
+    @Override
     public void scrollPixelsExcept(boolean down, int color) {
 
         if (mBoardScreen == null) {
@@ -438,8 +362,6 @@ public class BurnerBoardClassic extends BurnerBoard {
             // TODO: scroll up side lights
         }
 
-    }public int[] getPixelBuffer() {
-        return mBoardScreen;
     }
 
     // TODO: gamma correction

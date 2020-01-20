@@ -136,75 +136,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         return 100 * mBatteryStats[5] / kAzulBatteryMah;
     }
 
-    public void scrollPixels(boolean down) {
-
-        if (mBoardScreen == null) {
-            return;
-        }
-        if (down) {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight - 1; y++) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                }
-            }
-        } else {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                }
-            }
-        }
-
-    }
-
-    public void scrollPixelsExcept(boolean down, int color) {
-
-        if (mBoardScreen == null) {
-            return;
-        }
-        if (down) {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight - 1; y++) {
-                    if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                    }
-                }
-            }
-        } else {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                }
-            }
-        }
-    }
-
-    public int[] getPixelBuffer() {
-        return mBoardScreen;
-    }
-
     // TODO: gamma correction
     // encoded = ((original / 255) ^ (1 / gamma)) * 255
     // original = ((encoded / 255) ^ gamma) * 255
@@ -289,29 +220,6 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     }
 
-    //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
-    public boolean update() {
-
-        sendVisual(8);
-
-        //l("sendCommand: 5");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmd(6);
-                mListener.sendCmdEnd();
-                return true;
-            } else {
-                // Emulate board's 30ms refresh time
-                try {
-                    Thread.sleep(5);
-                } catch (Throwable e) {
-                }
-            }
-        }
-
-        return false;
-    }
-
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
@@ -324,37 +232,6 @@ public class BurnerBoardAzul extends BurnerBoard {
             return;
         }
         return;
-    }
-
-    public void setMsg(String msg) {
-    }
-
-    public static class TranslationMap {
-        int y;
-        int startX;
-        int endX;
-        int stripDirection;
-        int stripNumber;
-        int stripOffset;
-
-        private TranslationMap(
-                int y,
-                int startX,
-                int endX,
-                int stripDirection,
-                int stripNumber,
-                int stripOffset) {
-            this.y = y;
-            this.startX = startX;
-            this.endX = endX;
-            this.stripDirection = stripDirection;
-            this.stripNumber = stripNumber;
-            this.stripOffset = stripOffset;
-        }
-    }
-
-    static int pixelMap2Board(int s, int offset) {
-        return pixelMap2BoardTable[s][offset];
     }
 
     private void pixelRemap(int x, int y, int stripOffset) {

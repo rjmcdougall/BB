@@ -202,7 +202,7 @@ public abstract class BurnerBoard {
     }
 
     public int[] getPixelBuffer() {
-        return null;
+        return mBoardScreen;
     }
 
     public void resetParams() {
@@ -264,9 +264,90 @@ public abstract class BurnerBoard {
     }
 
     public void scrollPixels(boolean down) {
+
+        if (mBoardScreen == null) {
+            return;
+        }
+        if (down) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                }
+            }
+        } else {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                }
+            }
+        }
+
+    }
+
+    public boolean update() {
+
+        sendVisual(8);
+
+        //l("sendCommand: 5");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmd(6);
+                mListener.sendCmdEnd();
+                return true;
+            } else {
+                // Emulate board's 30ms refresh time
+                try {
+                    Thread.sleep(5);
+                } catch (Throwable e) {
+                }
+            }
+        }
+
+        return false;
     }
 
     public void scrollPixelsExcept(boolean down, int color) {
+
+        if (mBoardScreen == null) {
+            return;
+        }
+        if (down) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
+                    if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    }
+                }
+            }
+        } else {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                }
+            }
+        }
     }
 
     public void flush() {
@@ -300,14 +381,6 @@ public abstract class BurnerBoard {
     }
 
     public void setOtherlightsAutomatically() {
-    }
-
-    public void setPixelOtherlight(int pixel, int other, int color) {
-
-        int b = (color & 0xff);
-        int g = ((color & 0xff00) >> 8);
-        int r = ((color & 0xff0000) >> 16);
-        setPixelOtherlight(pixel, other, r, g, b);
     }
 
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
@@ -401,20 +474,6 @@ public abstract class BurnerBoard {
         sendVisual(14, row, dimPixels);
     }
 
-    public boolean setHeadlight(boolean state) {
-
-        sendVisual(3);
-        BLog.d(TAG, "sendCommand: 3,1");
-        if (mListener != null) {
-            mListener.sendCmdStart(3);
-            mListener.sendCmdArg(state == true ? 1 : 0);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return true;
-        }
-        return false;
-    }
-
     public void dimPixels(int level) {
         mDimmerLevel = level;
     }
@@ -467,18 +526,6 @@ public abstract class BurnerBoard {
                 }
                 mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
             }
-        }
-    }
-
-    public void setMsg(String msg) {
-    }
-
-    private void onDeviceStateChange() {
-        BLog.d(TAG, "BurnerBoard: onDeviceStateChange()");
-
-        stopIoManager();
-        if (sPort != null) {
-            startIoManager();
         }
     }
 
