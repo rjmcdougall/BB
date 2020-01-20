@@ -208,19 +208,5 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             flush2Board();
         }
     }
-
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
-    public void showBattery() {
-
-        sendVisual(9);
-        BLog.d(TAG, "sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return;
-        }
-        return;
-    }
 }
 

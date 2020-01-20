@@ -122,8 +122,8 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return false;
     }
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 9
 
+    @Override
     public void showBattery() {
 
         sendVisual(9);

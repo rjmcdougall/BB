@@ -172,6 +172,19 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     }
 
+    public void showBattery() {
+
+        sendVisual(9);
+        BLog.d(TAG, "sendCommand: 7");
+        if (mListener != null) {
+            mListener.sendCmd(7);
+            mListener.sendCmdEnd();
+            flush2Board();
+            return;
+        }
+        return;
+    }
+
     private boolean setRow(int row, int[] pixels) {
 
         int[] dimPixels = new int[pixels.length];
@@ -202,18 +215,4 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
         return false;
     }
-
-    public void showBattery() {
-
-        sendVisual(9);
-        BLog.d(TAG, "sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return;
-        }
-        return;
-    }
-
 }

@@ -185,18 +185,6 @@ public class BurnerBoardMast extends BurnerBoard {
         }
     }
 
-    public void showBattery() {
-
-        sendVisual(9);
-        BLog.d(TAG, "sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return;
-        }
-        return;
-    }
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
         pixelMap2BoardTable[stripNo][stripOffset] =
