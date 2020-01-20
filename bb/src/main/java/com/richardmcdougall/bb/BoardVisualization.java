@@ -16,7 +16,6 @@ import com.richardmcdougall.bb.visualization.Mickey;
 import com.richardmcdougall.bb.visualization.PlayaMap;
 import com.richardmcdougall.bb.visualization.SyncLights;
 import com.richardmcdougall.bb.visualization.TestColors;
-import com.richardmcdougall.bb.visualization.TheMan;
 import com.richardmcdougall.bb.video.Video;
 import com.richardmcdougall.bb.visualization.Visualization;
 
@@ -73,7 +72,6 @@ public class BoardVisualization {
     public Visualization mVisualizationFire;
     public Visualization mVisualizationMatrix;
     public Visualization mVisualizationTextColors;
-    public Visualization mVisualizationTheMan;
     public Visualization mVisualizationAudioTile;
     public Visualization mVisualizationAudioCenter;
     public Visualization mVisualizationVideo;
@@ -100,7 +98,6 @@ public class BoardVisualization {
         mVisualizationFire = new Fire(service);
         mVisualizationMatrix = new Matrix(service);
         mVisualizationTextColors = new TestColors(service);
-        mVisualizationTheMan = new TheMan(service);
         mVisualizationAudioTile = new AudioTile(service);
         mVisualizationAudioCenter = new AudioCenter(service);
         mVisualizationVideo = new Video(service);
@@ -193,12 +190,6 @@ public class BoardVisualization {
                 mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
                 break;
 
-            case "modeMatrix(kMatrixReverse)":
-                frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kMatrixReverse);
-
-                break;
-
             case "modeMatrix(kMatrixLunarian)":
                 frameRate = mFrameRate;
                 mVisualizationMatrix.update(Matrix.kMatrixLunarian);
@@ -212,16 +203,6 @@ public class BoardVisualization {
             case "modeFire(kModeFireNormal)":
                 frameRate = mFrameRate * 3;
                 mVisualizationFire.update(Fire.kModeFireNormal);
-                break;
-
-            case "modeFire(kModeFireDistrikt)":
-                frameRate = mFrameRate * 3;
-                mVisualizationFire.update(Fire.kModeFireDistrikt);
-                break;
-
-            case "modeFire(kModeFireTheMan)":
-                frameRate = mFrameRate * 3;
-                mVisualizationFire.update(Fire.kModeFireTheMan);
                 break;
 
             case "modeAudioBarV()":
@@ -242,31 +223,6 @@ public class BoardVisualization {
             case "modeMeteor()":
                 frameRate = mFrameRate;
                 mVisualizationMeteor.update(Matrix.kDefault);
-                break;
-
-            case "MickeyGold()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyGold);
-                break;
-
-            case "MickeySparkle()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeySparkle);
-                break;
-
-            case "MickeyColors()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyColors);
-                break;
-
-            case "MickeyBlueGold()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyBlueGold);
-                break;
-
-            case "modeMickeyBlank()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyBlank);
                 break;
 
             // JosPack visualizations go here
@@ -318,16 +274,11 @@ public class BoardVisualization {
                 break;
 
             default:
-                // This would print once per frame, which can easily flood log buffers. Only
-                // uncomment in extreme debugging cases! -jib
-                //Log.d(TAG, "Could not find visualization algorithm: " + algorithm);
-                break;
+                 break;
 
         }
         return frameRate;
     }
-
-    long debugCnt = 0;
 
     // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
@@ -424,7 +375,6 @@ public class BoardVisualization {
                 return mFrameRate;
             }
 
-            // TODO: check perf overhead of checking this every frame
             JSONObject videos = service.mediaManager.GetVideo(mode);
             if (videos == null) {
                 return mFrameRate;
@@ -443,7 +393,9 @@ public class BoardVisualization {
             BLog.e(TAG, e.getMessage());
             return mFrameRate;
         }
-    }// Get levels from Android visualizer engine
+    }
+
+    // Get levels from Android visualizer engine
     // 16 int buckets of frequency levels from low to high
     // Range is 0-255 per bucket
     public int[] getLevels() {

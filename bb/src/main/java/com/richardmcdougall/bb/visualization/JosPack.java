@@ -113,36 +113,6 @@ public class JosPack extends Visualization {
         jpSparkleNo+= 1;
     }
 
-    /* This is a relic from MenloMickey - I'm unclear what it is trying to do, and it doesn't
-       look good on the JosPacks atm, so commenting out for now.
-    void modeJP2a() {
-
-        int ledNo;
-
-        service.burnerBoard.fadePixels(10);
-
-        if (jpSparkleNo > kJPSparkleMiddle) {
-            service.burnerBoard.flush();
-            return;
-        }
-
-        for (ledNo = kJPSparkleMiddle + jpSparkleNo;
-             ledNo < kJPSparkleMiddle + jpSparkleNo + 6; ledNo++) {
-            jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
-        }
-
-        for (ledNo = kJPSparkleMiddle - jpSparkleNo;
-             ledNo > kJPSparkleMiddle - jpSparkleNo - 6; ledNo--) {
-            jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
-        }
-
-        service.burnerBoard.flush();
-        jpSparkleNo+= 1;
-    }
-    */
-
     private final static int kJPPhaseShift = 10;
     private int jpColor = 0;
 

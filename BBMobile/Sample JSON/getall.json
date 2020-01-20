@@ -25,9 +25,6 @@
             "algorithm": "modeFire(kModeFireDistrikt)"
         },
         {
-            "algorithm": "modeFire(kModeFireTheMan)"
-        },
-        {
             "algorithm": "modeAudioCenter()"
         },
         {

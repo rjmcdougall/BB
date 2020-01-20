@@ -10,8 +10,6 @@ import com.richardmcdougall.bb.board.BurnerBoard;
 public class Fire extends Visualization {
 
     public static final int kModeFireNormal = 1;
-    public static final int kModeFireDistrikt = 2;
-    public static final int kModeFireTheMan = 3;
 
     private int mFireHeight;
     private int[] mFireScreen;
@@ -222,17 +220,6 @@ public class Fire extends Visualization {
         //}
 
         switch (mode) {
-            case kModeFireDistrikt:
-                service.burnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
-                Distrikt.drawDistrikt(service.burnerBoard, BurnerBoard.getRGB(255, 255, 255), service.burnerBoard.boardWidth);
-                break;
-            case kModeFireTheMan:
-                TheMan.drawTheMan(service.burnerBoard, BurnerBoard.getRGB(mFireColors[200][0],
-                        mFireColors[100][1], mFireColors[200][2]), service.burnerBoard.boardWidth);
-                service.burnerBoard.scrollPixelsExcept(true,
-                        BurnerBoard.getRGB(mFireColors[200][0],
-                                mFireColors[100][1], mFireColors[200][2]));
-                break;
             default:
                 service.burnerBoard.scrollPixels(true);
                 break;

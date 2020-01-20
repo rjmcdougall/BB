@@ -27,7 +27,6 @@ public class Matrix extends Visualization {
     public static final int kMatrixEsperanto = 5;
     public static final int kMatrixIrukandji = 6;
     public static final int kMatrixFireFull = 7;
-    public static final int kMatrixReverse = 8;
     public static final int kMatrixMickey = 9;
     public static final int kMatrixSync = 10;
 
@@ -36,14 +35,6 @@ public class Matrix extends Visualization {
             BurnerBoard.getRGB(244, 194, 13),
             BurnerBoard.getRGB(219, 50, 54),
             BurnerBoard.getRGB(72, 133, 237),
-            BurnerBoard.getRGB(255, 255, 255)
-    };
-
-    private static final int[] googleColorsClassicBoard = {
-            BurnerBoard.getRGB(40, 200, 60),
-            BurnerBoard.getRGB(200, 194, 13),
-            BurnerBoard.getRGB(255, 10, 10),
-            BurnerBoard.getRGB(20, 50, 237),
             BurnerBoard.getRGB(255, 255, 255)
     };
 
@@ -63,7 +54,6 @@ public class Matrix extends Visualization {
         int y;
         int sideLight;
         int pixelSkip;
-        boolean isReverse = (mode == kMatrixReverse) || (mode ==kMatrixMickey);
 
         if (service.burnerBoard.boardWidth > 10) {
             pixelSkip = 3;
@@ -72,18 +62,14 @@ public class Matrix extends Visualization {
         }
         pixelSkip = 1;
 
-        if (isReverse) {
-            y = 0;
-        } else {
-            y = service.burnerBoard.boardHeight - 1;
-        }
+        y = service.burnerBoard.boardHeight - 1;
+
         sideLight = mBoardSideLights - 1;
 
         for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x++) {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixBurnerColor:
-                case kMatrixReverse:
                 case kMatrixSync:
 
                     if (service.boardVisualization.mRandom.nextInt(3) != 0) {
@@ -171,7 +157,7 @@ public class Matrix extends Visualization {
         }
 
         for (int i = 0; i < service.boardVisualization.mMultipler4Speed; i++) {
-            service.burnerBoard.scrollPixels(!isReverse);
+            service.burnerBoard.scrollPixels(true);
         }
 
         switch (mode) {

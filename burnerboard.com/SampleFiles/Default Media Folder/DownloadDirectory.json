@@ -17,9 +17,6 @@
 			"Algorithm": "modeFire(kModeFireDistrikt)"
 		},
 		{
-			"Algorithm": "modeFire(kModeFireTheMan)"
-		},
-		{
 			"Algorithm": "modeAudioBarV()"
 		},
 		{
