@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
  * Created by rmc on 3/5/17.
  */
 
-public class BurnerBoard {
+public abstract class BurnerBoard {
     private static String TAG = "BurnerBoard";
 
     static final int PIXEL_RED = 0;
@@ -50,7 +50,6 @@ public class BurnerBoard {
 
     public int boardWidth = 1;
     public int boardHeight = 1;
-    public int mMultipler4Speed = 1;
     public BurnerBoard.BoardEvents boardCallback = null;
     public CmdMessenger mListener = null;
     private SerialInputOutputManager mSerialIoManager;
@@ -108,9 +107,7 @@ public class BurnerBoard {
         mBoardScreen[pixel * 3 + 2] = b;
     }
 
-    public int getMultiplier4Speed() {
-        return mMultipler4Speed;
-    }
+    public abstract int getMultiplier4Speed();
 
     public interface BoardEvents {
         void BoardId(String msg);

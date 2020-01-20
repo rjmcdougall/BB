@@ -41,13 +41,17 @@ public class BurnerBoardPanel extends BurnerBoard {
         boardWidth = 32;
         boardHeight = 64;
         super.setTextBuffer(boardWidth, boardHeight);
-        mMultipler4Speed = 3;
         boardType = "Burner Board Panel";
         BLog.d(TAG, "Burner Board Panel initting...");
         mBoardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initUsb();
         mLayeredScreen = new int[boardWidth * boardHeight * 3];
+    }
+
+    @Override
+    public int getMultiplier4Speed() {
+        return 3;
     }
 
     public int getFrameRate() {

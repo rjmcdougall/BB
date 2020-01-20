@@ -62,7 +62,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         super(service);
         boardWidth = width;
         boardHeight = height;
-        mMultipler4Speed = 3;
 
         mBoardScreen = new int[boardWidth * boardHeight * 3];
 
@@ -72,6 +71,11 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
         initPixelOffset();
         initUsb();
+    }
+
+    @Override
+    public int getMultiplier4Speed() {
+        return 3;
     }
 
     public void start() {

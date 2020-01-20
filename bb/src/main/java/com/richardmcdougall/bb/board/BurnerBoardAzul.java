@@ -43,10 +43,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         super(service);
         boardWidth = 46;
         boardHeight = 118;
-        if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
-            mMultipler4Speed = 1; // dkw need to config this
-        else
-            mMultipler4Speed = 2; // dkw need to config this
         boardType = "Burner Board Azul";
         BLog.d(TAG, "Burner Board Azul initing...");
         mBoardScreen = new int[boardWidth * boardHeight * 3];
@@ -58,6 +54,14 @@ public class BurnerBoardAzul extends BurnerBoard {
         mDrawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
         mTextSizeHorizontal = 14;
         mTextSizeVerical = 10;
+    }
+
+    public int getMultiplier4Speed() {
+        if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
+            return 1; // dkw need to config this
+        else
+            return 2; // dkw need to config this
+
     }
 
     public void start() {

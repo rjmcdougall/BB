@@ -27,6 +27,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
     }
 
+    public int getMultiplier4Speed() {
+            return 1; 
+    }
+
     // Experiments with optimized overlocked Teensy suggest 20 is to high
     // because we don't get battery callbacks
     public int getFrameRate() {

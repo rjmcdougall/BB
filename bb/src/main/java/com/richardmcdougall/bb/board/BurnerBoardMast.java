@@ -40,7 +40,6 @@ public class BurnerBoardMast extends BurnerBoard {
         super(service);
         boardWidth = 24;
         boardHeight = 159;
-        mMultipler4Speed = 3;
         boardType = "Burner Board Mast";
         BLog.d(TAG, "Burner Board Mast initing...");
         mBoardScreen = new int[boardWidth * boardHeight * 3];
@@ -48,6 +47,11 @@ public class BurnerBoardMast extends BurnerBoard {
         initpixelMap2Board();
         initUsb();
         mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+    }
+
+    @Override
+    public int getMultiplier4Speed() {
+        return 3;
     }
 
     public int getFrameRate() {
