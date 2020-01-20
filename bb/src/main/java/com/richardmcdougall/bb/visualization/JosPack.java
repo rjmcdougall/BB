@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 import com.richardmcdougall.bb.BurnerBoardDirectMap;
@@ -22,8 +23,8 @@ public class JosPack extends Visualization {
 
     private final static int kLEDS = BurnerBoardDirectMap.kVisualizationDirectMapWidth * BurnerBoardDirectMap.kVisualizationDirectMapHeight;
 
-    public JosPack(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public JosPack(BBService service) {
+        super(service);
     }
 
     public void update(int mode) {
@@ -62,15 +63,15 @@ public class JosPack extends Visualization {
         if (n < 0 || n >= kLEDS) {
             return;
         }
-        mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS - n - 1) % mBoardHeight, color);
+        service.burnerBoard.setPixel(n / mBoardHeight, (kLEDS - n - 1) % mBoardHeight, color);
     }
 
     void modeJPGold() {
-        //mBurnerBoard.fillScreen(255, 147, 41);
+        //service.burnerBoard.fillScreen(255, 147, 41);
 
-        mBurnerBoard.fillScreen(255, 215, 0);
+        service.burnerBoard.fillScreen(255, 215, 0);
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
     }
 
     private int jpSparkleNo = 0;
@@ -80,11 +81,11 @@ public class JosPack extends Visualization {
 
         int ledNo;
 
-        //mBurnerBoard.fadePixels(10);
+        //service.burnerBoard.fadePixels(10);
 
         if (jpSparkleNo > kJPSparkleMiddle) {
-            mBurnerBoard.fadePixels(30);
-            mBurnerBoard.flush();
+            service.burnerBoard.fadePixels(30);
+            service.burnerBoard.flush();
             jpSparkleNo+= 1;
 
             if(jpSparkleNo >= kLEDS) {
@@ -101,15 +102,15 @@ public class JosPack extends Visualization {
 
         for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + jpSparkleNo; ledNo++) {
             jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
+                    (float)service.boardVisualization.mRandom.nextInt(100) / (float)100.0));
         }
 
         for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - jpSparkleNo; ledNo--) {
             jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         jpSparkleNo+= 1;
     }
 
@@ -119,10 +120,10 @@ public class JosPack extends Visualization {
 
         int ledNo;
 
-        mBurnerBoard.fadePixels(10);
+        service.burnerBoard.fadePixels(10);
 
         if (jpSparkleNo > kJPSparkleMiddle) {
-            mBurnerBoard.flush();
+            service.burnerBoard.flush();
             return;
         }
 
@@ -138,7 +139,7 @@ public class JosPack extends Visualization {
                     (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         jpSparkleNo+= 1;
     }
     */
@@ -154,14 +155,14 @@ public class JosPack extends Visualization {
             int index = kJPPhaseShift * (jpColor + ledNo) % 360; //* kJPPhaseShift / 2) % 360;
             jpSetPixel(ledNo, mWheel.wheel(index));
         }
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         jpColor ++;
         jpColor %= 360;
     }
 
     void modeJPBlank() {
-        mBurnerBoard.fillScreen(0, 0, 0);
-        mBurnerBoard.flush();
+        service.burnerBoard.fillScreen(0, 0, 0);
+        service.burnerBoard.flush();
     }
 
     private int bgRotate = 0;
@@ -174,7 +175,7 @@ public class JosPack extends Visualization {
             jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
                     BurnerBoard.getRGB(0, 0, 255));
         }
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         bgRotate++;
         bgRotate %= 360;
     }
@@ -189,7 +190,7 @@ public class JosPack extends Visualization {
             jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(41, 147, 255) :
                     BurnerBoard.getRGB(0, 0, 255));
         }
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         bpRotate++;
         bpRotate %= 360;
     }
@@ -207,7 +208,7 @@ public class JosPack extends Visualization {
             jpSetPixel(ledNo, rgb);
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         triRotate++;
         triRotate %= 360;
 

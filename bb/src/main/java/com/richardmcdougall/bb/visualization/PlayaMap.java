@@ -20,13 +20,10 @@ public class PlayaMap extends Visualization {
     BBColor bbColor = new BBColor();
     BBService service = null;
 
-    public PlayaMap(BurnerBoard bb, BoardVisualization visualization) {
-
-        super(bb, visualization);
-        service = bb.getBBService();
-        if (service != null) {
-            mFMF = service.findMyFriends;
-        }
+    public PlayaMap(BBService service) {
+        super(service);
+        this.service = service;
+        mFMF = service.findMyFriends;
 
         /*
 
@@ -62,10 +59,10 @@ public class PlayaMap extends Visualization {
 
             //l("Playamap");
 
-            mBurnerBoard.fillScreen(0, 0, 0);
+            service.burnerBoard.fillScreen(0, 0, 0);
 
             // Outer ring
-            mBurnerBoard.drawArc((mBoardWidth - outerRing) / 2,
+            service.burnerBoard.drawArc((mBoardWidth - outerRing) / 2,
                     (mBoardHeight - outerRing) / 2,
                     (mBoardWidth - outerRing) / 2 + outerRing,
                     (mBoardHeight - outerRing) / 2 + outerRing,
@@ -75,7 +72,7 @@ public class PlayaMap extends Visualization {
                     true,
                     BurnerBoard.getRGB(100, 100, 100));
             // Inner ring
-            mBurnerBoard.drawArc((mBoardWidth - innerRing) / 2,
+            service.burnerBoard.drawArc((mBoardWidth - innerRing) / 2,
                     (mBoardHeight - innerRing) / 2,
                     (mBoardWidth - innerRing) / 2 + innerRing,
                     (mBoardHeight - innerRing) / 2 + innerRing,
@@ -109,19 +106,19 @@ public class PlayaMap extends Visualization {
             }
 
         } else if (BoardState.BoardType.panel == service.boardState.boardType) {
-            mBurnerBoard.fillScreen(30, 30, 30);
-            mBurnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
+            service.burnerBoard.fillScreen(30, 30, 30);
+            service.burnerBoard.drawArc(0, mBoardHeight, mBoardWidth,0,
                     (float)kDegrees2, (float)(kDegrees10 - kDegrees2),
             true,
                     true,
                     BurnerBoard.getRGB(50, 50, 50));
 
         } else if (BoardState.BoardType.classic == service.boardState.boardType) {
-            mBurnerBoard.fillScreen(30, 0, 0);
+            service.burnerBoard.fillScreen(30, 0, 0);
 
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         updateCnt++;
 
     }
@@ -169,9 +166,9 @@ public class PlayaMap extends Visualization {
 
         //System.out.println("x/y = " + x + "," + y + " color = " + color);
 
-        //mBurnerBoard.setPixel(x, y, color);
+        //service.burnerBoard.setPixel(x, y, color);
 
-        mBurnerBoard.drawArc(x - 1,
+        service.burnerBoard.drawArc(x - 1,
                 y - 1,
                 x + 1,
                 y + 1,

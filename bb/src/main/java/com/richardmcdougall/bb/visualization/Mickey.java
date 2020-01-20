@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -22,8 +23,8 @@ public class Mickey extends Visualization {
     private final static int kLEDS1 = 99;
     private final static int kLEDS2 = 137;
 
-    public Mickey(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public Mickey(BBService service) {
+        super(service);
     }
 
     public void update(int mode) {
@@ -60,16 +61,16 @@ public class Mickey extends Visualization {
             return;
         }
         if (n < kLEDS1) {
-            mBurnerBoard.setPixel(n / mBoardHeight, (kLEDS1 - n - 1) % mBoardHeight, color);
+            service.burnerBoard.setPixel(n / mBoardHeight, (kLEDS1 - n - 1) % mBoardHeight, color);
         } else {
-            mBurnerBoard.setPixel(1 + kLEDS1 / mBoardHeight +
+            service.burnerBoard.setPixel(1 + kLEDS1 / mBoardHeight +
                     ((n - kLEDS1) / mBoardHeight),  (n - kLEDS1) % mBoardHeight, color);
         }
     }
 
     void modeMickeyGold() {
-        mBurnerBoard.fillScreen(255, 147, 41);
-        mBurnerBoard.flush();
+        service.burnerBoard.fillScreen(255, 147, 41);
+        service.burnerBoard.flush();
     }private int mickeySparkleNo = 0;
     private final static int kMikeySparkleMiddle = (kLEDS1 + kLEDS2)/ 2;
 
@@ -77,26 +78,26 @@ public class Mickey extends Visualization {
 
         int ledNo;
 
-        mBurnerBoard.fadePixels(10);
+        service.burnerBoard.fadePixels(10);
 
         if (mickeySparkleNo > kMikeySparkleMiddle) {
-            mBurnerBoard.flush();
+            service.burnerBoard.flush();
             return;
         }
 
         for (ledNo = kMikeySparkleMiddle + mickeySparkleNo;
              ledNo < kMikeySparkleMiddle + mickeySparkleNo + 6; ledNo++) {
             mickeySetPixel(ledNo, mWheel.wheelDim(35,
-                    (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
+                    (float)service.boardVisualization.mRandom.nextInt(100) / (float)100.0));
         }
 
         for (ledNo = kMikeySparkleMiddle - mickeySparkleNo;
              ledNo > kMikeySparkleMiddle - mickeySparkleNo - 6; ledNo--) {
             mickeySetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         mickeySparkleNo+= 1;
     }
 
@@ -104,11 +105,11 @@ public class Mickey extends Visualization {
 
         int ledNo;
 
-        //mBurnerBoard.fadePixels(10);
+        //service.burnerBoard.fadePixels(10);
 
         if (mickeySparkleNo > kMikeySparkleMiddle) {
-            mBurnerBoard.fadePixels(20);
-            mBurnerBoard.flush();
+            service.burnerBoard.fadePixels(20);
+            service.burnerBoard.flush();
             mickeySparkleNo+= 1;
             if (mickeySparkleNo > kMikeySparkleMiddle + 20) {
                 mickeySparkleNo = 0;
@@ -118,15 +119,15 @@ public class Mickey extends Visualization {
 
         for (ledNo = kMikeySparkleMiddle; ledNo < kMikeySparkleMiddle + mickeySparkleNo; ledNo++) {
             mickeySetPixel(ledNo, mWheel.wheelDim(35,
-                    (float)mBoardVisualizion.mRandom.nextInt(100) / (float)100.0));
+                    (float)service.boardVisualization.mRandom.nextInt(100) / (float)100.0));
         }
 
         for (ledNo = kMikeySparkleMiddle; ledNo > kMikeySparkleMiddle - mickeySparkleNo; ledNo--) {
             mickeySetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) mBoardVisualizion.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         mickeySparkleNo+= 1;
     }
 
@@ -141,15 +142,15 @@ public class Mickey extends Visualization {
             int index = kMickeyPhaseShift * (mickeyColor + ledNo) % 360; //* kMickeyPhaseShift / 2) % 360;
             mickeySetPixel(ledNo, mWheel.wheel(index));
         }
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         mickeyColor ++;
         mickeyColor %= 360;
     }
 
     void modeMickeyBlank() {
 
-        mBurnerBoard.fillScreen(0, 0, 0);
-        mBurnerBoard.flush();
+        service.burnerBoard.fillScreen(0, 0, 0);
+        service.burnerBoard.flush();
     }private int mickeyRotate = 0;
     void modeMickeyBlueGold() {
 
@@ -160,7 +161,7 @@ public class Mickey extends Visualization {
             mickeySetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
                     BurnerBoard.getRGB(0, 0, 255));
         }
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         mickeyRotate ++;
         mickeyRotate %= 360;
     }

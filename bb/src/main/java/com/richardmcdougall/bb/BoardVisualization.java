@@ -95,19 +95,19 @@ public class BoardVisualization {
 
         BLog.d(TAG, "Board framerate set to " + mFrameRate);
 
-        mVisualizationFire = new Fire(service.burnerBoard, this);
-        mVisualizationMatrix = new Matrix(service.burnerBoard, this);
-        mVisualizationTextColors = new TestColors(service.burnerBoard, this);
-        mVisualizationTheMan = new TheMan(service.burnerBoard, this);
-        mVisualizationAudioTile = new AudioTile(service.burnerBoard, this);
-        mVisualizationAudioCenter = new AudioCenter(service.burnerBoard, this);
-        mVisualizationVideo = new Video(service.burnerBoard, this);
-        mVisualizationMickey = new Mickey(service.burnerBoard, this);
-        mVisualizationJosPack = new JosPack(service.burnerBoard, this);
-        mVisualizationAudioBar = new AudioBar(service.burnerBoard, this);
-        mVisualizationMeteor = new Meteor(service.burnerBoard, this);
-        mVisualizationPlayaMap = new PlayaMap(service.burnerBoard, this);
-        getmVisualizationSyncLights = new SyncLights(service.burnerBoard, this);
+        mVisualizationFire = new Fire(service);
+        mVisualizationMatrix = new Matrix(service);
+        mVisualizationTextColors = new TestColors(service);
+        mVisualizationTheMan = new TheMan(service);
+        mVisualizationAudioTile = new AudioTile(service);
+        mVisualizationAudioCenter = new AudioCenter(service);
+        mVisualizationVideo = new Video(service);
+        mVisualizationMickey = new Mickey(service);
+        mVisualizationJosPack = new JosPack(service);
+        mVisualizationAudioBar = new AudioBar(service);
+        mVisualizationMeteor = new Meteor(service);
+        mVisualizationPlayaMap = new PlayaMap(service);
+        getmVisualizationSyncLights = new SyncLights(service);
 
     }
 

@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -11,8 +12,8 @@ public class Meteor extends Visualization {
 
     private Wheel mWheel = new Wheel();
 
-    public Meteor(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public Meteor(BBService service) {
+        super(service);
     }
 
     // Woodson's pool meteor
@@ -35,12 +36,12 @@ public class Meteor extends Visualization {
         int meteorGreenShift = kGreenStart;
 
         // fade brightness all LEDs one step
-        mBurnerBoard.fadePixels(kFadeAmount);
+        service.burnerBoard.fadePixels(kFadeAmount);
 
         // draw meteor
         for(int j = 0; j < kMeteorSize; j++) {
             if(((meteorPixelIter - j) < kMeteorLeds) && ((meteorPixelIter - j) >= 0)) {
-                mBurnerBoard.setPixel(16, meteorPixelIter-j,
+                service.burnerBoard.setPixel(16, meteorPixelIter-j,
                         meteorRedShift, meteorGreenShift, meteorBlueShift);
             }
         }
@@ -55,7 +56,7 @@ public class Meteor extends Visualization {
             }
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
 
         return;
     }

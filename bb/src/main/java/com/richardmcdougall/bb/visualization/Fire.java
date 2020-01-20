@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -17,8 +18,8 @@ public class Fire extends Visualization {
     private int[] mFireScreen;
     private int[][] mFireColors = FireColors.colors();
 
-    public Fire(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public Fire(BBService service) {
+        super(service);
 
         mFireHeight = mBoardHeight;
         mFireScreen = new int[mBoardWidth * 2 * (mFireHeight + 6)];
@@ -142,7 +143,7 @@ public class Fire extends Visualization {
         int j = mBoardWidth * 2 * (mFireHeight + 1);
         int random;
         for (int i = 0; i < (mBoardWidth * 2); i++) {
-            random = mBoardVisualizion.mRandom.nextInt(16);
+            random = service.boardVisualization.mRandom.nextInt(16);
             // the lower the value, the intense the fire,
             // compensate a lower value with a higher decay value
             // BB Classuc us 8
@@ -195,21 +196,21 @@ public class Fire extends Visualization {
                     // Bigger number leaves more flame tails
                     // BB Classic was 55
                     if (true || lastTemps[i] > 50) {
-                        //mBurnerBoard.setPixel(x / 2, y * 2,
+                        //service.burnerBoard.setPixel(x / 2, y * 2,
                         //int templ0 = (int)((float)temp * (float)150 / (float)255);
                         //temp100 = java.lang.Math.min(99, temp100);
-                        //mBurnerBoard.setPixel(x / 2, y, kFireColorsOcto[temp100]);
-                        mBurnerBoard.setPixel(x / 2, y,
+                        //service.burnerBoard.setPixel(x / 2, y, kFireColorsOcto[temp100]);
+                        service.burnerBoard.setPixel(x / 2, y,
                                 mFireColors[temp / 4][0],
                                 mFireColors[temp / 4][1],
                                 mFireColors[temp / 4][2]);
 
-                        //mBurnerBoard.setPixel(x / 2, y * 2 + 1,
+                        //service.burnerBoard.setPixel(x / 2, y * 2 + 1,
                         //mFireColors[temp][0],
                         //mFireColors[temp][1],
                         //mFireColors[temp][2]);
                     } else {
-                        //mBurnerBoard.setPixel(x / 2, y, 0, 255,  0);
+                        //service.burnerBoard.setPixel(x / 2, y, 0, 255,  0);
                     }
                     lastTemps[i] = temp;
                 }
@@ -223,25 +224,25 @@ public class Fire extends Visualization {
 
         switch (mode) {
             case kModeFireDistrikt:
-                mBurnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
-                Distrikt.drawDistrikt(mBurnerBoard, BurnerBoard.getRGB(255, 255, 255), mBoardWidth);
+                service.burnerBoard.scrollPixelsExcept(true, BurnerBoard.getRGB(255,255, 255));
+                Distrikt.drawDistrikt(service.burnerBoard, BurnerBoard.getRGB(255, 255, 255), mBoardWidth);
                 break;
             case kModeFireTheMan:
-                TheMan.drawTheMan(mBurnerBoard, BurnerBoard.getRGB(mFireColors[200][0],
+                TheMan.drawTheMan(service.burnerBoard, BurnerBoard.getRGB(mFireColors[200][0],
                         mFireColors[100][1], mFireColors[200][2]), mBoardWidth);
-                mBurnerBoard.scrollPixelsExcept(true,
+                service.burnerBoard.scrollPixelsExcept(true,
                         BurnerBoard.getRGB(mFireColors[200][0],
                                 mFireColors[100][1], mFireColors[200][2]));
                 break;
             default:
-                mBurnerBoard.scrollPixels(true);
+                service.burnerBoard.scrollPixels(true);
                 break;
 
         }
-        mBurnerBoard.setOtherlightsAutomatically();
+        service.burnerBoard.setOtherlightsAutomatically();
         fireCnt++;
         if (fireCnt % 3 == 0) {
-            mBurnerBoard.flush();
+            service.burnerBoard.flush();
         }
     }
 }

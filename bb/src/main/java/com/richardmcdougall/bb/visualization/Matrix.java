@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 import com.richardmcdougall.bb.TimeSync;
@@ -10,8 +11,8 @@ import com.richardmcdougall.bb.TimeSync;
 
 public class Matrix extends Visualization {
 
-    public Matrix(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public Matrix(BBService service) {
+        super(service);
     }
 
     //TODO: Make board class specific
@@ -86,18 +87,18 @@ public class Matrix extends Visualization {
                 case kMatrixReverse:
                 case kMatrixSync:
 
-                    if (mBoardVisualizion.mRandom.nextInt(3) != 0) {
+                    if (service.boardVisualization.mRandom.nextInt(3) != 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
                     } else {
                         color = mWheel.wheelState();
                         mWheel.wheelInc(1);
                     }
-                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
 
                 case kMatrixMickey:
 
-                    if (mBoardVisualizion.mRandom.nextInt(3) != 0) {
+                    if (service.boardVisualization.mRandom.nextInt(3) != 0) {
                         color = BurnerBoard.getRGB(0, 0, 0);
                     } else {
                         if (colorState < 10) {
@@ -111,40 +112,40 @@ public class Matrix extends Visualization {
                             colorState = 0;
                         }
                     }
-                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
 
                 case kMatrixEsperanto:
 
                 case kMatrixLunarian:
-                    color = mBoardVisualizion.mRandom.nextInt(2) == 0 ?
+                    color = service.boardVisualization.mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : BurnerBoard.getRGB(255, 255, 255);
-                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
+                    //service.burnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    //service.burnerBoard.setPixel(pixelSkip * x, y - 1, color);
+                    //service.burnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
                 case kMatrixFire:
-                    color = mBoardVisualizion.mRandom.nextInt(2) == 0 ?
+                    color = service.boardVisualization.mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) :
                             BurnerBoard.getRGB(
                                     mFireColors[fireColor][0],
                                     mFireColors[fireColor][1],
                                     mFireColors[fireColor][2]);
-                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
                 case kMatrixGoogle:
-                    color = mBoardVisualizion.mRandom.nextInt(2) == 0 ?
+                    color = service.boardVisualization.mRandom.nextInt(2) == 0 ?
                             BurnerBoard.getRGB(0, 0, 0) : googleColors[googleColor / 8];
-                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
-                    //mBurnerBoard.setPixel(pixelSkip * x + 1, y, color);
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
+                    //service.burnerBoard.setPixel(pixelSkip * x + 1, y, color);
                     //mBurnerBoard.setPixel(pixelSkip * x, y - 1, color);
                     //mBurnerBoard.setPixel(pixelSkip * x + 1, y - 1, color);
                     break;
                 case kMatrixIrukandji:
                     color = mWheel.wheelState();
                     if (x > 0 || x < mBoardWidth) {
-                        mBurnerBoard.setPixel(pixelSkip * x, y, BurnerBoard.getRGB(0, 0, 0));
+                        service.burnerBoard.setPixel(pixelSkip * x, y, BurnerBoard.getRGB(0, 0, 0));
                     }
                     mWheel.wheelInc(1);
                     break;
@@ -153,7 +154,7 @@ public class Matrix extends Visualization {
                             mFireColors[fireColor][0],
                             mFireColors[fireColor][1],
                             mFireColors[fireColor][2]);
-                    mBurnerBoard.setPixel(pixelSkip * x, y, color);
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
                 default:
                     color = 0;
@@ -170,21 +171,21 @@ public class Matrix extends Visualization {
             googleColor = 0;
         }
 
-        for (int i = 0; i < mBoardVisualizion.mMultipler4Speed; i++) {
-            mBurnerBoard.scrollPixels(!isReverse);
+        for (int i = 0; i < service.boardVisualization.mMultipler4Speed; i++) {
+            service.burnerBoard.scrollPixels(!isReverse);
         }
 
         switch (mode) {
             case kMatrixEsperanto:
-                int level = java.lang.Math.max(0, (mBoardVisualizion.getLevel() * 3) - 80);
-                mBurnerBoard.dimPixels(level);
+                int level = java.lang.Math.max(0, (service.boardVisualization.getLevel() * 3) - 80);
+                service.burnerBoard.dimPixels(level);
                 break;
 
             case kMatrixSync:
                 int syncColor =
                         mWheel.wheel((int)(TimeSync.GetCurrentClock() / 5) % 360);
                 if (syncColor > 0) {
-                    mBurnerBoard.fillScreenMask(syncColor);
+                    service.burnerBoard.fillScreenMask(syncColor);
 
                 }
 
@@ -193,7 +194,7 @@ public class Matrix extends Visualization {
             default:
                 break;
         }
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
 
         return;
 

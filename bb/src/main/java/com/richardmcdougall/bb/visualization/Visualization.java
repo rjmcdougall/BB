@@ -10,17 +10,15 @@ import com.richardmcdougall.bb.BurnerBoard;
 
 public class Visualization {
 
-    protected BurnerBoard mBurnerBoard;
-    public int mBoardWidth;
+   public int mBoardWidth;
     public int mBoardHeight;
-    BoardVisualization mBoardVisualizion;
     public static final int kDefault = 0;
+    BBService service = null;
 
-    public Visualization(BurnerBoard bb, BoardVisualization visualization) {
-        mBurnerBoard = bb;
-        mBoardWidth = bb.getWidth();
-        mBoardHeight = bb.getHeight();
-        mBoardVisualizion = visualization;
+    public Visualization(BBService service) {
+        this.service = service;
+        mBoardWidth = service.burnerBoard.getWidth();
+        mBoardHeight = service.burnerBoard.getHeight();
     }
 
     public void update(int mode) {

@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -11,8 +12,8 @@ public class AudioCenter extends Visualization {
 
     private Wheel mWheel = new Wheel();
 
-    public AudioCenter(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public AudioCenter(BBService service) {
+        super(service);
     }
 
     private void drawRectCenter(int size, int color) {
@@ -23,22 +24,22 @@ public class AudioCenter extends Visualization {
         int y1 = mBoardHeight / 2 - 1;  // 34
         int xSizeLim = java.lang.Math.min(xSize, mBoardWidth / 2);
         for (int x = x1 - (xSizeLim - 1); x <= x1 + xSizeLim; x++) { // 1: 4...5
-            mBurnerBoard.setPixel(x, y1 - (size - 1), color); // 1: 34
-            mBurnerBoard.setPixel(x, y1 + (size - 1) + 1, color); // 1: 35
+            service.burnerBoard.setPixel(x, y1 - (size - 1), color); // 1: 34
+            service.burnerBoard.setPixel(x, y1 + (size - 1) + 1, color); // 1: 35
         }
         for (int y = y1 - (size - 1); y <= y1 + size; y++) { // 1: 34..35
             if (xSize > (mBoardWidth / 2))
                 continue;
-            mBurnerBoard.setPixel(x1 - (xSizeLim - 1), y, color); //
-            mBurnerBoard.setPixel(x1 + (xSizeLim - 1) + 1, y, color);
+            service.burnerBoard.setPixel(x1 - (xSizeLim - 1), y, color); //
+            service.burnerBoard.setPixel(x1 + (xSizeLim - 1) + 1, y, color);
         }
     }
 
     public void update(int mode) {
 
         int level;
-        level = mBoardVisualizion.getLevel();
-        mBurnerBoard.fadePixels(15);
+        level = service.boardVisualization.getLevel();
+        service.burnerBoard.fadePixels(15);
         if (level > 110) {
             for (int x = 0; x < (mBoardHeight / 2) + 1; x++) {
                 int c = mWheel.wheelState();
@@ -47,11 +48,11 @@ public class AudioCenter extends Visualization {
             }
             //System.out.println(x + ":" + level);
 
-            //mBurnerBoard.fadePixels(1);
+            //service.burnerBoard.fadePixels(1);
 
         }
-        mBurnerBoard.setOtherlightsAutomatically();
-        mBurnerBoard.flush();
+        service.burnerBoard.setOtherlightsAutomatically();
+        service.burnerBoard.flush();
         return;
     }
 }

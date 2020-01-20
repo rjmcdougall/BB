@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -11,8 +12,8 @@ public class TheMan extends Visualization {
 
     private Wheel mWheel = new Wheel();
 
-    public TheMan(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public TheMan(BBService service) {
+        super(service);
     }
 
     public static void drawTheMan(BurnerBoard bb, int color, int width) {
@@ -99,18 +100,18 @@ public class TheMan extends Visualization {
                 }
             }
         }
-        //mBurnerBoard.fillOtherlight(BurnerBoard.kLeftSightlight, color);
-        //mBurnerBoard.fillOtherlight(BurnerBoard.kRightSidelight, color);
-        //mBurnerBoard.flush();
+        //service.burnerBoard.fillOtherlight(BurnerBoard.kLeftSightlight, color);
+        //service.burnerBoard.fillOtherlight(BurnerBoard.kRightSidelight, color);
+        //service.burnerBoard.flush();
     }
 
     // Thanks Pruss...
     // I see blondes, brunets, redheads...
     public void update(int mode) {
         int color;
-        color = mBoardVisualizion.mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80) : mWheel.wheelState(); //Chance of 1/3rd
+        color = service.boardVisualization.mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80) : mWheel.wheelState(); //Chance of 1/3rd
         mWheel.wheelInc(1);
-        mBurnerBoard.clearPixels();
-        drawTheMan(mBurnerBoard, color, mBoardWidth);
+        service.burnerBoard.clearPixels();
+        drawTheMan(service.burnerBoard, color, mBoardWidth);
     }
 }

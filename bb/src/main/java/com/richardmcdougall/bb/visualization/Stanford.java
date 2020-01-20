@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -11,8 +12,8 @@ public class Stanford extends Visualization {
 
     private Wheel mWheel = new Wheel();
 
-    public Stanford(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public Stanford(BBService service) {
+        super(service);
     }
 
     void drawStanford(BurnerBoard bb, int color, int width) {
@@ -245,9 +246,9 @@ public class Stanford extends Visualization {
 
     public void update(int mode) {
         int color;
-        color = mBoardVisualizion.mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80) : mWheel.wheelState(); //Chance of 1/3rd
+        color = service.boardVisualization.mRandom.nextInt(4) % 2 == 0 ? BurnerBoard.getRGB(80, 80, 80) : mWheel.wheelState(); //Chance of 1/3rd
         mWheel.wheelInc(1);
-        mBurnerBoard.clearPixels();
-        drawStanford(mBurnerBoard, color, mBoardWidth);
+        service.burnerBoard.clearPixels();
+        drawStanford(service.burnerBoard, color, mBoardWidth);
     }
 }

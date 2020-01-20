@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 
@@ -11,19 +12,19 @@ public class TestColors extends Visualization {
     int testColor = 0;
     private int[][] mFireColors = FireColors.colors();
 
-    public TestColors(BurnerBoard bb, BoardVisualization visualization) {
-        super(bb, visualization);
+    public TestColors(BBService service) {
+        super(service);
     }
 
     public void update(int mode) {
 
         System.out.println("Firecolor " + mFireColors[testColor][0] + "," + mFireColors[testColor][1] + "," + mFireColors[testColor][2]);
 
-        mBurnerBoard.fillScreen(
+        service.burnerBoard.fillScreen(
                 mFireColors[testColor][0],
                 mFireColors[testColor][1],
                 mFireColors[testColor][2]);
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
         testColor++;
         if (testColor > 255) {
             testColor = 0;
@@ -36,28 +37,28 @@ public class TestColors extends Visualization {
     private void modeTestColors() {
         switch (testColorState) {
             case 0:
-                mBurnerBoard.fillScreen(128, 0, 0);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
+                service.burnerBoard.fillScreen(128, 0, 0);
+                service.burnerBoard.setOtherlightsAutomatically();
+                service.burnerBoard.flush();
                 testColorState++;
                 break;
             case 1:
-                mBurnerBoard.fillScreen(0, 128, 0);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
+                service.burnerBoard.fillScreen(0, 128, 0);
+                service.burnerBoard.setOtherlightsAutomatically();
+                service.burnerBoard.flush();
                 testColorState++;
                 break;
             case 2:
-                mBurnerBoard.fillScreen(0, 0, 128);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
+                service.burnerBoard.fillScreen(0, 0, 128);
+                service.burnerBoard.setOtherlightsAutomatically();
+                service.burnerBoard.flush();
                 testColorState++;
                 break;
 
             case 3:
-                mBurnerBoard.fillScreen(64, 64, 64);
-                mBurnerBoard.setOtherlightsAutomatically();
-                mBurnerBoard.flush();
+                service.burnerBoard.fillScreen(64, 64, 64);
+                service.burnerBoard.setOtherlightsAutomatically();
+                service.burnerBoard.flush();
                 testColorState++;
                 break;
 

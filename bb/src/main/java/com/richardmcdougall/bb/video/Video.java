@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.video;
 
 import android.util.Log;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardVisualization;
 import com.richardmcdougall.bb.BurnerBoard;
 import com.richardmcdougall.bb.visualization.Visualization;
@@ -16,15 +17,16 @@ public class Video extends Visualization {
     public SimpleImage currentVideoFrame = null;
     private VideoDecoder mVideoDecoder = new VideoDecoder();
     private int lastVideoMode = -1;
+    private BBService service = null;
 
-    public Video(BurnerBoard bb,
-                 BoardVisualization visualization) {
-        super(bb, visualization);
+    public Video(BBService service ) {
+        super(service );
+        this.service = service;
     }
 
     public void update(int mode) {
 
-        int nVideos = mBurnerBoard.service.mediaManager.GetTotalVideo();
+        int nVideos = service.mediaManager.GetTotalVideo();
 
         if (nVideos == 0)
             return;
@@ -47,7 +49,7 @@ public class Video extends Visualization {
             };
 
             try {
-                mVideoDecoder.Start(mBurnerBoard.service.mediaManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
+                mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), mBoardWidth, mBoardHeight);
             } catch (Throwable throwable) {
                 //Log.d(TAG, "Unable to start decoder");
                 //throwable.printStackTrace();
@@ -59,7 +61,7 @@ public class Video extends Visualization {
         if (currentVideoFrame!=null) {
             SimpleImage curVideo = currentVideoFrame;  // save pointer to current video frame, it might change in another thread
             int totalPixels = curVideo.width * curVideo.height;
-            BurnerBoard ba = (BurnerBoard)mBurnerBoard;
+            BurnerBoard ba = service.burnerBoard;
 
             try {
                 int srcOff = 0, dstOff = 0;
@@ -79,7 +81,7 @@ public class Video extends Visualization {
             }
         }
 
-        mBurnerBoard.flush();
+        service.burnerBoard.flush();
     }public void e(String logMsg) {
         Log.e(TAG, logMsg);
     }
