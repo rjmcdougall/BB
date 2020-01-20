@@ -8,10 +8,17 @@ import java.nio.IntBuffer;
 
 public class BurnerBoardClassic extends BurnerBoard {
 
+    // Convert other lights to pixel buffer address
+    public static final int kOtherLights = 2;
+    public static final int kLeftSightlight = 0;
+    public static final int kRightSidelight = 1;
+    private static final String TAG = "BB.BurnerBoardClassic";
+    private static final int kClassicBatteryMah = 38000;
+    long lastFlushTime = java.lang.System.currentTimeMillis();
     private int mBoardSideLights = 79;
     //private int[] mBoardScreen;
     private int[] mBoardOtherlights;
-    private static final String TAG = "BB.BurnerBoardClassic";
+    private int flushCnt = 0;
 
     public BurnerBoardClassic(BBService service) {
         super(service);
@@ -70,22 +77,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         mListener.attach(10, getBatteryLevelCallback);
 
     }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
-        }
-    }
-
-    private static final int kClassicBatteryMah = 38000;
 
     public int getBatteryHealth() {
         return 100 * mBatteryStats[5] / kClassicBatteryMah;
@@ -154,6 +145,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return false;
     }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+
     public boolean setOtherlight(int other, int[] pixels) {
 
         // Send pixel row to in-app visual display
@@ -200,11 +192,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_GREEN)] = g;
         mBoardOtherlights[pixelOtherlight2Offset(pixel, other, PIXEL_BLUE)] = b;
     }
-
-    // Convert other lights to pixel buffer address
-    public static final int kOtherLights = 2;
-    public static final int kLeftSightlight = 0;
-    public static final int kRightSidelight = 1;
 
     int pixelOtherlight2Offset(int pixel, int other, int rgb) {
 
@@ -264,9 +251,7 @@ public class BurnerBoardClassic extends BurnerBoard {
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
                 }
             }
-            // TODO: scroll up side lights
         }
-
     }
 
     @Override
@@ -311,13 +296,9 @@ public class BurnerBoardClassic extends BurnerBoard {
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
                 }
             }
-            // TODO: scroll up side lights
         }
 
     }
-
-    private int flushCnt = 0;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
 
     public void flush() {
 
@@ -380,6 +361,20 @@ public class BurnerBoardClassic extends BurnerBoard {
             update();
             flush2Board();
 
+        }
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            if (mBatteryStats[1] != -1) {
+                service.boardState.batteryLevel = mBatteryStats[1];
+            } else {
+                service.boardState.batteryLevel = 100;
+            }
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }

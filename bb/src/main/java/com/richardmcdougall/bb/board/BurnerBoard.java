@@ -255,11 +255,6 @@ public abstract class BurnerBoard {
         return 0;
     }
 
-    // Battery Pack health 0-100%
-    public int getBatteryHealth() {
-        return 0;
-    }
-
     public String getBatteryStats() {
         return Arrays.toString(mBatteryStats);
     }
@@ -289,9 +284,7 @@ public abstract class BurnerBoard {
     }
 
     public void setPixel(int x, int y, int r, int g, int b) {
-        //System.out.println("Setting pixel " + x + "," + y + " : " + pixel2Offset(x, y, PIXEL_RED) + " to " + r +  "," + g + "," + b);
-        //l("setPixel(" + x + "," + y + "," + r + "," + g + "," + b + ")");
-        //Sstem.out.println("setpixel r = " + r);
+
         if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight) {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
             return;
@@ -306,8 +299,6 @@ public abstract class BurnerBoard {
     }
 
     public void fillScreen(int r, int g, int b) {
-
-        //System.out.println("Fillscreen " + r + "," + g + "," + b);
         int x;
         int y;
         for (x = 0; x < boardWidth; x++) {
@@ -353,7 +344,6 @@ public abstract class BurnerBoard {
                 }
             }
         }
-
     }
 
     public boolean update() {
@@ -374,7 +364,6 @@ public abstract class BurnerBoard {
                 }
             }
         }
-
         return false;
     }
 
@@ -448,24 +437,9 @@ public abstract class BurnerBoard {
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
     }
 
-    public boolean clearScreen() {
-
-        sendVisual(5);
-        BLog.d(TAG, "sendCommand: 4");
-        if (mListener != null) {
-            mListener.sendCmd(4);
-            mListener.sendCmdEnd();
-            return true;
-        }
-        return false;
-    }// TODO: gamma correction
-
-    // TODO: make faster by using ints
     protected int pixelColorCorrectionRed(int red) {
         return gammaCorrect(red);
     }
-    // encoded = ((original / 255) ^ (1 / gamma)) * 255
-    // original = ((encoded / 255) ^ gamma) * 255
 
     protected int pixelColorCorrectionGreen(int green) {
         return gammaCorrect(green);
@@ -491,21 +465,6 @@ public abstract class BurnerBoard {
             newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
             newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);
         }
-
-        //newPixels[30]=(byte)128;
-        //newPixels[31]=(byte)128;
-        //newPixels[32]=(byte)128;
-        //newPixels[3]=2;
-        //newPixels[4]=40;
-        //newPixels[5]=2;
-        //newPixels[6]=2;
-        //newPixels[7]=2;
-        //newPixels[8]=40;
-        //newPixels[9]=2;
-        //newPixels[10]=2;
-        //newPixels[11]=40;
-
-        //System.out.println("flushPixels row:" + y + "," + bytesToHex(newPixels));
 
         //l("sendCommand: 14,n,...");
         synchronized (mSerialConn) {
@@ -534,26 +493,12 @@ public abstract class BurnerBoard {
         mDimmerLevel = level;
     }
 
-    public void fuzzPixels(int amount) {
-
-        for (int x = 0; x < boardWidth; x++) {
-            for (int y = 0; y < boardHeight; y++) {
-                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                        (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] - amount);
-                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                        (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] - amount);
-                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                        (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] - amount);
-            }
-        }
-    }
-
-public boolean setMode(int mode) {
+    public boolean setMode(int mode) {
         setText(String.valueOf(mode), 2000);
         return true;
     }
 
-public void fadePixels(int amount) {
+    public void fadePixels(int amount) {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {
@@ -583,7 +528,7 @@ public void fadePixels(int amount) {
         }
     }
 
-        private boolean checkUsbDevice(UsbDevice device) {
+    private boolean checkUsbDevice(UsbDevice device) {
 
         int vid = device.getVendorId();
         int pid = device.getProductId();
@@ -595,6 +540,7 @@ public void fadePixels(int amount) {
         }
 
     }
+
     public void initUsb() {
         BLog.d(TAG, "BurnerBoard: initUsb()");
 
@@ -759,7 +705,7 @@ public void fadePixels(int amount) {
         return;
     }
 
-public boolean pingRow(int row, byte[] pixels) {
+    public boolean pingRow(int row, byte[] pixels) {
 
         //l("sendCommand: 16,n,...");
         synchronized (mSerialConn) {
@@ -774,7 +720,7 @@ public boolean pingRow(int row, byte[] pixels) {
         return false;
     }
 
-public boolean echoRow(int row, byte[] pixels) {
+    public boolean echoRow(int row, byte[] pixels) {
 
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -800,7 +746,7 @@ public boolean echoRow(int row, byte[] pixels) {
         }
     }
 
-        public void sendVisual(int visualId) {
+    public void sendVisual(int visualId) {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
         }
@@ -810,6 +756,7 @@ public boolean echoRow(int row, byte[] pixels) {
         in.putExtra("visualId", visualId);
         LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
+
     public void sendVisual(int visualId, int arg) {
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             return;
@@ -854,10 +801,6 @@ public boolean echoRow(int row, byte[] pixels) {
         LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
-    public void batteryActions(int level) {
-
-    }
-
     public void aRGBtoBoardScreen(Buffer buf, int[] sourceScreen, int[] destScreen) {
 
         if (buf == null) {
@@ -883,16 +826,6 @@ public boolean echoRow(int row, byte[] pixels) {
         }
     }
 
-    /**
-     * @return text height
-     */
-    private float getTextHeight(String text, Paint paint) {
-
-        Rect rect = new Rect();
-        paint.getTextBounds(text, 0, text.length(), rect);
-        return rect.height();
-    }
-
     // Draw text on screen and delay for n seconds
     public void setText(String text, int delay) {
         isTextDisplaying = delay * mRefreshRate / 1000;
@@ -907,15 +840,11 @@ public boolean echoRow(int row, byte[] pixels) {
         Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
         canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
-        //canvas.translate(0, boardHeight - 20);
-        //canvas.rotate(90, boardWidth / 2, boardHeight / 2);
         Paint textPaint = new TextPaint();
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setColor(Color.WHITE); // Text Color
-        //textPaint.setAntiAlias(true);
         textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
         textPaint.setTextSize(mTextSizeVerical); // Text Size
-        //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
         canvas.drawText(text.substring(0, Math.min(text.length(), 4)),
                 (boardWidth / 2), 30, textPaint);//boardHeight / 2 + (mTextSizeVerical / 3), textPaint);
         if (mTextBuffer != null) {
@@ -1001,12 +930,7 @@ public boolean echoRow(int row, byte[] pixels) {
             arcPaint.setStyle(Paint.Style.STROKE);
         }
 
-        //canvas.drawColor(Color.RED);
-
         canvas.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, arcPaint);
-        //canvas.drawArc(0, 0, canvas.getWidth() / 2, canvas.getHeight() / 2, 0, 90, true, arcPaint);
-
-        //canvas.drawText("hello", (boardWidth / 2), boardHeight / 2 + (mTextSizeHorizontal / 3), arcPaint);
 
         if (mDrawBuffer != null) {
             mDrawBuffer.rewind();
