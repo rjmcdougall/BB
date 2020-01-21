@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 27
 
-        versionCode 5021
-        versionName "5021"
+        versionCode 5022
+        versionName "5022"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
@@ -71,7 +71,7 @@ dependencies {
     implementation 'eu.chainfire:libsuperuser:1.0.0.+'
     implementation 'net.sf.marineapi:marineapi:0.10.0'
     compileOnly 'com.google.android.things:androidthings:+'
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
 
 }
