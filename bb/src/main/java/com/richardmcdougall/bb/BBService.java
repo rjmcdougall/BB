@@ -58,6 +58,7 @@ public class BBService extends Service {
     public BoardState boardState = null;
     public String filesDir = "";
     public MasterController masterController = null;
+    public Thread masterControllerThread = null;
     public GTFO gtfo = null;
     public BoardLocations boardLocations = null;
     public TextToSpeech voice;
@@ -215,6 +216,8 @@ public class BBService extends Service {
             batterySupervisor.Run();
 
             masterController = new MasterController(this);
+            masterControllerThread = new Thread(masterController);
+            masterControllerThread.start();
 
             gtfo = new GTFO(this);
 

@@ -242,7 +242,10 @@ public class MusicPlayer implements Runnable {
                 AudioManager.STREAM_MUSIC,
                 setVolume,
                 0);
-    }
+
+         if(service.boardState.masterRemote)
+             service.masterController.SendVolume();
+     }
 
     public void SetRadioChannel(int index) {
         this.handler.post(() -> mSetRadioChannel(index));
