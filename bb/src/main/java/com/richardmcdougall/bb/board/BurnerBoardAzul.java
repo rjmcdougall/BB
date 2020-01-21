@@ -110,7 +110,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         if (this.service.boardState.boardType == BoardState.BoardType.boombox)
             return 15;
         else
-            return 45;
+            return 30;
     }
 
     public int getBatteryHealth() {
