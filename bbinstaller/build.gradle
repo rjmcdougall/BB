@@ -15,8 +15,8 @@ android {
         applicationId "com.richardmcdougall.bbinstaller"
         minSdkVersion 23
         targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        versionCode 5021
+        versionName "5021"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.burnerboard
     }
@@ -25,11 +25,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.burnerboard
-        }
-        debug {
-            minifyEnabled false
-            signingConfig signingConfigs.burnerboard
-            debuggable true
+            debuggable false
         }
     }
     packagingOptions {

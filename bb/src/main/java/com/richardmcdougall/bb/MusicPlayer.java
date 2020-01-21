@@ -21,8 +21,6 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.richardmcdougall.bb.rf.RFMasterClientServer;
-import com.richardmcdougall.bb.rf.RFUtil;
 
 public class MusicPlayer implements Runnable {
     private String TAG = this.getClass().getSimpleName();
@@ -77,7 +75,8 @@ public class MusicPlayer implements Runnable {
         Looper.prepare();
         handler = new Handler(Looper.myLooper());
 
-        SetRadioChannel(0);
+        CreateExoplayer();
+        ;
 
         Looper.loop();
     }
@@ -198,6 +197,10 @@ public class MusicPlayer implements Runnable {
         return (v);
     }
 
+    public int getBoardVolumePercent() {
+        return getAndroidVolumePercent();
+    }
+
     public void setBoardVolume(int v) {
         if (v >= 0 && v <= 100) {
             setAndroidVolumePercent(v);
@@ -231,17 +234,14 @@ public class MusicPlayer implements Runnable {
         AudioManager audioManager =
                 (AudioManager) service.context.getSystemService(Context.AUDIO_SERVICE);
 
+        float vol = v / (float) 100;
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int newVolume = (int) ((float) maxVolume * (float) v / (float) 100);
+        int setVolume = (int) ((float) maxVolume * (float) v / (float) 100);
 
         audioManager.setStreamVolume(
                 AudioManager.STREAM_MUSIC,
-                newVolume,
+                setVolume,
                 0);
-
-        if (service.boardState.masterRemote)
-            service.masterController.SendVolume();
-
     }
 
     public void SetRadioChannel(int index) {
@@ -253,26 +253,35 @@ public class MusicPlayer implements Runnable {
         BLog.d(TAG, "SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
-        if (service.boardState.masterRemote)
-            service.masterController.SendAudio();
+        // If I am set to be the master, broadcast to other boards
+        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
+
+            BLog.d(TAG, "Sending remote");
+
+            String fileName = getRadioChannelInfo(index);
+            if(service.boardState.masterRemote)
+                service.masterController.SendAudio();
+
+        }
 
         try {
             BLog.d(TAG, "Radio Mode");
+            String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
+            service.burnerBoard.setText(shortName[0], 2000);
+            if (service.voiceAnnouncements) {
+                service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
+            }
+
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
-                String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
-                service.burnerBoard.setText(shortName[0], 2000);
-                if (service.voiceAnnouncements) {
-                    service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
-                }
 
                 player.release();
                 player = null;
                 CreateExoplayer();
 
                 service.boardVisualization.attachAudio(player.getAudioSessionId());
-
-                this.handler.post(() -> mSeekAndPlay());
             }
+
+            this.handler.post(() -> mSeekAndPlay());
         } catch (Throwable err) {
             BLog.e(TAG, "Radio mode failed" + err.getMessage());
         }

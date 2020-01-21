@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 27
 
-        versionCode 5020
-        versionName "5020"
+        versionCode 5021
+        versionName "5021"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
@@ -34,10 +34,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             debuggable false
-        }
-        debug {
-            minifyEnabled false
-            debuggable true
         }
     }
 
