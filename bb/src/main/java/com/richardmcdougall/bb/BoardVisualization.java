@@ -51,24 +51,10 @@ import java.util.Random;
  */
 
 public class BoardVisualization {
-    private String TAG = this.getClass().getSimpleName();
-
-    private BBService service;
+    private static final int kNumLevels = 8;
     public Random mRandom = new Random();
     public byte[] mBoardFFT;
-    private int mBoardWidth;
-    private int mBoardHeight;
-    private int[] mBoardScreen;
-
     public int mMultipler4Speed;
-    private boolean inhibitVisual = false;
-    private boolean inhibitVisualGTFO = false;
-
-    private boolean emergencyVisual = false;
-    private boolean showBattery = false;
-    private int mFrameRate;
-    private int batteryCnt = 0;
-
     public Visualization mVisualizationFire;
     public Visualization mVisualizationMatrix;
     public Visualization mVisualizationTextColors;
@@ -81,6 +67,24 @@ public class BoardVisualization {
     public Visualization mVisualizationMeteor;
     public Visualization mVisualizationPlayaMap;
     public Visualization getmVisualizationSyncLights;
+
+    private int frameCnt = 0;
+    private String TAG = this.getClass().getSimpleName();
+    private BBService service;
+    private int mBoardWidth;
+    private int mBoardHeight;
+    private int[] mBoardScreen;
+    public boolean inhibitVisual = false;
+    public boolean inhibitVisualGTFO = false;
+    public boolean emergencyVisual = false;
+    private boolean showBattery = false;
+    private int mFrameRate;
+    private int batteryCnt = 0;
+    private int boardDisplayCnt = 0;
+    private Visualizer mVisualizer;
+    private int mAudioSessionId;
+    private int[] oldLevels = new int[kNumLevels];
+    private int showingMap = 0;
 
     BoardVisualization(BBService service) {
 
@@ -120,27 +124,9 @@ public class BoardVisualization {
         t.start();
     }
 
-    private int boardDisplayCnt = 0;
-    private Visualizer mVisualizer;
-    private int mAudioSessionId;
-
-    public void inhibit(boolean inhibit) {
-        inhibitVisual = inhibit;
-    }
-
-    public void inhibitGTFO(boolean inhibit) {
-        inhibitVisualGTFO = inhibit;
-    }
-
-    public void emergency(boolean emergency) {
-        emergencyVisual = emergency;
-    }
-
     public void showBattery(boolean show) {
         showBattery = show;
-    }
-
-    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
+    }    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = service.boardState.currentVideoMode + 1;
@@ -280,7 +266,7 @@ public class BoardVisualization {
         return frameRate;
     }
 
-    // Main thread to drive the Board's display & get status (mode, voltage,...)
+// Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
         long lastFrameTime = System.currentTimeMillis();
@@ -355,7 +341,7 @@ public class BoardVisualization {
             }
         }
 
-    }int frameCnt = 0;
+    }
 
     int runVisualization(int mode) {
 
@@ -432,9 +418,6 @@ public class BoardVisualization {
         }
     }
 
-    private static final int kNumLevels = 8;
-    private int[] oldLevels = new int[kNumLevels];
-
     public int getLevel() {
 
         int level = 0;
@@ -452,8 +435,6 @@ public class BoardVisualization {
         //System.out.println("level: " + level);
         return level;
     }
-
-    private int showingMap = 0;
 
     public void showMap() {
         showingMap = mFrameRate * 15;

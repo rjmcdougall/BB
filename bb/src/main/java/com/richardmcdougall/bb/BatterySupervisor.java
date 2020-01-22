@@ -92,28 +92,28 @@ public class BatterySupervisor {
             if ((voltage > 20000) && (current > -150) && (current < 10)) {
                 // Any state -> IDLE
                 powerState = powerStates.STATE_IDLE;
-                service.boardVisualization.inhibit(true);
+                service.boardVisualization.inhibitVisual = true;
             } else if ((voltage > 20000) && (currentInstant < -150)) {
                 // Any state -> Displaying
                 powerState = powerStates.STATE_DISPLAYING;
-                service.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibitVisual = true;
             } else if (powerState == powerStates.STATE_DISPLAYING &&
                     // DISPLAYING -> Charging (avg current)
                     (voltage > 20000) && (current > 10)) {
                 powerState = powerStates.STATE_CHARGING;
-                service.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibitVisual = true;
             } else if (powerState == powerStates.STATE_IDLE &&
                     (voltage > 20000) && (currentInstant > 10)) {
                 // STATE_IDLE -> Charging // instant
                 powerState = powerStates.STATE_CHARGING;
-                service.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibitVisual = true;
             } else if ((voltage > 20000) && (current > 10)) {
                 // Anystate -> Charging // avg current
                 powerState = powerStates.STATE_CHARGING;
-                service.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibitVisual = true;
             } else {
                 BLog.d(TAG, "Unhandled power state " + powerState);
-                service.boardVisualization.inhibit(false);
+                service.boardVisualization.inhibitVisual = true;
             }
 
             BLog.d(TAG, "Power state is " + powerState);
@@ -125,9 +125,9 @@ public class BatterySupervisor {
             // Board will come to a halt in < 60 seconds
             // current is milliamps
             if ((voltage > 20000) && (voltage < 35300)) {
-                service.boardVisualization.emergency(true);
+                service.boardVisualization.emergencyVisual = true;
             } else {
-                service.boardVisualization.emergency(false);
+                service.boardVisualization.emergencyVisual = true;
             }
 
             announce = false;
