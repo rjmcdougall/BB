@@ -10,7 +10,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BLog;
-import com.richardmcdougall.bb.DriftCalculator;
 import com.richardmcdougall.bb.TimeSync;
 
 import java.io.ByteArrayInputStream;
