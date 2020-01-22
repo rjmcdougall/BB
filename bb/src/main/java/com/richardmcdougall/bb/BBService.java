@@ -58,7 +58,7 @@ public class BBService extends Service {
     public String filesDir = "";
     public MasterController masterController = null;
     public Thread masterControllerThread = null;
-    public GTFO gtfo = null;
+    public GTFOController gtfoController = null;
     public BoardLocations boardLocations = null;
     public TextToSpeech voice;
     public ServerElector serverElector = null;

@@ -2,12 +2,12 @@ package com.richardmcdougall.bb;
 
 import android.speech.tts.TextToSpeech;
 
-public class GTFO {
+public class GTFOController {
 
     private BBService service = null;
     private int stashedAndroidVolumePercent;
 
-    public GTFO(BBService service) {
+    public GTFOController(BBService service) {
         this.service = service;
     }
 
