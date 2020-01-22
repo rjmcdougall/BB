@@ -17,7 +17,6 @@ public class RFUtil {
     public static final int[] kServerSyncMagicNumber = new int[]{0xbb, 0x04};
     public static final int[] kServerBeaconMagicNumber = new int[]{0xbb, 0x05};
     public static final int[] kRemoteControlMagicNumber = new int[]{0xbb, 0x06};
-    public static final int[] kTrackerMagicNumber = new int[]{0x02, 0xcb};
     public static final int[] kGPSMagicNumber = new int[]{0xbb, 0x01};
     public static final int kMagicNumberLen = 2;
 
@@ -90,6 +89,13 @@ public class RFUtil {
         bytes.write((byte) ((n >> 8) & 0xFF));
     }
 
+    public static void boolToPacket(ByteArrayOutputStream bytes, boolean b) {
+        bytes.write((byte) ((b ? 1 : 0 ) & 0xFF));
+    }
+
+    public static boolean boolFromPacket(ByteArrayInputStream bytes) {
+        return  (bytes.read() & (long) 0xff) !=0;
+    }
 
     public static long int64FromPacket(ByteArrayInputStream bytes) {
         return ((long) ((bytes.read() & (long) 0xff) +

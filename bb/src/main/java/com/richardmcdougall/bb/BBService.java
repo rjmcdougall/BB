@@ -49,7 +49,6 @@ public class BBService extends Service {
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
     public MediaManager mediaManager;
     private Thread musicPlayerThread;
-    public boolean voiceAnnouncements = false;
     public BBWifi wifi = null;
 
     private static USBReceiver usbReceiver = null;
@@ -64,6 +63,7 @@ public class BBService extends Service {
     public TextToSpeech voice;
     public ServerElector serverElector = null;
     public RFMasterClientServer rfMasterClientServer = null;
+    public CrisisController crisisController = null;
 
     public BBService() {
     }
@@ -150,13 +150,15 @@ public class BBService extends Service {
                         BLog.i(TAG, "Text To Speech ready...");
                         voice.setPitch((float) 0.8);
                         voice.setSpeechRate((float) 0.9);
+                        voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
                     } else if (status == TextToSpeech.ERROR) {
                         BLog.i(TAG, "Sorry! Text To Speech failed...");
                     }
                 }
             });
 
-            voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
+            crisisController = new CrisisController(this);
+            crisisController.Run();
 
             if (boardState.platformType == BoardState.PlatformType.rpi) {
                 voice.speak("Raspberry PI detected", TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");

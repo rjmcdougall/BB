@@ -3,8 +3,6 @@ package com.richardmcdougall.bb;
 import android.media.audiofx.Visualizer;
 import android.speech.tts.TextToSpeech;
 
-import com.richardmcdougall.bb.rf.RFMasterClientServer;
-import com.richardmcdougall.bb.rf.RFUtil;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
@@ -76,7 +74,7 @@ public class BoardVisualization {
     private int[] mBoardScreen;
     public boolean inhibitVisual = false;
     public boolean inhibitVisualGTFO = false;
-    public boolean emergencyVisual = false;
+    public boolean lowBatteryVisual = false;
     private boolean showBattery = false;
     private int mFrameRate;
     private int batteryCnt = 0;
@@ -285,12 +283,11 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    BLog.e(TAG, er.getMessage());
                 }
                 continue;
             }
 
-            if (emergencyVisual) {
+            if (lowBatteryVisual) {
                 BLog.d(TAG, "inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
@@ -299,12 +296,10 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    BLog.e(TAG, er.getMessage());
                 }
                 continue;
             }
 
-            // TODO: render our own battery here rather than rely on firmware to do it.
             if (showBattery) {
                 if (batteryCnt % mFrameRate == 0) {
                     service.burnerBoard.showBattery();
@@ -313,9 +308,20 @@ public class BoardVisualization {
             }
 
             if (showingMap > 0) {
-                frameRate = mFrameRate;
                 mVisualizationPlayaMap.update(Visualization.kDefault);
                 showingMap -= 1;
+                continue;
+            }
+
+            if (service.crisisController.boardInCrisis) {
+
+                service.burnerBoard.clearPixels();
+                service.burnerBoard.fillScreen(255, 0, 0);
+
+                service.burnerBoard.flush();
+                try {
+                } catch (Throwable er) {
+                }
                 continue;
             }
 
@@ -336,9 +342,6 @@ public class BoardVisualization {
             lastFrameTime = System.currentTimeMillis();
 
             boardDisplayCnt++;
-            if (boardDisplayCnt > 1000) {
-                //updateStatus();
-            }
         }
 
     }
@@ -438,7 +441,9 @@ public class BoardVisualization {
 
     public void showMap() {
         showingMap = mFrameRate * 15;
-    }public void setMode(int mode) {
+    }
+
+    public void setMode(int mode) {
 
         // Likely not connected to physical burner board, fallback
         if (mode == 99) {
@@ -458,17 +463,12 @@ public class BoardVisualization {
         if (service.boardState.masterRemote)
             service.masterController.SendVideo();
 
-        if (service.burnerBoard != null) {
-            BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
+        BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
 
-            service.burnerBoard.resetParams();
-            service.burnerBoard.clearPixels();
-            service.burnerBoard.setMode(service.boardState.currentVideoMode);
-        }
+        service.burnerBoard.resetParams();
+        service.burnerBoard.clearPixels();
 
-        if (service.voiceAnnouncements) {
-            service.voice.speak("mode" + service.boardState.currentVideoMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
-        }
+        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000);
     }
 
 }

@@ -493,11 +493,6 @@ public abstract class BurnerBoard {
         mDimmerLevel = level;
     }
 
-    public boolean setMode(int mode) {
-        setText(String.valueOf(mode), 2000);
-        return true;
-    }
-
     public void fadePixels(int amount) {
 
         for (int x = 0; x < boardWidth; x++) {

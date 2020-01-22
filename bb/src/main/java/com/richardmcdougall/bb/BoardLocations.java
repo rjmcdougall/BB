@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class BoardLocations {
     private String TAG = this.getClass().getSimpleName();
@@ -25,7 +26,7 @@ public class BoardLocations {
         this.service = service;
     }
 
-    public void updateBoardLocations(int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket) {
+    public void updateBoardLocations(int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket, boolean inCrisis) {
 
         boardLocation loc = new boardLocation();
 
@@ -36,6 +37,7 @@ public class BoardLocations {
             loc.lastHeardDate = System.currentTimeMillis();
             loc.latitude = lat;
             loc.longitude = lon;
+            loc.inCrisis = inCrisis;
             mBoardLocations.put(address, loc); // add to current locations
         } catch (Exception e) {
             BLog.e(TAG, "Error storing the current location for " + address + " " + e.getMessage());
@@ -71,6 +73,20 @@ public class BoardLocations {
             BLog.e(TAG, "Error storing the board location history for " + address + " " + e.getMessage());
         }
 
+    }
+
+    public ArrayList<Integer> BoardsInCrisis(){
+        ArrayList<Integer> i = new ArrayList<>();
+
+        for(Map.Entry<Integer, boardLocation> b : mBoardLocations.entrySet()) {
+            Integer key = b.getKey();
+            boardLocation value = b.getValue();
+
+            if(value.inCrisis){
+                i.add(value.address);
+            }
+        }
+        return i;
     }
 
     public void addTestBoardLocations() {
@@ -150,6 +166,7 @@ public class BoardLocations {
         public double longitude;
         public long lastHeardDate;
         public String board;
+        public boolean inCrisis;
     }
 
     private class boardLocationHistory {

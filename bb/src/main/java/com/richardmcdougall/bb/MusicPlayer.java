@@ -271,9 +271,6 @@ public class MusicPlayer implements Runnable {
             BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
             service.burnerBoard.setText(shortName[0], 2000);
-            if (service.voiceAnnouncements) {
-                service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
-            }
 
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 

@@ -49,6 +49,7 @@ public class BoardState {
     public BoardType boardType;
     public String serial = Build.SERIAL;
     public PlatformType platformType = PlatformType.dragonboard;
+    public boolean inCrisis = false;
 
     BoardState(BBService service) {
         this.service = service;

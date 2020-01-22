@@ -31,6 +31,7 @@ public class FindMyFriends {
     private long mLastSend = 0;
     private long mLastRecv = 0;
     private byte[] mLastHeardLocation;
+    private boolean mTheirInCrisis = false;
 
     public FindMyFriends(BBService service) {
         this.service = service;
@@ -132,7 +133,7 @@ public class FindMyFriends {
         radioPacket.write((lon >> 16) & 0xFF);
         radioPacket.write((lon >> 24) & 0xFF);
         radioPacket.write(service.boardState.batteryLevel & 0xFF);
-        radioPacket.write((0) & 0xFF); // spare
+        RFUtil.boolToPacket(radioPacket, service.boardState.inCrisis);
         radioPacket.write((0) & 0xFF); // spare
         radioPacket.write((0) & 0xFF); // spare
 
@@ -144,7 +145,7 @@ public class FindMyFriends {
         mLastSend = System.currentTimeMillis();
         BLog.d(TAG, "Sent packet...");
         this.service.boardLocations.updateBoardLocations(service.boardState.address, 999,
-                lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray());
+                lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray(), service.boardState.inCrisis);
     }
 
     boolean processReceive(byte[] packet, int sigStrength) {
@@ -169,7 +170,7 @@ public class FindMyFriends {
                         ((bytes.read() & 0xff) << 16) +
                         ((bytes.read() & 0xff) << 24)) / 1000000.0;
                 mTheirBatt = (int) (bytes.read() & 0xff);
-                bytes.read(); // spare
+                mTheirInCrisis = RFUtil.boolFromPacket(bytes);
                 bytes.read(); // spare
                 bytes.read(); // spare
                 mThereAccurate = bytes.read();
@@ -183,22 +184,10 @@ public class FindMyFriends {
                 service.iotClient.sendUpdate("bbevent", "[" +
                         service.allBoards.boardAddressToName(mTheirAddress) + "," +
                         sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
-                this.service.boardLocations.updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone());
+                this.service.boardLocations.updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone(), mTheirInCrisis);
                 return true;
-            } else if (recvMagicNumber == RFUtil.magicNumberToInt(RFUtil.kTrackerMagicNumber)) {
-                BLog.d(TAG, "tracker packet");
-                mTheirLat = (double) ((bytes.read() & 0xff) +
-                        ((bytes.read() & 0xff) << 8) +
-                        ((bytes.read() & 0xff) << 16) +
-                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
-                mTheirLon = (double) ((bytes.read() & 0xff) +
-                        ((bytes.read() & 0xff) << 8) +
-                        ((bytes.read() & 0xff) << 16) +
-                        ((bytes.read() & 0xff) << 24)) / 1000000.0;
-                mThereAccurate = bytes.read();
-                mLastRecv = System.currentTimeMillis();
-                return true;
-            } else {
+            }
+            else {
                 BLog.d(TAG, "rogue packet not for us!");
             }
             return false;

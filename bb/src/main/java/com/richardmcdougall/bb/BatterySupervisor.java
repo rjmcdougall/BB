@@ -125,9 +125,9 @@ public class BatterySupervisor {
             // Board will come to a halt in < 60 seconds
             // current is milliamps
             if ((voltage > 20000) && (voltage < 35300)) {
-                service.boardVisualization.emergencyVisual = true;
+                service.boardVisualization.lowBatteryVisual = true;
             } else {
-                service.boardVisualization.emergencyVisual = true;
+                service.boardVisualization.lowBatteryVisual = true;
             }
 
             announce = false;

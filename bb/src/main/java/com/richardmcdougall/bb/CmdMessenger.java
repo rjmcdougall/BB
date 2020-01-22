@@ -236,22 +236,6 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
     }
 
     /**
-     * Send formatted argument.
-     * Note that floating points are not supported and resulting string is limited to 128 chars
-     */
-    public void sendCmdfArg(String template, String... args) {
-        String tmp;
-        String[] theargs = new String[args.length + 1];
-        // fill the array 'theargs'
-        System.arraycopy(args, 0, theargs, 0, args.length);
-        if (startCommand) {
-            tmp = String.format(template, theargs);
-            printByte(field_separator);
-            printStr(tmp.getBytes());
-        }
-    }
-
-    /**
      * Send double argument in scientific format.
      * This will overcome the boundary of normal float sending which is limited to abs(f) <= MAXLONG
      */
