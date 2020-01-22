@@ -221,7 +221,7 @@ public class BBService extends Service {
             masterControllerThread = new Thread(masterController);
             masterControllerThread.start();
 
-            gtfo = new GTFO(this);
+            gtfoController = new GTFOController(this);
 
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());

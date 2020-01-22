@@ -106,10 +106,6 @@ public class BluetoothLEServer {
      * Response is JSON with arbitrary format
      */
     public interface BLECallback {
-        void onConnected(String clientId);
-
-        void onDisconnected(String clientId);
-
         void OnAction(String clientId, BluetoothDevice device, String command, JSONObject payload);
     }
 
