@@ -237,11 +237,8 @@ public class ProlificSerialDriver implements UsbSerialDriver {
                             mStatus = buffer[STATUS_BYTE_IDX] & 0xff;
                         }
 
-                        mReadStatusThread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                readStatusThreadFunction();
-                            }
+                        mReadStatusThread = new Thread(() -> {
+                            readStatusThreadFunction();
                         });
                         mReadStatusThread.setDaemon(true);
                         mReadStatusThread.start();

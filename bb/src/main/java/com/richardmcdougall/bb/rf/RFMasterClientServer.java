@@ -59,11 +59,10 @@ public class RFMasterClientServer {
     }
 
     public void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("BB RF Client/Server");
-                RunBroadcastLoop();
-            }
+        Thread t = new Thread(() -> {
+            Thread.currentThread().setName("BB RF Client/Server");
+            RunBroadcastLoop();
+
         });
         t.start();
     }

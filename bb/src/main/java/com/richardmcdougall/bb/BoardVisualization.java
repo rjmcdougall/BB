@@ -113,11 +113,9 @@ public class BoardVisualization {
     }
 
     void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("BB Board Display");
-                boardDisplayThread();
-            }
+        Thread t = new Thread(() -> {
+            Thread.currentThread().setName("BB Board Display");
+            boardDisplayThread();
         });
         t.start();
     }

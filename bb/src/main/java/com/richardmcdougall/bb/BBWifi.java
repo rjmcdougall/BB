@@ -246,11 +246,10 @@ public class BBWifi {
     }
 
     void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("Supervisor");
-                runSupervisor();
-            }
+        Thread t = new Thread(() -> {
+            Thread.currentThread().setName("Supervisor");
+            runSupervisor();
+
         });
         t.start();
     }

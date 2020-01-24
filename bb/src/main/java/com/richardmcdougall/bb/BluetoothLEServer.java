@@ -131,8 +131,7 @@ public class BluetoothLEServer {
 
         // a thread is required here because the sleep interferes with the mp4's being displayed.
         // the thread terminates immediately after completion.
-        Thread t = new Thread(new Runnable() {
-            public void run() {
+        Thread t = new Thread(() -> {
                 try {
                     Thread.currentThread().setName("Bluetooth TX Response.");
                     BLog.d(TAG, "Creating Thread to service Bluetooth tx response");
@@ -159,7 +158,7 @@ public class BluetoothLEServer {
                     BLog.e(TAG, "Bluetooth tx response failed.");
                 }
                 return;
-            }
+
         });
         t.start();
     }/**

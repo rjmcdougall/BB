@@ -25,11 +25,9 @@ public class AllBoards {
     }
 
     void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("AllBoards");
-                StartDownloadManager();
-            }
+        Thread t = new Thread(() -> {
+            Thread.currentThread().setName("AllBoards");
+            StartDownloadManager();
         });
         t.start();
     }
