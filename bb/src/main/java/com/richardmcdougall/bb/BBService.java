@@ -174,6 +174,9 @@ public class BBService extends Service {
             mediaManager = new MediaManager(this);
             mediaManager.Run();
 
+            remoteCrisisController = new RemoteCrisisController(this);
+            localCrisisController = new LocalCrisisController(this);
+
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.setText90(boardState.BOARD_ID, 5000);
             burnerBoard.attach(new BBService.BoardCallback());
@@ -220,8 +223,6 @@ public class BBService extends Service {
             masterControllerThread.start();
 
             gtfoController = new GTFOController(this);
-            remoteCrisisController = new RemoteCrisisController(this);
-            localCrisisController = new LocalCrisisController(this);
 
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());

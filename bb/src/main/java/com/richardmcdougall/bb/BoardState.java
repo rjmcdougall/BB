@@ -115,7 +115,7 @@ public class BoardState {
             state.put("s", service.wifi.getConnectedSSID());
             state.put("c", service.boardState.SSID);
             state.put("p", service.boardState.password);
-            state.put("r",service.boardState.inCrisis);
+         //   state.put("r",service.boardState.inCrisis);
 
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());

@@ -450,10 +450,10 @@ public class BoardVisualization {
         }
 
         int maxModes = service.mediaManager.GetTotalVideo();
-        if (service.boardState.currentVideoMode > maxModes)
-            service.boardState.currentVideoMode = 1;
-        else if (service.boardState.currentVideoMode < 1)
-            service.boardState.currentVideoMode = maxModes;
+        if (service.boardState.currentVideoMode >= maxModes)
+            service.boardState.currentVideoMode = 0;
+        else if (service.boardState.currentVideoMode < 0)
+            service.boardState.currentVideoMode = maxModes-1;
 
         if (service.boardState.masterRemote)
             service.masterController.SendVideo();

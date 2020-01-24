@@ -187,7 +187,7 @@ public class BluetoothCommands {
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
                     BLog.d(TAG, "BBservice got Video command:" + payload.toString());
                     try {
-                        int track = payload.getInt("arg") + 1;
+                        int track = payload.getInt("arg");
                         service.boardVisualization.setMode(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting video track: " + e.getMessage());
@@ -256,7 +256,7 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Audio command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
-                        service.musicPlayer.SetRadioChannel(track + 1);
+                        service.musicPlayer.SetRadioChannel(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting audio track: " + e.getMessage());
                     }
