@@ -42,7 +42,9 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
         }
         return video;
-    }public JSONArray MinimizedAudio() {
+    }
+
+    public JSONArray MinimizedAudio() {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = audio();
@@ -94,7 +96,9 @@ public class MediaManager {
         void onProgress(String file, long fileSize, long bytesDownloaded);
 
         void onVoiceCue(String err);
-    }public OnDownloadProgressType onProgressCallback = null;
+    }
+
+    public OnDownloadProgressType onProgressCallback = null;
 
     MediaManager(BBService service) {
         this.service = service;
@@ -378,7 +382,9 @@ public class MediaManager {
 
             }
         }
-    }String GetAudioFile(int index) {
+    }
+
+    String GetAudioFile(int index) {
         try {
             String fn = service.filesDir + "/" + GetAudio(index).getString("localName");
             return fn;
@@ -386,7 +392,9 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
             return null;
         }
-    }String GetAudioFileLocalName(int index) {
+    }
+
+    String GetAudioFileLocalName(int index) {
         if (index >= 0 && index < GetTotalAudio()) {
             try {
                 String fn = GetAudio(index).getString("localName");
@@ -398,7 +406,9 @@ public class MediaManager {
         } else {
             return null;
         }
-    }String GetVideoFileLocalName(int index) {
+    }
+
+    String GetVideoFileLocalName(int index) {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
@@ -428,33 +438,31 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
             return null;
         }
-    }int GetTotalAudio() {
-        if (dataDirectory == null)
+    }
+
+    int GetTotalAudio() {
+
+        try {
+            return dataDirectory.getJSONArray("audio").length();
+        } catch (JSONException e) {
+            BLog.e(TAG, e.getMessage());
             return 0;
-        else {
-            try {
-                return dataDirectory.getJSONArray("audio").length();
-            } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
-                return 0;
-            }
         }
+
     }
 
     public int GetTotalVideo() {
-        if (dataDirectory == null)
+        try {
+            return dataDirectory.getJSONArray("video").length();
+        } catch (JSONException e) {
+            BLog.e(TAG, e.getMessage());
             return 0;
-        else {
-            try {
-                return dataDirectory.getJSONArray("video").length();
-            } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
-                return 0;
-            }
         }
-    }JSONObject GetVideo(int index) {
-        if (dataDirectory == null)
-            return null;
+
+
+}
+
+    JSONObject GetVideo(int index) {
         if (dataDirectory.has("video")) {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index);
@@ -467,8 +475,6 @@ public class MediaManager {
     }
 
     String GetAlgorithm(int index) {
-        if (dataDirectory == null)
-            return null;
         if (dataDirectory.has("video")) {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
@@ -481,8 +487,6 @@ public class MediaManager {
     }
 
     JSONObject GetAudio(int index) {
-        if (dataDirectory == null)
-            return null;
         if (dataDirectory.has("audio")) {
             try {
                 return dataDirectory.getJSONArray("audio").getJSONObject(index);
