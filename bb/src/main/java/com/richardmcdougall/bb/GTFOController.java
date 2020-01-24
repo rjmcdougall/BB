@@ -25,7 +25,7 @@ public class GTFOController {
         } else {
             service.boardVisualization.inhibitVisualGTFO = false;
             service.musicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
-            service.musicPlayer.Mute();
+            service.musicPlayer.Unmute();
         }
     }
 

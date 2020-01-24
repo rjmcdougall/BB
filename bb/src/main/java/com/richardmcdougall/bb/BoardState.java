@@ -41,8 +41,8 @@ public class BoardState {
     public int version = 0;
     public Date apkUpdatedDate;
     public int batteryLevel = -1;
-    public int currentRadioChannel = 1;
-    public int currentVideoMode = 1;
+    public int currentRadioChannel = 0;
+    public int currentVideoMode = 0;
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy;

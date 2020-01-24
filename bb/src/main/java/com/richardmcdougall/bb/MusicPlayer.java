@@ -76,7 +76,6 @@ public class MusicPlayer implements Runnable {
         handler = new Handler(Looper.myLooper());
 
         CreateExoplayer();
-        ;
 
         Looper.loop();
     }
@@ -104,13 +103,13 @@ public class MusicPlayer implements Runnable {
             }
         });
 
-        BLog.d(TAG, "playing file " + service.mediaManager.GetAudioFile(service.boardState.currentRadioChannel - 1));
+        BLog.d(TAG, "playing file " + service.mediaManager.GetAudioFile());
 
         // Produces DataSource instances through which media data is loaded.
         DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
                 Util.getUserAgent(service.context, "yourApplicationName"));
 
-        String filePath = service.mediaManager.GetAudioFile(service.boardState.currentRadioChannel - 1);
+        String filePath = service.mediaManager.GetAudioFile();
         Uri uri = Uri.parse("file:///" + filePath);
 
         // This is the MediaSource representing the media to be played.
@@ -151,7 +150,7 @@ public class MusicPlayer implements Runnable {
     }
 
     private long GetCurrentStreamLengthInSeconds() {
-        return service.mediaManager.GetAudioLength(service.boardState.currentRadioChannel - 1);
+        return service.mediaManager.GetAudioLength();
     }
 
     public void SeekAndPlay() {
@@ -221,13 +220,13 @@ public class MusicPlayer implements Runnable {
     }
 
     public void Mute() {
-        if (isMuted) {
-            handler.post(() -> player.setVolume(1f));
-            isMuted = false;
-        } else {
-            handler.post(() -> player.setVolume(0f));
-            isMuted = true;
-        }
+        handler.post(() -> player.setVolume(0f));
+        isMuted = true;
+    }
+
+    public void Unmute() {
+        handler.post(() -> player.setVolume(1f));
+        isMuted = false;
     }
 
     public void setAndroidVolumePercent(int v) {

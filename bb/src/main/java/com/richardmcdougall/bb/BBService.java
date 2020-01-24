@@ -158,7 +158,6 @@ public class BBService extends Service {
             });
 
             crisisController = new CrisisController(this);
-            crisisController.Run();
 
             if (boardState.platformType == BoardState.PlatformType.rpi) {
                 voice.speak("Raspberry PI detected", TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");

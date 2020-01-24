@@ -132,11 +132,9 @@ public class MediaManager {
     }
 
     void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("MediaManager");
-                StartDownloadManager();
-            }
+        Thread t = new Thread(() -> {
+            Thread.currentThread().setName("MediaManager");
+            StartDownloadManager();
         });
         t.start();
     }
@@ -384,9 +382,9 @@ public class MediaManager {
         }
     }
 
-    String GetAudioFile(int index) {
+    String GetAudioFile() {
         try {
-            String fn = service.filesDir + "/" + GetAudio(index).getString("localName");
+            String fn = service.filesDir + "/" + GetAudio().getString("localName");
             return fn;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
@@ -397,7 +395,7 @@ public class MediaManager {
     String GetAudioFileLocalName(int index) {
         if (index >= 0 && index < GetTotalAudio()) {
             try {
-                String fn = GetAudio(index).getString("localName");
+                String fn = GetAudio().getString("localName");
                 return fn;
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
@@ -412,13 +410,13 @@ public class MediaManager {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
-                if (GetVideo(index).has("friendlyName")) {
-                    fn = GetVideo(index).getString("friendlyName");
+                if (GetVideo().has("friendlyName")) {
+                    fn = GetVideo().getString("friendlyName");
                 } else {
-                    if (GetVideo(index).has("algorithm"))
-                        fn = GetVideo(index).getString("algorithm");
+                    if (GetVideo().has("algorithm"))
+                        fn = GetVideo().getString("algorithm");
                     else
-                        fn = GetVideo(index).getString("localName");
+                        fn = GetVideo().getString("localName");
                 }
                 return fn;
             } catch (JSONException e) {
@@ -432,7 +430,7 @@ public class MediaManager {
 
     public String GetVideoFile(int index) {
         try {
-            String fn = service.filesDir + "/" + GetVideo(index).getString("localName");
+            String fn = service.filesDir + "/" + GetVideo().getString("localName");
             return fn;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
@@ -451,6 +449,31 @@ public class MediaManager {
 
     }
 
+    int GetMapMode() {
+        if (dataDirectory.has("video")) {
+            try {
+                int map = -1;
+                JSONArray j = dataDirectory.getJSONArray("video");
+
+                for (int i = 0; i < j.length(); i++) {
+                    JSONObject v = j.getJSONObject(i);
+                    if(v.has("algorithm")){
+                        String s = v.getString("algorithm");
+                        if(s.equals("modePlayaMap()")){
+                            map = i;
+                        }
+                    }
+                }
+
+                return map;
+            } catch (JSONException e) {
+                BLog.e(TAG, e.getMessage());
+                return -1;
+            }
+        } else
+            return -1;
+    }
+
     public int GetTotalVideo() {
         try {
             return dataDirectory.getJSONArray("video").length();
@@ -458,14 +481,12 @@ public class MediaManager {
             BLog.e(TAG, e.getMessage());
             return 0;
         }
+    }
 
-
-}
-
-    JSONObject GetVideo(int index) {
+    JSONObject GetVideo() {
         if (dataDirectory.has("video")) {
             try {
-                return dataDirectory.getJSONArray("video").getJSONObject(index);
+                return dataDirectory.getJSONArray("video").getJSONObject(service.boardState.currentVideoMode);
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
                 return null;
@@ -474,10 +495,10 @@ public class MediaManager {
             return null;
     }
 
-    String GetAlgorithm(int index) {
+    String GetAlgorithm() {
         if (dataDirectory.has("video")) {
             try {
-                return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
+                return dataDirectory.getJSONArray("video").getJSONObject(service.boardState.currentVideoMode).getString("algorithm");
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
                 return null;
@@ -486,10 +507,10 @@ public class MediaManager {
             return null;
     }
 
-    JSONObject GetAudio(int index) {
+    JSONObject GetAudio() {
         if (dataDirectory.has("audio")) {
             try {
-                return dataDirectory.getJSONArray("audio").getJSONObject(index);
+                return dataDirectory.getJSONArray("audio").getJSONObject(service.boardState.currentRadioChannel);
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
                 return null;
@@ -498,9 +519,9 @@ public class MediaManager {
             return null;
     }
 
-    long GetAudioLength(int index) {
+    long GetAudioLength() {
         try {
-            return GetAudio(index).getLong("Length");
+            return GetAudio().getLong("Length");
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
             return 1000;   // return a dummy value

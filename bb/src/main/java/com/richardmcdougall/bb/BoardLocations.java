@@ -91,7 +91,7 @@ public class BoardLocations {
 
     public void addTestBoardLocations() {
 
-        //   updateBoardLocations(51230, -53, 37.476222, -122.1551087, "testdata".getBytes());
+     //     updateBoardLocations(1, -53, 37.476222, -122.1551087,0, "testdata".getBytes(),true);
     }
 
     public List<boardLocation> getBoardLocations() {

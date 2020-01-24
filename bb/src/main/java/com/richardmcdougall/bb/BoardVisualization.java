@@ -313,7 +313,7 @@ public class BoardVisualization {
                 continue;
             }
 
-            if (service.crisisController.boardInCrisis) {
+            if (service.crisisController.boardInCrisisPhase == 1) {
 
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
@@ -349,8 +349,6 @@ public class BoardVisualization {
     int runVisualization(int mode) {
 
         try {
-            mode += -1;
-
             frameCnt++;
             if (frameCnt % 100 == 0) {
                 BLog.d(TAG, "Frames: " + frameCnt);
@@ -364,12 +362,12 @@ public class BoardVisualization {
                 return mFrameRate;
             }
 
-            JSONObject videos = service.mediaManager.GetVideo(mode);
+            JSONObject videos = service.mediaManager.GetVideo();
             if (videos == null) {
                 return mFrameRate;
             }
             if (videos.has("algorithm")) {
-                String algorithm = service.mediaManager.GetAlgorithm(mode);
+                String algorithm = service.mediaManager.GetAlgorithm();
                 return displayAlgorithm(algorithm);
             } else {
                 if (service.boardState.platformType == BoardState.PlatformType.rpi) {
