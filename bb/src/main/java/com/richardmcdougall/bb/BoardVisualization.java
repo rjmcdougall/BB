@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.media.audiofx.Visualizer;
-import android.speech.tts.TextToSpeech;
 
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
@@ -311,7 +310,7 @@ public class BoardVisualization {
                 continue;
             }
 
-            if (service.crisisController.boardInCrisisPhase == 1) {
+            if (service.remoteCrisisController.boardInCrisisPhase == 1) {
 
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);

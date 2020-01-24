@@ -141,6 +141,20 @@ public class BluetoothCommands {
 
                 });
 
+        service.bLEServer.addCallback("SetCrisis",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got SetCrisis command:" + payload.toString());
+                    try {
+                        boolean isCrisis = payload.getBoolean("arg");
+                        service.localCrisisController.SetCrisis(isCrisis);
+
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error setting Crisis: " + e.getMessage());
+                    }
+                    sendStateResponse(command, device);
+
+                });
+
         service.bLEServer.addCallback("EnableGTFO",
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
                     BLog.d(TAG, "BBservice got EnableGTFO command:" + payload.toString());

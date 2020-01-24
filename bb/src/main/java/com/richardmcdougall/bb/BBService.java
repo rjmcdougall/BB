@@ -63,7 +63,8 @@ public class BBService extends Service {
     public TextToSpeech voice;
     public ServerElector serverElector = null;
     public RFMasterClientServer rfMasterClientServer = null;
-    public CrisisController crisisController = null;
+    public RemoteCrisisController remoteCrisisController = null;
+    public LocalCrisisController localCrisisController = null;
 
     public BBService() {
     }
@@ -157,8 +158,6 @@ public class BBService extends Service {
                 }
             });
 
-            crisisController = new CrisisController(this);
-
             if (boardState.platformType == BoardState.PlatformType.rpi) {
                 voice.speak("Raspberry PI detected", TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
                 if (wifi.ipAddress != null) {
@@ -221,6 +220,8 @@ public class BBService extends Service {
             masterControllerThread.start();
 
             gtfoController = new GTFOController(this);
+            remoteCrisisController = new RemoteCrisisController(this);
+            localCrisisController = new LocalCrisisController(this);
 
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
