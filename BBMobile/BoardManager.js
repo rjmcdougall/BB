@@ -718,9 +718,9 @@ export default class BoardManager extends Component {
 
 	completionPercentage() {
 		var completionPercent = 0;
-		if (this.state.boardData.length > 1) completionPercent += 25;
-		if (this.state.video.length > 1) completionPercent += 25;
-		if (this.state.audio.length > 1) completionPercent += 25;
+		if (this.state.boardData.length > 0) completionPercent += 25;
+		if (this.state.video.length > 0) completionPercent += 25;
+		if (this.state.audio.length > 0) completionPercent += 25;
 		if (this.state.boardState.v != -1) completionPercent += 25;
 		return completionPercent;
 	}
