@@ -15,6 +15,9 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.nio.ByteOrder;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class BBWifi {
     private String TAG = this.getClass().getSimpleName();
@@ -25,6 +28,7 @@ public class BBWifi {
     private BBService service = null;
     private WifiManager mWiFiManager = null;
     private List<ScanResult> mScanResults;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
         @Override
@@ -50,6 +54,8 @@ public class BBWifi {
 
         }
         ScanWifi();
+
+        sch.scheduleWithFixedDelay(wifiSupervisor, 10, mWifiReconnectEveryNSeconds, TimeUnit.SECONDS);
     }
 
     public String getConnectedSSID() {
@@ -244,32 +250,11 @@ public class BBWifi {
         mWiFiManager.startScan();
     }
 
-    void Run() {
-        Thread t = new Thread(() -> {
-            Thread.currentThread().setName("Supervisor");
-            runSupervisor();
-
-        });
-        t.start();
-    }
-
-    private void runSupervisor() {
-
-        while (true) {
-
-            // Every 60 seconds check WIFI
-            if (service.wifi.enableWifiReconnect) {
-                if (service.wifi != null) {
-                    BLog.d(TAG, "Check Wifi");
-                    checkWifiReconnect();
-                }
-            }
-
-            try {
-                Thread.sleep(mWifiReconnectEveryNSeconds * 1000);
-            } catch (Throwable e) {
-            }
-
+    Runnable wifiSupervisor = () -> {
+        if (service.wifi.enableWifiReconnect) {
+            BLog.d(TAG, "Check Wifi");
+            checkWifiReconnect();
         }
-    }
+    };
+
 }

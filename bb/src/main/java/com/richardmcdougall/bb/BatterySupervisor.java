@@ -2,6 +2,10 @@ package com.richardmcdougall.bb;
 
 import android.speech.tts.TextToSpeech;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 public class BatterySupervisor {
     private String TAG = this.getClass().getSimpleName();
 
@@ -12,56 +16,39 @@ public class BatterySupervisor {
     private boolean enableBatteryMonitoring = true;
     private boolean enableIoTReporting = true;
     private int iotReportEveryNSeconds = 10;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     BatterySupervisor(BBService service) {
         this.service = service;
 
-        if (!(service.boardState.platformType == BoardState.PlatformType.rpi)) {
+        if (service.boardState.platformType == BoardState.PlatformType.rpi) {
             enableBatteryMonitoring = false;
             enableIoTReporting = false;
         }
-    }
-
-    void Run() {
-        Thread t = new Thread(() -> {
-            Thread.currentThread().setName("Supervisor");
-            runSupervisor();
-        });
-        t.start();
-    }
-
-    private void runSupervisor() {
 
         /* Communicate the settings for the supervisor thread */
         BLog.d(TAG, "Enable Battery Monitoring? " + enableBatteryMonitoring);
         BLog.d(TAG, "Enable IoT Reporting? " + enableIoTReporting);
         BLog.d(TAG, "Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
 
-        while (true) {
+        sch.scheduleWithFixedDelay(batterySupervisor, 10, 1, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(batteryIOT, 10, iotReportEveryNSeconds, TimeUnit.SECONDS);
 
-            // Every second, check & update battery
-            if (enableBatteryMonitoring && (service.burnerBoard != null)) {
-                checkBattery();
-
-                // Every 10 seconds, send battery update via IoT.
-                // Only do this if we're actively checking the battery.
-                if (enableIoTReporting && (loopCnt % iotReportEveryNSeconds == 0)) {
-                    BLog.d(TAG, "Sending MQTT update");
-                    try {
-                        service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
-                    } catch (Exception e) {
-                    }
-                }
-            }
-
-            try {
-                Thread.sleep(1000);
-            } catch (Throwable e) {
-            }
-
-            loopCnt++;
-        }
     }
+
+    Runnable batterySupervisor = () -> {
+        if (enableBatteryMonitoring) {
+            checkBattery();
+        }
+    };
+
+    Runnable batteryIOT = () -> {
+        if (enableBatteryMonitoring && enableIoTReporting) {
+            BLog.d(TAG, "Sending MQTT update");
+            String s = service.burnerBoard.getBatteryStats();
+            service.iotClient.sendUpdate("bbtelemetery", s);
+        }
+    };
 
     public enum powerStates {STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING}
 

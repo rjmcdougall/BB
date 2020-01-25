@@ -188,16 +188,12 @@ public class MusicPlayer implements Runnable {
     }
 
     public String getRadioChannelInfo(int index) {
-        return service.mediaManager.GetAudioFileLocalName(index - 1);
+        return service.mediaManager.GetAudioFileLocalName(index);
     }
 
     public int getCurrentBoardVol() {
         int v = getAndroidVolumePercent();
         return (v);
-    }
-
-    public int getBoardVolumePercent() {
-        return getAndroidVolumePercent();
     }
 
     public void setBoardVolume(int v) {

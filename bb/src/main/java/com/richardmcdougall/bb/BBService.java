@@ -169,7 +169,6 @@ public class BBService extends Service {
             iotClient.Run();
 
             wifi = new BBWifi(this);
-            wifi.Run();
 
             mediaManager = new MediaManager(this);
             mediaManager.Run();
@@ -187,16 +186,13 @@ public class BBService extends Service {
             BLog.i(TAG, "Setting initial visualization mode: " + boardState.currentVideoMode);
             boardVisualization.setMode(boardState.currentVideoMode);
 
-            //Thread.sleep(500); // player thread must fully start before supervisor. dkw
             TimeSync.InitClock();
             musicPlayer = new MusicPlayer(this);
             musicPlayerThread = new Thread(musicPlayer);
             musicPlayerThread.start();
-            Thread.sleep(500); // player thread must fully start before supervisor. dkw
 
             if (!DebugConfigs.BYPASS_MUSIC_SYNC) {
                 musicPlayerSupervisor = new MusicPlayerSupervisor(this);
-                musicPlayerSupervisor.Run();
             }
 
             bluetoothConnManager = new BluetoothConnManager(this);
@@ -216,7 +212,6 @@ public class BBService extends Service {
             bluetoothCommands.init();
 
             batterySupervisor = new BatterySupervisor(this);
-            batterySupervisor.Run();
 
             masterController = new MasterController(this);
             masterControllerThread = new Thread(masterController);
