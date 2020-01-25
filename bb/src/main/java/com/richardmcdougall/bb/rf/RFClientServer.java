@@ -220,9 +220,16 @@ public class RFClientServer {
                     BLog.d(TAG, "send packet " + RFUtil.bytesToHex(clientPacket.toByteArray()));
                     // Broadcast, but only server will pick up
                     service.radio.broadcast(clientPacket.toByteArray());
-                    BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", TimeSync.GetCurrentClock()) +
-                            service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
-                            " -> " + service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")");
+
+                    if(service.serverElector.serverAddress != 0)
+                        BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", TimeSync.GetCurrentClock()) +
+                                service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
+                                " -> " + service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")");
+                    else
+                        BLog.d(TAG, "BB Sync Packet broadcast to server, ts=" + String.format("0x%08X", TimeSync.GetCurrentClock()) +
+                                service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")" +
+                                " -> No Server");
+
 
                 } catch (Throwable e) {
                     //l("Client UDP failed");
