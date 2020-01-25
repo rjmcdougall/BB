@@ -18,6 +18,9 @@ import com.richardmcdougall.bb.rf.RFClientServer;
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
 
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
@@ -99,7 +102,6 @@ public class BBService extends Service {
             BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
             allBoards = new AllBoards(this);
-            allBoards.Run();
 
             while (allBoards.dataBoards == null) {
                 BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
@@ -141,29 +143,30 @@ public class BBService extends Service {
             mHandlerThread.start();
             mHandler = new Handler(mHandlerThread.getLooper());
 
-            voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-                @Override
-                public void onInit(int status) {
-                    // check for successful instantiation
-                    if (status == TextToSpeech.SUCCESS) {
-                        if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
-                            voice.setLanguage(Locale.US);
-                        BLog.i(TAG, "Text To Speech ready...");
-                        voice.setPitch((float) 0.8);
-                        voice.setSpeechRate((float) 0.9);
-                        voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
-                    } else if (status == TextToSpeech.ERROR) {
-                        BLog.i(TAG, "Sorry! Text To Speech failed...");
-                    }
+            voice = new TextToSpeech(getApplicationContext(), (int status) -> {
+                // check for successful instantiation
+                if (status == TextToSpeech.SUCCESS) {
+                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
+                        voice.setLanguage(Locale.US);
+                    BLog.i(TAG, "Text To Speech ready...");
+                    voice.setPitch((float) 0.8);
+                    voice.setSpeechRate((float) 0.9);
+                    voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
+                } else if (status == TextToSpeech.ERROR) {
+                    BLog.i(TAG, "Sorry! Text To Speech failed...");
                 }
             });
 
-            if (boardState.platformType == BoardState.PlatformType.rpi) {
-                speak("Raspberry PI detected","rpi diagnostic");
-                if (wifi.ipAddress != null) {
-                    speak("My WiFi IP is: " + wifi.ipAddress,"wifi ip");
+            ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+            Runnable seekAndPlay = () -> {
+                if (boardState.platformType == BoardState.PlatformType.rpi) {
+                    speak("Raspberry PI detected","rpi diagnostic");
+                    if (wifi.ipAddress != null) {
+                        speak("My WiFi IP is: " + wifi.ipAddress,"wifi ip");
+                    }
                 }
-            }
+            };
+            sch.schedule(seekAndPlay, 3, TimeUnit.SECONDS);
 
             iotClient = new IoTClient(this);
             iotClient.Run();
@@ -171,7 +174,6 @@ public class BBService extends Service {
             wifi = new BBWifi(this);
 
             mediaManager = new MediaManager(this);
-            mediaManager.Run();
 
             remoteCrisisController = new RemoteCrisisController(this);
             localCrisisController = new LocalCrisisController(this);

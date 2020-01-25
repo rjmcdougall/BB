@@ -22,13 +22,16 @@ public class BatterySupervisor {
         if (service.boardState.boardType == BoardState.BoardType.azul ||
                 service.boardState.boardType == BoardState.BoardType.classic) {
             enableBatteryMonitoring = true;
+        }
+
+        // test devices
+        if (service.boardState.boardType == BoardState.BoardType.panel) {
             enableIoTReporting = true;
         }
 
         /* Communicate the settings for the supervisor thread */
         BLog.d(TAG, "Enable Battery Monitoring? " + enableBatteryMonitoring);
         BLog.d(TAG, "Enable IoT Reporting? " + enableIoTReporting);
-        BLog.d(TAG, "Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
 
         sch.scheduleWithFixedDelay(batterySupervisor, 10, 1, TimeUnit.SECONDS);
         sch.scheduleWithFixedDelay(batteryIOT, 10, iotReportEveryNSeconds, TimeUnit.SECONDS);
@@ -42,7 +45,7 @@ public class BatterySupervisor {
     };
 
     Runnable batteryIOT = () -> {
-        if (enableBatteryMonitoring && enableIoTReporting) {
+        if (enableIoTReporting) {
             BLog.d(TAG, "Sending MQTT update");
             String s = service.burnerBoard.getBatteryStats();
             service.iotClient.sendUpdate("bbtelemetery", s);
@@ -53,7 +56,7 @@ public class BatterySupervisor {
 
     public void checkBattery() {
 
-        boolean announce = false;
+        boolean announce;
         powerStates powerState = powerStates.STATE_DISPLAYING;
 
         int level = service.boardState.batteryLevel;
@@ -96,7 +99,7 @@ public class BatterySupervisor {
             service.boardVisualization.inhibitVisual = true;
         } else {
             BLog.d(TAG, "Unhandled power state " + powerState);
-            service.boardVisualization.inhibitVisual = true;
+            service.boardVisualization.inhibitVisual = true; // this occurs on all nonstandard devices.
         }
 
         BLog.d(TAG, "Power state is " + powerState);

@@ -12,6 +12,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MediaManager {
     private String TAG = this.getClass().getSimpleName();
@@ -23,6 +26,7 @@ public class MediaManager {
 
     private BBService service;
     private JSONObject dataDirectory;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     private JSONArray audio() {
         JSONArray audio = null;
@@ -128,15 +132,11 @@ public class MediaManager {
 
         LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
-        BLog.d(TAG, "Downloading files to: " + service.filesDir);
-    }
+        // wait 8 seconds to hopefully get wifi before starting the download.
+        Runnable checkForMedia = () ->  StartDownloadManager();
+        sch.schedule(checkForMedia, 8, TimeUnit.SECONDS);
 
-    void Run() {
-        Thread t = new Thread(() -> {
-            Thread.currentThread().setName("MediaManager");
-            StartDownloadManager();
-        });
-        t.start();
+        BLog.d(TAG, "Downloading files to: " + service.filesDir);
     }
 
     public static long hashTrackName(String name) {
