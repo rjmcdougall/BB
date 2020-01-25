@@ -131,7 +131,7 @@ public class MusicPlayer implements Runnable {
 
     public void NextStream() {
         nextRadioChannel = service.boardState.currentRadioChannel + 1;
-        if (nextRadioChannel > service.mediaManager.GetTotalAudio())
+        if (nextRadioChannel >= service.mediaManager.GetTotalAudio())
             nextRadioChannel = 0;
 
         this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
@@ -140,7 +140,7 @@ public class MusicPlayer implements Runnable {
     public void PreviousStream() {
         nextRadioChannel = service.boardState.currentRadioChannel - 1;
         if (nextRadioChannel < 0) {
-            nextRadioChannel = 0;
+            nextRadioChannel = service.mediaManager.GetTotalAudio() -1;
         }
         this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
     }

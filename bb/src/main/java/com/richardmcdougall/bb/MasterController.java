@@ -73,8 +73,8 @@ public class MasterController implements Runnable {
     }
 
     public void RemoteVideo(long value){
-        for (int i = 1; i <= service.mediaManager.GetTotalVideo(); i++) {
-            String name = service.mediaManager.GetVideoFileLocalName(i - 1);
+        for (int i = 0; i < service.mediaManager.GetTotalVideo(); i++) {
+            String name = service.mediaManager.GetVideoFileLocalName(i);
             long hashed = MediaManager.hashTrackName(name);
             if (hashed == value) {
                 BLog.d(TAG, "Remote Video " + service.boardState.currentVideoMode + " -> " + i);
@@ -144,7 +144,7 @@ public class MasterController implements Runnable {
     }
 
     private void mSendVideo() {
-        String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
+        String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode);
         BLog.d(TAG, "Sending video remote for video " + name);
         service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, MediaManager.hashTrackName(name), RFMasterClientServer.kRemoteVideo);
 

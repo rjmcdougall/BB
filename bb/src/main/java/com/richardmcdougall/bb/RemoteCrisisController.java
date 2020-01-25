@@ -21,7 +21,7 @@ public class RemoteCrisisController {
             if(service.boardLocations.BoardsInCrisis().size()>0 && boardInCrisisPhase==0){
                 StartCrisisPhase1();
             }
-            else if (service.boardLocations.BoardsInCrisis().size()==0){
+            else if (service.boardLocations.BoardsInCrisis().size()==0 && !(boardInCrisisPhase==0)){
                 StopCrisis();
             }
         }catch(Exception e){

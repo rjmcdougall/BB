@@ -125,10 +125,10 @@ public class BoardVisualization {
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = service.boardState.currentVideoMode + 1;
-        if (next > service.mediaManager.GetTotalVideo()) {
-            next = 1;
+        if (next >= service.mediaManager.GetTotalVideo()) {
+            next = 0;
         }
-        BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
+        BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next));
         service.boardVisualization.setMode(next);
     }
 
@@ -321,7 +321,7 @@ public class BoardVisualization {
                 }
                 continue;
             }
-
+            
             frameRate = runVisualization(service.boardState.currentVideoMode);
 
             long frameTime = 1000 / frameRate;
@@ -345,7 +345,7 @@ public class BoardVisualization {
 
     int runVisualization(int mode) {
 
-        try {
+         try {
             frameCnt++;
             if (frameCnt % 100 == 0) {
                 BLog.d(TAG, "Frames: " + frameCnt);
@@ -441,7 +441,7 @@ public class BoardVisualization {
     public void setMode(int mode) {
 
         // Likely not connected to physical burner board, fallback
-        if (mode == 99) {
+         if (mode == 99) {
             service.boardState.currentVideoMode++;
         } else if (mode == 98) {
             service.boardState.currentVideoMode--;
@@ -455,7 +455,7 @@ public class BoardVisualization {
         else if (service.boardState.currentVideoMode < 0)
             service.boardState.currentVideoMode = maxModes-1;
 
-        if (service.boardState.masterRemote)
+            if (service.boardState.masterRemote)
             service.masterController.SendVideo();
 
         BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
