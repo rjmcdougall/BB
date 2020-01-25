@@ -168,7 +168,7 @@ public class AllBoards {
     public String boardAddressToColor(int address) {
 
         JSONObject board;
-        String boardColor = "unknown";
+        String boardColor = "white";
 
         try {
 

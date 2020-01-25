@@ -310,7 +310,8 @@ public class BoardVisualization {
                 continue;
             }
 
-            if (service.remoteCrisisController.boardInCrisisPhase == 1) {
+            if (service.remoteCrisisController.boardInCrisisPhase == 1
+            || service.localCrisisController.boardInCrisisPhase == 1) {
 
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);

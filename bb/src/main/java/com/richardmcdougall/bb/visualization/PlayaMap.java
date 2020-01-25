@@ -84,16 +84,10 @@ public class PlayaMap extends Visualization {
 
             for (BoardLocations.boardLocation location: boardLocations) {
 
-                String color = service.allBoards.boardAddressToColor(location.address);
-                boardColor = null;
-                if (color != null) {
-                    boardColor = bbColor.getColor(color);
-                }
-                if (boardColor == null) {
-                    // System.out.println("Could not get color for " + color);
-                    boardColor = bbColor.getColor("white");
-                }
-                //l("plot board " + boardLocation.address + "," + " color = " + color);
+                if(location.inCrisis)
+                    boardColor = bbColor.getColor("red");
+                else
+                    boardColor = bbColor.getColor(service.allBoards.boardAddressToColor(location.address));
 
                 if (flashColor(updateCnt, location.address)) {
                     plotBoard(location.latitude, location.longitude,
