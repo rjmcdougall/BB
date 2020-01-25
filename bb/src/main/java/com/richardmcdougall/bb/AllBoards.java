@@ -5,6 +5,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class AllBoards {
 
@@ -18,18 +21,16 @@ public class AllBoards {
     private BBService service = null;
     public MediaManager.OnDownloadProgressType onProgressCallback = null;
     public JSONArray dataBoards;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     public AllBoards(BBService service) {
         this.service = service;
         LoadInitialBoardsDirectory();
-    }
 
-    void Run() {
-        Thread t = new Thread(() -> {
-            Thread.currentThread().setName("AllBoards");
-            StartDownloadManager();
-        });
-        t.start();
+        // wait 5 seconds to hopefully get wifi before starting the download.
+        Runnable checkForBoards = () ->  StartDownloadManager();
+        sch.schedule(checkForBoards, 8, TimeUnit.SECONDS);
+
     }
 
     public void LoadInitialBoardsDirectory() {
