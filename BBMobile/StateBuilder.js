@@ -46,6 +46,7 @@ var bBoardState = {
 	s: "", // SSID
 	c: "zzzz", // configured ssid
 	p: "", // configured password
+	r: false, //crisis mode
 };
 
 exports.blankWifi = function() {
