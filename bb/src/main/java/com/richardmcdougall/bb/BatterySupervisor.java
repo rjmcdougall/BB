@@ -148,8 +148,7 @@ public class BatterySupervisor {
                 }
             }
             if (announce) {
-                service.voice.speak("Battery Level is " +
-                        level + " percent", TextToSpeech.QUEUE_FLUSH, null, "batteryLow");
+                service.speak("Battery Level is " + level + " percent", "batteryLow");
             }
         }
     }

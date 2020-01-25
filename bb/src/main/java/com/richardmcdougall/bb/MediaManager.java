@@ -115,14 +115,14 @@ public class MediaManager {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    service.voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    service.speak("Downloading " + file + ", " + percent + " Percent", "downloading");
                     lastTextTime = curTime;
                     BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
                 }
             }
 
             public void onVoiceCue(String msg) {
-                service.voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+                service.speak(msg, "Download Message");
             }
         };
 

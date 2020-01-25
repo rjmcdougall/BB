@@ -126,7 +126,6 @@ public class BBWifi {
             if (ipAddress != null) {
                 BLog.d(TAG, "WIFI IP Address: " + ipAddress);
                 // Text to speach is not set up yet at this time; move it to init loop.
-                //voice.speak("My WIFI IP is " + ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
             } else {
                 BLog.d(TAG, "Could not determine WIFI IP at this time");
             }

@@ -66,7 +66,7 @@ public class LocalCrisisController {
         service.musicPlayer.Mute();
 
         service.burnerBoard.setText90("Please Help!", 10000);
-        service.voice.speak("Please Help!", TextToSpeech.QUEUE_FLUSH, null, "mode");
+        service.speak("Please Help!","mode");
 
         sch.schedule(moveToPhase2, 10, TimeUnit.SECONDS);
     }

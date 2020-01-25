@@ -44,13 +44,13 @@ public class MasterController implements Runnable {
             mSendMasterInfo();
 
             service.burnerBoard.setText("Master", 2000);
-            service.voice.speak("Master Remote is: " + service.boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "enableMaster");
+            service.speak("Master Remote is: " + service.boardState.BOARD_ID, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             service.rfMasterClientServer.disableMasterBroadcast();
 
             service.burnerBoard.setText("Solo", 2000);
-            service.voice.speak("Disabling Master Remote: " + service.boardState.BOARD_ID, TextToSpeech.QUEUE_ADD, null, "disableMaster");
+            service.speak("Disabling Master Remote: " + service.boardState.BOARD_ID, "disableMaster");
         }
     }
 
@@ -101,7 +101,7 @@ public class MasterController implements Runnable {
             // mode and follow the new master
             String diag = service.boardState.BOARD_ID + " is no longer the master. New master: " + client;
             BLog.d(TAG, diag);
-            service.voice.speak(diag, TextToSpeech.QUEUE_ADD, null, "master reset");
+            service.speak(diag,"master reset");
             enableMaster(false);
         }
 

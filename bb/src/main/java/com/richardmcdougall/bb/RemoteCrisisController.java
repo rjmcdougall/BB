@@ -83,7 +83,7 @@ public class RemoteCrisisController {
 
         for (Integer addressInCrisis : service.boardLocations.BoardsInCrisis()) {
             service.burnerBoard.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000);
-            service.voice.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis), TextToSpeech.QUEUE_FLUSH, null, "mode");
+            service.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis),  "mode");
         }
 
         sch.schedule(moveToPhase2, 10, TimeUnit.SECONDS);

@@ -21,7 +21,7 @@ public class GTFOController {
             service.musicPlayer.Mute();
             stashedAndroidVolumePercent = service.musicPlayer.getAndroidVolumePercent();
             service.musicPlayer.setAndroidVolumePercent(100);
-            service.voice.speak("Hey, Get The Fuck Off!", TextToSpeech.QUEUE_ADD, null, "GTFO");
+            service.speak("Hey, Get The Fuck Off!", "GTFO");
         } else {
             service.boardVisualization.inhibitVisualGTFO = false;
             service.musicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);

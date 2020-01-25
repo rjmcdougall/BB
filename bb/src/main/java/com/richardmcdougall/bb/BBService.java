@@ -159,9 +159,9 @@ public class BBService extends Service {
             });
 
             if (boardState.platformType == BoardState.PlatformType.rpi) {
-                voice.speak("Raspberry PI detected", TextToSpeech.QUEUE_ADD, null, "rpi diagnostic");
+                speak("Raspberry PI detected","rpi diagnostic");
                 if (wifi.ipAddress != null) {
-                    voice.speak("My WiFi IP is: " + wifi.ipAddress, TextToSpeech.QUEUE_ADD, null, "wifi ip");
+                    speak("My WiFi IP is: " + wifi.ipAddress,"wifi ip");
                 }
             }
 
@@ -229,6 +229,14 @@ public class BBService extends Service {
         }
     }
 
+    public void speak(String txt, String id){
+        if(voice != null) {
+            voice.speak(txt, TextToSpeech.QUEUE_ADD, null, id);
+        }
+        else {
+            BLog.d(TAG,"Text to Speech Null");
+        }
+    }
     /**
      * The service is starting, due to a call to startService()
      */
