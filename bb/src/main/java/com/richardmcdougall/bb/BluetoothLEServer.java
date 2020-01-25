@@ -59,6 +59,7 @@ public class BluetoothLEServer {
     private BluetoothGattCharacteristic mTxCharacteristic;
 
     private Handler mHandler;
+    private boolean delay = false;
 
     public BluetoothLEServer(BBService service) {
 
@@ -66,6 +67,9 @@ public class BluetoothLEServer {
         mHandler = new Handler(Looper.getMainLooper());
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
+
+        delay = (service.boardState.platformType== BoardState.PlatformType.dragonboard ||
+                service.boardState.platformType== BoardState.PlatformType.rpi);
 
         // We can't continue without proper Bluetooth support
         if (bluetoothAdapter == null) {
@@ -142,17 +146,17 @@ public class BluetoothLEServer {
                     while ((nBytes = buffer.read(txBuf, 0, 18)) > 0) {
                         byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
                         mTxCharacteristic.setValue(sendBuf);
-                        //l("Notifying...");
 
-                        // PREVENT BUFFER ISSUES / OVERFLOW
-                        try {
-                            Thread.sleep(15, 0);
-                        } catch (Exception e) {
+                        if(delay) {
+                            // PREVENT BUFFER ISSUES / OVERFLOW
+                            try {
+                                Thread.sleep(15, 0);
+                            } catch (Exception e) {
+                            }
                         }
 
-                        boolean status = mBluetoothGattServer.notifyCharacteristicChanged(device,
+                        mBluetoothGattServer.notifyCharacteristicChanged(device,
                                 mTxCharacteristic, false);
-                        //l("notify: " + status);
                     }
                 } catch (Exception e) {
                     BLog.e(TAG, "Bluetooth tx response failed.");
