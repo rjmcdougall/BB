@@ -169,10 +169,7 @@ public class BBService extends Service {
             sch.schedule(seekAndPlay, 3, TimeUnit.SECONDS);
 
             iotClient = new IoTClient(this);
-            iotClient.Run();
-
             wifi = new BBWifi(this);
-
             mediaManager = new MediaManager(this);
 
             remoteCrisisController = new RemoteCrisisController(this);
@@ -209,7 +206,6 @@ public class BBService extends Service {
             rfMasterClientServer.Run();
 
             findMyFriends = new FindMyFriends(this);
-
             bluetoothCommands = new BluetoothCommands(this);
             bluetoothCommands.init();
 

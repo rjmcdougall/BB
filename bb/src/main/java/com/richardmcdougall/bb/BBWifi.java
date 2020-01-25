@@ -55,7 +55,7 @@ public class BBWifi {
         }
         ScanWifi();
 
-        BLog.d(TAG, "Enable WiFi reconnect? " + service.wifi.enableWifiReconnect);
+        BLog.d(TAG, "Enable WiFi reconnect? " + enableWifiReconnect);
 
         sch.scheduleWithFixedDelay(wifiSupervisor, 10, mWifiReconnectEveryNSeconds, TimeUnit.SECONDS);
     }
