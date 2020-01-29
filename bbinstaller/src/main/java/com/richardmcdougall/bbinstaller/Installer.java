@@ -16,13 +16,9 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.RemoteException;
 import android.speech.tts.TextToSpeech;
-import android.text.format.Formatter;
 import android.util.Log;
 
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,12 +31,6 @@ import java.net.UnknownHostException;
 import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
-
-import static android.R.attr.action;
-import static android.R.attr.path;
-import static android.R.attr.versionCode;
-import static android.content.ContentValues.TAG;
 
 public class Installer extends Service {
 
@@ -437,15 +427,23 @@ public class Installer extends Service {
 
         final String libs = "LD_LIBRARY_PATH=/vendor/lib64:/system/lib64 ";
 
-        final String[] commands = {
+
+        if (Build.MODEL.contains("NanoPC-T4")) {
+            final String[] commands = {
+                    "pm install -i com.richardmcdougall.bb --user 0 " + path
+            };
+            execute_as_root(commands);
+        } else {
+            final String[] commands = {
 //                libs + "cp  " + path + " /data/local/tmp 2>&1 >>/data/local/tmp/bb.log" ,
 //                libs + "chmod 666 /data/local/tmp/bb.apk 2>&1 >>/data/local/tmp/bb.log",
 //                libs + "pm install -r /data/local/tmp/bb.apk",
-                libs + "chmod 666 " + path,
-                libs + "pm install -rg " + path
-        };
-
-        execute_as_root(commands);
+                    libs + "chmod 666 " + path,
+                    libs + "pm install -rg " + path
+            };
+            
+            execute_as_root(commands);
+        }
 
         /*
         if (true || Shell.SU.available()) {

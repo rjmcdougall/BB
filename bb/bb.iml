@@ -84,7 +84,7 @@
     <orderEntry type="library" name="Gradle: io.jsonwebtoken:jjwt:0.7.0@jar" level="project" />
     <orderEntry type="library" name="Gradle: joda-time:joda-time:2.1@jar" level="project" />
     <orderEntry type="library" name="Gradle: net.sf.marineapi:marineapi:0.10.0@jar" level="project" />
-    <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.8.6@jar" level="project" />
+    <orderEntry type="library" name="Gradle: com.google.code.gson:gson:2.8.5@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.android.support:support-annotations:27.1.1@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-databind:2.8.2@jar" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.core:jackson-annotations:2.8.0@jar" level="project" />
