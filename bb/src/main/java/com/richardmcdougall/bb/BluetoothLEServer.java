@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.os.ParcelUuid;
 
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import org.json.JSONObject;
 

@@ -1,5 +1,6 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bbcommon;
 
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -37,7 +38,6 @@ public class BoardState {
 
     public boolean masterRemote = false;
 
-    private BBService service = null;
     public boolean isGTFO = false;
     public boolean blockMaster = false;
     public int version = 0;
@@ -52,12 +52,16 @@ public class BoardState {
     public String serial = Build.SERIAL;
     public PlatformType platformType = PlatformType.dragonboard;
     public boolean inCrisis = false;
+    private Context context = null;
+    private String filesDir = "";
+    private AllBoards allBoards = null;
 
-    BoardState(BBService service) {
-        this.service = service;
-
+    public BoardState(Context context, AllBoards allBoards) {
+        this.context = context;
+        filesDir = context.getFilesDir().getAbsolutePath();
+        this.allBoards = allBoards;
         try {
-            PackageInfo pinfo = service.context.getPackageManager().getPackageInfo(service.context.getPackageName(), 0);
+            PackageInfo pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             version = pinfo.versionCode;
             apkUpdatedDate = new Date(pinfo.lastUpdateTime);
         } catch (PackageManager.NameNotFoundException e) {
@@ -83,14 +87,14 @@ public class BoardState {
         if (DebugConfigs.OVERRIDE_PUBLIC_NAME != "")
             BOARD_ID = DebugConfigs.OVERRIDE_PUBLIC_NAME;
         else {
-            BOARD_ID = service.allBoards.getBOARD_ID(DEVICE_ID);
+            BOARD_ID = this.allBoards.getBOARD_ID(DEVICE_ID);
             if (BOARD_ID == "")
                 BOARD_ID = DEVICE_ID;
         }
 
-        address = service.allBoards.getBoardAddress(BOARD_ID);
-        displayTeensy = service.allBoards.getDisplayTeensy(BOARD_ID);
-        boardType = service.allBoards.getBoardType(BOARD_ID);
+        address = this.allBoards.getBoardAddress(BOARD_ID);
+        displayTeensy = this.allBoards.getDisplayTeensy(BOARD_ID);
+        boardType = this.allBoards.getBoardType(BOARD_ID);
 
         // look for an SSID and password in file system. If it is not there default to firetruck.
         getSSIDAndPassword();
@@ -99,30 +103,6 @@ public class BoardState {
             getSSIDAndPassword();
         }
 
-    }
-
-    public JSONObject MinimizedState() {
-        JSONObject state = new JSONObject();
-        try {
-            state.put("acn", currentRadioChannel - 1);
-            state.put("vcn", currentVideoMode - 1);
-            state.put("v", service.musicPlayer.getAndroidVolumePercent());
-            state.put("b", batteryLevel);
-            state.put("am", masterRemote);
-            state.put("apkd", apkUpdatedDate.toString());
-            state.put("apkv", version);
-            state.put("ip", service.wifi.ipAddress);
-            state.put("g", isGTFO);
-            state.put("bm", blockMaster);
-            state.put("s", service.wifi.getConnectedSSID());
-            state.put("c", service.boardState.SSID);
-            state.put("p", service.boardState.password);
-            state.put("r",service.boardState.inCrisis);
-
-        } catch (Exception e) {
-            BLog.e(TAG, "Could not get state: " + e.getMessage());
-        }
-        return state;
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {
@@ -144,7 +124,7 @@ public class BoardState {
     public boolean setSSISAndPassword(JSONObject wifiSettings) {
 
         try {
-            FileWriter fw = new FileWriter(service.filesDir + "/" + WIFI_JSON);
+            FileWriter fw = new FileWriter(filesDir + "/" + WIFI_JSON);
             fw.write(wifiSettings.toString());
             fw.close();
             SSID = wifiSettings.getString("SSID");
@@ -164,7 +144,7 @@ public class BoardState {
         try {
             ArrayList<String> r = new ArrayList();
 
-            File f = new File(service.filesDir + "/" + WIFI_JSON);
+            File f = new File(filesDir + "/" + WIFI_JSON);
             InputStream is = null;
             try {
                 is = new FileInputStream(f);

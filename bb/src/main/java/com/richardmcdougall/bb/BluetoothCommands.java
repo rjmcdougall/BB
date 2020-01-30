@@ -114,7 +114,7 @@ public class BluetoothCommands {
                         else
                             response.put("btdevices", btdevs);
 
-                        JSONObject state = service.boardState.MinimizedState();
+                        JSONObject state = MinimizedState();
                         response.put("state", state);
                     } catch (Exception e) {
                         BLog.e(TAG, "error: " + e.getMessage());
@@ -320,7 +320,7 @@ public class BluetoothCommands {
                         else
                             response.put("btdevices", btdevs);
 
-                        JSONObject state = service.boardState.MinimizedState();
+                        JSONObject state = MinimizedState();
                         response.put("state", state);
                     } catch (Exception e) {
                         BLog.e(TAG, "error: " + e.getMessage());
@@ -349,12 +349,37 @@ public class BluetoothCommands {
                 });
     }
 
+
+    public JSONObject MinimizedState() {
+        JSONObject state = new JSONObject();
+        try {
+            state.put("acn", service.boardState.currentRadioChannel - 1);
+            state.put("vcn", service.boardState.currentVideoMode - 1);
+            state.put("v", service.musicPlayer.getAndroidVolumePercent());
+            state.put("b", service.boardState.batteryLevel);
+            state.put("am", service.boardState.masterRemote);
+            state.put("apkd", service.boardState.apkUpdatedDate.toString());
+            state.put("apkv", service.boardState.version);
+            state.put("ip", service.wifi.ipAddress);
+            state.put("g", service.boardState.isGTFO);
+            state.put("bm", service.boardState.blockMaster);
+            state.put("s", service.wifi.getConnectedSSID());
+            state.put("c", service.boardState.SSID);
+            state.put("p", service.boardState.password);
+            state.put("r",service.boardState.inCrisis);
+
+        } catch (Exception e) {
+            BLog.e(TAG, "Could not get state: " + e.getMessage());
+        }
+        return state;
+    }
+
     void sendStateResponse(String command, BluetoothDevice device) {
 
         JSONObject response = new JSONObject();
         try {
             response.put("command", command);
-            JSONObject state = service.boardState.MinimizedState();
+            JSONObject state = MinimizedState();
             response.put("state", state);
         } catch (Exception e) {
             BLog.e(TAG, "error: " + e.getMessage());

@@ -8,6 +8,7 @@ import android.os.SystemClock;
 import android.view.KeyEvent;
 
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class ButtonReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();

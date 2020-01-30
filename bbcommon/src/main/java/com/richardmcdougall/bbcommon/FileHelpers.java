@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bbcommon;
 
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -47,7 +47,13 @@ public class FileHelpers {
         }
     }
 
-    public static long DownloadURL(String URLString, String filename, String progressName, MediaManager.OnDownloadProgressType onProgressCallback, String filesDir) {
+    public interface OnDownloadProgressType {
+        void onProgress(String file, long fileSize, long bytesDownloaded);
+
+        void onVoiceCue(String err);
+    }
+
+    public static long DownloadURL(String URLString, String filename, String progressName, OnDownloadProgressType onProgressCallback, String filesDir) {
         try {
             URL url = new URL(URLString);
 

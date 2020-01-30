@@ -1,7 +1,7 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BoardState;
+import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 

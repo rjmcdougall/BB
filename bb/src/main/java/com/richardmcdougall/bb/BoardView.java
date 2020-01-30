@@ -10,6 +10,9 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.richardmcdougall.bbcommon.BoardState;
+import com.richardmcdougall.bbcommon.DebugConfigs;
+
 /**
  * Created by rmc on 3/5/17.
  */

@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
-import com.richardmcdougall.bb.BoardState;
+import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 

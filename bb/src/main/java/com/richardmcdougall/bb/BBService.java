@@ -16,7 +16,10 @@ import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
+import com.richardmcdougall.bbcommon.AllBoards;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
+import com.richardmcdougall.bbcommon.DebugConfigs;
 
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -93,7 +96,6 @@ public class BBService extends Service {
             BLog.i(TAG, "onCreate");
 
             context = getApplicationContext();
-            filesDir = context.getFilesDir().getAbsolutePath();
 
             BLog.i(TAG, "Current Clock: " + TimeSync.GetCurrentClock());
             BLog.i(TAG, "startElapsedTime: " + TimeSync.startElapsedTime);
@@ -102,13 +104,13 @@ public class BBService extends Service {
             BLog.i(TAG, "Build Model " + Build.MODEL);
             BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
-            allBoards = new AllBoards(this);
+            allBoards = new AllBoards(context, voice);
 
             while (allBoards.dataBoards == null) {
                 BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
                 Thread.sleep(2000);
             }
-            boardState = new BoardState(this);
+            boardState = new BoardState(this.context, this.allBoards);
 
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);

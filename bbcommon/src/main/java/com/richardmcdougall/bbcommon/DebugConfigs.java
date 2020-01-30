@@ -1,4 +1,6 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bbcommon;
+
+import com.richardmcdougall.bbcommon.BoardState;
 
 // the intent of this class is to centralize all of the config settings we have stashed
 // in order to enable our debugging.

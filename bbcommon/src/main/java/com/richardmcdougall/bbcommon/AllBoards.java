@@ -1,6 +1,10 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bbcommon;
+
+import android.content.Context;
+import android.speech.tts.TextToSpeech;
 
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,28 +24,56 @@ public class AllBoards {
     private static final String BOARDS_JSON_TEMP2_FILENAME = "boardsTemp";
     private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
 
-    private BBService service = null;
-    public MediaManager.OnDownloadProgressType onProgressCallback = null;
+    private Context context = null;
     public JSONArray dataBoards;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    private String filesDir = null;
+    private TextToSpeech voice = null;
 
-    public AllBoards(BBService service) {
-        this.service = service;
+    public AllBoards(Context context, TextToSpeech voice) {
+        this.context = context;
         LoadInitialBoardsDirectory();
+        filesDir = context.getFilesDir().getAbsolutePath();
+        this.voice = voice;
 
         // wait 5 seconds to hopefully get wifi before starting the download.
-        Runnable checkForBoards = () ->  StartDownloadManager();
+        Runnable checkForBoards = () -> StartDownloadManager();
+
         sch.schedule(checkForBoards, 8, TimeUnit.SECONDS);
 
+        this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
+            long lastTextTime = 0;
+
+            public void onProgress(String file, long fileSize, long bytesDownloaded) {
+                if (fileSize <= 0)
+                    return;
+
+                long curTime = System.currentTimeMillis();
+                if (curTime - lastTextTime > 30000) {
+                    lastTextTime = curTime;
+                    long percent = bytesDownloaded * 100 / fileSize;
+
+                    voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null,"downloading");
+                    lastTextTime = curTime;
+                    BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
+                }
+            }
+
+            public void onVoiceCue(String msg) {
+                voice.speak(msg, TextToSpeech.QUEUE_ADD, null,"Download Message");
+            }
+        };
     }
+
+    public FileHelpers.OnDownloadProgressType onProgressCallback = null;
 
     public void LoadInitialBoardsDirectory() {
         try {
-            File[] flist = new File(service.filesDir).listFiles();
+            File[] flist = new File(filesDir).listFiles();
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = FileHelpers.LoadTextFile(BOARDS_JSON_FILENAME, service.filesDir);
+                String origDir = FileHelpers.LoadTextFile(BOARDS_JSON_FILENAME, filesDir);
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataBoards = dir;
@@ -260,15 +292,15 @@ public class AllBoards {
             BLog.d(TAG, DIRECTORY_URL);
 
             long ddsz = -1;
-            ddsz = FileHelpers.DownloadURL(DIRECTORY_URL, BOARDS_JSON_TEMP2_FILENAME, "Boards JSON", onProgressCallback, service.filesDir);
+            ddsz = FileHelpers.DownloadURL(DIRECTORY_URL, BOARDS_JSON_TEMP2_FILENAME, "Boards JSON", onProgressCallback, this.filesDir);
 
             if (ddsz < 0) {
                 BLog.d(TAG, "Unable to Download Boards JSON.  Likely because of no internet.  Sleeping for 5 seconds. ");
                 returnValue = false;
             } else {
-                new File(service.filesDir, BOARDS_JSON_TEMP2_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_TMP_FILENAME));
+                new File(filesDir, BOARDS_JSON_TEMP2_FILENAME).renameTo(new File(filesDir, BOARDS_JSON_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile(BOARDS_JSON_TMP_FILENAME, service.filesDir);
+                String dirTxt = FileHelpers.LoadTextFile(BOARDS_JSON_TMP_FILENAME, filesDir);
                 JSONArray dir = new JSONArray(dirTxt);
 
                 BLog.d(TAG, "Downloaded Boards JSON: " + dirTxt);
@@ -285,7 +317,7 @@ public class AllBoards {
                 dataBoards = dir;
 
                 // now that you have the media, update the directory so the board can use it.
-                new File(service.filesDir, BOARDS_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, BOARDS_JSON_FILENAME));
+                new File(filesDir, BOARDS_JSON_TMP_FILENAME).renameTo(new File(filesDir, BOARDS_JSON_FILENAME));
 
                 if (dataBoards != null)
                     if (dir.toString().length() == dataBoards.toString().length()) {
@@ -326,13 +358,7 @@ public class AllBoards {
                 Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
             }
         } catch (Throwable th) {
-            if (onProgressCallback != null)
-                onProgressCallback.onVoiceCue(th.getMessage());
-            try {
-                Thread.sleep(10000);   // wait 10 second if unexpected error
-            } catch (Throwable er) {
-
-            }
+            BLog.e(TAG, th.getMessage());
         }
     }
 }

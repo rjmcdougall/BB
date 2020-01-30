@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Handler;
 
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class BluetoothReceiver extends BroadcastReceiver {
     private String TAG = this.getClass().getSimpleName();

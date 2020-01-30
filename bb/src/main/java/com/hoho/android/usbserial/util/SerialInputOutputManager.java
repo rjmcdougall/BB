@@ -26,7 +26,7 @@ import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BoardState;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

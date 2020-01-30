@@ -16,6 +16,7 @@ import com.richardmcdougall.bb.visualization.TestColors;
 import com.richardmcdougall.bb.video.Video;
 import com.richardmcdougall.bb.visualization.Visualization;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import org.json.JSONObject;
 

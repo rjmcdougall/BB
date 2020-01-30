@@ -3,6 +3,7 @@ package com.richardmcdougall.bb;
 import android.text.TextUtils;
 
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.FileHelpers;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -97,18 +98,12 @@ public class MediaManager {
         return video;
     }
 
-    interface OnDownloadProgressType {
-        void onProgress(String file, long fileSize, long bytesDownloaded);
-
-        void onVoiceCue(String err);
-    }
-
-    public OnDownloadProgressType onProgressCallback = null;
+    public FileHelpers.OnDownloadProgressType onProgressCallback = null;
 
     MediaManager(BBService service) {
         this.service = service;
 
-        this.onProgressCallback = new MediaManager.OnDownloadProgressType() {
+        this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
 
             public void onProgress(String file, long fileSize, long bytesDownloaded) {

@@ -24,6 +24,8 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.richardmcdougall.bbcommon.DebugConfigs;
+
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";
