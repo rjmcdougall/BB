@@ -229,6 +229,32 @@ public class AllBoards {
         }
     }
 
+    public int targetAPKVersion(String boardID) {
+
+        JSONObject board;
+        int targetAPKVersion = 0;
+
+        try {
+
+            if (dataBoards == null) {
+                BLog.d(TAG, "Could not find board type");
+            } else {
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
+                    if (board.getString("name").equals(boardID)) {
+                        targetAPKVersion = board.getInt("targetAPKVersion");
+                    }
+                }
+            }
+            BLog.d(TAG, "Target APK Version " + targetAPKVersion);
+            return targetAPKVersion;
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        } finally {
+            return targetAPKVersion;
+        }
+    }
+
     public BoardState.BoardType getBoardType(String boardID) {
 
         JSONObject board;

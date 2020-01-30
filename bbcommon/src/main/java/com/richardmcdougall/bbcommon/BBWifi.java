@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bbcommon;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,10 +27,11 @@ public class BBWifi {
     public boolean enableWifiReconnect = true;
     public String ipAddress = "";
     private int mWifiReconnectEveryNSeconds = 60;
-    private BBService service = null;
     private WifiManager mWiFiManager = null;
     private List<ScanResult> mScanResults;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    private Context context = null;
+    private BoardState boardState = null;
 
     private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
         @Override
@@ -42,11 +43,12 @@ public class BBWifi {
         }
     };
 
-    BBWifi(BBService service) {
+   public BBWifi(Context context, BoardState boardState) {
+        this.context = context;
+        this.boardState = boardState;
 
-        this.service = service;
-        mWiFiManager = (WifiManager) service.context.getSystemService(Context.WIFI_SERVICE);
-        service.context.registerReceiver(mWifiScanReceiver,
+        mWiFiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        context.registerReceiver(mWifiScanReceiver,
                 new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 
         if (checkWifiOnAndConnected(mWiFiManager) == false) {
@@ -76,7 +78,7 @@ public class BBWifi {
 
     private void setupWifi() {
 
-        service.context.registerReceiver(new BroadcastReceiver() {
+        context.registerReceiver(new BroadcastReceiver() {
                                              @Override
                                              public void onReceive(Context context, Intent intent) {
                                                  int extraWifiState =
@@ -95,13 +97,13 @@ public class BBWifi {
                                                          int mfs = mWiFiManager.getWifiState();
                                                          BLog.d(TAG, "Wifi state is " + mfs);
                                                          BLog.d(TAG, "Checking wifi");
-                                                         if (checkWifiSSid(service.boardState.SSID) == false) {
-                                                             BLog.d(TAG, "adding wifi: " + service.boardState.SSID);
-                                                             addWifi(service.boardState.SSID, service.boardState.password);
+                                                         if (checkWifiSSid(boardState.SSID) == false) {
+                                                             BLog.d(TAG, "adding wifi: " + boardState.SSID);
+                                                             addWifi(boardState.SSID, boardState.password);
                                                          }
                                                          BLog.d(TAG, "Connecting to wifi");
                                                          if (!checkWifiOnAndConnected(mWiFiManager))
-                                                             connectWifi(service.boardState.SSID);
+                                                             connectWifi(boardState.SSID);
                                                          break;
                                                      case WifiManager.WIFI_STATE_ENABLING:
                                                          BLog.d(TAG, "WIFI STATE ENABLING");
@@ -126,8 +128,8 @@ public class BBWifi {
                 return false; // Not connected to an access point
             }
 
-            BLog.d(TAG, "Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(service.boardState.SSID));
-            if (!wifiInfo.getSSID().equals(fixWifiSSidAndPass(service.boardState.SSID))) {
+            BLog.d(TAG, "Wifi SSIDs" + wifiInfo.getSSID() + " " + fixWifiSSidAndPass(boardState.SSID));
+            if (!wifiInfo.getSSID().equals(fixWifiSSidAndPass(boardState.SSID))) {
                 ipAddress = null;
                 return false; // configured for wrong access point.
             }
@@ -255,7 +257,7 @@ public class BBWifi {
     }
 
     Runnable wifiSupervisor = () -> {
-        if (service.wifi.enableWifiReconnect) {
+        if (enableWifiReconnect) {
             BLog.d(TAG, "Check Wifi");
             checkWifiReconnect();
         }

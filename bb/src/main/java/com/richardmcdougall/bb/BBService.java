@@ -17,6 +17,7 @@ import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
 import com.richardmcdougall.bbcommon.AllBoards;
+import com.richardmcdougall.bbcommon.BBWifi;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
@@ -112,6 +113,8 @@ public class BBService extends Service {
             }
             boardState = new BoardState(this.context, this.allBoards);
 
+            wifi = new BBWifi(context,boardState);
+
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);
 
@@ -172,7 +175,6 @@ public class BBService extends Service {
             sch.schedule(seekAndPlay, 3, TimeUnit.SECONDS);
 
             iotClient = new IoTClient(this);
-            wifi = new BBWifi(this);
             mediaManager = new MediaManager(this);
 
             remoteCrisisController = new RemoteCrisisController(this);

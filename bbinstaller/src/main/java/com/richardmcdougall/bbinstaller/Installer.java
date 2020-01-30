@@ -19,6 +19,11 @@ import android.os.PowerManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
+import com.richardmcdougall.bbcommon.AllBoards;
+import com.richardmcdougall.bbcommon.BBWifi;
+import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -35,7 +40,6 @@ import java.util.Locale;
 public class Installer extends Service {
 
     public BBDownloadManager dlManager;
-    IoTClient iotClient = null;
     int mVersion = 0;
     TextToSpeech voice;
     private Context mContext;
@@ -139,6 +143,11 @@ public class Installer extends Service {
         return;
     }
 
+    private Context context = null;
+    private AllBoards allBoards = null;
+    private BoardState boardState = null;
+    private BBWifi wifi = null;
+
     @Override
     public void onCreate() {
 
@@ -146,97 +155,41 @@ public class Installer extends Service {
 
         l("Starting BB Installer");
 
-        mContext = getApplicationContext();
+        BLog.i(TAG, "onCreate");
 
-        mWiFiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        mWiFiManager.setWifiEnabled(true);
+        context = getApplicationContext();
 
-        this.registerReceiver(new BroadcastReceiver() {
-                                  @Override
-                                  public void onReceive(Context context, Intent intent) {
-                                      int extraWifiState =
-                                              intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE ,
-                                                      WifiManager.WIFI_STATE_UNKNOWN);
+        BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
+        BLog.i(TAG, "Build Model " + Build.MODEL);
+        BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
-                                      switch(extraWifiState){
-                                          case WifiManager.WIFI_STATE_DISABLED:
-                                              l("WIFI STATE DISABLED");
-                                              break;
-                                          case WifiManager.WIFI_STATE_DISABLING:
-                                              l("WIFI STATE DISABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLED:
-                                              l("WIFI STATE ENABLED");
-                                              int mfs = mWiFiManager.getWifiState();
-                                              l("Wifi state is " + mfs);
-                                              l("Checking wifi");
-                                              if (checkWifiSSid(new String("burnerboard")) == false) {
-                                                  l("adding wifi");
-                                                  addWifi("burnerboard", "firetruck");
-                                              }
-                                              l("Connecting to wifi");
-                                              connectWifi("burnerboard");
-                                              break;
-                                          case WifiManager.WIFI_STATE_ENABLING:
-                                              l("WIFI STATE ENABLING");
-                                              break;
-                                          case WifiManager.WIFI_STATE_UNKNOWN:
-                                              l("WIFI STATE UNKNOWN");
-                                              break;
-                                      }
-                                  }
-                              },
-                new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+        allBoards = new AllBoards(context, voice);
 
-        intentf.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-        mContext.registerReceiver(new MQTTBroadcastReceiver(),
-                new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-        mConnMan = (ConnectivityManager) mContext.getSystemService(mContext.CONNECTIVITY_SERVICE);
+        try{
+            while (allBoards.dataBoards == null) {
+                BLog.i(TAG, "Boards file is required to be downloaded before proceeding.  Please hold.");
+                Thread.sleep(2000);
+            }
+        }
+        catch (Exception e){
+            BLog.e(TAG, e.getMessage());
+        }
+
+        boardState = new BoardState(this.context, this.allBoards);
+
+        BLog.i(TAG, "State Version " + boardState.version);
+        BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);
+        BLog.i(TAG, "State Address " + boardState.address);
+        BLog.i(TAG, "State SSID " + boardState.SSID);
+        BLog.i(TAG, "State Password " + boardState.password);
+        BLog.i(TAG, "State Mode " + boardState.currentVideoMode);
+        BLog.i(TAG, "State BOARD_ID " + boardState.BOARD_ID);
+        BLog.i(TAG, "State Tyoe " + boardState.boardType);
+        BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
+
+        wifi = new BBWifi(context,boardState);
 
         getPackageVersions();
-
-        if (iotClient == null) {
-            iotClient = new IoTClient(mContext, new IoTClient.IoTAction() {
-                @Override
-                public void onAction(String action) {
-                    JSONObject theActions;
-
-                    if (action == null) {
-                        return;
-                    }
-                    try {
-                        theActions = new JSONObject(action);
-
-                        if (!theActions.has("commands")) {
-                            l("No commands in action");
-                            return;
-                        }
-                        JSONArray cmds = theActions.getJSONArray("commands");
-
-                        for (int cmdNo = 0; cmdNo < cmds.length(); cmdNo++) {
-                            JSONObject commandObj = cmds.getJSONObject(cmdNo);
-                            String command = commandObj.getString("command");
-                            if (command.contentEquals("upgrade")) {
-                                if (!commandObj.has("version")) {
-                                    l("No upgrade version");
-                                }
-                                mUpgradeToVersion = commandObj.getInt("version");
-                                l("you will be upgraded to " + mUpgradeToVersion + ", do not resist!!!!");
-                                if (commandObj.has("reboot")) {
-                                    mDoReboot = commandObj.getBoolean("reboot");
-                                    l("Reboot: " + mDoReboot);
-                                }
-                            }
-                        }
-
-                    } catch (Exception e) {
-                        l("Cannot parse actions:" + e.getMessage());
-                        return;
-                    }
-
-                }
-            });
-        }
 
         dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(), mVersion);
         dlManager.onProgressCallback = new BBDownloadManager.OnDownloadProgressType() {
@@ -286,114 +239,45 @@ public class Installer extends Service {
                 }
             }
         });
-
     }
 
-    protected String wifiIpAddress(WifiManager wifiManager) {
-
-        int ipAddress = wifiManager.getConnectionInfo().getIpAddress();
-
-        // Convert little-endian to big-endianif needed
-        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
-            ipAddress = Integer.reverseBytes(ipAddress);
-        }
-
-        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
-
-        String ipAddressString;
-        try {
-            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
-        } catch (UnknownHostException ex) {
-            l("Unable to get host address.");
-            ipAddressString = null;
-        }
-
-        return ipAddressString;
-    }
 
     public void installerThread() {
 
-        String wifiAddress = "";
-
         while (true) {
             try {
-                // Check WIFI
-                android.net.wifi.SupplicantState s = mWiFiManager.getConnectionInfo().getSupplicantState();
-                NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(s);
-                if (state != NetworkInfo.DetailedState.CONNECTED) {
-                    if (!mWiFiManager.isWifiEnabled()) {
-                        mWiFiManager.setWifiEnabled(true);
-                    }
-                    mWiFiManager.reassociate();
-                } else {
-
-                }
-                String ip = wifiIpAddress(mWiFiManager);
-                try {
-                    Intent intent = new Intent("com.android.server.NetworkTimeUpdateService.action.POLL", null);
-                    mContext.sendBroadcast(intent);
-                } catch (Exception e) {
-                    Log.d(TAG, "Cannot send force-time-sync");
-                }
 
                 int currentBBVersion = getBBversion();
-                try {
-                    JSONObject obj = new JSONObject();
-                    obj.put("ip", ip);
-                    obj.put("version", currentBBVersion);
-                    obj.put("upgradeTo", mUpgradeToVersion);
-                    l("state:" +  obj.toString());
-                    iotClient.sendUpdate(obj.toString());
-                } catch (Exception e) {
-                }
 
+                if(boardState.targetAPKVersion > 0 && boardState.targetAPKVersion != currentBBVersion) {
+                    String apkFile = null;
+                    int thisBFileId = 0;
+                    try {
+                        thisBFileId = dlManager.GetAPKByVersion("bb", boardState.targetAPKVersion);
+                        apkFile = dlManager.GetAPKFile(thisBFileId);
+                    } catch (Exception e) {
+                        l("Version not yet downloaded");
+                    }
 
-                if (mUpgradeToVersion == -1) {
-                    int latestBBFileId = dlManager.GetAPKByVersion("bb", 0);
-                    int availableBBVersion = dlManager.GetAPKVersion(latestBBFileId);
-                    l("Latest Downloaded APK is version " + availableBBVersion + ", installed is " + currentBBVersion);
-                    if (availableBBVersion > currentBBVersion) {
-                        String apkFile = dlManager.GetAPKFile(latestBBFileId);
+                    if (apkFile != null) {
                         if (installApk(apkFile)) {
-                            l("Installed BB version " + currentBBVersion);
+                            l("Installed BB version " + mUpgradeToVersion);
+                            voice.speak("Installed Software version " + mUpgradeToVersion, TextToSpeech.QUEUE_ADD, null, "swvers");
+                            Thread.sleep(5000);
                             // Should we reboot?
-                        } else {
-                            l("Failed installing BB version " + currentBBVersion);
-                        }
-                    }
-                } else if (mUpgradeToVersion > 0){
-                    if (mUpgradeToVersion > currentBBVersion) {
-                        l("IoT says upgrade to version " + mUpgradeToVersion);
-                        String apkFile = null;
-                        int thisBFileId = 0;
-                        try {
-                            thisBFileId = dlManager.GetAPKByVersion("bb", mUpgradeToVersion);
-                            apkFile = dlManager.GetAPKFile(thisBFileId);
-                        } catch (Exception e) {
-                            l("Version not yet downloaded");
-                        }
-                        if (apkFile != null) {
-                            if (installApk(apkFile)) {
-                                l("Installed BB version " + mUpgradeToVersion);
-                                voice.speak("Installed Software version " + mUpgradeToVersion, TextToSpeech.QUEUE_ADD, null, "swvers");
-                                Thread.sleep(5000);
-                                // Should we reboot?
-                                if (mDoReboot) {
-                                    voice.speak("Re booting", TextToSpeech.QUEUE_ADD, null, "swvers");
-                                    Thread.sleep(3000);
-                                    doReboot("Upgrade");
-                                }
-                            } else {
-                                l("Failed installing BB version " + mUpgradeToVersion);
-                                voice.speak("Failed upgrade of software version " + mUpgradeToVersion, TextToSpeech.QUEUE_ADD, null, "swversfail");
-
+                            if (mDoReboot) {
+                                voice.speak("Re booting", TextToSpeech.QUEUE_ADD, null, "swvers");
+                                Thread.sleep(3000);
+                                doReboot("Upgrade");
                             }
+                        } else {
+                            l("Failed installing BB version " + mUpgradeToVersion);
+                            voice.speak("Failed upgrade of software version " + mUpgradeToVersion, TextToSpeech.QUEUE_ADD, null, "swversfail");
+
                         }
-
                     }
-                }
 
-                dlManager.StartDownloads();
+                }
 
             } catch (Exception e) {
                 l("Unknown exception: " + e.getMessage());
@@ -406,20 +290,10 @@ public class Installer extends Service {
         }
     }
 
-    /**
-     * Reboot the device.  Will not return if the reboot is successful.
-     * <p>
-     * Requires the {@link android.Manifest.permission#REBOOT} permission.
-     * </p>
-     *
-     * @param reason code to pass to the kernel (e.g., "recovery") to
-     *               request special boot modes, or null.
-     */
     public void doReboot(String reason) {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         pm.reboot(reason);
     }
-
 
     public boolean installApk(String path)
     {
@@ -445,21 +319,6 @@ public class Installer extends Service {
             execute_as_root(commands);
         }
 
-        /*
-        if (true || Shell.SU.available()) {
-            //if(Shell.SU.run("pm install -r " + path) == null) {
-            List<String> output = Shell.SH.run("su");
-            if(output == null) {
-                    return false;
-            } else {
-                Log.i(TAG, output.toString());
-                return true;
-            }
-        } else {
-            Log.i(TAG, "sudo not available for " + path);
-            return false;
-        }
-        */
         return true;
 
     }
@@ -525,48 +384,6 @@ public class Installer extends Service {
 
         }
     }
-
-    // Notify on connectivity
-    class MQTTBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            boolean hasConnectivity = false;
-            boolean hasChanged = false;
-            NetworkInfo infos[] = mConnMan.getAllNetworkInfo();
-            l("Connectivity changed");
-
-            for (int i = 0; i < infos.length; i++) {
-                if (infos[i].getTypeName().equalsIgnoreCase("MOBILE")) {
-                    if ((infos[i].isConnected() != hasMmobile)) {
-                        hasChanged = true;
-                        hasMmobile = infos[i].isConnected();
-                    }
-                    l(infos[i].getTypeName() + " is " + infos[i].isConnected());
-                } else if (infos[i].getTypeName().equalsIgnoreCase("WIFI")) {
-                    if ((infos[i].isConnected() != hasWifi)) {
-                        hasChanged = true;
-                        hasWifi = infos[i].isConnected();
-                    }
-                    l(infos[i].getTypeName() + " is " + infos[i].isConnected());
-                }
-            }
-
-            hasConnectivity = hasMmobile || hasWifi;
-            l("hasConn: " + hasConnectivity + " hasChange: " + hasChanged);
-            if (hasConnectivity && hasChanged) {
-                //voice.speak("Network Connected", TextToSpeech.QUEUE_ADD, null, "swversfail");
-
-            } else if (!hasConnectivity) {
-                l("doDisconnect()");
-                //voice.speak("Network Disconnected", TextToSpeech.QUEUE_ADD, null, "swversfail");
-            }
-        }
-    }
-
-    public void WifiStateChangedReceiver() {
-
-    }
-
 }
 
 

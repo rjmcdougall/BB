@@ -55,6 +55,7 @@ public class BoardState {
     private Context context = null;
     private String filesDir = "";
     private AllBoards allBoards = null;
+    public int targetAPKVersion = 0;
 
     public BoardState(Context context, AllBoards allBoards) {
         this.context = context;
@@ -95,6 +96,7 @@ public class BoardState {
         address = this.allBoards.getBoardAddress(BOARD_ID);
         displayTeensy = this.allBoards.getDisplayTeensy(BOARD_ID);
         boardType = this.allBoards.getBoardType(BOARD_ID);
+        targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
 
         // look for an SSID and password in file system. If it is not there default to firetruck.
         getSSIDAndPassword();
