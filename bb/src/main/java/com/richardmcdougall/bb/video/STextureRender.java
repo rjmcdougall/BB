@@ -5,7 +5,7 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
-import com.richardmcdougall.bb.BLog;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

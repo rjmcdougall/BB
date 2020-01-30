@@ -9,6 +9,8 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import org.json.JSONArray;
 
 import java.math.BigInteger;

@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bbcommon;
 
 import android.util.Log;
 

@@ -20,6 +20,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;

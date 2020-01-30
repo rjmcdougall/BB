@@ -16,6 +16,7 @@ import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.util.Locale;
 import java.util.concurrent.Executors;

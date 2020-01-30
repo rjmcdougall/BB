@@ -4,6 +4,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

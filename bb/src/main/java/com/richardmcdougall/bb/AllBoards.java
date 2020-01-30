@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

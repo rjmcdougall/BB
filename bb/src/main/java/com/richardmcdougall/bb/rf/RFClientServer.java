@@ -9,8 +9,8 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BLog;
 import com.richardmcdougall.bb.TimeSync;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

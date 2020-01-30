@@ -1,2 +1,2 @@
-include ':bb'
+include ':bb', ':bbcommon'
 include ':bbinstaller'

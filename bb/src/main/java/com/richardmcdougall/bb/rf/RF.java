@@ -13,7 +13,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BLog;
+import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bb.Gps;
 

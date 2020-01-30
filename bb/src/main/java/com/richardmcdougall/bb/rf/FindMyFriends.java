@@ -1,9 +1,7 @@
 package com.richardmcdougall.bb.rf;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BLog;
-import com.richardmcdougall.bb.rf.RF;
-import com.richardmcdougall.bb.rf.RFUtil;
+import com.richardmcdougall.bbcommon.BLog;
 
 import net.sf.marineapi.nmea.util.Position;
 import net.sf.marineapi.nmea.util.Time;

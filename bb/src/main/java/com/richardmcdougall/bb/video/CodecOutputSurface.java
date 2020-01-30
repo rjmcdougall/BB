@@ -8,9 +8,7 @@ import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
 import android.view.Surface;
 
-import com.richardmcdougall.bb.BLog;
-import com.richardmcdougall.bb.video.SimpleImage;
-import com.richardmcdougall.bb.video.VideoDecoder;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

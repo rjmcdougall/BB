@@ -2,10 +2,10 @@ package com.richardmcdougall.bb;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.speech.tts.TextToSpeech;
 
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
 import com.richardmcdougall.bb.rf.RFUtil;
+import com.richardmcdougall.bbcommon.BLog;
 
 public class MasterController implements Runnable {
 

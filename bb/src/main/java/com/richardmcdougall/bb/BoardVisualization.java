@@ -15,6 +15,7 @@ import com.richardmcdougall.bb.visualization.SyncLights;
 import com.richardmcdougall.bb.visualization.TestColors;
 import com.richardmcdougall.bb.video.Video;
 import com.richardmcdougall.bb.visualization.Visualization;
+import com.richardmcdougall.bbcommon.BLog;
 
 import org.json.JSONObject;
 

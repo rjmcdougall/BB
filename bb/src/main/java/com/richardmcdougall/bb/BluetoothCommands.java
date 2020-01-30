@@ -2,6 +2,8 @@ package com.richardmcdougall.bb;
 
 import android.bluetooth.BluetoothDevice;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 

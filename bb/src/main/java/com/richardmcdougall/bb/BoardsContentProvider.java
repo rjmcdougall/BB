@@ -8,6 +8,8 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import java.util.ArrayList;
 
 import static java.lang.Integer.parseInt;

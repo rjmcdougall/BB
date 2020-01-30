@@ -3,6 +3,8 @@ package com.richardmcdougall.bb;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.richardmcdougall.bbcommon.BLog;
+
 import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.event.SentenceListener;
 import net.sf.marineapi.nmea.io.ExceptionListener;
