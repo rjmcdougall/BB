@@ -32,8 +32,9 @@ public class AllBoards {
 
     public AllBoards(Context context, TextToSpeech voice) {
         this.context = context;
-        LoadInitialBoardsDirectory();
+
         filesDir = context.getFilesDir().getAbsolutePath();
+        LoadInitialBoardsDirectory();
         this.voice = voice;
 
         // wait 5 seconds to hopefully get wifi before starting the download.
@@ -247,7 +248,7 @@ public class AllBoards {
                 }
             }
             BLog.d(TAG, "Target APK Version " + targetAPKVersion);
-            return targetAPKVersion;
+
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         } finally {

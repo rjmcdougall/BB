@@ -157,6 +157,18 @@ public class Installer extends Service {
 
         BLog.i(TAG, "onCreate");
 
+
+        voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                // check for successful instantiation
+                if (status == TextToSpeech.SUCCESS) {
+                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
+                        voice.setLanguage(Locale.US);
+                }
+            }
+        });
+
         context = getApplicationContext();
 
         BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
@@ -229,16 +241,6 @@ public class Installer extends Service {
 
         installerThread.start();
 
-        voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                // check for successful instantiation
-                if (status == TextToSpeech.SUCCESS) {
-                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
-                        voice.setLanguage(Locale.US);
-                }
-            }
-        });
     }
 
 
