@@ -33,8 +33,6 @@ public class Installer extends Service {
     TextToSpeech voice;
     List<ApplicationInfo> packages = null;
     private String TAG = this.getClass().getSimpleName();
-    int mUpgradeToVersion = 0;
-    boolean mDoReboot = false;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     private Context context = null;
     private AllBoards allBoards = null;
@@ -156,19 +154,17 @@ public class Installer extends Service {
 
                 if (apkFile != null) {
                     if (installApk(apkFile)) {
-                        BLog.d(TAG,"Installed BB version " + mUpgradeToVersion);
-                        voice.speak("Installed Software version " + mUpgradeToVersion, TextToSpeech.QUEUE_ADD, null, "swvers");
+                        BLog.d(TAG,"Installed BB version " + boardState.targetAPKVersion);
+                        voice.speak("Installed Software version " + boardState.targetAPKVersion, TextToSpeech.QUEUE_ADD, null, "swvers");
                         Thread.sleep(5000);
-                        // Should we reboot?
-                        if (mDoReboot) {
-                            voice.speak("Re booting", TextToSpeech.QUEUE_ADD, null, "swvers");
-                            Thread.sleep(3000);
-                            doReboot("Upgrade");
-                        }
-                    } else {
-                        BLog.e(TAG,"Failed installing BB version " + mUpgradeToVersion);
-                        voice.speak("Failed upgrade of software version " + mUpgradeToVersion, TextToSpeech.QUEUE_ADD, null, "swversfail");
 
+                        voice.speak("Re booting", TextToSpeech.QUEUE_ADD, null, "swvers");
+                        Thread.sleep(3000);
+                        doReboot("Upgrade");
+
+                    } else {
+                        BLog.e(TAG,"Failed installing BB version " + boardState.targetAPKVersion);
+                        voice.speak("Failed upgrade of software version " + boardState.targetAPKVersion, TextToSpeech.QUEUE_ADD, null, "swversfail");
                     }
                 }
             }
@@ -191,7 +187,7 @@ public class Installer extends Service {
 
         if (Build.MODEL.contains("NanoPC-T4")) {
             final String[] commands = {
-                    "pm install -i com.richardmcdougall.bb --user 0 " + path
+                    "pm install -i com.richardmcdougall.bbinstaller --user 0 " + path
             };
             return execute_as_root(commands);
         } else {
