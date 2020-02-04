@@ -38,7 +38,7 @@ public class BBDownloadManager {
 
         // the first download thread should check every 10 seconds. likely wifi issues.
         Runnable checkForAPKs1 = () -> downloadThread1();
-        sch.scheduleWithFixedDelay(checkForAPKs1, 10, 5, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(checkForAPKs1, 20, 10, TimeUnit.SECONDS);
 
         // the second download thread should check every 5 minutes.
         Runnable checkForAPKs2 = () -> downloadThread2();
