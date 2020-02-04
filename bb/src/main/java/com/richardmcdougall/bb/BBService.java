@@ -63,7 +63,6 @@ public class BBService extends Service {
     private static ButtonReceiver buttonReceiver = null;
     private static BluetoothReceiver btReceive = null;
     public BoardState boardState = null;
-    public String filesDir = "";
     public MasterController masterController = null;
     public Thread masterControllerThread = null;
     public GTFOController gtfoController = null;
@@ -73,6 +72,7 @@ public class BBService extends Service {
     public RFMasterClientServer rfMasterClientServer = null;
     public RemoteCrisisController remoteCrisisController = null;
     public LocalCrisisController localCrisisController = null;
+    private boolean textToSpeechReady = false;
 
     public BBService() {
     }
@@ -113,6 +113,21 @@ public class BBService extends Service {
             }
             boardState = new BoardState(this.context, this.allBoards);
 
+            voice = new TextToSpeech(context, (int status) -> {
+                // check for successful instantiation
+                if (status == TextToSpeech.SUCCESS) {
+                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
+                        voice.setLanguage(Locale.US);
+                    BLog.i(TAG, "Text To Speech ready...");
+                    voice.setPitch((float) 0.8);
+                    voice.setSpeechRate((float) 0.9);
+                    textToSpeechReady = true;
+                    voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
+                } else if (status == TextToSpeech.ERROR) {
+                    BLog.i(TAG, "Sorry! Text To Speech failed...");
+                }
+            });
+
             wifi = new BBWifi(context,boardState);
 
             boardLocations = new BoardLocations(this);
@@ -148,20 +163,6 @@ public class BBService extends Service {
             mHandlerThread = new HandlerThread("BBServiceHandlerThread");
             mHandlerThread.start();
             mHandler = new Handler(mHandlerThread.getLooper());
-
-            voice = new TextToSpeech(getApplicationContext(), (int status) -> {
-                // check for successful instantiation
-                if (status == TextToSpeech.SUCCESS) {
-                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
-                        voice.setLanguage(Locale.US);
-                    BLog.i(TAG, "Text To Speech ready...");
-                    voice.setPitch((float) 0.8);
-                    voice.setSpeechRate((float) 0.9);
-                    voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
-                } else if (status == TextToSpeech.ERROR) {
-                    BLog.i(TAG, "Sorry! Text To Speech failed...");
-                }
-            });
 
             ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
             Runnable seekAndPlay = () -> {
@@ -233,7 +234,7 @@ public class BBService extends Service {
     }
 
     public void speak(String txt, String id){
-        if(voice != null) {
+        if(voice != null && textToSpeechReady) {
             voice.speak(txt, TextToSpeech.QUEUE_ADD, null, id);
         }
         else {
