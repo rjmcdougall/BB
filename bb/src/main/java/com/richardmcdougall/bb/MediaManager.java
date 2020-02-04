@@ -29,6 +29,8 @@ public class MediaManager {
     private BBService service;
     public JSONObject dataDirectory;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    private String filesDir = "";
+
 
     private JSONArray audio() {
         JSONArray audio = null;
@@ -103,6 +105,8 @@ public class MediaManager {
     MediaManager(BBService service) {
         this.service = service;
 
+        filesDir = service.context.getFilesDir().getAbsolutePath();
+
         this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
 
@@ -132,7 +136,7 @@ public class MediaManager {
         Runnable checkForMedia = () ->  StartDownloadManager();
         sch.schedule(checkForMedia, 8, TimeUnit.SECONDS);
 
-        BLog.d(TAG, "Downloading files to: " + service.filesDir);
+        BLog.d(TAG, "Downloading files to: " + filesDir);
     }
 
     public static long hashTrackName(String name) {
@@ -164,7 +168,7 @@ public class MediaManager {
                 }
             }
 
-            File[] flist = new File(service.filesDir).listFiles();
+            File[] flist = new File(filesDir).listFiles();
             for (int i = 0; i < flist.length; i++) {
                 String fname = flist[i].getName();
 
@@ -181,11 +185,11 @@ public class MediaManager {
 
     public void LoadInitialDataDirectory() {
         try {
-            File[] flist = new File(service.filesDir).listFiles();
+            File[] flist = new File(filesDir).listFiles();
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, service.filesDir);
+                String origDir = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, filesDir);
                 if (origDir != null) {
                     JSONObject dir = new JSONObject(origDir);
                     dataDirectory = dir;
@@ -219,7 +223,7 @@ public class MediaManager {
 
             String localName = elm.getString("localName");
             boolean upToDate = false;
-            File dstFile = new File(service.filesDir, localName);
+            File dstFile = new File(filesDir, localName);
 
             if (elm.has("Size")) {
                 long sz = elm.getLong("Size");
@@ -240,12 +244,12 @@ public class MediaManager {
         try {
             String localName = elm.getString("localName");
             String url = encodeURL(elm.getString("URL"));
-            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback, service.filesDir);   // download to a "tmp" file
-            File dstFile2 = new File(service.filesDir, localName);   // move to localname so that we can install it
+            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback, filesDir);   // download to a "tmp" file
+            File dstFile2 = new File(filesDir, localName);   // move to localname so that we can install it
 
             if (dstFile2.exists())
                 dstFile2.delete();
-            new File(service.filesDir, "tmp").renameTo(dstFile2);
+            new File(filesDir, "tmp").renameTo(dstFile2);
             return true;
 
         } catch (JSONException jse) {
@@ -266,16 +270,16 @@ public class MediaManager {
             DirectoryURL = encodeURL(DirectoryURL) + DOWNLOAD_DIRECTORY_URL_PATH + service.boardState.version;
             boolean returnValue = true;
 
-            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, service.filesDir);
+            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, filesDir);
             if (ddsz < 0) {
                 BLog.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue = false;
             } else {
                 BLog.d(TAG, "Reading Directory from " + DirectoryURL);
 
-                new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME));
+                new File(filesDir, "tmp").renameTo(new File(filesDir, DIRECTORY_JSON_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_TMP_FILENAME, service.filesDir);
+                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_TMP_FILENAME, filesDir);
                 JSONObject dir = new JSONObject(dirTxt);
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
@@ -329,7 +333,7 @@ public class MediaManager {
 
                     // Replace the directory object.
                     dataDirectory = dir;
-                    new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, DIRECTORY_JSON_FILENAME));
+                    new File(filesDir, DIRECTORY_JSON_TMP_FILENAME).renameTo(new File(filesDir, DIRECTORY_JSON_FILENAME));
 
                 }
             }
@@ -380,7 +384,7 @@ public class MediaManager {
 
     String GetAudioFile() {
         try {
-            String fn = service.filesDir + "/" + GetAudio().getString("localName");
+            String fn = filesDir + "/" + GetAudio().getString("localName");
             return fn;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
@@ -426,7 +430,7 @@ public class MediaManager {
 
     public String GetVideoFile(int index) {
         try {
-            String fn = service.filesDir + "/" + GetVideo().getString("localName");
+            String fn = filesDir + "/" + GetVideo().getString("localName");
             return fn;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
