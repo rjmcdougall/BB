@@ -61,7 +61,7 @@ public class AllBoards {
             }
 
             public void onVoiceCue(String msg) {
-                voice.speak(msg, TextToSpeech.QUEUE_ADD, null,"Download Message");
+                //voice.speak(msg, TextToSpeech.QUEUE_ADD, null,"Download Message");
             }
         };
     }
