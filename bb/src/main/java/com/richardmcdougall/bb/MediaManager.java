@@ -27,7 +27,7 @@ public class MediaManager {
     private static final String DOWNLOAD_DIRECTORY_URL_PATH = "/DownloadDirectoryJSON?APKVersion=";
 
     private BBService service;
-    private JSONObject dataDirectory;
+    public JSONObject dataDirectory;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     private JSONArray audio() {

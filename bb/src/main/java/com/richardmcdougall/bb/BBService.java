@@ -177,6 +177,11 @@ public class BBService extends Service {
             iotClient = new IoTClient(this);
             mediaManager = new MediaManager(this);
 
+            while (mediaManager.dataDirectory == null) {
+                BLog.i(TAG, "Media file is required to be downloaded before proceeding.  Please hold.");
+                Thread.sleep(2000);
+            }
+
             remoteCrisisController = new RemoteCrisisController(this);
             localCrisisController = new LocalCrisisController(this);
 
