@@ -131,7 +131,7 @@ public class Installer extends Service {
 
         Runnable checkForInstall = () -> installerThread();
 
-        sch.scheduleWithFixedDelay(checkForInstall, 5, 60, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(checkForInstall, 20, 60, TimeUnit.SECONDS);
 
     }
 
