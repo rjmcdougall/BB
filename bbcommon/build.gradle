@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode 5024
+        versionName "5024"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -23,6 +23,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable false
         }
     }
 
