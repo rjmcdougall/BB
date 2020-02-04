@@ -20,6 +20,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class BoardState {
     private String TAG = this.getClass().getSimpleName();
@@ -57,6 +60,8 @@ public class BoardState {
     private AllBoards allBoards = null;
     public int targetAPKVersion = 0;
 
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
     public BoardState(Context context, AllBoards allBoards) {
         this.context = context;
         filesDir = context.getFilesDir().getAbsolutePath();
@@ -93,10 +98,7 @@ public class BoardState {
                 BOARD_ID = DEVICE_ID;
         }
 
-        address = this.allBoards.getBoardAddress(BOARD_ID);
-        displayTeensy = this.allBoards.getDisplayTeensy(BOARD_ID);
-        boardType = this.allBoards.getBoardType(BOARD_ID);
-        targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
+        UpdateFromAllBoards();
 
         // look for an SSID and password in file system. If it is not there default to firetruck.
         getSSIDAndPassword();
@@ -105,6 +107,17 @@ public class BoardState {
             getSSIDAndPassword();
         }
 
+        // check every minute to see if AllBoards updates happened.
+        Runnable checkForUpdates = () -> UpdateFromAllBoards();
+        sch.scheduleWithFixedDelay(checkForUpdates, 10, 60, TimeUnit.SECONDS);
+
+    }
+
+    private void UpdateFromAllBoards(){
+        address = this.allBoards.getBoardAddress(BOARD_ID);
+        displayTeensy = this.allBoards.getDisplayTeensy(BOARD_ID);
+        boardType = this.allBoards.getBoardType(BOARD_ID);
+        targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {
