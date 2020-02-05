@@ -156,7 +156,7 @@ public class AllBoards {
                     board = dataBoards.getJSONObject(i);
                     if (board.getString("name").equals(boardId)) {
                         if (board.has("displayTeensy"))
-                            displayTeensy = BoardState.TeensyType.valueOf("displayTeensy");
+                            displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
                     }
                 }
             }
