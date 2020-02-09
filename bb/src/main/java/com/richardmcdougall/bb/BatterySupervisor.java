@@ -74,24 +74,24 @@ public class BatterySupervisor {
         } else if ((voltage > 20000) && (currentInstant < -150)) {
             // Any state -> Displaying
             powerState = powerStates.STATE_DISPLAYING;
-            service.boardVisualization.inhibitVisual = true;
+            service.boardVisualization.inhibitVisual = false;
         } else if (powerState == powerStates.STATE_DISPLAYING &&
                 // DISPLAYING -> Charging (avg current)
                 (voltage > 20000) && (current > 10)) {
             powerState = powerStates.STATE_CHARGING;
-            service.boardVisualization.inhibitVisual = true;
+            service.boardVisualization.inhibitVisual = false;
         } else if (powerState == powerStates.STATE_IDLE &&
                 (voltage > 20000) && (currentInstant > 10)) {
             // STATE_IDLE -> Charging // instant
             powerState = powerStates.STATE_CHARGING;
-            service.boardVisualization.inhibitVisual = true;
+            service.boardVisualization.inhibitVisual = false;
         } else if ((voltage > 20000) && (current > 10)) {
             // Anystate -> Charging // avg current
             powerState = powerStates.STATE_CHARGING;
-            service.boardVisualization.inhibitVisual = true;
+            service.boardVisualization.inhibitVisual = false;
         } else {
             BLog.d(TAG, "Unhandled power state " + powerState);
-            service.boardVisualization.inhibitVisual = true; // this occurs on all nonstandard devices.
+            service.boardVisualization.inhibitVisual = false; // this occurs on all nonstandard devices.
         }
 
         BLog.d(TAG, "Power state is " + powerState);
@@ -105,7 +105,7 @@ public class BatterySupervisor {
         if ((voltage > 20000) && (voltage < 35300)) {
             service.boardVisualization.lowBatteryVisual = true;
         } else {
-            service.boardVisualization.lowBatteryVisual = true;
+            service.boardVisualization.lowBatteryVisual = false;
         }
 
         announce = false;
@@ -121,11 +121,6 @@ public class BatterySupervisor {
                 announce = true;
             }
 
-        } else if (false) {
-            if (System.currentTimeMillis() - lastOkStatement > 1800000) {
-                lastOkStatement = System.currentTimeMillis();
-                announce = true;
-            }
         }
         if (announce) {
             service.speak("Battery Level is " + level + " percent", "batteryLow");

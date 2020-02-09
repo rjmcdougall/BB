@@ -203,6 +203,10 @@ public class BurnerBoardAzul extends BurnerBoard {
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
+    }
+
     private void initpixelMap2Board() {
         int x, y;
 

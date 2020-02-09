@@ -146,6 +146,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         return false;
     }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
 
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
+    }
+
     public boolean setOtherlight(int other, int[] pixels) {
 
         // Send pixel row to in-app visual display
