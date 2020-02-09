@@ -39,7 +39,7 @@ public class BatterySupervisor {
         BLog.d(TAG, "Enable IoT Reporting? " + enableIoTReporting);
 
         if (enableBatteryMonitoring)
-            sch.scheduleWithFixedDelay(batterySupervisor, 10, 1, TimeUnit.SECONDS);
+            sch.scheduleWithFixedDelay(batterySupervisor, 10, 10, TimeUnit.SECONDS);
 
         if (enableIoTReporting)
             sch.scheduleWithFixedDelay(batteryIOT, 10, iotReportEveryNSeconds, TimeUnit.SECONDS);
