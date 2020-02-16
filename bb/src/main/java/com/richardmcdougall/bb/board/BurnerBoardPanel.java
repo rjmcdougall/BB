@@ -61,31 +61,6 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     public void start() {
 
-        // attach default cmdMessenger callback
-        BurnerBoardPanel.BoardCallbackDefault defaultCallback =
-                new BurnerBoardPanel.BoardCallbackDefault();
-        mListener.attach(defaultCallback);
-
-        // attach Test cmdMessenger callback
-        BurnerBoardPanel.BoardCallbackTest testCallback =
-                new BurnerBoardPanel.BoardCallbackTest();
-        mListener.attach(5, testCallback);
-
-        // attach Mode cmdMessenger callback
-        BurnerBoardPanel.BoardCallbackMode modeCallback =
-                new BurnerBoardPanel.BoardCallbackMode();
-        mListener.attach(4, modeCallback);
-
-        // attach Board ID cmdMessenger callback
-        BurnerBoardPanel.BoardCallbackBoardID boardIDCallback =
-                new BurnerBoardPanel.BoardCallbackBoardID();
-        mListener.attach(11, boardIDCallback);
-
-        // attach echoRow cmdMessenger callback
-        BurnerBoardPanel.BoardCallbackEchoRow echoCallback =
-                new BurnerBoardPanel.BoardCallbackEchoRow();
-        mListener.attach(17, echoCallback);
-
         // attach getBatteryLevel cmdMessenger callback
         BurnerBoardPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
                 new BurnerBoardPanel.BoardCallbackGetBatteryLevel();

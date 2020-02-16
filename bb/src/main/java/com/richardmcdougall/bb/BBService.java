@@ -188,7 +188,6 @@ public class BBService extends Service {
 
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.setText90(boardState.BOARD_ID, 5000);
-            burnerBoard.attach(new BBService.BoardCallback());
 
             boardVisualization = new BoardVisualization(this);
             boardVisualization.Run();
@@ -234,11 +233,16 @@ public class BBService extends Service {
     }
 
     public void speak(String txt, String id){
-        if(voice != null && textToSpeechReady) {
-            voice.speak(txt, TextToSpeech.QUEUE_ADD, null, id);
+        try {
+            if(voice != null && textToSpeechReady) {
+                voice.speak(txt, TextToSpeech.QUEUE_ADD, null, id);
+            }
+            else {
+                BLog.d(TAG,"Text to Speech Null");
+            }
         }
-        else {
-            BLog.d(TAG,"Text to Speech Null");
+        catch(Exception e){
+            BLog.e(TAG,e.getMessage());
         }
     }
     /**
@@ -284,16 +288,5 @@ public class BBService extends Service {
 
         BLog.i(TAG, "onDesonDestroy");
         voice.shutdown();
-    }
-
-    public class BoardCallback implements BurnerBoard.BoardEvents {
-
-        public void BoardId(String str) {
-            BLog.i(TAG, "ardunio BoardID callback:" + str + " " + boardState.BOARD_ID);
-        }
-
-        public void BoardMode(int mode) {
-            BLog.i(TAG, "ardunio mode callback:" + boardState.currentVideoMode);
-        }
     }
 }

@@ -53,7 +53,6 @@ public abstract class BurnerBoard {
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
     public int boardWidth = 1;
     public int boardHeight = 1;
-    public BurnerBoard.BoardEvents boardCallback = null;
     public CmdMessenger mListener = null;
     public BBService service = null;
     public String mEchoString = "";
@@ -291,10 +290,6 @@ public abstract class BurnerBoard {
         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
         mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
         mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
-    }
-
-    public void attach(BurnerBoard.BoardEvents newfunction) {
-        boardCallback = newfunction;
     }
 
     public void fillScreen(int r, int g, int b) {
@@ -931,46 +926,6 @@ public abstract class BurnerBoard {
             bitmap.copyPixelsToBuffer(mDrawBuffer);
         }
         aRGBtoBoardScreen(mDrawBuffer, mBoardScreen, mBoardScreen);
-    }
-
-    public interface BoardEvents {
-        void BoardId(String msg);
-
-        void BoardMode(int mode);
-    }
-
-    public class BoardCallbackDefault implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-
-            BLog.d(TAG, "ardunio default callback:" + str);
-        }
-    }
-
-    public class BoardCallbackTest implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            BLog.d(TAG, "ardunio test callback:" + str);
-        }
-    }
-
-    public class BoardCallbackMode implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            int boardMode = mListener.readIntArg();
-            boardCallback.BoardMode(boardMode);
-        }
-    }
-
-    public class BoardCallbackBoardID implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            String boardId = mListener.readStringArg();
-            boardCallback.BoardId(boardId);
-        }
-    }
-
-    public class BoardCallbackEchoRow implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            mEchoString = mListener.readStringArg();
-            BLog.d(TAG, "echoRow: " + mEchoString);
-        }
     }
 
     private class PermissionReceiver extends BroadcastReceiver {
