@@ -10,7 +10,6 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.richardmcdougall.bb.board.BurnerBoardDirectMap;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
 
@@ -50,19 +49,14 @@ public class BoardView extends View {
             mBoardHeight = 118;
         }
 
-        if (!isInEditMode()) {
-            System.out.println("Starting BoardView");
-            init();
-        }
+        init();
     }
 
     public BoardView(Context context, AttributeSet attrs) {
-
         this(context, attrs, 0);
     }
 
     public BoardView(Context context) {
-
         this(context, null, 0);
     }
 
@@ -70,38 +64,26 @@ public class BoardView extends View {
         mBoardScreen = new byte[mBoardWidth * mBoardHeight * 3];
         setWillNotDraw(false);
     }
-
     int pixel2Offset(int x, int y, int rgb) {
         return (y * mBoardWidth + x) * 3 + rgb;
     }
 
-    private Paint mPaint = new Paint();
-
     public void fillScreen(byte r, byte g, byte b) {
-        System.out.println("fillScreen");
-        if (mCanvas == null)
-            return;
-        //mPaint.setColor(Color.argb(0, r, g, b));
 
-        if (mBoardScreen != null) {
-
-            int x;
-            int y;
-            for (x = 0; x < mBoardWidth; x++) {
-                for (y = 0; y < mBoardHeight; y++) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
-                }
+        int x;
+        int y;
+        for (x = 0; x < mBoardWidth; x++) {
+            for (y = 0; y < mBoardHeight; y++) {
+                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
+                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
+                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
             }
-            //System.out.println("fillScreen end" + (byte)r + "," + (byte)g + "," + (byte)b);
         }
 
         invalidate();
     }
 
     public void fadeScreen(int amount) {
-        //System.out.println("fadeScreen");
         if (mCanvas == null)
             return;
         if (mBoardScreen != null) {
@@ -118,7 +100,6 @@ public class BoardView extends View {
                             (byte) (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF - amount);
                 }
             }
-            //System.out.println("fillScreen end" + (byte)r + "," + (byte)g + "," + (byte)b);
         }
         invalidate();
     }
@@ -157,19 +138,10 @@ public class BoardView extends View {
     }
 
     public void setRow(int row, byte[] pixels) {
-        //System.out.print("setRow " + row + ":" + bytesToHex(pixels));
-        //System.out.println("BB setRow " + row + " length " + pixels.length);
-        if (mCanvas == null)
-            return;
-
-        //pixels[3] = (byte)255;
-
-        //java.util.Arrays.fill(pixels, (byte)255);
         if (mBoardScreen != null) {
             int x;
             int y;
             if (row < mBoardHeight) {
-                //System.out.println("BB setRow pixels " + row);
                 for (x = 0; x < mBoardWidth; x++) {
                     // TODO: add sidelights
                     mBoardScreen[pixel2Offset(x, row, PIXEL_RED)] = pixels[x * 3]; //r
@@ -179,41 +151,35 @@ public class BoardView extends View {
             }
         }
 
-        // TODO: invalidate only on update()
         invalidate();
-    }public void setOtherLight(int other, byte[] pixels) {
-        //System.out.print("setRow " + row + ":" + bytesToHex(pixels));
-        //System.out.println("BB setRow " + row + " length " + pixels.length);
+    }
+
+    public void setOtherLight(int other, byte[] pixels) {
+
         if (mCanvas == null)
             return;
 
-        // TODO: invalidate only on update()
         invalidate();
-    }@Override
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        //System.out.println("onDraw");
-
-        // Create canvas once we're ready to draw
         mRect.set(0, 0, getWidth(), getHeight());
         Paint paint = new Paint();
         paint.setStrokeWidth(50f);
         paint.setAntiAlias(true);
 
         if (mCanvasBitmap == null) {
-            //System.out.println("onDraw bitmap");
             mCanvasBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(),
                     Bitmap.Config.ARGB_8888);
-            //System.out.println("Size is " + getWidth() + "," + getHeight());
         }
         if (mCanvas == null) {
-            //System.out.println("onDraw canvas");
             mCanvas = new Canvas(mCanvasBitmap);
         }
 
         if (mBoardScreen != null) {
-            //System.out.println("BB onDraw pixels ");
 
             int x;
             int y;
@@ -222,60 +188,13 @@ public class BoardView extends View {
                     int r = (mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] & 0xFF);
                     int g = (mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] & 0xFF);
                     int b = (mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] & 0xFF);
-                    //if (isBoardPixel(x, y)) {
+
                     paint.setColor(Color.argb(255, r, g, b));
                     mCanvas.drawCircle(15 + y * 13, 5 + x * 13, 6, paint);
-                    //}
-                    //System.out.println("setcolor " + mBoardScreen[(x * boardHeight + y) * 3]);
                 }
             }
-            // Update board view
-            //paint.setColor(Color.argb(255, 255, 0, 0));
-
-            //mCanvas.drawLines(points, 0, 1, paint);
-            //mCanvas.drawLine((float)0, (float)0, (float)getWidth(), (float)getHeight(), paint);
             canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
         }
-        //mCanvas.drawPaint(mPaint);
     }
-
-    // Check if the board pixel is real to draw the edge of the board
-    boolean isBoardPixel(int x, int y) {
-        int pixel = x * mBoardHeight + y + 1;
-        int newpixel = 0;
-
-        //1  20-50->1-31
-        if (pixel >= 20 && pixel <= 50)
-            newpixel = pixel - 19;
-        //2 83-127->76-32
-        if (pixel >= 83 && pixel <= 127)
-            newpixel = 127 - pixel + 32;
-        //3 146-205->77-136
-        if (pixel >= 146 && pixel <= 205)
-            newpixel = pixel - 146 + 77;
-        //4 213-278->202-137
-        if (pixel >= 213 && pixel <= 278)
-            newpixel = 278 - pixel + 137;
-        //5 281-350->203-272
-        if (pixel >= 281 && pixel <= 350)
-            newpixel = pixel - 281 + 203;
-        //6 351-420->342-273
-        if (pixel >= 351 && pixel <= 420)
-            newpixel = 420 - pixel + 273;
-        //7 423-488->343-408
-        if (pixel >= 423 && pixel <= 488)
-            newpixel = pixel - 423 + 343;
-        //8 496-555->468-409
-        if (pixel >= 496 && pixel <= 555)
-            newpixel = 555 - pixel + 409;
-        //9 573-617->469-513
-        if (pixel >= 573 && pixel <= 617)
-            newpixel = pixel - 573 + 469;
-        //10 650-680->544-514
-        if (pixel >= 650 && pixel <= 680)
-            newpixel = 680 - pixel + 514;
-        return newpixel != 0;
-    }
-
 }
 
