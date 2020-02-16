@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
@@ -35,7 +34,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
     public int getMultiplier4Speed() {
-            return 1;
+        return 1;
     }
 
     // Experiments with optimized overlocked Teensy suggest 20 is to high
@@ -136,7 +135,8 @@ public class BurnerBoardClassic extends BurnerBoard {
                 mListener.sendCmdEnd();
                 return true;
             }
-        }return false;
+        }
+        return false;
     }
 
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
@@ -307,7 +307,8 @@ public class BurnerBoardClassic extends BurnerBoard {
                 */
                 setRow(y, rowPixels);
                 //update();
-            }for (int x = 0; x < kOtherLights; x++) {
+            }
+            for (int x = 0; x < kOtherLights; x++) {
                 int[] otherPixels = new int[mBoardSideLights * 3];
                 for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
                     otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =

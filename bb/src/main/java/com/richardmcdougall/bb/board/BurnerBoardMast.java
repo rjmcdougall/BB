@@ -1,37 +1,9 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
-
-/*
-
-   bottom
-         46,118
- +------+
- |      | strip 1
- |      |
- |      |
- |      |
- |      |
- |      | Y
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      | strip 8
- +------+
- 0,0 X
- top
-
- */
 
 public class BurnerBoardMast extends BurnerBoard {
     // Two primary mapping functions

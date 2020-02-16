@@ -1,42 +1,10 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bbcommon.BoardState;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import java.nio.IntBuffer;
-
-/**
- * Created by rmc on 5/28/18.
- */
-
-/*
-
-   bottom
-         46,118
- +------+
- |      | strip 1
- |      |
- |      |
- |      |
- |      |
- |      | Y
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      | strip 8
- +------+
- 0,0 X
- top
-
- */
 
 public class BurnerBoardDirectMap extends BurnerBoard {
 

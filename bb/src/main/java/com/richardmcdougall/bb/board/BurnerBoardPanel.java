@@ -28,7 +28,6 @@ package com.richardmcdougall.bb.board;
  */
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 public class BurnerBoardPanel extends BurnerBoard {
