@@ -81,15 +81,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         return 3;
     }
 
-    public void start() {
-
-        // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardDirectMap.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardDirectMap.BoardCallbackGetBatteryLevel();
-        mListener.attach(8, getBatteryLevelCallback);
-
-    }
-
     public void flush() {
 
         flushCnt++;
@@ -166,20 +157,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             // Render on board
             update();
             flush2Board();
-        }
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }

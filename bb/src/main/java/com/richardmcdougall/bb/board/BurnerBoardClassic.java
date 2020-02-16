@@ -44,19 +44,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return 16;
     }
 
-    public void start() {
-
-        // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardClassic.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardClassic.BoardCallbackGetBatteryLevel();
-        mListener.attach(10, getBatteryLevelCallback);
-
-    }
-
-    public int getBatteryHealth() {
-        return 100 * mBatteryStats[5] / kClassicBatteryMah;
-    }
-
     @Override
     public boolean update() {
 
@@ -120,10 +107,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return false;
     }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
-
-    public int getBatteryVoltage() {
-        return mBatteryStats[5];
-    }
 
     public boolean setOtherlight(int other, int[] pixels) {
 
@@ -340,20 +323,6 @@ public class BurnerBoardClassic extends BurnerBoard {
             update();
             flush2Board();
 
-        }
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }
