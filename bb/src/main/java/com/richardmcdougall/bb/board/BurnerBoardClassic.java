@@ -289,24 +289,7 @@ public class BurnerBoardClassic extends BurnerBoard {
                     }
                 }
 
-                //rowPixels[0] = rowPixels[3];
-                //rowPixels[1] = rowPixels[4];
-                //rowPixels[2] = rowPixels[5];
-                //rowPixels[33] = rowPixels[30];
-                //rowPixels[34] = rowPixels[31];
-                //rowPixels[35] = rowPixels[32];
-            /*
-            if (rowPixels[0] ==0) {
-
-                rowPixels[0]= 33;
-                rowPixels[1]= 32;
-                rowPixels[2]= 1;
-                rowPixels[3]= 59;
-                rowPixels[4]= 0;
-                rowPixels[4]= 33;
-                */
                 setRow(y, rowPixels);
-                //update();
             }
             for (int x = 0; x < kOtherLights; x++) {
                 int[] otherPixels = new int[mBoardSideLights * 3];

@@ -68,6 +68,8 @@ public abstract class BurnerBoard {
     public int mDimmerLevel = 255;
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
+    boolean renderTextOnScreen = false;
+
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
 
@@ -107,6 +109,9 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         this.service.registerReceiver(mUsbReceiver, filter);
+
+        renderTextOnScreen = (this.service.boardState.boardType== BoardState.BoardType.azul || this.service.boardState.boardType== BoardState.BoardType.panel);
+
     }
 
     static public int getRGB(int r, int g, int b) {
@@ -445,6 +450,35 @@ public abstract class BurnerBoard {
                 mListener.sendCmdEnd();
             }
         }
+    }
+
+    protected int findPowerLimitMultiplierPercent(int subtract){
+        // Here we calculate the total power percentage of the whole board
+        // We want to limit the board to no more than 50% of pixel output total
+        // This is because the board is setup to flip the breaker at 200 watts
+        // Output is percentage multiplier for the LEDs
+        // At full brightness we limit to 30% of their output
+        // Power is on-linear to pixel brightness: 37% = 50% power.
+        // powerPercent = 100: 15% multiplier
+        // powerPercent <= 15: 100% multiplier
+        int totalBrightnessSum = 0;
+        int powerLimitMultiplierPercent = 100;
+        for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
+            // R
+            if (pixel % 3 == 0) {
+                totalBrightnessSum += mBoardScreen[pixel];
+            } else if (pixel % 3 == 1) {
+                totalBrightnessSum += mBoardScreen[pixel];
+            } else {
+                totalBrightnessSum += mBoardScreen[pixel] / 2;
+            }
+        }
+
+        final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
+        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - subtract, 0);
+
+        return powerLimitMultiplierPercent;
+
     }
 
     protected void setRowVisual(int row, int[] pixels) {

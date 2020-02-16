@@ -29,6 +29,7 @@ package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardPanel extends BurnerBoard {
     long lastFlushTime = java.lang.System.currentTimeMillis();
@@ -70,36 +71,14 @@ public class BurnerBoardPanel extends BurnerBoard {
             flushCnt = 0;
         }
 
-        // Here we calculate the total power percentage of the whole board
-        // We want to limit the board to no more than 50% of pixel output total
-        // This is because the board is setup to flip the breaker at 200 watts
-        // Output is percentage multiplier for the LEDs
-        // At full brightness we limit to 30% of their output
-        // Power is on-linear to pixel brightness: 37% = 50% power.
-        // powerPercent = 100: 15% multiplier
-        // powerPercent <= 15: 100% multiplier
-        int totalBrightnessSum = 0;
-        int powerLimitMultiplierPercent = 100;
-        for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
-            // R
-            if (pixel % 3 == 0) {
-                totalBrightnessSum += mBoardScreen[pixel];
-            } else if (pixel % 3 == 1) {
-                totalBrightnessSum += mBoardScreen[pixel];
-            } else {
-                totalBrightnessSum += mBoardScreen[pixel] / 2;
+        int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
+
+        int[] mOutputScreen = mBoardScreen;
+        if(renderTextOnScreen){
+            // Render text on board
+            if (renderText(mLayeredScreen, mBoardScreen) != null) {
+                mOutputScreen = mLayeredScreen;
             }
-        }
-
-        final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
-        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - 15, 0);
-
-        // Render text on board
-        int[] mOutputScreen;
-        if (renderText(mLayeredScreen, mBoardScreen) != null) {
-            mOutputScreen = mLayeredScreen;
-        } else {
-            mOutputScreen = mBoardScreen;
         }
 
         int[] rowPixels = new int[boardWidth * 3];
@@ -112,7 +91,6 @@ public class BurnerBoardPanel extends BurnerBoard {
                     rowPixels[(boardWidth - 1 - x) * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-            //setRowVisual(y, rowPixels);
             setRow(y, rowPixels);
         }
 
