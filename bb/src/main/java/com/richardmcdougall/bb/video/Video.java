@@ -67,11 +67,21 @@ public class Video extends Visualization {
                 int[] dst = ba.mBoardScreen;
                 byte[] src = curVideo.mPixelBuf.array();
 
+                long maxPixels = totalPixels;
+
                 // convert from 32 bit RGBA byte pixels to 96 bit RGB int pixels
                 while (totalPixels !=0) {
-                    dst[dstOff++] = src[srcOff+0] & 0xff;
-                    dst[dstOff++] = src[srcOff+1] & 0xff;
-                    dst[dstOff++] = src[srcOff+2] & 0xff;
+
+                    if(totalPixels > (maxPixels/2)){
+                        dst[dstOff++] = src[srcOff+0] & 0xff;
+                       dst[dstOff++] = src[srcOff+1] & 0xff;
+                        dst[dstOff++] = src[srcOff+2] & 0xff;
+                    }
+                    else {
+                        dst[dstOff++] = src[srcOff + 0] & 0xf0; // 1111 0000 reduce the number of colors
+                        dst[dstOff++] = src[srcOff + 1] & 0xf0; // 1111 0000 reduce the number of colors
+                        dst[dstOff++] = src[srcOff + 2] & 0xf0; // 1111 0000 reduce the number of colors
+                    }
                     srcOff+=4;                         // skip alpha channel, this isn't used
                     totalPixels--;
                 }
