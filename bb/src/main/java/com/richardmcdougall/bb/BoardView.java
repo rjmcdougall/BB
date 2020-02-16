@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.richardmcdougall.bb.board.BurnerBoardDirectMap;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
 
@@ -35,6 +36,15 @@ public class BoardView extends View {
         if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.classic) {
             mBoardWidth = 10;
             mBoardHeight = 70;
+        } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.panel) {
+            mBoardWidth = 32;
+            mBoardHeight = 64;
+        } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.mast) {
+            mBoardWidth = 24;
+            mBoardHeight = 159;
+        } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.backpack) {
+            mBoardWidth = 8;
+            mBoardHeight = 256;
         } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.azul || DebugConfigs.OVERRIDE_BOARD_TYPE == null) {
             mBoardWidth = 46;
             mBoardHeight = 118;

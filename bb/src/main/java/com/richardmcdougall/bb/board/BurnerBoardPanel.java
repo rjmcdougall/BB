@@ -73,6 +73,19 @@ public class BurnerBoardPanel extends BurnerBoard {
 
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
 
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[(boardWidth - 1 - x) * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                }
+            }
+            setRowVisual(y, rowPixels);
+        }
+
         int[] mOutputScreen = mBoardScreen;
         if(renderTextOnScreen){
             // Render text on board
@@ -81,7 +94,6 @@ public class BurnerBoardPanel extends BurnerBoard {
             }
         }
 
-        int[] rowPixels = new int[boardWidth * 3];
         for (int y = 0; y < boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < boardWidth; x++) {
