@@ -71,7 +71,7 @@
         <com.richardmcdougall.bb.BoardView
             android:id="@+id/myBoardview"
             android:layout_width="match_parent"
-            android:layout_height="80dp" />
+            android:layout_height="500dp" />
 
     </LinearLayout>
 
