@@ -59,6 +59,7 @@ public class BoardState {
     private String filesDir = "";
     private AllBoards allBoards = null;
     public int targetAPKVersion = 0;
+    public int videoContrastMultiplier = 1;
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
@@ -118,6 +119,7 @@ public class BoardState {
         displayTeensy = this.allBoards.getDisplayTeensy(BOARD_ID);
         boardType = this.allBoards.getBoardType(BOARD_ID);
         targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
+        videoContrastMultiplier = this.allBoards.videoContrastMultiplier(BOARD_ID);
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {

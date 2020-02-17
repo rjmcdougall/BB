@@ -17,6 +17,7 @@ public class Video extends Visualization {
     private VideoDecoder mVideoDecoder = new VideoDecoder();
     private int lastVideoMode = -1;
     private BBService service = null;
+    private int videoContrastMultiplier = 1;
 
     public Video(BBService service ) {
         super(service );
@@ -26,6 +27,7 @@ public class Video extends Visualization {
     public void update(int mode) {
 
         int nVideos = service.mediaManager.GetTotalVideo();
+        videoContrastMultiplier = service.boardState.videoContrastMultiplier;
 
         if (nVideos == 0)
             return;
@@ -72,16 +74,10 @@ public class Video extends Visualization {
                 // convert from 32 bit RGBA byte pixels to 96 bit RGB int pixels
                 while (totalPixels !=0) {
 
-                    if(totalPixels > (maxPixels/2)){
-                        dst[dstOff++] = src[srcOff+0] & 0xff;
-                       dst[dstOff++] = src[srcOff+1] & 0xff;
-                        dst[dstOff++] = src[srcOff+2] & 0xff;
-                    }
-                    else {
-                        dst[dstOff++] = src[srcOff + 0] & 0xf0; // 1111 0000 reduce the number of colors
-                        dst[dstOff++] = src[srcOff + 1] & 0xf0; // 1111 0000 reduce the number of colors
-                        dst[dstOff++] = src[srcOff + 2] & 0xf0; // 1111 0000 reduce the number of colors
-                    }
+                    dst[dstOff++] = IncreaseContrast(src[srcOff + 0] & 0xff); // 1111 0000 reduce the number of colors
+                    dst[dstOff++] = IncreaseContrast(src[srcOff + 1] & 0xff); // 1111 0000 reduce the number of colors
+                    dst[dstOff++] = IncreaseContrast(src[srcOff + 2] & 0xff); // 1111 0000 reduce the number of colors
+
                     srcOff+=4;                         // skip alpha channel, this isn't used
                     totalPixels--;
                 }
@@ -93,5 +89,19 @@ public class Video extends Visualization {
         service.burnerBoard.flush();
     }public void e(String logMsg) {
         Log.e(TAG, logMsg);
+    }
+
+    private int IncreaseContrast(int color){
+
+        if(videoContrastMultiplier!=1){
+            int R = (int)(((((color / 255.0) - 0.5) * videoContrastMultiplier) + 0.5) * 255.0);
+            if(R < 0)
+                R = 0;
+            else if(R > 255)
+                R = 255;
+            return R;
+        }
+        else
+            return color;
     }
 }

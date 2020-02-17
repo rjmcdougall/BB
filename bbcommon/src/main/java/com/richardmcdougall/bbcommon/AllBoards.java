@@ -230,6 +230,32 @@ public class AllBoards {
         }
     }
 
+    public int videoContrastMultiplier(String boardID) {
+
+        JSONObject board;
+        int videoContrastMultiplier = 0;
+
+        try {
+
+            if (dataBoards == null) {
+                BLog.d(TAG, "Could not find videoContrastMultiplier");
+            } else {
+                for (int i = 0; i < dataBoards.length(); i++) {
+                    board = dataBoards.getJSONObject(i);
+                    if (board.getString("name").equals(boardID)) {
+                        videoContrastMultiplier = board.getInt("videoContrastMultiplier");
+                    }
+                }
+            }
+            BLog.d(TAG, "videoContrastMultiplier " + videoContrastMultiplier);
+
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        } finally {
+            return videoContrastMultiplier;
+        }
+    }
+
     public int targetAPKVersion(String boardID) {
 
         JSONObject board;
