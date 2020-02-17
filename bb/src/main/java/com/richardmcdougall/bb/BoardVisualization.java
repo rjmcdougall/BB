@@ -7,7 +7,6 @@ import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
-import com.richardmcdougall.bb.visualization.Mickey;
 import com.richardmcdougall.bb.visualization.PlayaMap;
 import com.richardmcdougall.bb.visualization.SyncLights;
 import com.richardmcdougall.bb.visualization.TestColors;
@@ -57,7 +56,6 @@ public class BoardVisualization {
     public Visualization mVisualizationAudioTile;
     public Visualization mVisualizationAudioCenter;
     public Visualization mVisualizationVideo;
-    public Visualization mVisualizationMickey;
     public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationPlayaMap;
@@ -99,7 +97,6 @@ public class BoardVisualization {
         mVisualizationAudioTile = new AudioTile(service);
         mVisualizationAudioCenter = new AudioCenter(service);
         mVisualizationVideo = new Video(service);
-        mVisualizationMickey = new Mickey(service);
         mVisualizationJosPack = new JosPack(service);
         mVisualizationAudioBar = new AudioBar(service);
         mVisualizationPlayaMap = new PlayaMap(service);
