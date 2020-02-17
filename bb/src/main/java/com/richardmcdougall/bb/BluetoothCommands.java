@@ -13,9 +13,10 @@ public class BluetoothCommands {
 
     public BluetoothCommands(BBService service) {
         this.service = service;
+        init();;
     }
 
-    public void init() {
+    private void init() {
 
         service.bLEServer.addCallback("getboards",
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
