@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
@@ -39,7 +37,6 @@ public class BBService extends Service {
         BUTTON_VOL_UP, BUTTON_VOL_DOWN, BUTTON_VOL_PAUSE
     }
 
-    public Handler mHandler = null;
     public Context context;
     public AllBoards allBoards = null;
     public MusicPlayer musicPlayer = null;
@@ -142,6 +139,7 @@ public class BBService extends Service {
             BLog.i(TAG, "State BOARD_ID " + boardState.BOARD_ID);
             BLog.i(TAG, "State Tyoe " + boardState.boardType);
             BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
+            BLog.i(TAG, "Video Contrast Multiplier  " + boardState.videoContrastMultiplier);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
@@ -158,11 +156,6 @@ public class BBService extends Service {
             // Register to know when bluetooth remote connects
             btReceive = new BluetoothReceiver(this);
             context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
-
-            HandlerThread mHandlerThread = null;
-            mHandlerThread = new HandlerThread("BBServiceHandlerThread");
-            mHandlerThread.start();
-            mHandler = new Handler(mHandlerThread.getLooper());
 
             ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
             Runnable seekAndPlay = () -> {
