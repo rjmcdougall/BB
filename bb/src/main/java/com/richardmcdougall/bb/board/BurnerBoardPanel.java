@@ -28,8 +28,8 @@ package com.richardmcdougall.bb.board;
  */
 
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
-import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardPanel extends BurnerBoard {
     long lastFlushTime = java.lang.System.currentTimeMillis();
@@ -59,6 +59,15 @@ public class BurnerBoardPanel extends BurnerBoard {
         return 12;
     }
 
+    public void start() {
+
+        // attach getBatteryLevel cmdMessenger callback
+        BurnerBoardPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
+                new BurnerBoardPanel.BoardCallbackGetBatteryLevel();
+        mListener.attach(8, getBatteryLevelCallback);
+
+    }
+
     public void flush() {
 
         flushCnt++;
@@ -70,7 +79,7 @@ public class BurnerBoardPanel extends BurnerBoard {
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
-
+ 
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
 
         int[] rowPixels = new int[boardWidth * 3];
@@ -93,7 +102,7 @@ public class BurnerBoardPanel extends BurnerBoard {
                 mOutputScreen = mLayeredScreen;
             }
         }
-
+ 
         for (int y = 0; y < boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < boardWidth; x++) {
@@ -104,7 +113,7 @@ public class BurnerBoardPanel extends BurnerBoard {
                 }
             }
             setStrip(y, rowPixels, powerLimitMultiplierPercent);
-            //setRow(y, rowPixels);
+        
         }
 
         update();
@@ -154,5 +163,19 @@ public class BurnerBoardPanel extends BurnerBoard {
             }
         }
         return false;
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            if (mBatteryStats[1] != -1) {
+                service.boardState.batteryLevel = mBatteryStats[1];
+            } else {
+                service.boardState.batteryLevel = 100;
+            }
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
+        }
     }
 }

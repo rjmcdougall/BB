@@ -65,6 +65,7 @@ public abstract class BurnerBoard {
     public IntBuffer mTextBuffer = null;
     public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
+    public int[] mBatteryStats = new int[16];
     public int mDimmerLevel = 255;
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
@@ -111,9 +112,9 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
 
         renderTextOnScreen = (this.service.boardState.boardType== BoardState.BoardType.azul || this.service.boardState.boardType== BoardState.BoardType.panel);
-
+    
     }
-
+    
     static public int getRGB(int r, int g, int b) {
 
         return (r * 65536 + g * 256 + b);
@@ -233,9 +234,32 @@ public abstract class BurnerBoard {
         }
     }
 
+    // Instant current in milliamps
+    public int getBatteryCurrent() {
+        int codedLevel = mBatteryStats[6];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
+    public int getBatteryCurrentInstant() {
+        int codedLevel = mBatteryStats[9];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
     // Voltage in millivolts
     public int getBatteryVoltage() {
         return 0;
+    }
+
+    public String getBatteryStats() {
+        return Arrays.toString(mBatteryStats);
     }
 
     public void showBattery() {
@@ -650,6 +674,8 @@ public abstract class BurnerBoard {
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
                 mExecutor.submit(mSerialIoManager);
 
+                start();
+
                 BLog.d(TAG, "USB Connected to " + service.boardState.BOARD_ID);
                 // Perf Tests thare are useful during debugging
                 //setMode(50);
@@ -657,6 +683,10 @@ public abstract class BurnerBoard {
                 //testPerf();
             }
         }
+    }
+
+    public void start() {
+
     }
 
     private void testPerf() {

@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
@@ -41,6 +42,19 @@ public class BurnerBoardClassic extends BurnerBoard {
     // because we don't get battery callbacks
     public int getFrameRate() {
         return 16;
+    }
+
+    public void start() {
+
+        // attach getBatteryLevel cmdMessenger callback
+        BurnerBoardClassic.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
+                new BurnerBoardClassic.BoardCallbackGetBatteryLevel();
+        mListener.attach(10, getBatteryLevelCallback);
+
+    }
+
+    public int getBatteryHealth() {
+        return 100 * mBatteryStats[5] / kClassicBatteryMah;
     }
 
     @Override
@@ -106,6 +120,10 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return false;
     }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
+    }
 
     public boolean setOtherlight(int other, int[] pixels) {
 
@@ -288,8 +306,9 @@ public class BurnerBoardClassic extends BurnerBoard {
                         rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                     }
                 }
-
+                
                 setRow(y, rowPixels);
+                
             }
             for (int x = 0; x < kOtherLights; x++) {
                 int[] otherPixels = new int[mBoardSideLights * 3];
@@ -307,6 +326,20 @@ public class BurnerBoardClassic extends BurnerBoard {
             update();
             flush2Board();
 
+        }
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+            if (mBatteryStats[1] != -1) {
+                service.boardState.batteryLevel = mBatteryStats[1];
+            } else {
+                service.boardState.batteryLevel = 100;
+            }
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }

@@ -1,8 +1,9 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
+import com.richardmcdougall.bb.CmdMessenger;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
 
@@ -70,12 +71,25 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     }
 
+    public void start() {
+
+        // attach getBatteryLevel cmdMessenger callback
+        BurnerBoardAzul.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
+                new BurnerBoardAzul.BoardCallbackGetBatteryLevel();
+        mListener.attach(8, getBatteryLevelCallback);
+
+    }
+
     public int getFrameRate() {
 
         if (this.service.boardState.boardType == BoardState.BoardType.boombox)
             return 15;
         else
             return 30;
+    }
+
+    public int getBatteryHealth() {
+        return 100 * mBatteryStats[5] / kAzulBatteryMah;
     }
 
     public void flush() {
@@ -142,6 +156,10 @@ public class BurnerBoardAzul extends BurnerBoard {
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
+    public int getBatteryVoltage() {
+        return mBatteryStats[5];
+    }
+
     private void initpixelMap2Board() {
         int x, y;
 
@@ -181,6 +199,30 @@ public class BurnerBoardAzul extends BurnerBoard {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
                 //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+            }
+        }
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+        public void CmdAction(String str) {
+            int[] tmpBatteryStats = new int[16];
+
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                tmpBatteryStats[i] = mListener.readIntArg();
+            }
+            if ((tmpBatteryStats[0] > 0) && //flags
+                    (tmpBatteryStats[1] != -1) &&  // level
+                    (tmpBatteryStats[5] > 20000)) { // voltage
+                service.boardState.batteryLevel = tmpBatteryStats[1];
+                System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
+                BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
+                        "voltage: " + getBatteryVoltage() + ", " +
+                        "current: " + getBatteryCurrent() + ", " +
+                        "flags: " + mBatteryStats[0]);
+            } else {
+                BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
+                        "voltage: " + tmpBatteryStats[5] + ", " +
+                        "flags: " + tmpBatteryStats[0]);
             }
         }
     }

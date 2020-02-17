@@ -1,10 +1,8 @@
 package com.richardmcdougall.bb;
 
-import com.richardmcdougall.bb.board.BurnerBoardAzul;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
-import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -18,24 +16,17 @@ public class BatterySupervisor {
     private boolean enableBatteryMonitoring = false;
     private boolean enableIoTReporting = false;
     private int iotReportEveryNSeconds = 10;
-    private CmdMessenger mListener = null;
 
-    private int[] mBatteryStats = new int[16];
-
-    Runnable batteryIOT = () ->  service.iotClient.sendUpdate("bbtelemetery", service.batterySupervisor.getBatteryStats());
+    Runnable batteryIOT = () ->  service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
     Runnable batterySupervisor = () ->  checkBattery();
 
     BatterySupervisor(BBService service) {
         this.service = service;
 
         if (service.boardState.boardType == BoardState.BoardType.azul ||
-                service.boardState.boardType == BoardState.BoardType.classic) {
+                service.boardState.boardType == BoardState.BoardType.classic ||
+                service.boardState.boardType == BoardState.BoardType.panel) {
             enableBatteryMonitoring = true;
-            enableIoTReporting = true;
-        }
-
-        // test devices
-        if (service.boardState.boardType == BoardState.BoardType.panel) {
             enableIoTReporting = true;
         }
 
@@ -49,11 +40,6 @@ public class BatterySupervisor {
         if (enableIoTReporting)
             sch.scheduleWithFixedDelay(batteryIOT, 10, iotReportEveryNSeconds, TimeUnit.SECONDS);
 
-
-        // attach getBatteryLevel cmdMessenger callback
-        BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel();
-        mListener.attach(8, getBatteryLevelCallback);
-        mListener.attach(10, getBatteryLevelCallback); // this was different on classic
     }
 
     public void checkBattery() {
@@ -62,8 +48,8 @@ public class BatterySupervisor {
         powerStates powerState = powerStates.STATE_DISPLAYING;
 
         int level = service.boardState.batteryLevel;
-        int current = service.batterySupervisor.getBatteryCurrent();
-        int currentInstant = service.batterySupervisor.getBatteryCurrentInstant();
+        int current = service.burnerBoard.getBatteryCurrent();
+        int currentInstant = service.burnerBoard.getBatteryCurrentInstant();
         int voltage = service.burnerBoard.getBatteryVoltage();
 
         BLog.d(TAG, "Board Current(avg) is " + current);
@@ -139,58 +125,4 @@ public class BatterySupervisor {
     }
 
     public enum powerStates {STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING}
-
-
-    public int getBatteryVoltage() {
-        return mBatteryStats[5];
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            int[] tmpBatteryStats = new int[16];
-
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                tmpBatteryStats[i] = mListener.readIntArg();
-            }
-            if ((tmpBatteryStats[0] > 0) && //flags
-                    (tmpBatteryStats[1] != -1) &&  // level
-                    (tmpBatteryStats[5] > 20000)) { // voltage
-                service.boardState.batteryLevel = tmpBatteryStats[1];
-                System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
-                BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
-                        "voltage: " + getBatteryVoltage() + ", " +
-                        "current: " + getBatteryCurrent() + ", " +
-                        "flags: " + mBatteryStats[0]);
-            } else {
-                BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
-                        "voltage: " + tmpBatteryStats[5] + ", " +
-                        "flags: " + tmpBatteryStats[0]);
-            }
-        }
-    }
-
-
-    // Instant current in milliamps
-    public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    public String getBatteryStats() {
-        return Arrays.toString(mBatteryStats);
-    }
-
 }
