@@ -8,7 +8,6 @@ import com.richardmcdougall.bb.visualization.AudioTile;
 import com.richardmcdougall.bb.visualization.Fire;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
-import com.richardmcdougall.bb.visualization.Meteor;
 import com.richardmcdougall.bb.visualization.Mickey;
 import com.richardmcdougall.bb.visualization.PlayaMap;
 import com.richardmcdougall.bb.visualization.SyncLights;
@@ -63,7 +62,6 @@ public class BoardVisualization {
     public Visualization mVisualizationMickey;
     public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
-    public Visualization mVisualizationMeteor;
     public Visualization mVisualizationPlayaMap;
     public Visualization getmVisualizationSyncLights;
 
@@ -107,7 +105,6 @@ public class BoardVisualization {
         mVisualizationMickey = new Mickey(service);
         mVisualizationJosPack = new JosPack(service);
         mVisualizationAudioBar = new AudioBar(service);
-        mVisualizationMeteor = new Meteor(service);
         mVisualizationPlayaMap = new PlayaMap(service);
         getmVisualizationSyncLights = new SyncLights(service);
 
@@ -201,11 +198,6 @@ public class BoardVisualization {
             case "modeAudioTile()":
                 frameRate = mFrameRate;
                 mVisualizationAudioTile.update(Matrix.kDefault);
-                break;
-
-            case "modeMeteor()":
-                frameRate = mFrameRate;
-                mVisualizationMeteor.update(Matrix.kDefault);
                 break;
 
             // JosPack visualizations go here
