@@ -210,12 +210,9 @@ public class BBService extends Service {
             radio = new RF(this);
 
             rfClientServer = new RFClientServer(this);
-            rfClientServer.Run();
-
             rfMasterClientServer = new RFMasterClientServer(this);
-            rfMasterClientServer.Run();
-
             findMyFriends = new FindMyFriends(this);
+
             bluetoothCommands = new BluetoothCommands(this);
             bluetoothCommands.init();
 

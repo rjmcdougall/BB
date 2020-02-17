@@ -13,6 +13,9 @@ import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by jonathan
@@ -35,6 +38,9 @@ public class RFMasterClientServer {
     int kMasterBroadcastsLeft = 0;
     private String TAG = this.getClass().getSimpleName();
     private BBService service;
+
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
     // Define the callback for what to do when stats are received
     private BroadcastReceiver RFReceiver = new BroadcastReceiver() {
         @Override
@@ -49,22 +55,12 @@ public class RFMasterClientServer {
 
         this.service = service;
 
-        try {
-            IntentFilter packetFilter = new IntentFilter(ACTION.BB_PACKET);
-            LocalBroadcastManager.getInstance(this.service).registerReceiver(RFReceiver, packetFilter);
-        } catch (Exception e) {
+        IntentFilter packetFilter = new IntentFilter(ACTION.BB_PACKET);
+        LocalBroadcastManager.getInstance(this.service).registerReceiver(RFReceiver, packetFilter);
 
-        }
+        Runnable runBroadcastLoop = () -> RunBroadcastLoop();
+        sch.scheduleWithFixedDelay(runBroadcastLoop, 5, kThreadSleepTime, TimeUnit.SECONDS);
 
-    }
-
-    public void Run() {
-        Thread t = new Thread(() -> {
-            Thread.currentThread().setName("BB RF Client/Server");
-            RunBroadcastLoop();
-
-        });
-        t.start();
     }
 
     void processReceive(byte[] packet, int sigstrength) {
@@ -88,14 +84,7 @@ public class RFMasterClientServer {
 
     // Thread/ loop to send out requests
     void RunBroadcastLoop() {
-        BLog.d(TAG, "Master Thread Staring");
-
-        // Hack Prevent crash (sending should be done using an async task)
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
-        while (true) {
-
+        try{
             // Do we need to tell nearby clients who the media master is still?
             if (kMasterBroadcastsLeft > 0) {
                 BLog.d(TAG, "Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
@@ -118,11 +107,9 @@ public class RFMasterClientServer {
 
                 kMasterBroadcastsLeft--;
             }
-
-            try {
-                Thread.sleep(kThreadSleepTime);
-            } catch (Exception e) {
-            }
+        }
+        catch(Exception e){
+            BLog.e(TAG, e.getMessage());
         }
     }
 
