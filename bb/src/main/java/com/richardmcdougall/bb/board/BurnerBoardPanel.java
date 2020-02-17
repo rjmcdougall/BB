@@ -103,7 +103,8 @@ public class BurnerBoardPanel extends BurnerBoard {
                     rowPixels[(boardWidth - 1 - x) * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-            setRow(y, rowPixels);
+            setStrip(y, rowPixels, powerLimitMultiplierPercent);
+            //setRow(y, rowPixels);
         }
 
         update();
