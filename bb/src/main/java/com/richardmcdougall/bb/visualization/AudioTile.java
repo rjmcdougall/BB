@@ -21,24 +21,18 @@ public class AudioTile extends Visualization {
         int mTileHeight = service.burnerBoard.boardWidth > 10 ? service.burnerBoard.boardWidth / 3 : service.burnerBoard.boardWidth;
         final int tiles = 2 * service.burnerBoard.boardHeight / mTileHeight + 1;
 
-        //int [] dbLevels = getLevels();
         service.burnerBoard.fadePixels(5);
-        //if (dbLevels == null)
-        //    return;
-        //dbLevels = getLevels();
-        //int level = java.lang.Math.max(0, (dbLevels[5] / 5 - 8));
-        //if (dbLevels == null)
-        //    return;
+
         if (service.boardVisualization.getLevel() > 110) {
             for (int tile = 0; tile < tiles; tile++) {
                 int c = mWheel.wheelState();
-                //drawRectTile(tile, 255 * mRandom.nextInt(65536));
+
                 drawRectTile(tile, mWheel.wheel(service.boardVisualization.mRandom.nextInt(255)));
-                //drawRectTile(tile, wheel((wheel_color)));
+
                 mWheel.wheelInc(59);
             }
         }
-        //service.burnerBoard.fadePixels(1);
+
         service.burnerBoard.setOtherlightsAutomatically();
         service.burnerBoard.flush();
         return;

@@ -3,10 +3,6 @@ package com.richardmcdougall.bb.visualization;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.board.BurnerBoard;
 
-/**
- * Created by rmc on 6/21/18.
- */
-
 public class AudioBar extends Visualization {
 
     public AudioBar(BBService service) {
@@ -22,7 +18,7 @@ public class AudioBar extends Visualization {
         // Iterate through frequency bins: dbLevels[0] is lowest, [15] is highest
         int row = 0;
         for (int value = 3; value < 15; value += 2) {
-            //System.out.println("level " + dbLevels[value]);
+
             // Get level as # of pixels of half board height
             int level = java.lang.Math.min(dbLevels[value - 1] /
                     (255/(service.burnerBoard.boardHeight /2)-1), service.burnerBoard.boardHeight / 2);
@@ -30,10 +26,6 @@ public class AudioBar extends Visualization {
             for (int y = 0; y < level; y++) {
                 if (value == 3) {
                     // Skip first frequency level
-                    //service.burnerBoard.setSideLight(0, 39 + y, vuColor(y));
-                    //service.burnerBoard.setSideLight(0, 38 - y, vuColor(y));
-                    //service.burnerBoard.setSideLight(1, 39 + y, vuColor(y));
-                    //service.burnerBoard.setSideLight(1, 38 - y, vuColor(y));
                 } else {
                     int xOff = value / 2 * (service.burnerBoard.boardWidth / 10);
                     for (int i = 0; i < (service.burnerBoard.boardWidth / 10); i++) {

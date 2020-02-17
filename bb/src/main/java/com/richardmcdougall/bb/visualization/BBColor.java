@@ -153,26 +153,6 @@ public class BBColor {
         return colorList;
     }
 
-    public String getColorNameFromRgb(int r, int g, int b) {
-        ArrayList<ColorName> colorList = initColorList();
-        ColorName closestMatch = null;
-        int minMSE = Integer.MAX_VALUE;
-        int mse;
-        for (ColorName c : colorList) {
-            mse = c.computeMSE(r, g, b);
-            if (mse < minMSE) {
-                minMSE = mse;
-                closestMatch = c;
-            }
-        }
-
-        if (closestMatch != null) {
-            return closestMatch.getName();
-        } else {
-            return "No matched color name.";
-        }
-    }
-
     public ColorName getColor(String name) {
         ArrayList<ColorName> colorList = initColorList();
         for (ColorName c : colorList) {
@@ -192,11 +172,6 @@ public class BBColor {
             this.g = g;
             this.b = b;
             this.name = name;
-        }
-
-        public int computeMSE(int pixR, int pixG, int pixB) {
-            return (int) (((pixR - r) * (pixR - r) + (pixG - g) * (pixG - g) + (pixB - b)
-                    * (pixB - b)) / 3);
         }
 
         public int getR() {

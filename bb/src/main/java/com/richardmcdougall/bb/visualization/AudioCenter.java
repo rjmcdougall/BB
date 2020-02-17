@@ -2,10 +2,6 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
 
-/**
- * Created by rmc on 6/21/18.
- */
-
 public class AudioCenter extends Visualization {
 
     private Wheel mWheel = new Wheel();
@@ -44,10 +40,6 @@ public class AudioCenter extends Visualization {
                 drawRectCenter(x, c);
                 mWheel.wheelInc(4);
             }
-            //System.out.println(x + ":" + level);
-
-            //service.burnerBoard.fadePixels(1);
-
         }
         service.burnerBoard.setOtherlightsAutomatically();
         service.burnerBoard.flush();

@@ -8,8 +8,6 @@ import com.richardmcdougall.bb.visualization.AudioTile;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.PlayaMap;
-import com.richardmcdougall.bb.visualization.SyncLights;
-import com.richardmcdougall.bb.visualization.TestColors;
 import com.richardmcdougall.bb.video.Video;
 import com.richardmcdougall.bb.visualization.Visualization;
 import com.richardmcdougall.bbcommon.BLog;
@@ -59,7 +57,6 @@ public class BoardVisualization {
     public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationPlayaMap;
-    public Visualization getmVisualizationSyncLights;
 
     private int frameCnt = 0;
     private String TAG = this.getClass().getSimpleName();
@@ -93,14 +90,12 @@ public class BoardVisualization {
         BLog.d(TAG, "Board framerate set to " + mFrameRate);
 
         mVisualizationMatrix = new Matrix(service);
-        mVisualizationTextColors = new TestColors(service);
         mVisualizationAudioTile = new AudioTile(service);
         mVisualizationAudioCenter = new AudioCenter(service);
         mVisualizationVideo = new Video(service);
         mVisualizationJosPack = new JosPack(service);
         mVisualizationAudioBar = new AudioBar(service);
         mVisualizationPlayaMap = new PlayaMap(service);
-        getmVisualizationSyncLights = new SyncLights(service);
 
     }
 
@@ -230,11 +225,6 @@ public class BoardVisualization {
             case "modePlayaMap()":
                 frameRate = mFrameRate;
                 mVisualizationPlayaMap.update(Visualization.kDefault);
-                break;
-
-            case "modeSyncLights()":
-                frameRate = mFrameRate;
-                getmVisualizationSyncLights.update(Visualization.kDefault);
                 break;
 
             default:

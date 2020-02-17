@@ -4,9 +4,9 @@ import android.util.Log;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
-import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.rf.FindMyFriends;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import java.util.List;
 
@@ -51,8 +51,8 @@ public class PlayaMap extends Visualization {
     public void update(int mode) {
 
         if (service.boardState.boardType == BoardState.BoardType.azul) {
-            final float outerRing = service.burnerBoard.service.burnerBoard.boardWidth * (float)kMapSizeRatio;
-            final float innerRing = outerRing / (float)kRingRatio;
+            final float outerRing = service.burnerBoard.service.burnerBoard.boardWidth * (float) kMapSizeRatio;
+            final float innerRing = outerRing / (float) kRingRatio;
             final float theMan = 2;
 
             //l("Playamap");
@@ -64,8 +64,8 @@ public class PlayaMap extends Visualization {
                     (service.burnerBoard.boardHeight - outerRing) / 2,
                     (service.burnerBoard.boardWidth - outerRing) / 2 + outerRing,
                     (service.burnerBoard.boardHeight - outerRing) / 2 + outerRing,
-                    (float)(kDegrees2 - 90),
-                    (float)(kDegrees10 - kDegrees2),
+                    (float) (kDegrees2 - 90),
+                    (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
                     BurnerBoard.getRGB(100, 100, 100));
@@ -82,9 +82,9 @@ public class PlayaMap extends Visualization {
 
             List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
-            for (BoardLocations.boardLocation location: boardLocations) {
+            for (BoardLocations.boardLocation location : boardLocations) {
 
-                if(location.inCrisis)
+                if (location.inCrisis)
                     boardColor = bbColor.getColor("red");
                 else
                     boardColor = bbColor.getColor(service.allBoards.boardAddressToColor(location.address));
@@ -99,9 +99,9 @@ public class PlayaMap extends Visualization {
 
         } else if (BoardState.BoardType.panel == service.boardState.boardType) {
             service.burnerBoard.fillScreen(30, 30, 30);
-            service.burnerBoard.drawArc(0, service.burnerBoard.boardHeight, service.burnerBoard.boardWidth,0,
-                    (float)kDegrees2, (float)(kDegrees10 - kDegrees2),
-            true,
+            service.burnerBoard.drawArc(0, service.burnerBoard.boardHeight, service.burnerBoard.boardWidth, 0,
+                    (float) kDegrees2, (float) (kDegrees10 - kDegrees2),
+                    true,
                     true,
                     BurnerBoard.getRGB(50, 50, 50));
 
@@ -191,8 +191,8 @@ public class PlayaMap extends Visualization {
     //static final double  kManLon = -122.1551087;
 
     // Test Man =  Shop
-    static final double  kManLat = 37.4829995;
-    static final double  kManLon = -122.1800015;
+    static final double kManLat = 37.4829995;
+    static final double kManLon = -122.1800015;
 
     static final double RMCHome9testLat = 37.4816092;
     static final double RMCHome9testLon = -122.161745;
@@ -216,23 +216,23 @@ public class PlayaMap extends Visualization {
     //static final double  kManLat =  40.786590041367525;
     //static final double  kManLon = -119.20656204564455;
 
-    static final double  kPlayaElev = 1190.;  // m
-    static final double  kScale = 1.;
-    static final double  kDegPerRAD = (180. / 3.1415926535);
-    static final int     kClockMinutes = (12 * 60);
-    static final double  kMeterPerDegree = (40030230. / 360.);
+    static final double kPlayaElev = 1190.;  // m
+    static final double kScale = 1.;
+    static final double kDegPerRAD = (180. / 3.1415926535);
+    static final int kClockMinutes = (12 * 60);
+    static final double kMeterPerDegree = (40030230. / 360.);
     // Direction of north in clock units
-    static final double  kNorth = 10.5;  // hours
-    static final int     kNumRings = 13;  // Esplanade through L
-    static final double  kEsplanadeRadius = (2500 * .3048);  // m
-    static final double  kFirstBlockDepth = (440 * .3048);  // m
-    static final double  kBlockDepth = (240 * .3048);  // m
+    static final double kNorth = 10.5;  // hours
+    static final int kNumRings = 13;  // Esplanade through L
+    static final double kEsplanadeRadius = (2500 * .3048);  // m
+    static final double kFirstBlockDepth = (440 * .3048);  // m
+    static final double kBlockDepth = (240 * .3048);  // m
     // How far in from Esplanade to show distance relative to Esplanade rather than the man
-    static final double  kEsplanadeInnerBuffer = (250 * .3048);  // m
+    static final double kEsplanadeInnerBuffer = (250 * .3048);  // m
     // Radial size on either side of 12 w/ no city streets
-    static final double  kRadialGap = 2.;  // hours
+    static final double kRadialGap = 2.;  // hours
     // How far radially from edge of city to show distance relative to city streets
-    static final double  kRadialBuffer = .25;  // hours
+    static final double kRadialBuffer = .25;  // hours
 
     static final double kDegrees2 = 360 * 2 / 12;
     static final double kDegrees10 = 360 * 10 / 12;
@@ -283,9 +283,9 @@ public class PlayaMap extends Visualization {
         } else if (n == 1) {
             return "Espl";
         } else {
-            int charA = (int)'A';
+            int charA = (int) 'A';
             int charRef = charA + n - 2;
-            return Character.toString((char)charRef);
+            return Character.toString((char) charRef);
         }
     }
 
@@ -300,7 +300,7 @@ public class PlayaMap extends Visualization {
         double bearing = kDegPerRAD * Math.atan2(m_dx, m_dy);
 
         double clock_hours = (bearing / 360. * 12. + kNorth);
-        int clock_minutes = (int)(clock_hours * 60 + .5);
+        int clock_minutes = (int) (clock_hours * 60 + .5);
         // Force into the range [0, CLOCK_MINUTES)
         clock_minutes = ((clock_minutes % kClockMinutes) + kClockMinutes) % kClockMinutes;
 
@@ -310,15 +310,16 @@ public class PlayaMap extends Visualization {
                 String.valueOf(minute);
 
         int refRing;
-        if (6 - Math.abs(clock_minutes/60. - 6) < kRadialGap - kRadialBuffer) {
+        if (6 - Math.abs(clock_minutes / 60. - 6) < kRadialGap - kRadialBuffer) {
             refRing = 0;
         } else {
             refRing = getReferenceRing(dist);
         }
         double refDelta = dist - ringRadius(refRing);
-        long refDeltaRounded = (long)(refDelta + .5);
+        long refDeltaRounded = (long) (refDelta + .5);
 
         return clock_disp + " & " + getRefDisp(refRing) + (refDeltaRounded >= 0 ? "+" : "-") +
                 String.valueOf(refDeltaRounded < 0 ? -refDeltaRounded : refDeltaRounded) + "m" +
                 (accurate ? "" : "-ish");
-    }}
+    }
+}
