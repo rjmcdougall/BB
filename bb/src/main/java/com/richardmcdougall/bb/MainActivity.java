@@ -19,6 +19,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -152,6 +153,33 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
             am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
         }
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean handled = false;
+        if (event.getRepeatCount() == 0) {
+            l("Keycode:" + keyCode);
+            //System.out.println("Keycode: " + keyCode);
+        }
+
+        Intent in = new Intent(ACTION.BUTTONS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("buttonType", BBService.buttons.BUTTON_KEYCODE);
+        in.putExtra("keyCode", keyCode);
+        in.putExtra("keyEvent", event);
+        // Fire the broadcast with intent packaged
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+
+
+        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
+                == InputDevice.SOURCE_GAMEPAD) {
+
+            if (handled) {
+                return true;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
     }
 
     // function to append a string to a TextView as a new line
