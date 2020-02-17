@@ -5,7 +5,6 @@ import android.media.audiofx.Visualizer;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
-import com.richardmcdougall.bb.visualization.Fire;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.Mickey;
@@ -53,7 +52,6 @@ public class BoardVisualization {
     public Random mRandom = new Random();
     public byte[] mBoardFFT;
     public int mMultipler4Speed;
-    public Visualization mVisualizationFire;
     public Visualization mVisualizationMatrix;
     public Visualization mVisualizationTextColors;
     public Visualization mVisualizationAudioTile;
@@ -96,7 +94,6 @@ public class BoardVisualization {
 
         BLog.d(TAG, "Board framerate set to " + mFrameRate);
 
-        mVisualizationFire = new Fire(service);
         mVisualizationMatrix = new Matrix(service);
         mVisualizationTextColors = new TestColors(service);
         mVisualizationAudioTile = new AudioTile(service);
@@ -178,11 +175,6 @@ public class BoardVisualization {
             case "modeAudioCenter()":
                 frameRate = mFrameRate;
                 mVisualizationAudioCenter.update(Visualization.kDefault);
-                break;
-
-            case "modeFire(kModeFireNormal)":
-                frameRate = mFrameRate * 3;
-                mVisualizationFire.update(Fire.kModeFireNormal);
                 break;
 
             case "modeAudioBarV()":
