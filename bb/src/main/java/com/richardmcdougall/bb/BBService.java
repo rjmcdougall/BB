@@ -207,7 +207,6 @@ public class BBService extends Service {
             findMyFriends = new FindMyFriends(this);
 
             bluetoothCommands = new BluetoothCommands(this);
-            bluetoothCommands.init();
 
             batterySupervisor = new BatterySupervisor(this);
 

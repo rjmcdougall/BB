@@ -50,7 +50,7 @@ public class FileHelpers {
     public interface OnDownloadProgressType {
         void onProgress(String file, long fileSize, long bytesDownloaded);
 
-        void onVoiceCue(String err);
+        void onVoiceCue(String message);
     }
 
     public static long DownloadURL(String URLString, String filename, String progressName, OnDownloadProgressType onProgressCallback, String filesDir) {

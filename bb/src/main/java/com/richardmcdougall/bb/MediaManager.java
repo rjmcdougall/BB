@@ -286,6 +286,13 @@ public class MediaManager {
 
                 BLog.d(TAG, "Downloaded JSON: " + dirTxt);
 
+                if(dataDirectory == null) {
+                    BLog.d(TAG,"Found First Media.");
+                    if (onProgressCallback != null)
+                        onProgressCallback.onVoiceCue(  "Found First Media");
+                    dataDirectory = dir;
+                }
+
                 // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
