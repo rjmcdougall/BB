@@ -6,33 +6,22 @@ import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
+import java.util.Arrays;
 
-/*
+//  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
+//          cmdMessenger.sendCmdArg(batteryControl);
+//          cmdMessenger.sendCmdArg(batteryStateOfCharge);
+//          cmdMessenger.sendCmdArg(batteryMaxError);
+//          cmdMessenger.sendCmdArg(batteryRemainingCapacity);
+//          cmdMessenger.sendCmdArg(batteryFullChargeCapacity);
+//          cmdMessenger.sendCmdArg(batteryVoltage);
+//          cmdMessenger.sendCmdArg(batteryAverageCurrent);
+//          cmdMessenger.sendCmdArg(batteryTemperature);
+//          cmdMessenger.sendCmdArg(batteryFlags);
+//          cmdMessenger.sendCmdArg(batteryCurrent);
+//          cmdMessenger.sendCmdArg(batteryFlagsB);
+//          cmdMessenger.sendCmdEnd();
 
-   Back
-         46,118
- +------+
- |      | strip 1
- |      |
- |      |
- |      |
- |      |
- |      | Y
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      | strip 8
- +------+
- 0,0 X
- Front
-
- */
 public class BurnerBoardAzul extends BurnerBoard {
 
     private static final String TAG = "BB.BurnerBoardAzul";
@@ -218,7 +207,9 @@ public class BurnerBoardAzul extends BurnerBoard {
                 BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
                         "voltage: " + getBatteryVoltage() + ", " +
                         "current: " + getBatteryCurrent() + ", " +
-                        "flags: " + mBatteryStats[0]);
+                        "current instant: " + getBatteryCurrentInstant() + ", " +
+                        "flags: " + mBatteryStats[0] + ", " +
+                        "battery stats: " + Arrays.toString(tmpBatteryStats)  );
             } else {
                 BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
                         "voltage: " + tmpBatteryStats[5] + ", " +

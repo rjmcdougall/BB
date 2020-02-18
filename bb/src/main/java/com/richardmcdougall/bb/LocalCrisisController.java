@@ -50,7 +50,7 @@ public class LocalCrisisController {
         stashedVideoMode = service.boardState.currentVideoMode;
         this.service.boardVisualization.setMode(this.service.mediaManager.GetMapMode());
 
-        sch.schedule(moveToPhase1, 10, TimeUnit.SECONDS);
+        sch.schedule(moveToPhase1, 5, TimeUnit.SECONDS);
     }
 
     private void StopCrisis(){
@@ -68,7 +68,7 @@ public class LocalCrisisController {
         service.burnerBoard.setText90("Please Help!", 10000);
         service.speak("Please Help!","mode");
 
-        sch.schedule(moveToPhase2, 10, TimeUnit.SECONDS);
+        sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);
     }
 
     public void SetCrisis(boolean inCrisis){

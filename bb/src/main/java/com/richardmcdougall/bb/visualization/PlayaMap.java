@@ -82,18 +82,30 @@ public class PlayaMap extends Visualization {
 
             List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
+            boolean boardInCrisis = false;
             for (BoardLocations.boardLocation location : boardLocations) {
-
-                if (location.inCrisis)
+                if (location.inCrisis){
                     boardColor = bbColor.getColor("red");
-                else
-                    boardColor = bbColor.getColor(service.allBoards.boardAddressToColor(location.address));
 
-                if (flashColor(updateCnt, location.address)) {
-                    plotBoard(location.latitude, location.longitude,
-                            BurnerBoard.getRGB(boardColor.r,
-                                    boardColor.g,
-                                    boardColor.b));
+                    if (flashColor(updateCnt, location.address)) {
+                        plotBoard(location.latitude, location.longitude,
+                                BurnerBoard.getRGB(boardColor.r,
+                                        boardColor.g,
+                                        boardColor.b));
+                    }
+                    boardInCrisis=true;
+                }
+            }
+
+            if(!boardInCrisis){
+                for (BoardLocations.boardLocation location : boardLocations) {
+
+                    if (flashColor(updateCnt, location.address)) {
+                        plotBoard(location.latitude, location.longitude,
+                                BurnerBoard.getRGB(boardColor.r,
+                                        boardColor.g,
+                                        boardColor.b));
+                    }
                 }
             }
 

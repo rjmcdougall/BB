@@ -17,11 +17,13 @@ public class RemoteCrisisController {
 
     Runnable checkForCrisis = () -> {
         try{
-            if(service.boardLocations.BoardsInCrisis().size()>0 && boardInCrisisPhase==0){
-                StartCrisisPhase1();
-            }
-            else if (service.boardLocations.BoardsInCrisis().size()==0 && !(boardInCrisisPhase==0)){
-                StopCrisis();
+            if(service.localCrisisController.boardInCrisisPhase==0){ // of i am in crisis, i dont care if you are.
+                if(service.boardLocations.BoardsInCrisis().size()>0 && boardInCrisisPhase==0){
+                    StartCrisisPhase1();
+                }
+                else if (service.boardLocations.BoardsInCrisis().size()==0 && !(boardInCrisisPhase==0)){
+                    StopCrisis();
+                }
             }
         }catch(Exception e){
             BLog.e(TAG, e.getMessage());
@@ -57,7 +59,7 @@ public class RemoteCrisisController {
     public RemoteCrisisController(BBService service) {
         this.service = service;
 
-        sch.scheduleAtFixedRate(checkForCrisis, 10, 1, TimeUnit.SECONDS);
+        sch.scheduleAtFixedRate(checkForCrisis, 10, 5, TimeUnit.SECONDS);
     }
 
     private void Phase2(){
@@ -65,7 +67,7 @@ public class RemoteCrisisController {
         stashedVideoMode = service.boardState.currentVideoMode;
         this.service.boardVisualization.setMode(this.service.mediaManager.GetMapMode());
 
-        sch.schedule(moveToPhase1, 10, TimeUnit.SECONDS);
+        sch.schedule(moveToPhase1, 5, TimeUnit.SECONDS);
     }
 
     private void StopCrisis(){
@@ -85,6 +87,6 @@ public class RemoteCrisisController {
             service.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis),  "mode");
         }
 
-        sch.schedule(moveToPhase2, 10, TimeUnit.SECONDS);
+        sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);
     }
 }
