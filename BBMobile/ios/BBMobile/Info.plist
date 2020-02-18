@@ -43,6 +43,8 @@
 	<string>Used for playa map</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Used for playa map</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Used for playa map</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Used for playa map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
