@@ -15,8 +15,8 @@ android {
         applicationId "com.richardmcdougall.bbinstaller"
         minSdkVersion 23
         targetSdkVersion 23
-        versionCode 5027
-        versionName "5027"
+        versionCode 5028
+        versionName "5028"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.burnerboard
     }
