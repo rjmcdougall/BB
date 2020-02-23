@@ -14,10 +14,10 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D42EF43F751BB6AD622377D99A0D6443"
+               BlueprintIdentifier = "F7A65791B6A796569DFD89C5AA1371C4"
                BlueprintName = "RNFS"
                ReferencedContainer = "container:Pods.xcodeproj"
-               BuildableName = "libRNFS.a">
+               BuildableName = "RNFS.framework">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
