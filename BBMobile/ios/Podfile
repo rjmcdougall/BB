@@ -31,7 +31,6 @@ target 'BBMobile' do
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
  # Mapbox
  pod 'react-native-mapbox-gl', :path => '../node_modules/@react-native-mapbox-gl/maps'
-pod 'RNCAsyncStorage', :path => '../node_modules/@react-native-community/async-storage'
 
   pod 'RNFS', :path => '../node_modules/react-native-fs'
 
