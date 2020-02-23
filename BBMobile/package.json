@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@mapbox/geo-viewport": "^0.4.0",
-    "@react-native-mapbox-gl/maps": "^7.0.1",
+    "@react-native-mapbox-gl/maps": "^7.0.8",
     "async-mutex": "^0.1.4",
     "buffer": "^5.4.3",
     "charenc": "0.0.2",
