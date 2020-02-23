@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, ScrollView, ListView } from "react-native";
+import { View, Text, ScrollView} from "react-native";
+import ListView from "deprecated-react-native-listview";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";

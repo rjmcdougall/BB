@@ -1,2 +1,5 @@
 /node_modules/*
 !/node_modules/react-native-geolocation-service/android/build.gradle
+
+# CocoaPods
+/ios/Pods/
