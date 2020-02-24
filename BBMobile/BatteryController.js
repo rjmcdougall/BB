@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import PropTypes from "prop-types";
-import AnimatedBar from "react-native-animated-bar";
+import AnimatedBar from "./AnimatedBar";
 import Constants from "./Constants";
 
 export default class BatteryController extends React.Component {
