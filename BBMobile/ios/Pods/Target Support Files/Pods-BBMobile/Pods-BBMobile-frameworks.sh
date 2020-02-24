@@ -150,6 +150,7 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_dsym "${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM"
   install_framework "${BUILT_PRODUCTS_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RCTTypeSafety/RCTTypeSafety.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/RNCAsyncStorage/RNCAsyncStorage.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RNFS/RNFS.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RNVectorIcons/RNVectorIcons.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/React-Core/React.framework"
@@ -172,6 +173,7 @@ if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/glog/glog.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/react-native-ble-manager/react_native_ble_manager.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/react-native-mapbox-gl/react_native_mapbox_gl.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/react-native-slider/react_native_slider.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/DoubleConversion/DoubleConversion.framework"
@@ -181,6 +183,7 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_dsym "${PODS_ROOT}/Mapbox-iOS-SDK/dynamic/Mapbox.framework.dSYM"
   install_framework "${BUILT_PRODUCTS_DIR}/MapboxMobileEvents/MapboxMobileEvents.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RCTTypeSafety/RCTTypeSafety.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/RNCAsyncStorage/RNCAsyncStorage.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RNFS/RNFS.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/RNVectorIcons/RNVectorIcons.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/React-Core/React.framework"
@@ -203,6 +206,7 @@ if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "${BUILT_PRODUCTS_DIR}/glog/glog.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/react-native-ble-manager/react_native_ble_manager.framework"
   install_framework "${BUILT_PRODUCTS_DIR}/react-native-mapbox-gl/react_native_mapbox_gl.framework"
+  install_framework "${BUILT_PRODUCTS_DIR}/react-native-slider/react_native_slider.framework"
 fi
 if [ "${COCOAPODS_PARALLEL_CODE_SIGN}" == "true" ]; then
   wait
