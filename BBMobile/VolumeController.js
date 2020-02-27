@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import PropTypes from "prop-types";
 import StyleSheet from "./StyleSheet";
-import Slider from "react-native-slider";
+import Slider from "@react-native-community/slider";
 
 export default class VolumeController extends React.Component {
 	constructor(props) {

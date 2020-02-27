@@ -10,31 +10,25 @@ android {
         }
     }
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.richardmcdougall.bb"
         minSdkVersion 23
         targetSdkVersion 27
 
-        versionCode 5017
-        versionName "5017"
+        versionCode 5029
+        versionName "5029"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
 
-
     }
-    /* The internet tells me this error:
 
-        [CIRCULAR REFERENCE:com.android.tools.r8.ApiLevelException: Default interface methods are only supported starting with Android N (--min-api 24): void net.sf.marineapi.provider.event.HeadingListener.providerUpdate(net.sf.marineapi.provider.event.ProviderEvent)]
-
-       Is solved by adding the compile options below. Source:
-       https://stackoverflow.com/questions/49512629/android-studio-error-default-interface-methods-are-only-supported-starting-with
-     */
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -57,10 +51,6 @@ android {
         exclude 'META-INF/license'
         exclude 'META-INF/license.txt'
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 }
 
 repositories {
@@ -71,19 +61,17 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'io.jsonwebtoken:jjwt:0.7.0'
-    implementation 'joda-time:joda-time:2.1'
     implementation 'eu.chainfire:libsuperuser:1.0.0.+'
     implementation 'net.sf.marineapi:marineapi:0.10.0'
     compileOnly 'com.google.android.things:androidthings:+'
     implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'no.nordicsemi.android:log-timber:2.2.0'
     implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
-
+    implementation project(':bbcommon')
+    implementation 'joda-time:joda-time:2.1'
 }
 

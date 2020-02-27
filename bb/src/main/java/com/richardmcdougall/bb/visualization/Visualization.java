@@ -1,27 +1,14 @@
 package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BoardVisualization;
-import com.richardmcdougall.bb.BurnerBoard;
-
-/**
- * Created by rmc on 6/18/18.
- */
 
 public class Visualization {
 
-    protected BurnerBoard mBurnerBoard;
-    public int mBoardWidth;
-    public int mBoardHeight;
-    BoardVisualization mBoardVisualizion;
     public static final int kDefault = 0;
+    BBService service;
 
-
-    public Visualization(BurnerBoard bb, BoardVisualization visualization) {
-        mBurnerBoard = bb;
-        mBoardWidth = bb.getWidth();
-        mBoardHeight = bb.getHeight();
-        mBoardVisualizion = visualization;
+    public Visualization(BBService service) {
+        this.service = service;
     }
 
     public void update(int mode) {

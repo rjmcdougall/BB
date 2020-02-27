@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.richardmcdougall.bb;;
+package com.richardmcdougall.bb;
 
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.view.InputDevice;
 import android.view.MotionEvent;
+
+;
 
 public interface InputManagerCompat {
     /**
@@ -43,12 +45,12 @@ public interface InputManagerCompat {
      * input devices are added, removed or changed.
      *
      * @param listener The listener to register.
-     * @param handler The handler on which the listener should be invoked, or
-     *            null if the listener should be invoked on the calling thread's
-     *            looper.
+     * @param handler  The handler on which the listener should be invoked, or
+     *                 null if the listener should be invoked on the calling thread's
+     *                 looper.
      */
     public void registerInputDeviceListener(InputManagerCompat.InputDeviceListener listener,
-            Handler handler);
+                                            Handler handler);
 
     /**
      * Unregisters an input device listener.
@@ -126,15 +128,11 @@ public interface InputManagerCompat {
          * Constructs and returns a compatible InputManger
          *
          * @param context the Context that will be used to get the system
-         *            service from
+         *                service from
          * @return a compatible implementation of InputManager
          */
         public static InputManagerCompat getInputManager(Context context) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                return new InputManagerV16(context);
-            } else {
-                return new InputManagerV9();
-            }
+              return new InputManagerV16(context);
         }
     }
 }

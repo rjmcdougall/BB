@@ -79,8 +79,6 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
         private UsbEndpoint mWriteEndpoint;
 
         private UsbRequest writeRequest = null;
-
-
         private boolean mRts = false;
         private boolean mDtr = false;
 

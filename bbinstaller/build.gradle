@@ -9,14 +9,14 @@ android {
             storePassword 'kermit01'
         }
     }
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 23
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.richardmcdougall.bbinstaller"
-        minSdkVersion 27
-        targetSdkVersion 27
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 23
+        targetSdkVersion 23
+        versionCode 5029
+        versionName "5029"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         signingConfig signingConfigs.burnerboard
     }
@@ -25,9 +25,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.burnerboard
-        }
-        debug {
-            signingConfig signingConfigs.burnerboard
+            debuggable false
         }
     }
     packagingOptions {
@@ -43,21 +41,29 @@ android {
     }
     productFlavors {
     }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        // Or, if you prefer, you can continue to check for errors in release builds,
+        // but continue the build even when errors are found:
+        abortOnError false
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    testImplementation 'junit:junit:4.12'
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:support-v4:27.1.1'
+    implementation 'com.android.support:appcompat-v7:23.1.1'
+    implementation 'com.android.support:support-v4:23.1.1'
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'io.jsonwebtoken:jjwt:0.7.0'
     implementation 'joda-time:joda-time:2.1'
-    //compile 'eu.chainfire:libsuperuser:1.0.0.+'
+    implementation project(':bbcommon')
 }
 
 

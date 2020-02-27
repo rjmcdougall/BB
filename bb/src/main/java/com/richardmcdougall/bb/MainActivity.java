@@ -1,101 +1,103 @@
 package com.richardmcdougall.bb;
 
 import android.Manifest;
-import android.app.IntentService;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
+import android.content.pm.PackageManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.app.Activity;
-import android.view.WindowManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.CompoundButton;
-import android.widget.EditText;
+import android.view.WindowManager;
 import android.widget.TextView;
-import android.content.BroadcastReceiver;
 import android.widget.Toast;
-import android.app.admin.DevicePolicyManager;
-import android.app.ActivityManager;
-import android.content.ComponentName;
-import android.content.pm.PackageManager;
-import android.os.BatteryManager;
-import android.provider.Settings;
 
-import timber.log.Timber;
+import com.richardmcdougall.bbcommon.DebugConfigs;
 
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
     private static final String TAG = "BB.MainActivity";
-
-    public static final boolean kThings = true;
-
-    TextView voltage;
-    TextView status;
-    EditText log;
-    TextView syncStatus = null;
-    TextView syncPeers = null;
-    TextView syncReplies = null;
-    TextView syncAdjust;
-    TextView syncTrack;
-    TextView syncUsroff;
-    TextView syncSrvoff;
-    TextView syncRTT;
-    TextView modeStatus;
-    private android.widget.Switch switchHeadlight;
-
-    private BoardView mBoardView;
-    private String stateMsgAudio = "";
-    private String stateMsgConn = "";
-    private String stateMsg = "";
-
-    private InputManagerCompat remoteControl;
-
     private static final String Battery_PLUGGED_ANY = Integer.toString(
             BatteryManager.BATTERY_PLUGGED_AC |
                     BatteryManager.BATTERY_PLUGGED_USB |
                     BatteryManager.BATTERY_PLUGGED_WIRELESS);
-
+    TextView modeStatus;
+    private android.widget.Switch switchHeadlight;
+    private BoardView mBoardView;
+    private InputManagerCompat remoteControl;
     private boolean preventDialogs = false;
 
     // Kill popups which steal remote control input button focus from the app
     // http://www.andreas-schrade.de/2015/02/16/android-tutorial-how-to-create-a-kiosk-mode-in-android/
     private boolean mIsCustomized = false;
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        l("MainActivity: onWindowFocusChanged()");
+    // Define the callback for what to do when graphics are received
+    private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!DebugConfigs.DISPLAY_VIDEO_IN_APP)
+                return;
+            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
+            int visualId = intent.getIntExtra("visualId", 0);
+            //l("Graphics " + visualId);
+            if (resultCode == RESULT_OK) {
+                switch (visualId) {
+                    case 13:
+                        byte r = (byte) intent.getIntExtra("arg1", 0);
+                        byte g = (byte) intent.getIntExtra("arg2", 0);
+                        byte b = (byte) intent.getIntExtra("arg3", 0);
+                        mBoardView.fillScreen(r, g, b);
+                        break;
+                    case 8:
+                        mBoardView.invalidate();
+                        break;
 
-        if (preventDialogs == false) {
-            return;
+                    case 6:
+                        int direction = intent.getIntExtra("arg1", 0);
+                        mBoardView.scroll(direction);
+                        break;
+                    case 7:
+                        int amount = intent.getIntExtra("arg1", 0);
+                        mBoardView.fadeScreen(amount);
+                        break;
+                    case 14:
+                        int row = intent.getIntExtra("arg1", 0);
+                        byte[] pixels = intent.getByteArrayExtra("arg2").clone();
+                        //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
+                        mBoardView.setRow(row, pixels);
+                        break;
+                    case 15:
+                        int other = intent.getIntExtra("arg1", 0);
+                        byte[] otherPixels = intent.getByteArrayExtra("arg2").clone();
+                        mBoardView.setOtherLight(other, otherPixels);
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
-        //if(!hasFocus) {
-        if (!mIsCustomized) {
-            // Close every kind of system dialog
-            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-            this.sendBroadcast(closeDialog);
-            //}
-            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-            am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
-        }
-    }
-
+    };
 
     static void showToast(Context context, String text) {
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
     }
 
     static String getHomeActivity(Context c) {
+
+        Log.v(TAG, "getHomeActivity");
         PackageManager pm = c.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
@@ -106,8 +108,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             return "none";
     }
 
-
     static void becomeHomeActivity(Context c) {
+        Log.v(TAG, "becomeHomeActivity");
         ComponentName deviceAdmin = new ComponentName(c, AdminReceiver.class);
         DevicePolicyManager dpm = (DevicePolicyManager) c.getSystemService(Context.DEVICE_POLICY_SERVICE);
 
@@ -133,112 +135,58 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
     }
 
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        l("MainActivity: onWindowFocusChanged()");
+
+        if (preventDialogs == false) {
+            return;
+        }
+
+        //if(!hasFocus) {
+        if (!mIsCustomized) {
+            // Close every kind of system dialog
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            this.sendBroadcast(closeDialog);
+            //}
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
+        }
+    }
+
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        boolean handled = false;
+        if (event.getRepeatCount() == 0) {
+            l("Keycode:" + keyCode);
+            //System.out.println("Keycode: " + keyCode);
+        }
+
+        Intent in = new Intent(ACTION.BUTTONS);
+        in.putExtra("resultCode", Activity.RESULT_OK);
+        in.putExtra("buttonType", BBService.buttons.BUTTON_KEYCODE);
+        in.putExtra("keyCode", keyCode);
+        in.putExtra("keyEvent", event);
+        // Fire the broadcast with intent packaged
+        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
+
+
+        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
+                == InputDevice.SOURCE_GAMEPAD) {
+
+            if (handled) {
+                return true;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
     // function to append a string to a TextView as a new line
     // and scroll to the bottom if needed
     private void l(String msg) {
-        if (log == null)
-            return;
-
         Log.v(TAG, msg);
-        logToScreen(msg);
     }
-
-    // function to append a string to a TextView as a new line
-    // and scroll to the bottom if needed
-    private void logToScreen(String msg) {
-        if (log == null)
-            return;
-
-        // append the new string
-        log.append(msg + "\n");
-
-        String tMsg = log.getText().toString();
-        int msgLen = tMsg.length();
-        if (msgLen > 1000) {
-            tMsg = tMsg.substring(msgLen - 1000, msgLen);
-        }
-        log.setText(tMsg);
-
-        // find the amount we need to scroll.  This works by
-        // asking the TextView's internal layout for the position
-        // of the final line and then subtracting the TextView's height
-        final android.text.Layout layout = log.getLayout();
-
-        if (layout != null) {
-            final int scrollAmount = layout.getLineTop(log.getLineCount()) - log.getHeight();
-            // if there is no need to scroll, scrollAmount will be <=0
-            if (scrollAmount > 0)
-                log.scrollTo(0, scrollAmount);
-            else
-                log.scrollTo(0, 0);
-        }
-    }
-
-    public void setStateMsgConn(String str) {
-        synchronized (stateMsg) {
-            stateMsgConn = str;
-            stateMsg = stateMsgConn + "," + stateMsgAudio;
-
-        }
-    }
-
-    public void setStateMsgAudio(String str) {
-        synchronized (stateMsg) {
-            stateMsgAudio = str;
-            stateMsg = stateMsgConn + "," + stateMsgAudio;
-        }
-    }
-
-    // Define the callback for what to do when stats are received
-    private BroadcastReceiver BBstatsReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            if (kThings) {
-                return;
-            }
-
-            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
-            int msgType = intent.getIntExtra("msgType", 0);
-            if (resultCode == RESULT_OK) {
-                switch (msgType) {
-                    case 1:
-                        long seekErr = intent.getLongExtra("seekErr", 0);
-                        syncAdjust.setText(String.format("%1$d", seekErr));
-                        int currentRadioChannel = intent.getIntExtra("currentRadioChannel", 0);
-                        syncTrack.setText(String.format("%1$d", currentRadioChannel));
-                        int userTimeOffset = intent.getIntExtra("userTimeOffset", 0);
-                        syncUsroff.setText(String.format("%1$d", userTimeOffset));
-                        long serverTimeOffset = intent.getLongExtra("serverTimeOffset", 0);
-                        syncSrvoff.setText(String.format("%1$d", serverTimeOffset));
-                        long serverRTT = intent.getLongExtra("serverRTT", 0);
-                        syncRTT.setText(String.format("%1$d", serverRTT));
-                        String stateMsgAudio = intent.getStringExtra("stateMsgAudio");
-                        setStateMsgAudio(stateMsgAudio);
-                        break;
-                    case 2:
-                        long stateReplies = intent.getLongExtra("stateReplies", 0);
-                        syncReplies.setText(String.format("%1$d", stateReplies));
-                        String stateMsgWifi = intent.getStringExtra("stateMsgWifi");
-                        setStateMsgConn(stateMsgWifi);
-                        break;
-                    case 3:
-                        String statusMsg = intent.getStringExtra("ledStatus");
-                        status.setText(statusMsg);
-                        break;
-                    case 4:
-                        String logMsg = intent.getStringExtra("logMsg");
-                        logToScreen(logMsg);
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-            syncStatus.setText(stateMsg);
-        }
-
-    };
 
     @Override
     protected void onStart() {
@@ -255,9 +203,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             // startLockTask();
         }
 
-        //Intent startServiceIntent = new Intent(this, BBService.class);
-        //startWakefulService(this, startServiceIntent);
-
     }
 
     @Override
@@ -271,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         this.sendBroadcast(closeDialog);
 
-        ActivityManager am = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         am.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
 
         setupPermissions(Manifest.permission.RECORD_AUDIO, 1);
@@ -289,7 +234,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
 
         if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
             becomeHomeActivity(this.getApplicationContext());
@@ -312,34 +256,8 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         // Create the graphic equalizer
         mBoardView = (BoardView) findViewById(R.id.myBoardview);
 
-        // Create textview
-        voltage = (TextView) findViewById(R.id.textViewVoltage);
         modeStatus = (TextView) findViewById(R.id.modeStatus);
-        status = (TextView) findViewById(R.id.textViewStatus);
-        syncStatus = (TextView) findViewById(R.id.textViewsyncstatus);
-        syncPeers = (TextView) findViewById(R.id.textViewsyncpeers);
-        syncReplies = (TextView) findViewById(R.id.textViewsyncreplies);
-        syncAdjust = (TextView) findViewById(R.id.textViewsyncadjust);
-        syncTrack = (TextView) findViewById(R.id.textViewsynctrack);
-        syncUsroff = (TextView) findViewById(R.id.textViewsyncusroff);
-        syncSrvoff = (TextView) findViewById(R.id.textViewsyncsrvoff);
-        syncRTT = (TextView) findViewById(R.id.textViewsyncrtt);
 
-        // Create the logging window
-        log = (EditText) findViewById(R.id.editTextLog);
-        log.setMovementMethod(new android.text.method.ScrollingMovementMethod());
-        log.setMaxLines(40);
-
-        voltage.setText("0.0v");
-        log.setFocusable(false);
-
-        switchHeadlight = (android.widget.Switch) findViewById(R.id.switchHeadlight);
-        switchHeadlight.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                //boardSetHeadlight(isChecked);
-            }
-        });
     }
 
     @Override
@@ -347,10 +265,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
 
         super.onResume();
         l("MainActivity: onResume()");
-
-        // Register for the particular broadcast based on Stats Action
-        IntentFilter statFilter = new IntentFilter(ACTION.STATS);
-        LocalBroadcastManager.getInstance(this).registerReceiver(BBstatsReceiver, statFilter);
 
         // Register for the particular broadcast based on Graphics Action
         IntentFilter gfxFilter = new IntentFilter(ACTION.GRAPHICS);
@@ -365,7 +279,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         l("MainActivity: onPause()");
 
         // Unregister the listener when the application is paused
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(BBstatsReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(BBgraphicsReceiver);
     }
 
@@ -383,32 +296,10 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
-
     public void onNextTrack(View v) {
         Intent in = new Intent(ACTION.BUTTONS);
         in.putExtra("resultCode", Activity.RESULT_OK);
         in.putExtra("buttonType", BBService.buttons.BUTTON_TRACK);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-    public void onVolDown(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_DOWN);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-    public void onVolUp(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_UP);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-    }
-
-    public void onVolPause(View v) {
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_VOL_PAUSE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(in);
     }
 
@@ -425,31 +316,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     @Override
     public void onInputDeviceRemoved(int deviceId) {
         l("onInputDeviceRemoved");
-    }
-
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        boolean handled = false;
-        if (event.getRepeatCount() == 0) {
-            l("Keycode:" + keyCode);
-        }
-
-        Intent in = new Intent(ACTION.BUTTONS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        in.putExtra("buttonType", BBService.buttons.BUTTON_KEYCODE);
-        in.putExtra("keyCode", keyCode);
-        in.putExtra("keyEvent", event);
-        // Fire the broadcast with intent packaged
-        LocalBroadcastManager.getInstance(this).sendBroadcast(in);
-
-        if ((event.getSource() & InputDevice.SOURCE_GAMEPAD)
-                == InputDevice.SOURCE_GAMEPAD) {
-
-            if (handled) {
-                return true;
-            }
-        }
-
-        return super.onKeyDown(keyCode, event);
     }
 
     private void setupPermissions(String permission, int permissionId) {
@@ -515,92 +381,4 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
             // permissions this app might request
         }
     }
-
-    // Define the callback for what to do when graphics are received
-    private BroadcastReceiver BBgraphicsReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!DebugConfigs.DISPLAY_VIDEO_IN_APP)
-                return;
-            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
-            int visualId = intent.getIntExtra("visualId", 0);
-            //l("Graphics " + visualId);
-            if (resultCode == RESULT_OK) {
-                switch (visualId) {
-                    case 13:
-                        byte r = (byte)intent.getIntExtra("arg1", 0);
-                        byte g = (byte)intent.getIntExtra("arg2", 0);
-                        byte b = (byte)intent.getIntExtra("arg3", 0);
-                        mBoardView.fillScreen(r, g, b);
-                        break;
-                    case 8:
-                        mBoardView.invalidate();
-                        break;
-
-                    case 6:
-                        int direction = intent.getIntExtra("arg1", 0);
-                        mBoardView.scroll(direction);
-                        break;
-                    case 7:
-                        int amount = intent.getIntExtra("arg1", 0);
-                        mBoardView.fadeScreen(amount);
-                        break;
-                    case 14:
-                        int row = intent.getIntExtra("arg1", 0);
-                        byte [] pixels = intent.getByteArrayExtra("arg2").clone();
-                        //l("intent setrow:" + row + "," + BurnerBoard.bytesToHex(pixels));
-                        mBoardView.setRow(row, pixels);
-                        break;
-                    case 15:
-                        int other = intent.getIntExtra("arg1", 0);
-                        byte [] otherPixels = intent.getByteArrayExtra("arg2").clone();
-                        mBoardView.setOtherLight(other, otherPixels);
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-    };
-
-    public void OnSettings(View v) {
-
-        l("MainActivity: settings()");
-
-        // Allow pop-ups; disables aumatic closing of pop up dialogues
-        // which we use in production
-        mIsCustomized = true;
-
-        Intent dialogIntent = new Intent(android.provider.Settings.ACTION_SETTINGS);
-        dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(dialogIntent);
-    }
-
-    // Receive permission if it's being asked for (typically for the first time)
-    private class PermissionReceiver extends BroadcastReceiver {
-        protected static final String GET_USB_PERMISSION = "GetUsbPermission";
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            context.unregisterReceiver(this);
-            if (intent.getAction().equals(GET_USB_PERMISSION)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                    l("USB we got permission");
-                    if (device != null) {
-                        l("Got USB perm receive device==" + device);
-                    } else {
-                        l("USB perm receive device==null");
-                    }
-
-                } else {
-                    l("USB no permission");
-                }
-            }
-        }
-    }
-
 }
-
-

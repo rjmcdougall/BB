@@ -1,19 +1,25 @@
 package com.richardmcdougall.bb;
 
-import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 
-import timber.log.Timber;
+import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.FileHelpers;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MediaManager {
+    private String TAG = this.getClass().getSimpleName();
 
     private static final String DIRECTORY_JSON_FILENAME = "directory.json";
     private static final String DIRECTORY_JSON_TMP_FILENAME = "directory.json.tmp";
@@ -21,14 +27,17 @@ public class MediaManager {
     private static final String DOWNLOAD_DIRECTORY_URL_PATH = "/DownloadDirectoryJSON?APKVersion=";
 
     private BBService service;
-    private JSONObject dataDirectory;
+    public JSONObject dataDirectory;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    private String filesDir = "";
+
 
     private JSONArray audio() {
         JSONArray audio = null;
         try {
             audio = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("audio").toString());
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
         return audio;
     }
@@ -38,18 +47,17 @@ public class MediaManager {
         try {
             video = new JSONArray(service.mediaManager.dataDirectory.getJSONArray("video").toString());
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
         return video;
     }
-
 
     public JSONArray MinimizedAudio() {
 
         // Add audio + video media lists. remove unecessary attributes to reduce ble message length.
         JSONArray audio = audio();
         if (audio() == null) {
-            Timber.d("Could not get audio directory (null)");
+            BLog.d(TAG, "Could not get audio directory (null)");
         } else {
             try {
                 for (int i = 0; i < audio.length(); i++) {
@@ -61,7 +69,7 @@ public class MediaManager {
                 }
 
             } catch (Exception e) {
-                Timber.e("Could not get audio directory: " + e.getMessage());
+                BLog.e(TAG, "Could not get audio directory: " + e.getMessage());
             }
         }
         return audio;
@@ -73,7 +81,7 @@ public class MediaManager {
         JSONArray video = video();
 
         if (video == null) {
-            Timber.d("Could not get video directory (null)");
+            BLog.d(TAG, "Could not get video directory (null)");
         } else {
             try {
                 for (int i = 0; i < video.length(); i++) {
@@ -86,25 +94,20 @@ public class MediaManager {
                 }
 
             } catch (Exception e) {
-                Timber.e("Could not get video directory: " + e.getMessage());
+                BLog.e(TAG, "Could not get video directory: " + e.getMessage());
             }
         }
         return video;
     }
 
-    interface OnDownloadProgressType {
-        void onProgress(String file, long fileSize, long bytesDownloaded);
-
-        void onVoiceCue(String err);
-    }
-
-
-    public OnDownloadProgressType onProgressCallback = null;
+    public FileHelpers.OnDownloadProgressType onProgressCallback = null;
 
     MediaManager(BBService service) {
         this.service = service;
 
-        this.onProgressCallback = new MediaManager.OnDownloadProgressType() {
+        filesDir = service.context.getFilesDir().getAbsolutePath();
+
+        this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
 
             public void onProgress(String file, long fileSize, long bytesDownloaded) {
@@ -116,32 +119,36 @@ public class MediaManager {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    service.voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                    service.speak("Downloading " + file + ", " + percent + " Percent", "downloading");
                     lastTextTime = curTime;
-                    Timber.d("Downloading " + file + ", " + percent + " Percent");
+                    BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
                 }
             }
 
             public void onVoiceCue(String msg) {
-                service.voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+                service.speak(msg, "Download Message");
             }
         };
 
         LoadInitialDataDirectory();  // get started right away using the data we have on the board already (if any)
 
-        Timber.d("Downloading files to: " + service.filesDir);
+        // wait 8 seconds to hopefully get wifi before starting the download.
+        Runnable checkForMedia = () ->  StartDownloadManager();
+        sch.schedule(checkForMedia, 8, TimeUnit.SECONDS);
+
+        BLog.d(TAG, "Downloading files to: " + filesDir);
     }
 
-    void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("MediaManager");
-                StartDownloadManager();
-            }
-        });
-        t.start();
+    public static long hashTrackName(String name) {
+        byte[] encoded = {0, 0, 0, 0};
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            encoded = digest.digest(name.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            return -1;
+        }
+        return (encoded[0] << 24) + (encoded[1] << 16) + (encoded[2] << 8) + encoded[0];
     }
-
 
     public void CleanupOldFiles() {
         try {
@@ -161,7 +168,7 @@ public class MediaManager {
                 }
             }
 
-            File[] flist = new File(service.filesDir).listFiles();
+            File[] flist = new File(filesDir).listFiles();
             for (int i = 0; i < flist.length; i++) {
                 String fname = flist[i].getName();
 
@@ -178,11 +185,11 @@ public class MediaManager {
 
     public void LoadInitialDataDirectory() {
         try {
-            File[] flist = new File(service.filesDir).listFiles();
+            File[] flist = new File(filesDir).listFiles();
             if (flist != null) {
 
                 // if files are no longer referenced in the Data Directory, delete them.
-                String origDir = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, service.filesDir);
+                String origDir = FileHelpers.LoadTextFile(DIRECTORY_JSON_FILENAME, filesDir);
                 if (origDir != null) {
                     JSONObject dir = new JSONObject(origDir);
                     dataDirectory = dir;
@@ -191,7 +198,7 @@ public class MediaManager {
             }
 
         } catch (Throwable e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
             onProgressCallback.onVoiceCue("Error loading media error due to jason error");
         }
     }
@@ -216,7 +223,7 @@ public class MediaManager {
 
             String localName = elm.getString("localName");
             boolean upToDate = false;
-            File dstFile = new File(service.filesDir, localName);
+            File dstFile = new File(filesDir, localName);
 
             if (elm.has("Size")) {
                 long sz = elm.getLong("Size");
@@ -227,7 +234,7 @@ public class MediaManager {
             return upToDate;
 
         } catch (JSONException jse) {
-            Timber.e("Error " + jse.getMessage());
+            BLog.e(TAG, "Error " + jse.getMessage());
             return false;
         }
     }
@@ -237,19 +244,19 @@ public class MediaManager {
         try {
             String localName = elm.getString("localName");
             String url = encodeURL(elm.getString("URL"));
-            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback, service.filesDir);   // download to a "tmp" file
-            File dstFile2 = new File(service.filesDir, localName);   // move to localname so that we can install it
+            FileHelpers.DownloadURL(url, "tmp", localName, onProgressCallback, filesDir);   // download to a "tmp" file
+            File dstFile2 = new File(filesDir, localName);   // move to localname so that we can install it
 
             if (dstFile2.exists())
                 dstFile2.delete();
-            new File(service.filesDir, "tmp").renameTo(dstFile2);
+            new File(filesDir, "tmp").renameTo(dstFile2);
             return true;
 
         } catch (JSONException jse) {
-            Timber.e(jse.getMessage());
+            BLog.e(TAG, jse.getMessage());
             return false;
         } catch (Throwable th) {
-            Timber.e(th.getMessage());
+            BLog.e(TAG, th.getMessage());
             return false;
         }
 
@@ -263,21 +270,28 @@ public class MediaManager {
             DirectoryURL = encodeURL(DirectoryURL) + DOWNLOAD_DIRECTORY_URL_PATH + service.boardState.version;
             boolean returnValue = true;
 
-            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, service.filesDir);
+            long ddsz = FileHelpers.DownloadURL(DirectoryURL, "tmp", "Directory", onProgressCallback, filesDir);
             if (ddsz < 0) {
-                Timber.d("Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
+                BLog.d(TAG, "Unable to Download DirectoryJSON.  Sleeping for 5 seconds. ");
                 returnValue = false;
             } else {
-                Timber.d("Reading Directory from " + DirectoryURL);
+                BLog.d(TAG, "Reading Directory from " + DirectoryURL);
 
-                new File(service.filesDir, "tmp").renameTo(new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME));
+                new File(filesDir, "tmp").renameTo(new File(filesDir, DIRECTORY_JSON_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_TMP_FILENAME, service.filesDir);
+                String dirTxt = FileHelpers.LoadTextFile(DIRECTORY_JSON_TMP_FILENAME, filesDir);
                 JSONObject dir = new JSONObject(dirTxt);
                 String[] dTypes = new String[]{"audio", "video"};
                 JSONArray changedFiles = new JSONArray();
 
-                Timber.d("Downloaded JSON: " + dirTxt);
+                BLog.d(TAG, "Downloaded JSON: " + dirTxt);
+
+                if(dataDirectory == null) {
+                    BLog.d(TAG,"Found First Media.");
+                    if (onProgressCallback != null)
+                        onProgressCallback.onVoiceCue(  "Found First Media");
+                    dataDirectory = dir;
+                }
 
                 // determine changes
                 for (int i = 0; i < dTypes.length; i++) {
@@ -303,7 +317,7 @@ public class MediaManager {
                     if (onProgressCallback != null)
                         onProgressCallback.onVoiceCue(changedFiles.length() + " Media Changes Detected. Downloading.");
                 } else {
-                    Timber.d("No Changes to Directory JSON.");
+                    BLog.d(TAG, "No Changes to Directory JSON.");
                     returnValue = true;
                 }
 
@@ -319,14 +333,14 @@ public class MediaManager {
                         CleanupOldFiles();
                         if (onProgressCallback != null) {
                             String diag = "Finished downloading " + String.valueOf(changedFiles.length()) + " files. Media ready.";
-                            Timber.d(diag);
+                            BLog.d(TAG, diag);
                             onProgressCallback.onVoiceCue(diag);
                         }
                     }
 
                     // Replace the directory object.
                     dataDirectory = dir;
-                    new File(service.filesDir, DIRECTORY_JSON_TMP_FILENAME).renameTo(new File(service.filesDir, DIRECTORY_JSON_FILENAME));
+                    new File(filesDir, DIRECTORY_JSON_TMP_FILENAME).renameTo(new File(filesDir, DIRECTORY_JSON_FILENAME));
 
                 }
             }
@@ -334,10 +348,10 @@ public class MediaManager {
             return returnValue;
 
         } catch (JSONException jse) {
-            Timber.e(jse.getMessage());
+            BLog.e(TAG, jse.getMessage());
             return false;
         } catch (Throwable th) {
-            Timber.e(th.getMessage());
+            BLog.e(TAG, th.getMessage());
             return false;
         }
     }
@@ -375,25 +389,23 @@ public class MediaManager {
         }
     }
 
-
-    String GetAudioFile(int index) {
+    String GetAudioFile() {
         try {
-            String fn = service.filesDir + "/" + GetAudio(index).getString("localName");
+            String fn = filesDir + "/" + GetAudio().getString("localName");
             return fn;
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return null;
         }
     }
 
-
     String GetAudioFileLocalName(int index) {
         if (index >= 0 && index < GetTotalAudio()) {
             try {
-                String fn = GetAudio(index).getString("localName");
+                String fn = GetAudio().getString("localName");
                 return fn;
             } catch (JSONException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else {
@@ -401,22 +413,21 @@ public class MediaManager {
         }
     }
 
-
     String GetVideoFileLocalName(int index) {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
-                if (GetVideo(index).has("friendlyName")) {
-                    fn = GetVideo(index).getString("friendlyName");
+                if (GetVideo().has("friendlyName")) {
+                    fn = GetVideo().getString("friendlyName");
                 } else {
-                    if (GetVideo(index).has("algorithm"))
-                        fn = GetVideo(index).getString("algorithm");
+                    if (GetVideo().has("algorithm"))
+                        fn = GetVideo().getString("algorithm");
                     else
-                        fn = GetVideo(index).getString("localName");
+                        fn = GetVideo().getString("localName");
                 }
                 return fn;
             } catch (JSONException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else {
@@ -426,92 +437,101 @@ public class MediaManager {
 
     public String GetVideoFile(int index) {
         try {
-            String fn = service.filesDir + "/" + GetVideo(index).getString("localName");
+            String fn = filesDir + "/" + GetVideo().getString("localName");
             return fn;
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return null;
         }
     }
 
-
     int GetTotalAudio() {
-        if (dataDirectory == null)
+
+        try {
+            return dataDirectory.getJSONArray("audio").length();
+        } catch (JSONException e) {
+            BLog.e(TAG, e.getMessage());
             return 0;
-        else {
-            try {
-                return dataDirectory.getJSONArray("audio").length();
-            } catch (JSONException e) {
-                Timber.e(e.getMessage());
-                return 0;
-            }
         }
+
+    }
+
+    int GetMapMode() {
+        if (dataDirectory.has("video")) {
+            try {
+                int map = -1;
+                JSONArray j = dataDirectory.getJSONArray("video");
+
+                for (int i = 0; i < j.length(); i++) {
+                    JSONObject v = j.getJSONObject(i);
+                    if(v.has("algorithm")){
+                        String s = v.getString("algorithm");
+                        if(s.equals("modePlayaMap()")){
+                            map = i;
+                        }
+                    }
+                }
+
+                return map;
+            } catch (JSONException e) {
+                BLog.e(TAG, e.getMessage());
+                return -1;
+            }
+        } else
+            return -1;
     }
 
     public int GetTotalVideo() {
-        if (dataDirectory == null)
+        try {
+            return dataDirectory.getJSONArray("video").length();
+        } catch (JSONException e) {
+            BLog.e(TAG, e.getMessage());
             return 0;
-        else {
-            try {
-                return dataDirectory.getJSONArray("video").length();
-            } catch (JSONException e) {
-                Timber.e(e.getMessage());
-                return 0;
-            }
         }
     }
 
-
-    JSONObject GetVideo(int index) {
-        if (dataDirectory == null)
-            return null;
+    JSONObject GetVideo() {
         if (dataDirectory.has("video")) {
             try {
-                return dataDirectory.getJSONArray("video").getJSONObject(index);
+                return dataDirectory.getJSONArray("video").getJSONObject(service.boardState.currentVideoMode);
             } catch (JSONException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else
             return null;
     }
 
-    String GetAlgorithm(int index) {
-        if (dataDirectory == null)
-            return null;
+    String GetAlgorithm() {
         if (dataDirectory.has("video")) {
             try {
-                return dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
+                return dataDirectory.getJSONArray("video").getJSONObject(service.boardState.currentVideoMode).getString("algorithm");
             } catch (JSONException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else
             return null;
     }
 
-    JSONObject GetAudio(int index) {
-        if (dataDirectory == null)
-            return null;
+    JSONObject GetAudio() {
         if (dataDirectory.has("audio")) {
             try {
-                return dataDirectory.getJSONArray("audio").getJSONObject(index);
+                return dataDirectory.getJSONArray("audio").getJSONObject(service.boardState.currentRadioChannel);
             } catch (JSONException e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG, e.getMessage());
                 return null;
             }
         } else
             return null;
     }
 
-    long GetAudioLength(int index) {
+    long GetAudioLength() {
         try {
-            return GetAudio(index).getLong("Length");
+            return GetAudio().getLong("Length");
         } catch (JSONException e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return 1000;   // return a dummy value
         }
     }
 }
-
-

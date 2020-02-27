@@ -35,7 +35,7 @@
             "request": "launch",
             "platform": "android",
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/.vscode/.react"
+            "cwd": "${workspaceRoot}"
         },
         {
             "name": "iOS Device",
@@ -45,10 +45,10 @@
             "platform": "ios",
             "sourceMaps": true,
             "target": "device",
-            "outDir": "${workspaceRoot}/.vscode/.react",
+            "cwd": "${workspaceRoot}",
             "runArguments": [
                 "--device",
-                "dwilson’s iPhone"
+                "iPhone"
             ],
         },
         {
@@ -59,7 +59,7 @@
             "platform": "ios",
             "target": "iPhone 8",
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/.vscode/.react"
+            "cwd": "${workspaceRoot}"
         },
        {
             "name": "Debug iPhone 10",
@@ -69,7 +69,7 @@
             "platform": "ios",
             "target": "iPhone 10",
             "sourceMaps": true,
-            "outDir": "${workspaceRoot}/.vscode/.react"
+            "cwd": "${workspaceRoot}"
         },
         
     ]

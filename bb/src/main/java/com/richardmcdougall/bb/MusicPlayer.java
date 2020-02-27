@@ -1,14 +1,11 @@
 package com.richardmcdougall.bb;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.speech.tts.TextToSpeech;
-import android.support.v4.content.LocalBroadcastManager;
-import timber.log.Timber;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -17,62 +14,59 @@ import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.audio.AudioAttributes;
-
-import android.os.*;
+import com.richardmcdougall.bbcommon.BLog;
 
 public class MusicPlayer implements Runnable {
+    private String TAG = this.getClass().getSimpleName();
 
     private Handler handler;
-    private long lastSeekOffset = 0;
     private long phoneModelAudioLatency = 0;
     private SimpleExoPlayer player = null;
-    private float recallVol = 0;
     private BBService service = null;
-    private int userTimeOffset = 0;
-    private float vol = 0.80f;
     private int nextRadioChannel;
+    private boolean isMuted = false;
 
     MusicPlayer(BBService service) {
         this.service = service;
 
         String model = android.os.Build.MODEL;
 
-        if (BoardState.kIsRPI) { // Nano should be OK
-            phoneModelAudioLatency = 80;
-        } else if (BoardState.kIsNano){
-            phoneModelAudioLatency = 50;
-        }
-        else if (model.equals("imx7d_pico")) {
-            phoneModelAudioLatency = 110;
-        } else {
-            phoneModelAudioLatency = 0;
-            userTimeOffset = 0;
+        switch (service.boardState.platformType) {
+            case npi:
+                phoneModelAudioLatency = 50;
+                break;
+            case rpi:
+                phoneModelAudioLatency = 80;
+                break;
+            case dragonboard:
+                phoneModelAudioLatency = 0;
+                break;
         }
 
         boolean hasLowLatencyFeature =
                 this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY);
 
-       Timber.d("has audio LowLatencyFeature: " + hasLowLatencyFeature);
+        BLog.d(TAG, "has audio LowLatencyFeature: " + hasLowLatencyFeature);
         boolean hasProFeature =
                 this.service.context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_AUDIO_PRO);
-       Timber.d("has audio ProFeature: " + hasProFeature);
+        BLog.d(TAG, "has audio ProFeature: " + hasProFeature);
 
         AudioManager am = (AudioManager) this.service.context.getSystemService(Context.AUDIO_SERVICE);
         String sampleRateStr = am.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         int sampleRate = Integer.parseInt(sampleRateStr);
 
-       Timber.d("audio sampleRate: " + sampleRate);
+        BLog.d(TAG, "audio sampleRate: " + sampleRate);
 
         String framesPerBuffer = am.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
         int framesPerBufferInt = Integer.parseInt(framesPerBuffer);
 
-       Timber.d("audio framesPerBufferInt: " + framesPerBufferInt);
+        BLog.d(TAG, "audio framesPerBufferInt: " + framesPerBufferInt);
 
     }
 
@@ -81,59 +75,82 @@ public class MusicPlayer implements Runnable {
         Looper.prepare();
         handler = new Handler(Looper.myLooper());
 
+        CreateExoplayer();
+
+        Looper.loop();
+    }
+
+    private void CreateExoplayer() {
         player = ExoPlayerFactory.newSimpleInstance(service.context);
         player.setSeekParameters(SeekParameters.EXACT);
 
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onSeekProcessed(EventTime eventTime) {
-               Timber.d("SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
+                BLog.d(TAG, "SeekAndPlay: SeekProcessed realtimeMS:" + eventTime.realtimeMs + " currentPlaybackPositionMs:" + eventTime.currentPlaybackPositionMs);
             }
         });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onSeekStarted(EventTime eventTime) {
-               Timber.d("SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
+                BLog.d(TAG, "SeekAndPlay: SeekStarted realtimeMS:" + eventTime.realtimeMs);
             }
         });
         player.addAnalyticsListener(new AnalyticsListener() {
             @Override
             public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
-               Timber.d("SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
+                BLog.d(TAG, "SeekAndPlay: Playback parameters change speed: " + playbackParameters.speed + " pitch: " + playbackParameters.pitch);
             }
         });
 
-        Looper.loop();
+        BLog.d(TAG, "playing file " + service.mediaManager.GetAudioFile());
+
+        // Produces DataSource instances through which media data is loaded.
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
+                Util.getUserAgent(service.context, "yourApplicationName"));
+
+        String filePath = service.mediaManager.GetAudioFile();
+        Uri uri = Uri.parse("file:///" + filePath);
+
+        // This is the MediaSource representing the media to be played.
+        MediaSource audioSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(uri);
+
+        AudioAttributes a = player.getAudioAttributes();
+
+        AudioAttributes.Builder b = new AudioAttributes.Builder();
+        b.setContentType(C.CONTENT_TYPE_MUSIC);
+        b.setUsage(C.USAGE_MEDIA);
+        player.setAudioAttributes(b.build());
+
+        player.prepare(audioSource, false, false);
+        player.setPlayWhenReady(true);
+        player.setRepeatMode(Player.REPEAT_MODE_ALL);
+        player.setVolume(1);
     }
 
     public void NextStream() {
         nextRadioChannel = service.boardState.currentRadioChannel + 1;
-        if (nextRadioChannel > service.mediaManager.GetTotalAudio())
+        if (nextRadioChannel >= service.mediaManager.GetTotalAudio())
             nextRadioChannel = 0;
 
-        this.handler.post(() -> mSetRadioChannel(nextRadioChannel) );
+        this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
     }
 
     public void PreviousStream() {
         nextRadioChannel = service.boardState.currentRadioChannel - 1;
         if (nextRadioChannel < 0) {
-            nextRadioChannel = 0;
+            nextRadioChannel = service.mediaManager.GetTotalAudio() -1;
         }
-        this.handler.post(() -> mSetRadioChannel(nextRadioChannel) );
+        this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
     }
 
     public void RadioMode() {
-        this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel) );
-    }
-
-   public void MusicOffset(int ms) {
-        userTimeOffset += ms;
-        this.handler.post(() -> mSeekAndPlay() );
-       Timber.d("UserTimeOffset = " + userTimeOffset);
+        this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel));
     }
 
     private long GetCurrentStreamLengthInSeconds() {
-        return service.mediaManager.GetAudioLength(service.boardState.currentRadioChannel - 1);
+        return service.mediaManager.GetAudioLength();
     }
 
     public void SeekAndPlay() {
@@ -143,7 +160,7 @@ public class MusicPlayer implements Runnable {
     private void mSeekAndPlay() {
         if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 
-            long ms = service.CurrentClockAdjusted() + userTimeOffset - phoneModelAudioLatency;
+            long ms = TimeSync.CurrentClockAdjusted() - phoneModelAudioLatency;
 
             long lenInMS = GetCurrentStreamLengthInSeconds() * 1000;
 
@@ -153,9 +170,8 @@ public class MusicPlayer implements Runnable {
 
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
-           Timber.d("SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + service.serverTimeOffset +
-                    " User " + userTimeOffset + " SeekOff " + seekOff +
-                    " RTT " + service.serverRTT + " Strm" + service.boardState.currentRadioChannel);
+            BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + TimeSync.serverTimeOffset +
+                    " SeekOff " + seekOff + " RTT " + TimeSync.serverRoundTripTime + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);
@@ -165,29 +181,14 @@ public class MusicPlayer implements Runnable {
                     player.setPlaybackParameters(param);
 
                 } catch (Throwable err) {
-                    Timber.e("SeekAndPlay Error: " + err.getMessage());
+                    BLog.e(TAG, "SeekAndPlay Error: " + err.getMessage());
                 }
             }
-
-            Intent in = new Intent(ACTION.STATS);
-            in.putExtra("resultCode", Activity.RESULT_OK);
-            in.putExtra("msgType", 1);
-            // Put extras into the intent as usual
-            in.putExtra("seekErr", seekErr);
-            in.putExtra("", service.boardState.currentRadioChannel);
-            in.putExtra("userTimeOffset", userTimeOffset);
-            in.putExtra("serverTimeOffset", service.serverTimeOffset);
-            in.putExtra("serverRTT", service.serverRTT);
-            LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
         }
     }
 
-    public void setVolume(float vol1, float vol2) {
-        player.setVolume(vol1);
-    }
-
     public String getRadioChannelInfo(int index) {
-        return service.mediaManager.GetAudioFileLocalName(index - 1);
+        return service.mediaManager.GetAudioFileLocalName(index);
     }
 
     public int getCurrentBoardVol() {
@@ -195,16 +196,11 @@ public class MusicPlayer implements Runnable {
         return (v);
     }
 
-    public int getBoardVolumePercent() {
-        return getAndroidVolumePercent();
-    }
-
     public void setBoardVolume(int v) {
         if (v >= 0 && v <= 100) {
             setAndroidVolumePercent(v);
-        }
-        else {
-            Timber.e("Invalid Volume Percent: " + v);
+        } else {
+            BLog.e(TAG, "Invalid Volume Percent: " + v);
         }
     }
 
@@ -214,16 +210,26 @@ public class MusicPlayer implements Runnable {
 
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        vol = ((float) volume / (float) maxVolume);
+        float vol = ((float) volume / (float) maxVolume);
         int v = (int) (vol * (float) 100);
         return v;
+    }
+
+    public void Mute() {
+        handler.post(() -> player.setVolume(0f));
+        isMuted = true;
+    }
+
+    public void Unmute() {
+        handler.post(() -> player.setVolume(1f));
+        isMuted = false;
     }
 
     public void setAndroidVolumePercent(int v) {
         AudioManager audioManager =
                 (AudioManager) service.context.getSystemService(Context.AUDIO_SERVICE);
 
-        vol = v / (float) 100;
+        float vol = v / (float) 100;
         int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         int setVolume = (int) ((float) maxVolume * (float) v / (float) 100);
 
@@ -231,32 +237,10 @@ public class MusicPlayer implements Runnable {
                 AudioManager.STREAM_MUSIC,
                 setVolume,
                 0);
-    }
 
-    public void onVolUp() {
-        vol += 0.01;
-        if (vol > 1) vol = 1;
-        setVolume(vol, vol);
-       Timber.d("Volume " + vol * 100.0f + "%");
-    }
-
-    public void onVolDown() {
-        vol -= 0.01;
-        if (vol < 0) vol = 0;
-        setVolume(vol, vol);
-       Timber.d("Volume " + vol * 100.0f + "%");
-    }
-
-    public void onVolPause() {
-        if (vol > 0) {
-            recallVol = vol;
-            vol = 0;
-        } else {
-            vol = recallVol;
-        }
-        setVolume(vol, vol);
-       Timber.d("Volume " + vol * 100.0f + "%");
-    }
+         if(service.boardState.masterRemote)
+             service.masterController.SendVolume();
+     }
 
     public void SetRadioChannel(int index) {
         this.handler.post(() -> mSetRadioChannel(index));
@@ -264,66 +248,37 @@ public class MusicPlayer implements Runnable {
 
     // Set radio input mode 0 = bluetooth, 1-n = tracks
     private void mSetRadioChannel(int index) {
-       Timber.d("SetRadioChannel: " + index);
+        BLog.d(TAG, "SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
         // If I am set to be the master, broadcast to other boards
         if (service.boardState.masterRemote && (service.rfClientServer != null)) {
 
-           Timber.d("Sending remote");
+            BLog.d(TAG, "Sending remote");
 
             String fileName = getRadioChannelInfo(index);
-            service.rfClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, BurnerBoardUtil.hashTrackName(fileName), RFClientServer.kRemoteAudio);
-            // Wait for 1/2 RTT so that we all select the same track/video at the same time
-            try {
-                Thread.sleep(service.rfClientServer.getLatency());
-            } catch (Exception e) {
-            }
+            if(service.boardState.masterRemote)
+                service.masterController.SendAudio();
+
         }
 
         try {
-           Timber.d("Radio Mode");
+            BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
             service.burnerBoard.setText(shortName[0], 2000);
-            if (service.voiceAnnouncements) {
-                service.voice.speak("Track " + index, TextToSpeech.QUEUE_FLUSH, null, "track");
-            }
 
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 
-                lastSeekOffset = 0;
-
-               Timber.d("playing file " + service.mediaManager.GetAudioFile(index - 1));
-
-                // Produces DataSource instances through which media data is loaded.
-                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(service.context,
-                        Util.getUserAgent(service.context, "yourApplicationName"));
-
-                String filePath = service.mediaManager.GetAudioFile(index - 1);
-                Uri uri = Uri.parse("file:///" + filePath);
-
-                // This is the MediaSource representing the media to be played.
-                MediaSource audioSource = new ExtractorMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(uri);
-
-                AudioAttributes a = player.getAudioAttributes();
-
-                AudioAttributes.Builder b = new AudioAttributes.Builder();
-                b.setContentType(C.CONTENT_TYPE_MUSIC);
-                b.setUsage(C.USAGE_MEDIA);
-                player.setAudioAttributes(b.build());
-
-                player.prepare(audioSource, false, false);
-                player.setPlayWhenReady(true);
-                player.setRepeatMode(Player.REPEAT_MODE_ALL);
-                player.setVolume(1);
+                player.release();
+                player = null;
+                CreateExoplayer();
 
                 service.boardVisualization.attachAudio(player.getAudioSessionId());
             }
 
-            this.handler.post(() -> mSeekAndPlay() );
+            this.handler.post(() -> mSeekAndPlay());
         } catch (Throwable err) {
-            Timber.e("Radio mode failed" + err.getMessage());
+            BLog.e(TAG, "Radio mode failed" + err.getMessage());
         }
 
     }

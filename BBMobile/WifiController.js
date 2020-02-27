@@ -3,7 +3,7 @@ import { View, Text, TextInput } from "react-native";
 import PropTypes from "prop-types";
 import Touchable from "react-native-platform-touchable";
 import StyleSheet from "./StyleSheet";
-import ModalDropdown from "react-native-modal-dropdown";
+import ModalDropdown from "./ModalDropdown";
 
 export default class WifiController extends Component {
 	constructor(props) {

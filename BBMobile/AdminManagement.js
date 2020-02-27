@@ -80,7 +80,20 @@ export default class AdminManagement extends Component {
 					<WifiController wifi={this.props.wifi} boardState={this.props.boardState} sendCommand={this.props.sendCommand} />
 					<View style={{ height: 50 }}></View>
 					<DeviceController devices={this.props.devices} boardState={this.props.boardState} mediaType="Device" sendCommand={this.props.sendCommand} />
-					<View style={{ height: 200 }}></View>
+					<View style={{ height: 50 }}></View>
+					<View style={StyleSheet.button}>
+						<Touchable
+							onPress={async () => {
+								await this.props.sendCommand("SetCrisis", !this.props.boardState.r);
+								return true;
+							}}
+							style={[{ backgroundColor: (this.props.boardState.r) ? "red" : "skyblue"  }]}
+							background={Touchable.Ripple("blue")}>
+							<Text style={StyleSheet.buttonTextCenter}> EMERGENCY!
+							</Text>
+						</Touchable>
+					</View>
+					<View style={{ height: 150 }}></View>
 				</ScrollView>
 			</View>
 		);

@@ -1,27 +1,21 @@
 package com.richardmcdougall.bb;
 
-import com.richardmcdougall.bb.visualization.Fire;
-import com.richardmcdougall.bb.visualization.Matrix;
-import com.richardmcdougall.bb.visualization.Mickey;
-
-import com.richardmcdougall.bb.visualization.JosPack;
-import com.richardmcdougall.bb.visualization.*;
-import com.richardmcdougall.bb.visualization.Visualization;
-
 import android.media.audiofx.Visualizer;
 
-import android.speech.tts.TextToSpeech;
-
-import timber.log.Timber;
+import com.richardmcdougall.bb.visualization.AudioBar;
+import com.richardmcdougall.bb.visualization.AudioCenter;
+import com.richardmcdougall.bb.visualization.AudioTile;
+import com.richardmcdougall.bb.visualization.JosPack;
+import com.richardmcdougall.bb.visualization.Matrix;
+import com.richardmcdougall.bb.visualization.PlayaMap;
+import com.richardmcdougall.bb.video.Video;
+import com.richardmcdougall.bb.visualization.Visualization;
+import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import org.json.JSONObject;
 
 import java.util.Random;
-
-/**
- * Created by rmc on 3/8/17.
- */
-
 
 /*
 
@@ -51,114 +45,90 @@ import java.util.Random;
  */
 
 public class BoardVisualization {
-
-    private BBService service;
+    private static final int kNumLevels = 8;
     public Random mRandom = new Random();
     public byte[] mBoardFFT;
-    private int mBoardWidth;
-    private int mBoardHeight;
-    private int[] mBoardScreen;
-
     public int mMultipler4Speed;
-    private boolean inhibitVisual = false;
-    private boolean inhibitVisualGTFO = false;
-
-    private boolean emergencyVisual = false;
-    private boolean showBattery = false;
-    private int mFrameRate;
-    private int batteryCnt = 0;
-
-    public Visualization mVisualizationFire;
     public Visualization mVisualizationMatrix;
     public Visualization mVisualizationTextColors;
-    public Visualization mVisualizationTheMan;
     public Visualization mVisualizationAudioTile;
     public Visualization mVisualizationAudioCenter;
     public Visualization mVisualizationVideo;
-    public Visualization mVisualizationMickey;
     public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
-    public Visualization mVisualizationMeteor;
     public Visualization mVisualizationPlayaMap;
-    public Visualization getmVisualizationSyncLights;
+
+    private int frameCnt = 0;
+    private String TAG = this.getClass().getSimpleName();
+    private BBService service;
+    private int mBoardWidth;
+    private int mBoardHeight;
+    private int[] mBoardScreen;
+    public boolean inhibitVisual = false;
+    public boolean inhibitVisualGTFO = false;
+    public boolean lowBatteryVisual = false;
+    private boolean showBattery = false;
+    private int mFrameRate;
+    private int batteryCnt = 0;
+    private int boardDisplayCnt = 0;
+    private Visualizer mVisualizer;
+    private int mAudioSessionId;
+    private int[] oldLevels = new int[kNumLevels];
+    private int showingMap = 0;
 
     BoardVisualization(BBService service) {
 
         this.service = service;
-       Timber.d("Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.burnerBoard.boardId);
+        BLog.d(TAG, "Starting Board Visualization " + service.burnerBoard.boardType + " on " + service.boardState.BOARD_ID);
 
-        mBoardWidth = service.burnerBoard.getWidth();
-        mBoardHeight = service.burnerBoard.getHeight();
+        mBoardWidth = service.burnerBoard.boardWidth;
+        mBoardHeight = service.burnerBoard.boardHeight;
         mMultipler4Speed = service.burnerBoard.getMultiplier4Speed();
         mBoardScreen = service.burnerBoard.getPixelBuffer();
         mFrameRate = service.burnerBoard.getFrameRate();
 
-       Timber.d("Board framerate set to " + mFrameRate);
+        BLog.d(TAG, "Board framerate set to " + mFrameRate);
 
-        mVisualizationFire = new Fire(service.burnerBoard, this);
-        mVisualizationMatrix = new Matrix(service.burnerBoard, this);
-        mVisualizationTextColors = new TestColors(service.burnerBoard, this);
-        mVisualizationTheMan = new TheMan(service.burnerBoard, this);
-        mVisualizationAudioTile = new AudioTile(service.burnerBoard, this);
-        mVisualizationAudioCenter = new AudioCenter(service.burnerBoard, this);
-        mVisualizationVideo = new Video(service.burnerBoard, this);
-        mVisualizationMickey = new Mickey(service.burnerBoard, this);
-        mVisualizationJosPack = new JosPack(service.burnerBoard, this);
-        mVisualizationAudioBar = new AudioBar(service.burnerBoard, this);
-        mVisualizationMeteor = new Meteor(service.burnerBoard, this);
-        mVisualizationPlayaMap = new PlayaMap(service.burnerBoard, this);
-        getmVisualizationSyncLights = new SyncLights(service.burnerBoard, this);
+        mVisualizationMatrix = new Matrix(service);
+        mVisualizationAudioTile = new AudioTile(service);
+        mVisualizationAudioCenter = new AudioCenter(service);
+        mVisualizationVideo = new Video(service);
+        mVisualizationJosPack = new JosPack(service);
+        mVisualizationAudioBar = new AudioBar(service);
+        mVisualizationPlayaMap = new PlayaMap(service);
 
-        // Start Board Display
-        Thread boardDisplay = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("BB Board Display");
-                boardDisplayThread();
-            }
+    }
+
+    void Run() {
+        Thread t = new Thread(() -> {
+            Thread.currentThread().setName("BB Board Display");
+            boardDisplayThread();
         });
-        boardDisplay.start();
-    }
-
-    private int boardDisplayCnt = 0;
-    private Visualizer mVisualizer;
-    private int mAudioSessionId;
-
-    public void inhibit(boolean inhibit) {
-        inhibitVisual = inhibit;
-    }
-
-    public void inhibitGTFO(boolean inhibit) {
-        inhibitVisualGTFO = inhibit;
-    }
-
-    public void emergency(boolean emergency) {
-        emergencyVisual = emergency;
+        t.start();
     }
 
     public void showBattery(boolean show) {
         showBattery = show;
-    }
-
-    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
+    }    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = service.boardState.currentVideoMode + 1;
-        if (next > service.mediaManager.GetTotalVideo()) {
-            next = 1;
+        if (next >= service.mediaManager.GetTotalVideo()) {
+            next = 0;
         }
-        Timber.d("Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next - 1));
+        BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next));
         service.boardVisualization.setMode(next);
     }
 
     public void attachAudio(int audioSessionId) {
         int vSize;
 
-        Timber.d("session=" + audioSessionId);
+        BLog.d(TAG, "session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
 
         try {
             if (mVisualizer != null) {
-                //mVisualizer.release();
+                mVisualizer.release();
             }
             mVisualizer = new Visualizer(audioSessionId);
             synchronized (mVisualizer) {
@@ -170,11 +140,10 @@ public class BoardVisualization {
                 mVisualizer.setEnabled(true);
             }
         } catch (Exception e) {
-            Timber.e("Error enabling visualizer: " + e.getMessage());
-            //System.out.println("Error enabling visualizer:" + e.getMessage());
+            BLog.e(TAG, "Error enabling visualizer: " + e.getMessage());
             return;
         }
-        Timber.d("Enabled visualizer with " + vSize + " bytes");
+        BLog.d(TAG, "Enabled visualizer with " + vSize + " bytes");
     }
 
     public int displayAlgorithm(String algorithm) {
@@ -190,12 +159,6 @@ public class BoardVisualization {
                 mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
                 break;
 
-            case "modeMatrix(kMatrixReverse)":
-                frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kMatrixReverse);
-
-                break;
-
             case "modeMatrix(kMatrixLunarian)":
                 frameRate = mFrameRate;
                 mVisualizationMatrix.update(Matrix.kMatrixLunarian);
@@ -204,21 +167,6 @@ public class BoardVisualization {
             case "modeAudioCenter()":
                 frameRate = mFrameRate;
                 mVisualizationAudioCenter.update(Visualization.kDefault);
-                break;
-
-            case "modeFire(kModeFireNormal)":
-                frameRate = mFrameRate * 3;
-                mVisualizationFire.update(Fire.kModeFireNormal);
-                break;
-
-            case "modeFire(kModeFireDistrikt)":
-                frameRate = mFrameRate * 3;
-                mVisualizationFire.update(Fire.kModeFireDistrikt);
-                break;
-
-            case "modeFire(kModeFireTheMan)":
-                frameRate = mFrameRate * 3;
-                mVisualizationFire.update(Fire.kModeFireTheMan);
                 break;
 
             case "modeAudioBarV()":
@@ -234,36 +182,6 @@ public class BoardVisualization {
             case "modeAudioTile()":
                 frameRate = mFrameRate;
                 mVisualizationAudioTile.update(Matrix.kDefault);
-                break;
-
-            case "modeMeteor()":
-                frameRate = mFrameRate;
-                mVisualizationMeteor.update(Matrix.kDefault);
-                break;
-
-            case "MickeyGold()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyGold);
-                break;
-
-            case "MickeySparkle()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeySparkle);
-                break;
-
-            case "MickeyColors()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyColors);
-                break;
-
-            case "MickeyBlueGold()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyBlueGold);
-                break;
-
-            case "modeMickeyBlank()":
-                frameRate = mFrameRate;
-                mVisualizationMickey.update(Mickey.kMickeyBlank);
                 break;
 
             // JosPack visualizations go here
@@ -309,51 +227,38 @@ public class BoardVisualization {
                 mVisualizationPlayaMap.update(Visualization.kDefault);
                 break;
 
-            case "modeSyncLights()":
-                frameRate = mFrameRate;
-                getmVisualizationSyncLights.update(Visualization.kDefault);
-                break;
-
             default:
-                // This would print once per frame, which can easily flood log buffers. Only
-                // uncomment in extreme debugging cases! -jib
-                //Log.d(TAG, "Could not find visualization algorithm: " + algorithm);
-                break;
+                 break;
 
         }
         return frameRate;
     }
 
-    long debugCnt = 0;
-
-    // Main thread to drive the Board's display & get status (mode, voltage,...)
+// Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
         long lastFrameTime = System.currentTimeMillis();
         int frameRate = 11;
 
-        Timber.d("Starting board display thread...");
-
-        int nVideos = service.mediaManager.GetTotalVideo();
+        BLog.d(TAG, "Starting board display thread...");
 
         while (true) {
 
             // Power saving when board top not turned on
             if (inhibitVisual || inhibitVisualGTFO) {
-                Timber.d("inhibit");
+                BLog.d(TAG, "inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.showBattery();
                 service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    Timber.e(er.getMessage());
                 }
                 continue;
             }
 
-            if (emergencyVisual) {
-                Timber.d("inhibit");
+            if (lowBatteryVisual) {
+                BLog.d(TAG, "inhibit");
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
                 service.burnerBoard.showBattery();
@@ -361,12 +266,10 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
-                    Timber.e(er.getMessage());
                 }
                 continue;
             }
 
-            // TODO: render our own battery here rather than rely on firmware to do it.
             if (showBattery) {
                 if (batteryCnt % mFrameRate == 0) {
                     service.burnerBoard.showBattery();
@@ -375,12 +278,24 @@ public class BoardVisualization {
             }
 
             if (showingMap > 0) {
-                frameRate = mFrameRate;
                 mVisualizationPlayaMap.update(Visualization.kDefault);
                 showingMap -= 1;
                 continue;
             }
 
+            if (service.remoteCrisisController.boardInCrisisPhase == 1
+            || service.localCrisisController.boardInCrisisPhase == 1) {
+
+                service.burnerBoard.clearPixels();
+                service.burnerBoard.fillScreen(255, 0, 0);
+
+                service.burnerBoard.flush();
+                try {
+                } catch (Throwable er) {
+                }
+                continue;
+            }
+            
             frameRate = runVisualization(service.boardState.currentVideoMode);
 
             long frameTime = 1000 / frameRate;
@@ -391,31 +306,23 @@ public class BoardVisualization {
                 try {
                     Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
-                    Timber.e(er.getMessage());
+                    BLog.e(TAG, er.getMessage());
                 }
             }
 
             lastFrameTime = System.currentTimeMillis();
 
             boardDisplayCnt++;
-            if (boardDisplayCnt > 1000) {
-                //updateStatus();
-            }
         }
 
     }
 
-
-    int frameCnt = 0;
-
     int runVisualization(int mode) {
 
-        try {
-            mode += -1;
-
+         try {
             frameCnt++;
             if (frameCnt % 100 == 0) {
-                Timber.d("Frames: " + frameCnt);
+                BLog.d(TAG, "Frames: " + frameCnt);
             }
 
             if (mode < 0) {
@@ -426,27 +333,25 @@ public class BoardVisualization {
                 return mFrameRate;
             }
 
-            // TODO: check perf overhead of checking this every frame
-            JSONObject videos = service.mediaManager.GetVideo(mode);
+            JSONObject videos = service.mediaManager.GetVideo();
             if (videos == null) {
                 return mFrameRate;
             }
             if (videos.has("algorithm")) {
-                String algorithm = service.mediaManager.GetAlgorithm(mode);
+                String algorithm = service.mediaManager.GetAlgorithm();
                 return displayAlgorithm(algorithm);
             } else {
-                if (BoardState.kIsRPI) { // nano is fine
+                if (service.boardState.platformType == BoardState.PlatformType.rpi) {
                     return mFrameRate;
                 }
                 mVisualizationVideo.update(mode);
                 return mFrameRate;
             }
         } catch (Exception e) {
-            Timber.e(e.getMessage());
+            BLog.e(TAG, e.getMessage());
             return mFrameRate;
         }
     }
-
 
     // Get levels from Android visualizer engine
     // 16 int buckets of frequency levels from low to high
@@ -485,9 +390,6 @@ public class BoardVisualization {
         }
     }
 
-    private static final int kNumLevels = 8;
-    private int[] oldLevels = new int[kNumLevels];
-
     public int getLevel() {
 
         int level = 0;
@@ -506,17 +408,14 @@ public class BoardVisualization {
         return level;
     }
 
-    private int showingMap = 0;
-
     public void showMap() {
         showingMap = mFrameRate * 15;
     }
 
-
     public void setMode(int mode) {
 
         // Likely not connected to physical burner board, fallback
-        if (mode == 99) {
+         if (mode == 99) {
             service.boardState.currentVideoMode++;
         } else if (mode == 98) {
             service.boardState.currentVideoMode--;
@@ -525,30 +424,20 @@ public class BoardVisualization {
         }
 
         int maxModes = service.mediaManager.GetTotalVideo();
-        if (service.boardState.currentVideoMode > maxModes)
-            service.boardState.currentVideoMode = 1;
-        else if (service.boardState.currentVideoMode < 1)
-            service.boardState.currentVideoMode = maxModes;
+        if (service.boardState.currentVideoMode >= maxModes)
+            service.boardState.currentVideoMode = 0;
+        else if (service.boardState.currentVideoMode < 0)
+            service.boardState.currentVideoMode = maxModes-1;
 
-        // If I am set to be the master, broadcast to other boards
-        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
+            if (service.boardState.masterRemote)
+            service.masterController.SendVideo();
 
-            String name = service.mediaManager.GetVideoFileLocalName(service.boardState.currentVideoMode - 1);
-            Timber.d("Sending video remote for video " + name);
-            service.rfClientServer.sendRemote(RFUtil.REMOTE_VIDEO_TRACK_CODE, BurnerBoardUtil.hashTrackName(name), RFClientServer.kRemoteVideo);
-        }
+        BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
 
-        if (service.burnerBoard != null) {
-            Timber.d("Setting visualization mode to: " + service.boardState.currentVideoMode);
+        service.burnerBoard.resetParams();
+        service.burnerBoard.clearPixels();
 
-            service.burnerBoard.resetParams();
-            service.burnerBoard.clearPixels();
-            service.burnerBoard.setMode(service.boardState.currentVideoMode);
-        }
-
-        if (service.voiceAnnouncements) {
-            service.voice.speak("mode" + service.boardState.currentVideoMode, TextToSpeech.QUEUE_FLUSH, null, "mode");
-        }
+        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000);
     }
 
 }

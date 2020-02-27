@@ -82,8 +82,7 @@ public class InputManagerV16 implements InputManagerCompat {
     @Override
     public void unregisterInputDeviceListener(InputDeviceListener listener) {
         V16InputDeviceListener curListener = mListeners.remove(listener);
-        if (null != curListener)
-        {
+        if (null != curListener) {
             mInputManager.unregisterInputDeviceListener(curListener);
         }
 

@@ -10,275 +10,12 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_height="wrap_content">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/bb_status"
-        android:textSize="10sp"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-        android:textAppearance="?android:attr/textAppearanceSmallpro" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:textSize="10sp"
-        android:layout_height="wrap_content"
-        android:text="@string/bb_status_disconnected"
-        android:id="@+id/textViewStatus"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-    </LinearLayout>
+        android:layout_height="wrap_content"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="horizontal"
-        android:layout_height="wrap_content">
-        <TextView
-            android:textSize="10sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/bb_syncstatus"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:textSize="10sp"
-            android:layout_height="wrap_content"
-            android:text="@string/bb_status_disconnected"
-            android:id="@+id/textViewsyncstatus"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-    </LinearLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:text="@string/bb_synctrack"
-            android:textSize="10sp"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textSize="10sp"
-            android:id="@+id/textViewsynctrack"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="@string/bb_syncusroff"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0"
-            android:id="@+id/textViewsyncusroff"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="@string/bb_syncadjust"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0"
-            android:id="@+id/textViewsyncadjust"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="@string/bb_syncpeers"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0"
-            android:id="@+id/textViewsyncpeers"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:text="@string/bb_syncsrvoff"
-            android:textSize="10sp"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0"
-            android:id="@+id/textViewsyncsrvoff"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:text="@string/bb_syncrtt"
-            android:textSize="10sp"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0"
-            android:id="@+id/textViewsyncrtt"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:text="@string/bb_syncreplies"
-            android:textSize="10sp"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0"
-            android:id="@+id/textViewsyncreplies"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-
-
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="@string/bb_voltage"
-            android:textStyle="normal"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_width="wrap_content" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:text="0.0v"
-            android:id="@+id/textViewVoltage"
-            android:textStyle="normal"
-            android:gravity="right"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_alignParentRight="true"
-            android:paddingRight="10dp" />
-
-    </RelativeLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:orientation="horizontal"
-        android:layout_height="wrap_content">
-
-        <Switch
-            android:id="@+id/switchHeadlight"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:layout_weight="1"
-            android:showText="true"
-            android:text="@string/bb_headlight" />
-
-    </LinearLayout>
-
-
-
-
+        android:layout_height="wrap_content"/>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -291,9 +28,6 @@
             android:textSize="10sp"
             android:text="Lights Mode"
             android:id="@+id/textView" />
-
-
-
         <Button
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
@@ -315,18 +49,7 @@
             android:text="+"
             android:id="@+id/modeUpbutton"
             android:onClick="onModeUp" />
-
-        <Button
-            android:id="@+id/Settings"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:onClick="OnSettings"
-            android:text="Settings" />
-
     </LinearLayout>
-
-
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -338,24 +61,6 @@
         android:text="Next Track"
         android:layout_weight="1"
         android:onClick="onNextTrack" />
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="--"
-        android:layout_weight="1"
-        android:onClick="onVolDown" />
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="||"
-        android:layout_weight="1"
-        android:onClick="onVolPause" />
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="++"
-        android:layout_weight="1"
-        android:onClick="onVolUp" />
     </LinearLayout>
 
     <LinearLayout
@@ -363,25 +68,10 @@
         android:layout_height="fill_parent"
         android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/editTextLog"
-            android:layout_width="match_parent"
-            android:layout_height="154dp"
-            android:layout_gravity="top"
-            android:layout_weight="0.16"
-            android:editable="false"
-            android:ems="10"
-            android:inputType="textMultiLine"
-            android:maxLines="6"
-            android:minLines="4"
-            android:nestedScrollingEnabled="true"
-            android:scrollIndicators="right"
-            android:textSize="10dp" />
-
         <com.richardmcdougall.bb.BoardView
             android:id="@+id/myBoardview"
             android:layout_width="match_parent"
-            android:layout_height="80dp" />
+            android:layout_height="500dp" />
 
     </LinearLayout>
 

@@ -9,25 +9,26 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 
-import timber.log.Timber;
+import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class BluetoothReceiver extends BroadcastReceiver {
+    private String TAG = this.getClass().getSimpleName();
 
     private BBService service = null;
 
-    // RPIs don't always have a screen; use beeps -jib
-    public static final boolean kBeepOnConnect = BoardState.kIsRPI; // Not Done IsNano
+    public boolean kBeepOnConnect = false;
 
     BluetoothReceiver(BBService service) {
         this.service = service;
+        kBeepOnConnect = (service.boardState.platformType == BoardState.PlatformType.rpi);
     }
 
     public void onReceive(Context context, Intent intent) {
 
-        Timber.d("Bluetooth connected");
+        BLog.d(TAG, "Bluetooth connected");
 
         String action = intent.getAction();
-        //BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
         if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
             try {
@@ -46,7 +47,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     }
                 }, 3000);
             } catch (Exception e) {
-                Timber.e(e.getMessage());
+                BLog.e(TAG, e.getMessage());
             }
         }
     }

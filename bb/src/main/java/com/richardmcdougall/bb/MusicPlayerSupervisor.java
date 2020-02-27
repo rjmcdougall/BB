@@ -1,66 +1,39 @@
 package com.richardmcdougall.bb;
 
-import timber.log.Timber;
+import com.richardmcdougall.bbcommon.BLog;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MusicPlayerSupervisor {
+    private String TAG = this.getClass().getSimpleName();
 
-    private int musicState = 0;
     private BBService service;
 
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
     MusicPlayerSupervisor(BBService service) {
+
         this.service = service;
+
+        sch.schedule(setChannel, 1, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(seekAndPlay, 2, 1, TimeUnit.SECONDS);
     }
 
-    public void Run() {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Thread.currentThread().setName("BB Music Player");
-                Timber.i("Starting Music Supervisor");
-                SupervisorThread();
-            }
-        });
-        t.start();
-    }
-
-    void SupervisorThread() {
-        while (true) {
-            switch (musicState) {
-                case 0:
-                    if (service.mediaManager.GetTotalAudio() != 0) {
-                        musicState = 1;
-
-                        service.musicPlayer.RadioMode();
-
-                    } else {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (Throwable e) {
-                        }
-                    }
-                    break;
-
-                case 1:
-                    service.musicPlayer.SeekAndPlay();
-
-                    try {
-                        // RMC try 15 seconds instead of 1
-                        Thread.sleep(1000);
-                    } catch (Throwable e) {
-                    }
-                    if (service.boardState.currentRadioChannel == 0) {
-                        musicState = 2;
-                    }
-                    break;
-
-                case 2:
-                    if (service.boardState.currentRadioChannel != 0) {
-                        musicState = 1;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
+    Runnable seekAndPlay = () -> {
+        try{
+            service.musicPlayer.SeekAndPlay();
+        }catch(Exception e){
+            BLog.e(TAG, e.getMessage());
         }
-    }
+    };
+
+    Runnable setChannel = () -> {
+        try{
+            service.musicPlayer.RadioMode();
+        }catch(Exception e){
+            BLog.e(TAG, e.getMessage());
+        }
+    };
 }
