@@ -21,16 +21,16 @@ public class DebugConfigs {
         add("RF");
         add("RFClientServer");
         add("Favorites");
-        add("AllBoards");
+        //add("AllBoards");
         add("MediaManager");
         add("BBWifi");
-        add("BoardState");
+        //add("BoardState");
         add("BluetoothCommands");
         add("BluetoothLEServer");
         add("ContentProvider");
-        add("BoardVisualization");
-        add("BurnerBoardUtil");
-        add("BurnerBoardAzul");
+        //add("BoardVisualization");
+        //add("BurnerBoardUtil");
+        //add("BurnerBoardAzul");
         add("BurnerBoardPanel");
         add("BurnerBoardClassic");
         add("BurnerBoardDirectMap");
@@ -45,7 +45,7 @@ public class DebugConfigs {
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
-    public static final BurnerBoardUtil.BoardType OVERRIDE_BOARD_TYPE = null;
+    public static final BurnerBoardUtil.BoardType OVERRIDE_BOARD_TYPE = BurnerBoardUtil.BoardType.wspanel;
 
     //bypass the per-second music sync because of debug perf issues
     public static final boolean BYPASS_MUSIC_SYNC = false;

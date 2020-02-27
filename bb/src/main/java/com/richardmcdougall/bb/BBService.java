@@ -83,7 +83,7 @@ public class BBService extends Service {
 
             super.onCreate();
 
-            if (BuildConfig.DEBUG) {
+            if (true | BuildConfig.DEBUG) {
                 Timber.plant(new LoggingTree(this));
             }
 

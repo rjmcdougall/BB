@@ -48,7 +48,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         super(service);
         mBoardWidth = 46;
         mBoardHeight = 118;
-        mMultipler4Speed = 2;
+        mMultipler4Speed = 1;  //2
         boardId = service.boardState.BOARD_ID;
         boardType = "Burner Board Azul";
        Timber.d("Burner Board Azul initing...");
@@ -98,7 +98,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 18;
+        return 45;
     }
 
 
@@ -277,7 +277,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             }
             setStrip(s, stripPixels, powerLimitMultiplierPercent);
             // Send to board
-            flush2Board();
+            //flush2Board();
         }
         // Render on board
         update();

@@ -16,6 +16,7 @@ public class BurnerBoardUtil {
         classic("classic"),
         boombox("boombox"),
         backpack("backpack"),
+        wspanel("wspanel"),
         unknown("unknown");
 
         private String stringValue;

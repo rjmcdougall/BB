@@ -68,7 +68,7 @@ public class BurnerBoard {
     public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
     public int [] mBatteryStats = new int[16];
-    public static int [][][] pixel2OffsetTable = new int[255][255][3];
+    public static int [][][] pixel2OffsetTable = new int[512][512][3];
     public int mDimmerLevel = 255;
 
     public BurnerBoard(BBService service) {
@@ -163,6 +163,7 @@ public class BurnerBoard {
     }
 
     protected void initPixelOffset() {
+        Timber.d("init " + mBoardWidth + "," + mBoardHeight);
         for (int x = 0; x < mBoardWidth; x++) {
             for (int y = 0; y < mBoardHeight; y++) {
                 for (int rgb = 0; rgb < 3; rgb++) {
@@ -669,7 +670,7 @@ public class BurnerBoard {
                 // Perf Tests thare are useful during debugging
                 //setMode(50);
                 //testTeensy();
-                //testPerf();
+                testPerf();
             }
         }
     }
@@ -1058,6 +1059,10 @@ public class BurnerBoard {
                 case panel:
                     Timber.d( "Visualization: Using Panel");
                     burnerBoard = new BurnerBoardPanel(service);
+                    break;
+                case wspanel:
+                    Timber.d( "Visualization: Using WSPanel");
+                    burnerBoard = new BurnerBoardWSPanel(service);
                     break;
                 case backpack:
                     Timber.d( "Visualization: Using Direct Map");
