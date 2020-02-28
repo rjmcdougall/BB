@@ -45,7 +45,8 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    public static int[][][] pixel2OffsetTable = new int[255][255][3];
+    // Max board pixel size limited by the following: need to make dynamic, or adjustable.
+    public static int[][][] pixel2OffsetTable = new int[512][512][3];
     private static String TAG = "BurnerBoard";
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;

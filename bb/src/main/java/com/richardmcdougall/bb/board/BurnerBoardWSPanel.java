@@ -1,8 +1,15 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.board;
+
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.CmdMessenger;
 
 import java.nio.IntBuffer;
 
-import timber.log.Timber;
+import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bbcommon.BoardState;
+import com.richardmcdougall.bb.CmdMessenger;
+import com.richardmcdougall.bbcommon.BLog;
+
 
 /**
  * Created by rmc on 7/25/17.
@@ -38,54 +45,38 @@ import timber.log.Timber;
 
 
 public class BurnerBoardWSPanel extends BurnerBoard {
+
+    private static final String TAG = "BB.BurnerBoardWSPanel";
+
     public BurnerBoardWSPanel(BBService service) {
         super(service);
-        mBoardWidth = 32;
-        mBoardHeight = 32;
-        mMultipler4Speed = 3;
-        boardId = service.boardState.BOARD_ID;
+        boardWidth = 32;
+        boardHeight = 32;
         boardType = "Burner Board WSPanel";
-        Timber.d("Burner Board WSPanel initting...");
-        mBoardScreen = new int[mBoardWidth * mBoardHeight * 3];
-        Timber.d("Burner Board WSPanel initPixelOffset...");
+        BLog.d(TAG, "Burner Board WSPanel initting...");
+        mBoardScreen = new int[boardWidth * boardHeight * 3];
+        BLog.d(TAG, "Burner Board WSPanel initPixelOffset...");
         initPixelOffset();
-        Timber.d("Burner Board WSPanel initpixelMap2Board...");
+        BLog.d(TAG, "Burner Board WSPanel initpixelMap2Board...");
         initpixelMap2Board();
-        Timber.d("Burner Board WSPanel initUsb...");
+        BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
-        mTextBuffer = IntBuffer.allocate(mBoardWidth * mBoardHeight * 4);
+        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
     }
 
     public int getFrameRate() {
         return 50;
     }
 
+    public int getMultiplier4Speed() {
+        if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
+            return 1; // dkw need to config this
+        else
+            return 2; // dkw need to config this
+
+    }
+
     public void start() {
-
-        // attach default cmdMessenger callback
-        BoardCallbackDefault defaultCallback =
-                new BoardCallbackDefault();
-        mListener.attach(defaultCallback);
-
-        // attach Test cmdMessenger callback
-        BoardCallbackTest testCallback =
-                new BoardCallbackTest();
-        mListener.attach(5, testCallback);
-
-        // attach Mode cmdMessenger callback
-        BoardCallbackMode modeCallback =
-                new BoardCallbackMode();
-        mListener.attach(4, modeCallback);
-
-        // attach Board ID cmdMessenger callback
-        BoardCallbackBoardID boardIDCallback =
-                new BoardCallbackBoardID();
-        mListener.attach(11, boardIDCallback);
-
-        // attach echoRow cmdMessenger callback
-        BoardCallbackEchoRow echoCallback =
-                new BoardCallbackEchoRow();
-        mListener.attach(17, echoCallback);
 
         // attach getBatteryLevel cmdMessenger callback
         BurnerBoardWSPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
@@ -104,7 +95,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             } else {
                 service.boardState.batteryLevel = 100;
             }
-            Timber.d("getBatteryLevel: " + service.boardState.batteryLevel);
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 
@@ -114,8 +105,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -125,8 +116,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
@@ -145,8 +136,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             return;
         }
         if (down) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight - 1; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight - 1; y++) {
                     if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
@@ -160,8 +151,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                 }
             }
         } else {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = mBoardHeight - 2; y >= 0; y--) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = boardHeight - 2; y >= 0; y--) {
                     mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
                     mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
@@ -191,7 +182,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             int elapsedTime = (int) (System.currentTimeMillis() - lastFlushTime);
             lastFlushTime = System.currentTimeMillis();
 
-            Timber.d("Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+            BLog.d(TAG, "Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
                     (flushCnt * 1000 / elapsedTime) + " frames/sec");
             flushCnt = 0;
         }
@@ -225,11 +216,11 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
             powerLimitMultiplierPercent = 100 - Math.max(powerPercent - 50, 0);
 
-            int[] rowPixels = new int[mBoardWidth * 3];
-            for (int y = 0; y < mBoardHeight; y++) {
+            int[] rowPixels = new int[boardWidth * 3];
+            for (int y = 0; y < boardHeight; y++) {
                 //for (int y = 30; y < 31; y++) {
-                for (int x = 0; x < mBoardWidth; x++) {
-                    if (y < mBoardHeight) {
+                for (int x = 0; x < boardWidth; x++) {
+                    if (y < boardHeight) {
                         rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
                         rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
                         rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
@@ -241,7 +232,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
             // Walk through each strip and fill from the graphics buffer
             for (int s = 0; s < kStrips; s++) {
-                //Timber.d("strip:" + s);
+                //BLog.d(TAG, "strip:" + s);
                 int[] stripPixels = new int[kPanelHeight * 3 * kSubStrips];
                 // Walk through all the pixels in the strip
                 for (int offset = 0; offset < kPanelHeight * 3 * kSubStrips; ) {
@@ -293,7 +284,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public void showBattery() {
 
         sendVisual(9);
-        Timber.d("sendCommand: 7");
+        BLog.d(TAG, "sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);
             mListener.sendCmdEnd();
@@ -336,11 +327,11 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
         pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_RED);
+                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
         pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_GREEN);
+                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
         pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(mBoardWidth - 1 - x, mBoardHeight - 1 - y, PIXEL_BLUE);
+                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
 
@@ -348,18 +339,18 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     static int kPanelHeight = 8;
     static int kPanelWidth = 32;
     static boolean kStackedend = false;
-    static int kStrips = 32 / kPanelHeight; //mBoardHeight / panel height
+    static int kStrips = 32 / kPanelHeight; //boardHeight / panel height
     static int kSubStrips = kPanelWidth;
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;
 
     private void initpixelMap2Board() {
 
-        Timber.d("initmap");
+        BLog.d(TAG, "initmap");
 
         if (kStackedend) {
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight; y++) {
 
                     final int subStrip = x % kSubStrips;
                     final int stripNo = x / kSubStrips;
@@ -367,28 +358,28 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                     int stripOffset;
 
                     if (stripUp) {
-                        stripOffset = subStrip * mBoardHeight + y;
+                        stripOffset = subStrip * boardHeight + y;
                     } else {
-                        stripOffset = subStrip * mBoardHeight + (mBoardHeight - 1 - y);
+                        stripOffset = subStrip * boardHeight + (boardHeight - 1 - y);
                     }
-                    Timber.d("pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
+                    BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
                     pixelRemap(x, y, stripNo, stripOffset * 3);
                 }
 
             }
         } else {
 
-            for (int x = 0; x < mBoardWidth; x++) {
-                for (int y = 0; y < mBoardHeight; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                for (int y = 0; y < boardHeight; y++) {
 
-                    final int nStacks = mBoardHeight / kPanelHeight;
+                    final int nStacks = boardHeight / kPanelHeight;
                     final int subStrip = x % kSubStrips;
                     final int stripNo = y / kPanelHeight;
                     final boolean stripUp = subStrip % 2 == 0;
                     final int panelY = y % kPanelHeight;
 
-                    if (mBoardHeight < kPanelHeight) {
-                        Timber.e("Board dims wrong");
+                    if (boardHeight < kPanelHeight) {
+                        BLog.d(TAG, "Board dims wrong");
                     }
                     int stripOffset;
 
@@ -397,7 +388,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                     } else {
                         stripOffset = subStrip * kPanelHeight + (kPanelHeight - 1 - panelY);
                     }
-                    Timber.d("pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
+                    BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
                     pixelRemap(x, y, stripNo, stripOffset * 3);
                 }
 
