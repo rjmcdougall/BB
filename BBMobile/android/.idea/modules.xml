@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../node_modules/@react-native-community/async-storage/android/@react-native-community_async-storage.iml" filepath="$PROJECT_DIR$/../node_modules/@react-native-community/async-storage/android/@react-native-community_async-storage.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../node_modules/@react-native-community/slider/android/@react-native-community_slider.iml" filepath="$PROJECT_DIR$/../node_modules/@react-native-community/slider/android/@react-native-community_slider.iml" />
       <module fileurl="file://$PROJECT_DIR$/../node_modules/@react-native-mapbox-gl/maps/android/rctmgl/@react-native-mapbox-gl_maps.iml" filepath="$PROJECT_DIR$/../node_modules/@react-native-mapbox-gl/maps/android/rctmgl/@react-native-mapbox-gl_maps.iml" />
       <module fileurl="file://$PROJECT_DIR$/BBMobile.iml" filepath="$PROJECT_DIR$/BBMobile.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />

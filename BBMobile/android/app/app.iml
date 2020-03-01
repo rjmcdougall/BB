@@ -141,18 +141,7 @@
     <orderEntry type="library" name="Gradle: com.facebook.fresco:imagepipeline-okhttp3:2.0.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: org.webkit:android-jsc:r245459@aar" level="project" />
     <orderEntry type="library" name="Gradle: cn.aigestudio.wheelpicker:WheelPicker:1.0.3@aar" level="project" />
-    <orderEntry type="module" module-name="react-native-wheel-picker" />
-    <orderEntry type="module" module-name="@react-native-community_async-storage" />
-    <orderEntry type="module" module-name="@react-native-mapbox-gl_maps" />
-    <orderEntry type="module" module-name="react-native-ble-manager" />
-    <orderEntry type="module" module-name="react-native-fs" />
-    <orderEntry type="module" module-name="react-native-vector-icons" />
-    <orderEntry type="module" module-name="react-native-wheel-picker" />
-    <orderEntry type="module" module-name="@react-native-community_async-storage" />
-    <orderEntry type="module" module-name="@react-native-mapbox-gl_maps" />
-    <orderEntry type="module" module-name="react-native-ble-manager" />
-    <orderEntry type="module" module-name="react-native-fs" />
-    <orderEntry type="module" module-name="react-native-vector-icons" />
+    <orderEntry type="module" module-name="@react-native-community_slider" />
     <orderEntry type="module" module-name="react-native-wheel-picker" />
     <orderEntry type="module" module-name="@react-native-community_async-storage" />
     <orderEntry type="module" module-name="@react-native-mapbox-gl_maps" />

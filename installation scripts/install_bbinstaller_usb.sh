@@ -1,6 +1,7 @@
 
 
 ~/Library/Android/sdk/platform-tools/adb root
+~/Library/Android/sdk/platform-tools/adb disable-verity
 ~/Library/Android/sdk/platform-tools/adb remount
 ~/Library/Android/sdk/platform-tools/adb shell rm -r /system/priv-app/com.richardmcdougall.bb*
 ~/Library/Android/sdk/platform-tools/adb reboot

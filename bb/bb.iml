@@ -110,5 +110,7 @@
     <orderEntry type="library" name="Gradle: com.google.android.exoplayer:exoplayer-smoothstreaming:2.9.0@aar" level="project" />
     <orderEntry type="library" name="Gradle: com.google.android.exoplayer:exoplayer-ui:2.9.0@aar" level="project" />
     <orderEntry type="module" module-name="bbcommon" />
+    <orderEntry type="module" module-name="bbcommon" />
+    <orderEntry type="module" module-name="bbcommon" />
   </component>
 </module>
