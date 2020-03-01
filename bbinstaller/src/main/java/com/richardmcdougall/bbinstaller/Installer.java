@@ -141,6 +141,7 @@ public class Installer extends Service {
         try {
 
             int currentBBVersion = getBBversion();
+            BLog.i(TAG,"Running Installer Check targetAPK:" + boardState.targetAPKVersion + "currentBBVersion: " + currentBBVersion);
 
             if (boardState.targetAPKVersion > 0 && boardState.targetAPKVersion != currentBBVersion) {
                 String apkFile = null;
