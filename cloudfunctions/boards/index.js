@@ -2,7 +2,8 @@ var express = require("express");
  
 const app = express();
 const PORT = 5555;
- 
+const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+const BatteryQueries = require("./BatteryQueries");
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
@@ -10,7 +11,6 @@ app.listen(PORT, () => {
 
 app.get("/", async function (req, res, next) {
 	console.log(req.protocol + "://"+ req.get('Host') + req.url);
-	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
 	try {
         var i = await DownloadDirectoryDS.listBoards(null);
 		res.status(200).json(i);
@@ -22,7 +22,6 @@ app.get("/", async function (req, res, next) {
 
 app.get("/locations/", async function (req, res, next) {
 	console.log(req.protocol + "://"+ req.get('Host') + req.url);
-	const BatteryQueries = require("./BatteryQueries");
 	try {
 		var i = await BatteryQueries.queryBoardLocations();
 		res.status(200).json(i);
@@ -32,9 +31,24 @@ app.get("/locations/", async function (req, res, next) {
 	}
 });
 
+app.get("/CreateBoard/:deviceID", async function (req, res, next) {
+	console.log(req.protocol + "://"+ req.get('Host') + req.url);
+	var deviceID = req.params.deviceID;
+
+	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+	 
+	try {
+		var i = await DownloadDirectoryDS.createNewBoard(deviceID);
+		res.status(200).json(i);
+	}
+	catch (err) {
+		res.status(500).json(err.message);
+	}
+});
+
 app.get("/:boardID/DownloadDirectoryJSON", async function (req, res, next) {
 	console.log(req.protocol + "://"+ req.get('Host') + req.url);
-	const DownloadDirectoryDS = require("./DownloadDirectoryDS");
+
 	var boardID = req.params.boardID;
 	var result = [];
 	try {
@@ -60,6 +74,20 @@ app.get("/:boardID/DownloadDirectoryJSON", async function (req, res, next) {
 
 });
 
+/**
+ * Returns a list of Google APIs and the link to the API's docs.
+ * @param {Express.Request} req The API request.
+ * @param {Express.Response} res The API response.
+ */
+listGoogleAPIs = async (req, res) => {
+	let sum = 0;
+	for (let i = 0; i < 10; ++i) {
+	  sum += i;
+	}
+	res.send({ sum });
+  };
+
 module.exports = {
-    app
+	app,
+	listGoogleAPIs
 };
