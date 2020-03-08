@@ -1,6 +1,6 @@
 const constants = require("./Constants");
 const format = require("util").format;
-const Datastore = require("@google-cloud/datastore");
+const { Datastore } = require("@google-cloud/datastore");
 const datastore = new Datastore({
 	projectId: process.env.PROJECT_ID,
 });
