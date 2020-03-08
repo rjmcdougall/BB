@@ -10,9 +10,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class AllBoards {
@@ -23,6 +30,8 @@ public class AllBoards {
     private static final String BOARDS_JSON_TMP_FILENAME = "boards.json.tmp";
     private static final String BOARDS_JSON_TEMP2_FILENAME = "boardsTemp";
     private static final String DIRECTORY_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/";
+    private static final String CREATE_URL = "https://us-central1-burner-board.cloudfunctions.net/boards/CreateBoard/";
+
 
     private Context context = null;
     public JSONArray dataBoards;
@@ -38,9 +47,11 @@ public class AllBoards {
         this.voice = voice;
 
         // wait 5 seconds to hopefully get wifi before starting the download.
-        Runnable checkForBoards = () -> StartDownloadManager();
+        Runnable initialCheckForBoards = () -> initialCheck();
+        Runnable periodicCheckForBoards = () -> periodicCheck();
 
-        sch.schedule(checkForBoards, 8, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(initialCheckForBoards, 3, 5, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(periodicCheckForBoards, 1, 2, TimeUnit.MINUTES);
 
         this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
@@ -64,6 +75,22 @@ public class AllBoards {
                 //voice.speak(msg, TextToSpeech.QUEUE_ADD, null,"Download Message");
             }
         };
+    }
+
+
+    boolean downloadSuccessBoards = false;
+    private int  maxFailedChecks = 60;
+    private int currentFailedChecks = 0;
+
+    private void initialCheck(){
+        currentFailedChecks++;
+
+        if (!downloadSuccessBoards && currentFailedChecks < maxFailedChecks)
+            downloadSuccessBoards = GetNewBoardsJSON();
+    }
+
+    private void periodicCheck(){
+        downloadSuccessBoards = GetNewBoardsJSON();
     }
 
     public FileHelpers.OnDownloadProgressType onProgressCallback = null;
@@ -105,6 +132,7 @@ public class AllBoards {
                     if (a.has("isProfileGlobal2")) a.remove("isProfileGlobal2");
                     if (a.has("profile2")) a.remove("profile2");
                     if (a.has("type")) a.remove("type");
+                    if (a.has("displayTeensy")) a.remove("displayTeensy");
                 }
             } catch (Exception e) {
                 BLog.d(TAG, "Could not get boards directory: " + e.getMessage());
@@ -113,62 +141,33 @@ public class AllBoards {
         return boards2;
     }
 
-    public int getBoardAddress(String boardId) {
+    public int getBoardAddress(String boardID) {
 
         JSONObject board;
         int myAddress = -1;
 
         try {
-
-            if (dataBoards == null) {
-                BLog.d(TAG, "Could not find board address data");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(boardId)) {
-                        myAddress = board.getInt("address");
-                    }
-                }
-            }
-            BLog.d(TAG, "Address " + String.valueOf(myAddress));
-            return myAddress;
-        } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
-            return myAddress;
+            board = getBoardByID(boardID);
+            myAddress = board.getInt("address");
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
-            return myAddress;
         }
-
+        return myAddress;
     }
 
-    public BoardState.TeensyType getDisplayTeensy(String boardId) {
+    public BoardState.TeensyType getDisplayTeensy(String boardID) {
 
         JSONObject board;
         BoardState.TeensyType displayTeensy = BoardState.TeensyType.teensy3;
 
         try {
-
-            if (dataBoards == null) {
-                BLog.d(TAG, "Could not find board address data");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(boardId)) {
-                        if (board.has("displayTeensy"))
-                            displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
-                    }
-                }
-            }
-            return displayTeensy;
-        } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
-            return displayTeensy;
+            board = getBoardByID(boardID);
+            if (board.has("displayTeensy"))
+                displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
-            return displayTeensy;
         }
-
+        return displayTeensy;
     }
 
     public String boardAddressToName(int address) {
@@ -188,12 +187,8 @@ public class AllBoards {
                     }
                 }
             }
-
-            BLog.d(TAG, "Address " + address + " To Name " + boardId);
             return boardId;
 
-        } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
@@ -218,11 +213,6 @@ public class AllBoards {
                     }
                 }
             }
-
-            BLog.d(TAG, "Color " + boardColor);
-            return boardColor;
-        } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
             return boardColor;
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
@@ -236,24 +226,13 @@ public class AllBoards {
         int videoContrastMultiplier = 0;
 
         try {
-
-            if (dataBoards == null) {
-                BLog.d(TAG, "Could not find videoContrastMultiplier");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(boardID)) {
-                        videoContrastMultiplier = board.getInt("videoContrastMultiplier");
-                    }
-                }
-            }
+            board = getBoardByID(boardID);
+            videoContrastMultiplier = board.getInt("videoContrastMultiplier");
             BLog.d(TAG, "videoContrastMultiplier " + videoContrastMultiplier);
-
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
-        } finally {
-            return videoContrastMultiplier;
         }
+        return videoContrastMultiplier;
     }
 
     public int targetAPKVersion(String boardID) {
@@ -262,24 +241,13 @@ public class AllBoards {
         int targetAPKVersion = 0;
 
         try {
-
-            if (dataBoards == null) {
-                BLog.d(TAG, "Could not find board type");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(boardID)) {
-                        targetAPKVersion = board.getInt("targetAPKVersion");
-                    }
-                }
-            }
-            BLog.d(TAG, "Target APK Version " + targetAPKVersion);
+            board = getBoardByID(boardID);
+            targetAPKVersion = board.getInt("targetAPKVersion");
 
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
-        } finally {
-            return targetAPKVersion;
         }
+        return targetAPKVersion;
     }
 
     public BoardState.BoardType getBoardType(String boardID) {
@@ -288,51 +256,100 @@ public class AllBoards {
         BoardState.BoardType type = BoardState.BoardType.unknown;
 
         try {
+            board = getBoardByID(boardID);
+            type = BoardState.BoardType.valueOf(board.getString("type"));
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        return type;
+    }
 
-            if (dataBoards == null) {
-                BLog.d(TAG, "Could not find board type");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board = dataBoards.getJSONObject(i);
-                    if (board.getString("name").equals(boardID)) {
-                        type = BoardState.BoardType.valueOf(board.getString("type"));
+    JSONObject getBoardByID(String boardID){
+
+        JSONObject board = null;
+
+        try {
+            for (int i = 0; i < dataBoards.length(); i++) {
+                JSONObject obj = dataBoards.getJSONObject(i);
+
+                if (obj.has("name")) {
+                    if (obj.getString("name").equals(boardID)) {
+                        board = obj;
                     }
                 }
             }
-            BLog.d(TAG, "Board Type " + String.valueOf(type));
-            return type;
-        } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
-        } finally {
-            return type;
+            BLog.e(TAG, "Could not find board for: " + boardID + " " + e.toString());
         }
+
+        return board;
     }
 
-    String getBOARD_ID(String deviceID) {
-        String name = deviceID;
+    public void createBoard(String deviceID){
+
+        Runnable checkForBoards = () -> httpCreateBoard(deviceID);
+
+        sch.schedule(checkForBoards, 1, TimeUnit.SECONDS);
+
+        Runnable downloadUpdates = () -> GetNewBoardsJSON();
+
+        sch.schedule(downloadUpdates, 2, TimeUnit.SECONDS);
+
+    }
+
+    public void httpCreateBoard(String deviceID){
+        String content = "", line;
+        try{
+            URL url = new URL(CREATE_URL + deviceID);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setDoOutput(false);
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.connect();
+            BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            while ((line = rd.readLine()) != null) {
+                content += line + "\n";
+            }
+        }
+        catch (Exception e){
+            BLog.e(TAG, "Could not create board for: " + deviceID + " " + e.toString());
+        }
+
+    }
+
+    public JSONObject getBoardByDeviceID(String deviceID){
+
+        JSONObject board = null;
+
         try {
             for (int i = 0; i < dataBoards.length(); i++) {
                 JSONObject obj = dataBoards.getJSONObject(i);
 
                 if (obj.has("bootName")) {
                     if (obj.getString("bootName").equals(deviceID)) {
-                        BLog.d(TAG, "Found bootName: " + deviceID);
-                        name = obj.getString("name");
-
-                        BLog.d(TAG, "Found publicName: " + name);
-                        return name;
+                        board = obj;
                     }
                 }
             }
+        } catch (JSONException e) {
+            BLog.e(TAG, "Could not find board for: " + deviceID + " " + e.toString());
+        }
 
-            BLog.d(TAG, "No special publicName found for: " + deviceID);
+        return board;
+    }
+
+    String getBOARD_ID(String deviceID) {
+
+        String name = deviceID;
+        try {
+            JSONObject board = getBoardByDeviceID(deviceID);
+            name = board.getString("name");
         } catch (JSONException e) {
             BLog.e(TAG, "Could not find publicName for: " + deviceID + " " + e.toString());
         }
 
-        // We got here, we got nothing...
         return name;
     }
 
@@ -386,32 +403,6 @@ public class AllBoards {
         } catch (Throwable th) {
             BLog.e(TAG, th.getMessage());
             return false;
-        }
-    }
-
-    public void StartDownloadManager() {
-
-        try {
-            boolean downloadSuccessBoards = false;
-            int i = 0;
-
-            // On boot it can take some time to get an internet connection.  Check every 5 seconds for 5 minutes
-            while (!downloadSuccessBoards && i < 60) { // try this for 5 minutes.
-                i++;
-
-                if (!downloadSuccessBoards)
-                    downloadSuccessBoards = GetNewBoardsJSON();
-
-                Thread.sleep(5000);   // no internet, wait 5 seconds before we try again
-            }
-
-            // After the first boot check periodically in case the profile has changed.
-            while (true) {
-                GetNewBoardsJSON();
-                Thread.sleep(120000);   // no internet, wait 2 minutes before we try again
-            }
-        } catch (Throwable th) {
-            BLog.e(TAG, th.getMessage());
         }
     }
 }

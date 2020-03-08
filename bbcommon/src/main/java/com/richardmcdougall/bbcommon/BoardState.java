@@ -5,17 +5,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
-import com.richardmcdougall.bbcommon.BLog;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -52,7 +48,7 @@ public class BoardState {
     public String password = "";
     public TeensyType displayTeensy;
     public BoardType boardType;
-    public String serial = Build.SERIAL;
+    public static String serial = Build.SERIAL;
     public PlatformType platformType = PlatformType.dragonboard;
     public boolean inCrisis = false;
     private Context context = null;
@@ -62,6 +58,43 @@ public class BoardState {
     public int videoContrastMultiplier = 1;
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
+    private static PlatformType GetPlatformType() {
+        if (Build.MODEL.contains("rpi3"))
+            return PlatformType.rpi;
+        else if (Build.MODEL.contains("NanoPC-T4"))
+            return PlatformType.npi;
+        else
+            return PlatformType.dragonboard;
+    }
+
+    public static String GetDeviceID() {
+        if (DebugConfigs.OVERRIDE_DEVICE_ID != "") {
+            return DebugConfigs.OVERRIDE_DEVICE_ID;
+        } else {
+            if (GetPlatformType() == PlatformType.rpi) {
+                return "pi" + serial.substring(Math.max(serial.length() - 6, 0),
+                        serial.length());
+            } else if (GetPlatformType() == PlatformType.npi) {
+                return "npi" + serial.substring(Math.max(serial.length() - 5, 0),
+                        serial.length());
+            } else { // dragonboard
+                return Build.MODEL;
+            }
+        }
+    }
+
+    public static String GetBoardID(AllBoards allBoards, String deviceID) {
+        String b = "";
+        if (DebugConfigs.OVERRIDE_PUBLIC_NAME != "")
+            b = DebugConfigs.OVERRIDE_PUBLIC_NAME;
+        else {
+            b = allBoards.getBOARD_ID(deviceID);
+            if (b == "")
+                b = deviceID;
+        }
+        return b;
+    }
 
     public BoardState(Context context, AllBoards allBoards) {
         this.context = context;
@@ -75,29 +108,9 @@ public class BoardState {
             BLog.e(TAG, e.getMessage());
         }
 
-        if (Build.MODEL.contains("rpi3"))
-            platformType = PlatformType.rpi;
-        else if (Build.MODEL.contains("NanoPC-T4"))
-            platformType = PlatformType.npi;
-        // else dragonboard
-
-        if (platformType == PlatformType.rpi) {
-            DEVICE_ID = "pi" + serial.substring(Math.max(serial.length() - 6, 0),
-                    serial.length());
-        } else if (platformType == PlatformType.npi) {
-            DEVICE_ID = "npi" + serial.substring(Math.max(serial.length() - 5, 0),
-                    serial.length());
-        } else { // dragonboard
-            DEVICE_ID = Build.MODEL;
-        }
-
-        if (DebugConfigs.OVERRIDE_PUBLIC_NAME != "")
-            BOARD_ID = DebugConfigs.OVERRIDE_PUBLIC_NAME;
-        else {
-            BOARD_ID = this.allBoards.getBOARD_ID(DEVICE_ID);
-            if (BOARD_ID == "")
-                BOARD_ID = DEVICE_ID;
-        }
+        platformType = GetPlatformType();
+        DEVICE_ID = GetDeviceID();
+        BOARD_ID = GetBoardID(this.allBoards, DEVICE_ID);
 
         UpdateFromAllBoards();
 
@@ -114,7 +127,8 @@ public class BoardState {
 
     }
 
-    private void UpdateFromAllBoards(){
+    private void UpdateFromAllBoards() {
+        BOARD_ID = GetBoardID(this.allBoards, DEVICE_ID);
         address = this.allBoards.getBoardAddress(BOARD_ID);
         displayTeensy = this.allBoards.getDisplayTeensy(BOARD_ID);
         boardType = this.allBoards.getBoardType(BOARD_ID);
@@ -146,14 +160,10 @@ public class BoardState {
             fw.close();
             SSID = wifiSettings.getString("SSID");
             password = wifiSettings.getString("password");
-        } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
-            return false;
-        } catch (IOException e) {
+        } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
             return false;
         }
-
         return true;
     }
 
@@ -163,20 +173,15 @@ public class BoardState {
 
             File f = new File(filesDir + "/" + WIFI_JSON);
             InputStream is = null;
-            try {
-                is = new FileInputStream(f);
+            is = new FileInputStream(f);
 
-                BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-                StringBuilder sb = new StringBuilder(buf.readLine());
-                BLog.d(TAG, "contents of wifi.json: " + sb.toString());
-                JSONObject j = new JSONObject(sb.toString());
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            StringBuilder sb = new StringBuilder(buf.readLine());
+            BLog.d(TAG, "contents of wifi.json: " + sb.toString());
+            JSONObject j = new JSONObject(sb.toString());
 
-                SSID = j.getString("SSID");
-                password = j.getString("password");
-            } catch (FileNotFoundException e) {
-                BLog.e(TAG, e.getMessage());
-            }
-
+            SSID = j.getString("SSID");
+            password = j.getString("password");
         } catch (Throwable e) {
             BLog.e(TAG, e.getMessage());
         }
