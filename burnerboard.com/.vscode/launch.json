@@ -16,17 +16,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/bin/www"
-        }
-    ]
-    ,
-    "compounds": [
-        {
-            "name": "Hybrid",
-            "configurations": [
-                "node",
-                "Chrome"
-            ]
+            "program": "${workspaceFolder}/www"
         }
     ]
 }

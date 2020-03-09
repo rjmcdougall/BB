@@ -23,8 +23,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "debug": "concurrently \"node ./bin/www\" \"cd client && npm start\"",
-    "start": "node ./bin/www",
+    "debug": "concurrently \"node www\" \"cd client && npm start\"",
+    "start": "node www",
     "postinstall": "cd client && npm install && npm run build"
   },
   "engines": {
