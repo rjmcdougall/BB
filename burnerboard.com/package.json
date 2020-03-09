@@ -7,6 +7,7 @@
     "@google-cloud/datastore": "^5.0.6",
     "@google-cloud/storage": "^4.5.0",
     "body-parser": "^1.19.0",
+    "concurrently": "^5.1.0",
     "cookie-parser": "^1.4.4",
     "debug": "^4.1.1",
     "express": "^4.17.1",
@@ -17,18 +18,19 @@
     "googleapis": "^47.0.0",
     "morgan": "~1.9.1",
     "node-ffprobe": "^3.0.0",
+    "react-scripts": "^3.4.0",
     "serve-favicon": "^2.5.0",
     "stream-buffers": "^3.0.2",
     "yes-https": "^1.0.0"
   },
   "devDependencies": {},
   "scripts": {
-    "debug": "concurrently \"node www\" \"cd client && npm start\"",
-    "start": "node www",
+    "debug": "concurrently \"node bin/www\" \"cd client && npm start\"",
+    "start": "node bin/www",
     "postinstall": "cd client && npm install && npm run build"
   },
   "engines": {
-    "node": ">8.0",
-    "npm": "5.5.1"
+    "node": ">10.0",
+    "npm": "6.5.0"
   }
 }
