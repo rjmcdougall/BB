@@ -17,6 +17,8 @@ import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.FileHelpers;
 
+import org.json.JSONObject;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -86,6 +88,23 @@ public class Installer extends Service {
             BLog.e(TAG, e.getMessage());
         }
 
+        // look to see if the board exists in allboards. if not create it and wait for sync
+        String deviceID = BoardState.GetDeviceID();
+        JSONObject board = allBoards.getBoardByDeviceID(deviceID);
+        if(board==null){
+            allBoards.createBoard(deviceID);
+        }
+
+        try {
+            while (allBoards.getBoardByDeviceID(deviceID) == null) {
+                BLog.i(TAG, "Booard must register before proceeding.  Please hold.");
+                Thread.sleep(2000);
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+
+
         boardState = new BoardState(this.context, this.allBoards);
 
         BLog.i(TAG, "State Version " + boardState.version);
@@ -124,7 +143,13 @@ public class Installer extends Service {
             }
 
             public void onVoiceCue(String msg) {
-                voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+                try{
+                    if(voice != null)
+                        voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
+                }
+                catch(Exception e){
+                    BLog.e(TAG,e.getMessage());
+                }
             }
 
         };
@@ -141,6 +166,7 @@ public class Installer extends Service {
         try {
 
             int currentBBVersion = getBBversion();
+            BLog.i(TAG,"Running Installer Check targetAPK:" + boardState.targetAPKVersion + "currentBBVersion: " + currentBBVersion);
 
             if (boardState.targetAPKVersion > 0 && boardState.targetAPKVersion != currentBBVersion) {
                 String apkFile = null;

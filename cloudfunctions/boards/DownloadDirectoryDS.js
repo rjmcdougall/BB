@@ -134,20 +134,36 @@ exports.addMedia = async function (boardID, profileID, mediaType, fileName, file
 	}
 };
 
-exports.createNewBoard = async function (boardID) {
+
+exports.cloneTemplate = async function (deviceID) {
+	try {
+
+	}
+	catch (error) {
+		throw new Error(error);
+	}
+};
+
+exports.createNewBoard = async function (deviceID) {
 
 	try {
+
+		var boardQuery;
+ 
+		boardQuery = datastore.createQuery("board")
+			.filter("bootName", "=", "template");
+
+		var results = (await datastore.runQuery(boardQuery))[0][0];
+ 
+		results.bootName = deviceID;
+
 		var results = await datastore
-			.save({
-				key: datastore.key(["board", boardID]),
-				data: {
-					name: boardID,
-					profile: "default",
-					isProfileGlobal: false,
-				},
+			.insert({
+				key: datastore.key("board"),
+				data: results
 			});
 
-		return "board " + boardID + " created ";
+		return "board " + deviceID + " created ";
 	}
 	catch (error) {
 		return error;
@@ -194,7 +210,7 @@ exports.listBoards = async function (boardID) {
 
 		if (boardID == null)
 			results[0].splice(results[0].findIndex(board => {
-				return board.name == "template";
+				return board.bootName == "template";
 			}), 1);
 
 		return (results[0]);

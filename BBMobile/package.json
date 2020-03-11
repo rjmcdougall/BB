@@ -1,6 +1,6 @@
 {
   "name": "BBMobile",
-  "version": "3.0",
+  "version": "5.7.0",
   "private": true,
   "devDependencies": {
     "babel-eslint": "^10.0.3",
@@ -16,7 +16,8 @@
     "start": "react-native-scripts start",
     "eject": "react-native-scripts eject",
     "android": "react-native-scripts android",
-    "ios": "react-native-scripts ios"
+    "ios": "react-native-scripts ios",
+    "postversion": "react-native-version --never-amend"
   },
   "dependencies": {
     "@mapbox/geo-viewport": "^0.4.0",

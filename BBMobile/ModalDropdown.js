@@ -330,36 +330,36 @@ export default class ModalDropdown extends Component {
 			props.onPress = preservedProps.onPress;
 			const { children } = row.props;
 			switch (row.type.displayName) {
-				case "TouchableHighlight": {
-					return (
-						<TouchableHighlight {...props}>
-							{children}
-						</TouchableHighlight>
-					);
-				}
-				case "TouchableOpacity": {
-					return (
-						<TouchableOpacity {...props}>
-							{children}
-						</TouchableOpacity>
-					);
-				}
-				case "TouchableWithoutFeedback": {
-					return (
-						<TouchableWithoutFeedback {...props}>
-							{children}
-						</TouchableWithoutFeedback>
-					);
-				}
-				case "TouchableNativeFeedback": {
-					return (
-						<TouchableNativeFeedback {...props}>
-							{children}
-						</TouchableNativeFeedback>
-					);
-				}
-				default:
-					break;
+			case "TouchableHighlight": {
+				return (
+					<TouchableHighlight {...props}>
+						{children}
+					</TouchableHighlight>
+				);
+			}
+			case "TouchableOpacity": {
+				return (
+					<TouchableOpacity {...props}>
+						{children}
+					</TouchableOpacity>
+				);
+			}
+			case "TouchableWithoutFeedback": {
+				return (
+					<TouchableWithoutFeedback {...props}>
+						{children}
+					</TouchableWithoutFeedback>
+				);
+			}
+			case "TouchableNativeFeedback": {
+				return (
+					<TouchableNativeFeedback {...props}>
+						{children}
+					</TouchableNativeFeedback>
+				);
+			}
+			default:
+				break;
 			}
 		}
 		return (
@@ -388,7 +388,7 @@ export default class ModalDropdown extends Component {
 		}
 	}
 
-	_renderSeparator = (sectionID, rowID, adjacentRowHighlighted) => {
+	_renderSeparator = (sectionID, rowID) => {
 		const key = `spr_${rowID}`;
 		return (
 			<View style={styles.separator}

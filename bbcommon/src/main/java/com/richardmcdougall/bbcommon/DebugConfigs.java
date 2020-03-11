@@ -13,6 +13,7 @@ public class DebugConfigs {
 
     // name the board as a testing overriden.
     public static final String OVERRIDE_PUBLIC_NAME = "";
+    public static final String OVERRIDE_DEVICE_ID = "";
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
