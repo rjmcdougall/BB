@@ -50,7 +50,7 @@ exports.getGDriveMetadata = async function (fileId, oauthToken) {
 	});
 };
 
-exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken) {
+exports.getDriveContent = function (boardID, profileID, fileId, oauthToken) {
 
 	var module = this;
 
@@ -63,7 +63,7 @@ exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken
 		}, { responseType: 'stream' }, function (err, content) {
 
 			if (err)
-				return reject(err);
+				return reject(new Error(err.response.status + " " + err.response.statusText));
 			else {
 
 				var filePath = module.filePath(boardID, profileID);
@@ -83,7 +83,7 @@ exports.getDriveContent = async function (boardID, profileID, fileId, oauthToken
 					});
 
 				content.data
-					.on('error', err => {
+					.on("error", err => {
 						return reject(err);
 					})
 					.pipe(fileStream3);
