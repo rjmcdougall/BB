@@ -71,6 +71,8 @@ public class BBService extends Service {
     public LocalCrisisController localCrisisController = null;
     private boolean textToSpeechReady = false;
 
+    private Gyro mGyro;
+
     public BBService() {
     }
 
@@ -126,6 +128,9 @@ public class BBService extends Service {
             });
 
             wifi = new BBWifi(context,boardState);
+
+            mGyro = new Gyro(context, boardState);
+
 
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);
