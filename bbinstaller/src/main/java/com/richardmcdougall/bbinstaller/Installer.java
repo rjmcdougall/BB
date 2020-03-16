@@ -77,6 +77,9 @@ public class Installer extends Service {
         BLog.i(TAG, "Build Model " + Build.MODEL);
         BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
+        BLog.i(TAG, "Starting Wifi");
+        wifi = new BBWifi(context, boardState);
+
         allBoards = new AllBoards(context, voice);
 
         try {
@@ -104,7 +107,6 @@ public class Installer extends Service {
             BLog.e(TAG, e.getMessage());
         }
 
-
         boardState = new BoardState(this.context, this.allBoards);
 
         BLog.i(TAG, "State Version " + boardState.version);
@@ -116,8 +118,6 @@ public class Installer extends Service {
         BLog.i(TAG, "State BOARD_ID " + boardState.BOARD_ID);
         BLog.i(TAG, "State Tyoe " + boardState.boardType);
         BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
-
-        wifi = new BBWifi(context, boardState);
 
         getPackageVersions();
 

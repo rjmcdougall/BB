@@ -1,7 +1,7 @@
 const constants = require("./Constants");
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(constants.CLIENT_ID);
-const Datastore = require("@google-cloud/datastore");
+const { Datastore } = require("@google-cloud/datastore");
 const datastore = new Datastore({
 	projectId: constants.PROJECT_ID,
 });

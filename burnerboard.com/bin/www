@@ -3,6 +3,7 @@
 /**
  * Module dependencies.
  */
+require('@google-cloud/debug-agent').start();
 
 var app = require('../app');
 var debug = require('debug')('burnerboard.com:server');
