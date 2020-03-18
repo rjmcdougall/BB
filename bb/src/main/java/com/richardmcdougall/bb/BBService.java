@@ -72,6 +72,7 @@ public class BBService extends Service {
     private boolean textToSpeechReady = false;
 
     private Gyro mGyro;
+    private BatteryBMS_TI mBMS;
 
     public BBService() {
     }
@@ -130,7 +131,7 @@ public class BBService extends Service {
             wifi = new BBWifi(context,boardState);
 
             mGyro = new Gyro(context, boardState);
-
+            mBMS = new BatteryBMS_TI(context, boardState);
 
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);
