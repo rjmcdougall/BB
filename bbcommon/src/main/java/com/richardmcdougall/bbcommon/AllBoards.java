@@ -3,23 +3,16 @@ package com.richardmcdougall.bbcommon;
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
 
-import com.richardmcdougall.bbcommon.BLog;
-import com.richardmcdougall.bbcommon.BoardState;
-
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class AllBoards {
@@ -333,7 +326,7 @@ public class AllBoards {
                     }
                 }
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             BLog.e(TAG, "Could not find board for: " + deviceID + " " + e.toString());
         }
 
@@ -346,7 +339,7 @@ public class AllBoards {
         try {
             JSONObject board = getBoardByDeviceID(deviceID);
             name = board.getString("name");
-        } catch (JSONException e) {
+        } catch (Exception e) {
             BLog.e(TAG, "Could not find publicName for: " + deviceID + " " + e.toString());
         }
 
@@ -397,11 +390,8 @@ public class AllBoards {
             }
 
             return returnValue;
-        } catch (JSONException jse) {
-            BLog.e(TAG, jse.getMessage());
-            return false;
-        } catch (Throwable th) {
-            BLog.e(TAG, th.getMessage());
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
             return false;
         }
     }
