@@ -39,7 +39,7 @@ class GoogleLoginPage extends Component {
 						accessType="online"
 						onSuccess={this.responseGoogle}
 						onFailure={this.responseGoogle}
-						scope="https://www.googleapis.com/auth/drive.readonly"
+						scope="https://www.googleapis.com/auth/drive"
 						style={{
 							"backgroundColor": "lightblue",
 							"border": "none",
