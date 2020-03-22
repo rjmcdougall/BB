@@ -67,8 +67,12 @@ public class Installer extends Service {
                 if (status == TextToSpeech.SUCCESS) {
                     if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                         voice.setLanguage(Locale.US);
+                    textToSpeechReady = true;
                 }
-                textToSpeechReady = true;
+                else {
+                    BLog.e(TAG, "TTS Is Disabled or Failed");
+                    textToSpeechReady = false;
+                }
             }
         });
 
@@ -164,7 +168,7 @@ public class Installer extends Service {
             if (voice != null && textToSpeechReady) {
                 voice.speak(txt, TextToSpeech.QUEUE_ADD, null, id);
             } else {
-                BLog.e(TAG, "Text to Speech Null");
+                throw new Exception("Text to Speech Not Available");
             }
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
