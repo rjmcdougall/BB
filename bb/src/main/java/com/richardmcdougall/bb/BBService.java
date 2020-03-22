@@ -9,7 +9,6 @@ import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.richardmcdougall.bb.bms.BMS_BQ;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
@@ -73,7 +72,7 @@ public class BBService extends Service {
     private boolean textToSpeechReady = false;
 
     private Gyro mGyro;
-    private BMS_BQ mBMS;
+    private BatteryBMS_TI mBMS;
 
     public BBService() {
     }
@@ -132,6 +131,7 @@ public class BBService extends Service {
             wifi = new BBWifi(context,boardState);
 
             mGyro = new Gyro(context, boardState);
+            mBMS = new BatteryBMS_TI(context, boardState);
 
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);

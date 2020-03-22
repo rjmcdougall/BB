@@ -20,7 +20,6 @@ import com.richardmcdougall.bbcommon.FileHelpers;
 import org.json.JSONObject;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +39,7 @@ public class Installer extends Service {
     private AllBoards allBoards = null;
     private BoardState boardState = null;
     private BBWifi wifi = null;
+    private boolean textToSpeechReady = false;
 
     public Installer() {
     }
@@ -56,7 +56,7 @@ public class Installer extends Service {
 
         super.onCreate();
 
-        BLog.i(TAG,"Starting BB Installer");
+        BLog.i(TAG, "Starting BB Installer");
 
         BLog.i(TAG, "onCreate");
 
@@ -67,6 +67,11 @@ public class Installer extends Service {
                 if (status == TextToSpeech.SUCCESS) {
                     if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
                         voice.setLanguage(Locale.US);
+                    textToSpeechReady = true;
+                }
+                else {
+                    BLog.e(TAG, "TTS Is Disabled or Failed");
+                    textToSpeechReady = false;
                 }
             }
         });
@@ -78,9 +83,10 @@ public class Installer extends Service {
         BLog.i(TAG, "Build Serial " + Build.SERIAL);
 
         BLog.i(TAG, "Starting Wifi");
-        wifi = new BBWifi(context, boardState);
 
         allBoards = new AllBoards(context, voice);
+        boardState = new BoardState(this.context, this.allBoards);
+        wifi = new BBWifi(context, boardState);
 
         try {
             while (allBoards.dataBoards == null) {
@@ -94,7 +100,7 @@ public class Installer extends Service {
         // look to see if the board exists in allboards. if not create it and wait for sync
         String deviceID = BoardState.GetDeviceID();
         JSONObject board = allBoards.getBoardByDeviceID(deviceID);
-        if(board==null){
+        if (board == null) {
             allBoards.createBoard(deviceID);
         }
 
@@ -104,10 +110,8 @@ public class Installer extends Service {
                 Thread.sleep(2000);
             }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "getDeviceByID Failure: " + e.getMessage());
         }
-
-        boardState = new BoardState(this.context, this.allBoards);
 
         BLog.i(TAG, "State Version " + boardState.version);
         BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);
@@ -122,7 +126,7 @@ public class Installer extends Service {
         getPackageVersions();
 
         dlManager = new BBDownloadManager(getApplicationContext().getFilesDir().getAbsolutePath(), mVersion);
-        dlManager.onProgressCallback = new FileHelpers.OnDownloadProgressType(){
+        dlManager.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
 
             public void onProgress(String file, long fileSize, long bytesDownloaded) {
@@ -135,20 +139,19 @@ public class Installer extends Service {
                     long percent = bytesDownloaded * 100 / fileSize;
 
                     if (fileSize > 1048576) {
-                        voice.speak("Downloading New Software " + file + ", " + String.valueOf(percent) + " Percent", TextToSpeech.QUEUE_ADD, null, "downloading");
+                        speak("Downloading New Software " + file + ", " + String.valueOf(percent) + " Percent", "downloading");
                     }
                     lastTextTime = curTime;
-                    BLog.d(TAG,String.format("Downloading %02x%% %s", bytesDownloaded * 100 / fileSize, file));
+                    BLog.d(TAG, String.format("Downloading %02x%% %s", bytesDownloaded * 100 / fileSize, file));
                 }
             }
 
             public void onVoiceCue(String msg) {
-                try{
-                    if(voice != null)
-                        voice.speak(msg, TextToSpeech.QUEUE_ADD, null, "Download Message");
-                }
-                catch(Exception e){
-                    BLog.e(TAG,e.getMessage());
+                try {
+                    if (voice != null)
+                        speak(msg, "Download Message");
+                } catch (Exception e) {
+                    BLog.e(TAG, e.getMessage());
                 }
             }
 
@@ -160,13 +163,24 @@ public class Installer extends Service {
 
     }
 
+    public void speak(String txt, String id) {
+        try {
+            if (voice != null && textToSpeechReady) {
+                voice.speak(txt, TextToSpeech.QUEUE_ADD, null, id);
+            } else {
+                throw new Exception("Text to Speech Not Available");
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+    }
 
     public void installerThread() {
 
         try {
 
             int currentBBVersion = getBBversion();
-            BLog.i(TAG,"Running Installer Check targetAPK:" + boardState.targetAPKVersion + "currentBBVersion: " + currentBBVersion);
+            BLog.i(TAG, "Running Installer Check targetAPK:" + boardState.targetAPKVersion + "currentBBVersion: " + currentBBVersion);
 
             if (boardState.targetAPKVersion > 0 && boardState.targetAPKVersion != currentBBVersion) {
                 String apkFile = null;
@@ -175,28 +189,28 @@ public class Installer extends Service {
                     thisBFileId = dlManager.GetAPKByVersion("bb", boardState.targetAPKVersion);
                     apkFile = dlManager.GetAPKFile(thisBFileId);
                 } catch (Exception e) {
-                    BLog.e(TAG,"Version not yet downloaded");
+                    BLog.e(TAG, "Version not yet downloaded");
                 }
 
                 if (apkFile != null) {
                     if (installApk(apkFile)) {
-                        BLog.d(TAG,"Installed BB version " + boardState.targetAPKVersion);
-                        voice.speak("Installed Software version " + boardState.targetAPKVersion, TextToSpeech.QUEUE_ADD, null, "swvers");
+                        BLog.d(TAG, "Installed BB version " + boardState.targetAPKVersion);
+                        speak("Installed Software version " + boardState.targetAPKVersion, "swvers");
                         Thread.sleep(5000);
 
-                        voice.speak("Re booting", TextToSpeech.QUEUE_ADD, null, "swvers");
+                        speak("Re booting", "swvers");
                         Thread.sleep(3000);
                         doReboot("Upgrade");
 
                     } else {
-                        BLog.e(TAG,"Failed installing BB version " + boardState.targetAPKVersion);
-                        voice.speak("Failed upgrade of software version " + boardState.targetAPKVersion, TextToSpeech.QUEUE_ADD, null, "swversfail");
+                        BLog.e(TAG, "Failed installing BB version " + boardState.targetAPKVersion);
+                        speak("Failed upgrade of software version " + boardState.targetAPKVersion, "swversfail");
                     }
                 }
             }
 
         } catch (Exception e) {
-            BLog.e(TAG,"Unknown exception: " + e.getMessage());
+            BLog.e(TAG, "Unknown exception: " + e.getMessage());
         }
     }
 
@@ -210,22 +224,26 @@ public class Installer extends Service {
 
         final String libs = "LD_LIBRARY_PATH=/vendor/lib64:/system/lib64 ";
 
-
-        if (Build.MODEL.contains("NanoPC-T4")) {
-            final String[] commands = {
-                    "pm install -i com.richardmcdougall.bbinstaller --user 0 " + path
-            };
-            return execute_as_root(commands);
-        } else {
-            final String[] commands = {
+        try {
+            if (Build.MODEL.contains("NanoPC-T4")) {
+                final String[] commands = {
+                        "pm install -i com.richardmcdougall.bbinstaller --user 0 " + path
+                };
+                return execute_as_root(commands);
+            } else {
+                final String[] commands = {
 //                libs + "cp  " + path + " /data/local/tmp 2>&1 >>/data/local/tmp/bb.log" ,
 //                libs + "chmod 666 /data/local/tmp/bb.apk 2>&1 >>/data/local/tmp/bb.log",
 //                libs + "pm install -r /data/local/tmp/bb.apk",
-                    libs + "chmod 666 " + path,
-                    libs + "pm install -rg " + path
-            };
+                        libs + "chmod 666 " + path,
+                        libs + "pm install -rg " + path
+                };
 
-            return execute_as_root(commands);
+                return execute_as_root(commands);
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "installAPK Failure: " + e.getMessage());
+            return false;
         }
     }
 
@@ -237,7 +255,7 @@ public class Installer extends Service {
             DataOutputStream os = new DataOutputStream(p.getOutputStream());
 
             for (String command : commands) {
-                BLog.i(TAG, command);
+                BLog.i(TAG, "executing command: " + command);
                 os.writeBytes(command + "\n");
             }
             os.writeBytes("exit\n");
@@ -252,10 +270,10 @@ public class Installer extends Service {
             }
 
             p.waitFor();
-            if(output.contains("Error:"))
-                throw new Exception(output);
+            if (output.contains("Error:") || output.contains("Failure"))
+                throw new Exception("Failed Executing Returned: " + output + " (" + p.exitValue() + ")");
 
-            BLog.i(TAG, output + " (" + p.exitValue() + ")");
+            BLog.i(TAG, "Executed command: " + output + " (" + p.exitValue() + ")");
             return true;
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
@@ -269,7 +287,7 @@ public class Installer extends Service {
         try {
             PackageInfo info = pm.getPackageInfo("com.richardmcdougall.bb", 0);
             versionCode = info.versionCode;
-            BLog.d(TAG,"Version: " + versionCode);
+            BLog.d(TAG, "Version: " + versionCode);
         } catch (Exception e) {
         }
         return versionCode;

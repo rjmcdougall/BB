@@ -1,4 +1,3 @@
-
 adb disconnect
 adb root
 adb disable-verity
@@ -15,6 +14,7 @@ adb push privapp-permissions-com.richardmcdougall.bbinstaller.xml /etc/permissio
 adb shell cp -rp  /data/app/com.richardmcdougall.bbinstaller* /system/priv-app
 adb shell pm uninstall com.richardmcdougall.bbinstaller
 adb reboot
+sleep 20
 adb disconnect
 #sleep 30
 #adb shell am startservice com.richardmcdougall.bbinstaller/.Installer
