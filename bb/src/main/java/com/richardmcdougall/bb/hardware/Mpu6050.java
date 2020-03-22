@@ -1,17 +1,18 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.hardware;
 
 
 //import I2cDevice;
 
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManager;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
 import java.util.List;
 
 
 public class Mpu6050 implements AutoCloseable  {
-    private String TAG = this.getClass().getSimpleName();
+    private final static String TAG = "Mpu6050";
 
     private I2cDevice mDevice;
     private byte[] mBuffer = null;
@@ -70,6 +71,7 @@ public class Mpu6050 implements AutoCloseable  {
     }
 
     private void init() {
+        BLog.e(TAG, "MPU init");
         try {
             mDevice.writeRegByte(PWR_MGMT_1, UNSLEEP);
             setAccelFS(ACCEL_FS_2G);
@@ -82,22 +84,36 @@ public class Mpu6050 implements AutoCloseable  {
 
     // FFS, make some redundant methods to open this passing the bus
     public static Mpu6050 open() throws IOException {
-        return open(getDefaultBus());
+        BLog.e(TAG, "open getDefaultBus");
+        String bus = getDefaultBus();
+        BLog.e(TAG, "open getDefaultBus: " + bus);
+
+        return open(bus);
     }
 
     public static Mpu6050 open(String busName) throws IOException {
-        PeripheralManager pioService = PeripheralManager.getInstance();
+        BLog.e(TAG, "open bus PeripheralManager.getInstance():" + busName);
 
-        I2cDevice device = pioService.openI2cDevice(busName, 0x68);
+        PeripheralManager pioService = null;
 
-        return new Mpu6050(device);
+        try {
+            pioService = PeripheralManager.getInstance();
+            BLog.e(TAG, "open bus pioService.openI2cDevice:" + busName);
+            I2cDevice device = pioService.openI2cDevice(busName, 0x68);
+            return new Mpu6050(device);
+        } catch (Exception e) {
+            BLog.e(TAG, "Cannot open android things...");
+            return null;
+        }
     }
 
     protected static String getDefaultBus() {
+        BLog.e(TAG, "MPU getDefaultBus");
+
         PeripheralManager peripheralManagerService = PeripheralManager.getInstance();
         List<String> deviceList = peripheralManagerService.getI2cBusList();
         if (deviceList.isEmpty()) {
-            return "I2C1";
+            return "I2C2";
         } else {
             return deviceList.get(0);
         }

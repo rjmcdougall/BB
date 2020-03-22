@@ -2,6 +2,7 @@ package com.richardmcdougall.bb;
 
 import android.content.Context;
 
+import com.richardmcdougall.bb.hardware.Mpu6050;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -13,8 +14,13 @@ public class Gyro {
     private Mpu6050 mMpu = null;
 
     public Gyro(Context context, BoardState boardState) {
+
+        BLog.e(TAG, "Gyro startihng");
         try {
-            mMpu = mMpu.open();
+            BLog.e(TAG, "Gyro opening" + mMpu);
+            mMpu = mMpu.open("I2C2");
+            BLog.e(TAG, "Gyro opened" + mMpu);
+
         } catch (IOException e) {
             BLog.e(TAG, "Cannot open Accelerometer");
         }

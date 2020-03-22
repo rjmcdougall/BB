@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb;
 
+import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -16,6 +17,8 @@ public class BatterySupervisor {
     private boolean enableBatteryMonitoring = false;
     private boolean enableIoTReporting = false;
     private int iotReportEveryNSeconds = 10;
+    private BMS mBMS;
+
 
     Runnable batteryIOT = () ->  service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
     Runnable batterySupervisor = () ->  checkBattery();
@@ -29,6 +32,9 @@ public class BatterySupervisor {
             enableBatteryMonitoring = true;
             enableIoTReporting = true;
         }
+
+        // Attach BMS
+        mBMS = BMS.Builder(service);
 
         /* Communicate the settings for the supervisor thread */
         BLog.d(TAG, "Enable Battery Monitoring? " + enableBatteryMonitoring);
@@ -47,10 +53,20 @@ public class BatterySupervisor {
         boolean announce;
         powerStates powerState = powerStates.STATE_DISPLAYING;
 
-        int level = service.boardState.batteryLevel;
-        int current = service.burnerBoard.getBatteryCurrent();
-        int currentInstant = service.burnerBoard.getBatteryCurrentInstant();
-        int voltage = service.burnerBoard.getBatteryVoltage();
+        // Old config w/teensy3
+        /*
+        float level = service.boardState.batteryLevel;
+        float current = service.burnerBoard.getBatteryCurrent();
+        float currentInstant = service.burnerBoard.getBatteryCurrentInstant();
+        float voltage = service.burnerBoard.getBatteryVoltage();
+        */
+
+
+        float voltage = mBMS.get_voltage();
+        float current = mBMS.get_current();
+        float currentInstant = mBMS.get_current_instant();
+        float level = mBMS.get_level();
+
 
         BLog.d(TAG, "Board Current(avg) is " + current);
         BLog.d(TAG, "Board Current(Instant) is " + currentInstant);
