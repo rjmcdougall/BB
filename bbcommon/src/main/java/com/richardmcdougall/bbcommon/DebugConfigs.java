@@ -17,7 +17,12 @@ public class DebugConfigs {
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
-    public static final BoardState.BoardType OVERRIDE_BOARD_TYPE = null;
+    public static final BoardState.BoardType OVERRIDE_BOARD_TYPE = BoardState.BoardType.azul;
+
+
+    //if you want to debug in the app you need to set this to cpu type
+    public static final BoardState.PlatformType OVERRIDE_PLATFORM_TYPE = BoardState.PlatformType.npi;
+
 
     //bypass the per-second music sync because of debug perf issues
     public static final boolean BYPASS_MUSIC_SYNC = false;

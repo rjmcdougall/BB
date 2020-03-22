@@ -1,4 +1,4 @@
-package com.richardmcdougall.bb;
+package com.richardmcdougall.bb.hardware;
 
 import com.google.android.things.pio.I2cDevice;
 import com.google.android.things.pio.PeripheralManager;
@@ -704,233 +704,234 @@ public class BQ34Z100 implements AutoCloseable {
         sealed();
     }
 
-    int control_status() {
+    public int control_status() {
         return read_control(0x00, 0x00);
     }
 
-    int device_type() {
+    public int device_type() {
         return read_control(0x01, 0x00);
     }
 
-    int fw_version() {
+    public int fw_version() {
         return read_control(0x02, 0x00);
     }
 
-    int hw_version() {
+    public int hw_version() {
         return read_control(0x03, 0x00);
     }
 
-    int reset_data() {
+    public int reset_data() {
         return read_control(0x05, 0x00);
     }
 
-    int prev_macwrite() {
+    public int prev_macwrite() {
         return read_control(0x07, 0x00);
     }
 
-    int chem_id() {
+    public int chem_id() {
         return read_control(0x08, 0x00);
     }
 
-    int board_offset() {
+    public int board_offset() {
         return read_control(0x09, 0x00);
     }
 
-    int cc_offset() {
+    public int cc_offset() {
         return read_control(0x0a, 0x00);
     }
 
-    int cc_offset_save() {
+    public int cc_offset_save() {
         return read_control(0x0b, 0x00);
     }
 
-    int df_version() {
+    public int df_version() {
         return read_control(0x0c, 0x00);
     }
 
-    int set_fullsleep() {
+    public int set_fullsleep() {
         return read_control(0x10, 0x00);
     }
 
-    int static_chem_chksum() {
+    public int static_chem_chksum() {
         return read_control(0x17, 0x00);
     }
 
-    int sealed() {
+    public int sealed() {
         return read_control(0x20, 0x00);
     }
 
-    int it_enable() {
+    public int it_enable() {
         return read_control(0x21, 0x00);
     }
 
-    int cal_enable() {
+    public int cal_enable() {
         return read_control(0x2d, 0x00);
     }
 
-    int reset() {
+    public int reset() {
         return read_control(0x41, 0x00);
     }
 
-    int exit_cal() {
+    public int exit_cal() {
         return read_control(0x80, 0x00);
     }
 
-    int enter_cal() {
+    public int enter_cal() {
         return read_control(0x81, 0x00);
     }
 
-    int offset_cal() {
+    public int offset_cal() {
         return read_control(0x82, 0x00);
     }
 
-    int state_of_charge_pct() {
+    public int state_of_charge_pct() {
         return (byte) read_register(0x02, 1);
     }
 
-    byte state_of_charge_max_error() {
+    public int state_of_charge_max_error() {
         return (byte) read_register(0x03, 1);
     }
 
-    int remaining_capacity() {
+    public int remaining_capacity() {
         return scaled(read_register(0x04, 2));
     }
 
-    int full_charge_capacity() {
+    public int full_charge_capacity() {
         return scaled(read_register(0x06, 2));
     }
 
-    int voltage() {
+    public int voltage() {
         return read_register(0x08, 2);
     }
 
-    float voltage_volts() {
+    public float voltage_volts() {
         return (float)read_register(0x08, 2) / 1000;
     }
 
-    int average_current_ma() {
+    public int average_current_ma() {
         return (int) scaled(read_register(0x0a, 2));
     }
 
-    float average_current_amps() {
+    public float average_current_amps() {
         return ((float) scaled(read_register(0x0a, 2))) / 1000.0f;
     }
 
-    int temperature() {
+    public int temperature() {
         return read_register(0x0c, 2);
     }
 
-    int flags() {
+    public int flags() {
         return read_register(0x0e, 2);
     }
 
-    int flags_b() {
+    public int flags_b() {
         return read_register(0x12, 2);
     }
 
-    int current_ma() {
+    public int current_ma() {
         return scaled(read_register(0x10, 2));
     }
 
-    float current_amps() {
+    public float current_amps() {
         return ((float)scaled(read_register(0x10, 2))) / 1000.0f;
     }
 
-    int average_time_to_empty() {
+    public int average_time_to_empty() {
         return read_register(0x18, 2);
     }
 
-    int average_time_to_full() {
+    public int average_time_to_full() {
         return read_register(0x1a, 2);
     }
 
-    int passed_charge() {
+    public int passed_charge() {
         return scaled(read_register(0x1c, 2));
     }
 
-    int do_d0_time() {
+    public int do_d0_time() {
         return read_register(0x1e, 2);
     }
 
-    int available_energy() {
+    public int available_energy() {
         return scaled(read_register(0x24, 2));
     }
 
-    int average_power() {
+    public int average_power() {
         return scaled(read_register(0x26, 2));
     }
 
-    int serial_number() {
+    public int serial_number() {
         return read_register(0x28, 2);
     }
 
-    int internal_temperature() {
+    public int internal_temperature() {
         return read_register(0x2a, 2);
     }
 
-    int cycle_count() {
+    public int cycle_count() {
         return read_register(0x2c, 2);
     }
 
-    int state_of_health() {
+    public int state_of_health() {
         return read_register(0x2e, 2);
     }
 
-    int charge_voltage() {
+    public int charge_voltage() {
         return read_register(0x30, 2);
     }
 
-    int charge_current() {
+    public int charge_current() {
         return scaled(read_register(0x32, 2));
     }
 
-    int pack_configuration() {
+    public int pack_configuration() {
         return read_register(0x3a, 2);
     }
 
-    int design_capacity() {
+    public int design_capacity() {
         return scaled(read_register(0x3c, 2));
     }
 
-    byte grid_number() {
+    public byte grid_number() {
         return (byte) read_register(0x62, 1);
     }
 
-    byte learned_status() {
+    public byte learned_status() {
         return (byte) read_register(0x63, 1);
     }
 
-    int dod_at_eoc() {
+    public int dod_at_eoc() {
         return scaled(read_register(0x64, 2));
     }
 
-    int q_start() {
+    public int q_start() {
         return scaled(read_register(0x66, 2));
     }
 
-    int true_fcc() {
+    public int true_fcc() {
         return scaled(read_register(0x6a, 2));
     }
 
-    int state_time() {
+    public int state_time() {
         return read_register(0x6c, 2);
     }
 
-    int q_max_passed_q() {
+    public int q_max_passed_q() {
         return scaled(read_register(0x6e, 2));
     }
 
-    int dod_0() {
+    public int dod_0() {
         return scaled(read_register(0x70, 2));
     }
 
-    int q_max_dod_0() {
+    public int q_max_dod_0() {
         return scaled(read_register(0x72, 2));
     }
 
-    int q_max_time() {
+    public int q_max_time() {
         return read_register(0x74, 2);
     }
+
 
     @Override
     public void close() throws IOException {

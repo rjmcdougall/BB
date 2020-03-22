@@ -59,13 +59,17 @@ public class BoardState {
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
-    private static PlatformType GetPlatformType() {
-        if (Build.MODEL.contains("rpi3"))
-            return PlatformType.rpi;
-        else if (Build.MODEL.contains("NanoPC-T4"))
-            return PlatformType.npi;
-        else
-            return PlatformType.dragonboard;
+    public static PlatformType GetPlatformType() {
+        if (DebugConfigs.OVERRIDE_PLATFORM_TYPE != PlatformType.none) {
+            return DebugConfigs.OVERRIDE_PLATFORM_TYPE;
+        } else {
+            if (Build.MODEL.contains("rpi3"))
+                return PlatformType.rpi;
+            else if (Build.MODEL.contains("NanoPC-T4"))
+                return PlatformType.npi;
+            else
+                return PlatformType.dragonboard;
+        }
     }
 
     public static String GetDeviceID() {
@@ -227,7 +231,8 @@ public class BoardState {
     public enum PlatformType {
         rpi("rpi"),
         npi("npi"),
-        dragonboard("dragonboard");
+        dragonboard("dragonboard"),
+        none( "none");
 
         private String stringValue;
 
