@@ -122,7 +122,8 @@ public class BBService extends Service {
                     voice.setSpeechRate((float) 0.9);
                     textToSpeechReady = true;
                     voice.speak("I am " + boardState.BOARD_ID + "?", TextToSpeech.QUEUE_FLUSH, null, "iam");
-                } else if (status == TextToSpeech.ERROR) {
+                } else {
+                    textToSpeechReady = false;
                     BLog.i(TAG, "Sorry! Text To Speech failed...");
                 }
             });
