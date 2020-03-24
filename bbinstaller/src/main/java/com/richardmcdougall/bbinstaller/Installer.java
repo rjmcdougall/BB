@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 
 import com.richardmcdougall.bbcommon.AllBoards;
@@ -59,6 +61,16 @@ public class Installer extends Service {
         BLog.i(TAG, "Starting BB Installer");
 
         BLog.i(TAG, "onCreate");
+
+        // Stop the Android popup for verifying apps
+        BLog.i(TAG, " BB Installer set package_verifier_enable 0");
+        disablePackageVerify();
+
+        // Disables a dialog shown on adb install execution.
+        //Settings.Global.putInt(getContentResolver(), "verifier_verify_adb_installs", 0);
+
+        // enable install from non market
+        //Settings.Secure.putInt(getContentResolver(), Settings.Secure.INSTALL_NON_MARKET_APPS, 1);
 
         voice = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -219,6 +231,33 @@ public class Installer extends Service {
         pm.reboot(reason);
     }
 
+    public boolean disablePackageVerify() {
+        BLog.i(TAG, "Disabling Package Verifier");
+
+        final String libs = "LD_LIBRARY_PATH=/vendor/lib64:/system/lib64 ";
+
+        try {
+            if (Build.MODEL.contains("NanoPC-T4")) {
+                final String[] commands = {
+                        "settings put global verifier_verify_adb_installs 0",
+                        "settings put global package_verifier_enable 0",
+
+                };
+                return execute_as_root(commands);
+            } else {
+                final String[] commands = {
+                        libs + "settings put global verifier_verify_adb_installs 0",
+                        libs + "settings put global package_verifier_enable 0"
+                };
+
+                return execute_as_root(commands);
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "settings command failed: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean installApk(String path) {
         BLog.i(TAG, "Installing software update " + path);
 
@@ -227,7 +266,8 @@ public class Installer extends Service {
         try {
             if (Build.MODEL.contains("NanoPC-T4")) {
                 final String[] commands = {
-                        "pm install -i com.richardmcdougall.bbinstaller --user 0 " + path
+                        "settings set global package_verifier_enable 0",
+                        "pm install -i com.richardmcdougall.bbinstaller --user 0 -g " + path
                 };
                 return execute_as_root(commands);
             } else {
