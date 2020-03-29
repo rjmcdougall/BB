@@ -1,0 +1,20 @@
+
+Get Etcher
+https://osxdaily.com/2018/01/11/write-img-to-sd-card-mac-etcher/
+
+Get OS Build from Proto
+Use Etcher to install .img
+
+put the SD card in the nanopi
+
+connect nanopi to router via LAN /CAT5
+ 
+find the IP address of the nanopi in the router
+
+ssh 192.168.1.231 -l root
+password is fa
+
+type "eflasher" in a commandline utility and proceed with prompts
+when it asks you to reboot, take out the sd card and disconnect the lan and power cycle
+
+ 

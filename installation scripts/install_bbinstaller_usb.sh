@@ -1,6 +1,9 @@
 adb disconnect
 adb root
 adb disable-verity
+adb reboot
+sleep 20
+adb root
 adb remount
 adb shell rm -r /system/priv-app/com.richardmcdougall.bb*
 adb shell pm uninstall com.richardmcdougall.bb
