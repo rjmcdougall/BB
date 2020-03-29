@@ -43,18 +43,20 @@
 <!--            </intent-filter>-->
 <!--        </activity>-->
 
-        <service
-            android:name=".Installer"
-            android:enabled="true"
-            android:exported="true">
-        </service>
 
-        <!-- END DEBUG SWITCH -->
         <receiver android:name=".onBoot">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- END DEBUG SWITCH -->
+
+        <service
+            android:name=".Installer"
+            android:enabled="true"
+            android:exported="true">
+        </service>
 
         <!-- Mqtt Service -->
         <service android:name="org.eclipse.paho.android.service.MqttService" >

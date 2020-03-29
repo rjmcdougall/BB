@@ -149,34 +149,6 @@ public class BBDownloadManager {
         }
     }
 
-    public String GetURLMD5FromGCS(String URLString) {
-
-        BLog.d(TAG, "Getting MD5 via Google REST Size API: " + URLString);
-
-        try {
-            StringBuilder result = new StringBuilder();
-            URL url = new URL(URLString);
-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    urlConnection.getInputStream()));
-            String inputLine;
-            while ((inputLine = in.readLine()) != null)
-                result.append(inputLine);
-            in.close();
-
-            JSONObject jsonObj = new JSONObject(result.toString());
-            if (jsonObj.has("md5Hash"))
-                return jsonObj.getString("md5Hash");
-            else
-                return "";
-
-        } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
-        }
-        return "";
-
-    }
-
     public void CleanupOldFiles() {
         try {
             ArrayList<String> refrerencedFiles = new ArrayList<String>();
@@ -241,19 +213,8 @@ public class BBDownloadManager {
 
             String dataDir = mFilesDir;
 
-            // Check if the directory has changed
-            String currentMD5 = GetURLMD5FromGCS("https://www.googleapis.com/storage/v1/b/burner-board/o/BurnerBoardApps%2FDownloadApp.json");
-            BLog.d(TAG, "current md5 " + currentMD5 + " == " + mLastDirectoryMd5 + "?");
-            if (currentMD5.equals(mLastDirectoryMd5)) {
-                BLog.d(TAG, "No Download directory changes");
-                //downloadSuccess = true;
-                return true;
-            }
-
-            mLastDirectoryMd5 = currentMD5;
-
             BLog.d(TAG, "Downloading app index");
-            long ddsz = FileHelpers.DownloadURL("https://storage.googleapis.com/burner-board/BurnerBoardApps/DownloadApp.json", "tmp", "Directory", onProgressCallback, mFilesDir);
+            long ddsz = FileHelpers.DownloadURL("https://us-central1-burner-board.cloudfunctions.net/boards/apkVersions", "tmp", "Directory", onProgressCallback, mFilesDir);
             if (ddsz > 0) {
                 new File(dataDir, "tmp").renameTo(new File(dataDir, "directory.json.tmp"));
 
