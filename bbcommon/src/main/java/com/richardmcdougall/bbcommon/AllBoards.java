@@ -189,30 +189,6 @@ public class AllBoards {
         return boardId;
     }
 
-    public String boardAddressToColor(int address) {
-
-        JSONObject board;
-        String boardColor = "white";
-
-        try {
-
-            if (dataBoards == null) {
-                BLog.d(TAG, "Could not find board color data");
-            } else {
-                for (int i = 0; i < dataBoards.length(); i++) {
-                    board = dataBoards.getJSONObject(i);
-                    if (board.getInt("address") == address) {
-                        boardColor = board.getString("color");
-                    }
-                }
-            }
-            return boardColor;
-        } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
-            return boardColor;
-        }
-    }
-
     public int videoContrastMultiplier(String boardID) {
 
         JSONObject board;
@@ -221,7 +197,6 @@ public class AllBoards {
         try {
             board = getBoardByID(boardID);
             videoContrastMultiplier = board.getInt("videoContrastMultiplier");
-            BLog.d(TAG, "videoContrastMultiplier " + videoContrastMultiplier);
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }

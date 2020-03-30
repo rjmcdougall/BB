@@ -138,6 +138,8 @@ public class BoardState {
         boardType = this.allBoards.getBoardType(BOARD_ID);
         targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
         videoContrastMultiplier = this.allBoards.videoContrastMultiplier(BOARD_ID);
+
+        BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier);
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {
