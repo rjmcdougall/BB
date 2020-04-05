@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.provider.Settings;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,7 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
+import android.app.Application;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -73,7 +74,7 @@ public class BoardState {
         }
     }
 
-    public static String GetDeviceID() {
+    public String GetDeviceID() {
         if (DebugConfigs.OVERRIDE_DEVICE_ID != "") {
             return DebugConfigs.OVERRIDE_DEVICE_ID;
         } else {
@@ -82,9 +83,9 @@ public class BoardState {
                 return "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                         serial.length());
             } else if (GetPlatformType() == PlatformType.npi) {
-                String serial = GetRockChipSerial();
-                return "n" + serial.substring(Math.max(serial.length() - 7, 0),
-                        serial.length());
+                String androidId = Settings.Secure.getString(context.getContentResolver(),
+                        Settings.Secure.ANDROID_ID);
+                return "n" + androidId.substring(Math.max(androidId.length() - 7, 0), androidId.length());
             } else { // dragonboard
                 return Build.MODEL;
             }

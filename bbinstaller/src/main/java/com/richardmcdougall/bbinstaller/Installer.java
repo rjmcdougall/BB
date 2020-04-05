@@ -110,7 +110,7 @@ public class Installer extends Service {
         }
 
         // look to see if the board exists in allboards. if not create it and wait for sync
-        String deviceID = BoardState.GetDeviceID();
+        String deviceID = boardState.GetDeviceID();
         JSONObject board = allBoards.getBoardByDeviceID(deviceID);
         if (board == null) {
             allBoards.createBoard(deviceID);
