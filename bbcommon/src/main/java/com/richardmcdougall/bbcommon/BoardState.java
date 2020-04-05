@@ -14,6 +14,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -76,11 +77,13 @@ public class BoardState {
         if (DebugConfigs.OVERRIDE_DEVICE_ID != "") {
             return DebugConfigs.OVERRIDE_DEVICE_ID;
         } else {
+
             if (GetPlatformType() == PlatformType.rpi) {
                 return "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                         serial.length());
             } else if (GetPlatformType() == PlatformType.npi) {
-                return "npi" + serial.substring(Math.max(serial.length() - 5, 0),
+                String serial = GetRockChipSerial();
+                return "n" + serial.substring(Math.max(serial.length() - 7, 0),
                         serial.length());
             } else { // dragonboard
                 return Build.MODEL;
@@ -227,6 +230,38 @@ public class BoardState {
         @Override
         public String toString() {
             return stringValue;
+        }
+    }
+
+    private static String GetRockChipSerial(){
+
+        String rockChipSerial = "";
+        String result = "";
+
+        try{
+            String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
+            ProcessBuilder cmd = new ProcessBuilder(args);
+
+            Process process = cmd.start();
+            InputStream in = process.getInputStream();
+            byte[] re = new byte[1024];
+            while(in.read(re) != -1){
+                result += new String(re);
+            }
+            in.close();
+
+            String results[] = result.split("\n");
+            for(String line: results){
+                if(line.startsWith("Serial\t\t:")){
+                    rockChipSerial = line.replace("Serial\t\t:","").trim();
+                }
+            }
+
+        } catch(Exception ex){
+            ex.printStackTrace();
+        }
+        finally {
+            return rockChipSerial;
         }
     }
 

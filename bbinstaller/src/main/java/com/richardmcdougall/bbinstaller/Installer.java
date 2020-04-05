@@ -125,6 +125,7 @@ public class Installer extends Service {
             BLog.e(TAG, "getDeviceByID Failure: " + e.getMessage());
         }
 
+        BLog.i(TAG, "State Device ID " + boardState.DEVICE_ID);
         BLog.i(TAG, "State Version " + boardState.version);
         BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);
         BLog.i(TAG, "State Address " + boardState.address);

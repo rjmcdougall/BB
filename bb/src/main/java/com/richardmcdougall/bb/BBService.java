@@ -103,6 +103,7 @@ public class BBService extends Service {
             BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
             BLog.i(TAG, "Build Model " + Build.MODEL);
             BLog.i(TAG, "Build Serial " + Build.SERIAL);
+            BLog.i(TAG, "State Device ID " + boardState.DEVICE_ID);
 
             allBoards = new AllBoards(context, voice);
 
