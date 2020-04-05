@@ -267,7 +267,8 @@ public class Installer extends Service {
             if (Build.MODEL.contains("NanoPC-T4")) {
                 final String[] commands = {
                         "settings set global package_verifier_enable 0",
-                        "pm install -i com.richardmcdougall.bbinstaller --user 0 -g " + path
+                        "pm install -i com.richardmcdougall.bbinstaller --user 0 -g " + path,
+                        "am start com.richardmcdougall.bb/.MainActivity"
                 };
                 return execute_as_root(commands);
             } else {
