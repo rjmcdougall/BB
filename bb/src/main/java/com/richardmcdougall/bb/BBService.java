@@ -111,6 +111,7 @@ public class BBService extends Service {
                 Thread.sleep(2000);
             }
             boardState = new BoardState(this.context, this.allBoards);
+            BLog.i(TAG, "State Device ID " + boardState.DEVICE_ID);
 
             voice = new TextToSpeech(context, (int status) -> {
                 // check for successful instantiation
@@ -130,7 +131,13 @@ public class BBService extends Service {
 
             wifi = new BBWifi(context,boardState);
 
-            mGyro = new Gyro(context, boardState);
+            try {
+                mGyro = new Gyro(context, boardState);
+
+            }
+            catch(Exception e){
+                BLog.e(TAG,"Gyro is fucked.");
+            }
 
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);

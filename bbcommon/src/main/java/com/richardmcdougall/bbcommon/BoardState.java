@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.provider.Settings;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import android.app.Application;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -72,16 +74,18 @@ public class BoardState {
         }
     }
 
-    public static String GetDeviceID() {
+    public String GetDeviceID() {
         if (DebugConfigs.OVERRIDE_DEVICE_ID != "") {
             return DebugConfigs.OVERRIDE_DEVICE_ID;
         } else {
+
             if (GetPlatformType() == PlatformType.rpi) {
                 return "pi" + serial.substring(Math.max(serial.length() - 6, 0),
                         serial.length());
             } else if (GetPlatformType() == PlatformType.npi) {
-                return "npi" + serial.substring(Math.max(serial.length() - 5, 0),
-                        serial.length());
+                String androidId = Settings.Secure.getString(context.getContentResolver(),
+                        Settings.Secure.ANDROID_ID);
+                return "n" + androidId.substring(Math.max(androidId.length() - 7, 0), androidId.length());
             } else { // dragonboard
                 return Build.MODEL;
             }
@@ -138,6 +142,8 @@ public class BoardState {
         boardType = this.allBoards.getBoardType(BOARD_ID);
         targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
         videoContrastMultiplier = this.allBoards.videoContrastMultiplier(BOARD_ID);
+
+        BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier);
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {
@@ -225,6 +231,38 @@ public class BoardState {
         @Override
         public String toString() {
             return stringValue;
+        }
+    }
+
+    private static String GetRockChipSerial(){
+
+        String rockChipSerial = "";
+        String result = "";
+
+        try{
+            String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
+            ProcessBuilder cmd = new ProcessBuilder(args);
+
+            Process process = cmd.start();
+            InputStream in = process.getInputStream();
+            byte[] re = new byte[1024];
+            while(in.read(re) != -1){
+                result += new String(re);
+            }
+            in.close();
+
+            String results[] = result.split("\n");
+            for(String line: results){
+                if(line.startsWith("Serial\t\t:")){
+                    rockChipSerial = line.replace("Serial\t\t:","").trim();
+                }
+            }
+
+        } catch(Exception ex){
+            ex.printStackTrace();
+        }
+        finally {
+            return rockChipSerial;
         }
     }
 

@@ -110,7 +110,7 @@ public class Installer extends Service {
         }
 
         // look to see if the board exists in allboards. if not create it and wait for sync
-        String deviceID = BoardState.GetDeviceID();
+        String deviceID = boardState.GetDeviceID();
         JSONObject board = allBoards.getBoardByDeviceID(deviceID);
         if (board == null) {
             allBoards.createBoard(deviceID);
@@ -125,6 +125,7 @@ public class Installer extends Service {
             BLog.e(TAG, "getDeviceByID Failure: " + e.getMessage());
         }
 
+        BLog.i(TAG, "State Device ID " + boardState.DEVICE_ID);
         BLog.i(TAG, "State Version " + boardState.version);
         BLog.i(TAG, "State APK Updated Date " + boardState.apkUpdatedDate);
         BLog.i(TAG, "State Address " + boardState.address);
