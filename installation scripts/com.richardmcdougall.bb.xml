@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<permissions>
-    <privapp-permissions package="com.richardmcdougall.bbinstaller">
-        <permission name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
+<exceptions>
+	<exception package="com.richardmcdougall.bb">
 		<permission name="android.permission.ACCESS_COARSE_LOCATION" fixed="true" />
 		<permission name="android.permission.RECORD_AUDIO" fixed="true" />
 		<permission name="com.google.android.things.permission.USE_PERIPHERAL_IO" fixed="true" />
@@ -32,6 +31,8 @@
 		<permission name="com.google.android.things.permission.REBOOT" />
 		<permission name="com.google.android.Manifest.permission.NETWORK_SETTINGS" />
 		<permission name="android.permission.REORDER_TASKS" />
+	</exception>
+	<exception package="com.richardmcdougall.bbinstaller">
 		<permission name="android.permission.REBOOT" />
 		<permission name="android.permission.WAKE_LOCK" />
 		<permission name="android.permission.INTERNET" />
@@ -54,7 +55,5 @@
 		<permission name="android.permission.INTERACT_ACROSS_USERS_FULL"/>
 		<permission name="android.permission.MANAGE_USERS"/>
 		<permission name="android.permission.WRITE_SECURE_SETTINGS"/>
-		<permission name="android.permission.INSTALL_GRANT_RUNTIME_PERMISSIONS"/>
-    </privapp-permissions>
-</permissions>
-
+	</exception>
+</exceptions>

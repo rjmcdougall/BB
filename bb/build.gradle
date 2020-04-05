@@ -16,8 +16,8 @@ android {
         minSdkVersion 23
         targetSdkVersion 27
 
-        versionCode 5030
-        versionName "5030"
+        versionCode 5031
+        versionName "5031"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
