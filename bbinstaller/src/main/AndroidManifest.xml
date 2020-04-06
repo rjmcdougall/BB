@@ -25,6 +25,7 @@
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" android:protectionLevel="signatureOrSystem"/>
     <uses-permission android:name="android.permission.MANAGE_USERS" android:protectionLevel="signatureOrSystem"/>
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" android:protectionLevel="signatureOrSystem"/>
+    <uses-permission android:name="android.permission.INSTALL_GRANT_RUNTIME_PERMISSIONS" android:protectionLevel="signatureOrSystem"/>
     <uses-feature android:name="android.hardware.usb.host" />
     <uses-feature android:name="android.hardware.wifi" />
 
