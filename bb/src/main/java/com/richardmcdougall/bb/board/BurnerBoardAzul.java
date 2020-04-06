@@ -25,7 +25,6 @@ import java.util.Arrays;
 public class BurnerBoardAzul extends BurnerBoard {
 
     private static final String TAG = "BB.BurnerBoardAzul";
-    private static final int kAzulBatteryMah = 38000;
     // Two primary mapping functions
     static int kStrips = 8;
     static int[] pixelsPerStrip = new int[8];
@@ -77,9 +76,6 @@ public class BurnerBoardAzul extends BurnerBoard {
             return 30;
     }
 
-    public int getBatteryHealth() {
-        return 100 * mBatteryStats[5] / kAzulBatteryMah;
-    }
 
     public void flush() {
 
@@ -145,9 +141,7 @@ public class BurnerBoardAzul extends BurnerBoard {
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
-    public int getBatteryVoltage() {
-        return mBatteryStats[5];
-    }
+
 
     private void initpixelMap2Board() {
         int x, y;
@@ -194,26 +188,8 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
-            int[] tmpBatteryStats = new int[16];
-
             for (int i = 0; i < mBatteryStats.length; i++) {
-                tmpBatteryStats[i] = mListener.readIntArg();
-            }
-            if ((tmpBatteryStats[0] > 0) && //flags
-                    (tmpBatteryStats[1] != -1) &&  // level
-                    (tmpBatteryStats[5] > 20000)) { // voltage
-                service.boardState.batteryLevel = tmpBatteryStats[1];
-                System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
-                BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
-                        "voltage: " + getBatteryVoltage() + ", " +
-                        "current: " + getBatteryCurrent() + ", " +
-                        "current instant: " + getBatteryCurrentInstant() + ", " +
-                        "flags: " + mBatteryStats[0] + ", " +
-                        "battery stats: " + Arrays.toString(tmpBatteryStats)  );
-            } else {
-                BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
-                        "voltage: " + tmpBatteryStats[5] + ", " +
-                        "flags: " + tmpBatteryStats[0]);
+                mBatteryStats[i] = mListener.readIntArg();
             }
         }
     }

@@ -235,33 +235,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    // Instant current in milliamps
-    public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
 
-    public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
-        if (codedLevel > 32768) {
-            return 10 * (codedLevel - 65536);
-        } else {
-            return 10 * codedLevel;
-        }
-    }
-
-    // Voltage in millivolts
-    public int getBatteryVoltage() {
-        return 0;
-    }
-
-    public String getBatteryStats() {
-        return Arrays.toString(mBatteryStats);
-    }
 
     public void showBattery() {
 
@@ -688,6 +662,10 @@ public abstract class BurnerBoard {
 
     public void start() {
 
+    }
+
+    public int[] getmBatteryStats() {
+        return mBatteryStats;
     }
 
     private void testPerf() {

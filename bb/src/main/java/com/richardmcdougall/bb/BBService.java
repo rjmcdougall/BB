@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
@@ -42,6 +43,7 @@ public class BBService extends Service {
     public MusicPlayer musicPlayer = null;
     public RF radio = null;
     public Gps gps = null;
+    public BMS bms;
     public RFClientServer rfClientServer = null;
     public FindMyFriends findMyFriends = null;
     public BluetoothLEServer bLEServer = null;
@@ -213,6 +215,7 @@ public class BBService extends Service {
             bLEServer = new BluetoothLEServer(this);
             gps = new Gps(this);
             radio = new RF(this);
+            bms = new BMS(this);
 
             rfClientServer = new RFClientServer(this);
             rfMasterClientServer = new RFMasterClientServer(this);
