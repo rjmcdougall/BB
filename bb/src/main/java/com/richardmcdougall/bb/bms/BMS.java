@@ -77,6 +77,38 @@ public class BMS {
     public float get_current_instant() {
         return 2;
     }
+
+    public String getBatteryStatsIoT() {
+        // TODO: return the csv array compat for IoT
+        //  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
+//          cmdMessenger.sendCmdArg(batteryControl);
+//          cmdMessenger.sendCmdArg(batteryStateOfCharge);
+//          cmdMessenger.sendCmdArg(batteryMaxError);
+//          cmdMessenger.sendCmdArg(batteryRemainingCapacity);
+//          cmdMessenger.sendCmdArg(batteryFullChargeCapacity);
+//          cmdMessenger.sendCmdArg(batteryVoltage);
+//          cmdMessenger.sendCmdArg(batteryAverageCurrent);
+//          cmdMessenger.sendCmdArg(batteryTemperature);
+//          cmdMessenger.sendCmdArg(batteryFlags);
+//          cmdMessenger.sendCmdArg(batteryCurrent);
+//          cmdMessenger.sendCmdArg(batteryFlagsB);
+//          cmdMessenger.sendCmdEnd();
+        int [] stats = new int[16];
+        stats[0] =
+        stats[1] = 0; // batteryControl
+        stats[2] = (int)get_level(); // batteryStateOfCharge
+        stats[3] = 0; // batteryMaxError
+        stats[4] = 0; // batteryRemainingCapacity
+        stats[5] = 0; // batteryFullChargeCapacity
+        stats[6] = 0; // batteryVoltage
+        stats[7] = 0; // batteryAverageCurrent
+        stats[8] = 0; // batteryTemperature
+        stats[9] = 0; // batteryFlags
+        stats[10] = 0;// batteryCurrent
+        stats[11] = 0;// batteryFlagsB
+
+        return stats.toString();
+    }
 }
 
 

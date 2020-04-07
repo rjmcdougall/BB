@@ -13,7 +13,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     public static final int kLeftSightlight = 0;
     public static final int kRightSidelight = 1;
     private static final String TAG = "BB.BurnerBoardClassic";
-    private static final int kClassicBatteryMah = 38000;
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private int mBoardSideLights = 79;
     //private int[] mBoardScreen;
@@ -51,10 +50,6 @@ public class BurnerBoardClassic extends BurnerBoard {
                 new BurnerBoardClassic.BoardCallbackGetBatteryLevel();
         mListener.attach(10, getBatteryLevelCallback);
 
-    }
-
-    public int getBatteryHealth() {
-        return 100 * mBatteryStats[5] / kClassicBatteryMah;
     }
 
     @Override
@@ -334,12 +329,6 @@ public class BurnerBoardClassic extends BurnerBoard {
             for (int i = 0; i < mBatteryStats.length; i++) {
                 mBatteryStats[i] = mListener.readIntArg();
             }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }

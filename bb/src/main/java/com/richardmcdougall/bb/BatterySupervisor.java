@@ -17,10 +17,10 @@ public class BatterySupervisor {
     private boolean enableBatteryMonitoring = false;
     private boolean enableIoTReporting = false;
     private int iotReportEveryNSeconds = 10;
-    private BMS mBMS;
 
 
-    Runnable batteryIOT = () ->  service.iotClient.sendUpdate("bbtelemetery", service.burnerBoard.getBatteryStats());
+    Runnable batteryIOT = () ->  service.iotClient.sendUpdate("bbtelemetery",
+            service.bms.getBatteryStatsIoT());
     Runnable batterySupervisor = () ->  checkBattery();
 
     BatterySupervisor(BBService service) {
@@ -32,9 +32,6 @@ public class BatterySupervisor {
             enableBatteryMonitoring = true;
             enableIoTReporting = true;
         }
-
-        // Attach BMS
-        mBMS = BMS.Builder(service);
 
         /* Communicate the settings for the supervisor thread */
         BLog.d(TAG, "Enable Battery Monitoring? " + enableBatteryMonitoring);
@@ -62,10 +59,10 @@ public class BatterySupervisor {
         */
 
 
-        float voltage = mBMS.get_voltage();
-        float current = mBMS.get_current();
-        float currentInstant = mBMS.get_current_instant();
-        float level = mBMS.get_level();
+        float voltage = service.bms.get_voltage();
+        float current = service.bms.get_current();
+        float currentInstant = service.bms.get_current_instant();
+        float level = service.bms.get_level();
 
 
         BLog.d(TAG, "Board Current(avg) is " + current);

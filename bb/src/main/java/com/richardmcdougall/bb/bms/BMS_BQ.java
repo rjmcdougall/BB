@@ -5,6 +5,7 @@ import com.richardmcdougall.bb.hardware.BQ34Z100;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class BMS_BQ extends BMS {
     private String TAG = this.getClass().getSimpleName();
@@ -71,6 +72,8 @@ public class BMS_BQ extends BMS {
     }
     
     public void update() {
+        // TODO: why do we keep this state here?
+        service.boardState.batteryLevel = mBQ.state_of_charge_pct();
     }
     
     public float get_voltage() {

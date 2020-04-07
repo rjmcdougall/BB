@@ -5,15 +5,18 @@ import com.richardmcdougall.bb.hardware.BQ34Z100;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 
 public class BMS_BQTeensy extends BMS {
     private String TAG = this.getClass().getSimpleName();
+    public int[] mBatteryStats = new int[16];
+    private static final int kAzulBatteryMah = 38000;
 
     public BMS_BQTeensy(BBService service) {
         super(service);
 
-        BLog.e(TAG, "Teensy BMS startihng");
+        BLog.e(TAG, "Teensy BMS starting");
 
         //BLog.e(TAG, "Status: voltage_volts:             " + String.format("%f", mMBS.voltage_volts()));
         //BLog.e(TAG, "Status: average_current_amps:      " + String.format("%f", mMBS.average_current_amps()));
@@ -21,24 +24,83 @@ public class BMS_BQTeensy extends BMS {
     }
 
     public void update() {
+        int[] tmpBatteryStats = new int[16];
+
+        if (service == null) {
+            return;
+        }
+        if (service.burnerBoard == null) {
+            return;
+        }
+
+        tmpBatteryStats = service.burnerBoard.getmBatteryStats();
+        if ((tmpBatteryStats[0] > 0) && //flags
+                (tmpBatteryStats[1] != -1) &&  // level
+                (tmpBatteryStats[5] > 20000)) { // voltage
+            service.boardState.batteryLevel = tmpBatteryStats[1];
+            System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
+            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
+                    "voltage: " + getBatteryVoltage() + ", " +
+                    "current: " + getBatteryCurrent() + ", " +
+                    "current instant: " + getBatteryCurrentInstant() + ", " +
+                    "flags: " + mBatteryStats[0] + ", " +
+                    "battery stats: " + Arrays.toString(tmpBatteryStats)  );
+        } else {
+            BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
+                    "voltage: " + tmpBatteryStats[5] + ", " +
+                    "flags: " + tmpBatteryStats[0]);
+        }
     }
 
-    public float get_voltage() {
+
+    public int getBatteryHealth() {
+        return 100 * mBatteryStats[5] / kAzulBatteryMah;
+    }
+
+
+    // Instant current in milliamps
+    public int getBatteryCurrent() {
+        int codedLevel = mBatteryStats[6];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
+    public int getBatteryCurrentInstant() {
+        int codedLevel = mBatteryStats[9];
+        if (codedLevel > 32768) {
+            return 10 * (codedLevel - 65536);
+        } else {
+            return 10 * codedLevel;
+        }
+    }
+
+    // Voltage in millivolts
+    public int getBatteryVoltage() {
         return 0;
+    }
+
+    public String getBatteryStats() {
+        return Arrays.toString(mBatteryStats);
+    }
+
+
+    public float get_voltage() {
+        return (float)getBatteryVoltage();
      }
 
     public float get_current() {
-
-        return 0;
+        return (float)getBatteryCurrent();
     }
 
     public float get_current_instant() {
-        return 0;
-    }
+        return (float)getBatteryCurrentInstant();
+        }
 
     public float get_level() {
-
-        return 0;
+        return 100.0f;
     }
 }
 
