@@ -103,25 +103,25 @@ public class BatterySupervisor {
         // Make sure we're not seeing +ve current, which is charging
         // Average current use to enter STATE_IDLE
         // Instant current used to exit STATE_IDLE
-        if ((voltage > 20000) && (current > -150) && (current < 10)) {
+        if ((voltage > 20) && (current > -.150) && (current < .010)) {
             // Any state -> IDLE
             powerState = powerStates.STATE_IDLE;
             service.boardVisualization.inhibitVisual = true;
-        } else if ((voltage > 20000) && (currentInstant < -150)) {
+        } else if ((voltage > 20) && (currentInstant < -.150)) {
             // Any state -> Displaying
             powerState = powerStates.STATE_DISPLAYING;
             service.boardVisualization.inhibitVisual = false;
         } else if (powerState == powerStates.STATE_DISPLAYING &&
                 // DISPLAYING -> Charging (avg current)
-                (voltage > 20000) && (current > 10)) {
+                (voltage > 20) && (current > 10)) {
             powerState = powerStates.STATE_CHARGING;
             service.boardVisualization.inhibitVisual = false;
         } else if (powerState == powerStates.STATE_IDLE &&
-                (voltage > 20000) && (currentInstant > 10)) {
+                (voltage > 20) && (currentInstant > .010)) {
             // STATE_IDLE -> Charging // instant
             powerState = powerStates.STATE_CHARGING;
             service.boardVisualization.inhibitVisual = false;
-        } else if ((voltage > 20000) && (current > 10)) {
+        } else if ((voltage > 20) && (current > .010)) {
             // Anystate -> Charging // avg current
             powerState = powerStates.STATE_CHARGING;
             service.boardVisualization.inhibitVisual = false;
@@ -138,7 +138,7 @@ public class BatterySupervisor {
         // Battery voltage is critically low
         // Board will come to a halt in < 60 seconds
         // current is milliamps
-        if ((voltage > 20000) && (voltage < 35300)) {
+        if ((voltage > 20.000) && (voltage < 35.300)) {
             service.boardVisualization.lowBatteryVisual = true;
         } else {
             service.boardVisualization.lowBatteryVisual = false;
