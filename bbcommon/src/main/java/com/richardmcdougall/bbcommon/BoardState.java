@@ -84,7 +84,7 @@ public class BoardState {
                         serial.length());
             } else if (GetPlatformType() == PlatformType.npi) {
                 String androidId = GetRockChipSerial();
-                return "n-" + androidId.substring(Math.max(androidId.length() - 6, 0), androidId.length()).toUpperCase();
+                return "n" + androidId.toUpperCase();
             } else { // dragonboard
                 return Build.MODEL;
             }
