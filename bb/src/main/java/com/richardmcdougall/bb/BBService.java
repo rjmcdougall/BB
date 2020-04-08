@@ -215,7 +215,7 @@ public class BBService extends Service {
             bLEServer = new BluetoothLEServer(this);
             gps = new Gps(this);
             radio = new RF(this);
-            bms = new BMS(this);
+            bms = BMS.Builder(this);
 
             rfClientServer = new RFClientServer(this);
             rfMasterClientServer = new RFMasterClientServer(this);
