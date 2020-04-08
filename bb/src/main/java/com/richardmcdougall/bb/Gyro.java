@@ -35,6 +35,14 @@ public class Gyro {
     }
 
     // Add accessors here...
-
+    public void update() {
+        try {
+            BLog.e(TAG, "Acel: " + String.format("%f \t %f \t %f", mMpu.getAccelX(), mMpu.getAccelY(), mMpu.getAccelZ()));
+            BLog.e(TAG, "Temp: " + String.format("%f", mMpu.getTemp()));
+            BLog.e(TAG, "Gyro: " + String.format("%f \t %f \t %f", mMpu.getGyroX(), mMpu.getGyroY(), mMpu.getGyroZ()));
+        } catch (IOException e) {
+            BLog.e(TAG, "Cannot open Accelerometer");
+        }
+    }
 }
 

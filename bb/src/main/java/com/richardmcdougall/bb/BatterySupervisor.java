@@ -1,9 +1,12 @@
 package com.richardmcdougall.bb;
 
+import android.graphics.Matrix;
+
 import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -19,12 +22,20 @@ public class BatterySupervisor {
     private int iotReportEveryNSeconds = 10;
 
 
-    Runnable batteryIOT = () ->  service.iotClient.sendUpdate("bbtelemetery",
-            service.bms.getBatteryStatsIoT());
+    Runnable batteryIOT = () -> {
+        try {
+            String stats = service.bms.getBatteryStatsIoT();
+            service.iotClient.sendUpdate("bbtelemetery", stats);
+        } catch (IOException e) {
+            BLog.e(TAG, "Cannot read battery for IOT Update");
+        }
+    };
+
     Runnable batterySupervisor = () ->  checkBattery();
 
     BatterySupervisor(BBService service) {
         this.service = service;
+
 
         if (service.boardState.boardType == BoardState.BoardType.azul ||
                 service.boardState.boardType == BoardState.BoardType.classic ||
@@ -45,6 +56,13 @@ public class BatterySupervisor {
 
     }
 
+
+    float voltage = 0.0f;
+    float current = 0.0f;
+    float currentInstant = 0.0f;
+    float level = 0.0f;
+
+
     public void checkBattery() {
 
         boolean announce;
@@ -59,10 +77,19 @@ public class BatterySupervisor {
         */
 
 
-        float voltage = service.bms.get_voltage();
-        float current = service.bms.get_current();
-        float currentInstant = service.bms.get_current_instant();
-        float level = service.bms.get_level();
+        // Temporary hack to check and report gyro for testing
+        if (this.service.gyro != null) {
+            this.service.gyro.update();
+        }
+
+        try {
+            voltage = service.bms.get_voltage();
+            current = service.bms.get_current();
+            currentInstant = service.bms.get_current_instant();
+            level = service.bms.get_level();
+        } catch (IOException e) {
+            BLog.e(TAG, "Cannot read BMS");
+        }
 
 
         BLog.d(TAG, "Board Current(avg) is " + current);

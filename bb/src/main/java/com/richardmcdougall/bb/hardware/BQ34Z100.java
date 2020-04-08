@@ -88,11 +88,12 @@ public class BQ34Z100 implements AutoCloseable {
  */
 
 
-    private int read_register(int address, int length) {
+    private int read_register(int address, int length) throws IOException {
         try {
             mDevice.readRegBuffer(address, mBuffer, length);
         } catch (Exception e) {
-            BLog.e(TAG, "Cannot read Battery reg " + address);
+            BLog.e(TAG, "Cannot read reg  " + address);
+            throw new IOException("Cannot read reg  " + address);
         }
         int temp = 0;
         for (byte i = 0; i < length; i++) {
@@ -103,31 +104,33 @@ public class BQ34Z100 implements AutoCloseable {
         return temp;
     }
 
-    int read_control(int address_lsb, int address_msb) {
+    int read_control(int address_lsb, int address_msb) throws IOException {
         byte[] address = {(byte) (address_lsb & 0xff), (byte) (address_msb & 0xff)};
         int response = 0;
         try {
             mDevice.writeRegBuffer(0x00, address, 2);
             response = mDevice.readRegWord(0x00);
         } catch (Exception e) {
-            BLog.e(TAG, "Cannot read Battery control reg " +
-                    address_lsb + " " + address_msb);
+            BLog.e(TAG, "Cannot read control  " + address);
+            throw new IOException(("Cannot read control  " + address));
         }
+
         return response;
     }
 
-    void read_flash_block(int sub_class, int offset) {
+    void read_flash_block(int sub_class, int offset) throws IOException {
         write_reg(0x61, 0x00); // Block control
         write_reg(0x3e, sub_class); // Flash class
         write_reg(0x3f, offset / 32); // Flash block
         read_reg_buffer(0x40, flash_block_data); // Data
     }
 
-    void read_reg_buffer(int addr, byte[] buffer) {
+    void read_reg_buffer(int addr, byte[] buffer) throws IOException {
         try {
             mDevice.readRegBuffer(addr, buffer, buffer.length);
         } catch (Exception e) {
             BLog.e(TAG, "Cannot write Battery reg " + addr);
+            throw new IOException("Cannot write Battery reg " + addr);
         }
     }
 
@@ -135,24 +138,26 @@ public class BQ34Z100 implements AutoCloseable {
         return kScale * value;
     }
 
-    void write_reg(int addr, int val) {
+    void write_reg(int addr, int val) throws IOException {
         try {
             mDevice.writeRegByte(addr, (byte) (val & 0xff));
         } catch (Exception e) {
             BLog.e(TAG, "Cannot write Battery  reg " + addr);
+            throw new IOException("Cannot write Battery  reg " + addr);
         }
     }
 
-    void write_reg_buffer(int addr, byte[] buffer) {
+    void write_reg_buffer(int addr, byte[] buffer) throws IOException {
         try {
             mDevice.writeRegBuffer(addr, buffer, buffer.length);
         } catch (Exception e) {
             BLog.e(TAG, "Cannot write Battery reg " + addr);
+            throw new IOException("Cannot write Battery reg " + addr);
         }
     }
 
 
-    void write_flash_block(int sub_class, int offset) {
+    void write_flash_block(int sub_class, int offset) throws IOException {
         write_reg(0x61, 0x00); // Block control
         write_reg(0x3e, sub_class); // Flash class
         write_reg(0x3f, (offset / 32)); // Flash block
@@ -210,7 +215,7 @@ public class BQ34Z100 implements AutoCloseable {
         return ((exponent + 128) << 24) | ((int) mantissa & 0x7fffff);
     }
 
-    void unsealed() {
+    void unsealed() throws IOException {
         byte[] control1 = {0x14, 0x04};
         byte[] control2 = {0x72, 0x36};
         write_reg_buffer(0, control1);
@@ -225,7 +230,7 @@ public class BQ34Z100 implements AutoCloseable {
     }
 
 
-    void enter_calibration() {
+    void enter_calibration() throws IOException {
         unsealed();
         do {
             cal_enable();
@@ -234,7 +239,7 @@ public class BQ34Z100 implements AutoCloseable {
         } while ((control_status() & 0x1000) == 0); // CALEN
     }
 
-    void exit_calibration() {
+    void exit_calibration() throws IOException {
         do {
             exit_cal();
             delay(1000);
@@ -245,7 +250,7 @@ public class BQ34Z100 implements AutoCloseable {
         delay(150);
     }
 
-    boolean update_design_capacity(int capacity) {
+    boolean update_design_capacity(int capacity) throws IOException {
         unsealed();
         read_flash_block(48, 0);
 
@@ -292,7 +297,7 @@ public class BQ34Z100 implements AutoCloseable {
         return true;
     }
 
-    boolean update_q_max(int capacity) {
+    boolean update_q_max(int capacity) throws IOException {
         unsealed();
         read_flash_block(82, 0);
         flash_block_data[0] = (byte) ((capacity >> 8) & 0xff); // Q Max
@@ -322,7 +327,7 @@ public class BQ34Z100 implements AutoCloseable {
         return true;
     }
 
-    boolean update_design_energy(int energy) {
+    boolean update_design_energy(int energy) throws IOException {
         unsealed();
         read_flash_block(48, 0);
         flash_block_data[13] = (byte) ((energy >> 8) & 0xff); // Design Energy
@@ -349,7 +354,7 @@ public class BQ34Z100 implements AutoCloseable {
         return true;
     }
 
-    boolean update_cell_charge_voltage_range(int t1_t2, int t2_t3, int t3_t4) {
+    boolean update_cell_charge_voltage_range(int t1_t2, int t2_t3, int t3_t4) throws IOException {
         unsealed();
         read_flash_block(48, 0);
 
@@ -389,7 +394,7 @@ public class BQ34Z100 implements AutoCloseable {
         return true;
     }
 
-    boolean update_number_of_series_cells(int cells) {
+    boolean update_number_of_series_cells(int cells) throws IOException {
         unsealed();
         read_flash_block(64, 0);
 
@@ -412,7 +417,7 @@ public class BQ34Z100 implements AutoCloseable {
         return true;
     }
 
-    boolean update_pack_configuration(int config) {
+    boolean update_pack_configuration(int config) throws IOException {
         unsealed();
         read_flash_block(64, 0);
 
@@ -446,7 +451,7 @@ public class BQ34Z100 implements AutoCloseable {
                                                  int tca_set,
                                                  int tca_clear,
                                                  int fc_set,
-                                                 int fc_clear) {
+                                                 int fc_clear) throws IOException {
         unsealed();
         read_flash_block(36, 0);
 
@@ -531,7 +536,7 @@ public class BQ34Z100 implements AutoCloseable {
         return true;
     }
 
-    void calibrate_cc_offset() {
+    void calibrate_cc_offset() throws IOException {
         enter_calibration();
         do {
             cc_offset();
@@ -546,7 +551,7 @@ public class BQ34Z100 implements AutoCloseable {
         exit_calibration();
     }
 
-    void calibrate_board_offset() {
+    void calibrate_board_offset() throws IOException {
         enter_calibration();
         do {
             board_offset();
@@ -561,7 +566,7 @@ public class BQ34Z100 implements AutoCloseable {
         exit_calibration();
     }
 
-    void calibrate_voltage_divider(int applied_voltage, int cells_count) {
+    void calibrate_voltage_divider(int applied_voltage, int cells_count) throws IOException  {
         double[] volt_array = new double[50];
         for (byte i = 0; i < 50; i++) {
             volt_array[i] = voltage();
@@ -621,7 +626,7 @@ public class BQ34Z100 implements AutoCloseable {
         delay(150);
     }
 
-    void calibrate_sense_resistor(int applied_current) {
+    void calibrate_sense_resistor(int applied_current) throws IOException  {
         double[] current_array = new double[50];
         for (byte i = 0; i < 50; i++) {
             current_array[i] = current_ma();
@@ -683,7 +688,7 @@ public class BQ34Z100 implements AutoCloseable {
         delay(150);
     }
 
-    void set_current_deadband(byte deadband) {
+    void set_current_deadband(byte deadband) throws IOException  {
         unsealed();
         read_flash_block(107, 0);
 
@@ -698,237 +703,237 @@ public class BQ34Z100 implements AutoCloseable {
         delay(150);
     }
 
-    void ready() {
+    void ready() throws IOException  {
         unsealed();
         it_enable();
         sealed();
     }
 
-    public int control_status() {
+    public int control_status() throws IOException {
         return read_control(0x00, 0x00);
     }
 
-    public int device_type() {
+    public int device_type() throws IOException {
         return read_control(0x01, 0x00);
     }
 
-    public int fw_version() {
+    public int fw_version() throws IOException {
         return read_control(0x02, 0x00);
     }
 
-    public int hw_version() {
+    public int hw_version() throws IOException {
         return read_control(0x03, 0x00);
     }
 
-    public int reset_data() {
+    public int reset_data() throws IOException {
         return read_control(0x05, 0x00);
     }
 
-    public int prev_macwrite() {
+    public int prev_macwrite() throws IOException {
         return read_control(0x07, 0x00);
     }
 
-    public int chem_id() {
+    public int chem_id() throws IOException {
         return read_control(0x08, 0x00);
     }
 
-    public int board_offset() {
+    public int board_offset() throws IOException  {
         return read_control(0x09, 0x00);
     }
 
-    public int cc_offset() {
+    public int cc_offset() throws IOException  {
         return read_control(0x0a, 0x00);
     }
 
-    public int cc_offset_save() {
+    public int cc_offset_save() throws IOException  {
         return read_control(0x0b, 0x00);
     }
 
-    public int df_version() {
+    public int df_version() throws IOException  {
         return read_control(0x0c, 0x00);
     }
 
-    public int set_fullsleep() {
+    public int set_fullsleep() throws IOException  {
         return read_control(0x10, 0x00);
     }
 
-    public int static_chem_chksum() {
+    public int static_chem_chksum() throws IOException  {
         return read_control(0x17, 0x00);
     }
 
-    public int sealed() {
+    public int sealed() throws IOException  {
         return read_control(0x20, 0x00);
     }
 
-    public int it_enable() {
+    public int it_enable() throws IOException  {
         return read_control(0x21, 0x00);
     }
 
-    public int cal_enable() {
+    public int cal_enable() throws IOException  {
         return read_control(0x2d, 0x00);
     }
 
-    public int reset() {
+    public int reset() throws IOException  {
         return read_control(0x41, 0x00);
     }
 
-    public int exit_cal() {
+    public int exit_cal() throws IOException  {
         return read_control(0x80, 0x00);
     }
 
-    public int enter_cal() {
+    public int enter_cal() throws IOException  {
         return read_control(0x81, 0x00);
     }
 
-    public int offset_cal() {
+    public int offset_cal() throws IOException  {
         return read_control(0x82, 0x00);
     }
 
-    public int state_of_charge_pct() {
+    public int state_of_charge_pct() throws IOException  {
         return (byte) read_register(0x02, 1);
     }
 
-    public int state_of_charge_max_error() {
+    public int state_of_charge_max_error() throws IOException  {
         return (byte) read_register(0x03, 1);
     }
 
-    public int remaining_capacity() {
+    public int remaining_capacity() throws IOException  {
         return scaled(read_register(0x04, 2));
     }
 
-    public int full_charge_capacity() {
+    public int full_charge_capacity() throws IOException  {
         return scaled(read_register(0x06, 2));
     }
 
-    public int voltage() {
+    public int voltage() throws IOException  {
         return read_register(0x08, 2);
     }
 
-    public float voltage_volts() {
+    public float voltage_volts() throws IOException  {
         return (float)read_register(0x08, 2) / 1000;
     }
 
-    public int average_current_ma() {
+    public int average_current_ma() throws IOException  {
         return (int) scaled(read_register(0x0a, 2));
     }
 
-    public float average_current_amps() {
+    public float average_current_amps() throws IOException  {
         return ((float) scaled(read_register(0x0a, 2))) / 1000.0f;
     }
 
-    public int temperature() {
+    public int temperature() throws IOException  {
         return read_register(0x0c, 2);
     }
 
-    public int flags() {
+    public int flags() throws IOException  {
         return read_register(0x0e, 2);
     }
 
-    public int flags_b() {
+    public int flags_b() throws IOException  {
         return read_register(0x12, 2);
     }
 
-    public int current_ma() {
+    public int current_ma() throws IOException  {
         return scaled(read_register(0x10, 2));
     }
 
-    public float current_amps() {
+    public float current_amps() throws IOException  {
         return ((float)scaled(read_register(0x10, 2))) / 1000.0f;
     }
 
-    public int average_time_to_empty() {
+    public int average_time_to_empty() throws IOException  {
         return read_register(0x18, 2);
     }
 
-    public int average_time_to_full() {
+    public int average_time_to_full() throws IOException  {
         return read_register(0x1a, 2);
     }
 
-    public int passed_charge() {
+    public int passed_charge() throws IOException  {
         return scaled(read_register(0x1c, 2));
     }
 
-    public int do_d0_time() {
+    public int do_d0_time() throws IOException  {
         return read_register(0x1e, 2);
     }
 
-    public int available_energy() {
+    public int available_energy() throws IOException  {
         return scaled(read_register(0x24, 2));
     }
 
-    public int average_power() {
+    public int average_power() throws IOException  {
         return scaled(read_register(0x26, 2));
     }
 
-    public int serial_number() {
+    public int serial_number() throws IOException  {
         return read_register(0x28, 2);
     }
 
-    public int internal_temperature() {
+    public int internal_temperature() throws IOException  {
         return read_register(0x2a, 2);
     }
 
-    public int cycle_count() {
+    public int cycle_count() throws IOException  {
         return read_register(0x2c, 2);
     }
 
-    public int state_of_health() {
+    public int state_of_health() throws IOException  {
         return read_register(0x2e, 2);
     }
 
-    public int charge_voltage() {
+    public int charge_voltage() throws IOException  {
         return read_register(0x30, 2);
     }
 
-    public int charge_current() {
+    public int charge_current() throws IOException  {
         return scaled(read_register(0x32, 2));
     }
 
-    public int pack_configuration() {
+    public int pack_configuration() throws IOException  {
         return read_register(0x3a, 2);
     }
 
-    public int design_capacity() {
+    public int design_capacity() throws IOException  {
         return scaled(read_register(0x3c, 2));
     }
 
-    public byte grid_number() {
+    public byte grid_number() throws IOException  {
         return (byte) read_register(0x62, 1);
     }
 
-    public byte learned_status() {
+    public byte learned_status() throws IOException  {
         return (byte) read_register(0x63, 1);
     }
 
-    public int dod_at_eoc() {
+    public int dod_at_eoc() throws IOException  {
         return scaled(read_register(0x64, 2));
     }
 
-    public int q_start() {
+    public int q_start() throws IOException  {
         return scaled(read_register(0x66, 2));
     }
 
-    public int true_fcc() {
+    public int true_fcc() throws IOException  {
         return scaled(read_register(0x6a, 2));
     }
 
-    public int state_time() {
+    public int state_time() throws IOException  {
         return read_register(0x6c, 2);
     }
 
-    public int q_max_passed_q() {
+    public int q_max_passed_q() throws IOException  {
         return scaled(read_register(0x6e, 2));
     }
 
-    public int dod_0() {
+    public int dod_0() throws IOException  {
         return scaled(read_register(0x70, 2));
     }
 
-    public int q_max_dod_0() {
+    public int q_max_dod_0() throws IOException  {
         return scaled(read_register(0x72, 2));
     }
 
-    public int q_max_time() {
+    public int q_max_time() throws IOException  {
         return read_register(0x74, 2);
     }
 

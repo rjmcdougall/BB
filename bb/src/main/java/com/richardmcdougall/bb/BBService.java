@@ -43,7 +43,8 @@ public class BBService extends Service {
     public MusicPlayer musicPlayer = null;
     public RF radio = null;
     public Gps gps = null;
-    public BMS bms;
+    public BMS bms = null;
+    public Gyro gyro = null;
     public RFClientServer rfClientServer = null;
     public FindMyFriends findMyFriends = null;
     public BluetoothLEServer bLEServer = null;
@@ -73,7 +74,6 @@ public class BBService extends Service {
     public LocalCrisisController localCrisisController = null;
     private boolean textToSpeechReady = false;
 
-    private Gyro mGyro;
 
     public BBService() {
     }
@@ -134,8 +134,7 @@ public class BBService extends Service {
             wifi = new BBWifi(context,boardState);
 
             try {
-                mGyro = new Gyro(context, boardState);
-
+                gyro = new Gyro(context, boardState);
             }
             catch(Exception e){
                 BLog.e(TAG,"Gyro is fucked.");

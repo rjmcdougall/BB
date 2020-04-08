@@ -5,6 +5,8 @@ import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
 
+import java.io.IOException;
+
 public class BMS {
 
     private static String TAG = "BMS";
@@ -59,26 +61,26 @@ public class BMS {
         return bms;
     }
 
-    public void update() {
+    public void update()  throws IOException {
     }
 
-    public float get_level() {
+    public float get_level()  throws IOException {
         return 90;
     }
 
-    public float get_voltage() {
+    public float get_voltage()  throws IOException {
         return 40;
     }
 
-    public float get_current() {
+    public float get_current()  throws IOException {
         return 1;
     }
 
-    public float get_current_instant() {
+    public float get_current_instant()  throws IOException {
         return 2;
     }
 
-    public String getBatteryStatsIoT() {
+    public String getBatteryStatsIoT()  throws IOException {
         // TODO: return the csv array compat for IoT
         //  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
 //          cmdMessenger.sendCmdArg(batteryControl);
