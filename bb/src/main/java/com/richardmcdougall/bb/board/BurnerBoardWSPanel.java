@@ -48,10 +48,33 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     private static final String TAG = "BB.BurnerBoardWSPanel";
 
+
+    // Two primary mapping functions
+    // Temporary until we can parameterize this
+
+    // Woodson's panel
+    static int kBoardWidth = 20;
+    static int kBoardHeight = 180;
+    static int kPanelHeight = kBoardHeight;
+    static int kPanelWidth = 2;
+    static boolean kStackedY = true;
+
+    // Proto's test board
+    //static int kBoardWidth = 32;
+    //static int kBoardHeight = 32;
+    //static int kPanelHeight = 8;
+    //static int kPanelWidth = 32;
+    //static boolean kStackedY = false;
+    
+    static int kStrips = kBoardHeight / kPanelHeight; //boardHeight / panel height
+    static int kSubStrips = kPanelWidth;
+
     public BurnerBoardWSPanel(BBService service) {
         super(service);
-        boardWidth = 32;
-        boardHeight = 32;
+        //        boardWidth = 32; (proto's test panel)
+        //        boardHeight = 32;
+        boardWidth = kBoardWidth;
+        boardHeight = kBoardHeight;
         boardType = "Burner Board WSPanel";
         BLog.d(TAG, "Burner Board WSPanel initting...");
         mBoardScreen = new int[boardWidth * boardHeight * 3];
@@ -335,12 +358,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     }
 
 
-    // Two primary mapping functions
-    static int kPanelHeight = 8;
-    static int kPanelWidth = 32;
-    static boolean kStackedend = false;
-    static int kStrips = 32 / kPanelHeight; //boardHeight / panel height
-    static int kSubStrips = kPanelWidth;
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;
 
@@ -348,7 +365,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
         BLog.d(TAG, "initmap");
 
-        if (kStackedend) {
+        if (kStackedY) {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight; y++) {
 
