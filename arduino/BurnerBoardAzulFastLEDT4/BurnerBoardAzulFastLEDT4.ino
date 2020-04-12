@@ -504,10 +504,15 @@ void OnSetRow() {
   //Serial1.print("<");
 #endif
 
+ 
   // Catch error case
   if (row > 7) {
     row = 7;
   }
+
+  // NanoPi/Teensy4 board is reversed 
+  // Strip 1 is at front of board
+  row = 7 - row;
 
   int startPixel = row * NUM_LEDS_PER_STRIP;
 
@@ -988,7 +993,7 @@ void loop() {
     // Set the first n leds on each strip to show which strip it is
     for (int i = 0; i < NUM_STRIPS; i++) {
       for (int j = 0; j <= i; j++) {
-        leds[(i * NUM_LEDS_PER_STRIP) + j] = CRGB::Red;
+        leds[(i * NUM_LEDS_PER_STRIP) + j + 20] = CRGB::Red;
       }
     }
     hue++;

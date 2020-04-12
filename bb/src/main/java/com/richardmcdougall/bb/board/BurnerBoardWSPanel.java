@@ -15,16 +15,27 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     private static final String TAG = "BB.BurnerBoardWSPanel";
 
+    // Limits of the hardware strips:
+    private static final int kMaxStrips = 24;
+    private static final int kMaxStripLength = 1024;
 
     // Two primary mapping functions
     // Temporary until we can parameterize this
+
+    // Width = X
+    // Height = Y
 
     // Woodson's panel
     static int kBoardWidth = 20;
     static int kBoardHeight = 180;
     static int kPanelHeight = kBoardHeight;
     static int kPanelWidth = 2;
+    // Serpentine in Y/Height direction
     static boolean kStackedY = true;
+    // Number of logical strips in each strip
+    static int kSubStrips = kPanelWidth;
+    // Number of hardware strips
+    static int kStrips = 16; //boardHeight / panel height
 
     // Proto's test board
     //static int kBoardWidth = 32;
@@ -32,9 +43,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     //static int kPanelHeight = 8;
     //static int kPanelWidth = 32;
     //static boolean kStackedY = false;
+    //static int kStrips = kBoardHeight / kPanelHeight; //boardHeight / panel height
+    //static int kSubStrips = kPanelWidth;
 
-    static int kStrips = kBoardHeight / kPanelHeight; //boardHeight / panel height
-    static int kSubStrips = kPanelWidth;
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
@@ -325,7 +336,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     }
 
 
-    static int[][] pixelMap2BoardTable = new int[8][4096];
+
+    static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
     private TranslationMap[] boardMap;
 
     private void initpixelMap2Board() {
@@ -333,6 +345,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         BLog.d(TAG, "initmap");
 
         if (kStackedY) {
+            BLog.d(TAG, "kstacked");
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight; y++) {
 
@@ -349,7 +362,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                     BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
                     pixelRemap(x, y, stripNo, stripOffset * 3);
                 }
-
             }
         } else {
 
