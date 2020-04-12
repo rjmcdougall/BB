@@ -122,9 +122,7 @@ public class BurnerBoardMast extends BurnerBoard {
                 }
                 pixelRemap(x, y, stripNo, stripOffset * 3);
             }
-
         }
-
     }
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
