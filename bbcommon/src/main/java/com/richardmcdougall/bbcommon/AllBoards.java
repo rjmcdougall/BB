@@ -227,7 +227,7 @@ public class AllBoards {
             board = getBoardByID(boardID);
             type = BoardState.BoardType.valueOf(board.getString("type"));
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.w(TAG, e.getMessage());
         }
         return type;
     }
