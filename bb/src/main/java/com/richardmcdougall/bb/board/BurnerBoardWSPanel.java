@@ -241,7 +241,41 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                     stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
                     stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
                 }
-                setStrip(s, stripPixels, powerLimitMultiplierPercent);
+                if (s == 0) {
+                    setStrip(0, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 1) {
+                    setStrip(1, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 2) {
+                    setStrip(2, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 3) {
+                    setStrip(3, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 4) {
+                    setStrip(12, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 5) {
+                    setStrip(13, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 6) {
+                    setStrip(14, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 7) {
+                    setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 8) {
+                    setStrip(8, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 9) {
+                    setStrip(9, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 10) {
+                    //setStrip(6, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 11) {
+                    setStrip(7, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 12) {
+                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 13) {
+                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 14) {
+                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                } else if (s == 15) {
+                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                } else {
+                    setStrip(s, stripPixels, powerLimitMultiplierPercent);
+                }
                 // Send to board
                 flush2Board();
             }
