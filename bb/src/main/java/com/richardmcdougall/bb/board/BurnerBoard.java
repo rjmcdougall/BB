@@ -180,6 +180,9 @@ public abstract class BurnerBoard {
             } else if (BoardState.BoardType.panel == service.boardState.boardType) {
                 BLog.d(TAG, "Visualization: Using Panel");
                 burnerBoard = new BurnerBoardPanel(service);
+            } else if (BoardState.BoardType.wspanel == service.boardState.boardType) {
+                    BLog.d(TAG, "Visualization: Using WSPanel");
+                    burnerBoard = new BurnerBoardWSPanel(service);
             } else if (BoardState.BoardType.backpack == service.boardState.boardType) {
                 BLog.d(TAG, "Visualization: Using Direct Map");
                 burnerBoard = new BurnerBoardDirectMap(

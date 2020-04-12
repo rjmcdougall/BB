@@ -215,6 +215,7 @@ public class BoardState {
     public enum BoardType {
         azul("azul"),
         panel("panel"),
+        wspanel("wspanel"),
         mast("mast"),
         classic("classic"),
         boombox("boombox"),

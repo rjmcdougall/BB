@@ -32,7 +32,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     //static int kPanelHeight = 8;
     //static int kPanelWidth = 32;
     //static boolean kStackedY = false;
-    
+
     static int kStrips = kBoardHeight / kPanelHeight; //boardHeight / panel height
     static int kSubStrips = kPanelWidth;
 
