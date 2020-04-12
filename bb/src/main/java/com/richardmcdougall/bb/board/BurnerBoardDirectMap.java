@@ -6,6 +6,8 @@ import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
+
+// used by the now-defunct josPaks
 public class BurnerBoardDirectMap extends BurnerBoard {
 
     private static final String TAG = "BB.BurnerBoardDirectMap";
