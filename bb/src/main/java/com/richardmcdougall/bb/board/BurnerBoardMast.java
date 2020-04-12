@@ -6,8 +6,9 @@ import com.richardmcdougall.bbcommon.BLog;
 
 import java.nio.IntBuffer;
 
+// Specific for the Woodsons mask.
 public class BurnerBoardMast extends BurnerBoard {
-    // Two primary mapping functions
+
     static int kStrips = 8;
     static int[][] pixelMap2BoardTable = new int[8][4096];
     long lastFlushTime = java.lang.System.currentTimeMillis();

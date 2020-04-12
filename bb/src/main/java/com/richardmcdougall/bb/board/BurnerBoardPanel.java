@@ -31,6 +31,7 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
+//test panel used by supersex, cranky, and others.
 public class BurnerBoardPanel extends BurnerBoard {
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private String TAG = this.getClass().getSimpleName();

@@ -10,40 +10,7 @@ import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
-
-/**
- * Created by rmc on 7/25/17.
- */
-
-
-/*
-
-   bottom
-         46,118
- +------+
- |      | strip 1
- |      |
- |      |
- |      |
- |      |
- |      | Y
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      | strip 8
- +------+
- 0,0 X
- top
-
- */
-
-
+//BBWSPanel is a string of WS28xx leds that go up and down
 public class BurnerBoardWSPanel extends BurnerBoard {
 
     private static final String TAG = "BB.BurnerBoardWSPanel";
