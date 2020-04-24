@@ -215,7 +215,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             }
 
             final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
-            powerLimitMultiplierPercent = 100 - Math.max(powerPercent - 50, 0);
+            // Woodson's panel
+            powerLimitMultiplierPercent = 100 - Math.max(powerPercent - 20, 0);
 
             int[] rowPixels = new int[boardWidth * 3];
             for (int y = 0; y < boardHeight; y++) {
