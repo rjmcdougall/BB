@@ -5,6 +5,8 @@ import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
+import org.w3c.dom.Text;
+
 import java.nio.IntBuffer;
 import java.util.Arrays;
 
@@ -45,10 +47,9 @@ public class BurnerBoardAzul extends BurnerBoard {
         initpixelMap2Board();
         initUsb();
         mLayeredScreen = new int[boardWidth * boardHeight * 3];
-        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        textBuilder = new TextBuilder(boardWidth, boardHeight, 14, 10);
         mDrawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
-        mTextSizeHorizontal = 14;
-        mTextSizeVerical = 10;
+
     }
 
     public int getMultiplier4Speed() {

@@ -59,11 +59,7 @@ public abstract class BurnerBoard {
     public String mEchoString = "";
     public int[] mBoardScreen;
     public String boardType;
-    public int isTextDisplaying = 0;
     public int mRefreshRate = 15;
-    public int mTextSizeHorizontal = 12;
-    public int mTextSizeVerical = 12;
-    public IntBuffer mTextBuffer = null;
     public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
     public int[] mBatteryStats = new int[16];
@@ -71,6 +67,7 @@ public abstract class BurnerBoard {
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
     boolean renderTextOnScreen = false;
+    protected TextBuilder textBuilder = null;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -113,7 +110,6 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
 
         renderTextOnScreen = (this.service.boardState.boardType== BoardState.BoardType.azul || this.service.boardState.boardType== BoardState.BoardType.panel);
-    
     }
     
     static public int getRGB(int r, int g, int b) {
@@ -139,6 +135,12 @@ public abstract class BurnerBoard {
         return GammaCorrection.gamma8[value];
     }
 
+    public void setText(String text, int delay){
+        this.textBuilder.setText(text, delay, mRefreshRate);
+    }
+    public void setText90(String text, int delay){
+        this.textBuilder.setText90(text, delay, mRefreshRate);
+    }
     public static BurnerBoard Builder(BBService service) {
 
         BurnerBoard burnerBoard = null;
@@ -201,8 +203,7 @@ public abstract class BurnerBoard {
         return burnerBoard;
     }
 
-    public void setTextBuffer(int width, int height) {
-        mTextBuffer = IntBuffer.allocate(width * height);
+    public void setDrawBuffer(int width, int height) {
         mDrawBuffer = IntBuffer.allocate(width * height);
     }
 
@@ -237,8 +238,6 @@ public abstract class BurnerBoard {
             }
         }
     }
-
-
 
     public void showBattery() {
 
@@ -831,55 +830,6 @@ public abstract class BurnerBoard {
         }
     }
 
-    // Draw text on screen and delay for n seconds
-    public void setText(String text, int delay) {
-        isTextDisplaying = delay * mRefreshRate / 1000;
-
-        // Lowres boards only display horizontal
-        if (boardWidth < 15) {
-            setText90(text, delay);
-            return;
-        }
-
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
-        Paint textPaint = new TextPaint();
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.WHITE); // Text Color
-        textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
-        textPaint.setTextSize(mTextSizeVerical); // Text Size
-        canvas.drawText(text.substring(0, Math.min(text.length(), 4)),
-                (boardWidth / 2), 30, textPaint);//boardHeight / 2 + (mTextSizeVerical / 3), textPaint);
-        if (mTextBuffer != null) {
-            mTextBuffer.rewind();
-            bitmap.copyPixelsToBuffer(mTextBuffer);
-        }
-    }
-
-    // Draw text on screen and delay for n seconds
-    public void setText90(String text, int delay) {
-        isTextDisplaying = delay * mRefreshRate / 1000;
-
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
-        canvas.rotate(90, boardWidth / 2, boardHeight / 2);
-        Paint textPaint = new TextPaint();
-        textPaint.setDither(true);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.WHITE); // Text Color
-        textPaint.setTextSize(mTextSizeHorizontal); // Text Size
-        //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
-        canvas.drawText(text, (boardWidth / 2), boardHeight / 2 + (mTextSizeHorizontal / 3), textPaint);
-        if (mTextBuffer != null) {
-            mTextBuffer.rewind();
-            bitmap.copyPixelsToBuffer(mTextBuffer);
-        }
-    }
-
     // TODO: Implement generic layers
     public void fillScreenLayer(int[] layer, int r, int g, int b) {
 
@@ -893,9 +843,9 @@ public abstract class BurnerBoard {
     // render text on screen
     public int[] renderText(int[] newScreen, int[] origScreen) {
         // Suppress updating when displaying a text message
-        if (isTextDisplaying > 0) {
-            isTextDisplaying--;
-            aRGBtoBoardScreen(mTextBuffer, origScreen, newScreen);
+        if (textBuilder.isTextDisplaying > 0) {
+            textBuilder.isTextDisplaying--;
+            aRGBtoBoardScreen(textBuilder.mTextBuffer, origScreen, newScreen);
             return newScreen;
         } else if (isFlashDisplaying > 0) {
             isFlashDisplaying--;

@@ -9,12 +9,14 @@ import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.PlayaMap;
 import com.richardmcdougall.bb.video.Video;
+import com.richardmcdougall.bb.visualization.SimpleSign;
 import com.richardmcdougall.bb.visualization.Visualization;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Method;
 import java.util.Random;
 
 /*
@@ -57,6 +59,7 @@ public class BoardVisualization {
     public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationPlayaMap;
+    public Visualization mVisualizationSimpleSign;
 
     private int frameCnt = 0;
     private String TAG = this.getClass().getSimpleName();
@@ -96,6 +99,7 @@ public class BoardVisualization {
         mVisualizationJosPack = new JosPack(service);
         mVisualizationAudioBar = new AudioBar(service);
         mVisualizationPlayaMap = new PlayaMap(service);
+        mVisualizationSimpleSign = new SimpleSign(service);
 
     }
 
@@ -147,90 +151,78 @@ public class BoardVisualization {
     }
 
     public int displayAlgorithm(String algorithm) {
-        int frameRate = 1;
 
-        //This runs every time we update the display, so only uncomment in severe debug need!
-        //Log.d(TAG, "Using algorithm visualization: " + algorithm);
+        int frameRate = mFrameRate;
 
-        switch (algorithm) {
-
-            case "modeMatrix(kMatrixBurnerColor)":
-                frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
-                break;
-
-            case "modeMatrix(kMatrixLunarian)":
-                frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kMatrixLunarian);
-                break;
-
-            case "modeAudioCenter()":
-                frameRate = mFrameRate;
-                mVisualizationAudioCenter.update(Visualization.kDefault);
-                break;
-
-            case "modeAudioBarV()":
-                frameRate = mFrameRate;
-                mVisualizationAudioBar.update(Matrix.kDefault);
-                break;
-
-            case "modeMatrix(kMatrixSync)":
-                frameRate = mFrameRate;
-                mVisualizationMatrix.update(Matrix.kMatrixSync);
-                break;
-
-            case "modeAudioTile()":
-                frameRate = mFrameRate;
-                mVisualizationAudioTile.update(Matrix.kDefault);
-                break;
-
-            // JosPack visualizations go here
-            case "JPGold()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPGold);
-                break;
-
-            case "JPSparkle()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPSparkle);
-                break;
-
-            case "JPColors()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPColors);
-                break;
-
-            case "JPBlueGold()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPBlueGold);
-                break;
-
-            case "JPBlank()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPBlank);
-                break;
-
-            case "JPBluePurple()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPBluePurple);
-                break;
-
-            case "JPTriColor()":
-                frameRate = mFrameRate;
-                mVisualizationJosPack.update(JosPack.kJPTriColor);
-                break;
-
-            // End JosPack visualizations
-
-            case "modePlayaMap()":
-                frameRate = mFrameRate;
-                mVisualizationPlayaMap.update(Visualization.kDefault);
-                break;
-
-            default:
-                 break;
-
+        if(algorithm.contains("simpleSign")){
+            String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
+            mVisualizationSimpleSign.setText(parameter);
+            mVisualizationSimpleSign.update(Visualization.kDefault);
         }
+        else {
+            switch (algorithm) {
+
+                case "modeMatrix(kMatrixBurnerColor)":
+                    mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
+                    break;
+
+                case "modeMatrix(kMatrixLunarian)":
+                    mVisualizationMatrix.update(Matrix.kMatrixLunarian);
+                    break;
+
+                case "modeAudioCenter()":
+                    mVisualizationAudioCenter.update(Visualization.kDefault);
+                    break;
+
+                case "modeAudioBarV()":
+                    mVisualizationAudioBar.update(Matrix.kDefault);
+                    break;
+
+                case "modeMatrix(kMatrixSync)":
+                    mVisualizationMatrix.update(Matrix.kMatrixSync);
+                    break;
+
+                case "modeAudioTile()":
+                    mVisualizationAudioTile.update(Matrix.kDefault);
+                    break;
+
+                // JosPack visualizations go here
+                case "JPGold()":
+                    mVisualizationJosPack.update(JosPack.kJPGold);
+                    break;
+
+                case "JPSparkle()":
+                    mVisualizationJosPack.update(JosPack.kJPSparkle);
+                    break;
+
+                case "JPColors()":
+                    mVisualizationJosPack.update(JosPack.kJPColors);
+                    break;
+
+                case "JPBlueGold()":
+                    mVisualizationJosPack.update(JosPack.kJPBlueGold);
+                    break;
+
+                case "JPBlank()":
+                    mVisualizationJosPack.update(JosPack.kJPBlank);
+                    break;
+
+                case "JPBluePurple()":
+                    mVisualizationJosPack.update(JosPack.kJPBluePurple);
+                    break;
+
+                case "JPTriColor()":
+                    mVisualizationJosPack.update(JosPack.kJPTriColor);
+                    break;
+                case "modePlayaMap()":
+                    mVisualizationPlayaMap.update(Visualization.kDefault);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
         return frameRate;
     }
 

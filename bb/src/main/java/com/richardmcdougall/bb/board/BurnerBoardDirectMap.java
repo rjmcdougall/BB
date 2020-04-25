@@ -41,7 +41,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardType = "Burner Board DirectMap";
         BLog.d(TAG, boardType + " initializing at: " + boardWidth + " x " + boardHeight);
 
-        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 0,0);
+
         initPixelOffset();
         initUsb();
     }
@@ -73,8 +74,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (isTextDisplaying > 0) {
-            isTextDisplaying--;
+        if (this.textBuilder.isTextDisplaying > 0) {
+            this.textBuilder.isTextDisplaying--;
         } else {
 
             int powerLimitMultiplierPercent = mPowerMultiplier;

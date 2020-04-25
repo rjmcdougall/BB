@@ -62,7 +62,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initpixelMap2Board();
         BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
-        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 0, 0) ;
     }
 
     public int getFrameRate() {
@@ -189,8 +189,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (isTextDisplaying > 0) {
-            isTextDisplaying--;
+        if (this.textBuilder.isTextDisplaying > 0) {
+            this.textBuilder.isTextDisplaying--;
         } else {
 
             // Here we calculate the total power percentage of the whole board

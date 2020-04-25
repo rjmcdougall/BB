@@ -25,7 +25,7 @@ public class BurnerBoardMast extends BurnerBoard {
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
-        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 0, 0) ;
     }
 
     @Override
@@ -59,8 +59,8 @@ public class BurnerBoardMast extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (isTextDisplaying > 0) {
-            isTextDisplaying--;
+        if (this.textBuilder.isTextDisplaying > 0) {
+            this.textBuilder.isTextDisplaying--;
         } else {
 
             int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);

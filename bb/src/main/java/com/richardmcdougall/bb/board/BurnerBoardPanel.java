@@ -42,7 +42,9 @@ public class BurnerBoardPanel extends BurnerBoard {
         super(service);
         boardWidth = 32;
         boardHeight = 64;
-        super.setTextBuffer(boardWidth, boardHeight);
+        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 12, 12);
+        super.setDrawBuffer(boardWidth, boardHeight);
+        
         boardType = "Burner Board Panel";
         BLog.d(TAG, "Burner Board Panel initting...");
         mBoardScreen = new int[boardWidth * boardHeight * 3];

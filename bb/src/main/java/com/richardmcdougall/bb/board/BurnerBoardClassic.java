@@ -23,14 +23,13 @@ public class BurnerBoardClassic extends BurnerBoard {
         super(service);
         boardWidth = 10;
         boardHeight = 70;
-        mTextSizeHorizontal = 6;
         boardType = "Burner Board Classic";
         // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
         mBoardScreen = new int[boardWidth * boardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         initPixelOffset();
         initUsb();
-        mTextBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        this.textBuilder = new TextBuilder(boardWidth,boardHeight,6,12) ;
     }
 
     public int getMultiplier4Speed() {
@@ -288,8 +287,8 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (isTextDisplaying > 0) {
-            isTextDisplaying--;
+        if (this.textBuilder.isTextDisplaying > 0) {
+            this.textBuilder.isTextDisplaying--;
         } else {
             int[] rowPixels = new int[boardWidth * 3];
             for (int y = 0; y < boardHeight; y++) {
