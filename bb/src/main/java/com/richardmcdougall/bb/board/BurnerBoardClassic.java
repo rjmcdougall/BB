@@ -4,8 +4,6 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
-import java.nio.IntBuffer;
-
 public class BurnerBoardClassic extends BurnerBoard {
 
     // Convert other lights to pixel buffer address
@@ -287,8 +285,8 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (this.textBuilder.isTextDisplaying > 0) {
-            this.textBuilder.isTextDisplaying--;
+        if (this.textBuilder.textDisplayingCountdown > 0) {
+            this.textBuilder.textDisplayingCountdown--;
         } else {
             int[] rowPixels = new int[boardWidth * 3];
             for (int y = 0; y < boardHeight; y++) {

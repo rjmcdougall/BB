@@ -8,14 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.text.TextPaint;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -843,9 +840,9 @@ public abstract class BurnerBoard {
     // render text on screen
     public int[] renderText(int[] newScreen, int[] origScreen) {
         // Suppress updating when displaying a text message
-        if (textBuilder.isTextDisplaying > 0) {
-            textBuilder.isTextDisplaying--;
-            aRGBtoBoardScreen(textBuilder.mTextBuffer, origScreen, newScreen);
+        if (textBuilder.textDisplayingCountdown > 0) {
+            textBuilder.textDisplayingCountdown--;
+            aRGBtoBoardScreen(textBuilder.textBuffer, origScreen, newScreen);
             return newScreen;
         } else if (isFlashDisplaying > 0) {
             isFlashDisplaying--;

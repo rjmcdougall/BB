@@ -3,11 +3,7 @@ package com.richardmcdougall.bb.board;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 
-import java.nio.IntBuffer;
-
-import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BoardState;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 //BBWSPanel is a string of WS28xx leds that go up and down
@@ -189,8 +185,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (this.textBuilder.isTextDisplaying > 0) {
-            this.textBuilder.isTextDisplaying--;
+        if (this.textBuilder.textDisplayingCountdown > 0) {
+            this.textBuilder.textDisplayingCountdown--;
         } else {
 
             // Here we calculate the total power percentage of the whole board

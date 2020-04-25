@@ -5,8 +5,6 @@ import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
-import java.nio.IntBuffer;
-
 // used by the now-defunct josPaks
 public class BurnerBoardDirectMap extends BurnerBoard {
 
@@ -74,8 +72,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (this.textBuilder.isTextDisplaying > 0) {
-            this.textBuilder.isTextDisplaying--;
+        if (this.textBuilder.textDisplayingCountdown > 0) {
+            this.textBuilder.textDisplayingCountdown--;
         } else {
 
             int powerLimitMultiplierPercent = mPowerMultiplier;

@@ -4,8 +4,6 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
-import java.nio.IntBuffer;
-
 // Specific for the Woodsons mask.
 public class BurnerBoardMast extends BurnerBoard {
 
@@ -59,8 +57,8 @@ public class BurnerBoardMast extends BurnerBoard {
         }
 
         // Suppress updating when displaying a text message
-        if (this.textBuilder.isTextDisplaying > 0) {
-            this.textBuilder.isTextDisplaying--;
+        if (this.textBuilder.textDisplayingCountdown > 0) {
+            this.textBuilder.textDisplayingCountdown--;
         } else {
 
             int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);
