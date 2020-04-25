@@ -133,12 +133,12 @@ public class BBService extends Service {
 
             wifi = new BBWifi(context,boardState);
 
-            try {
-                gyro = new Gyro(context, boardState);
-            }
-            catch(Exception e){
-                BLog.e(TAG,"Gyro is fucked.");
-            }
+//            try {
+//                gyro = new Gyro(context, boardState);
+//            }
+//            catch(Exception e){
+//                BLog.e(TAG,"Gyro is fucked.");
+//            }
 
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);
