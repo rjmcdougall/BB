@@ -2,6 +2,7 @@ package com.richardmcdougall.bb;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Handler;
@@ -265,7 +266,7 @@ public class MusicPlayer implements Runnable {
         try {
             BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
-            service.burnerBoard.setText(shortName[0], 2000);
+            service.burnerBoard.setText(shortName[0], 2000, Color.WHITE);
 
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 

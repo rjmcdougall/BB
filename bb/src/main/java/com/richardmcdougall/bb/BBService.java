@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
@@ -193,7 +194,7 @@ public class BBService extends Service {
             localCrisisController = new LocalCrisisController(this);
 
             burnerBoard = BurnerBoard.Builder(this);
-            burnerBoard.setText90(boardState.BOARD_ID, 5000);
+            burnerBoard.setText90(boardState.BOARD_ID, 5000, Color.WHITE);
 
             boardVisualization = new BoardVisualization(this);
             boardVisualization.Run();

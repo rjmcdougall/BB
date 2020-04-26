@@ -7,6 +7,8 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 
+import com.richardmcdougall.bb.visualization.BBColor;
+
 import java.nio.IntBuffer;
 
 public class TextBuilder {
@@ -27,11 +29,11 @@ public class TextBuilder {
     }
 
     // Draw text on screen and delay for n seconds
-    public void setText(String text, int delay, int refreshRate) {
+    public void setText(String text, int delay, int refreshRate, int color) {
         textDisplayingCountdown = delay * refreshRate / 1000;
 
         if (boardWidth < 15) {
-            setText90(text, delay, refreshRate);
+            setText90(text, delay, refreshRate, Color.WHITE);
             return;
         }
 
@@ -41,7 +43,7 @@ public class TextBuilder {
         canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
         Paint textPaint = new TextPaint();
         textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.WHITE); // Text Color
+        textPaint.setColor(color); // Text Color
         textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
         textPaint.setTextSize(textSizeVerical); // Text Size
         canvas.drawText(text.substring(0, Math.min(text.length(), 4)),
@@ -53,7 +55,7 @@ public class TextBuilder {
     }
 
     // Draw text on screen and delay for n seconds
-    public void setText90(String text, int delay, int refreshRate) {
+    public void setText90(String text, int delay, int refreshRate, int color) {
         textDisplayingCountdown = delay * refreshRate / 1000;
 
         Canvas canvas = new Canvas();
@@ -64,7 +66,8 @@ public class TextBuilder {
         Paint textPaint = new TextPaint();
         textPaint.setDither(true);
         textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.WHITE); // Text Color
+        textPaint.setColor(color); // Text Color
+        textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
         textPaint.setTextSize(textSizeHorizontal); // Text Size
         //paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER)); // Text Overlapping Pattern
         canvas.drawText(text, (boardWidth / 2), boardHeight / 2 + (textSizeHorizontal / 3), textPaint);

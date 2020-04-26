@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
@@ -20,6 +21,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.DebugConfigs;
@@ -132,11 +134,11 @@ public abstract class BurnerBoard {
         return GammaCorrection.gamma8[value];
     }
 
-    public void setText(String text, int delay){
-        this.textBuilder.setText(text, delay, mRefreshRate);
+    public void setText(String text, int delay, int color){
+        this.textBuilder.setText(text, delay, mRefreshRate, color);
     }
-    public void setText90(String text, int delay){
-        this.textBuilder.setText90(text, delay, mRefreshRate);
+    public void setText90(String text, int delay , int color){
+        this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
     public static BurnerBoard Builder(BBService service) {
 
@@ -279,14 +281,6 @@ public abstract class BurnerBoard {
                 setPixel(x, y, r, g, b);
             }
         }
-    }
-
-    public void fillScreen(int color) {
-
-        int b = (color & 0xff);
-        int g = ((color & 0xff00) >> 8);
-        int r = ((color & 0xff0000) >> 16);
-        fillScreen(r, g, b);
     }
 
     public void scrollPixels(boolean down) {

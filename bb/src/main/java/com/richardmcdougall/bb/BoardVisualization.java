@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb;
 
+import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 
 import com.richardmcdougall.bb.visualization.AudioBar;
@@ -17,6 +18,9 @@ import com.richardmcdougall.bbcommon.BoardState;
 import org.json.JSONObject;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /*
@@ -156,7 +160,9 @@ public class BoardVisualization {
 
         if(algorithm.contains("simpleSign")){
             String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
-            mVisualizationSimpleSign.setText(parameter);
+
+            List<String> params = Arrays.asList(parameter.split(","));
+            mVisualizationSimpleSign.setText(params.get(0),params.get(1).trim(),params.get(2).trim());
             mVisualizationSimpleSign.update(Visualization.kDefault);
         }
         else {
@@ -429,7 +435,7 @@ public class BoardVisualization {
         service.burnerBoard.resetParams();
         service.burnerBoard.clearPixels();
 
-        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000);
+        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, Color.WHITE);
     }
 
 }

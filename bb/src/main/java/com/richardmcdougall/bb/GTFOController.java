@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb;
 
+import android.graphics.Color;
 import android.speech.tts.TextToSpeech;
 
 public class GTFOController {
@@ -17,7 +18,7 @@ public class GTFOController {
         if (enable) {
 
             service.boardVisualization.inhibitVisualGTFO = true;
-            service.burnerBoard.setText90("Get The Fuck Off!", 5000);
+            service.burnerBoard.setText90("Get The Fuck Off!", 5000, Color.WHITE);
             service.musicPlayer.Mute();
             stashedAndroidVolumePercent = service.musicPlayer.getAndroidVolumePercent();
             service.musicPlayer.setAndroidVolumePercent(100);
