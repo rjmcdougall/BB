@@ -5,6 +5,7 @@ import android.util.Log;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bb.board.BurnerBoard;
+import com.richardmcdougall.bb.board.RGB;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -60,7 +61,7 @@ public class PlayaMap extends Visualization {
             service.burnerBoard.fillScreen(0, 0, 0);
 
             // Outer ring
-            service.burnerBoard.drawArc((service.burnerBoard.boardWidth - outerRing) / 2,
+            service.burnerBoard.arcBuilder.drawArc((service.burnerBoard.boardWidth - outerRing) / 2,
                     (service.burnerBoard.boardHeight - outerRing) / 2,
                     (service.burnerBoard.boardWidth - outerRing) / 2 + outerRing,
                     (service.burnerBoard.boardHeight - outerRing) / 2 + outerRing,
@@ -68,9 +69,9 @@ public class PlayaMap extends Visualization {
                     (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    BurnerBoard.getRGB(100, 100, 100));
+                    RGB.getRGB(100, 100, 100));
             // Inner ring
-            service.burnerBoard.drawArc((service.burnerBoard.boardWidth - innerRing) / 2,
+            service.burnerBoard.arcBuilder.drawArc((service.burnerBoard.boardWidth - innerRing) / 2,
                     (service.burnerBoard.boardHeight - innerRing) / 2,
                     (service.burnerBoard.boardWidth - innerRing) / 2 + innerRing,
                     (service.burnerBoard.boardHeight - innerRing) / 2 + innerRing,
@@ -78,7 +79,7 @@ public class PlayaMap extends Visualization {
                     (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    BurnerBoard.getRGB(0, 0, 0));
+                    RGB.getRGB(0, 0, 0));
 
             List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
@@ -89,7 +90,7 @@ public class PlayaMap extends Visualization {
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,
-                                BurnerBoard.getRGB(boardColor.r,
+                                RGB.getRGB(boardColor.r,
                                         boardColor.g,
                                         boardColor.b));
                     }
@@ -102,7 +103,7 @@ public class PlayaMap extends Visualization {
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,
-                                BurnerBoard.getRGB(boardColor.r,
+                                RGB.getRGB(boardColor.r,
                                         boardColor.g,
                                         boardColor.b));
                     }
@@ -110,14 +111,17 @@ public class PlayaMap extends Visualization {
             }
 
         } else if (BoardState.BoardType.panel == service.boardState.boardType) {
+
             service.burnerBoard.fillScreen(30, 30, 30);
-            service.burnerBoard.drawArc(0, service.burnerBoard.boardHeight, service.burnerBoard.boardWidth, 0,
+
+            service.burnerBoard.arcBuilder.drawArc(0,
+                                                service.burnerBoard.boardHeight, service.burnerBoard.boardWidth, 0,
                     (float) kDegrees2, (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    BurnerBoard.getRGB(50, 50, 50));
+                    RGB.getRGB(50, 50, 50));
 
-        } else if (BoardState.BoardType.classic == service.boardState.boardType) {
+        }  else if (BoardState.BoardType.classic == service.boardState.boardType) {
             service.burnerBoard.fillScreen(30, 0, 0);
 
         }
@@ -172,7 +176,7 @@ public class PlayaMap extends Visualization {
 
         //service.burnerBoard.setPixel(x, y, color);
 
-        service.burnerBoard.drawArc(x - 1,
+        service.burnerBoard.arcBuilder.drawArc(x - 1,
                 y - 1,
                 x + 1,
                 y + 1,

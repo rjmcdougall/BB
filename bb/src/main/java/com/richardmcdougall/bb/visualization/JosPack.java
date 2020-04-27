@@ -3,6 +3,7 @@ package com.richardmcdougall.bb.visualization;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.board.BurnerBoardDirectMap;
+import com.richardmcdougall.bb.board.RGB;
 
 public class JosPack extends Visualization {
 
@@ -128,8 +129,8 @@ public class JosPack extends Visualization {
 
         for (ledNo = 0; ledNo < kLEDS; ledNo++) {
             int index = (bgRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
-            jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
-                    BurnerBoard.getRGB(0, 0, 255));
+            jpSetPixel(ledNo, index < 5 ? RGB.getRGB(255, 147, 41) :
+                    RGB.getRGB(0, 0, 255));
         }
         service.burnerBoard.flush();
         bgRotate++;
@@ -142,8 +143,8 @@ public class JosPack extends Visualization {
 
         for (ledNo = 0; ledNo < kLEDS; ledNo++) {
             int index = (bpRotate + ledNo) % 10; //* kJPPhaseShift / 2) % 360;
-            jpSetPixel(ledNo, index < 5 ? BurnerBoard.getRGB(41, 147, 255) :
-                    BurnerBoard.getRGB(0, 0, 255));
+            jpSetPixel(ledNo, index < 5 ? RGB.getRGB(41, 147, 255) :
+                    RGB.getRGB(0, 0, 255));
         }
         service.burnerBoard.flush();
         bpRotate++;
@@ -156,9 +157,9 @@ public class JosPack extends Visualization {
 
         for (ledNo = 0; ledNo < kLEDS; ledNo++) {
             int index = (triRotate + ledNo) % 15;
-            int rgb = index < 5 ? BurnerBoard.getRGB(255, 147, 41) :
-                    index < 10 ? BurnerBoard.getRGB(41, 147, 255) :
-                            BurnerBoard.getRGB(0, 0, 255);
+            int rgb = index < 5 ? RGB.getRGB(255, 147, 41) :
+                    index < 10 ? RGB.getRGB(41, 147, 255) :
+                            RGB.getRGB(0, 0, 255);
             jpSetPixel(ledNo, rgb);
         }
 

@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.board.BurnerBoard;
+import com.richardmcdougall.bb.board.RGB;
 
 public class AudioBar extends Visualization {
 
@@ -45,9 +46,9 @@ public class AudioBar extends Visualization {
     // Pick classic VU meter colors based on volume
     int vuColor(int amount) {
         if (amount < service.burnerBoard.boardHeight / 6)
-            return BurnerBoard.getRGB(0, 255, 0);
+            return RGB.getRGB(0, 255, 0);
         if (amount < service.burnerBoard.boardHeight / 3)
-            return BurnerBoard.getRGB(255, 255, 0);
-        return BurnerBoard.getRGB(255, 0, 0);
+            return RGB.getRGB(255, 255, 0);
+        return RGB.getRGB(255, 0, 0);
     }
 }

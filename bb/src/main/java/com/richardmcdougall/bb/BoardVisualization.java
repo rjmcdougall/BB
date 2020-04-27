@@ -6,6 +6,7 @@ import android.media.audiofx.Visualizer;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
+import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.PlayaMap;
@@ -435,7 +436,7 @@ public class BoardVisualization {
         service.burnerBoard.resetParams();
         service.burnerBoard.clearPixels();
 
-        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, Color.WHITE);
+        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, new BBColor().getColor("white"));
     }
 
 }

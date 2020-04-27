@@ -235,7 +235,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         if (down) {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight - 1; y++) {
-                    if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
+                    if (RGB.getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
                         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =

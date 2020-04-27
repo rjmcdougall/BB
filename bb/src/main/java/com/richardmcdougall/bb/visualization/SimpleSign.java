@@ -23,7 +23,7 @@ public class SimpleSign extends Visualization {
 
         service.burnerBoard.setText90(signText, 1000, foregroundColor);
 
-        service.burnerBoard.fillScreen(Color.red(backgroundColor),Color.green(backgroundColor),Color.blue(backgroundColor));
+        service.burnerBoard.fillScreen(backgroundColor.r,backgroundColor.g,backgroundColor.b);
 
         service.burnerBoard.flush();
 

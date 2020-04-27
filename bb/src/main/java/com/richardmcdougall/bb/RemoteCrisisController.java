@@ -2,6 +2,7 @@ package com.richardmcdougall.bb;
 
 import android.graphics.Color;
 
+import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.util.concurrent.Executors;
@@ -85,7 +86,7 @@ public class RemoteCrisisController {
         service.musicPlayer.Mute();
 
         for (Integer addressInCrisis : service.boardLocations.BoardsInCrisis()) {
-            service.burnerBoard.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000, Color.WHITE);
+            service.burnerBoard.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000,  new BBColor().getColor("white"));
             service.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis),  "mode");
         }
 

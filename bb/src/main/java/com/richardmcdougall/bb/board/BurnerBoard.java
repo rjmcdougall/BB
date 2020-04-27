@@ -6,10 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -28,8 +24,8 @@ import com.richardmcdougall.bbcommon.DebugConfigs;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -67,6 +63,7 @@ public abstract class BurnerBoard {
     private UsbDevice mUsbDevice = null;
     boolean renderTextOnScreen = false;
     protected TextBuilder textBuilder = null;
+    public ArcBuilder arcBuilder = null;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -110,17 +107,12 @@ public abstract class BurnerBoard {
 
         renderTextOnScreen = (this.service.boardState.boardType== BoardState.BoardType.azul || this.service.boardState.boardType== BoardState.BoardType.panel);
     }
-    
-    static public int getRGB(int r, int g, int b) {
-
-        return (r * 65536 + g * 256 + b);
-    }
 
     static public int colorDim(int dimValue, int color) {
         int b = (dimValue * (color & 0xff)) / 255;
         int g = (dimValue * ((color & 0xff00) >> 8) / 255);
         int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
-        return (BurnerBoard.getRGB(r, g, b));
+        return (RGB.getRGB(r, g, b));
     }
 
     static int pixel2Offset(int x, int y, int rgb) {
@@ -134,10 +126,10 @@ public abstract class BurnerBoard {
         return GammaCorrection.gamma8[value];
     }
 
-    public void setText(String text, int delay, int color){
+    public void setText(String text, int delay, BBColor.ColorName color){
         this.textBuilder.setText(text, delay, mRefreshRate, color);
     }
-    public void setText90(String text, int delay , int color){
+    public void setText90(String text, int delay , BBColor.ColorName color){
         this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
     public static BurnerBoard Builder(BBService service) {
@@ -342,7 +334,7 @@ public abstract class BurnerBoard {
         if (down) {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight - 1; y++) {
-                    if (getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
+                    if (RGB.getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
                             mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
                         mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
@@ -395,7 +387,7 @@ public abstract class BurnerBoard {
         int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
         int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
         int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-        return BurnerBoard.getRGB(r, g, b);
+        return RGB.getRGB(r, g, b);
     }
 
     public void setOtherlightsAutomatically() {
@@ -796,27 +788,28 @@ public abstract class BurnerBoard {
         LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
-    public void aRGBtoBoardScreen(Buffer buf, int[] sourceScreen, int[] destScreen) {
+    public void aRGBtoBoardScreen(ArrayList<RGB> buf, int[] sourceScreen, int[] destScreen) {
 
         if (buf == null) {
             return;
         }
 
-        int[] buffer = (int[]) buf.array();
-
         for (int pixelNo = 0; pixelNo < (boardWidth * boardHeight); pixelNo++) {
             int pixel_offset = pixelNo * 3;
-            int pixel = buffer[pixelNo];
-            int a = pixel & 0xff;
+            RGB pixel = buf.get(pixelNo);
+
             // Render the new text over the original
-            if (pixel != 0) {
-                destScreen[pixel_offset] = (pixel >> 16) & 0xff;    //r
-                destScreen[pixel_offset + 1] = (pixel >> 8) & 0xff; //g
-                destScreen[pixel_offset + 2] = pixel & 0xff;        //b
-            } else {
+
+            if (pixel.isBlack()) {
                 destScreen[pixel_offset] = sourceScreen[pixel_offset];
                 destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
                 destScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
+            }
+            else {
+                destScreen[pixel_offset] = pixel.r;
+                destScreen[pixel_offset + 1] = pixel.g;
+                destScreen[pixel_offset + 2] = pixel.b;
+
             }
         }
     }
@@ -836,7 +829,7 @@ public abstract class BurnerBoard {
         // Suppress updating when displaying a text message
         if (textBuilder.textDisplayingCountdown > 0) {
             textBuilder.textDisplayingCountdown--;
-            aRGBtoBoardScreen(textBuilder.textBuffer, origScreen, newScreen);
+            aRGBtoBoardScreen(textBuilder.pixels, origScreen, newScreen);
             return newScreen;
         } else if (isFlashDisplaying > 0) {
             isFlashDisplaying--;
@@ -857,32 +850,6 @@ public abstract class BurnerBoard {
         int b = ((color & 0xff0000) >> 16);
         int a = 0xff;
         return (a << 24) | color;
-    }
-
-    public void drawArc(float left, float top, float right, float bottom,
-                        float startAngle, float sweepAngle, boolean useCenter,
-                        boolean fill, int color) {
-
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
-        Paint arcPaint = new Paint();
-        arcPaint.setColor(rgbToArgb(color)); //  Color
-        arcPaint.setStrokeWidth(1);
-        if (fill) {
-            arcPaint.setStyle(Paint.Style.FILL_AND_STROKE);
-        } else {
-            arcPaint.setStyle(Paint.Style.STROKE);
-        }
-
-        canvas.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, arcPaint);
-
-        if (mDrawBuffer != null) {
-            mDrawBuffer.rewind();
-            bitmap.copyPixelsToBuffer(mDrawBuffer);
-        }
-        aRGBtoBoardScreen(mDrawBuffer, mBoardScreen, mBoardScreen);
     }
 
     private class PermissionReceiver extends BroadcastReceiver {

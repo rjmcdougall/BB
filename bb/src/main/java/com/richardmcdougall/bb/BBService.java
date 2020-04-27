@@ -16,6 +16,7 @@ import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
+import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bbcommon.AllBoards;
 import com.richardmcdougall.bbcommon.BBWifi;
 import com.richardmcdougall.bbcommon.BLog;
@@ -194,7 +195,7 @@ public class BBService extends Service {
             localCrisisController = new LocalCrisisController(this);
 
             burnerBoard = BurnerBoard.Builder(this);
-            burnerBoard.setText90(boardState.BOARD_ID, 5000, Color.WHITE);
+            burnerBoard.setText90(boardState.BOARD_ID, 5000, new BBColor().getColor("white"));
 
             boardVisualization = new BoardVisualization(this);
             boardVisualization.Run();
