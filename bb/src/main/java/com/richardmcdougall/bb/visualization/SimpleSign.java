@@ -17,8 +17,7 @@ public class SimpleSign extends Visualization {
         super(service);
 
     }
-
-
+    
     public void update(int mode) {
 
         service.burnerBoard.setText90(signText, 1000, foregroundColor);

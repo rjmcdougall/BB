@@ -17,12 +17,10 @@ public class RGB {
 
         RGB x = new RGB();
 
-        x.r = (color & 0xff);
-        x.g = ((color & 0xff00) >> 8);
-        x.b = ((color & 0xff0000) >> 16);
-
-        int a = ((color & 0xff0000) >> 24);
-
+        x.r = color & 0x000000ff;
+        x.g = (color & 0x0000ff00) >> 8;
+        x.b =  (color & 0x00ff0000) >> 16;
+ 
         return x;
     }
 

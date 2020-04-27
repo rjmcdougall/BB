@@ -45,7 +45,7 @@ public class TextBuilder {
         canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
         Paint textPaint = new TextPaint();
         textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.rgb(color.r, color.b, color.g)); // Text Color
+        textPaint.setColor(Color.rgb(color.r, color.g, color.b)); // Text Color
         textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
         textPaint.setTextSize(textSizeVerical); // Text Size
         canvas.drawText(text, (boardWidth / 2), 30, textPaint);
@@ -73,7 +73,7 @@ public class TextBuilder {
         Paint textPaint = new TextPaint();
         textPaint.setDither(true);
         textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.rgb(color.r, color.b, color.g)); // Text Color
+        textPaint.setColor(Color.rgb(color.r, color.g, color.b)); // Text Color
         textPaint.setTypeface(Typeface.create("Courier", Typeface.BOLD));
         textPaint.setTextSize(textSizeHorizontal); // Text Size
         canvas.drawText(text, (boardWidth / 2), boardHeight / 2 + (textSizeHorizontal / 3), textPaint);

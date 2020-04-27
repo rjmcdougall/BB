@@ -805,6 +805,11 @@ public abstract class BurnerBoard {
                 destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
                 destScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
             }
+            else if (pixel.isWhite()) {
+                destScreen[pixel_offset] = sourceScreen[pixel_offset];
+                destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
+                destScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
+            }
             else {
                 destScreen[pixel_offset] = pixel.r;
                 destScreen[pixel_offset + 1] = pixel.g;
