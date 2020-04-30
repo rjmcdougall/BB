@@ -74,6 +74,7 @@ public class BBService extends Service {
     public RFMasterClientServer rfMasterClientServer = null;
     public RemoteCrisisController remoteCrisisController = null;
     public LocalCrisisController localCrisisController = null;
+    public RotatingDisplayController rotatingDisplayController = null;
     private boolean textToSpeechReady = false;
 
 
@@ -229,6 +230,8 @@ public class BBService extends Service {
             masterController = new MasterController(this);
             masterControllerThread = new Thread(masterController);
             masterControllerThread.start();
+
+            rotatingDisplayController = new RotatingDisplayController(this);
 
             gtfoController = new GTFOController(this);
 
