@@ -158,6 +158,20 @@ public class BluetoothCommands {
 
                 });
 
+        service.bLEServer.addCallback("SetRotatingDisplay",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got SetRotatingDisplay command:" + payload.toString());
+                    try {
+                        boolean rotatingDisplay = payload.getBoolean("arg");
+                        service.rotatingDisplayController.EnableRotatingDisplay(rotatingDisplay);
+
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error setting RotatingDisplay: " + e.getMessage());
+                    }
+                    sendStateResponse(command, device);
+
+                });
+
         service.bLEServer.addCallback("EnableGTFO",
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
                     BLog.d(TAG, "BBservice got EnableGTFO command:" + payload.toString());
@@ -368,6 +382,7 @@ public class BluetoothCommands {
             state.put("c", service.boardState.SSID);
             state.put("p", service.boardState.password);
             state.put("r",service.boardState.inCrisis);
+            state.put("rd",service.boardState.rotatingDisplay);
 
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());

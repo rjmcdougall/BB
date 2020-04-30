@@ -56,7 +56,7 @@ public class BoardState {
     private AllBoards allBoards = null;
     public int targetAPKVersion = 0;
     public int videoContrastMultiplier = 1;
-    public boolean rotatingDisplay = true;
+    public boolean rotatingDisplay = false;
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 

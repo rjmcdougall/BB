@@ -30,6 +30,10 @@ public class RotatingDisplayController {
         sch.scheduleAtFixedRate(checkForRotatingDisplay, 10, 10, TimeUnit.SECONDS);
    }
 
+   public void EnableRotatingDisplay(boolean isRotatingDisplay){
+        this.service.boardState.rotatingDisplay = isRotatingDisplay;
+   }
+
     private void SwitchDisplayMode() {
         this.service.boardVisualization.setMode(99);
         BLog.d(TAG, "Display Mode video switch to mode " + this.service.boardState.currentVideoMode);
