@@ -51,7 +51,7 @@ public class PlayaMap extends Visualization {
 
     public void update(int mode) {
 
-        if (service.boardState.boardType == BoardState.BoardType.azul) {
+        if (service.boardState.GetBoardType() == BoardState.BoardType.azul) {
             final float outerRing = service.burnerBoard.service.burnerBoard.boardWidth * (float) kMapSizeRatio;
             final float innerRing = outerRing / (float) kRingRatio;
             final float theMan = 2;
@@ -110,7 +110,7 @@ public class PlayaMap extends Visualization {
                 }
             }
 
-        } else if (BoardState.BoardType.panel == service.boardState.boardType) {
+        } else if (BoardState.BoardType.panel == service.boardState.GetBoardType()) {
 
             service.burnerBoard.fillScreen(30, 30, 30);
 
@@ -121,7 +121,7 @@ public class PlayaMap extends Visualization {
                     true,
                     RGB.getRGB(50, 50, 50));
 
-        }  else if (BoardState.BoardType.classic == service.boardState.boardType) {
+        }  else if (BoardState.BoardType.classic == service.boardState.GetBoardType()) {
             service.burnerBoard.fillScreen(30, 0, 0);
 
         }

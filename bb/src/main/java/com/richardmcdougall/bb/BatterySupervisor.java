@@ -37,9 +37,9 @@ public class BatterySupervisor {
         this.service = service;
 
 
-        if (service.boardState.boardType == BoardState.BoardType.azul ||
-                service.boardState.boardType == BoardState.BoardType.classic ||
-                service.boardState.boardType == BoardState.BoardType.panel) {
+        if (service.boardState.GetBoardType() == BoardState.BoardType.azul ||
+                service.boardState.GetBoardType() == BoardState.BoardType.classic ||
+                service.boardState.GetBoardType() == BoardState.BoardType.panel) {
             enableBatteryMonitoring = true;
             enableIoTReporting = true;
         }

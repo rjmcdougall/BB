@@ -47,7 +47,7 @@ public class BoardState {
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy;
-    public BoardType boardType;
+    private BoardType boardType;
     public static String serial = Build.SERIAL;
     public PlatformType platformType = PlatformType.dragonboard;
     public boolean inCrisis = false;
@@ -59,6 +59,15 @@ public class BoardState {
     public boolean rotatingDisplay = false;
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
+    public BoardType GetBoardType() {
+
+        if (DebugConfigs.OVERRIDE_BOARD_TYPE != null)
+            return DebugConfigs.OVERRIDE_BOARD_TYPE;
+        else
+            return boardType;
+
+    }
 
     public static PlatformType GetPlatformType() {
         if (DebugConfigs.OVERRIDE_PLATFORM_TYPE != PlatformType.none) {
@@ -235,34 +244,33 @@ public class BoardState {
         }
     }
 
-    private static String GetRockChipSerial(){
+    private static String GetRockChipSerial() {
 
         String rockChipSerial = "";
         String result = "";
 
-        try{
+        try {
             String[] args = {"/system/bin/cat", "/proc/cpuinfo"};
             ProcessBuilder cmd = new ProcessBuilder(args);
 
             Process process = cmd.start();
             InputStream in = process.getInputStream();
             byte[] re = new byte[1024];
-            while(in.read(re) != -1){
+            while (in.read(re) != -1) {
                 result += new String(re);
             }
             in.close();
 
             String results[] = result.split("\n");
-            for(String line: results){
-                if(line.startsWith("Serial\t\t:")){
-                    rockChipSerial = line.replace("Serial\t\t:","").trim();
+            for (String line : results) {
+                if (line.startsWith("Serial\t\t:")) {
+                    rockChipSerial = line.replace("Serial\t\t:", "").trim();
                 }
             }
 
-        } catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
-        }
-        finally {
+        } finally {
             return rockChipSerial;
         }
     }
@@ -271,7 +279,7 @@ public class BoardState {
         rpi("rpi"),
         npi("npi"),
         dragonboard("dragonboard"),
-        none( "none");
+        none("none");
 
         private String stringValue;
 

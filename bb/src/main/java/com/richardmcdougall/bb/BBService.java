@@ -153,7 +153,7 @@ public class BBService extends Service {
             BLog.i(TAG, "State Password " + boardState.password);
             BLog.i(TAG, "State Mode " + boardState.currentVideoMode);
             BLog.i(TAG, "State BOARD_ID " + boardState.BOARD_ID);
-            BLog.i(TAG, "State Tyoe " + boardState.boardType);
+            BLog.i(TAG, "State Tyoe " + boardState.GetBoardType());
             BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
             BLog.i(TAG, "Video Contrast Multiplier  " + boardState.videoContrastMultiplier);
 

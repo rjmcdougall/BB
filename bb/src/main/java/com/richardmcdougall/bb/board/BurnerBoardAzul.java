@@ -71,7 +71,7 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public int getFrameRate() {
 
-        if (this.service.boardState.boardType == BoardState.BoardType.boombox)
+        if (this.service.boardState.GetBoardType() == BoardState.BoardType.boombox)
             return 15;
         else
             return 30;

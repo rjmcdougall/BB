@@ -21,44 +21,21 @@ public class BMS {
 
         BMS bms = null;
 
-        if (DebugConfigs.OVERRIDE_BOARD_TYPE != null) {
-            switch (DebugConfigs.OVERRIDE_BOARD_TYPE) {
-
-                case azul:
-                case classic:
-                    if (BoardState.GetPlatformType() == BoardState.PlatformType.npi) {
-                        BLog.d(TAG, "BMS: Using BQ on I2c");
-                        bms = new BMS_BQ(service);
-                    } else {
-
-                        BLog.d(TAG, "BMS: Teensy+BQ");
-                        bms = new BMS_BQTeensy(service);
-                    }
-                    break;
-
-                case mast:
-                case panel:
-                case backpack:
-                    BLog.d(TAG, "BMS: Using none");
-                    bms = new BMS_None(service);
-                    break;
+        if (service.boardState.GetBoardType() == BoardState.BoardType.classic ||
+                (service.boardState.GetBoardType() == BoardState.BoardType.azul)) {
+            if (BoardState.GetPlatformType() == BoardState.PlatformType.npi) {
+                BLog.d(TAG, "BMS: Using BQ on I2c");
+                bms = new BMS_BQ(service);
+            } else {
+                BLog.d(TAG, "BMS: Teensy+BQ");
+                bms = new BMS_BQTeensy(service);
             }
         } else {
-            if (service.boardState.boardType == BoardState.BoardType.classic ||
-                    (service.boardState.boardType == BoardState.BoardType.azul)) {
-                if (BoardState.GetPlatformType() == BoardState.PlatformType.npi) {
-                    BLog.d(TAG, "BMS: Using BQ on I2c");
-                    bms = new BMS_BQ(service);
-                } else {
-                    BLog.d(TAG, "BMS: Teensy+BQ");
-                    bms = new BMS_BQTeensy(service);
-                }
-            } else {
-                BLog.d(TAG, "BMS: Using none");
-                bms = new BMS_None(service);
-            }
+            BLog.d(TAG, "BMS: Using none");
+            bms = new BMS_None(service);
         }
-        return bms;
+    return bms;
+
     }
 
     public void update()  throws IOException {

@@ -105,7 +105,7 @@ public abstract class BurnerBoard {
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         this.service.registerReceiver(mUsbReceiver, filter);
 
-        renderTextOnScreen = (this.service.boardState.boardType== BoardState.BoardType.azul || this.service.boardState.boardType== BoardState.BoardType.panel);
+        renderTextOnScreen = (this.service.boardState.GetBoardType() == BoardState.BoardType.azul || this.service.boardState.GetBoardType() == BoardState.BoardType.panel);
     }
 
     static public int colorDim(int dimValue, int color) {
@@ -136,61 +136,33 @@ public abstract class BurnerBoard {
 
         BurnerBoard burnerBoard = null;
 
-        if (DebugConfigs.OVERRIDE_BOARD_TYPE != null) {
-            switch (DebugConfigs.OVERRIDE_BOARD_TYPE) {
-                case classic:
-                    BLog.d(TAG, "Visualization: Using Classic");
-                    burnerBoard = new BurnerBoardClassic(service);
-                    break;
-                case azul:
-                    BLog.d(TAG, "Visualization: Using Azul");
-                    burnerBoard = new BurnerBoardAzul(service);
-                    break;
-                case mast:
-                    BLog.d(TAG, "Visualization: Using Mast");
-                    burnerBoard = new BurnerBoardMast(service);
-                    break;
-                case panel:
-                    BLog.d(TAG, "Visualization: Using Panel");
-                    burnerBoard = new BurnerBoardPanel(service);
-                    break;
-                case backpack:
-                    BLog.d(TAG, "Visualization: Using Direct Map");
-                    burnerBoard = new BurnerBoardDirectMap(
-                            service,
-                            BurnerBoardDirectMap.kVisualizationDirectMapWidth,
-                            BurnerBoardDirectMap.kVisualizationDirectMapHeight
-                    );
-                    break;
-            }
+        if (service.boardState.GetBoardType() == BoardState.BoardType.classic) {
+            BLog.d(TAG, "Visualization: Using Classic");
+            burnerBoard = new BurnerBoardClassic(service);
+        } else if (BoardState.BoardType.mast == service.boardState.GetBoardType()) {
+            BLog.d(TAG, "Visualization: Using Mast");
+            burnerBoard = new BurnerBoardMast(service);
+        } else if (BoardState.BoardType.panel == service.boardState.GetBoardType()) {
+            BLog.d(TAG, "Visualization: Using Panel");
+            burnerBoard = new BurnerBoardPanel(service);
+        } else if (BoardState.BoardType.wspanel == service.boardState.GetBoardType()) {
+                BLog.d(TAG, "Visualization: Using WSPanel");
+                burnerBoard = new BurnerBoardWSPanel(service);
+        } else if (BoardState.BoardType.backpack == service.boardState.GetBoardType()) {
+            BLog.d(TAG, "Visualization: Using Direct Map");
+            burnerBoard = new BurnerBoardDirectMap(
+                    service,
+                    BurnerBoardDirectMap.kVisualizationDirectMapWidth,
+                    BurnerBoardDirectMap.kVisualizationDirectMapHeight
+            );
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.azul) {
+            BLog.d(TAG, "Visualization: Using Azul");
+            burnerBoard = new BurnerBoardAzul(service);
         } else {
-            if (service.boardState.boardType == BoardState.BoardType.classic) {
-                BLog.d(TAG, "Visualization: Using Classic");
-                burnerBoard = new BurnerBoardClassic(service);
-            } else if (BoardState.BoardType.mast == service.boardState.boardType) {
-                BLog.d(TAG, "Visualization: Using Mast");
-                burnerBoard = new BurnerBoardMast(service);
-            } else if (BoardState.BoardType.panel == service.boardState.boardType) {
-                BLog.d(TAG, "Visualization: Using Panel");
-                burnerBoard = new BurnerBoardPanel(service);
-            } else if (BoardState.BoardType.wspanel == service.boardState.boardType) {
-                    BLog.d(TAG, "Visualization: Using WSPanel");
-                    burnerBoard = new BurnerBoardWSPanel(service);
-            } else if (BoardState.BoardType.backpack == service.boardState.boardType) {
-                BLog.d(TAG, "Visualization: Using Direct Map");
-                burnerBoard = new BurnerBoardDirectMap(
-                        service,
-                        BurnerBoardDirectMap.kVisualizationDirectMapWidth,
-                        BurnerBoardDirectMap.kVisualizationDirectMapHeight
-                );
-            } else if (service.boardState.boardType == BoardState.BoardType.azul) {
-                BLog.d(TAG, "Visualization: Using Azul");
-                burnerBoard = new BurnerBoardAzul(service);
-            } else {
-                BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
-                burnerBoard = new BurnerBoardAzul(service);
-            }
+            BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
+            burnerBoard = new BurnerBoardAzul(service);
         }
+
         return burnerBoard;
     }
 
