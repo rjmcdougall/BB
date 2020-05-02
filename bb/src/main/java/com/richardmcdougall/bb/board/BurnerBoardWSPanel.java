@@ -189,30 +189,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             this.textBuilder.textDisplayingCountdown--;
         } else {
 
-            // Here we calculate the total power percentage of the whole board
-            // We want to limit the board to no more than 50% of pixel output total
-            // This is because the board is setup to flip the breaker at 200 watts
-            // Output is percentage multiplier for the LEDs
-            // At full brightness we limit to 30% of their output
-            // Power is on-linear to pixel brightness: 37% = 50% power.
-            // powerPercent = 100: 15% multiplier
-            // powerPercent <= 15: 100% multiplier
-            int totalBrightnessSum = 0;
-            int powerLimitMultiplierPercent = 100;
-            for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
-                // R
-                if (pixel % 3 == 0) {
-                    totalBrightnessSum += mBoardScreen[pixel];
-                } else if (pixel % 3 == 1) {
-                    totalBrightnessSum += mBoardScreen[pixel];
-                } else {
-                    totalBrightnessSum += mBoardScreen[pixel] / 2;
-                }
-            }
-
-            final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
-            // Woodson's panel
-            powerLimitMultiplierPercent = 100 - Math.max(powerPercent - 20, 0);
+            int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
 
             int[] rowPixels = new int[boardWidth * 3];
             for (int y = 0; y < boardHeight; y++) {
