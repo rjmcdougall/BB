@@ -57,6 +57,7 @@ public class BoardState {
     public int targetAPKVersion = 0;
     public int videoContrastMultiplier = 1;
     public boolean rotatingDisplay = false;
+    public String profile = "";
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
@@ -151,8 +152,9 @@ public class BoardState {
         boardType = this.allBoards.getBoardType(BOARD_ID);
         targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
         videoContrastMultiplier = this.allBoards.videoContrastMultiplier(BOARD_ID);
+        profile = this.allBoards.getProfile(BOARD_ID);
 
-        BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier);
+        BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier + " " + this.profile);
     }
 
     public boolean setSSISAndPassword(String SSID, String password) {

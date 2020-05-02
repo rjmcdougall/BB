@@ -148,6 +148,20 @@ public class AllBoards {
         return myAddress;
     }
 
+    public String getProfile(String boardID) {
+
+        JSONObject board;
+        String profile = "";
+
+        try {
+            board = getBoardByID(boardID);
+            profile = board.getString("profile");
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        return profile;
+    }
+
     public BoardState.TeensyType getDisplayTeensy(String boardID) {
 
         JSONObject board;
