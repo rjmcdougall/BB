@@ -32,6 +32,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     static int kSubStrips = kPanelWidth;
     // Number of hardware strips
     static int kStrips = 16; //boardHeight / panel height
+    private int[] mLayeredScreen;
 
     // Proto's test board
     //static int kBoardWidth = 32;
@@ -58,7 +59,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initpixelMap2Board();
         BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
-        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 0, 0) ;
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0) ;
+        mLayeredScreen = new int[boardWidth * boardHeight * 3];
     }
 
     public int getFrameRate() {
@@ -191,19 +193,26 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
             int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
 
+            int[] mOutputScreen = mBoardScreen;
+            if(textBuilder.renderTextOnScreen()){
+                // Render text on board
+                if (renderText(mLayeredScreen, mBoardScreen) != null) {
+                    mOutputScreen = mLayeredScreen;
+                }
+            }
+
             int[] rowPixels = new int[boardWidth * 3];
             for (int y = 0; y < boardHeight; y++) {
                 //for (int y = 30; y < 31; y++) {
                 for (int x = 0; x < boardWidth; x++) {
                     if (y < boardHeight) {
-                        rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                        rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                        rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                        rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                        rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                        rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                     }
                 }
                 setRowVisual(y, rowPixels);
             }
-
 
             // Walk through each strip and fill from the graphics buffer
             for (int s = 0; s < kStrips; s++) {

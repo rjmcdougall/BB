@@ -47,7 +47,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         initpixelMap2Board();
         initUsb();
         mLayeredScreen = new int[boardWidth * boardHeight * 3];
-        textBuilder = new TextBuilder(boardWidth, boardHeight, 14, 10);
+        textBuilder = new TextBuilder(service, boardWidth, boardHeight, 14, 10);
         mDrawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
 
     }
@@ -106,7 +106,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
 
         int[] mOutputScreen = mBoardScreen;
-        if(renderTextOnScreen){
+        if(textBuilder.renderTextOnScreen()){
             // Render text on board
             if (renderText(mLayeredScreen, mBoardScreen) != null) {
                 mOutputScreen = mLayeredScreen;

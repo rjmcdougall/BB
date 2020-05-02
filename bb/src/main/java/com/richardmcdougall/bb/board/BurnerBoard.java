@@ -61,7 +61,6 @@ public abstract class BurnerBoard {
     public int mDimmerLevel = 255;
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
-    boolean renderTextOnScreen = false;
     protected TextBuilder textBuilder = null;
     public ArcBuilder arcBuilder = null;
 
@@ -104,8 +103,6 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         this.service.registerReceiver(mUsbReceiver, filter);
-
-        renderTextOnScreen = (this.service.boardState.GetBoardType() == BoardState.BoardType.azul || this.service.boardState.GetBoardType() == BoardState.BoardType.panel);
     }
 
     static public int colorDim(int dimValue, int color) {

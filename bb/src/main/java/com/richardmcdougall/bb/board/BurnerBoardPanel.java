@@ -42,7 +42,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         super(service);
         boardWidth = 32;
         boardHeight = 64;
-        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 12, 12);
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
         super.setDrawBuffer(boardWidth, boardHeight);
         
         boardType = "Burner Board Panel";
@@ -86,7 +86,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
 
         int[] mOutputScreen = mBoardScreen;
-        if(renderTextOnScreen){
+        if(textBuilder.renderTextOnScreen()){
             // Render text on board
             if (renderText(mLayeredScreen, mBoardScreen) != null) {
                 mOutputScreen = mLayeredScreen;

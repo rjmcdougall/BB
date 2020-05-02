@@ -23,7 +23,7 @@ public class BurnerBoardMast extends BurnerBoard {
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
-        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 0, 0) ;
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0) ;
     }
 
     @Override

@@ -7,7 +7,9 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.TextPaint;
 
+import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -21,13 +23,15 @@ public class TextBuilder {
     private int boardWidth = 0;
     private int boardHeight = 0;
     public ArrayList<RGB> pixels = new ArrayList<>();
+    private BBService service = null;
 
-    public TextBuilder(int boardWidth, int boardHeight, int textSizeHorizontal, int textSizeVertical){
+    public TextBuilder(BBService service, int boardWidth, int boardHeight, int textSizeHorizontal, int textSizeVertical){
         this.boardHeight = boardHeight;
         this.boardWidth = boardWidth;
         this.textBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
         this.textSizeHorizontal = textSizeHorizontal;
         this.textSizeVerical = textSizeVertical;
+        this.service = service;
     }
 
     // Draw text on screen and delay for n seconds
@@ -87,6 +91,13 @@ public class TextBuilder {
         for(int i = 0; i < temp.length;i++){
             pixels.add(RGB.rgbaTorgb(temp[i]));
         }
+
+    }
+
+    public boolean renderTextOnScreen(){
+        return (this.service.boardState.GetBoardType() == BoardState.BoardType.azul
+                || this.service.boardState.GetBoardType() == BoardState.BoardType.panel
+                || this.service.boardState.GetBoardType() == BoardState.BoardType.wspanel);
 
     }
 }

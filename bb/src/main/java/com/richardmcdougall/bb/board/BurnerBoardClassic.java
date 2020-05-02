@@ -27,7 +27,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         initPixelOffset();
         initUsb();
-        this.textBuilder = new TextBuilder(boardWidth,boardHeight,6,12) ;
+        this.textBuilder = new TextBuilder(service, boardWidth,boardHeight,6,12) ;
     }
 
     public int getMultiplier4Speed() {

@@ -39,7 +39,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardType = "Burner Board DirectMap";
         BLog.d(TAG, boardType + " initializing at: " + boardWidth + " x " + boardHeight);
 
-        this.textBuilder = new TextBuilder(boardWidth, boardHeight, 0,0);
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0,0);
 
         initPixelOffset();
         initUsb();
