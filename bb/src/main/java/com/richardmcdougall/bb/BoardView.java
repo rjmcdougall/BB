@@ -44,6 +44,9 @@ public class BoardView extends View {
         } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.backpack) {
             mBoardWidth = 8;
             mBoardHeight = 256;
+        } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.wspanel) {
+            mBoardWidth = 20;
+            mBoardHeight = 180;
         } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.azul || DebugConfigs.OVERRIDE_BOARD_TYPE == null) {
             mBoardWidth = 46;
             mBoardHeight = 118;
