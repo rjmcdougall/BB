@@ -174,30 +174,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     }
 
-    //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
-    public boolean update() {
-
-        sendVisual(8);
-
-        //l("sendCommand: 5");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmd(6);
-                mListener.sendCmdEnd();
-                return true;
-            } else {
-                // Emulate board's 30ms refresh time
-                try {
-                    Thread.sleep(5);
-                } catch (Throwable e) {
-                }
-            }
-        }
-
-        return false;
-    }
-
-
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
