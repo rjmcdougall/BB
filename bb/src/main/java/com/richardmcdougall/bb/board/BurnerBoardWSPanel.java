@@ -38,6 +38,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initPixelOffset();
         BLog.d(TAG, "Burner Board WSPanel initpixelMap2Board...");
         initpixelMap2Board();
+        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
         BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
@@ -87,19 +88,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         this.logFlush();
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
         int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
-
-        int[] rowPixels = new int[boardWidth * 3];
-        for (int y = 0; y < boardHeight; y++) {
-            //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < boardWidth; x++) {
-                if (y < boardHeight) {
-                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                }
-            }
-            setRowVisual(y, rowPixels);
-        }
+        this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
@@ -163,7 +152,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
     public void showBattery() {
 
-        sendVisual(9);
+        this.appDisplay.sendVisual(9);
         BLog.d(TAG, "sendCommand: 7");
         if (mListener != null) {
             mListener.sendCmd(7);

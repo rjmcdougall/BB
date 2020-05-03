@@ -62,6 +62,7 @@ public abstract class BurnerBoard {
     public ArcBuilder arcBuilder = null;
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private int flushCnt = 0;
+    protected AppDisplay appDisplay = null;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -275,7 +276,7 @@ public abstract class BurnerBoard {
 
     public boolean update() {
 
-        sendVisual(8);
+        this.appDisplay.sendVisual(8);
 
         //l("sendCommand: 5");
         synchronized (mSerialConn) {
@@ -420,7 +421,7 @@ public abstract class BurnerBoard {
         }
 
         // Send pixel row to in-app visual display
-        sendVisual(14, row, dimPixels);
+        this.appDisplay.sendVisual(14, row, dimPixels);
     }
 
     public void dimPixels(int level) {
@@ -677,61 +678,6 @@ public abstract class BurnerBoard {
             } catch (Throwable e) {
             }
         }
-    }
-
-    public void sendVisual(int visualId) {
-        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
-            return;
-        }
-        Intent in = new Intent(ACTION.GRAPHICS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        // Put extras into the intent as usual
-        in.putExtra("visualId", visualId);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
-    public void sendVisual(int visualId, int arg) {
-        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
-            return;
-        }
-        Intent in = new Intent(ACTION.GRAPHICS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        // Put extras into the intent as usual
-        in.putExtra("visualId", visualId);
-        in.putExtra("arg", arg);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
-    public void sendVisual(int visualId, int arg1, int arg2, int arg3) {
-        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
-            return;
-        }
-        Intent in = new Intent(ACTION.GRAPHICS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        // Put extras into the intent as usual
-        in.putExtra("visualId", visualId);
-        in.putExtra("arg1", arg1);
-        in.putExtra("arg2", arg2);
-        in.putExtra("arg3", arg3);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
-    }
-
-    public void sendVisual(int visualId, int arg1, int[] arg2) {
-        if (!DebugConfigs.DISPLAY_VIDEO_IN_APP) {
-            return;
-        }
-        final byte[] pixels = new byte[arg2.length];
-        for (int i = 0; i < arg2.length; i++) {
-            pixels[i] = (byte) arg2[i];
-        }
-        Intent in = new Intent(ACTION.GRAPHICS);
-        in.putExtra("resultCode", Activity.RESULT_OK);
-        // Put extras into the intent as usual
-        in.putExtra("visualId", visualId);
-        in.putExtra("arg1", arg1);
-        //java.util.Arrays.fill(arg2, (byte) 128);
-        in.putExtra("arg2", pixels);
-        LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
     // TODO: Implement generic layers

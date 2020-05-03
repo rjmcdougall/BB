@@ -12,7 +12,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     public static final int kRightSidelight = 1;
     private String TAG = this.getClass().getSimpleName();
     private int mBoardSideLights = 79;
-    private int[] mBoardScreen;
     private int[] mBoardOtherlights;
 
     public BurnerBoardClassic(BBService service) {
@@ -24,6 +23,8 @@ public class BurnerBoardClassic extends BurnerBoard {
         mBoardScreen = new int[boardWidth * boardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         initPixelOffset();
+        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+
         initUsb();
         this.textBuilder = new TextBuilder(service, boardWidth,boardHeight,6,12) ;
     }
@@ -48,7 +49,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     @Override
     public boolean update() {
 
-        sendVisual(8);
+        this.appDisplay.sendVisual(8);
         //l("sendCommand: 8");
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -63,7 +64,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     @Override
     public void showBattery() {
 
-        sendVisual(9);
+        this.appDisplay.sendVisual(9);
         BLog.d(TAG, "sendCommand: 9");
         if (mListener != null) {
             mListener.sendCmd(9);
@@ -84,7 +85,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
 
         // Send pixel row to in-app visual display
-        sendVisual(14, row, dimPixels);
+        this.appDisplay.sendVisual(14, row, dimPixels);
 
         // Do color correction on burner board display pixels
         byte[] newPixels = new byte[boardWidth * 3];
@@ -116,7 +117,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public boolean setOtherlight(int other, int[] pixels) {
 
         // Send pixel row to in-app visual display
-        sendVisual(15, other, pixels);
+        this.appDisplay.sendVisual(15, other, pixels);
 
         // Do color correction on burner board display pixels
         //byte [] newPixels = new byte[pixels.length];
@@ -225,42 +226,27 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
+        // int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
+        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
+        this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         // Suppress updating when displaying a text message
-        if (this.textBuilder.textDisplayingCountdown > 0) {
-            this.textBuilder.textDisplayingCountdown--;
-        } else {
-            int[] rowPixels = new int[boardWidth * 3];
-            for (int y = 0; y < boardHeight; y++) {
-                //for (int y = 30; y < 31; y++) {
-                for (int x = 0; x < boardWidth; x++) {
-                    if (y < boardHeight) {
-                        rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                        rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                        rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                    }
-                }
-                
-                setRow(y, rowPixels);
-                
-            }
-            for (int x = 0; x < kOtherLights; x++) {
-                int[] otherPixels = new int[mBoardSideLights * 3];
-                for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
-                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
-                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
-                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_GREEN)] =
-                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)];
-                    otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_BLUE)] =
-                            mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)];
-                }
-                setOtherlight(x, otherPixels);
-            }
-            setOtherlightsAutomatically();
-            update();
-            flush2Board();
 
+        for (int x = 0; x < kOtherLights; x++) {
+            int[] otherPixels = new int[mBoardSideLights * 3];
+            for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
+                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_RED)] =
+                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)];
+                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_GREEN)] =
+                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)];
+                otherPixels[pixelOtherlight2Offset(pixel, 0, PIXEL_BLUE)] =
+                        mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)];
+            }
+            setOtherlight(x, otherPixels);
         }
+        setOtherlightsAutomatically();
+        update();
+        flush2Board();
     }
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {

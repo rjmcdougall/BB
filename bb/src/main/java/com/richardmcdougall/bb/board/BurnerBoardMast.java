@@ -21,8 +21,10 @@ public class BurnerBoardMast extends BurnerBoard {
         mBoardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
+        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+
         initUsb();
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0);
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
     }
 
     @Override
@@ -48,19 +50,7 @@ public class BurnerBoardMast extends BurnerBoard {
         this.logFlush();
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);
         int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
-
-        int[] rowPixels = new int[boardWidth * 3];
-        for (int y = 0; y < boardHeight; y++) {
-            //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < boardWidth; x++) {
-                if (y < boardHeight) {
-                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                }
-            }
-            setRowVisual(y, rowPixels);
-        }
+        this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
