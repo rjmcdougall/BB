@@ -430,7 +430,6 @@ public class BoardVisualization {
 
         BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
 
-        service.burnerBoard.resetParams();
         service.burnerBoard.clearPixels();
 
         service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, new RGBList().getColor("white"));

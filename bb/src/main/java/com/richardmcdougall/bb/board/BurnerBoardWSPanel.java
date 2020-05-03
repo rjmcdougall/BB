@@ -82,9 +82,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
+        int powerLimitMultiplierPercent = PixelDimmer.findPowerLimitMultiplierPercent(20, boardScreen);
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
-        this.appDisplay.send(mOutputScreen, mDimmerLevel);
+        this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {

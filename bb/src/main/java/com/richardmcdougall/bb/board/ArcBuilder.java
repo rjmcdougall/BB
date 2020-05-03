@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class ArcBuilder {
 
     private String TAG = this.getClass().getSimpleName();
-    private IntBuffer mDrawBuffer = null;
+    private IntBuffer drawBuffer = null;
     private int boardWidth = 0;
     private int boardHeight = 0;
     public ArrayList<RGB> pixels = new ArrayList<>();
@@ -37,12 +37,12 @@ public class ArcBuilder {
 
         canvas.drawArc(left, top, right, bottom, startAngle, sweepAngle, useCenter, arcPaint);
 
-        if (mDrawBuffer != null) {
-            mDrawBuffer.rewind();
-            bitmap.copyPixelsToBuffer(mDrawBuffer);
+        if (drawBuffer != null) {
+            drawBuffer.rewind();
+            bitmap.copyPixelsToBuffer(drawBuffer);
         }
 
-        int[] temp = mDrawBuffer.array();
+        int[] temp = drawBuffer.array();
         pixels.clear();
         for(int i = 0; i < temp.length;i++){
             pixels.add(RGB.fromRGBAInt(temp[i]));

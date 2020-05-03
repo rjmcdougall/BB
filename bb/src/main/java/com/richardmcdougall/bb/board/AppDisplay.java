@@ -26,7 +26,7 @@ public class AppDisplay {
         this.pixel2OffsetTable = pixel2OffsetTable;
     }
 
-    public void send(int[] displayMatrix, int dimmerLevel){
+    public void send(int[] displayMatrix){
         int[] rowPixels = new int[boardWidth * 3];
         for (int y = 0; y < boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
@@ -37,23 +37,12 @@ public class AppDisplay {
                     rowPixels[(boardWidth - 1 - x) * 3 + 2] = displayMatrix[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-            setRowVisual(y, rowPixels, dimmerLevel);
+            sendVisual(14, y, rowPixels);
         }
     }
 
     static int pixel2Offset(int x, int y, int rgb) {
         return pixel2OffsetTable[x][y][rgb];
-    }
-
-    protected void setRowVisual(int row, int[] pixels, int dimmerLevel) {
-
-        int[] dimPixels = new int[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =  (dimmerLevel * pixels[pixel]) / 255;
-        }
-
-        // Send pixel row to in-app visual display
-        sendVisual(14, row, dimPixels);
     }
 
     public void sendVisual(int visualId) {

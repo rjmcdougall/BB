@@ -75,41 +75,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return;
     }
 
-    // row is 12 pixels : board has 10
-    private boolean setRow(int row, int[] pixels) {
-
-        int[] dimPixels = new int[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 255;
-        }
-
-        // Send pixel row to in-app visual display
-        this.appDisplay.sendVisual(14, row, dimPixels);
-
-        // Do color correction on burner board display pixels
-        byte[] newPixels = new byte[boardWidth * 3];
-        for (int pixel = 0; pixel < boardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = (byte) pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);
-        }
-
-        //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
-
-        //l("sendCommand: 14,n,...");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(14);
-                mListener.sendCmdArg(row);
-                mListener.sendCmdEscArg(newPixels);
-                mListener.sendCmdEnd();
-                return true;
-            }
-        }
-        return false;
-    }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
-
     public int getBatteryVoltage() {
         return mBatteryStats[5];
     }
@@ -228,7 +193,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         this.logFlush();
         // int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
-        this.appDisplay.send(mOutputScreen, mDimmerLevel);
+        this.appDisplay.send(mOutputScreen);
 
         // Suppress updating when displaying a text message
 

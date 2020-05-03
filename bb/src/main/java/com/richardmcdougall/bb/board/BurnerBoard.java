@@ -45,13 +45,11 @@ public abstract class BurnerBoard {
     public int boardHeight = 1;
     public CmdMessenger mListener = null;
     public BBService service = null;
-    public String mEchoString = "";
     public int[] boardScreen;
     public String boardType;
     public int mRefreshRate = 15;
     public IntBuffer mDrawBuffer = null;
     public int[] mBatteryStats = new int[16];
-    public int mDimmerLevel = 255;
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
     protected TextBuilder textBuilder = null;
@@ -209,10 +207,6 @@ public abstract class BurnerBoard {
         return;
     }
 
-    public void resetParams() {
-        mDimmerLevel = 255;
-    }
-
     public void clearPixels() {
         Arrays.fill(boardScreen, 0);
     }
@@ -362,8 +356,7 @@ public abstract class BurnerBoard {
         int[] dimPixels = new int[pixels.length];
 
         for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 256 * powerLimitMultiplierPercent / 100;
+            dimPixels[pixel] =  pixels[pixel] * powerLimitMultiplierPercent / 100;
         }
 
         // Do color correction on burner board display pixels
@@ -383,51 +376,6 @@ public abstract class BurnerBoard {
                 mListener.sendCmdEnd();
             }
         }
-    }
-
-    protected int findPowerLimitMultiplierPercent(int subtract){
-        // Here we calculate the total power percentage of the whole board
-        // We want to limit the board to no more than 50% of pixel output total
-        // This is because the board is setup to flip the breaker at 200 watts
-        // Output is percentage multiplier for the LEDs
-        // At full brightness we limit to 30% of their output
-        // Power is on-linear to pixel brightness: 37% = 50% power.
-        // powerPercent = 100: 15% multiplier
-        // powerPercent <= 15: 100% multiplier
-        int totalBrightnessSum = 0;
-        int powerLimitMultiplierPercent = 100;
-        for (int pixel = 0; pixel < boardScreen.length; pixel++) {
-            // R
-            if (pixel % 3 == 0) {
-                totalBrightnessSum += boardScreen[pixel];
-            } else if (pixel % 3 == 1) {
-                totalBrightnessSum += boardScreen[pixel];
-            } else {
-                totalBrightnessSum += boardScreen[pixel] / 2;
-            }
-        }
-
-        final int powerPercent = totalBrightnessSum / boardScreen.length * 100 / 255;
-        powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - subtract, 0);
-
-        return powerLimitMultiplierPercent;
-
-    }
-
-    protected void setRowVisual(int row, int[] pixels) {
-
-        int[] dimPixels = new int[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 255;
-        }
-
-        // Send pixel row to in-app visual display
-        this.appDisplay.sendVisual(14, row, dimPixels);
-    }
-
-    public void dimPixels(int level) {
-        mDimmerLevel = level;
     }
 
     public void fadePixels(int amount) {
@@ -636,7 +584,7 @@ public abstract class BurnerBoard {
             Thread.sleep(1000);
         } catch (Throwable e) {
         }
-        BLog.d(TAG, "testTeensy: " + mEchoString);
+        BLog.d(TAG, "testTeensy: ");
 
         return;
     }

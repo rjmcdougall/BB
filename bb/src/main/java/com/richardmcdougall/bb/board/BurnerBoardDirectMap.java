@@ -65,7 +65,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         this.logFlush();
         int powerLimitMultiplierPercent = mPowerMultiplier;
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
-        this.appDisplay.send(mOutputScreen, mDimmerLevel);
+        this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
