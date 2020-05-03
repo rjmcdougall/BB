@@ -129,6 +129,7 @@ public abstract class BurnerBoard {
     public void setText90(String text, int delay , RGB color){
         this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
+
     public static BurnerBoard Builder(BBService service) {
 
         BurnerBoard burnerBoard = null;
@@ -201,6 +202,15 @@ public abstract class BurnerBoard {
 
     public void showBattery() {
 
+        this.appDisplay.sendVisual(9);
+        BLog.d(TAG, "sendCommand: 7");
+        if (mListener != null) {
+            mListener.sendCmd(7);
+            mListener.sendCmdEnd();
+            flush2Board();
+            return;
+        }
+        return;
     }
 
     public int[] getPixelBuffer() {

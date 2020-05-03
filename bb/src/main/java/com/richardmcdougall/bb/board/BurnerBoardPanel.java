@@ -95,19 +95,6 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     }
 
-    public void showBattery() {
-
-        this.appDisplay.sendVisual(9);
-        BLog.d(TAG, "sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return;
-        }
-        return;
-    }
-
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
         public void CmdAction(String str) {
             for (int i = 0; i < mBatteryStats.length; i++) {

@@ -149,20 +149,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     }
 
-    //    cmdMessenger.attach(BBShowBattery, OnShowBattery);    // 7
-    public void showBattery() {
-
-        this.appDisplay.sendVisual(9);
-        BLog.d(TAG, "sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return;
-        }
-        return;
-    }
-
     public void setMsg(String msg) {
     }
 
