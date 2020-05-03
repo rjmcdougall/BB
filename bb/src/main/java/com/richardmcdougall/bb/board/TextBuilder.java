@@ -87,9 +87,9 @@ public class TextBuilder {
                 layeredScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
             }
             else if (pixel.isWhite()) {
-                layeredScreen[pixel_offset] = sourceScreen[pixel_offset];
-                layeredScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
-                layeredScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
+                layeredScreen[pixel_offset] = pixel.r;
+                layeredScreen[pixel_offset + 1] = pixel.g;
+                layeredScreen[pixel_offset + 2] = pixel.b;
             }
             else {
                 layeredScreen[pixel_offset] = pixel.r;
