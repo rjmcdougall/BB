@@ -89,7 +89,7 @@ public class BoardVisualization {
         mBoardWidth = service.burnerBoard.boardWidth;
         mBoardHeight = service.burnerBoard.boardHeight;
         mMultipler4Speed = service.burnerBoard.getMultiplier4Speed();
-        mBoardScreen = service.burnerBoard.getPixelBuffer();
+        mBoardScreen = service.burnerBoard.boardScreen;
         mFrameRate = service.burnerBoard.getFrameRate();
 
         BLog.d(TAG, "Board framerate set to " + mFrameRate);

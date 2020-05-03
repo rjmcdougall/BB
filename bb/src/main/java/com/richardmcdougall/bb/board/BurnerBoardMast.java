@@ -18,7 +18,7 @@ public class BurnerBoardMast extends BurnerBoard {
         boardHeight = 159;
         boardType = "Burner Board Mast";
         BLog.d(TAG, "Burner Board Mast initing...");
-        mBoardScreen = new int[boardWidth * boardHeight * 3];
+        boardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
@@ -49,7 +49,7 @@ public class BurnerBoardMast extends BurnerBoard {
 
         this.logFlush();
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);
-        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
+        int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
         this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         // Walk through each strip and fill from the graphics buffer

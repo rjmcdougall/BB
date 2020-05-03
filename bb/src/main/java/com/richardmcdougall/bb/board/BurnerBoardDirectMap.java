@@ -32,7 +32,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardWidth = width;
         boardHeight = height;
 
-        mBoardScreen = new int[boardWidth * boardHeight * 3];
+        boardScreen = new int[boardWidth * boardHeight * 3];
 
         boardType = "Burner Board DirectMap";
         BLog.d(TAG, boardType + " initializing at: " + boardWidth + " x " + boardHeight);
@@ -64,7 +64,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
         this.logFlush();
         int powerLimitMultiplierPercent = mPowerMultiplier;
-        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
+        int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
         this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         // Walk through each strip and fill from the graphics buffer

@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb.board;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,17 +8,14 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
-import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
-import com.richardmcdougall.bbcommon.DebugConfigs;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
@@ -50,7 +46,7 @@ public abstract class BurnerBoard {
     public CmdMessenger mListener = null;
     public BBService service = null;
     public String mEchoString = "";
-    public int[] mBoardScreen;
+    public int[] boardScreen;
     public String boardType;
     public int mRefreshRate = 15;
     public IntBuffer mDrawBuffer = null;
@@ -178,9 +174,9 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "setPixel out of range: " + pixel);
             return;
         }
-        mBoardScreen[pixel * 3] = r;
-        mBoardScreen[pixel * 3 + 1] = g;
-        mBoardScreen[pixel * 3 + 2] = b;
+        boardScreen[pixel * 3] = r;
+        boardScreen[pixel * 3 + 1] = g;
+        boardScreen[pixel * 3 + 2] = b;
     }
 
     public abstract int getMultiplier4Speed();
@@ -213,16 +209,12 @@ public abstract class BurnerBoard {
         return;
     }
 
-    public int[] getPixelBuffer() {
-        return mBoardScreen;
-    }
-
     public void resetParams() {
         mDimmerLevel = 255;
     }
 
     public void clearPixels() {
-        Arrays.fill(mBoardScreen, 0);
+        Arrays.fill(boardScreen, 0);
     }
 
     public void setPixel(int x, int y, int color) {
@@ -239,9 +231,9 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
             return;
         }
-        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
+        boardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
+        boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
+        boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
     }
 
     public void fillScreen(int r, int g, int b) {
@@ -256,29 +248,29 @@ public abstract class BurnerBoard {
 
     public void scrollPixels(boolean down) {
 
-        if (mBoardScreen == null) {
+        if (boardScreen == null) {
             return;
         }
         if (down) {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight - 1; y++) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    boardScreen[pixel2Offset(x, y, PIXEL_RED)] =
+                            boardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
+                    boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
+                            boardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
+                    boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
+                            boardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
                 }
             }
         } else {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    boardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
+                            boardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    boardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
+                            boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    boardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
+                            boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
         }
@@ -341,9 +333,9 @@ public abstract class BurnerBoard {
     }
 
     public int getPixel(int x, int y) {
-        int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-        int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-        int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+        int r = boardScreen[pixel2Offset(x, y, PIXEL_RED)];
+        int g = boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+        int b = boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
         return RGB.getARGBInt(r, g, b);
     }
 
@@ -404,18 +396,18 @@ public abstract class BurnerBoard {
         // powerPercent <= 15: 100% multiplier
         int totalBrightnessSum = 0;
         int powerLimitMultiplierPercent = 100;
-        for (int pixel = 0; pixel < mBoardScreen.length; pixel++) {
+        for (int pixel = 0; pixel < boardScreen.length; pixel++) {
             // R
             if (pixel % 3 == 0) {
-                totalBrightnessSum += mBoardScreen[pixel];
+                totalBrightnessSum += boardScreen[pixel];
             } else if (pixel % 3 == 1) {
-                totalBrightnessSum += mBoardScreen[pixel];
+                totalBrightnessSum += boardScreen[pixel];
             } else {
-                totalBrightnessSum += mBoardScreen[pixel] / 2;
+                totalBrightnessSum += boardScreen[pixel] / 2;
             }
         }
 
-        final int powerPercent = totalBrightnessSum / mBoardScreen.length * 100 / 255;
+        final int powerPercent = totalBrightnessSum / boardScreen.length * 100 / 255;
         powerLimitMultiplierPercent = 100 - java.lang.Math.max(powerPercent - subtract, 0);
 
         return powerLimitMultiplierPercent;
@@ -442,28 +434,28 @@ public abstract class BurnerBoard {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {
-                int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                int r = boardScreen[pixel2Offset(x, y, PIXEL_RED)];
                 //System.out.println("br = " + br);
                 if (r >= amount) {
                     r -= amount;
                 } else {
                     r = 0;
                 }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-                int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                boardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
+                int g = boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
                 if (g >= amount) {
                     g -= amount;
                 } else {
                     g = 0;
                 }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-                int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
+                int b = boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 if (b >= amount) {
                     b -= amount;
                 } else {
                     b = 0;
                 }
-                mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
+                boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
             }
         }
     }

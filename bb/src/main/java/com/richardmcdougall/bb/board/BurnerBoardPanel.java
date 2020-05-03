@@ -44,7 +44,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         
         boardType = "Burner Board Panel";
         BLog.d(TAG, "Burner Board Panel initting...");
-        mBoardScreen = new int[boardWidth * boardHeight * 3];
+        boardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
 
@@ -73,7 +73,7 @@ public class BurnerBoardPanel extends BurnerBoard {
 
         this.logFlush();
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
-        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
+        int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
         this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         int[] rowPixels = new int[boardWidth * 3];

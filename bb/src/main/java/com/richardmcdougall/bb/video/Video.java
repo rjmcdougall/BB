@@ -66,7 +66,7 @@ public class Video extends Visualization {
 
             try {
                 int srcOff = 0, dstOff = 0;
-                int[] dst = ba.mBoardScreen;
+                int[] dst = ba.boardScreen;
                 byte[] src = curVideo.mPixelBuf.array();
 
                 long maxPixels = totalPixels;

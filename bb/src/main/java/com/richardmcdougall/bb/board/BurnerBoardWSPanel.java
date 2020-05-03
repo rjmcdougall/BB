@@ -33,7 +33,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         boardHeight = kBoardHeight;
         boardType = "Burner Board WSPanel";
         BLog.d(TAG, "Burner Board WSPanel initting...");
-        mBoardScreen = new int[boardWidth * boardHeight * 3];
+        boardScreen = new int[boardWidth * boardHeight * 3];
         BLog.d(TAG, "Burner Board WSPanel initPixelOffset...");
         initPixelOffset();
         BLog.d(TAG, "Burner Board WSPanel initpixelMap2Board...");
@@ -79,15 +79,11 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         }
     }
 
-    public int[] getPixelBuffer() {
-        return mBoardScreen;
-    }
-
     public void flush() {
 
         this.logFlush();
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
-        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
+        int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
         this.appDisplay.send(mOutputScreen, mDimmerLevel);
 
         // Walk through each strip and fill from the graphics buffer
@@ -147,13 +143,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         } catch (Exception e) {
         }
 
-    }
-
-    public void setMsg(String msg) {
-    }
-
-    static int pixelMap2Board(int s, int offset) {
-        return pixelMap2BoardTable[s][offset];
     }
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
