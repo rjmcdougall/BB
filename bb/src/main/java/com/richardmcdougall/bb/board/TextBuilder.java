@@ -8,7 +8,6 @@ import android.graphics.Typeface;
 import android.text.TextPaint;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -38,7 +37,7 @@ public class TextBuilder {
     }
 
     // Draw text on screen and delay for n seconds
-    public void setText(String text, int delay, int refreshRate,  BBColor.ColorName color) {
+    public void setText(String text, int delay, int refreshRate,  RGB color) {
         textDisplayingCountdown = delay * refreshRate / 1000;
 
         if (boardWidth < 15) {
@@ -64,7 +63,7 @@ public class TextBuilder {
         int[] temp = textBuffer.array();
         pixels.clear();
         for(int i = 0; i < temp.length;i++){
-            pixels.add(RGB.rgbaTorgb(temp[i]));
+            pixels.add(RGB.fromRGBAInt(temp[i]));
         }
     }
 
@@ -123,7 +122,7 @@ public class TextBuilder {
     }
 
     // Draw text on screen and delay for n seconds
-    public void setText90(String text, int delay, int refreshRate, BBColor.ColorName color) {
+    public void setText90(String text, int delay, int refreshRate, RGB color) {
         textDisplayingCountdown = delay * refreshRate / 1000;
 
         Canvas canvas = new Canvas();
@@ -146,7 +145,7 @@ public class TextBuilder {
         int[] temp = textBuffer.array();
         pixels.clear();
         for(int i = 0; i < temp.length;i++){
-            pixels.add(RGB.rgbaTorgb(temp[i]));
+            pixels.add(RGB.fromRGBAInt(temp[i]));
         }
 
         //checkForNonBlack();

@@ -17,7 +17,6 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.DebugConfigs;
@@ -25,7 +24,6 @@ import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -110,7 +108,7 @@ public abstract class BurnerBoard {
         int b = (dimValue * (color & 0xff)) / 255;
         int g = (dimValue * ((color & 0xff00) >> 8) / 255);
         int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
-        return (RGB.getRGB(r, g, b));
+        return (RGB.getARGBInt(r, g, b));
     }
 
     static int pixel2Offset(int x, int y, int rgb) {
@@ -124,10 +122,10 @@ public abstract class BurnerBoard {
         return GammaCorrection.gamma8[value];
     }
 
-    public void setText(String text, int delay, BBColor.ColorName color){
+    public void setText(String text, int delay, RGB color){
         this.textBuilder.setText(text, delay, mRefreshRate, color);
     }
-    public void setText90(String text, int delay , BBColor.ColorName color){
+    public void setText90(String text, int delay , RGB color){
         this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
     public static BurnerBoard Builder(BBService service) {
@@ -335,7 +333,7 @@ public abstract class BurnerBoard {
         int r = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
         int g = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
         int b = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-        return RGB.getRGB(r, g, b);
+        return RGB.getARGBInt(r, g, b);
     }
 
     public void setOtherlightsAutomatically() {

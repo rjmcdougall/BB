@@ -2,7 +2,6 @@ package com.richardmcdougall.bb;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Handler;
@@ -21,7 +20,7 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bbcommon.BLog;
 
 public class MusicPlayer implements Runnable {
@@ -267,7 +266,7 @@ public class MusicPlayer implements Runnable {
         try {
             BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
-            service.burnerBoard.setText(shortName[0], 2000, new BBColor().getColor("white"));
+            service.burnerBoard.setText(shortName[0], 2000, new RGBList().getColor("white"));
 
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 

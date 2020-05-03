@@ -1,12 +1,11 @@
 package com.richardmcdougall.bb;
 
-import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
 import com.richardmcdougall.bb.rf.RFUtil;
-import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bbcommon.BLog;
 
 public class MasterController implements Runnable {
@@ -45,13 +44,13 @@ public class MasterController implements Runnable {
             mSendVolume();
             mSendMasterInfo();
 
-            service.burnerBoard.setText("Master", 2000, new BBColor().getColor("white"));
+            service.burnerBoard.setText("Master", 2000, new RGBList().getColor("white"));
             service.speak("Master Remote is: " + service.boardState.BOARD_ID, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             service.rfMasterClientServer.disableMasterBroadcast();
 
-            service.burnerBoard.setText("Solo", 2000, new BBColor().getColor("white"));
+            service.burnerBoard.setText("Solo", 2000, new RGBList().getColor("white"));
             service.speak("Disabling Master Remote: " + service.boardState.BOARD_ID, "disableMaster");
         }
     }

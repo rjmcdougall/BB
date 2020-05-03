@@ -1,8 +1,6 @@
 package com.richardmcdougall.bb;
 
-import android.graphics.Color;
-
-import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.util.concurrent.Executors;
@@ -68,7 +66,7 @@ public class LocalCrisisController {
         boardInCrisisPhase = 1;
         service.musicPlayer.Mute();
 
-        service.burnerBoard.setText90("Please Help!", 10000, new BBColor().getColor("white"));
+        service.burnerBoard.setText90("Please Help!", 10000, new RGBList().getColor("white"));
         service.speak("Please Help!","mode");
 
         sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);

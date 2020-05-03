@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
-import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.board.RGB;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bbcommon.BoardState;
@@ -16,7 +15,7 @@ public class PlayaMap extends Visualization {
     String TAG = "BB.PlayaMap";
 
     FindMyFriends mFMF = null;
-    BBColor bbColor = new BBColor();
+    RGBList RGBList = new RGBList();
     BBService service = null;
 
     public PlayaMap(BBService service) {
@@ -47,7 +46,7 @@ public class PlayaMap extends Visualization {
 
     private int updateCnt = 0;
     private BoardLocations.boardLocation boardLocation = null;
-    BBColor.ColorName boardColor = null;
+    RGB boardColor = null;
 
     public void update(int mode) {
 
@@ -69,7 +68,7 @@ public class PlayaMap extends Visualization {
                     (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    RGB.getRGB(100, 100, 100));
+                    RGB.getARGBInt(100, 100, 100));
             // Inner ring
             service.burnerBoard.arcBuilder.drawArc((service.burnerBoard.boardWidth - innerRing) / 2,
                     (service.burnerBoard.boardHeight - innerRing) / 2,
@@ -79,18 +78,18 @@ public class PlayaMap extends Visualization {
                     (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    RGB.getRGB(0, 0, 0));
+                    RGB.getARGBInt(0, 0, 0));
 
             List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
             boolean boardInCrisis = false;
             for (BoardLocations.boardLocation location : boardLocations) {
                 if (location.inCrisis){
-                    boardColor = bbColor.getColor("red");
+                    boardColor = RGBList.getColor("red");
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,
-                                RGB.getRGB(boardColor.r,
+                                RGB.getARGBInt(boardColor.r,
                                         boardColor.g,
                                         boardColor.b));
                     }
@@ -103,7 +102,7 @@ public class PlayaMap extends Visualization {
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,
-                                RGB.getRGB(boardColor.r,
+                                RGB.getARGBInt(boardColor.r,
                                         boardColor.g,
                                         boardColor.b));
                     }
@@ -119,7 +118,7 @@ public class PlayaMap extends Visualization {
                     (float) kDegrees2, (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    RGB.getRGB(50, 50, 50));
+                    RGB.getARGBInt(50, 50, 50));
 
         }  else if (BoardState.BoardType.classic == service.boardState.GetBoardType()) {
             service.burnerBoard.fillScreen(30, 0, 0);

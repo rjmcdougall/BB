@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.board;
 
 public class RGB {
 
+        public String name = "";
         public int r;
         public int g;
         public int b;
@@ -13,7 +14,7 @@ public class RGB {
         }
 
     //https://stackoverflow.com/questions/47970384/why-is-copypixelsfrombuffer-giving-incorrect-color-setpixels-is-correct-but-slo
-    public static RGB rgbaTorgb(int color) {
+    public static RGB fromRGBAInt(int color) {
 
         RGB x = new RGB();
 
@@ -24,8 +25,21 @@ public class RGB {
         return x;
     }
 
-    static public int getRGB(int r, int g, int b) {
-        return (r * 65536 + g * 256 + b);
+    static public int getARGBInt(int r, int g, int b) {
+            return (r * 65536 + g * 256 + b);
     }
 
+    private RGB(){
+    }
+
+    public RGB(String name, int r, int g, int b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

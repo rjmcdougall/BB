@@ -1,12 +1,11 @@
 package com.richardmcdougall.bb;
 
-import android.graphics.Color;
 import android.media.audiofx.Visualizer;
 
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
-import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
 import com.richardmcdougall.bb.visualization.PlayaMap;
@@ -18,8 +17,6 @@ import com.richardmcdougall.bbcommon.BoardState;
 
 import org.json.JSONObject;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -436,7 +433,7 @@ public class BoardVisualization {
         service.burnerBoard.resetParams();
         service.burnerBoard.clearPixels();
 
-        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, new BBColor().getColor("white"));
+        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, new RGBList().getColor("white"));
     }
 
 }

@@ -1,8 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.widget.Switch;
-
-import com.richardmcdougall.bb.visualization.BBColor;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.util.concurrent.Executors;

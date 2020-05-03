@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
@@ -16,7 +15,7 @@ import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
 import com.richardmcdougall.bb.rf.RFMasterClientServer;
-import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bbcommon.AllBoards;
 import com.richardmcdougall.bbcommon.BBWifi;
 import com.richardmcdougall.bbcommon.BLog;
@@ -196,7 +195,7 @@ public class BBService extends Service {
             localCrisisController = new LocalCrisisController(this);
 
             burnerBoard = BurnerBoard.Builder(this);
-            burnerBoard.setText90(boardState.BOARD_ID, 5000, new BBColor().getColor("white"));
+            burnerBoard.setText90(boardState.BOARD_ID, 5000, new RGBList().getColor("white"));
 
             boardVisualization = new BoardVisualization(this);
             boardVisualization.Run();

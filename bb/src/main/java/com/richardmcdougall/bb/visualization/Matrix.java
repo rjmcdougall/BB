@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.TimeSync;
 import com.richardmcdougall.bb.board.RGB;
 
@@ -41,7 +40,7 @@ public class Matrix extends Visualization {
                 case kMatrixSync:
 
                     if (service.boardVisualization.mRandom.nextInt(3) != 0) {
-                        color = RGB.getRGB(0, 0, 0);
+                        color = RGB.getARGBInt(0, 0, 0);
                     } else {
                         color = mWheel.wheelState();
                         mWheel.wheelInc(1);
@@ -51,7 +50,7 @@ public class Matrix extends Visualization {
 
                 case kMatrixLunarian:
                     color = service.boardVisualization.mRandom.nextInt(2) == 0 ?
-                            RGB.getRGB(0, 0, 0) : RGB.getRGB(255, 255, 255);
+                            RGB.getARGBInt(0, 0, 0) : RGB.getARGBInt(255, 255, 255);
                     service.burnerBoard.setPixel(pixelSkip * x, y, color);
 
                     break;

@@ -2,10 +2,7 @@ package com.richardmcdougall.bb.board;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-
-import com.richardmcdougall.bb.visualization.BBColor;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -48,7 +45,7 @@ public class ArcBuilder {
         int[] temp = mDrawBuffer.array();
         pixels.clear();
         for(int i = 0; i < temp.length;i++){
-            pixels.add(RGB.rgbaTorgb(temp[i]));
+            pixels.add(RGB.fromRGBAInt(temp[i]));
         }
 
     }
