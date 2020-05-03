@@ -41,7 +41,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initpixelMap2Board();
         BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0) ;
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10) ;
     }
 
     public int getFrameRate() {
@@ -164,6 +164,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         }
 
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
+
         int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 
         int[] rowPixels = new int[boardWidth * 3];

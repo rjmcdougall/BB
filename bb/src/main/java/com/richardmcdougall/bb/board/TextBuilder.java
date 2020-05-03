@@ -9,6 +9,7 @@ import android.text.TextPaint;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.visualization.BBColor;
+import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 import java.nio.IntBuffer;
@@ -100,6 +101,27 @@ public class TextBuilder {
         return layeredScreen;
     }
 
+    public int[] checkForNonBlack() {
+
+        for (int pixelNo = 0; pixelNo < (boardWidth * boardHeight); pixelNo++) {
+            int pixel_offset = pixelNo * 3;
+            RGB pixel = this.pixels.get(pixelNo);
+
+            // Render the new text over the original
+
+            if (pixel.isBlack()) {
+
+            }
+            else if (pixel.isWhite()) {
+                BLog.d(TAG, "Found Pix White");
+            }
+            else {
+                BLog.d(TAG, "Found Pix Color:" + pixel.r + " " + pixel.g + " " + pixel.b);
+            }
+        }
+        return layeredScreen;
+    }
+
     // Draw text on screen and delay for n seconds
     public void setText90(String text, int delay, int refreshRate, BBColor.ColorName color) {
         textDisplayingCountdown = delay * refreshRate / 1000;
@@ -127,6 +149,7 @@ public class TextBuilder {
             pixels.add(RGB.rgbaTorgb(temp[i]));
         }
 
+        //checkForNonBlack();
     }
 
     // render text on screen
