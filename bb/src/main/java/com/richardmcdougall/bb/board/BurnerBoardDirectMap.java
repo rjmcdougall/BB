@@ -26,8 +26,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     private static final int kVisualizationDirectMapDefaultHeight = 256;
     public static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
     static int kStrips = 8;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
-    private int flushCnt = 0;
 
     public BurnerBoardDirectMap(BBService service, int width, int height) {
         super(service);
@@ -59,56 +57,45 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     }
 
+
+
     public void flush() {
 
-        flushCnt++;
-        if (flushCnt > 100) {
-            int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
-            lastFlushTime = java.lang.System.currentTimeMillis();
+        this.logFlush();
+        int powerLimitMultiplierPercent = mPowerMultiplier;
+        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 
-            BLog.d(TAG, "Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
-                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
-            flushCnt = 0;
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                }
+            }
+            //setRowVisual(y, rowPixels);
         }
 
-        // Suppress updating when displaying a text message
-        if (this.textBuilder.textDisplayingCountdown > 0) {
-            this.textBuilder.textDisplayingCountdown--;
-        } else {
-
-            int powerLimitMultiplierPercent = mPowerMultiplier;
-
-            int[] rowPixels = new int[boardWidth * 3];
+        // Walk through each strip and fill from the graphics buffer
+        for (int s = 0; s < kStrips; s++) {
+            int[] stripPixels = new int[boardHeight * 3];
+            // Walk through all the pixels in the strip
             for (int y = 0; y < boardHeight; y++) {
-                //for (int y = 30; y < 31; y++) {
-                for (int x = 0; x < boardWidth; x++) {
-                    if (y < boardHeight) {
-                        rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                        rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                        rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                    }
-                }
-                //setRowVisual(y, rowPixels);
+                stripPixels[y * 3] = mOutputScreen[pixel2Offset(s, y, PIXEL_RED)];
+                stripPixels[y * 3 + 1] = mOutputScreen[pixel2Offset(s, y, PIXEL_GREEN)];
+                stripPixels[y * 3 + 2] = mOutputScreen[pixel2Offset(s, y, PIXEL_BLUE)];
             }
-
-            // Walk through each strip and fill from the graphics buffer
-            for (int s = 0; s < kStrips; s++) {
-                int[] stripPixels = new int[boardHeight * 3];
-                // Walk through all the pixels in the strip
-                for (int y = 0; y < boardHeight; y++) {
-                    stripPixels[y * 3] = mBoardScreen[pixel2Offset(s, y, PIXEL_RED)];
-                    stripPixels[y * 3 + 1] = mBoardScreen[pixel2Offset(s, y, PIXEL_GREEN)];
-                    stripPixels[y * 3 + 2] = mBoardScreen[pixel2Offset(s, y, PIXEL_BLUE)];
-                }
-                setStrip(s, stripPixels, powerLimitMultiplierPercent);
-                // Send to board
-                flush2Board();
-            }
-
-            // Render on board
-            update();
+            setStrip(s, stripPixels, powerLimitMultiplierPercent);
+            // Send to board
             flush2Board();
         }
+
+        // Render on board
+        update();
+        flush2Board();
+
     }
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {

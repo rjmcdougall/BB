@@ -46,16 +46,7 @@ public class BurnerBoardMast extends BurnerBoard {
 
     public void flush() {
 
-        flushCnt++;
-        if (flushCnt > 100) {
-            int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
-            lastFlushTime = java.lang.System.currentTimeMillis();
-
-            BLog.d(TAG, "Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
-                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
-            flushCnt = 0;
-        }
-
+        this.logFlush();
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);
         int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 

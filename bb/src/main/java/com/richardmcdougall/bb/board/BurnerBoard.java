@@ -62,6 +62,8 @@ public abstract class BurnerBoard {
     private UsbDevice mUsbDevice = null;
     protected TextBuilder textBuilder = null;
     public ArcBuilder arcBuilder = null;
+    long lastFlushTime = java.lang.System.currentTimeMillis();
+    private int flushCnt = 0;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -293,7 +295,19 @@ public abstract class BurnerBoard {
         }
         return false;
     }
- 
+
+    protected void logFlush(){
+        flushCnt++;
+        if (flushCnt > 100) {
+            int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
+            lastFlushTime = java.lang.System.currentTimeMillis();
+
+            BLog.d(TAG, "Framerate: " + flushCnt + " frames in " + elapsedTime + ", " +
+                    (flushCnt * 1000 / elapsedTime) + " frames/sec");
+            flushCnt = 0;
+        }
+    }
+
     public void flush() {
     }
 
