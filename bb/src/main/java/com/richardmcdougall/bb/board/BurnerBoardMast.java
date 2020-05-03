@@ -23,7 +23,7 @@ public class BurnerBoardMast extends BurnerBoard {
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0) ;
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0);
     }
 
     @Override
@@ -56,42 +56,38 @@ public class BurnerBoardMast extends BurnerBoard {
             flushCnt = 0;
         }
 
-        // Suppress updating when displaying a text message
-        if (this.textBuilder.textDisplayingCountdown > 0) {
-            this.textBuilder.textDisplayingCountdown--;
-        } else {
+        int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);
+        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 
-            int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(12);
-
-            int[] rowPixels = new int[boardWidth * 3];
-            for (int y = 0; y < boardHeight; y++) {
-                //for (int y = 30; y < 31; y++) {
-                for (int x = 0; x < boardWidth; x++) {
-                    if (y < boardHeight) {
-                        rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                        rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                        rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                    }
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
-                setRowVisual(y, rowPixels);
             }
-
-            // Walk through each strip and fill from the graphics buffer
-            for (int s = 0; s < kStrips; s++) {
-                int[] stripPixels = new int[boardHeight * 3 * 3];
-                // Walk through all the pixels in the strip
-                for (int offset = 0; offset < boardHeight * 3 * 3; ) {
-                    stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                    stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                    stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                }
-                setStrip(s, stripPixels, powerLimitMultiplierPercent);
-                // Send to board
-                flush2Board();
-            }// Render on board
-            update();
-            flush2Board();
+            setRowVisual(y, rowPixels);
         }
+
+        // Walk through each strip and fill from the graphics buffer
+        for (int s = 0; s < kStrips; s++) {
+            int[] stripPixels = new int[boardHeight * 3 * 3];
+            // Walk through all the pixels in the strip
+            for (int offset = 0; offset < boardHeight * 3 * 3; ) {
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+            }
+            setStrip(s, stripPixels, powerLimitMultiplierPercent);
+            // Send to board
+            flush2Board();
+        }// Render on board
+        update();
+        flush2Board();
+
     }
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {

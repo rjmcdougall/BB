@@ -35,7 +35,6 @@ import com.richardmcdougall.bbcommon.BLog;
 public class BurnerBoardPanel extends BurnerBoard {
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private String TAG = this.getClass().getSimpleName();
-    private int[] mLayeredScreen;
     private int flushCnt = 0;
 
     public BurnerBoardPanel(BBService service) {
@@ -50,7 +49,6 @@ public class BurnerBoardPanel extends BurnerBoard {
         mBoardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initUsb();
-        mLayeredScreen = new int[boardWidth * boardHeight * 3];
     }
 
     @Override
@@ -84,14 +82,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         }
  
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
-
-        int[] mOutputScreen = mBoardScreen;
-        if(textBuilder.renderTextOnScreen()){
-            // Render text on board
-            if (renderText(mLayeredScreen, mBoardScreen) != null) {
-                mOutputScreen = mLayeredScreen;
-            }
-        }
+        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 
         int[] rowPixels = new int[boardWidth * 3];
         for (int y = 0; y < boardHeight; y++) {

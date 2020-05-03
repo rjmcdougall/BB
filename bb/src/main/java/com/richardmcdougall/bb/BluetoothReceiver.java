@@ -38,14 +38,6 @@ public class BluetoothReceiver extends BroadcastReceiver {
                     Ringtone r = RingtoneManager.getRingtone(service.context, notification);
                     r.play();
                 }
-                final Handler handler = new Handler();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        service.burnerBoard.flashScreen(400);
-
-                    }
-                }, 3000);
             } catch (Exception e) {
                 BLog.e(TAG, e.getMessage());
             }

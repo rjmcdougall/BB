@@ -55,7 +55,6 @@ public abstract class BurnerBoard {
     public int[] mBoardScreen;
     public String boardType;
     public int mRefreshRate = 15;
-    public int isFlashDisplaying = 0;
     public IntBuffer mDrawBuffer = null;
     public int[] mBatteryStats = new int[16];
     public int mDimmerLevel = 255;
@@ -757,37 +756,6 @@ public abstract class BurnerBoard {
         LocalBroadcastManager.getInstance(service.context).sendBroadcast(in);
     }
 
-    public void aRGBtoBoardScreen(ArrayList<RGB> buf, int[] sourceScreen, int[] destScreen) {
-
-        if (buf == null) {
-            return;
-        }
-
-        for (int pixelNo = 0; pixelNo < (boardWidth * boardHeight); pixelNo++) {
-            int pixel_offset = pixelNo * 3;
-            RGB pixel = buf.get(pixelNo);
-
-            // Render the new text over the original
-
-            if (pixel.isBlack()) {
-                destScreen[pixel_offset] = sourceScreen[pixel_offset];
-                destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
-                destScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
-            }
-            else if (pixel.isWhite()) {
-                destScreen[pixel_offset] = sourceScreen[pixel_offset];
-                destScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
-                destScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
-            }
-            else {
-                destScreen[pixel_offset] = pixel.r;
-                destScreen[pixel_offset + 1] = pixel.g;
-                destScreen[pixel_offset + 2] = pixel.b;
-
-            }
-        }
-    }
-
     // TODO: Implement generic layers
     public void fillScreenLayer(int[] layer, int r, int g, int b) {
 
@@ -796,26 +764,6 @@ public abstract class BurnerBoard {
             layer[x * 3 + 1] = g;
             layer[x * 3 + 2] = b;
         }
-    }
-
-    // render text on screen
-    public int[] renderText(int[] newScreen, int[] origScreen) {
-        // Suppress updating when displaying a text message
-        if (textBuilder.textDisplayingCountdown > 0) {
-            textBuilder.textDisplayingCountdown--;
-            aRGBtoBoardScreen(textBuilder.pixels, origScreen, newScreen);
-            return newScreen;
-        } else if (isFlashDisplaying > 0) {
-            isFlashDisplaying--;
-            fillScreenLayer(newScreen, 0, 0, 128);
-            return newScreen;
-        } else {
-            return null;
-        }
-    }
-
-    public void flashScreen(int delay) {
-        isFlashDisplaying = delay * mRefreshRate / 1000;
     }
 
     public int rgbToArgb(int color) {

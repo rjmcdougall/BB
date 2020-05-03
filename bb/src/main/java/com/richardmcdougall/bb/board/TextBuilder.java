@@ -24,6 +24,7 @@ public class TextBuilder {
     private int boardHeight = 0;
     public ArrayList<RGB> pixels = new ArrayList<>();
     private BBService service = null;
+    private int[] layeredScreen;
 
     public TextBuilder(BBService service, int boardWidth, int boardHeight, int textSizeHorizontal, int textSizeVertical){
         this.boardHeight = boardHeight;
@@ -32,6 +33,7 @@ public class TextBuilder {
         this.textSizeHorizontal = textSizeHorizontal;
         this.textSizeVerical = textSizeVertical;
         this.service = service;
+
     }
 
     // Draw text on screen and delay for n seconds
@@ -65,6 +67,39 @@ public class TextBuilder {
         }
     }
 
+    public int[] aRGBtoBoardScreen(int[] sourceScreen) {
+
+        if (this.pixels.isEmpty()) {
+            return null;
+        }
+
+        layeredScreen = new int[this.boardWidth * this.boardHeight * 3];
+
+        for (int pixelNo = 0; pixelNo < (boardWidth * boardHeight); pixelNo++) {
+            int pixel_offset = pixelNo * 3;
+            RGB pixel = this.pixels.get(pixelNo);
+
+            // Render the new text over the original
+
+            if (pixel.isBlack()) {
+                layeredScreen[pixel_offset] = sourceScreen[pixel_offset];
+                layeredScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
+                layeredScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
+            }
+            else if (pixel.isWhite()) {
+                layeredScreen[pixel_offset] = sourceScreen[pixel_offset];
+                layeredScreen[pixel_offset + 1] = sourceScreen[pixel_offset + 1];
+                layeredScreen[pixel_offset + 2] = sourceScreen[pixel_offset + 2];
+            }
+            else {
+                layeredScreen[pixel_offset] = pixel.r;
+                layeredScreen[pixel_offset + 1] = pixel.g;
+                layeredScreen[pixel_offset + 2] = pixel.b;
+            }
+        }
+        return layeredScreen;
+    }
+
     // Draw text on screen and delay for n seconds
     public void setText90(String text, int delay, int refreshRate, BBColor.ColorName color) {
         textDisplayingCountdown = delay * refreshRate / 1000;
@@ -94,6 +129,17 @@ public class TextBuilder {
 
     }
 
+    // render text on screen
+    public int[] renderText(int[] origScreen) {
+        // Suppress updating when displaying a text message
+        if (textDisplayingCountdown > 0 && renderTextOnScreen()) {
+            textDisplayingCountdown--;
+            return this.aRGBtoBoardScreen(origScreen);
+        }
+        else {
+            return origScreen;
+        }
+    }
     public boolean renderTextOnScreen(){
         return (this.service.boardState.GetBoardType() == BoardState.BoardType.azul
                 || this.service.boardState.GetBoardType() == BoardState.BoardType.panel

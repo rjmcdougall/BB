@@ -15,12 +15,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     private static final int kMaxStrips = 24;
     private static final int kMaxStripLength = 1024;
 
-    // Two primary mapping functions
-    // Temporary until we can parameterize this
-
-    // Width = X
-    // Height = Y
-
     // Woodson's panel
     static int kBoardWidth = 20;
     static int kBoardHeight = 180;
@@ -32,22 +26,10 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     static int kSubStrips = kPanelWidth;
     // Number of hardware strips
     static int kStrips = 16; //boardHeight / panel height
-    private int[] mLayeredScreen;
-
-    // Proto's test board
-    //static int kBoardWidth = 32;
-    //static int kBoardHeight = 32;
-    //static int kPanelHeight = 8;
-    //static int kPanelWidth = 32;
-    //static boolean kStackedY = false;
-    //static int kStrips = kBoardHeight / kPanelHeight; //boardHeight / panel height
-    //static int kSubStrips = kPanelWidth;
-
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
-        //        boardWidth = 32; (proto's test panel)
-        //        boardHeight = 32;
+
         boardWidth = kBoardWidth;
         boardHeight = kBoardHeight;
         boardType = "Burner Board WSPanel";
@@ -60,7 +42,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0, 0) ;
-        mLayeredScreen = new int[boardWidth * boardHeight * 3];
     }
 
     public int getFrameRate() {
@@ -167,10 +148,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         return mBoardScreen;
     }
 
-    // TODO: gamma correction
-    // encoded = ((original / 255) ^ (1 / gamma)) * 255
-    // original = ((encoded / 255) ^ gamma) * 255
-
     private int flushCnt = 0;
     long lastFlushTime = System.currentTimeMillis();
 
@@ -186,92 +163,79 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             flushCnt = 0;
         }
 
-        // Suppress updating when displaying a text message
-        if (this.textBuilder.textDisplayingCountdown > 0) {
-            this.textBuilder.textDisplayingCountdown--;
-        } else {
+        int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
+        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 
-            int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(20);
-
-            int[] mOutputScreen = mBoardScreen;
-            if(textBuilder.renderTextOnScreen()){
-                // Render text on board
-                if (renderText(mLayeredScreen, mBoardScreen) != null) {
-                    mOutputScreen = mLayeredScreen;
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-
-            int[] rowPixels = new int[boardWidth * 3];
-            for (int y = 0; y < boardHeight; y++) {
-                //for (int y = 30; y < 31; y++) {
-                for (int x = 0; x < boardWidth; x++) {
-                    if (y < boardHeight) {
-                        rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
-                        rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                        rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
-                    }
-                }
-                setRowVisual(y, rowPixels);
-            }
-
-            // Walk through each strip and fill from the graphics buffer
-            for (int s = 0; s < kStrips; s++) {
-                //BLog.d(TAG, "strip:" + s);
-                int[] stripPixels = new int[kPanelHeight * 3 * kSubStrips];
-                // Walk through all the pixels in the strip
-                for (int offset = 0; offset < kPanelHeight * 3 * kSubStrips; ) {
-                    stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                    stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                    stripPixels[offset] = mBoardScreen[pixelMap2BoardTable[s][offset++]];
-                }
-                if (s == 0) {
-                    setStrip(0, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 1) {
-                    setStrip(1, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 2) {
-                    setStrip(2, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 3) {
-                    setStrip(3, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 4) {
-                    setStrip(12, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 5) {
-                    setStrip(13, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 6) {
-                    setStrip(14, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 7) {
-                    setStrip(15, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 8) {
-                    setStrip(8, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 9) {
-                    setStrip(9, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 10) {
-                    //setStrip(6, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 11) {
-                    setStrip(7, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 12) {
-                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 13) {
-                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 14) {
-                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
-                } else if (s == 15) {
-                    //setStrip(15, stripPixels, powerLimitMultiplierPercent);
-                } else {
-                    setStrip(s, stripPixels, powerLimitMultiplierPercent);
-                }
-                // Send to board
-                flush2Board();
-            }
-
-
-            // Render on board
-            update();
-            flush2Board();
-            try {
-                Thread.sleep(20);
-            } catch (Exception e) {
-            }
+            setRowVisual(y, rowPixels);
         }
+
+        // Walk through each strip and fill from the graphics buffer
+        for (int s = 0; s < kStrips; s++) {
+            //BLog.d(TAG, "strip:" + s);
+            int[] stripPixels = new int[kPanelHeight * 3 * kSubStrips];
+            // Walk through all the pixels in the strip
+            for (int offset = 0; offset < kPanelHeight * 3 * kSubStrips; ) {
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+            }
+            if (s == 0) {
+                setStrip(0, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 1) {
+                setStrip(1, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 2) {
+                setStrip(2, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 3) {
+                setStrip(3, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 4) {
+                setStrip(12, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 5) {
+                setStrip(13, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 6) {
+                setStrip(14, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 7) {
+                setStrip(15, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 8) {
+                setStrip(8, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 9) {
+                setStrip(9, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 10) {
+                //setStrip(6, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 11) {
+                setStrip(7, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 12) {
+                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 13) {
+                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 14) {
+                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+            } else if (s == 15) {
+                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+            } else {
+                setStrip(s, stripPixels, powerLimitMultiplierPercent);
+            }
+            // Send to board
+            flush2Board();
+        }
+
+        // Render on board
+        update();
+        flush2Board();
+        try {
+            Thread.sleep(20);
+        } catch (Exception e) {
+        }
+
     }
 
     //    cmdMessenger.attach(BBUpdate, OnUpdate);              // 6
@@ -315,30 +279,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public void setMsg(String msg) {
     }
 
-    public static class TranslationMap {
-        int y;
-        int startX;
-        int endX;
-        int stripDirection;
-        int stripNumber;
-        int stripOffset;
-
-        private TranslationMap(
-                int y,
-                int startX,
-                int endX,
-                int stripDirection,
-                int stripNumber,
-                int stripOffset) {
-            this.y = y;
-            this.startX = startX;
-            this.endX = endX;
-            this.stripDirection = stripDirection;
-            this.stripNumber = stripNumber;
-            this.stripOffset = stripOffset;
-        }
-    }
-
     static int pixelMap2Board(int s, int offset) {
         return pixelMap2BoardTable[s][offset];
     }
@@ -376,7 +316,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                     } else {
                         stripOffset = subStrip * boardHeight + (boardHeight - 1 - y);
                     }
-                    BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
+                    //BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
                     pixelRemap(x, y, stripNo, stripOffset * 3);
                 }
             }
@@ -401,7 +341,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                     } else {
                         stripOffset = subStrip * kPanelHeight + (kPanelHeight - 1 - panelY);
                     }
-                    BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
+                    //BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
                     pixelRemap(x, y, stripNo, stripOffset * 3);
                 }
 

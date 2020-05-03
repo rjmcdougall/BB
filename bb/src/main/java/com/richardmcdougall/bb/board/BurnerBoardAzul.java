@@ -31,7 +31,6 @@ public class BurnerBoardAzul extends BurnerBoard {
     static int kStrips = 8;
     static int[] pixelsPerStrip = new int[8];
     static int[][] pixelMap2BoardTable = new int[8][4096];
-    public int[] mLayeredScreen;
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private int flushCnt = 0;
     private TranslationMap[] boardMap;
@@ -46,7 +45,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         initPixelOffset();
         initpixelMap2Board();
         initUsb();
-        mLayeredScreen = new int[boardWidth * boardHeight * 3];
         textBuilder = new TextBuilder(service, boardWidth, boardHeight, 14, 10);
         mDrawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
 
@@ -91,26 +89,19 @@ public class BurnerBoardAzul extends BurnerBoard {
         }
 
         int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
+        int[] mOutputScreen = this.textBuilder.renderText(mBoardScreen);
 
         int[] rowPixels = new int[boardWidth * 3];
         for (int y = 0; y < boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < boardWidth; x++) {
                 if (y < boardHeight) {
-                    rowPixels[x * 3 + 0] = mBoardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    rowPixels[x * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
             setRowVisual(y, rowPixels);
-        }
-
-        int[] mOutputScreen = mBoardScreen;
-        if(textBuilder.renderTextOnScreen()){
-            // Render text on board
-            if (renderText(mLayeredScreen, mBoardScreen) != null) {
-                mOutputScreen = mLayeredScreen;
-            }
         }
 
         // Walk through each strip and fill from the graphics buffer
