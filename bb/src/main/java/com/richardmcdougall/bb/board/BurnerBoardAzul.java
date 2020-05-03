@@ -4,11 +4,7 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
-
-import org.w3c.dom.Text;
-
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 //  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
 //          cmdMessenger.sendCmdArg(batteryControl);
@@ -26,13 +22,11 @@ import java.util.Arrays;
 
 public class BurnerBoardAzul extends BurnerBoard {
 
-    private static final String TAG = "BB.BurnerBoardAzul";
+    private String TAG = this.getClass().getSimpleName();
     // Two primary mapping functions
     static int kStrips = 8;
     static int[] pixelsPerStrip = new int[8];
     static int[][] pixelMap2BoardTable = new int[8][4096];
-    long lastFlushTime = java.lang.System.currentTimeMillis();
-    private int flushCnt = 0;
     private TranslationMap[] boardMap;
 
     public BurnerBoardAzul(BBService service) {

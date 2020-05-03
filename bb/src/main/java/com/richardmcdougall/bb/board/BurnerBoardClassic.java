@@ -10,12 +10,10 @@ public class BurnerBoardClassic extends BurnerBoard {
     public static final int kOtherLights = 2;
     public static final int kLeftSightlight = 0;
     public static final int kRightSidelight = 1;
-    private static final String TAG = "BB.BurnerBoardClassic";
-    long lastFlushTime = java.lang.System.currentTimeMillis();
+    private String TAG = this.getClass().getSimpleName();
     private int mBoardSideLights = 79;
-    //private int[] mBoardScreen;
+    private int[] mBoardScreen;
     private int[] mBoardOtherlights;
-    private int flushCnt = 0;
 
     public BurnerBoardClassic(BBService service) {
         super(service);
@@ -34,8 +32,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         return 1;
     }
 
-    // Experiments with optimized overlocked Teensy suggest 20 is to high
-    // because we don't get battery callbacks
     public int getFrameRate() {
         return 16;
     }

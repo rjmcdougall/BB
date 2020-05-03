@@ -31,11 +31,8 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
-//test panel used by supersex, cranky, and others.
 public class BurnerBoardPanel extends BurnerBoard {
-    long lastFlushTime = java.lang.System.currentTimeMillis();
     private String TAG = this.getClass().getSimpleName();
-    private int flushCnt = 0;
 
     public BurnerBoardPanel(BBService service) {
         super(service);
@@ -117,37 +114,6 @@ public class BurnerBoardPanel extends BurnerBoard {
             return;
         }
         return;
-    }
-
-    private boolean setRow(int row, int[] pixels) {
-
-        int[] dimPixels = new int[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =
-                    (mDimmerLevel * pixels[pixel]) / 255;
-        }
-
-        // Do color correction on burner board display pixels
-        byte[] newPixels = new byte[boardWidth * 3];
-        for (int pixel = 0; pixel < boardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = (byte) pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);
-        }
-
-        //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
-
-        //l("sendCommand: 10,n,...");
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(10);
-                mListener.sendCmdArg(row);
-                mListener.sendCmdEscArg(newPixels);
-                mListener.sendCmdEnd();
-                return true;
-            }
-        }
-        return false;
     }
 
     public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {

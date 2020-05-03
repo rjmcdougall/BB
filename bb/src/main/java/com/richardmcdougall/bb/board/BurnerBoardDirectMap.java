@@ -8,7 +8,7 @@ import com.richardmcdougall.bbcommon.BLog;
 // used by the now-defunct josPaks
 public class BurnerBoardDirectMap extends BurnerBoard {
 
-    private static final String TAG = "BB.BurnerBoardDirectMap";
+    private String TAG = this.getClass().getSimpleName();
 
     /* JosPacks have more of a power constraint, so we don't want to set it to full brightness. Empirically tested
         with with a rapidly refreshing pattern (BlueGold):
@@ -75,7 +75,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
                     rowPixels[x * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-            //setRowVisual(y, rowPixels);
+            setRowVisual(y, rowPixels);
         }
 
         // Walk through each strip and fill from the graphics buffer

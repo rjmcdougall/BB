@@ -9,9 +9,8 @@ public class BurnerBoardMast extends BurnerBoard {
 
     static int kStrips = 8;
     static int[][] pixelMap2BoardTable = new int[8][4096];
-    long lastFlushTime = java.lang.System.currentTimeMillis();
     private String TAG = this.getClass().getSimpleName();
-    private int flushCnt = 0;
+
 
     public BurnerBoardMast(BBService service) {
         super(service);

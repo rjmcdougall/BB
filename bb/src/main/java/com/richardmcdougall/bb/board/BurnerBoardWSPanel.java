@@ -2,14 +2,13 @@ package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
-
-import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 //BBWSPanel is a string of WS28xx leds that go up and down
 public class BurnerBoardWSPanel extends BurnerBoard {
 
-    private static final String TAG = "BB.BurnerBoardWSPanel";
+    private String TAG = this.getClass().getSimpleName();
 
     // Limits of the hardware strips:
     private static final int kMaxStrips = 24;
@@ -41,7 +40,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initpixelMap2Board();
         BLog.d(TAG, "Burner Board WSPanel initUsb...");
         initUsb();
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10) ;
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
     }
 
     public int getFrameRate() {
@@ -82,9 +81,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public int[] getPixelBuffer() {
         return mBoardScreen;
     }
-
-    private int flushCnt = 0;
-    long lastFlushTime = System.currentTimeMillis();
 
     public void flush() {
 
@@ -193,7 +189,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         pixelMap2BoardTable[stripNo][stripOffset + 2] =
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
-
 
 
     static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
