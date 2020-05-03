@@ -16,17 +16,16 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     public BurnerBoardClassic(BBService service) {
         super(service);
+        BLog.i(TAG, "Burner Board Classic initing...");
         boardWidth = 10;
         boardHeight = 70;
-        boardType = "Burner Board Classic";
-        // Std board e.g. is 10 x 70 + 2 rows of sidelights of 79
         boardScreen = new int[boardWidth * boardHeight * 3];
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         initPixelOffset();
+        //map2board
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-
-        initUsb();
         this.textBuilder = new TextBuilder(service, boardWidth,boardHeight,6,12) ;
+        initUsb();
     }
 
     public int getMultiplier4Speed() {

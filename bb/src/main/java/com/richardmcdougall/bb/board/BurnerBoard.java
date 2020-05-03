@@ -46,9 +46,7 @@ public abstract class BurnerBoard {
     public CmdMessenger mListener = null;
     public BBService service = null;
     public int[] boardScreen;
-    public String boardType;
     public int mRefreshRate = 15;
-    public IntBuffer mDrawBuffer = null;
     public int[] mBatteryStats = new int[16];
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
@@ -158,23 +156,8 @@ public abstract class BurnerBoard {
         return burnerBoard;
     }
 
-    public void setDrawBuffer(int width, int height) {
-        mDrawBuffer = IntBuffer.allocate(width * height);
-    }
-
     public int getFrameRate() {
         return 12;
-    }
-
-    public void setPixel(int pixel, int r, int g, int b) {
-
-        if (pixel < 0 || pixel >= (boardWidth * boardHeight)) {
-            BLog.d(TAG, "setPixel out of range: " + pixel);
-            return;
-        }
-        boardScreen[pixel * 3] = r;
-        boardScreen[pixel * 3 + 1] = g;
-        boardScreen[pixel * 3 + 2] = b;
     }
 
     public abstract int getMultiplier4Speed();

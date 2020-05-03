@@ -28,20 +28,15 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
-
+        BLog.i(TAG, "Burner Board WSPanel initting...");
         boardWidth = kBoardWidth;
         boardHeight = kBoardHeight;
-        boardType = "Burner Board WSPanel";
-        BLog.d(TAG, "Burner Board WSPanel initting...");
         boardScreen = new int[boardWidth * boardHeight * 3];
-        BLog.d(TAG, "Burner Board WSPanel initPixelOffset...");
         initPixelOffset();
-        BLog.d(TAG, "Burner Board WSPanel initpixelMap2Board...");
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-        BLog.d(TAG, "Burner Board WSPanel initUsb...");
-        initUsb();
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
+        initUsb();
     }
 
     public int getFrameRate() {

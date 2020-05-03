@@ -36,19 +36,18 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     public BurnerBoardPanel(BBService service) {
         super(service);
+        BLog.i(TAG, "Burner Board Panel initting...");
         boardWidth = 32;
         boardHeight = 64;
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
-
-        super.setDrawBuffer(boardWidth, boardHeight);
-        
-        boardType = "Burner Board Panel";
-        BLog.d(TAG, "Burner Board Panel initting...");
         boardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
+        //map2board
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
         initUsb();
+
+
+
     }
 
     @Override

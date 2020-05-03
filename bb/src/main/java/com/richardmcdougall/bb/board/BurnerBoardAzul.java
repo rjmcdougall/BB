@@ -31,18 +31,15 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public BurnerBoardAzul(BBService service) {
         super(service);
+        BLog.i(TAG, "Burner Board Azul initing...");
         boardWidth = 46;
         boardHeight = 118;
-        boardType = "Burner Board Azul";
-        BLog.d(TAG, "Burner Board Azul initing...");
         boardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 14, 10);
         initUsb();
-        textBuilder = new TextBuilder(service, boardWidth, boardHeight, 14, 10);
-        mDrawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
-
     }
 
     public int getMultiplier4Speed() {

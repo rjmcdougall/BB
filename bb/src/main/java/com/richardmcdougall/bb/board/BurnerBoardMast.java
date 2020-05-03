@@ -14,17 +14,15 @@ public class BurnerBoardMast extends BurnerBoard {
 
     public BurnerBoardMast(BBService service) {
         super(service);
+        BLog.i(TAG, "Burner Board Mast initing...");
         boardWidth = 24;
         boardHeight = 159;
-        boardType = "Burner Board Mast";
-        BLog.d(TAG, "Burner Board Mast initing...");
         boardScreen = new int[boardWidth * boardHeight * 3];
         initPixelOffset();
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-
-        initUsb();
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
+        initUsb();
     }
 
     @Override
