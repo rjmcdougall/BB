@@ -191,8 +191,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        // int powerLimitMultiplierPercent = findPowerLimitMultiplierPercent(15);
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = PixelDimmer.Dim(0, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Suppress updating when displaying a text message

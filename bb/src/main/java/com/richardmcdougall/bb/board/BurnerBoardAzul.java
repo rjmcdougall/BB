@@ -74,8 +74,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int powerLimitMultiplierPercent = PixelDimmer.findPowerLimitMultiplierPercent(15, boardScreen);
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = PixelDimmer.Dim(125, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
@@ -87,7 +87,7 @@ public class BurnerBoardAzul extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
-            setStrip(s, stripPixels, powerLimitMultiplierPercent);
+            setStrip(s, stripPixels);
             // Send to board
             if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
                 flush2Board();

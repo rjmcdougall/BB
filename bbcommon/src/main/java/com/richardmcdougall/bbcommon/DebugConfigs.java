@@ -9,7 +9,7 @@ public class DebugConfigs {
     // if this is true, the video will show in the app. This isn't needed
     // in embedded mode, so conserve the resources.
     // works with BoardType classic and azul to set the screen grid for video display
-    public static boolean DISPLAY_VIDEO_IN_APP = false;
+    public static boolean DISPLAY_VIDEO_IN_APP = true;
 
     // name the board as a testing overriden.
     public static final String OVERRIDE_PUBLIC_NAME = "";
@@ -17,7 +17,7 @@ public class DebugConfigs {
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
-    public static final BoardState.BoardType OVERRIDE_BOARD_TYPE = null;
+    public static final BoardState.BoardType OVERRIDE_BOARD_TYPE = BoardState.BoardType.azul;
 
 
     //if you want to debug in the app you need to set this to cpu type

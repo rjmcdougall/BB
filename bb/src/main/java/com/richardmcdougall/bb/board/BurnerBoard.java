@@ -351,20 +351,14 @@ public abstract class BurnerBoard {
         return gammaCorrect(blue);
     }// Send a strip of pixels to the board
 
-    protected void setStrip(int strip, int[] pixels, int powerLimitMultiplierPercent) {
-
-        int[] dimPixels = new int[pixels.length];
-
-        for (int pixel = 0; pixel < pixels.length; pixel++) {
-            dimPixels[pixel] =  pixels[pixel] * powerLimitMultiplierPercent / 100;
-        }
+    protected void setStrip(int strip, int[] pixels) {
 
         // Do color correction on burner board display pixels
         byte[] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte) pixelColorCorrectionRed(dimPixels[pixel]);
-            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(dimPixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(dimPixels[pixel + 2]);
+            newPixels[pixel] = (byte) pixelColorCorrectionRed(pixels[pixel]);
+            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(pixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(pixels[pixel + 2]);
         }
 
         //l("sendCommand: 14,n,...");

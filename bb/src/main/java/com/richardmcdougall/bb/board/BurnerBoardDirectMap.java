@@ -10,15 +10,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
 
-    /* JosPacks have more of a power constraint, so we don't want to set it to full brightness. Empirically tested
-        with with a rapidly refreshing pattern (BlueGold):
-        100 -> 1.90a draw
-        50  -> 0.50a draw
-        25  -> 0.35a draw
-    */
-    private static final int kVisualizationDirectMapPowerMultiplier = BoardState.kIsRPI ? 25 : 100; // should be ok for nano
-    private static final int mPowerMultiplier = kVisualizationDirectMapPowerMultiplier;
-
     /* DIRECT MAP SETTINGS */
     // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
     private static final int kVisualizationDirectMapDefaultWidth = 8;
@@ -63,8 +54,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int powerLimitMultiplierPercent = mPowerMultiplier;
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = PixelDimmer.Dim(200, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
@@ -76,7 +67,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
                 stripPixels[y * 3 + 1] = mOutputScreen[pixel2Offset(s, y, PIXEL_GREEN)];
                 stripPixels[y * 3 + 2] = mOutputScreen[pixel2Offset(s, y, PIXEL_BLUE)];
             }
-            setStrip(s, stripPixels, powerLimitMultiplierPercent);
+            setStrip(s, stripPixels);
             // Send to board
             flush2Board();
         }

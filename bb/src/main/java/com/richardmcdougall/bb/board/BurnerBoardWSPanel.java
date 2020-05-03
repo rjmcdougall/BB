@@ -82,8 +82,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int powerLimitMultiplierPercent = PixelDimmer.findPowerLimitMultiplierPercent(20, boardScreen);
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = PixelDimmer.Dim(20, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
@@ -97,39 +97,39 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             if (s == 0) {
-                setStrip(0, stripPixels, powerLimitMultiplierPercent);
+                setStrip(0, stripPixels);
             } else if (s == 1) {
-                setStrip(1, stripPixels, powerLimitMultiplierPercent);
+                setStrip(1, stripPixels);
             } else if (s == 2) {
-                setStrip(2, stripPixels, powerLimitMultiplierPercent);
+                setStrip(2, stripPixels);
             } else if (s == 3) {
-                setStrip(3, stripPixels, powerLimitMultiplierPercent);
+                setStrip(3, stripPixels);
             } else if (s == 4) {
-                setStrip(12, stripPixels, powerLimitMultiplierPercent);
+                setStrip(12, stripPixels);
             } else if (s == 5) {
-                setStrip(13, stripPixels, powerLimitMultiplierPercent);
+                setStrip(13, stripPixels);
             } else if (s == 6) {
-                setStrip(14, stripPixels, powerLimitMultiplierPercent);
+                setStrip(14, stripPixels);
             } else if (s == 7) {
-                setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                setStrip(15, stripPixels);
             } else if (s == 8) {
-                setStrip(8, stripPixels, powerLimitMultiplierPercent);
+                setStrip(8, stripPixels);
             } else if (s == 9) {
-                setStrip(9, stripPixels, powerLimitMultiplierPercent);
+                setStrip(9, stripPixels);
             } else if (s == 10) {
-                //setStrip(6, stripPixels, powerLimitMultiplierPercent);
+                //setStrip(6, stripPixels);
             } else if (s == 11) {
-                setStrip(7, stripPixels, powerLimitMultiplierPercent);
+                setStrip(7, stripPixels);
             } else if (s == 12) {
-                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                //setStrip(15, stripPixels);
             } else if (s == 13) {
-                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                //setStrip(15, stripPixels);
             } else if (s == 14) {
-                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                //setStrip(15, stripPixels);
             } else if (s == 15) {
-                //setStrip(15, stripPixels, powerLimitMultiplierPercent);
+                //setStrip(15, stripPixels);
             } else {
-                setStrip(s, stripPixels, powerLimitMultiplierPercent);
+                setStrip(s, stripPixels);
             }
             // Send to board
             flush2Board();

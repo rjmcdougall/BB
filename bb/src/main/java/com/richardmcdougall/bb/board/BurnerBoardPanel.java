@@ -72,8 +72,8 @@ public class BurnerBoardPanel extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int powerLimitMultiplierPercent = PixelDimmer.findPowerLimitMultiplierPercent(15, boardScreen);
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         int[] rowPixels = new int[boardWidth * 3];
@@ -86,7 +86,7 @@ public class BurnerBoardPanel extends BurnerBoard {
                     rowPixels[(boardWidth - 1 - x) * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
                 }
             }
-            setStrip(y, rowPixels, powerLimitMultiplierPercent);
+            setStrip(y, rowPixels);
         
         }
 
