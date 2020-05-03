@@ -293,41 +293,7 @@ public abstract class BurnerBoard {
         }
         return false;
     }
-
-    public void scrollPixelsExcept(boolean down, int color) {
-
-        if (mBoardScreen == null) {
-            return;
-        }
-        if (down) {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight - 1; y++) {
-                    if (RGB.getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                    }
-                }
-            }
-        } else {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                }
-            }
-        }
-    }
-
+ 
     public void flush() {
     }
 

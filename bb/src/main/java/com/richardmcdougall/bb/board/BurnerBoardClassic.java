@@ -226,52 +226,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
-    @Override
-    public void scrollPixelsExcept(boolean down, int color) {
-
-        if (mBoardScreen == null) {
-            return;
-        }
-        if (down) {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight - 1; y++) {
-                    if (RGB.getRGB(mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)],
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)]) != color) {
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                        mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                                mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                    }
-                }
-            }
-            for (int x = 0; x < kOtherLights; x++) {
-                for (int pixel = 0; pixel < mBoardSideLights - 1; pixel++) {
-                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_RED)] =
-                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_RED)];
-                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_GREEN)] =
-                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_GREEN)];
-                    mBoardOtherlights[pixelOtherlight2Offset(pixel, x, PIXEL_BLUE)] =
-                            mBoardOtherlights[pixelOtherlight2Offset(pixel + 1, x, PIXEL_BLUE)];
-                }
-            }
-        } else {
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = boardHeight - 2; y >= 0; y--) {
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    mBoardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            mBoardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
-                }
-            }
-        }
-
-    }
-
     public void flush() {
 
         flushCnt++;
