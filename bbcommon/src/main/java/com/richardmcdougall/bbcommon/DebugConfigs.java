@@ -17,7 +17,7 @@ public class DebugConfigs {
 
     //  force identification as that board type.
     //if you want to debug in the app you need to set this to classic or azul
-    public static final BoardState.BoardType OVERRIDE_BOARD_TYPE = BoardState.BoardType.azul;
+    public static final BoardState.BoardType OVERRIDE_BOARD_TYPE = null;
 
 
     //if you want to debug in the app you need to set this to cpu type
