@@ -5,6 +5,7 @@ import android.media.audiofx.Visualizer;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
+import com.richardmcdougall.bb.visualization.PixelMapTest;
 import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
@@ -62,6 +63,7 @@ public class BoardVisualization {
     public Visualization mVisualizationAudioBar;
     public Visualization mVisualizationPlayaMap;
     public Visualization mVisualizationSimpleSign;
+    public Visualization mPixelMapTest;
 
     private int frameCnt = 0;
     private String TAG = this.getClass().getSimpleName();
@@ -75,7 +77,6 @@ public class BoardVisualization {
     private boolean showBattery = false;
     private int mFrameRate;
     private int batteryCnt = 0;
-    private int boardDisplayCnt = 0;
     private Visualizer mVisualizer;
     private int mAudioSessionId;
     private int[] oldLevels = new int[kNumLevels];
@@ -102,6 +103,7 @@ public class BoardVisualization {
         mVisualizationAudioBar = new AudioBar(service);
         mVisualizationPlayaMap = new PlayaMap(service);
         mVisualizationSimpleSign = new SimpleSign(service);
+        mPixelMapTest = new PixelMapTest(service);
 
     }
 
@@ -164,7 +166,12 @@ public class BoardVisualization {
             mVisualizationSimpleSign.update(Visualization.kDefault);
         }
         else {
+
             switch (algorithm) {
+
+                case "pixelMapTest()":
+                    mPixelMapTest.update(Visualization.kDefault);
+                    break;
 
                 case "modeMatrix(kMatrixBurnerColor)":
                     mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
@@ -308,7 +315,6 @@ public class BoardVisualization {
 
             lastFrameTime = System.currentTimeMillis();
 
-            boardDisplayCnt++;
         }
 
     }
@@ -333,7 +339,10 @@ public class BoardVisualization {
             if (videos == null) {
                 return mFrameRate;
             }
-            if (videos.has("algorithm")) {
+            
+             this.service.burnerBoard.ClearLine();
+
+             if (videos.has("algorithm")) {
                 String algorithm = service.mediaManager.GetAlgorithm();
                 return displayAlgorithm(algorithm);
             } else {

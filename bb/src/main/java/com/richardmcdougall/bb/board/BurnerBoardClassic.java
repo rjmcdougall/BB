@@ -25,6 +25,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         //map2board
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
         this.textBuilder = new TextBuilder(service, boardWidth,boardHeight,6,12) ;
+        this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
         initUsb();
     }
 
@@ -191,6 +192,7 @@ public class BurnerBoardClassic extends BurnerBoard {
 
         this.logFlush();
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = PixelDimmer.Dim(0, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 

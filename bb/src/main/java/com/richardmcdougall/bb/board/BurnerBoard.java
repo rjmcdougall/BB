@@ -55,6 +55,7 @@ public abstract class BurnerBoard {
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private int flushCnt = 0;
     protected AppDisplay appDisplay = null;
+    protected LineBuilder lineBuilder = null;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -121,7 +122,12 @@ public abstract class BurnerBoard {
     public void setText90(String text, int delay , RGB color){
         this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
-
+    public void drawLine(){
+        this.lineBuilder.drawLine();
+    }
+    public void ClearLine(){
+        this.lineBuilder.clear();
+    }
     public static BurnerBoard Builder(BBService service) {
 
         BurnerBoard burnerBoard = null;

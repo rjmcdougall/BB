@@ -5,6 +5,10 @@ import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 //BBWSPanel is a string of WS28xx leds that go up and down
 public class BurnerBoardWSPanel extends BurnerBoard {
 
@@ -36,6 +40,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
+        this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
         initUsb();
     }
 
@@ -74,10 +79,47 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         }
     }
 
+    public static Map<Integer, Integer> remap;
+    static {
+        remap = new HashMap<>();
+        remap.put(0, 0);
+        remap.put(1, 1);
+        remap.put(2, 2);
+        remap.put(3, 3);
+        remap.put(4, 12);
+        remap.put(5, 13);
+        remap.put(6, 14);
+        remap.put(7, 15);
+        remap.put(8, 8);
+        remap.put(9, 9);
+        //remap.put(10, 6);
+        //remap.put(11, 7);
+        //remap.put(12, 15);
+        //remap.put(13, 15);
+        //remap.put(14, 15);
+        //remap.put(15, 15);
+        remap.put(16, 16);
+        remap.put(17, 17);
+        remap.put(18, 18);
+        remap.put(19, 19);
+    }
+
+    private int doRemap(int i){
+
+        if(remap.containsKey(i)){
+            return remap.get(i);
+        }
+        else {
+            BLog.e(TAG, "missing strip " + i);
+            return 0;
+        }
+    }
+
     public void flush() {
 
         this.logFlush();
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = PixelDimmer.Dim(20, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
@@ -91,41 +133,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
-            if (s == 0) {
-                setStrip(0, stripPixels);
-            } else if (s == 1) {
-                setStrip(1, stripPixels);
-            } else if (s == 2) {
-                setStrip(2, stripPixels);
-            } else if (s == 3) {
-                setStrip(3, stripPixels);
-            } else if (s == 4) {
-                setStrip(12, stripPixels);
-            } else if (s == 5) {
-                setStrip(13, stripPixels);
-            } else if (s == 6) {
-                setStrip(14, stripPixels);
-            } else if (s == 7) {
-                setStrip(15, stripPixels);
-            } else if (s == 8) {
-                setStrip(8, stripPixels);
-            } else if (s == 9) {
-                setStrip(9, stripPixels);
-            } else if (s == 10) {
-                //setStrip(6, stripPixels);
-            } else if (s == 11) {
-                setStrip(7, stripPixels);
-            } else if (s == 12) {
-                //setStrip(15, stripPixels);
-            } else if (s == 13) {
-                //setStrip(15, stripPixels);
-            } else if (s == 14) {
-                //setStrip(15, stripPixels);
-            } else if (s == 15) {
-                //setStrip(15, stripPixels);
-            } else {
-                setStrip(s, stripPixels);
-            }
+
+            setStrip(doRemap(s), stripPixels);
+
             // Send to board
             flush2Board();
         }
