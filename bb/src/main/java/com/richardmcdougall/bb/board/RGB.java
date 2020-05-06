@@ -25,6 +25,13 @@ public class RGB {
         return x;
     }
 
+    public static RGB fromARGBInt(int color){
+        int r = ((color & 0xff0000) >> 16);
+        int g = ((color & 0xff00) >> 8);
+        int b = (color & 0xff);
+        return new RGB(r,g,b);
+    }
+
     static public int getARGBInt(int r, int g, int b) {
             return (r * 65536 + g * 256 + b);
     }
@@ -37,6 +44,12 @@ public class RGB {
         this.g = g;
         this.b = b;
         this.name = name;
+    }
+
+    public RGB(int r, int g, int b) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
     }
 
     public String getName() {

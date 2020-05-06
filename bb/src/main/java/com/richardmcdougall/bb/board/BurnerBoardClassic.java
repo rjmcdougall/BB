@@ -188,6 +188,34 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
+    private boolean setRow(int row, int[] pixels) {
+
+        // Send pixel row to in-app visual display
+        this.appDisplay.sendVisual(14, row, pixels);
+
+        // Do color correction on burner board display pixels
+        byte[] newPixels = new byte[boardWidth * 3];
+        for (int pixel = 0; pixel < boardWidth * 3; pixel = pixel + 3) {
+            newPixels[pixel] = (byte) pixelColorCorrectionRed(pixels[pixel]);
+            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(pixels[pixel + 1]);
+            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(pixels[pixel + 2]);
+        }
+
+        //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
+
+        //l("sendCommand: 14,n,...");
+        synchronized (mSerialConn) {
+            if (mListener != null) {
+                mListener.sendCmdStart(14);
+                mListener.sendCmdArg(row);
+                mListener.sendCmdEscArg(newPixels);
+                mListener.sendCmdEnd();
+                return true;
+            }
+        }
+        return false;
+    }//    cmdMessenger.attach(BBSetRow, OnSetRow);      // 16
+
     public void flush() {
 
         this.logFlush();
@@ -197,7 +225,20 @@ public class BurnerBoardClassic extends BurnerBoard {
         this.appDisplay.send(mOutputScreen);
 
         // Suppress updating when displaying a text message
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[x * 3 + 0] = boardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                }
+            }
 
+            setRow(y, rowPixels);
+
+        }
         for (int x = 0; x < kOtherLights; x++) {
             int[] otherPixels = new int[mBoardSideLights * 3];
             for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
