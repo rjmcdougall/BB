@@ -38,7 +38,7 @@ public class LineBuilder {
         canvas.setBitmap(bitmap);
         canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
         Paint linepaint = new Paint();
-        linepaint.setColor(Color.WHITE); //  Color
+        linepaint.setColor(Color.BLUE); //  Color
         linepaint.setStrokeWidth(1);
         linepaint.setStyle(Paint.Style.FILL_AND_STROKE);
 

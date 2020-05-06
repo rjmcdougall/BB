@@ -1,12 +1,15 @@
 package com.richardmcdougall.bb.board;
 
+import com.google.gson.GsonBuilder;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 //BBWSPanel is a string of WS28xx leds that go up and down
@@ -21,14 +24,11 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     // Woodson's panel
     static int kBoardWidth = 20;
     static int kBoardHeight = 180;
-    static int kPanelHeight = kBoardHeight;
-    static int kPanelWidth = 2;
     // Serpentine in Y/Height direction
-    static boolean kStackedY = true;
     // Number of logical strips in each strip
-    static int kSubStrips = kPanelWidth;
+    static int logicalStripsPerPhsyicalStrip = 2;
     // Number of hardware strips
-    static int kStrips = 16; //boardHeight / panel height
+    static int kStrips = 20; //boardHeight / panel height
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
@@ -40,7 +40,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
-        this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
+        this.lineBuilder = new LineBuilder(service, boardWidth, boardHeight);
         initUsb();
     }
 
@@ -81,35 +81,24 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     public static Map<Integer, Integer> remap;
     static {
-        remap = new HashMap<>();
-        remap.put(0, 0);
-        remap.put(1, 1);
-        remap.put(2, 2);
-        remap.put(3, 3);
-        remap.put(4, 12);
-        remap.put(5, 13);
-        remap.put(6, 14);
-        remap.put(7, 15);
-        remap.put(8, 8);
-        remap.put(9, 9);
-        //remap.put(10, 6);
-        //remap.put(11, 7);
-        //remap.put(12, 15);
-        //remap.put(13, 15);
-        //remap.put(14, 15);
-        //remap.put(15, 15);
-        remap.put(16, 16);
-        remap.put(17, 17);
-        remap.put(18, 18);
-        remap.put(19, 19);
+            remap = new HashMap<>();
+            remap.put(0, 0);
+            remap.put(1, 1);
+            remap.put(2, 2);
+            remap.put(3, 3);
+            remap.put(4, 12);
+            remap.put(5, 13);
+            remap.put(6, 14);
+            remap.put(7, 15);
+            remap.put(8, 8);
+            remap.put(9, 9); // top row goes away
     }
 
-    private int doRemap(int i){
+    private int doRemap(int i) {
 
-        if(remap.containsKey(i)){
+        if (remap.containsKey(i)) {
             return remap.get(i);
-        }
-        else {
+        } else {
             BLog.e(TAG, "missing strip " + i);
             return 0;
         }
@@ -126,13 +115,15 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             //BLog.d(TAG, "strip:" + s);
-            int[] stripPixels = new int[kPanelHeight * 3 * kSubStrips];
+            int[] stripPixels = new int[kBoardHeight * 3 * logicalStripsPerPhsyicalStrip];
             // Walk through all the pixels in the strip
-            for (int offset = 0; offset < kPanelHeight * 3 * kSubStrips; ) {
+            for (int offset = 0; offset < kBoardHeight * 3 * logicalStripsPerPhsyicalStrip; ) {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
+
+            stripPixels = reverseLogicalStripHalves(stripPixels);
 
             setStrip(doRemap(s), stripPixels);
 
@@ -159,61 +150,49 @@ public class BurnerBoardWSPanel extends BurnerBoard {
                 pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
+    private int[] reverseLogicalStripHalves(int[] strip){
+
+        int[] newStrip = new int[kBoardHeight * 3 * logicalStripsPerPhsyicalStrip];
+
+        int n = strip.length;
+
+        int[] a = new int[(n + 1)/2];
+        int[] b = new int[n - a.length];
+
+        System.arraycopy(strip, 0, a, 0, a.length);
+        System.arraycopy(strip, a.length, b, 0, b.length);
+
+        System.arraycopy(b, 0, newStrip, 0, b.length);
+        System.arraycopy(a, 0, newStrip, b.length, a.length);
+
+        return newStrip;
+
+    }
 
     static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
-    private TranslationMap[] boardMap;
 
     private void initpixelMap2Board() {
 
         BLog.d(TAG, "initmap");
 
-        if (kStackedY) {
-            BLog.d(TAG, "kstacked");
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight; y++) {
+        BLog.d(TAG, "kstacked");
+        for (int x = 0; x < boardWidth; x++) {
+            for (int y = 0; y < boardHeight; y++) {
 
-                    final int subStrip = x % kSubStrips;
-                    final int stripNo = x / kSubStrips;
-                    final boolean stripUp = subStrip % 2 == 0;
-                    int stripOffset;
+                final int subStrip = x % logicalStripsPerPhsyicalStrip;
+                final int stripNo = x / logicalStripsPerPhsyicalStrip;
+                final boolean stripUp = subStrip % 2 == 1;
+                int stripOffset;
 
-                    if (stripUp) {
-                        stripOffset = subStrip * boardHeight + y;
-                    } else {
-                        stripOffset = subStrip * boardHeight + (boardHeight - 1 - y);
-                    }
-                    //BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
-                    pixelRemap(x, y, stripNo, stripOffset * 3);
+                if (stripUp) {
+                    stripOffset = subStrip * boardHeight + y;
+                } else {
+                    stripOffset = subStrip * boardHeight + (boardHeight - 1 - y);
                 }
-            }
-        } else {
-
-            for (int x = 0; x < boardWidth; x++) {
-                for (int y = 0; y < boardHeight; y++) {
-
-                    final int nStacks = boardHeight / kPanelHeight;
-                    final int subStrip = x % kSubStrips;
-                    final int stripNo = y / kPanelHeight;
-                    final boolean stripUp = subStrip % 2 == 0;
-                    final int panelY = y % kPanelHeight;
-
-                    if (boardHeight < kPanelHeight) {
-                        BLog.d(TAG, "Board dims wrong");
-                    }
-                    int stripOffset;
-
-                    if (stripUp) {
-                        stripOffset = subStrip * kPanelHeight + panelY;
-                    } else {
-                        stripOffset = subStrip * kPanelHeight + (kPanelHeight - 1 - panelY);
-                    }
-                    //BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
-                    pixelRemap(x, y, stripNo, stripOffset * 3);
-                }
-
+                //BLog.d(TAG, "pixel remap " + x + ',' + y + " : " + stripNo + "," + stripOffset * 3);
+                pixelRemap(x, y, stripNo, stripOffset * 3);
             }
         }
-
     }
 }
 
