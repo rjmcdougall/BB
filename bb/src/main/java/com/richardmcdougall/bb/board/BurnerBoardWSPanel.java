@@ -28,7 +28,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     // Number of logical strips in each strip
     static int logicalStripsPerPhsyicalStrip = 2;
     // Number of hardware strips
-    static int kStrips = 20; //boardHeight / panel height
+    static int kStrips = 10; //boardHeight / panel height
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
@@ -100,7 +100,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
             return remap.get(i);
         } else {
             BLog.e(TAG, "missing strip " + i);
-            return 0;
+            return -1;
         }
     }
 
@@ -125,7 +125,13 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
             stripPixels = reverseLogicalStripHalves(stripPixels);
 
-            setStrip(doRemap(s), stripPixels);
+            int remappedStrip = doRemap(s);
+
+            if (remappedStrip == -1) {
+                BLog.e(TAG, "Remapped strip out of range: " + remappedStrip);
+            } else {
+                setStrip(doRemap(s), stripPixels);
+            }
 
             // Send to board
             flush2Board();
