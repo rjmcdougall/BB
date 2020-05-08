@@ -35,6 +35,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         boardWidth = 46;
         boardHeight = 118;
         boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
         initPixelOffset();
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);

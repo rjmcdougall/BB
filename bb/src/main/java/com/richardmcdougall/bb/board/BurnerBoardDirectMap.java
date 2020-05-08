@@ -24,6 +24,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardWidth = width;
         boardHeight = height;
         boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
         initPixelOffset();
         //map2board
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);

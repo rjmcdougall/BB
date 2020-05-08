@@ -18,6 +18,7 @@ public class BurnerBoardMast extends BurnerBoard {
         boardWidth = 24;
         boardHeight = 159;
         boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
         initPixelOffset();
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);

@@ -56,6 +56,7 @@ public abstract class BurnerBoard {
     private int flushCnt = 0;
     protected AppDisplay appDisplay = null;
     protected LineBuilder lineBuilder = null;
+    protected BoardDisplay boardDisplay = null;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {

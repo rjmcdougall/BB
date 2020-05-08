@@ -20,6 +20,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         boardWidth = 10;
         boardHeight = 70;
         boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
         initPixelOffset();
         //map2board

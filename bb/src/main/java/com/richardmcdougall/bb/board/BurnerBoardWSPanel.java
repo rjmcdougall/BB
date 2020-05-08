@@ -36,6 +36,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         boardWidth = kBoardWidth;
         boardHeight = kBoardHeight;
         boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
         initPixelOffset();
         initpixelMap2Board();
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);

@@ -45,6 +45,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
         this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
+        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
         initUsb();
 
 
