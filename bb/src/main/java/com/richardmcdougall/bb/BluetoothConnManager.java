@@ -80,6 +80,19 @@ public class BluetoothConnManager {
         //discoverDevices();
     }
 
+    public void UnregisterReceivers() {
+        try{
+            if(btReceive!=null)
+                this.service.unregisterReceiver(btReceive);
+
+            if(mReceiver!=null)
+                this.service.unregisterReceiver(mReceiver);
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
+    }
+
     private static final int REQUEST_CODE_ENABLE_DISCOVERABLE = 100;
 
     public void discoverDevices() {

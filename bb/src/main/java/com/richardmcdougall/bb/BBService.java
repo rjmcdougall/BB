@@ -237,6 +237,8 @@ public class BBService extends Service {
 
             gtfoController = new GTFOController(this);
 
+
+
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
@@ -295,8 +297,25 @@ public class BBService extends Service {
      */
     @Override
     public void onDestroy() {
+        super.onDestroy();
 
-        BLog.i(TAG, "onDesonDestroy");
+        this.bluetoothConnManager.UnregisterReceivers();
+        this.rfMasterClientServer.UnregisterReceivers();
+        this.wifi.UnregisterReceivers();;
+        this.rfClientServer.UnregisterReceiver();
+        this.burnerBoard.UnregisterReceivers();
+
+        try{
+            if(usbReceiver!=null)
+                this.unregisterReceiver(usbReceiver);
+            if(usbReceiver!=null)
+                this.unregisterReceiver(buttonReceiver);
+            if(usbReceiver!=null)
+                this.unregisterReceiver(btReceive);
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
         voice.shutdown();
     }
 }

@@ -53,6 +53,16 @@ public class RFClientServer {
 
     }
 
+    public void UnregisterReceiver(){
+        try{
+            if(RFReceiver!=null)
+                this.service.unregisterReceiver(RFReceiver);
+
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
+    }
     // Send time-sync reply to specific client
     void ProcessServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
 

@@ -63,6 +63,17 @@ public class RFMasterClientServer {
 
     }
 
+    public void UnregisterReceivers() {
+        try{
+            if(RFReceiver!=null)
+                this.service.unregisterReceiver(RFReceiver);
+
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
+    }
+
     void processReceive(byte[] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 

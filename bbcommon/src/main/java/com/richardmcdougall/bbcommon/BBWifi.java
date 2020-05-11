@@ -54,6 +54,17 @@ public class BBWifi {
         sch.scheduleWithFixedDelay(wifiSupervisor, 10, wifiReconnectEveryNSeconds, TimeUnit.SECONDS);
     }
 
+    public void UnregisterReceivers() {
+        try{
+            if(mWifiScanReceiver!=null)
+                this.context.unregisterReceiver(mWifiScanReceiver);
+
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
+    }
+
     public String getConnectedSSID() {
         return wifiManager.getConnectionInfo().getSSID();
     }
