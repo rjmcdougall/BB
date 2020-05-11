@@ -10,26 +10,24 @@ public class BoardDisplay {
     public TreeMap<Integer, RGB> map = new TreeMap<>();
     private BBService service;
     private int[] boardScreen = null;
-    private int boardWidth;
-    private int boardHeight;
+    private BurnerBoard board = null;
 
-    public BoardDisplay(BBService service, int boardWidth, int boardHeight){
+    public BoardDisplay(BBService service, BurnerBoard board) {
         this.service = service;
-        this.boardHeight = boardHeight;
-        this.boardWidth = boardWidth;
-        boardScreen = new int[boardWidth * boardHeight * 3];
+        this.board = board;
+        boardScreen = new int[board.boardWidth * board.boardHeight * 3];
         init();
     }
 
     private void init() {
-        for (int x = 0; x < boardWidth; x++) {
-            for (int y = 0; y < boardHeight; y++) {
-                this.map.put(x*boardWidth+y, new RGB(0,0,0));
+        for (int x = 0; x < this.board.boardWidth; x++) {
+            for (int y = 0; y < this.board.boardHeight; y++) {
+                this.map.put(x * this.board.boardWidth + y, new RGB(0, 0, 0));
             }
         }
     }
 
-    public void Clear(){
+    public void Clear() {
         init();
     }
 
@@ -42,9 +40,9 @@ public class BoardDisplay {
         return boardScreen;
     }
 
-    public void CreateFromArray(int[] boardScreen){
-        for(int i=0; i<boardScreen.length;  i+=3){
-            RGB rgb = new RGB(boardScreen[i], boardScreen[i+1], boardScreen[i+2]);
+    public void CreateFromArray(int[] boardScreen) {
+        for (int i = 0; i < boardScreen.length; i += 3) {
+            RGB rgb = new RGB(boardScreen[i], boardScreen[i + 1], boardScreen[i + 2]);
             map.put(i, rgb);
         }
     }

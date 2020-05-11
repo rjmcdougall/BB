@@ -55,6 +55,8 @@ public abstract class BurnerBoard {
     protected LineBuilder lineBuilder = null;
     protected BoardDisplay boardDisplay = null;
     protected PixelOffset pixelOffset = null;
+    public int textSizeHorizontal = 1;
+    public int textSizeVertical = 1;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {

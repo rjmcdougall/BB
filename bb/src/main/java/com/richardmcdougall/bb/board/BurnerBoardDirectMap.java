@@ -21,15 +21,17 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     public BurnerBoardDirectMap(BBService service, int width, int height) {
         super(service);
         BLog.i(TAG," Direct Map initing ");
-        boardWidth = width;
-        boardHeight = height;
-        boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
+        this.boardWidth = width;
+        this.boardHeight = height;
+        this.textSizeVertical = 0;
+        this.textSizeHorizontal = 0;
+        this.boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, this);
         this.pixelOffset = new PixelOffset(this);
         //map2board
         this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0,0);
-        this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
+        this.textBuilder = new TextBuilder(service, this);
+        this.lineBuilder = new LineBuilder(service, this);
         initUsb();
     }
 
