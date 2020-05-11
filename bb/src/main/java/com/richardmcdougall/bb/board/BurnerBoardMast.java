@@ -19,9 +19,9 @@ public class BurnerBoardMast extends BurnerBoard {
         boardHeight = 159;
         boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
-        initPixelOffset();
+        this.pixelOffset = new PixelOffset(this);
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+        this.appDisplay = new AppDisplay(service, this);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
         this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
         initUsb();
@@ -73,11 +73,11 @@ public class BurnerBoardMast extends BurnerBoard {
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
         pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
         pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
         pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     private void initpixelMap2Board() {

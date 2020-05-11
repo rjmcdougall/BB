@@ -40,9 +40,9 @@ public class BurnerBoardPanel extends BurnerBoard {
         boardWidth = 32;
         boardHeight = 64;
         boardScreen = new int[boardWidth * boardHeight * 3];
-        initPixelOffset();
+        this.pixelOffset = new PixelOffset(this);
         //map2board
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+        this.appDisplay = new AppDisplay(service, this);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
         this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
         this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
@@ -83,9 +83,9 @@ public class BurnerBoardPanel extends BurnerBoard {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < boardWidth; x++) {
                 if (y < boardHeight) {
-                    rowPixels[(boardWidth - 1 - x) * 3 + 0] = mOutputScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[(boardWidth - 1 - x) * 3 + 1] = mOutputScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[(boardWidth - 1 - x) * 3 + 2] = mOutputScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 0] = mOutputScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 1] = mOutputScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
+                    rowPixels[(boardWidth - 1 - x) * 3 + 2] = mOutputScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
                 }
             }
             setStrip(y, rowPixels);

@@ -19,7 +19,6 @@ import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -34,8 +33,6 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    // Max board pixel size limited by the following: need to make dynamic, or adjustable.
-    public static int[][][] pixel2OffsetTable = new int[512][512][3];
     private static String TAG = "BurnerBoard";
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
@@ -57,6 +54,7 @@ public abstract class BurnerBoard {
     protected AppDisplay appDisplay = null;
     protected LineBuilder lineBuilder = null;
     protected BoardDisplay boardDisplay = null;
+    protected PixelOffset pixelOffset = null;
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -99,15 +97,22 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
     }
 
+    public void UnregisterReceivers(){
+        try{
+            if(mUsbReceiver!=null)
+                this.service.unregisterReceiver(mUsbReceiver);
+
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
+    }
+
     static public int colorDim(int dimValue, int color) {
         int b = (dimValue * (color & 0xff)) / 255;
         int g = (dimValue * ((color & 0xff00) >> 8) / 255);
         int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
         return (RGB.getARGBInt(r, g, b));
-    }
-
-    static int pixel2Offset(int x, int y, int rgb) {
-        return pixel2OffsetTable[x][y][rgb];
     }
 
     static int gammaCorrect(int value) {
@@ -169,21 +174,6 @@ public abstract class BurnerBoard {
 
     public abstract int getMultiplier4Speed();
 
-    // Convert from xy to buffer memory
-    int pixel2OffsetCalc(int x, int y, int rgb) {
-        return (y * boardWidth + x) * 3 + rgb;
-    }
-
-    protected void initPixelOffset() {
-        for (int x = 0; x < boardWidth; x++) {
-            for (int y = 0; y < boardHeight; y++) {
-                for (int rgb = 0; rgb < 3; rgb++) {
-                    pixel2OffsetTable[x][y][rgb] = pixel2OffsetCalc(x, y, rgb);
-                }
-            }
-        }
-    }
-
     public void showBattery() {
 
         this.appDisplay.sendVisual(9);
@@ -215,9 +205,9 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
             return;
         }
-        boardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-        boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-        boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
+        boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] = r;
+        boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] = g;
+        boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
     }
 
     public void fillScreen(int r, int g, int b) {
@@ -238,23 +228,23 @@ public abstract class BurnerBoard {
         if (down) {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight - 1; y++) {
-                    boardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_RED)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_GREEN)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_BLUE)];
                 }
             }
         } else {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = boardHeight - 2; y >= 0; y--) {
-                    boardScreen[pixel2Offset(x, y + 1, PIXEL_RED)] =
-                            boardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    boardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)] =
-                            boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    boardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)] =
-                            boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_RED)] =
+                            boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
+                    boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_GREEN)] =
+                            boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
+                    boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_BLUE)] =
+                            boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
                 }
             }
         }
@@ -317,9 +307,9 @@ public abstract class BurnerBoard {
     }
 
     public int getPixel(int x, int y) {
-        int r = boardScreen[pixel2Offset(x, y, PIXEL_RED)];
-        int g = boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-        int b = boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+        int r = boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
+        int g = boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
+        int b = boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
         return RGB.getARGBInt(r, g, b);
     }
 
@@ -366,28 +356,28 @@ public abstract class BurnerBoard {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {
-                int r = boardScreen[pixel2Offset(x, y, PIXEL_RED)];
+                int r = boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
                 //System.out.println("br = " + br);
                 if (r >= amount) {
                     r -= amount;
                 } else {
                     r = 0;
                 }
-                boardScreen[pixel2Offset(x, y, PIXEL_RED)] = r;
-                int g = boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] = r;
+                int g = boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
                 if (g >= amount) {
                     g -= amount;
                 } else {
                     g = 0;
                 }
-                boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] = g;
-                int b = boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] = g;
+                int b = boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
                 if (b >= amount) {
                     b -= amount;
                 } else {
                     b = 0;
                 }
-                boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] = b;
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
             }
         }
     }

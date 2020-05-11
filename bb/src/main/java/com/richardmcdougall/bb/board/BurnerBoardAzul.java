@@ -4,7 +4,6 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
-import java.nio.IntBuffer;
 
 //  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
 //          cmdMessenger.sendCmdArg(batteryControl);
@@ -36,9 +35,9 @@ public class BurnerBoardAzul extends BurnerBoard {
         boardHeight = 118;
         boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
-        initPixelOffset();
+        this.pixelOffset = new PixelOffset(this);
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+        this.appDisplay = new AppDisplay(service, this);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 14, 10);
         this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
         initUsb();
@@ -100,11 +99,11 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     private void pixelRemap(int x, int y, int stripOffset) {
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
 

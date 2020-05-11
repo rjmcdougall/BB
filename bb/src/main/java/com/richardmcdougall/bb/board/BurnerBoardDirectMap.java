@@ -25,9 +25,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardHeight = height;
         boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
-        initPixelOffset();
+        this.pixelOffset = new PixelOffset(this);
         //map2board
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+        this.appDisplay = new AppDisplay(service, this);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 0,0);
         this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
         initUsb();
@@ -62,9 +62,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
             int[] stripPixels = new int[boardHeight * 3];
             // Walk through all the pixels in the strip
             for (int y = 0; y < boardHeight; y++) {
-                stripPixels[y * 3] = mOutputScreen[pixel2Offset(s, y, PIXEL_RED)];
-                stripPixels[y * 3 + 1] = mOutputScreen[pixel2Offset(s, y, PIXEL_GREEN)];
-                stripPixels[y * 3 + 2] = mOutputScreen[pixel2Offset(s, y, PIXEL_BLUE)];
+                stripPixels[y * 3] = mOutputScreen[this.pixelOffset.Map(s, y, PIXEL_RED)];
+                stripPixels[y * 3 + 1] = mOutputScreen[this.pixelOffset.Map(s, y, PIXEL_GREEN)];
+                stripPixels[y * 3 + 2] = mOutputScreen[this.pixelOffset.Map(s, y, PIXEL_BLUE)];
             }
             setStrip(s, stripPixels);
             // Send to board

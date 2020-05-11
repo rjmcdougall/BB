@@ -1,15 +1,11 @@
 package com.richardmcdougall.bb.board;
 
-import com.google.gson.GsonBuilder;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 //BBWSPanel is a string of WS28xx leds that go up and down
@@ -37,9 +33,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         boardHeight = kBoardHeight;
         boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this.service, boardWidth, boardHeight);
-        initPixelOffset();
+        this.pixelOffset = new PixelOffset(this);
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
+        this.appDisplay = new AppDisplay(service, this);
         this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
         this.lineBuilder = new LineBuilder(service, boardWidth, boardHeight);
         initUsb();
@@ -150,11 +146,11 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
         pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
         pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
         pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     private int[] reverseLogicalStripHalves(int[] strip){
