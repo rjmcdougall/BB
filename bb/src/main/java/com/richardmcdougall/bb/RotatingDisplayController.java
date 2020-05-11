@@ -49,19 +49,18 @@ public class RotatingDisplayController {
 
     private void SwitchDisplayMode() {
 
-        this.service.boardVisualization.setMode(99);
-        BLog.d(TAG, "Display Mode video switch to mode " + this.service.boardState.currentVideoMode);
-        int secondsBeforeSwitch = 10;
-
         try {
+            this.service.boardVisualization.setMode(99);
+            BLog.d(TAG, "Display Mode video switch to mode " + this.service.boardState.currentVideoMode);
+            int secondsBeforeSwitch = 10;
+
             if (this.service.mediaManager.GetVideo().has("Length")) {
                 secondsBeforeSwitch = this.service.mediaManager.GetVideo().getInt("Length");
             }
+
+            sch.schedule(switchVideo, secondsBeforeSwitch, TimeUnit.SECONDS);
         } catch (Exception e) {
             BLog.e(TAG, "Error Switching Vide Mode for Sign " + e.getMessage());
         }
-        sch.schedule(switchVideo, secondsBeforeSwitch, TimeUnit.SECONDS);
-
     }
-
 }
