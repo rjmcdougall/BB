@@ -205,7 +205,7 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Video command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
-                        service.boardVisualization.setMode(track);
+                        service.visualizationController.setMode(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting video track: " + e.getMessage());
                     }
@@ -260,7 +260,7 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Volume command:" + payload.toString());
                     try {
                         int volume = payload.getInt("arg");
-                        service.musicPlayer.setBoardVolume(volume);
+                        service.musicController.setBoardVolume(volume);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting volume: " + e.getMessage());
                     }
@@ -273,7 +273,7 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Audio command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
-                        service.musicPlayer.SetRadioChannel(track);
+                        service.musicController.SetRadioChannel(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting audio track: " + e.getMessage());
                     }
@@ -370,7 +370,7 @@ public class BluetoothCommands {
         try {
             state.put("acn", service.boardState.currentRadioChannel - 1);
             state.put("vcn", service.boardState.currentVideoMode - 1);
-            state.put("v", service.musicPlayer.getAndroidVolumePercent());
+            state.put("v", service.musicController.getAndroidVolumePercent());
             state.put("b", service.boardState.batteryLevel);
             state.put("am", service.boardState.masterRemote);
             state.put("apkd", service.boardState.apkUpdatedDate.toString());

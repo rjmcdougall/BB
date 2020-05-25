@@ -66,7 +66,7 @@ public class RemoteCrisisController {
     private void Phase2(){
         boardInCrisisPhase = 2;
         stashedVideoMode = service.boardState.currentVideoMode;
-        this.service.boardVisualization.setMode(this.service.mediaManager.GetMapMode());
+        this.service.visualizationController.setMode(this.service.mediaManager.GetMapMode());
 
         sch.schedule(moveToPhase1, 5, TimeUnit.SECONDS);
     }
@@ -75,13 +75,13 @@ public class RemoteCrisisController {
         boardInCrisisPhase = 0;
         service.boardState.currentVideoMode = stashedVideoMode;
         stashedVideoMode = 0;
-        service.musicPlayer.Unmute();
+        service.musicController.Unmute();
     }
 
     private void StartCrisisPhase1() {
 
         boardInCrisisPhase = 1;
-        service.musicPlayer.Mute();
+        service.musicController.Mute();
 
         for (Integer addressInCrisis : service.boardLocations.BoardsInCrisis()) {
             service.burnerBoard.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000,  new RGBList().getColor("white"));

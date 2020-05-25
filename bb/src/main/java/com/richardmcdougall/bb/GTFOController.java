@@ -16,16 +16,16 @@ public class GTFOController {
         service.boardState.isGTFO = enable;
         if (enable) {
 
-            service.boardVisualization.inhibitVisualGTFO = true;
+            service.visualizationController.inhibitVisualGTFO = true;
             service.burnerBoard.setText90("Get The Fuck Off!", 5000, new RGBList().getColor("white"));
-            service.musicPlayer.Mute();
-            stashedAndroidVolumePercent = service.musicPlayer.getAndroidVolumePercent();
-            service.musicPlayer.setAndroidVolumePercent(100);
+            service.musicController.Mute();
+            stashedAndroidVolumePercent = service.musicController.getAndroidVolumePercent();
+            service.musicController.setAndroidVolumePercent(100);
             service.speak("Hey, Get The Fuck Off!", "GTFO");
         } else {
-            service.boardVisualization.inhibitVisualGTFO = false;
-            service.musicPlayer.setAndroidVolumePercent(stashedAndroidVolumePercent);
-            service.musicPlayer.Unmute();
+            service.visualizationController.inhibitVisualGTFO = false;
+            service.musicController.setAndroidVolumePercent(stashedAndroidVolumePercent);
+            service.musicController.Unmute();
         }
     }
 

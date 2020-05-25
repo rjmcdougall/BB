@@ -41,7 +41,7 @@ public class BBService extends Service {
 
     public Context context;
     public AllBoards allBoards = null;
-    public MusicPlayer musicPlayer = null;
+    public MusicController musicController = null;
     public RF radio = null;
     public Gps gps = null;
     public BMS bms = null;
@@ -51,7 +51,7 @@ public class BBService extends Service {
     public BluetoothLEServer bLEServer = null;
     public BluetoothCommands bluetoothCommands = null;
     public BluetoothConnManager bluetoothConnManager = null;
-    public BoardVisualization boardVisualization = null;
+    public VisualizationController visualizationController = null;
     public IoTClient iotClient = null;
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
@@ -197,15 +197,15 @@ public class BBService extends Service {
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.setText90(boardState.BOARD_ID, 5000, new RGBList().getColor("white"));
 
-            boardVisualization = new BoardVisualization(this);
-            boardVisualization.Run();
+            visualizationController = new VisualizationController(this);
+            visualizationController.Run();
 
             BLog.i(TAG, "Setting initial visualization mode: " + boardState.currentVideoMode);
-            boardVisualization.setMode(boardState.currentVideoMode);
+            visualizationController.setMode(boardState.currentVideoMode);
 
             TimeSync.InitClock();
-            musicPlayer = new MusicPlayer(this);
-            musicPlayerThread = new Thread(musicPlayer);
+            musicController = new MusicController(this);
+            musicPlayerThread = new Thread(musicController);
             musicPlayerThread.start();
 
             if (!DebugConfigs.BYPASS_MUSIC_SYNC) {

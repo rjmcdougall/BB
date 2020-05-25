@@ -92,12 +92,12 @@ public class JosPack extends Visualization {
 
         for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + jpSparkleNo; ledNo++) {
             jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.visualizationController.mRandom.nextInt(100) / (float) 100.0));
         }
 
         for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - jpSparkleNo; ledNo--) {
             jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.visualizationController.mRandom.nextInt(100) / (float) 100.0));
         }
 
         service.burnerBoard.flush();

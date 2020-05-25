@@ -49,7 +49,7 @@ import java.util.Random;
 
  */
 
-public class BoardVisualization {
+public class VisualizationController {
     private static final int kNumLevels = 8;
     public Random mRandom = new Random();
     public byte[] mBoardFFT;
@@ -82,7 +82,7 @@ public class BoardVisualization {
     private int[] oldLevels = new int[kNumLevels];
     private int showingMap = 0;
 
-    BoardVisualization(BBService service) {
+    VisualizationController(BBService service) {
 
         this.service = service;
         BLog.d(TAG, "Starting Board Visualization " + service.boardState.GetBoardType().toString() + " on " + service.boardState.BOARD_ID);
@@ -125,7 +125,7 @@ public class BoardVisualization {
             next = 0;
         }
         BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next));
-        service.boardVisualization.setMode(next);
+        setMode(next);
     }
 
     public void attachAudio(int audioSessionId) {

@@ -23,11 +23,11 @@ public class AudioTile extends Visualization {
 
         service.burnerBoard.fadePixels(5);
 
-        if (service.boardVisualization.getLevel() > 110) {
+        if (service.visualizationController.getLevel() > 110) {
             for (int tile = 0; tile < tiles; tile++) {
                 int c = mWheel.wheelState();
 
-                drawRectTile(tile, mWheel.wheel(service.boardVisualization.mRandom.nextInt(255)));
+                drawRectTile(tile, mWheel.wheel(service.visualizationController.mRandom.nextInt(255)));
 
                 mWheel.wheelInc(59);
             }

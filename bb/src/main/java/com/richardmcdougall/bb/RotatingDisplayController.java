@@ -50,7 +50,7 @@ public class RotatingDisplayController {
     private void SwitchDisplayMode() {
 
         try {
-            this.service.boardVisualization.setMode(99);
+            this.service.visualizationController.setMode(99);
             BLog.d(TAG, "Display Mode video switch to mode " + this.service.boardState.currentVideoMode);
             int secondsBeforeSwitch = 10;
 

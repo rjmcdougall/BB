@@ -23,7 +23,7 @@ import com.google.android.exoplayer2.util.Util;
 import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bbcommon.BLog;
 
-public class MusicPlayer implements Runnable {
+public class MusicController implements Runnable {
     private String TAG = this.getClass().getSimpleName();
 
     private Handler handler;
@@ -33,7 +33,7 @@ public class MusicPlayer implements Runnable {
     private int nextRadioChannel;
     private boolean isMuted = false;
 
-    MusicPlayer(BBService service) {
+    MusicController(BBService service) {
         this.service = service;
 
         String model = android.os.Build.MODEL;
@@ -274,7 +274,7 @@ public class MusicPlayer implements Runnable {
                 player = null;
                 CreateExoplayer();
 
-                service.boardVisualization.attachAudio(player.getAudioSessionId());
+                service.visualizationController.attachAudio(player.getAudioSessionId());
             }
 
             this.handler.post(() -> mSeekAndPlay());
