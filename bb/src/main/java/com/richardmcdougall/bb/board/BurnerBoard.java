@@ -47,12 +47,12 @@ public abstract class BurnerBoard {
     public int[] mBatteryStats = new int[16];
     private SerialInputOutputManager mSerialIoManager;
     private UsbDevice mUsbDevice = null;
-    protected TextBuilder textBuilder = null;
+    public TextBuilder textBuilder = null;
     public ArcBuilder arcBuilder = null;
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private int flushCnt = 0;
     protected AppDisplay appDisplay = null;
-    protected LineBuilder lineBuilder = null;
+    public LineBuilder lineBuilder = null;
     protected BoardDisplay boardDisplay = null;
     protected PixelOffset pixelOffset = null;
     public int textSizeHorizontal = 1;
@@ -130,12 +130,7 @@ public abstract class BurnerBoard {
     public void setText90(String text, int delay , RGB color){
         this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
-    public void drawLine(){
-        this.lineBuilder.drawLine();
-    }
-    public void ClearLine(){
-        this.lineBuilder.clear();
-    }
+
     public static BurnerBoard Builder(BBService service) {
 
         BurnerBoard burnerBoard = null;
@@ -606,24 +601,6 @@ public abstract class BurnerBoard {
         }
     }
 
-    // TODO: Implement generic layers
-    public void fillScreenLayer(int[] layer, int r, int g, int b) {
-
-        for (int x = 0; x < boardWidth * boardHeight; x++) {
-            layer[x * 3 + 0] = r;
-            layer[x * 3 + 1] = g;
-            layer[x * 3 + 2] = b;
-        }
-    }
-
-    public int rgbToArgb(int color) {
-        int r = (color & 0xff);
-        int g = ((color & 0xff00) >> 8);
-        int b = ((color & 0xff0000) >> 16);
-        int a = 0xff;
-        return (a << 24) | color;
-    }
-
     private class PermissionReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -641,6 +618,30 @@ public abstract class BurnerBoard {
                 } else {
                     BLog.d(TAG, "USB no permission");
                 }
+            }
+        }
+    }
+
+    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+
+        private boolean requireBMS = false;
+
+        public BoardCallbackGetBatteryLevel(boolean requireBMS) {
+            this.requireBMS = requireBMS;
+        }
+
+        public void CmdAction(String str) {
+            for (int i = 0; i < mBatteryStats.length; i++) {
+                mBatteryStats[i] = mListener.readIntArg();
+            }
+
+            if(!requireBMS){
+                if (mBatteryStats[1] != -1) {
+                    service.boardState.batteryLevel = mBatteryStats[1];
+                } else {
+                    service.boardState.batteryLevel = 100;
+                }
+                BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
             }
         }
     }

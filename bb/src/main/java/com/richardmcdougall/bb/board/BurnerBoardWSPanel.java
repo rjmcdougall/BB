@@ -58,24 +58,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardWSPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardWSPanel.BoardCallbackGetBatteryLevel();
+        BurnerBoardWSPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(false);
         mListener.attach(8, getBatteryLevelCallback);
 
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
-        }
     }
 
     public static Map<Integer, Integer> remap;
@@ -147,12 +132,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     }
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
-        pixelMap2BoardTable[stripNo][stripOffset] =
-                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[stripNo][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+        pixelMap2BoardTable[stripNo][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+        pixelMap2BoardTable[stripNo][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     private int[] reverseLogicalStripHalves(int[] strip){

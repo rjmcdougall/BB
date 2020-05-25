@@ -26,9 +26,10 @@ public class LineBuilder {
         this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
     }
 
-    public void clear(){
+    public void clearLine(){
         this.pixels = new ArrayList<>();
     }
+
     public void drawLine() {
 
         Canvas canvas = new Canvas();

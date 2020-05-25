@@ -340,7 +340,7 @@ public class BoardVisualization {
                 return mFrameRate;
             }
             
-             this.service.burnerBoard.ClearLine();
+             this.service.burnerBoard.lineBuilder.clearLine();
 
              if (videos.has("algorithm")) {
                 String algorithm = service.mediaManager.GetAlgorithm();

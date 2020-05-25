@@ -15,7 +15,7 @@ public class PixelMapTest extends Visualization {
     
     public void update(int mode) {
 
-        service.burnerBoard.drawLine();
+        service.burnerBoard.lineBuilder.drawLine();
         service.burnerBoard.flush();
 
     }

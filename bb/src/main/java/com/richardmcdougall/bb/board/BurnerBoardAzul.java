@@ -57,8 +57,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardAzul.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardAzul.BoardCallbackGetBatteryLevel();
+        BurnerBoardAzul.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
         mListener.attach(8, getBatteryLevelCallback);
 
     }
@@ -101,15 +100,10 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] =
-                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] =
-                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] =
-                this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
-
-
 
     private void initpixelMap2Board() {
         int x, y;
@@ -122,8 +116,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
             for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = java.lang.Math.abs(boardMap[i].endX -
-                        boardMap[i].startX) + 1 + boardMap[i].stripOffset;
+                int endPixel = java.lang.Math.abs(boardMap[i].endX -  boardMap[i].startX) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
                     //l("boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
@@ -150,14 +143,6 @@ public class BurnerBoardAzul extends BurnerBoard {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
                 //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
-            }
-        }
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
             }
         }
     }

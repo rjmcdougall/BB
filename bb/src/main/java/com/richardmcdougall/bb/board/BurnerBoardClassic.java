@@ -43,8 +43,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardClassic.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardClassic.BoardCallbackGetBatteryLevel();
+        BurnerBoardClassic.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
         mListener.attach(10, getBatteryLevelCallback);
 
     }
@@ -257,13 +256,5 @@ public class BurnerBoardClassic extends BurnerBoard {
         setOtherlightsAutomatically();
         update();
         flush2Board();
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-        }
     }
 }
