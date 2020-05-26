@@ -20,7 +20,7 @@ public class SimpleSign extends Visualization {
     
     public void update(int mode) {
 
-        service.burnerBoard.setText90(signText, 1000, foregroundColor);
+        service.burnerBoard.textBuilder.setText90(signText, 1000, service.burnerBoard.getFrameRate(), foregroundColor);
 
         service.burnerBoard.fillScreen(backgroundColor.r,backgroundColor.g,backgroundColor.b);
 

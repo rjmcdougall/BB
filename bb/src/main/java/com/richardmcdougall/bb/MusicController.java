@@ -266,7 +266,7 @@ public class MusicController implements Runnable {
         try {
             BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
-            service.burnerBoard.setText(shortName[0], 2000, new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText(shortName[0], 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
 
             if (player != null && service.mediaManager.GetTotalAudio() != 0) {
 

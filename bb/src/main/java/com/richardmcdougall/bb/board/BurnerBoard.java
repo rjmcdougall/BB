@@ -45,7 +45,6 @@ public abstract class BurnerBoard {
     public CmdMessenger mListener = null;
     public BBService service = null;
     public int[] boardScreen;
-    public int mRefreshRate = 15;
     public int[] mBatteryStats = new int[16];
     public TextBuilder textBuilder = null;
     public ArcBuilder arcBuilder = null;
@@ -136,14 +135,6 @@ public abstract class BurnerBoard {
             BLog.i(TAG, "Unregistered Receivers");
         } catch (Exception e) {
         }
-    }
-
-    public final void setText(String text, int delay, RGB color) {
-        this.textBuilder.setText(text, delay, mRefreshRate, color);
-    }
-
-    public final void setText90(String text, int delay, RGB color) {
-        this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
 
     public void showBattery() {

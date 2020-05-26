@@ -195,7 +195,7 @@ public class BBService extends Service {
             localCrisisController = new LocalCrisisController(this);
 
             burnerBoard = BurnerBoard.Builder(this);
-            burnerBoard.setText90(boardState.BOARD_ID, 5000, new RGBList().getColor("white"));
+            burnerBoard.textBuilder.setText90(boardState.BOARD_ID, 5000, burnerBoard.getFrameRate(), new RGBList().getColor("white"));
 
             visualizationController = new VisualizationController(this);
             visualizationController.Run();

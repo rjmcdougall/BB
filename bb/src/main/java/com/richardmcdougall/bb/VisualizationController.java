@@ -441,7 +441,7 @@ public class VisualizationController {
 
         service.burnerBoard.clearPixels();
 
-        service.burnerBoard.setText(String.valueOf(service.boardState.currentVideoMode), 2000, new RGBList().getColor("white"));
+        service.burnerBoard.textBuilder.setText(String.valueOf(service.boardState.currentVideoMode), 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
     }
 
 }

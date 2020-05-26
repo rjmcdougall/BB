@@ -84,7 +84,7 @@ public class RemoteCrisisController {
         service.musicController.Mute();
 
         for (Integer addressInCrisis : service.boardLocations.BoardsInCrisis()) {
-            service.burnerBoard.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000,  new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000, service.burnerBoard.getFrameRate(),  new RGBList().getColor("white"));
             service.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis),  "mode");
         }
 

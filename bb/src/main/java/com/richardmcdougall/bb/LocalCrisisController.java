@@ -66,7 +66,7 @@ public class LocalCrisisController {
         boardInCrisisPhase = 1;
         service.musicController.Mute();
 
-        service.burnerBoard.setText90("Please Help!", 10000, new RGBList().getColor("white"));
+        service.burnerBoard.textBuilder.setText90("Please Help!", 10000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
         service.speak("Please Help!","mode");
 
         sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);

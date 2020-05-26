@@ -44,13 +44,13 @@ public class MasterController implements Runnable {
             mSendVolume();
             mSendMasterInfo();
 
-            service.burnerBoard.setText("Master", 2000, new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText("Master", 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
             service.speak("Master Remote is: " + service.boardState.BOARD_ID, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             service.rfMasterClientServer.disableMasterBroadcast();
 
-            service.burnerBoard.setText("Solo", 2000, new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText("Solo", 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
             service.speak("Disabling Master Remote: " + service.boardState.BOARD_ID, "disableMaster");
         }
     }

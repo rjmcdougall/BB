@@ -17,7 +17,7 @@ public class GTFOController {
         if (enable) {
 
             service.visualizationController.inhibitVisualGTFO = true;
-            service.burnerBoard.setText90("Get The Fuck Off!", 5000, new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText90("Get The Fuck Off!", 5000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
             service.musicController.Mute();
             stashedAndroidVolumePercent = service.musicController.getAndroidVolumePercent();
             service.musicController.setAndroidVolumePercent(100);
