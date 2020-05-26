@@ -17,35 +17,29 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     private static final int kMaxStrips = 24;
     private static final int kMaxStripLength = 1024;
 
-    // Woodson's panel
-    static int kBoardWidth = 20;
-    static int kBoardHeight = 180;
     // Serpentine in Y/Height direction
     // Number of logical strips in each strip
     static int logicalStripsPerPhsyicalStrip = 2;
     // Number of hardware strips
     static int kStrips = 10; //boardHeight / panel height
 
+    static {
+        boardWidth = 20;
+        boardHeight = 180;
+        textSizeHorizontal = 20;
+        textSizeVertical = 10;
+    }
+
     public BurnerBoardWSPanel(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board WSPanel initting...");
-        this.boardWidth = kBoardWidth;
-        this.boardHeight = kBoardHeight;
-        this.textSizeHorizontal = 20;
-        this.textSizeVertical = 10;
-        this.boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, this);
-        this.pixelOffset = new PixelOffset(this);
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this);
-        this.lineBuilder = new LineBuilder(service, this);
-        initUsb();
     }
 
     public int getFrameRate() {
         return 50;
     }
+    public void setOtherlightsAutomatically(){};
 
     public int getMultiplier4Speed() {
         if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
@@ -99,9 +93,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             //BLog.d(TAG, "strip:" + s);
-            int[] stripPixels = new int[kBoardHeight * 3 * logicalStripsPerPhsyicalStrip];
+            int[] stripPixels = new int[boardHeight * 3 * logicalStripsPerPhsyicalStrip];
             // Walk through all the pixels in the strip
-            for (int offset = 0; offset < kBoardHeight * 3 * logicalStripsPerPhsyicalStrip; ) {
+            for (int offset = 0; offset < boardHeight * 3 * logicalStripsPerPhsyicalStrip; ) {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
@@ -139,7 +133,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     private int[] reverseLogicalStripHalves(int[] strip){
 
-        int[] newStrip = new int[kBoardHeight * 3 * logicalStripsPerPhsyicalStrip];
+        int[] newStrip = new int[boardHeight * 3 * logicalStripsPerPhsyicalStrip];
 
         int n = strip.length;
 

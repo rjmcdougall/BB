@@ -28,22 +28,19 @@ public class BurnerBoardAzul extends BurnerBoard {
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;
 
+    static {
+        boardWidth = 46;
+        boardHeight = 118;
+        textSizeHorizontal = 14;
+        textSizeVertical = 10;
+    }
 
     public BurnerBoardAzul(BBService service) {
         super(service);
+
         BLog.i(TAG, "Burner Board Azul initing...");
-        this.boardWidth = 46;
-        this.boardHeight = 118;
-        this.textSizeHorizontal = 14;
-        this.textSizeVertical = 10;
-        this.boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, this);
-        this.pixelOffset = new PixelOffset(this);
+
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this);
-        this.lineBuilder = new LineBuilder(service, this);
-        initUsb();
     }
 
     public int getMultiplier4Speed() {
@@ -69,6 +66,8 @@ public class BurnerBoardAzul extends BurnerBoard {
         else
             return 30;
     }
+
+    public void setOtherlightsAutomatically(){};
 
 
     public void flush() {

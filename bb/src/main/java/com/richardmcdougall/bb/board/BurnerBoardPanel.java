@@ -28,40 +28,31 @@ package com.richardmcdougall.bb.board;
  */
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
 
+    static {
+        boardWidth = 32;
+        boardHeight = 64;
+        textSizeHorizontal = 12;
+        textSizeVertical = 12;
+    }
+
     public BurnerBoardPanel(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Panel initting...");
-        this.boardWidth = 32;
-        this.boardHeight = 64;
-        this.textSizeHorizontal = 12;
-        this.textSizeVertical = 12;
-        this.boardScreen = new int[boardWidth * boardHeight * 3];
-        this.pixelOffset = new PixelOffset(this);
-        //map2board
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this);
-        this.lineBuilder = new LineBuilder(service, this);
-        this.boardDisplay = new BoardDisplay(this.service, this);
-        initUsb();
-
-
-
     }
 
     @Override
     public int getMultiplier4Speed() {
         return 3;
     }
-
     public int getFrameRate() {
         return 12;
     }
+    public void setOtherlightsAutomatically(){};
 
     public void start() {
 

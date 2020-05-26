@@ -10,35 +10,29 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
 
-    /* DIRECT MAP SETTINGS */
-    // JosPacks have 1x166 strands of LEDs. Currently RPI == JosPack
-    private static final int kVisualizationDirectMapDefaultWidth = 8;
-    public static final int kVisualizationDirectMapWidth = BoardState.kIsRPI ? 1 : kVisualizationDirectMapDefaultWidth;
-    private static final int kVisualizationDirectMapDefaultHeight = 256;
-    public static final int kVisualizationDirectMapHeight = BoardState.kIsRPI ? 166 : kVisualizationDirectMapDefaultHeight;
     static int kStrips = 8;
 
-    public BurnerBoardDirectMap(BBService service, int width, int height) {
+    static {
+        boardWidth = 1;
+        boardHeight = 166;
+        textSizeVertical = 0;
+        textSizeHorizontal = 0;
+    }
+
+    public BurnerBoardDirectMap(BBService service) {
         super(service);
         BLog.i(TAG," Direct Map initing ");
-        this.boardWidth = width;
-        this.boardHeight = height;
-        this.textSizeVertical = 0;
-        this.textSizeHorizontal = 0;
-        this.boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, this);
-        this.pixelOffset = new PixelOffset(this);
-        //map2board
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this);
-        this.lineBuilder = new LineBuilder(service, this);
-        initUsb();
     }
 
     @Override
     public int getMultiplier4Speed() {
         return 3;
     }
+
+    public int getFrameRate(){
+        return 12;
+    }
+    public void setOtherlightsAutomatically(){};
 
     public void start() {
 

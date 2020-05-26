@@ -38,8 +38,8 @@ public abstract class BurnerBoard {
     private static UsbSerialDriver mDriver = null;
     protected final Object mSerialConn = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    public int boardWidth = 1;
-    public int boardHeight = 1;
+    public static int boardWidth = 1;
+    public static int boardHeight = 1;
     public CmdMessenger mListener = null;
     public BBService service = null;
     public int[] boardScreen;
@@ -55,8 +55,14 @@ public abstract class BurnerBoard {
     public LineBuilder lineBuilder = null;
     protected BoardDisplay boardDisplay = null;
     protected PixelOffset pixelOffset = null;
-    public int textSizeHorizontal = 1;
-    public int textSizeVertical = 1;
+    public static int textSizeHorizontal = 1;
+    public static int textSizeVertical = 1;
+
+    public abstract int getFrameRate();
+    public abstract int getMultiplier4Speed();
+    public abstract void flush();
+    public abstract void setOtherlightsAutomatically();
+    public abstract void start();
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -97,9 +103,17 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(mUsbReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         this.service.registerReceiver(mUsbReceiver, filter);
+
+        this.boardScreen = new int[boardWidth * boardHeight * 3];
+        this.boardDisplay = new BoardDisplay(this.service, this);
+        this.pixelOffset = new PixelOffset(this);
+        this.appDisplay = new AppDisplay(service, this);
+        this.textBuilder = new TextBuilder(service, this);
+        this.lineBuilder = new LineBuilder(service, this);
+        initUsb();
     }
 
-    public void UnregisterReceivers(){
+    public final void UnregisterReceivers(){
         try{
             if(mUsbReceiver!=null)
                 this.service.unregisterReceiver(mUsbReceiver);
@@ -110,28 +124,28 @@ public abstract class BurnerBoard {
         }
     }
 
-    static public int colorDim(int dimValue, int color) {
+    static final public int colorDim(int dimValue, int color) {
         int b = (dimValue * (color & 0xff)) / 255;
         int g = (dimValue * ((color & 0xff00) >> 8) / 255);
         int r = (dimValue * ((color & 0xff0000) >> 16) / 255);
         return (RGB.getARGBInt(r, g, b));
     }
 
-    static int gammaCorrect(int value) {
+    static final int gammaCorrect(int value) {
         //return ((value / 255) ^ (1 / gamma)) * 255;
         if (value > 255) value = 255;
         if (value < 0) value = 0;
         return GammaCorrection.gamma8[value];
     }
 
-    public void setText(String text, int delay, RGB color){
+    public final void setText(String text, int delay, RGB color){
         this.textBuilder.setText(text, delay, mRefreshRate, color);
     }
-    public void setText90(String text, int delay , RGB color){
+    public final void setText90(String text, int delay , RGB color){
         this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
 
-    public static BurnerBoard Builder(BBService service) {
+    public final static BurnerBoard Builder(BBService service) {
 
         BurnerBoard burnerBoard = null;
 
@@ -149,11 +163,7 @@ public abstract class BurnerBoard {
                 burnerBoard = new BurnerBoardWSPanel(service);
         } else if (BoardState.BoardType.backpack == service.boardState.GetBoardType()) {
             BLog.d(TAG, "Visualization: Using Direct Map");
-            burnerBoard = new BurnerBoardDirectMap(
-                    service,
-                    BurnerBoardDirectMap.kVisualizationDirectMapWidth,
-                    BurnerBoardDirectMap.kVisualizationDirectMapHeight
-            );
+            burnerBoard = new BurnerBoardDirectMap(service);
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.azul) {
             BLog.d(TAG, "Visualization: Using Azul");
             burnerBoard = new BurnerBoardAzul(service);
@@ -165,11 +175,6 @@ public abstract class BurnerBoard {
         return burnerBoard;
     }
 
-    public int getFrameRate() {
-        return 12;
-    }
-
-    public abstract int getMultiplier4Speed();
 
     public void showBattery() {
 
@@ -184,11 +189,11 @@ public abstract class BurnerBoard {
         return;
     }
 
-    public void clearPixels() {
+    public final void clearPixels() {
         Arrays.fill(boardScreen, 0);
     }
 
-    public void setPixel(int x, int y, int color) {
+    public final void setPixel(int x, int y, int color) {
 
         int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
@@ -196,7 +201,7 @@ public abstract class BurnerBoard {
         setPixel(x, y, r, g, b);
     }
 
-    public void setPixel(int x, int y, int r, int g, int b) {
+    public final void setPixel(int x, int y, int r, int g, int b) {
 
         if (x < 0 || x >= boardWidth || y < 0 || y >= boardHeight) {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
@@ -207,7 +212,7 @@ public abstract class BurnerBoard {
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
     }
 
-    public void fillScreen(int r, int g, int b) {
+    public final void fillScreen(int r, int g, int b) {
         int x;
         int y;
         for (x = 0; x < boardWidth; x++) {
@@ -268,7 +273,7 @@ public abstract class BurnerBoard {
         return false;
     }
 
-    protected void logFlush(){
+    protected final void logFlush(){
         flushCnt++;
         if (flushCnt > 100) {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
@@ -280,10 +285,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void flush() {
-    }
-
-    public void fillScreenMask(int r, int g, int b) {
+    public final void fillScreenMask(int r, int g, int b) {
         //System.out.println("Fillscreen " + r + "," + g + "," + b);
         int x;
         int y;
@@ -296,39 +298,33 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void fillScreenMask(int color) {
+    public final void fillScreenMask(int color) {
         int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
         int r = ((color & 0xff0000) >> 16);
         fillScreenMask(r, g, b);
     }
 
-    public int getPixel(int x, int y) {
+    public final int getPixel(int x, int y) {
         int r = boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
         int g = boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
         int b = boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
         return RGB.getARGBInt(r, g, b);
     }
 
-    public void setOtherlightsAutomatically() {
-    }
-
-    public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
-    }
-
-    protected int pixelColorCorrectionRed(int red) {
+    protected final int pixelColorCorrectionRed(int red) {
         return gammaCorrect(red);
     }
 
-    protected int pixelColorCorrectionGreen(int green) {
+    protected final int pixelColorCorrectionGreen(int green) {
         return gammaCorrect(green);
     }
 
-    protected int pixelColorCorrectionBlue(int blue) {
+    protected final int pixelColorCorrectionBlue(int blue) {
         return gammaCorrect(blue);
     }// Send a strip of pixels to the board
 
-    protected void setStrip(int strip, int[] pixels) {
+    protected final void setStrip(int strip, int[] pixels) {
 
         // Do color correction on burner board display pixels
         byte[] newPixels = new byte[pixels.length];
@@ -349,7 +345,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void fadePixels(int amount) {
+    public final void fadePixels(int amount) {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {
@@ -379,7 +375,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    private boolean checkUsbDevice(UsbDevice device) {
+    private final boolean checkUsbDevice(UsbDevice device) {
 
         int vid = device.getVendorId();
         int pid = device.getProductId();
@@ -392,7 +388,7 @@ public abstract class BurnerBoard {
 
     }
 
-    public void initUsb() {
+    public final void initUsb() {
         BLog.d(TAG, "BurnerBoard: initUsb()");
 
         if (mUsbDevice != null) {
@@ -471,7 +467,7 @@ public abstract class BurnerBoard {
         startIoManager();
     }
 
-    public void stopIoManager() {
+    public final void stopIoManager() {
         synchronized (mSerialConn) {
             //status.setText("Disconnected");
             if (mSerialIoManager != null) {
@@ -492,7 +488,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void startIoManager() {
+    public final void startIoManager() {
 
         synchronized (mSerialConn) {
             if (sPort != null) {
@@ -513,15 +509,11 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void start() {
-
-    }
-
-    public int[] getmBatteryStats() {
+    public final int[] getmBatteryStats() {
         return mBatteryStats;
     }
 
-    private void testPerf() {
+    private final void testPerf() {
         byte[] testRow1 = "0123456789012345678901234567890".getBytes();
         long startTime = java.lang.System.currentTimeMillis();
         final int Iters = 100;
@@ -541,7 +533,7 @@ public abstract class BurnerBoard {
         return;
     }
 
-    private void testTeensy() {
+    private final void testTeensy() {
         byte[] testRow1 = "0123456789012345".getBytes();
 
         for (int c = 0; c < 256; ) {
@@ -560,7 +552,7 @@ public abstract class BurnerBoard {
         return;
     }
 
-    public boolean pingRow(int row, byte[] pixels) {
+    public final boolean pingRow(int row, byte[] pixels) {
 
         //l("sendCommand: 16,n,...");
         synchronized (mSerialConn) {
@@ -575,7 +567,7 @@ public abstract class BurnerBoard {
         return false;
     }
 
-    public boolean echoRow(int row, byte[] pixels) {
+    public final boolean echoRow(int row, byte[] pixels) {
 
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -588,7 +580,7 @@ public abstract class BurnerBoard {
         return false;
     }// We use this to catch the USB accessory detached message
 
-    public void flush2Board() {
+    public final void flush2Board() {
 
         if (mListener != null) {
             mListener.flushWrites();
@@ -601,7 +593,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    private class PermissionReceiver extends BroadcastReceiver {
+    private final class PermissionReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             service.context.unregisterReceiver(this);
@@ -622,7 +614,7 @@ public abstract class BurnerBoard {
         }
     }
 
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
+    public final class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
 
         private boolean requireBMS = false;
 

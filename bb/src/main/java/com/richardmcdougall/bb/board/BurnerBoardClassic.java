@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 public class BurnerBoardClassic extends BurnerBoard {
@@ -14,22 +13,19 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int mBoardSideLights = 79;
     private int[] mBoardOtherlights;
 
+    static {
+        boardWidth = 10;
+        boardHeight = 70;
+        textSizeHorizontal = 6;
+        textSizeVertical = 12;
+    }
+
     public BurnerBoardClassic(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Classic initing...");
-        this.boardWidth = 10;
-        this.boardHeight = 70;
-        this.textSizeHorizontal = 6;
-        this.textSizeVertical = 12;
-        boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, this);
+
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
-        this.pixelOffset = new PixelOffset(this);
-        //map2board
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this) ;
-        this.lineBuilder = new LineBuilder(service, this);
-        initUsb();
+
     }
 
     public int getMultiplier4Speed() {

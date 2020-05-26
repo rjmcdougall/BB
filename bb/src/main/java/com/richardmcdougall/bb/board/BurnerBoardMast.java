@@ -11,32 +11,27 @@ public class BurnerBoardMast extends BurnerBoard {
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private String TAG = this.getClass().getSimpleName();
 
+    static {
+        boardWidth = 24;
+        boardHeight = 159;
+        textSizeHorizontal = 12;
+        textSizeVertical = 12;
+    }
 
     public BurnerBoardMast(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Mast initing...");
-        this.boardWidth = 24;
-        this.boardHeight = 159;
-        this.textSizeHorizontal = 12;
-        this.textSizeVertical = 12;
-        this.boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, this);
-        this.pixelOffset = new PixelOffset(this);
+
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this);
-        this.lineBuilder = new LineBuilder(service, this);
-        initUsb();
     }
 
-    @Override
     public int getMultiplier4Speed() {
         return 3;
     }
-
     public int getFrameRate() {
         return 18;
     }
+    public void setOtherlightsAutomatically(){};
 
     public void start() {
 
