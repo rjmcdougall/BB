@@ -1,16 +1,13 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bbcommon.BoardState;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 // used by the now-defunct josPaks
 public class BurnerBoardDirectMap extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
-
-    static int kStrips = 8;
+    private static int kStrips = 8;
 
     static {
         boardWidth = 1;
@@ -21,7 +18,7 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     public BurnerBoardDirectMap(BBService service) {
         super(service);
-        BLog.i(TAG," Direct Map initing ");
+        BLog.i(TAG, " Direct Map initing ");
     }
 
     @Override
@@ -29,10 +26,12 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         return 3;
     }
 
-    public int getFrameRate(){
+    public int getFrameRate() {
         return 12;
     }
-    public void setOtherlightsAutomatically(){};
+
+    public void setOtherlightsAutomatically() {
+    }
 
     public void start() {
 

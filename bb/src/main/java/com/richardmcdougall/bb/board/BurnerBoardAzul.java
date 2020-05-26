@@ -1,9 +1,8 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bbcommon.BoardState;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 //  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
 //          cmdMessenger.sendCmdArg(batteryControl);
@@ -22,7 +21,6 @@ import com.richardmcdougall.bbcommon.BLog;
 public class BurnerBoardAzul extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
-    // Two primary mapping functions
     static int kStrips = 8;
     static int[] pixelsPerStrip = new int[8];
     static int[][] pixelMap2BoardTable = new int[8][4096];
@@ -67,8 +65,8 @@ public class BurnerBoardAzul extends BurnerBoard {
             return 30;
     }
 
-    public void setOtherlightsAutomatically(){};
-
+    public void setOtherlightsAutomatically() {
+    }
 
     public void flush() {
 
@@ -115,7 +113,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
             for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = java.lang.Math.abs(boardMap[i].endX -  boardMap[i].startX) + 1 + boardMap[i].stripOffset;
+                int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
                     //l("boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );

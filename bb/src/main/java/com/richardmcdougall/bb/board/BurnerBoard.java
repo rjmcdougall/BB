@@ -14,9 +14,9 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,31 +33,30 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
+    public static int boardWidth = 1;
+    public static int boardHeight = 1;
+    public static int textSizeHorizontal = 1;
+    public static int textSizeVertical = 1;
     private static String TAG = "BurnerBoard";
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
     protected final Object mSerialConn = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    public static int boardWidth = 1;
-    public static int boardHeight = 1;
     public CmdMessenger mListener = null;
     public BBService service = null;
     public int[] boardScreen;
     public int mRefreshRate = 15;
     public int[] mBatteryStats = new int[16];
-    private SerialInputOutputManager mSerialIoManager;
-    private UsbDevice mUsbDevice = null;
     public TextBuilder textBuilder = null;
     public ArcBuilder arcBuilder = null;
-    long lastFlushTime = java.lang.System.currentTimeMillis();
-    private int flushCnt = 0;
-    protected AppDisplay appDisplay = null;
     public LineBuilder lineBuilder = null;
+    protected AppDisplay appDisplay = null;
     protected BoardDisplay boardDisplay = null;
     protected PixelOffset pixelOffset = null;
-    public static int textSizeHorizontal = 1;
-    public static int textSizeVertical = 1;
-
+    long lastFlushTime = java.lang.System.currentTimeMillis();
+    private SerialInputOutputManager mSerialIoManager;
+    private UsbDevice mUsbDevice = null;
+    
     public abstract int getFrameRate();
     public abstract int getMultiplier4Speed();
     public abstract void flush();
@@ -95,6 +94,7 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "onReceive exited");
         }
     };
+    private int flushCnt = 0;
 
     public BurnerBoard(BBService service) {
         this.service = service;
@@ -113,17 +113,6 @@ public abstract class BurnerBoard {
         initUsb();
     }
 
-    public final void UnregisterReceivers(){
-        try{
-            if(mUsbReceiver!=null)
-                this.service.unregisterReceiver(mUsbReceiver);
-
-            BLog.i(TAG,"Unregistered Receivers");
-        }catch(Exception e)
-        {
-        }
-    }
-
     static final public int colorDim(int dimValue, int color) {
         int b = (dimValue * (color & 0xff)) / 255;
         int g = (dimValue * ((color & 0xff00) >> 8) / 255);
@@ -136,13 +125,6 @@ public abstract class BurnerBoard {
         if (value > 255) value = 255;
         if (value < 0) value = 0;
         return GammaCorrection.gamma8[value];
-    }
-
-    public final void setText(String text, int delay, RGB color){
-        this.textBuilder.setText(text, delay, mRefreshRate, color);
-    }
-    public final void setText90(String text, int delay , RGB color){
-        this.textBuilder.setText90(text, delay, mRefreshRate, color);
     }
 
     public final static BurnerBoard Builder(BBService service) {
@@ -159,8 +141,8 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "Visualization: Using Panel");
             burnerBoard = new BurnerBoardPanel(service);
         } else if (BoardState.BoardType.wspanel == service.boardState.GetBoardType()) {
-                BLog.d(TAG, "Visualization: Using WSPanel");
-                burnerBoard = new BurnerBoardWSPanel(service);
+            BLog.d(TAG, "Visualization: Using WSPanel");
+            burnerBoard = new BurnerBoardWSPanel(service);
         } else if (BoardState.BoardType.backpack == service.boardState.GetBoardType()) {
             BLog.d(TAG, "Visualization: Using Direct Map");
             burnerBoard = new BurnerBoardDirectMap(service);
@@ -175,6 +157,23 @@ public abstract class BurnerBoard {
         return burnerBoard;
     }
 
+    public final void UnregisterReceivers() {
+        try {
+            if (mUsbReceiver != null)
+                this.service.unregisterReceiver(mUsbReceiver);
+
+            BLog.i(TAG, "Unregistered Receivers");
+        } catch (Exception e) {
+        }
+    }
+
+    public final void setText(String text, int delay, RGB color) {
+        this.textBuilder.setText(text, delay, mRefreshRate, color);
+    }
+
+    public final void setText90(String text, int delay, RGB color) {
+        this.textBuilder.setText90(text, delay, mRefreshRate, color);
+    }
 
     public void showBattery() {
 
@@ -273,7 +272,7 @@ public abstract class BurnerBoard {
         return false;
     }
 
-    protected final void logFlush(){
+    protected final void logFlush() {
         flushCnt++;
         if (flushCnt > 100) {
             int elapsedTime = (int) (java.lang.System.currentTimeMillis() - lastFlushTime);
@@ -627,7 +626,7 @@ public abstract class BurnerBoard {
                 mBatteryStats[i] = mListener.readIntArg();
             }
 
-            if(!requireBMS){
+            if (!requireBMS) {
                 if (mBatteryStats[1] != -1) {
                     service.boardState.batteryLevel = mBatteryStats[1];
                 } else {
