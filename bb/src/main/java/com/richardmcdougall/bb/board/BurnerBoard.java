@@ -55,54 +55,25 @@ public abstract class BurnerBoard {
     protected PixelOffset pixelOffset = null;
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private SerialInputOutputManager mSerialIoManager;
-    private UsbDevice mUsbDevice = null;
-    
+    public UsbDevice mUsbDevice = null;
+    private BoardUSBReceiver boardUSBReceiver = null;
+
     public abstract int getFrameRate();
     public abstract int getMultiplier4Speed();
     public abstract void flush();
     public abstract void setOtherlightsAutomatically();
     public abstract void start();
 
-    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-
-            final String TAG = "mUsbReceiver";
-            BLog.d(TAG, "onReceive entered");
-            String action = intent.getAction();
-            if (UsbManager.ACTION_USB_ACCESSORY_DETACHED.equals(action)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                BLog.d(TAG, "A USB Accessory was detached (" + device + ")");
-                if (device != null) {
-                    if (mUsbDevice == device) {
-                        BLog.d(TAG, "It's this device");
-                        mUsbDevice = null;
-                        stopIoManager();
-                    }
-                }
-            }
-            if (UsbManager.ACTION_USB_ACCESSORY_ATTACHED.equals(action)) {
-                UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-                BLog.d(TAG, "USB Accessory attached (" + device + ")");
-                if (mUsbDevice == null) {
-                    BLog.d(TAG, "Calling initUsb to check if we should add this device");
-                    initUsb();
-                } else {
-                    BLog.d(TAG, "this USB already attached");
-                }
-            }
-            BLog.d(TAG, "onReceive exited");
-        }
-    };
     private int flushCnt = 0;
 
     public BurnerBoard(BBService service) {
         this.service = service;
+        this.boardUSBReceiver = new BoardUSBReceiver(this);
         // Register to receive attach/detached messages that are proxied from MainActivity
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        this.service.registerReceiver(mUsbReceiver, filter);
+        this.service.registerReceiver(this.boardUSBReceiver, filter);
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
-        this.service.registerReceiver(mUsbReceiver, filter);
+        this.service.registerReceiver(this.boardUSBReceiver, filter);
 
         this.boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this.service, this);
@@ -159,8 +130,8 @@ public abstract class BurnerBoard {
 
     public final void UnregisterReceivers() {
         try {
-            if (mUsbReceiver != null)
-                this.service.unregisterReceiver(mUsbReceiver);
+            if (this.boardUSBReceiver != null)
+                this.service.unregisterReceiver(this.boardUSBReceiver);
 
             BLog.i(TAG, "Unregistered Receivers");
         } catch (Exception e) {
@@ -407,7 +378,7 @@ public abstract class BurnerBoard {
 
         // Register to receive detached messages
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        service.registerReceiver(mUsbReceiver, filter);
+        service.registerReceiver(this.boardUSBReceiver, filter);
 
         // Find the Radio device by pid/vid
         mUsbDevice = null;
