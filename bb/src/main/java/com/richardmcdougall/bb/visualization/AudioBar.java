@@ -11,7 +11,7 @@ public class AudioBar extends Visualization {
 
     public void update(int mode) {
 
-        int[] dbLevels = service.boardVisualization.getLevels();
+        int[] dbLevels = service.visualizationController.getLevels();
         if (dbLevels == null)
             return;
         service.burnerBoard.fadePixels(80);

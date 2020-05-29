@@ -23,7 +23,7 @@ public class MusicPlayerSupervisor {
 
     Runnable seekAndPlay = () -> {
         try{
-            service.musicPlayer.SeekAndPlay();
+            service.musicController.SeekAndPlay();
         }catch(Exception e){
             BLog.e(TAG, e.getMessage());
         }
@@ -31,7 +31,7 @@ public class MusicPlayerSupervisor {
 
     Runnable setChannel = () -> {
         try{
-            service.musicPlayer.RadioMode();
+            service.musicController.RadioMode();
         }catch(Exception e){
             BLog.e(TAG, e.getMessage());
         }

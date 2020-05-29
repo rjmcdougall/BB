@@ -39,7 +39,7 @@ public class Matrix extends Visualization {
                 case kMatrixBurnerColor:
                 case kMatrixSync:
 
-                    if (service.boardVisualization.mRandom.nextInt(3) != 0) {
+                    if (service.visualizationController.mRandom.nextInt(3) != 0) {
                         color = RGB.getARGBInt(0, 0, 0);
                     } else {
                         color = mWheel.wheelState();
@@ -49,7 +49,7 @@ public class Matrix extends Visualization {
                     break;
 
                 case kMatrixLunarian:
-                    color = service.boardVisualization.mRandom.nextInt(2) == 0 ?
+                    color = service.visualizationController.mRandom.nextInt(2) == 0 ?
                             RGB.getARGBInt(0, 0, 0) : RGB.getARGBInt(255, 255, 255);
                     service.burnerBoard.setPixel(pixelSkip * x, y, color);
 
@@ -65,7 +65,7 @@ public class Matrix extends Visualization {
 
         }
 
-        for (int i = 0; i < service.boardVisualization.mMultipler4Speed; i++) {
+        for (int i = 0; i < service.visualizationController.mMultipler4Speed; i++) {
             service.burnerBoard.scrollPixels(true);
         }
 

@@ -1,51 +1,60 @@
 package com.richardmcdougall.bb.board;
 
-import com.google.gson.GsonBuilder;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 //BBWSPanel is a string of WS28xx leds that go up and down
 public class BurnerBoardWSPanel extends BurnerBoard {
 
+    
     private String TAG = this.getClass().getSimpleName();
-
-    // Limits of the hardware strips:
+     // Limits of the hardware strips:
     private static final int kMaxStrips = 24;
     private static final int kMaxStripLength = 1024;
-
-    // Woodson's panel
-    static int kBoardWidth = 20;
-    static int kBoardHeight = 180;
+    public static Map<Integer, Integer> remap;
     // Serpentine in Y/Height direction
     // Number of logical strips in each strip
     static int logicalStripsPerPhsyicalStrip = 2;
     // Number of hardware strips
     static int kStrips = 10; //boardHeight / panel height
+    static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
+
+    static {
+        boardWidth = 20;
+        boardHeight = 180;
+        textSizeHorizontal = 20;
+        textSizeVertical = 10;
+    }
+
+    static {
+        remap = new HashMap<>();
+        remap.put(0, 0);
+        remap.put(1, 1);
+        remap.put(2, 2);
+        remap.put(3, 3);
+        remap.put(4, 12);
+        remap.put(5, 13);
+        remap.put(6, 14);
+        remap.put(7, 15);
+        remap.put(8, 8);
+        remap.put(9, 9); // top row goes away
+    }
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board WSPanel initting...");
-        boardWidth = kBoardWidth;
-        boardHeight = kBoardHeight;
-        boardScreen = new int[boardWidth * boardHeight * 3];
-        initPixelOffset();
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 20, 10);
-        this.lineBuilder = new LineBuilder(service, boardWidth, boardHeight);
-        initUsb();
     }
 
     public int getFrameRate() {
         return 50;
+    }
+
+    public void setOtherlightsAutomatically() {
     }
 
     public int getMultiplier4Speed() {
@@ -59,39 +68,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardWSPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardWSPanel.BoardCallbackGetBatteryLevel();
+        BurnerBoardWSPanel.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(false);
         mListener.attach(8, getBatteryLevelCallback);
 
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
-        }
-    }
-
-    public static Map<Integer, Integer> remap;
-    static {
-            remap = new HashMap<>();
-            remap.put(0, 0);
-            remap.put(1, 1);
-            remap.put(2, 2);
-            remap.put(3, 3);
-            remap.put(4, 12);
-            remap.put(5, 13);
-            remap.put(6, 14);
-            remap.put(7, 15);
-            remap.put(8, 8);
-            remap.put(9, 9); // top row goes away
     }
 
     private int doRemap(int i) {
@@ -115,9 +94,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             //BLog.d(TAG, "strip:" + s);
-            int[] stripPixels = new int[kBoardHeight * 3 * logicalStripsPerPhsyicalStrip];
+            int[] stripPixels = new int[boardHeight * 3 * logicalStripsPerPhsyicalStrip];
             // Walk through all the pixels in the strip
-            for (int offset = 0; offset < kBoardHeight * 3 * logicalStripsPerPhsyicalStrip; ) {
+            for (int offset = 0; offset < boardHeight * 3 * logicalStripsPerPhsyicalStrip; ) {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
@@ -148,21 +127,18 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     }
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
-        pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[stripNo][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+        pixelMap2BoardTable[stripNo][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+        pixelMap2BoardTable[stripNo][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
-    private int[] reverseLogicalStripHalves(int[] strip){
+    private int[] reverseLogicalStripHalves(int[] strip) {
 
-        int[] newStrip = new int[kBoardHeight * 3 * logicalStripsPerPhsyicalStrip];
+        int[] newStrip = new int[boardHeight * 3 * logicalStripsPerPhsyicalStrip];
 
         int n = strip.length;
 
-        int[] a = new int[(n + 1)/2];
+        int[] a = new int[(n + 1) / 2];
         int[] b = new int[n - a.length];
 
         System.arraycopy(strip, 0, a, 0, a.length);
@@ -174,8 +150,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         return newStrip;
 
     }
-
-    static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
 
     private void initpixelMap2Board() {
 

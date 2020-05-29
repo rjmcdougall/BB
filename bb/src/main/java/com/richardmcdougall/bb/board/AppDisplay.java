@@ -14,35 +14,27 @@ import static com.richardmcdougall.bb.board.BurnerBoard.PIXEL_BLUE;
 
 public class AppDisplay {
 
-    private int boardWidth = 0;
-    private int boardHeight = 0;
+    private BurnerBoard board = null;
     private BBService service = null;
-    private static int[][][] pixel2OffsetTable = null;
 
-    public AppDisplay(BBService service, int boardWidth,int  boardHeight, int[][][] pixel2OffsetTable){
+    public AppDisplay(BBService service, BurnerBoard board){
+        this.board = board;
         this.service = service;
-        this.boardWidth = boardWidth;
-        this.boardHeight = boardHeight;
-        this.pixel2OffsetTable = pixel2OffsetTable;
     }
 
     public void send(int[] displayMatrix){
-        int[] rowPixels = new int[boardWidth * 3];
-        for (int y = 0; y < boardHeight; y++) {
+        int[] rowPixels = new int[this.board.boardWidth * 3];
+        for (int y = 0; y < this.board.boardHeight; y++) {
             //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < boardWidth; x++) {
-                if (y < boardHeight) {
-                    rowPixels[(boardWidth - 1 - x) * 3 + 0] = displayMatrix[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[(boardWidth - 1 - x) * 3 + 1] = displayMatrix[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[(boardWidth - 1 - x) * 3 + 2] = displayMatrix[pixel2Offset(x, y, PIXEL_BLUE)];
+            for (int x = 0; x <  this.board.boardWidth; x++) {
+                if (y <  this.board.boardHeight) {
+                    rowPixels[( this.board.boardWidth - 1 - x) * 3 + 0] = displayMatrix[this.board.pixelOffset.Map(x, y, PIXEL_RED)];
+                    rowPixels[( this.board.boardWidth - 1 - x) * 3 + 1] = displayMatrix[this.board.pixelOffset.Map(x, y, PIXEL_GREEN)];
+                    rowPixels[( this.board.boardWidth - 1 - x) * 3 + 2] = displayMatrix[this.board.pixelOffset.Map(x, y, PIXEL_BLUE)];
                 }
             }
             sendVisual(14, y, rowPixels);
         }
-    }
-
-    static int pixel2Offset(int x, int y, int rgb) {
-        return pixel2OffsetTable[x][y][rgb];
     }
 
     public void sendVisual(int visualId) {

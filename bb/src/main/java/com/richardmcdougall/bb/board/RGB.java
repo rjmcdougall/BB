@@ -32,6 +32,10 @@ public class RGB {
         return new RGB(r,g,b);
     }
 
+    public int getARGBInt(){
+        return (this.r * 65536 + this.g * 256 + this.b);
+    }
+
     static public int getARGBInt(int r, int g, int b) {
             return (r * 65536 + g * 256 + b);
     }
@@ -50,6 +54,12 @@ public class RGB {
         this.r = r;
         this.g = g;
         this.b = b;
+    }
+
+    public void colorDim(int dimValue) {
+       b = dimValue * b / 255;
+       g = dimValue * g / 255;
+       r = dimValue * r / 255;
     }
 
     public String getName() {

@@ -42,15 +42,15 @@ public class ButtonReceiver extends BroadcastReceiver {
                     break;
                 case BUTTON_TRACK:
                     BLog.d(TAG, "BUTTON_TRACK");
-                    service.musicPlayer.NextStream();
+                    service.musicController.NextStream();
                     break;
                 case BUTTON_MODE_UP:
                     BLog.d(TAG, "BUTTON_MODE_UP");
-                    service.boardVisualization.setMode(99);
+                    service.visualizationController.setMode(99);
                     break;
                 case BUTTON_MODE_DOWN:
                     BLog.d(TAG, "BUTTON_MODE_DOWN");
-                    service.boardVisualization.setMode(98);
+                    service.visualizationController.setMode(98);
                     break;
                 default:
                     break;
@@ -76,7 +76,7 @@ public class ButtonReceiver extends BroadcastReceiver {
         switch (keyCode) {
             case 100:
             case 87: // satachi right button
-                service.musicPlayer.NextStream();
+                service.musicController.NextStream();
                 break;
             case 97:
             case 20:
@@ -89,13 +89,13 @@ public class ButtonReceiver extends BroadcastReceiver {
                 onBatteryButton();
                 break;
             case 99:
-                service.boardVisualization.setMode(99);
+                service.visualizationController.setMode(99);
                 break;
             case 98:
-                service.boardVisualization.setMode(98);
+                service.visualizationController.setMode(98);
                 break;
             case 88: //satachi left button
-                service.boardVisualization.setMode(99);
+                service.visualizationController.setMode(99);
                 break;
         }
         return true;
@@ -109,17 +109,17 @@ public class ButtonReceiver extends BroadcastReceiver {
 
         switch (keyCode) {
             case 85: // satachi Play button
-                service.boardVisualization.NextVideo();
+                service.visualizationController.NextVideo();
                 break;
 
             /* Audio stream control */
             case 87: // satachi right button
                 BLog.d(TAG, "RPI Bluetooth Right Button");
-                service.musicPlayer.NextStream();
+                service.musicController.NextStream();
                 break;
             case 88: //satachi left button
                 BLog.d(TAG, "RPI Bluetooth Left Button");
-                service.musicPlayer.PreviousStream();
+                service.musicController.PreviousStream();
                 break;
         }
         return true;
@@ -135,7 +135,7 @@ public class ButtonReceiver extends BroadcastReceiver {
                         @Override
                         public void run() {
                             if (pressCnt == 2) {
-                                service.boardVisualization.showMap();
+                                service.visualizationController.showMap();
                             } else if (pressCnt == 3) {
                                 // Toggle master mode
                                 if (service.boardState.masterRemote == true) {

@@ -15,28 +15,27 @@ public class LineBuilder {
 
     private String TAG = this.getClass().getSimpleName();
     private IntBuffer drawBuffer = null;
-    private int boardWidth = 0;
-    private int boardHeight = 0;
     public ArrayList<RGB> pixels = new ArrayList<>();
     private BBService service = null;
     private int[] layeredScreen;
+    private BurnerBoard board = null;
 
-    public LineBuilder(BBService service, int boardWidth, int boardHeight){
-        this.boardHeight = boardHeight;
-        this.boardWidth = boardWidth;
+    public LineBuilder(BBService service, BurnerBoard board){
+        this.board = board;
         this.service = service;
-        this.drawBuffer = IntBuffer.allocate(boardWidth * boardHeight * 4);
+        this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
     }
 
-    public void clear(){
+    public void clearLine(){
         this.pixels = new ArrayList<>();
     }
+
     public void drawLine() {
 
         Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(this.board.boardWidth, this.board.boardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
+        canvas.scale(-1, -1, this.board.boardWidth / 2, this.board.boardHeight / 2);
         Paint linepaint = new Paint();
         linepaint.setColor(Color.BLUE); //  Color
         linepaint.setStrokeWidth(1);
@@ -63,9 +62,9 @@ public class LineBuilder {
             return sourceScreen;
         }
 
-        layeredScreen = new int[this.boardWidth * this.boardHeight * 3];
+        layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
 
-        for (int pixelNo = 0; pixelNo < (boardWidth * boardHeight); pixelNo++) {
+        for (int pixelNo = 0; pixelNo < (this.board.boardWidth * this.board.boardHeight); pixelNo++) {
             int pixel_offset = pixelNo * 3;
             RGB pixel = this.pixels.get(pixelNo);
 

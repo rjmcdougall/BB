@@ -41,7 +41,7 @@ public class BBService extends Service {
 
     public Context context;
     public AllBoards allBoards = null;
-    public MusicPlayer musicPlayer = null;
+    public MusicController musicController = null;
     public RF radio = null;
     public Gps gps = null;
     public BMS bms = null;
@@ -51,7 +51,7 @@ public class BBService extends Service {
     public BluetoothLEServer bLEServer = null;
     public BluetoothCommands bluetoothCommands = null;
     public BluetoothConnManager bluetoothConnManager = null;
-    public BoardVisualization boardVisualization = null;
+    public VisualizationController visualizationController = null;
     public IoTClient iotClient = null;
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
@@ -195,17 +195,17 @@ public class BBService extends Service {
             localCrisisController = new LocalCrisisController(this);
 
             burnerBoard = BurnerBoard.Builder(this);
-            burnerBoard.setText90(boardState.BOARD_ID, 5000, new RGBList().getColor("white"));
+            burnerBoard.textBuilder.setText90(boardState.BOARD_ID, 5000, burnerBoard.getFrameRate(), new RGBList().getColor("white"));
 
-            boardVisualization = new BoardVisualization(this);
-            boardVisualization.Run();
+            visualizationController = new VisualizationController(this);
+            visualizationController.Run();
 
             BLog.i(TAG, "Setting initial visualization mode: " + boardState.currentVideoMode);
-            boardVisualization.setMode(boardState.currentVideoMode);
+            visualizationController.setMode(boardState.currentVideoMode);
 
             TimeSync.InitClock();
-            musicPlayer = new MusicPlayer(this);
-            musicPlayerThread = new Thread(musicPlayer);
+            musicController = new MusicController(this);
+            musicPlayerThread = new Thread(musicController);
             musicPlayerThread.start();
 
             if (!DebugConfigs.BYPASS_MUSIC_SYNC) {
@@ -236,6 +236,8 @@ public class BBService extends Service {
             rotatingDisplayController = new RotatingDisplayController(this);
 
             gtfoController = new GTFOController(this);
+
+
 
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
@@ -295,8 +297,25 @@ public class BBService extends Service {
      */
     @Override
     public void onDestroy() {
+        super.onDestroy();
 
-        BLog.i(TAG, "onDesonDestroy");
+        this.bluetoothConnManager.UnregisterReceivers();
+        this.rfMasterClientServer.UnregisterReceivers();
+        this.wifi.UnregisterReceivers();;
+        this.rfClientServer.UnregisterReceiver();
+        this.burnerBoard.UnregisterReceivers();
+
+        try{
+            if(usbReceiver!=null)
+                this.unregisterReceiver(usbReceiver);
+            if(usbReceiver!=null)
+                this.unregisterReceiver(buttonReceiver);
+            if(usbReceiver!=null)
+                this.unregisterReceiver(btReceive);
+            BLog.i(TAG,"Unregistered Receivers");
+        }catch(Exception e)
+        {
+        }
         voice.shutdown();
     }
 }

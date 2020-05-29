@@ -49,7 +49,7 @@ public class LocalCrisisController {
     private void Phase2(){
         boardInCrisisPhase = 2;
         stashedVideoMode = service.boardState.currentVideoMode;
-        this.service.boardVisualization.setMode(this.service.mediaManager.GetMapMode());
+        this.service.visualizationController.setMode(this.service.mediaManager.GetMapMode());
 
         sch.schedule(moveToPhase1, 5, TimeUnit.SECONDS);
     }
@@ -58,15 +58,15 @@ public class LocalCrisisController {
         boardInCrisisPhase = 0;
         service.boardState.currentVideoMode = stashedVideoMode;
         stashedVideoMode = 0;
-        service.musicPlayer.Unmute();
+        service.musicController.Unmute();
     }
 
     private void StartCrisisPhase1() {
 
         boardInCrisisPhase = 1;
-        service.musicPlayer.Mute();
+        service.musicController.Mute();
 
-        service.burnerBoard.setText90("Please Help!", 10000, new RGBList().getColor("white"));
+        service.burnerBoard.textBuilder.setText90("Please Help!", 10000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
         service.speak("Please Help!","mode");
 
         sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);

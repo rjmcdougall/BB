@@ -13,7 +13,7 @@ public class JosPack extends Visualization {
     public static final int kJPBlank = 5;
     public static final int kJPBlueGold = 6;
     public static final int kJPBluePurple = 7;
-    private final static int kLEDS = BurnerBoardDirectMap.kVisualizationDirectMapWidth * BurnerBoardDirectMap.kVisualizationDirectMapHeight;
+    private final static int kLEDS = 1 * 166;
     private final static int kJPSparkleMiddle = kLEDS / 2;
     private final static int kJPPhaseShift = 10;
     private Wheel mWheel = new Wheel();
@@ -92,12 +92,12 @@ public class JosPack extends Visualization {
 
         for (ledNo = kJPSparkleMiddle; ledNo < kJPSparkleMiddle + jpSparkleNo; ledNo++) {
             jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.visualizationController.mRandom.nextInt(100) / (float) 100.0));
         }
 
         for (ledNo = kJPSparkleMiddle; ledNo > kJPSparkleMiddle - jpSparkleNo; ledNo--) {
             jpSetPixel(ledNo, mWheel.wheelDim(35,
-                    (float) service.boardVisualization.mRandom.nextInt(100) / (float) 100.0));
+                    (float) service.visualizationController.mRandom.nextInt(100) / (float) 100.0));
         }
 
         service.burnerBoard.flush();

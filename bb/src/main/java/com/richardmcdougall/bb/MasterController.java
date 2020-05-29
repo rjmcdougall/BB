@@ -44,13 +44,13 @@ public class MasterController implements Runnable {
             mSendVolume();
             mSendMasterInfo();
 
-            service.burnerBoard.setText("Master", 2000, new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText("Master", 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
             service.speak("Master Remote is: " + service.boardState.BOARD_ID, "enableMaster");
         } else {
             // You explicitly disabled the master. Stop any broadcasting.
             service.rfMasterClientServer.disableMasterBroadcast();
 
-            service.burnerBoard.setText("Solo", 2000, new RGBList().getColor("white"));
+            service.burnerBoard.textBuilder.setText("Solo", 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
             service.speak("Disabling Master Remote: " + service.boardState.BOARD_ID, "disableMaster");
         }
     }
@@ -58,12 +58,12 @@ public class MasterController implements Runnable {
     public void RemoteAudio(long value){
 
         for (int i = 1; i <= service.mediaManager.GetTotalAudio(); i++) {
-            String name = service.musicPlayer.getRadioChannelInfo(i);
+            String name = service.musicController.getRadioChannelInfo(i);
             long hashed = MediaManager.hashTrackName(name);
             if (hashed == value) {
                 BLog.d(TAG, "Remote Audio " + service.boardState.currentRadioChannel + " -> " + i);
                 if (service.boardState.currentRadioChannel != i) {
-                    service.musicPlayer.SetRadioChannel((int) i);
+                    service.musicController.SetRadioChannel((int) i);
                     BLog.d(TAG, "Received remote audio switch to track " + i + " (" + name + ")");
                 } else {
                     BLog.d(TAG, "Ignored remote audio switch to track " + i + " (" + name + ")");
@@ -80,7 +80,7 @@ public class MasterController implements Runnable {
             if (hashed == value) {
                 BLog.d(TAG, "Remote Video " + service.boardState.currentVideoMode + " -> " + i);
                 if (service.boardState.currentVideoMode != i) {
-                    service.boardVisualization.setMode((int) i);
+                    service.visualizationController.setMode((int) i);
                     BLog.d(TAG, "Received remote video switch to mode " + i + " (" + name + ")");
                 } else {
                     BLog.d(TAG, "Ignored remote video switch to mode " + i + " (" + name + ")");
@@ -91,8 +91,8 @@ public class MasterController implements Runnable {
     }
 
     public void RemoteVolume(long value){
-        if (value != service.musicPlayer.getCurrentBoardVol()) {
-            service.musicPlayer.setBoardVolume((int) value);
+        if (value != service.musicController.getCurrentBoardVol()) {
+            service.musicController.setBoardVolume((int) value);
         }
     }
 
@@ -115,7 +115,7 @@ public class MasterController implements Runnable {
     private void mSendVolume() {
 
         BLog.d(TAG, "Sending remote volume");
-        service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VOLUME_CODE, service.musicPlayer.getCurrentBoardVol(), RFMasterClientServer.kRemoteVolume);
+        service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_VOLUME_CODE, service.musicController.getCurrentBoardVol(), RFMasterClientServer.kRemoteVolume);
         try {
             Thread.sleep(service.rfClientServer.getLatency());
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class MasterController implements Runnable {
 
         BLog.d(TAG, "Sending remote audio");
 
-        String fileName = service.musicPlayer.getRadioChannelInfo(service.boardState.currentRadioChannel);
+        String fileName = service.musicController.getRadioChannelInfo(service.boardState.currentRadioChannel);
         service.rfMasterClientServer.sendRemote(RFUtil.REMOTE_AUDIO_TRACK_CODE, MediaManager.hashTrackName(fileName), RFMasterClientServer.kRemoteAudio);
 
         try {

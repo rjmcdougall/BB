@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
 
 public class BurnerBoardClassic extends BurnerBoard {
@@ -14,19 +13,19 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int mBoardSideLights = 79;
     private int[] mBoardOtherlights;
 
+    static {
+        boardWidth = 10;
+        boardHeight = 70;
+        textSizeHorizontal = 6;
+        textSizeVertical = 12;
+    }
+
     public BurnerBoardClassic(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Classic initing...");
-        boardWidth = 10;
-        boardHeight = 70;
-        boardScreen = new int[boardWidth * boardHeight * 3];
+
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
-        initPixelOffset();
-        //map2board
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-        this.textBuilder = new TextBuilder(service, boardWidth,boardHeight,6,12) ;
-        this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
-        initUsb();
+
     }
 
     public int getMultiplier4Speed() {
@@ -40,8 +39,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardClassic.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardClassic.BoardCallbackGetBatteryLevel();
+        BurnerBoardClassic.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
         mListener.attach(10, getBatteryLevelCallback);
 
     }
@@ -137,13 +135,13 @@ public class BurnerBoardClassic extends BurnerBoard {
             // Calculate sidelight proportional to lengths
             int fromY = (int) ((float) pixel * (float) boardHeight / (float) mBoardSideLights);
             setPixelOtherlight(pixel, kLeftSightlight,
-                    boardScreen[pixel2Offset(0, fromY, PIXEL_RED)],
-                    boardScreen[pixel2Offset(0, fromY, PIXEL_GREEN)],
-                    boardScreen[pixel2Offset(0, fromY, PIXEL_BLUE)]);
+                    boardScreen[this.pixelOffset.Map(0, fromY, PIXEL_RED)],
+                    boardScreen[this.pixelOffset.Map(0, fromY, PIXEL_GREEN)],
+                    boardScreen[this.pixelOffset.Map(0, fromY, PIXEL_BLUE)]);
             setPixelOtherlight(pixel, kRightSidelight,
-                    boardScreen[pixel2Offset(9, fromY, PIXEL_RED)],
-                    boardScreen[pixel2Offset(9, fromY, PIXEL_GREEN)],
-                    boardScreen[pixel2Offset(9, fromY, PIXEL_BLUE)]);
+                    boardScreen[this.pixelOffset.Map(9, fromY, PIXEL_RED)],
+                    boardScreen[this.pixelOffset.Map(9, fromY, PIXEL_GREEN)],
+                    boardScreen[this.pixelOffset.Map(9, fromY, PIXEL_BLUE)]);
         }
     }
 
@@ -156,12 +154,12 @@ public class BurnerBoardClassic extends BurnerBoard {
         if (down) {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = 0; y < boardHeight - 1; y++) {
-                    boardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_RED)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_GREEN)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_BLUE)];
                 }
             }
             for (int x = 0; x < kOtherLights; x++) {
@@ -177,12 +175,12 @@ public class BurnerBoardClassic extends BurnerBoard {
         } else {
             for (int x = 0; x < boardWidth; x++) {
                 for (int y = boardHeight - 2; y >= 0; y--) {
-                    boardScreen[pixel2Offset(x, y, PIXEL_RED)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_RED)];
-                    boardScreen[pixel2Offset(x, y, PIXEL_GREEN)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_GREEN)];
-                    boardScreen[pixel2Offset(x, y, PIXEL_BLUE)] =
-                            boardScreen[pixel2Offset(x, y + 1, PIXEL_BLUE)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_RED)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_GREEN)];
+                    boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] =
+                            boardScreen[this.pixelOffset.Map(x, y + 1, PIXEL_BLUE)];
                 }
             }
         }
@@ -230,9 +228,9 @@ public class BurnerBoardClassic extends BurnerBoard {
             //for (int y = 30; y < 31; y++) {
             for (int x = 0; x < boardWidth; x++) {
                 if (y < boardHeight) {
-                    rowPixels[x * 3 + 0] = boardScreen[pixel2Offset(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = boardScreen[pixel2Offset(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = boardScreen[pixel2Offset(x, y, PIXEL_BLUE)];
+                    rowPixels[x * 3 + 0] = boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
                 }
             }
 
@@ -254,13 +252,5 @@ public class BurnerBoardClassic extends BurnerBoard {
         setOtherlightsAutomatically();
         update();
         flush2Board();
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-        }
     }
 }

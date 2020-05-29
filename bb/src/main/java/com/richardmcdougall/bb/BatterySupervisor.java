@@ -1,8 +1,5 @@
 package com.richardmcdougall.bb;
 
-import android.graphics.Matrix;
-
-import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -106,42 +103,42 @@ public class BatterySupervisor {
         if ((voltage > 20) && (current > -.150) && (current < .010)) {
             // Any state -> IDLE
             powerState = powerStates.STATE_IDLE;
-            service.boardVisualization.inhibitVisual = true;
+            service.visualizationController.inhibitVisual = true;
         } else if ((voltage > 20) && (currentInstant < -.150)) {
             // Any state -> Displaying
             powerState = powerStates.STATE_DISPLAYING;
-            service.boardVisualization.inhibitVisual = false;
+            service.visualizationController.inhibitVisual = false;
         } else if (powerState == powerStates.STATE_DISPLAYING &&
                 // DISPLAYING -> Charging (avg current)
                 (voltage > 20) && (current > 10)) {
             powerState = powerStates.STATE_CHARGING;
-            service.boardVisualization.inhibitVisual = false;
+            service.visualizationController.inhibitVisual = false;
         } else if (powerState == powerStates.STATE_IDLE &&
                 (voltage > 20) && (currentInstant > .010)) {
             // STATE_IDLE -> Charging // instant
             powerState = powerStates.STATE_CHARGING;
-            service.boardVisualization.inhibitVisual = false;
+            service.visualizationController.inhibitVisual = false;
         } else if ((voltage > 20) && (current > .010)) {
             // Anystate -> Charging // avg current
             powerState = powerStates.STATE_CHARGING;
-            service.boardVisualization.inhibitVisual = false;
+            service.visualizationController.inhibitVisual = false;
         } else {
             BLog.d(TAG, "Unhandled power state " + powerState);
-            service.boardVisualization.inhibitVisual = false; // this occurs on all nonstandard devices.
+            service.visualizationController.inhibitVisual = false; // this occurs on all nonstandard devices.
         }
 
         BLog.d(TAG, "Power state is " + powerState);
 
         // Show battery if charging
-        service.boardVisualization.showBattery(powerState == powerStates.STATE_CHARGING);
+        service.visualizationController.showBattery(powerState == powerStates.STATE_CHARGING);
 
         // Battery voltage is critically low
         // Board will come to a halt in < 60 seconds
         // current is milliamps
         if ((voltage > 20.000) && (voltage < 35.300)) {
-            service.boardVisualization.lowBatteryVisual = true;
+            service.visualizationController.lowBatteryVisual = true;
         } else {
-            service.boardVisualization.lowBatteryVisual = false;
+            service.visualizationController.lowBatteryVisual = false;
         }
 
         announce = false;

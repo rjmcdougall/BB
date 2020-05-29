@@ -11,35 +11,32 @@ public class BurnerBoardMast extends BurnerBoard {
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private String TAG = this.getClass().getSimpleName();
 
+    static {
+        boardWidth = 24;
+        boardHeight = 159;
+        textSizeHorizontal = 12;
+        textSizeVertical = 12;
+    }
 
     public BurnerBoardMast(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Mast initing...");
-        boardWidth = 24;
-        boardHeight = 159;
-        boardScreen = new int[boardWidth * boardHeight * 3];
-        initPixelOffset();
+
         initpixelMap2Board();
-        this.appDisplay = new AppDisplay(service, boardWidth, boardHeight, this.pixel2OffsetTable);
-        this.textBuilder = new TextBuilder(service, boardWidth, boardHeight, 12, 12);
-        this.lineBuilder = new LineBuilder(service,boardWidth, boardHeight);
-        initUsb();
     }
 
-    @Override
     public int getMultiplier4Speed() {
         return 3;
     }
-
     public int getFrameRate() {
         return 18;
     }
+    public void setOtherlightsAutomatically(){};
 
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardMast.BoardCallbackGetBatteryLevel getBatteryLevelCallback =
-                new BurnerBoardMast.BoardCallbackGetBatteryLevel();
+        BurnerBoardMast.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(false);
         mListener.attach(8, getBatteryLevelCallback);
 
     }
@@ -71,12 +68,9 @@ public class BurnerBoardMast extends BurnerBoard {
     }
 
     private void pixelRemap(int x, int y, int stripNo, int stripOffset) {
-        pixelMap2BoardTable[stripNo][stripOffset] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[stripNo][stripOffset + 1] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[stripNo][stripOffset + 2] =
-                pixel2Offset(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[stripNo][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+        pixelMap2BoardTable[stripNo][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+        pixelMap2BoardTable[stripNo][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     private void initpixelMap2Board() {
@@ -96,20 +90,6 @@ public class BurnerBoardMast extends BurnerBoard {
                 }
                 pixelRemap(x, y, stripNo, stripOffset * 3);
             }
-        }
-    }
-
-    public class BoardCallbackGetBatteryLevel implements CmdMessenger.CmdEvents {
-        public void CmdAction(String str) {
-            for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
-            }
-            if (mBatteryStats[1] != -1) {
-                service.boardState.batteryLevel = mBatteryStats[1];
-            } else {
-                service.boardState.batteryLevel = 100;
-            }
-            BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel);
         }
     }
 }
