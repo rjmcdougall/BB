@@ -28,7 +28,7 @@ public class RFClientServer {
     private BBService service;
     public long tSentPackets = 0;
     private long replyCount = 0;
-    static final int kThreadSleepTime = 5000;
+    static final int kThreadSleepTime = 5;
     private DriftCalculator driftCalculator = new DriftCalculator();
 
     long mDrift;
