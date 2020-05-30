@@ -80,6 +80,7 @@ public abstract class BurnerBoard {
         this.appDisplay = new AppDisplay(service, this);
         this.textBuilder = new TextBuilder(service, this);
         this.lineBuilder = new LineBuilder(service, this);
+        this.arcBuilder = new ArcBuilder(service, this);
         initUsb();
     }
 

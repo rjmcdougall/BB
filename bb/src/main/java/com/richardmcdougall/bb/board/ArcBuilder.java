@@ -4,18 +4,25 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 
+import com.richardmcdougall.bb.BBService;
+
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+
+import static com.richardmcdougall.bb.board.BurnerBoard.boardHeight;
 
 public class ArcBuilder {
 
     private String TAG = this.getClass().getSimpleName();
     private IntBuffer drawBuffer = null;
-    private int boardWidth = 0;
-    private int boardHeight = 0;
+    private BurnerBoard board = null;
+    private BBService service = null;
     public ArrayList<RGB> pixels = new ArrayList<>();
 
-    public ArcBuilder() {
+    public ArcBuilder(BBService service, BurnerBoard board){
+        this.board = board;
+        this.service = service;
+        this.drawBuffer = IntBuffer.allocate(board.boardWidth * boardHeight * 4);
     }
 
     public void drawArc(float left, float top, float right, float bottom,
@@ -23,9 +30,9 @@ public class ArcBuilder {
                         boolean fill, int color) {
 
         Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(this.board.boardWidth, this.board.boardHeight, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
-        canvas.scale(-1, -1, boardWidth / 2, boardHeight / 2);
+        canvas.scale(-1, -1, this.board.boardWidth / 2, this.board.boardHeight / 2);
         Paint arcPaint = new Paint();
         arcPaint.setColor(color); //  Color
         arcPaint.setStrokeWidth(1);

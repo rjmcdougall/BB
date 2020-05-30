@@ -331,10 +331,6 @@ public class VisualizationController {
                 return mFrameRate;
             }
 
-            if (service.mediaManager == null) {
-                return mFrameRate;
-            }
-
             JSONObject videos = service.mediaManager.GetVideo();
             if (videos == null) {
                 return mFrameRate;

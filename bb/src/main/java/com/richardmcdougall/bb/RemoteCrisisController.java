@@ -20,7 +20,7 @@ public class RemoteCrisisController {
         try{
             if(service.localCrisisController.boardInCrisisPhase==0){ // of i am in crisis, i dont care if you are.
                 if(service.boardLocations.BoardsInCrisis().size()>0 && boardInCrisisPhase==0){
-                    StartCrisisPhase1();
+                    Phase1();
                 }
                 else if (service.boardLocations.BoardsInCrisis().size()==0 && !(boardInCrisisPhase==0)){
                     StopCrisis();
@@ -34,7 +34,7 @@ public class RemoteCrisisController {
     Runnable moveToPhase1 = () -> {
         try{
             if(service.boardLocations.BoardsInCrisis().size()>0 && boardInCrisisPhase==2){
-                StartCrisisPhase1();
+                Phase1();
             }
             else {
                 StopCrisis();
@@ -64,10 +64,12 @@ public class RemoteCrisisController {
     }
 
     private void Phase2(){
-        boardInCrisisPhase = 2;
-        stashedVideoMode = service.boardState.currentVideoMode;
-        this.service.visualizationController.setMode(this.service.mediaManager.GetMapMode());
-
+        int mapMode = this.service.mediaManager.GetMapMode();
+        if(mapMode != -1){
+            boardInCrisisPhase = 2;
+            stashedVideoMode = service.boardState.currentVideoMode;
+            this.service.visualizationController.setMode(mapMode);
+        }
         sch.schedule(moveToPhase1, 5, TimeUnit.SECONDS);
     }
 
@@ -78,7 +80,7 @@ public class RemoteCrisisController {
         service.musicController.Unmute();
     }
 
-    private void StartCrisisPhase1() {
+    private void Phase1() {
 
         boardInCrisisPhase = 1;
         service.musicController.Mute();
