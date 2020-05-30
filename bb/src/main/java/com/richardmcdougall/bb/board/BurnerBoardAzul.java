@@ -73,7 +73,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         this.logFlush();
         int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(125, mOutputScreen);
+        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
