@@ -37,6 +37,8 @@ public abstract class BurnerBoard {
     public static int boardHeight = 1;
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
+    public static boolean enableBatteryMonitoring = false;
+    public static boolean enableIOTReporting = false;
     private static String TAG = "BurnerBoard";
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;

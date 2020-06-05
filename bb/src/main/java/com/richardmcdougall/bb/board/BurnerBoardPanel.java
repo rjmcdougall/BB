@@ -38,6 +38,8 @@ public class BurnerBoardPanel extends BurnerBoard {
         boardHeight = 64;
         textSizeHorizontal = 12;
         textSizeVertical = 12;
+        enableBatteryMonitoring = true;
+        enableIOTReporting = true;
     }
 
     public BurnerBoardPanel(BBService service) {

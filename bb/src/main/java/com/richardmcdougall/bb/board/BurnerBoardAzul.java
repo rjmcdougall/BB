@@ -31,6 +31,8 @@ public class BurnerBoardAzul extends BurnerBoard {
         boardHeight = 118;
         textSizeHorizontal = 14;
         textSizeVertical = 10;
+        enableBatteryMonitoring = true;
+        enableIOTReporting = true;
     }
 
     public BurnerBoardAzul(BBService service) {

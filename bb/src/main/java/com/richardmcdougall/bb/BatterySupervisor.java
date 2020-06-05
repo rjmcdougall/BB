@@ -14,8 +14,6 @@ public class BatterySupervisor {
     private BBService service = null;
     private long lastOkStatement = System.currentTimeMillis();
     private long lastLowStatement = System.currentTimeMillis();
-    private boolean enableBatteryMonitoring = false;
-    private boolean enableIoTReporting = false;
     private int iotReportEveryNSeconds = 10;
 
 
@@ -33,22 +31,14 @@ public class BatterySupervisor {
     BatterySupervisor(BBService service) {
         this.service = service;
 
-
-        if (service.boardState.GetBoardType() == BoardState.BoardType.azul ||
-                service.boardState.GetBoardType() == BoardState.BoardType.classic ||
-                service.boardState.GetBoardType() == BoardState.BoardType.panel) {
-            enableBatteryMonitoring = true;
-            enableIoTReporting = true;
-        }
-
         /* Communicate the settings for the supervisor thread */
-        BLog.d(TAG, "Enable Battery Monitoring? " + enableBatteryMonitoring);
-        BLog.d(TAG, "Enable IoT Reporting? " + enableIoTReporting);
+        BLog.d(TAG, "Enable Battery Monitoring? " + service.burnerBoard.enableBatteryMonitoring);
+        BLog.d(TAG, "Enable IoT Reporting? " + service.burnerBoard.enableIOTReporting);
 
-        if (enableBatteryMonitoring)
+        if (service.burnerBoard.enableBatteryMonitoring)
             sch.scheduleWithFixedDelay(batterySupervisor, 10, 10, TimeUnit.SECONDS);
 
-        if (enableIoTReporting)
+        if (service.burnerBoard.enableIOTReporting)
             sch.scheduleWithFixedDelay(batteryIOT, 10, iotReportEveryNSeconds, TimeUnit.SECONDS);
 
     }

@@ -16,6 +16,8 @@ public class BurnerBoardMast extends BurnerBoard {
         boardHeight = 159;
         textSizeHorizontal = 12;
         textSizeVertical = 12;
+        enableBatteryMonitoring = false;
+        enableIOTReporting = false;
     }
 
     public BurnerBoardMast(BBService service) {

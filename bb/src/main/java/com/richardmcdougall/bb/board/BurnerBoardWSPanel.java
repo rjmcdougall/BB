@@ -28,6 +28,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         boardHeight = 180;
         textSizeHorizontal = 20;
         textSizeVertical = 10;
+        enableBatteryMonitoring = false;
+        enableIOTReporting = false;
     }
 
     static {

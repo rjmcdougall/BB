@@ -14,6 +14,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         boardHeight = 166;
         textSizeVertical = 0;
         textSizeHorizontal = 0;
+        enableBatteryMonitoring = false;
+        enableIOTReporting = false;
     }
 
     public BurnerBoardDirectMap(BBService service) {
