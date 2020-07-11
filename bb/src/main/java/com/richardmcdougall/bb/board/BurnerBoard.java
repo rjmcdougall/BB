@@ -39,6 +39,9 @@ public abstract class BurnerBoard {
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;
     public static boolean enableIOTReporting = false;
+    public static boolean renderTextOnScreen = false;
+    public static boolean renderLineOnScreen = false;
+    public static BoardState.BoardType boardType = null;
     private static String TAG = "BurnerBoard";
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
@@ -77,12 +80,12 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(this.boardUSBReceiver, filter);
 
         this.boardScreen = new int[boardWidth * boardHeight * 3];
-        this.boardDisplay = new BoardDisplay(this.service, this);
+        this.boardDisplay = new BoardDisplay(this);
         this.pixelOffset = new PixelOffset(this);
-        this.appDisplay = new AppDisplay(service, this);
-        this.textBuilder = new TextBuilder(service, this);
-        this.lineBuilder = new LineBuilder(service, this);
-        this.arcBuilder = new ArcBuilder(service, this);
+        this.appDisplay = new AppDisplay(this.service,this);
+        this.textBuilder = new TextBuilder(this);
+        this.lineBuilder = new LineBuilder(this);
+        this.arcBuilder = new ArcBuilder(this);
         initUsb();
     }
 

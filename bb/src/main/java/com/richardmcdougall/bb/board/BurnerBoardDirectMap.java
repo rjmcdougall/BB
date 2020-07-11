@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 // used by the now-defunct josPaks
 public class BurnerBoardDirectMap extends BurnerBoard {
@@ -16,6 +17,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         textSizeHorizontal = 0;
         enableBatteryMonitoring = false;
         enableIOTReporting = false;
+        renderTextOnScreen = false;
+        boardType = BoardState.BoardType.backpack;
+        renderLineOnScreen = false;
     }
 
     public BurnerBoardDirectMap(BBService service) {

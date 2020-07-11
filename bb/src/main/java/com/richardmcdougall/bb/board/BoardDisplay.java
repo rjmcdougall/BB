@@ -8,12 +8,10 @@ import java.util.TreeMap;
 public class BoardDisplay {
 
     public TreeMap<Integer, RGB> map = new TreeMap<>();
-    private BBService service;
     private int[] boardScreen = null;
     private BurnerBoard board = null;
 
-    public BoardDisplay(BBService service, BurnerBoard board) {
-        this.service = service;
+    public BoardDisplay(BurnerBoard board) {
         this.board = board;
         boardScreen = new int[board.boardWidth * board.boardHeight * 3];
         init();

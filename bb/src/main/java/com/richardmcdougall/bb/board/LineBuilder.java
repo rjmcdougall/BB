@@ -16,13 +16,11 @@ public class LineBuilder {
     private String TAG = this.getClass().getSimpleName();
     private IntBuffer drawBuffer = null;
     public ArrayList<RGB> pixels = new ArrayList<>();
-    private BBService service = null;
     private int[] layeredScreen;
     private BurnerBoard board = null;
 
-    public LineBuilder(BBService service, BurnerBoard board){
+    public LineBuilder(BurnerBoard board){
         this.board = board;
-        this.service = service;
         this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
     }
 
@@ -91,14 +89,10 @@ public class LineBuilder {
 
     // render text on screen
     public int[] renderLine(int[] origScreen) {
-        if(renderLineOnScreen())
+        if(this.board.renderLineOnScreen)
             return this.aRGBtoBoardScreen(origScreen);
         else
             return origScreen;
     }
 
-    public boolean renderLineOnScreen(){
-        return (this.service.boardState.GetBoardType() == BoardState.BoardType.panel
-        || this.service.boardState.GetBoardType() == BoardState.BoardType.wspanel);
-    }
 }

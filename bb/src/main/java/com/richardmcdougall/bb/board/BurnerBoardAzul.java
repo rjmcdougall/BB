@@ -33,6 +33,9 @@ public class BurnerBoardAzul extends BurnerBoard {
         textSizeVertical = 10;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
+        renderTextOnScreen = true;
+        boardType = BoardState.BoardType.azul;
+        renderLineOnScreen = false;
     }
 
     public BurnerBoardAzul(BBService service) {

@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardClassic extends BurnerBoard {
 
@@ -20,6 +21,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         textSizeVertical = 12;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
+        renderTextOnScreen = false;
+        boardType = BoardState.BoardType.classic;
+        renderLineOnScreen = false;
     }
 
     public BurnerBoardClassic(BBService service) {

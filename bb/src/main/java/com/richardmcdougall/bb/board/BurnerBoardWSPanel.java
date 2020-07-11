@@ -30,6 +30,9 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         textSizeVertical = 10;
         enableBatteryMonitoring = false;
         enableIOTReporting = false;
+        renderTextOnScreen = true;
+        boardType = BoardState.BoardType.wspanel;
+        renderLineOnScreen = true;
     }
 
     static {

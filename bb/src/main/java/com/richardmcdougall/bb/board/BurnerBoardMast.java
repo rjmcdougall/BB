@@ -3,6 +3,7 @@ package com.richardmcdougall.bb.board;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 // Specific for the Woodsons mask.
 public class BurnerBoardMast extends BurnerBoard {
@@ -18,6 +19,9 @@ public class BurnerBoardMast extends BurnerBoard {
         textSizeVertical = 12;
         enableBatteryMonitoring = false;
         enableIOTReporting = false;
+        renderTextOnScreen = false;
+        boardType = BoardState.BoardType.mast;
+        renderLineOnScreen = false;
     }
 
     public BurnerBoardMast(BBService service) {

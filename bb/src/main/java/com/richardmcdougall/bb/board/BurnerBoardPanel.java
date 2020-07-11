@@ -29,6 +29,7 @@ package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
@@ -40,6 +41,9 @@ public class BurnerBoardPanel extends BurnerBoard {
         textSizeVertical = 12;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
+        renderTextOnScreen = true;
+        boardType = BoardState.BoardType.panel;
+        renderLineOnScreen = true;
     }
 
     public BurnerBoardPanel(BBService service) {

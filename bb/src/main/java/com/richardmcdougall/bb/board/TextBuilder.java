@@ -21,12 +21,10 @@ public class TextBuilder {
     public ArrayList<RGB> pixels = new ArrayList<>();
     private BurnerBoard board = null;
     private int[] layeredScreen;
-    private BBService service = null;
 
-    public TextBuilder(BBService service, BurnerBoard board){
+    public TextBuilder(BurnerBoard board){
         this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
         this.board = board;
-        this.service  = service;
     }
 
     // Draw text on screen and delay for n seconds
@@ -134,18 +132,12 @@ public class TextBuilder {
     // render text on screen
     public int[] renderText(int[] origScreen) {
         // Suppress updating when displaying a text message
-        if (textDisplayingCountdown > 0 && renderTextOnScreen()) {
+        if (textDisplayingCountdown > 0 && this.board.renderTextOnScreen) {
             textDisplayingCountdown--;
             return this.aRGBtoBoardScreen(origScreen);
         }
         else {
             return origScreen;
         }
-    }
-    public boolean renderTextOnScreen(){
-        return (this.service.boardState.GetBoardType() == BoardState.BoardType.azul
-                || this.service.boardState.GetBoardType() == BoardState.BoardType.panel
-                || this.service.boardState.GetBoardType() == BoardState.BoardType.wspanel);
-
     }
 }

@@ -16,12 +16,10 @@ public class ArcBuilder {
     private String TAG = this.getClass().getSimpleName();
     private IntBuffer drawBuffer = null;
     private BurnerBoard board = null;
-    private BBService service = null;
     public ArrayList<RGB> pixels = new ArrayList<>();
 
-    public ArcBuilder(BBService service, BurnerBoard board){
+    public ArcBuilder(BurnerBoard board){
         this.board = board;
-        this.service = service;
         this.drawBuffer = IntBuffer.allocate(board.boardWidth * boardHeight * 4);
     }
 
