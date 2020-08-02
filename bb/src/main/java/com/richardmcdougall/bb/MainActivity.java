@@ -235,6 +235,33 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
         setupPermissions(Manifest.permission.ACCESS_NETWORK_STATE, 9);
         setupPermissions(Manifest.permission.ACCESS_FINE_LOCATION, 10);
 
+
+        try {
+            Thread.sleep(200);
+        }
+        catch(Exception e){
+        }
+
+        voice = new TextToSpeech(getApplicationContext(), (int status) -> {
+            // check for successful instantiation
+            if (status == TextToSpeech.SUCCESS) {
+                if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
+                    voice.setLanguage(Locale.US);
+                BLog.i(TAG, "Text To Speech ready...");
+                voice.setPitch((float) 0.8);
+                voice.setSpeechRate((float) 0.9);
+                voice.speak("I am ", TextToSpeech.QUEUE_FLUSH, null, "iam");
+            } else {
+                BLog.i(TAG, "Sorry! Text To Speech failed...");
+            }
+        });
+
+        try {
+            Thread.sleep(200);
+        }
+        catch(Exception e){
+        }
+
         startService(new Intent(getBaseContext(), BBService.class));
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
@@ -255,20 +282,6 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                 l("Device" + device.toString());
             }
         }
-
-        voice = new TextToSpeech(getApplicationContext(), (int status) -> {
-            // check for successful instantiation
-            if (status == TextToSpeech.SUCCESS) {
-                if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
-                    voice.setLanguage(Locale.US);
-                BLog.i(TAG, "Text To Speech ready...");
-                voice.setPitch((float) 0.8);
-                voice.setSpeechRate((float) 0.9);
-                voice.speak("I am ", TextToSpeech.QUEUE_FLUSH, null, "iam");
-            } else {
-                BLog.i(TAG, "Sorry! Text To Speech failed...");
-            }
-        });
 
         setContentView(R.layout.activity_main);
 
