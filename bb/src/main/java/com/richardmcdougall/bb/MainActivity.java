@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -25,7 +26,10 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.DebugConfigs;
+
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements InputManagerCompat.InputDeviceListener {
 
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     private BoardView mBoardView;
     private InputManagerCompat remoteControl;
     private boolean preventDialogs = false;
+    public TextToSpeech voice;
 
     // Kill popups which steal remote control input button focus from the app
     // http://www.andreas-schrade.de/2015/02/16/android-tutorial-how-to-create-a-kiosk-mode-in-android/
@@ -250,6 +255,20 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
                 l("Device" + device.toString());
             }
         }
+
+        voice = new TextToSpeech(getApplicationContext(), (int status) -> {
+            // check for successful instantiation
+            if (status == TextToSpeech.SUCCESS) {
+                if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
+                    voice.setLanguage(Locale.US);
+                BLog.i(TAG, "Text To Speech ready...");
+                voice.setPitch((float) 0.8);
+                voice.setSpeechRate((float) 0.9);
+                voice.speak("I am ", TextToSpeech.QUEUE_FLUSH, null, "iam");
+            } else {
+                BLog.i(TAG, "Sorry! Text To Speech failed...");
+            }
+        });
 
         setContentView(R.layout.activity_main);
 
