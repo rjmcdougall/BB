@@ -56,11 +56,12 @@ public class RFClientServer {
     public void UnregisterReceiver(){
         try{
             if(RFReceiver!=null)
-                this.service.unregisterReceiver(RFReceiver);
+                LocalBroadcastManager.getInstance(this.service).unregisterReceiver(RFReceiver);
 
             BLog.i(TAG,"Unregistered Receivers");
         }catch(Exception e)
         {
+            BLog.e(TAG, e.getMessage());
         }
     }
     // Send time-sync reply to specific client

@@ -62,6 +62,7 @@ public class BBWifi {
             BLog.i(TAG,"Unregistered Receivers");
         }catch(Exception e)
         {
+            BLog.e(TAG, e.getMessage());
         }
     }
 

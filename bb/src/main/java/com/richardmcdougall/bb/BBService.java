@@ -90,6 +90,17 @@ public class BBService extends Service {
      */
     boolean mAllowRebind;
 
+    public void onTaskRemoved(Intent rootIntent) {
+
+        //unregister listeners
+        //do any other cleanup if required
+
+        CleanUp();
+
+        //stop service
+        stopSelf();
+    }
+
     @Override
     public void onCreate() {
 
@@ -290,12 +301,7 @@ public class BBService extends Service {
         BLog.i(TAG, "onRebind");
     }
 
-    /**
-     * Called when The service is no longer used and is being destroyed
-     */
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void CleanUp(){
 
         this.bluetoothConnManager.UnregisterReceivers();
         this.rfMasterClientServer.UnregisterReceivers();
@@ -306,13 +312,23 @@ public class BBService extends Service {
         try{
             if(usbReceiver!=null)
                 this.unregisterReceiver(usbReceiver);
-            if(usbReceiver!=null)
-                this.unregisterReceiver(buttonReceiver);
-            if(usbReceiver!=null)
-                this.unregisterReceiver(btReceive);
-            BLog.i(TAG,"Unregistered Receivers");
-        }catch(Exception e)
-        {
+            BLog.i(TAG, "Unregistered Receivers usbReceiver");
+        }catch(Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        try {
+            if (usbReceiver != null)
+                LocalBroadcastManager.getInstance(this).unregisterReceiver(buttonReceiver);
+            BLog.i(TAG, "Unregistered Receivers buttonReceiver");
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        try {
+            if (usbReceiver != null)
+                context.unregisterReceiver(btReceive);
+            BLog.i(TAG, "Unregistered Receivers btReceive");
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
         }
         voice.shutdown();
     }

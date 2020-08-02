@@ -66,11 +66,12 @@ public class RFMasterClientServer {
     public void UnregisterReceivers() {
         try{
             if(RFReceiver!=null)
-                this.service.unregisterReceiver(RFReceiver);
+                LocalBroadcastManager.getInstance(this.service).unregisterReceiver(RFReceiver);
 
             BLog.i(TAG,"Unregistered Receivers");
         }catch(Exception e)
         {
+            BLog.e(TAG, e.getMessage());
         }
     }
 
