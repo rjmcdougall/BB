@@ -50,7 +50,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int[] mOutputScreen = this.textBuilder.renderText(boardScreen);
+        int[] mOutputScreen = boardScreen.clone();
+        mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = PixelDimmer.Dim(200, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
