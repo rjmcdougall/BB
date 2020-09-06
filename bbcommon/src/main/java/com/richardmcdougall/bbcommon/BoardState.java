@@ -225,6 +225,7 @@ public class BoardState {
     }
 
     public enum BoardType {
+        littlewing("littlewing"),
         azul("azul"),
         panel("panel"),
         wspanel("wspanel"),

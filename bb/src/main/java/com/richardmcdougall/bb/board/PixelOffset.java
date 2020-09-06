@@ -2,7 +2,7 @@ package com.richardmcdougall.bb.board;
 
 public class PixelOffset {
     // Max board pixel size limited by the following: need to make dynamic, or adjustable.
-    private int[][][] pixel2OffsetTable = new int[512][512][3];
+    private int[][][] pixel2OffsetTable = new int[768][768][3];
     private BurnerBoard board = null;
 
     // Convert from xy to buffer memory

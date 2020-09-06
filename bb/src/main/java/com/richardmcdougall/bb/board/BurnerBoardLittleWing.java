@@ -22,8 +22,8 @@ public class BurnerBoardLittleWing extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
     static int kStrips = 12;
-    static int[] pixelsPerStrip = new int[8];
-    static int[][] pixelMap2BoardTable = new int[12][4096];
+    static int[] pixelsPerStrip = new int[16];
+    static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
 
     static {
@@ -92,9 +92,6 @@ public class BurnerBoardLittleWing extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels);
-            // Send to board
-            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
-                flush2Board();
         }
         // Render on board
         update();
@@ -103,9 +100,9 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardHeight - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardHeight - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardHeight - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset] = this.pixelOffset.Map(x, y, PIXEL_RED);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(x, y, PIXEL_GREEN);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map( x,  y, PIXEL_BLUE);
     }
 
     private void initpixelMap2Board() {
@@ -130,13 +127,13 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             if (boardMap[x].stripDirection == 1) {
                 // Strip has y1 ... y2
                 for (y = boardMap[x].startY; y <= boardMap[x].endY; y++) {
-                    int stripOffset = boardMap[x].stripOffset + y - boardMap[x].startY;
+                    int stripOffset = boardMap[x].stripOffset + y;// + y - boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
                 // Strip has y2 ... y1 (reverse order)
                 for (y = boardMap[x].endY; y <= boardMap[x].startY; y++) {
-                    int stripOffset = boardMap[x].stripOffset - y + boardMap[x].startY;
+                    int stripOffset = boardMap[x].stripOffset + y;//- y + boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             }
