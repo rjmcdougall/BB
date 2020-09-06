@@ -122,7 +122,7 @@ public class BurnerBoardAzul extends BurnerBoard {
                 int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
-                    //l("boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
+                   //BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
