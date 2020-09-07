@@ -47,9 +47,6 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     public int getMultiplier4Speed() {
-        if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
-            return 1; // dkw need to config this
-        else
             return 2; // dkw need to config this
 
     }
@@ -79,7 +76,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = PixelDimmer.Dim(5, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
@@ -127,13 +124,13 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             if (boardMap[x].stripDirection == 1) {
                 // Strip has y1 ... y2
                 for (y = boardMap[x].startY; y <= boardMap[x].endY; y++) {
-                    int stripOffset = boardMap[x].stripOffset + y;// + y - boardMap[x].startY;
+                    int stripOffset = boardMap[x].stripOffset + y - boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
                 // Strip has y2 ... y1 (reverse order)
                 for (y = boardMap[x].endY; y <= boardMap[x].startY; y++) {
-                    int stripOffset = boardMap[x].stripOffset + y;//- y + boardMap[x].startY;
+                    int stripOffset = boardMap[x].stripOffset - y + boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             }
