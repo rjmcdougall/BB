@@ -18,7 +18,7 @@ public class PixelDimmer {
             if (pixel % 3 == 0) {
                 totalBrightnessSum += boardScreen[pixel];
             } else if (pixel % 3 == 1) {
-                totalBrightnessSum += boardScreen[pixel];
+                totalBrightnessSum += boardScreen[pixel] / 2;
             } else {
                 totalBrightnessSum += boardScreen[pixel] / 2;
             }

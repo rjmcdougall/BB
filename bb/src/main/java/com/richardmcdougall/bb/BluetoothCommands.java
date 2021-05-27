@@ -367,6 +367,8 @@ public class BluetoothCommands {
 
     public JSONObject MinimizedState() {
         JSONObject state = new JSONObject();
+        BLog.d(TAG, "MinimizedState()");
+        BLog.d(TAG, "Battery Level " + service.boardState.batteryLevel);
         try {
             state.put("acn", service.boardState.currentRadioChannel - 1);
             state.put("vcn", service.boardState.currentVideoMode - 1);
@@ -383,6 +385,7 @@ public class BluetoothCommands {
             state.put("p", service.boardState.password);
             state.put("r",service.boardState.inCrisis);
             state.put("rd",service.boardState.rotatingDisplay);
+
 
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());

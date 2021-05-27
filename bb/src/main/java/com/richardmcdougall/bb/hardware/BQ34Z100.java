@@ -5,6 +5,7 @@ import com.google.android.things.pio.PeripheralManager;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
+import java.security.spec.ECField;
 import java.util.List;
 
 public class BQ34Z100 implements AutoCloseable {
@@ -27,7 +28,7 @@ public class BQ34Z100 implements AutoCloseable {
     }
 
     private void init() {
-        BLog.e(TAG, "MPU init");
+        BLog.e(TAG, "BQ34z100 init");
         mIsReady = true;
     }
 
@@ -57,7 +58,7 @@ public class BQ34Z100 implements AutoCloseable {
     }
 
     protected static String getDefaultBus() {
-        BLog.e(TAG, "MPU getDefaultBus");
+        BLog.e(TAG, "BQ34z100 getDefaultBus");
 
         PeripheralManager peripheralManagerService = PeripheralManager.getInstance();
         List<String> deviceList = peripheralManagerService.getI2cBusList();
@@ -170,6 +171,17 @@ public class BQ34Z100 implements AutoCloseable {
             temp += flash_block_data[i];
         }
         return 255 - temp;
+    }
+
+    int signed_convert16(int number) {
+        int converted_number = 0;
+        try {
+            BLog.v(TAG, "convert number " + number + " " + Integer.toString(number, 2) + " " + (short)Integer.parseInt(Integer.toString(number, 2), 2));
+            converted_number = (short)Integer.parseInt(Integer.toString(number, 2), 2);
+        } catch (Exception e) {
+
+        }
+        return converted_number;
     }
 
     double xemics_to_double(int value) {
@@ -814,11 +826,11 @@ public class BQ34Z100 implements AutoCloseable {
     }
 
     public int average_current_ma() throws IOException  {
-        return (int) scaled(read_register(0x0a, 2));
+        return (int) scaled(signed_convert16(read_register(0x0a, 2)));
     }
 
     public float average_current_amps() throws IOException  {
-        return ((float) scaled(read_register(0x0a, 2))) / 1000.0f;
+        return ((float) scaled(signed_convert16(read_register(0x0a, 2)))) / 1000.0f;
     }
 
     public int temperature() throws IOException  {
@@ -834,11 +846,11 @@ public class BQ34Z100 implements AutoCloseable {
     }
 
     public int current_ma() throws IOException  {
-        return scaled(read_register(0x10, 2));
+        return scaled(signed_convert16(read_register(0x10, 2)));
     }
 
     public float current_amps() throws IOException  {
-        return ((float)scaled(read_register(0x10, 2))) / 1000.0f;
+        return ((float)scaled(signed_convert16(read_register(0x10, 2)))) / 1000.0f;
     }
 
     public int average_time_to_empty() throws IOException  {

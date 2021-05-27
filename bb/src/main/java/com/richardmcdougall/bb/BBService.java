@@ -213,7 +213,7 @@ public class BBService extends Service {
             radio = new RF(this);
 
 
-           //bms = BMS.Builder(this);
+           bms = BMS.Builder(this);
 
 
             rfClientServer = new RFClientServer(this);

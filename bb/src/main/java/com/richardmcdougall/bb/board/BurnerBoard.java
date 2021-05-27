@@ -164,12 +164,21 @@ public abstract class BurnerBoard {
         Arrays.fill(boardScreen, 0);
     }
 
+    static final int testPix1 = 21;
+    static final int testPix2 = 180;
+    static final int testX = 4;
+
     public final void setPixel(int x, int y, int color) {
 
         int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
         int r = ((color & 0xff0000) >> 16);
+        //y = testPix1;
+        //x = testX;
         setPixel(x, y, r, g, b);
+        //y = testPix2;
+        //r = g = b = 255;
+        //setPixel(x, y, r, g, b);
     }
 
     public final void setPixel(int x, int y, int r, int g, int b) {
@@ -178,9 +187,19 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
             return;
         }
+        //x = testX;
+        //y = testPix1;
+        //r = g = b = 255;
+
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] = r;
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] = g;
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
+
+        //y = testPix2;
+        //boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] = r;
+        //boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] = g;
+        //boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
+
     }
 
     public final void fillScreen(int r, int g, int b) {
@@ -194,6 +213,7 @@ public abstract class BurnerBoard {
     }
 
     public void scrollPixels(boolean down) {
+        //if (true) return;
 
         if (boardScreen == null) {
             return;

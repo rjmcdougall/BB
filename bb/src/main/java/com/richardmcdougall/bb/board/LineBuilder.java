@@ -39,7 +39,7 @@ public class LineBuilder {
         linepaint.setStrokeWidth(1);
         linepaint.setStyle(Paint.Style.FILL_AND_STROKE);
 
-        canvas.drawLine(0, 0, 20, 180, linepaint);
+        canvas.drawLine(5, 40, 15, 100, linepaint);
 
         if (drawBuffer != null) {
             drawBuffer.rewind();
