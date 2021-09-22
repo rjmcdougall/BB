@@ -124,32 +124,38 @@ public class TranslationMapBag {
     };
     static TranslationMap[] littlewing = {
 //X,StartY,End Y,Direction,Strip #,Offset in strip
-            new TranslationMap(0,127,75,-1,5,210),
-            new TranslationMap(1,58,143,1,5,263),
-            new TranslationMap(2,46,155,1,6,0),
-            new TranslationMap(3,165,37,-1,1,220),
-            new TranslationMap(4,28,173,1,4,0),
-            new TranslationMap(5,180,21,-1,2,198),//197
-            new TranslationMap(6,14,187,1,3,0),
-            new TranslationMap(7,194,8,-1,3,174),//193
-            new TranslationMap(8,2,199,1,2,0),//198
-            new TranslationMap(9,205,0,-1,6,110),//204
-            new TranslationMap(10,0,209,1,5,0),
-            new TranslationMap(11,216,0,-1,4,146),//214
-            new TranslationMap(12,0,219,1,1,0),
-            new TranslationMap(13,0,219,1,7,0),
-            new TranslationMap(14,216,0,-1,10,146),//214
-            new TranslationMap(15,0,209,1,11,0),
-            new TranslationMap(16,205,0,-1,12,110),//204
-            new TranslationMap(17,2,199,1,8,0),//198
-            new TranslationMap(18,195,8,-1,9,174), //193
-            new TranslationMap(19,14,187,1,9,0),
-            new TranslationMap(20,180,21,-1,8,198),//197
-            new TranslationMap(21,28,173,1,10,0),
-            new TranslationMap(22,165,37,-1,7,220),
-            new TranslationMap(23,46,155,1,12,0),
-            new TranslationMap(24,58,143,1,11,263),
-            new TranslationMap(25,127,75,-1,11,210)
+            new TranslationMap(0,0,239,1,14,0),
+            new TranslationMap(1,0,239,1,15,0),
+            new TranslationMap(2,0,252,1,13,0),
+            new TranslationMap(3,127,75,-1,5,210),
+            new TranslationMap(4,58,143,1,5,263),
+            new TranslationMap(5,46,155,1,6,0),
+            new TranslationMap(6,165,37,-1,1,220),
+            new TranslationMap(7,28,173,1,4,0),
+            new TranslationMap(8,180,21,-1,2,198),//197
+            new TranslationMap(9,14,187,1,3,0),
+            new TranslationMap(10,194,8,-1,3,174),//193
+            new TranslationMap(11,2,199,1,2,0),//198
+            new TranslationMap(12,205,0,-1,6,110),//204
+            new TranslationMap(13,0,209,1,5,0),
+            new TranslationMap(14,216,0,-1,4,146),//214
+            new TranslationMap(15,0,219,1,1,0),
+            new TranslationMap(16,0,219,1,7,0),
+            new TranslationMap(17,216,0,-1,10,146),//214
+            new TranslationMap(18,0,209,1,11,0),
+            new TranslationMap(19,205,0,-1,12,110),//204
+            new TranslationMap(20,2,199,1,8,0),//198
+            new TranslationMap(21,195,8,-1,9,174), //193
+            new TranslationMap(22,14,187,1,9,0),
+            new TranslationMap(23,180,21,-1,8,198),//197
+            new TranslationMap(24,28,173,1,10,0),
+            new TranslationMap(25,165,37,-1,7,220),
+            new TranslationMap(26,46,155,1,12,0),
+            new TranslationMap(27,58,143,1,11,263),
+            new TranslationMap(28,127,75,-1,11,210),
+            new TranslationMap(29,252,0,-1,13,253),
+            new TranslationMap(30,239,0,-1,15,240),
+            new TranslationMap(31,239,0,-1,14,240)
     };
 }
 
