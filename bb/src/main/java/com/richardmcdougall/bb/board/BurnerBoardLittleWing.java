@@ -18,30 +18,30 @@ import com.richardmcdougall.bbcommon.BoardState;
 //          cmdMessenger.sendCmdArg(batteryFlagsB);
 //          cmdMessenger.sendCmdEnd();
 
-public class BurnerBoardAzul extends BurnerBoard {
+public class BurnerBoardLittleWing extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
-    static int kStrips = 8;
-    static int[] pixelsPerStrip = new int[8];
-    static int[][] pixelMap2BoardTable = new int[8][4096];
+    static int kStrips = 12;
+    static int[] pixelsPerStrip = new int[16];
+    static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
 
     static {
-        boardWidth = 46;
-        boardHeight = 118;
+        boardWidth = 26;
+        boardHeight = 220;
         textSizeHorizontal = 14;
-        textSizeVertical = 10;
+        textSizeVertical = 20;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
         renderTextOnScreen = true;
-        boardType = BoardState.BoardType.azul;
+        boardType = BoardState.BoardType.littlewing;
         renderLineOnScreen = false;
     }
 
-    public BurnerBoardAzul(BBService service) {
+    public BurnerBoardLittleWing(BBService service) {
         super(service);
 
-        BLog.i(TAG, "Burner Board Azul initing...");
+        BLog.i(TAG, "Burner Board Little Wing initting...");
 
         initpixelMap2Board();
     }
@@ -57,7 +57,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     public void start() {
 
         // attach getBatteryLevel cmdMessenger callback
-        BurnerBoardAzul.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
+        BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
         mListener.attach(8, getBatteryLevelCallback);
 
     }
@@ -92,9 +92,6 @@ public class BurnerBoardAzul extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels);
-            // Send to board
-            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
-                flush2Board();
         }
         // Render on board
         update();
@@ -103,41 +100,40 @@ public class BurnerBoardAzul extends BurnerBoard {
     }
 
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset] = this.pixelOffset.Map(x, y, PIXEL_RED);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(x, y, PIXEL_GREEN);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map( x,  y, PIXEL_BLUE);
     }
 
     private void initpixelMap2Board() {
         int x, y;
 
-        boardMap = TranslationMapBag.azul;
-
+        boardMap = TranslationMapBag.littlewing;
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
             for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
+                int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
-                   //BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
+                    BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
 
-        for (y = 0; y < boardMap.length; y++) {
-            if (boardMap[y].stripDirection == 1) {
-                // Strip has x1 ... x2
-                for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
-                    int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
+        for (x = 0; x < boardMap.length; x++) {
+            if (boardMap[x].stripDirection == 1) {
+                // Strip has y1 ... y2
+                for (y = boardMap[x].startY; y <= boardMap[x].endY; y++) {
+                    int stripOffset = boardMap[x].stripOffset + y;// + y - boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
-                // Strip has x2 ... x1 (reverse order)
-                for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
-                    int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
+                // Strip has y2 ... y1 (reverse order)
+                for (y = boardMap[x].endY; y <= boardMap[x].startY; y++) {
+                    int stripOffset = boardMap[x].stripOffset + y;//- y + boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             }
@@ -145,7 +141,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         for (int s = 0; s < kStrips; s++) {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+                BLog.i(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
             }
         }
     }

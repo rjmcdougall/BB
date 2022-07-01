@@ -120,7 +120,36 @@ public class TranslationMapBag {
             new TranslationMap(114, 14, 31, 1, 1, 476),
             new TranslationMap(115, 34, 11, -1, 1, 494),
             new TranslationMap(116, 14, 31, 1, 1, 518),
-            new TranslationMap(117, 26, 19, -1, 1, 536) // trying to fix the back lights direction
+            new TranslationMap(117, 26, 19, -1, 1, 536)
+    };
+    static TranslationMap[] littlewing = {
+//X,StartY,End Y,Direction,Strip #,Offset in strip
+            new TranslationMap(0,127,75,-1,5,296),
+            new TranslationMap(1,58,143,1,5,210),
+            new TranslationMap(2,46,155,1,6,0),
+            new TranslationMap(3,165,37,-1,1,220),
+            new TranslationMap(4,28,173,1,4,0),
+            new TranslationMap(5,180,21,-1,2,197),
+            new TranslationMap(6,14,187,1,3,0),
+            new TranslationMap(7,193,8,-1,3,174),
+            new TranslationMap(8,2,198,1,2,0),
+            new TranslationMap(9,204,0,-1,6,110),
+            new TranslationMap(10,0,209,1,5,0),
+            new TranslationMap(11,214,0,-1,4,146),
+            new TranslationMap(12,0,219,1,1,0),
+            new TranslationMap(13,0,219,1,7,0),
+            new TranslationMap(14,214,0,-1,10,146),
+            new TranslationMap(15,214,0,-1,11,0),
+            new TranslationMap(16,204,0,-1,12,110),
+            new TranslationMap(17,2,198,1,8,0),
+            new TranslationMap(18,193,8,-1,9,174),
+            new TranslationMap(19,14,187,1,9,0),
+            new TranslationMap(20,180,21,-1,8,197),
+            new TranslationMap(21,28,173,1,10,0),
+            new TranslationMap(22,165,37,-1,7,220),
+            new TranslationMap(23,46,155,1,12,0),
+            new TranslationMap(24,58,143,1,11,210),
+            new TranslationMap(25,127,75,-1,11,296)
     };
 }
 

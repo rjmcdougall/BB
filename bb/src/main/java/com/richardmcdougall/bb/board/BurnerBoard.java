@@ -125,6 +125,9 @@ public abstract class BurnerBoard {
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.azul) {
             BLog.d(TAG, "Visualization: Using Azul");
             burnerBoard = new BurnerBoardAzul(service);
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
+            BLog.d(TAG, "Visualization: Using LittleWing");
+            burnerBoard = new BurnerBoardLittleWing(service);
         } else {
             BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
             burnerBoard = new BurnerBoardAzul(service);
