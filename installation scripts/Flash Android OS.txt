@@ -3,7 +3,9 @@ Get Etcher
 https://osxdaily.com/2018/01/11/write-img-to-sd-card-mac-etcher/
 
 Get OS Build from Proto
-Use Etcher to install .img
+https://drive.google.com/file/d/1X19qCvj5QXqbkoNo-uJh-urBUxEjWxqY/view?usp=sharing
+
+Use Etcher to burn .img
 
 put the SD card in the nanopi
 
