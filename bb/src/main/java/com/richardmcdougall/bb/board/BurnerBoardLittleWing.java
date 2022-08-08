@@ -21,14 +21,14 @@ import com.richardmcdougall.bbcommon.BoardState;
 public class BurnerBoardLittleWing extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
-    static int kStrips = 12;
+    static int kStrips = 16;
     static int[] pixelsPerStrip = new int[16];
     static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
 
     static {
-        boardWidth = 26;
-        boardHeight = 220;
+        boardWidth = 32; //26
+        boardHeight = 255; //220
         textSizeHorizontal = 14;
         textSizeVertical = 20;
         enableBatteryMonitoring = true;
@@ -47,10 +47,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     public int getMultiplier4Speed() {
-        if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
-            return 1; // dkw need to config this
-        else
-            return 2; // dkw need to config this
+        return 5; // dkw need to config this
 
     }
 
@@ -63,7 +60,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 30;
+            return 35;
     }
 
     public void setOtherlightsAutomatically() {
@@ -75,10 +72,11 @@ public class BurnerBoardLittleWing extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = PixelDimmer.Dim(3, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
+        // last two strips are emulated side strips
         for (int s = 0; s < kStrips; s++) {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
@@ -88,6 +86,10 @@ public class BurnerBoardLittleWing extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels);
+            // TODO: something takes a shit upstream if too much data is outstanding before a flush
+            if (s == 8) {
+                flush2Board();
+            }
         }
         // Render on board
         update();
@@ -114,7 +116,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
                 int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
-                    BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
+                    //BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
@@ -123,22 +125,24 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             if (boardMap[x].stripDirection == 1) {
                 // Strip has y1 ... y2
                 for (y = boardMap[x].startY; y <= boardMap[x].endY; y++) {
-                    int stripOffset = boardMap[x].stripOffset + y;// + y - boardMap[x].startY;
+                    int stripOffset = boardMap[x].stripOffset + y - boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
                 // Strip has y2 ... y1 (reverse order)
                 for (y = boardMap[x].endY; y <= boardMap[x].startY; y++) {
-                    int stripOffset = boardMap[x].stripOffset + y;//- y + boardMap[x].startY;
+                    int stripOffset = boardMap[x].stripOffset - y + boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             }
         }
+        /*
         for (int s = 0; s < kStrips; s++) {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
                 BLog.i(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
             }
         }
+        */
     }
 }
