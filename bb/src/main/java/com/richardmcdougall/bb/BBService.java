@@ -74,6 +74,7 @@ public class BBService extends Service {
     public RemoteCrisisController remoteCrisisController = null;
     public LocalCrisisController localCrisisController = null;
     public RotatingDisplayController rotatingDisplayController = null;
+    public DisplayMapManager displayMapManager = null;
     private boolean textToSpeechReady = false;
 
 
@@ -189,6 +190,8 @@ public class BBService extends Service {
             remoteCrisisController = new RemoteCrisisController(this);
             localCrisisController = new LocalCrisisController(this);
 
+            displayMapManager = new DisplayMapManager(this);
+
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.textBuilder.setText90(boardState.BOARD_ID, 5000, burnerBoard.getFrameRate(), new RGBList().getColor("white"));
 
@@ -212,9 +215,7 @@ public class BBService extends Service {
             gps = new Gps(this);
             radio = new RF(this);
 
-
-           //bms = BMS.Builder(this);
-
+            bms = BMS.Builder(this);
 
             rfClientServer = new RFClientServer(this);
             rfMasterClientServer = new RFMasterClientServer(this);
