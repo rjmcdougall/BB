@@ -233,6 +233,7 @@ public class BoardState {
         classic("classic"),
         boombox("boombox"),
         backpack("backpack"),
+        v4("v4"),
         unknown("unknown");
 
         private String stringValue;
