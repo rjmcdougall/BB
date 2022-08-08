@@ -128,6 +128,9 @@ public abstract class BurnerBoard {
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
             BLog.d(TAG, "Visualization: Using LittleWing");
             burnerBoard = new BurnerBoardLittleWing(service);
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
+            BLog.d(TAG, "Visualization: Using V4");
+            burnerBoard = new BurnerBoardV4(service);
         } else {
             BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
             burnerBoard = new BurnerBoardAzul(service);
@@ -594,11 +597,15 @@ public abstract class BurnerBoard {
         }
 
         public void CmdAction(String str) {
+            int it;
+            BLog.i("Str", str);
             for (int i = 0; i < mBatteryStats.length; i++) {
-                mBatteryStats[i] = mListener.readIntArg();
+                it = mListener.readIntArg();
+                BLog.i("Stats: ", String.valueOf(it));
+                mBatteryStats[i] = it;
             }
 
-            if (!requireBMS) {
+            if (!this.requireBMS) {
                 if (mBatteryStats[1] != -1) {
                     service.boardState.batteryLevel = mBatteryStats[1];
                 } else {
