@@ -85,6 +85,10 @@ public class BMS_BQ extends BMS {
     }
 
     public float get_current()  throws IOException {
+        return mBQ.average_current_amps();
+    }
+
+    public float get_current_instant()  throws IOException {
         return mBQ.current_amps();
     }
 
@@ -92,4 +96,3 @@ public class BMS_BQ extends BMS {
         return mBQ.state_of_charge_pct();
     }
 }
-
