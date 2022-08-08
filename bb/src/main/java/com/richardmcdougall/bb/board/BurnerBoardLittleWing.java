@@ -63,11 +63,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     public int getFrameRate() {
-
-        if (this.service.boardState.GetBoardType() == BoardState.BoardType.boombox)
-            return 15;
-        else
-            return 30;
+        return 30;
     }
 
     public void setOtherlightsAutomatically() {
