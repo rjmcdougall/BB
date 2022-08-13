@@ -4,6 +4,10 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 public class BurnerBoardV4 extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
@@ -11,6 +15,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     static int[] pixelsPerStrip = new int[16];
     static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     static {
         boardWidth = 26;
@@ -29,7 +34,15 @@ public class BurnerBoardV4 extends BurnerBoard {
 
         BLog.i(TAG, "Burner Board V4 init...");
 
+        Runnable periodicCheckForDisplayMap = () -> checkForDisplayMapChanges();
+        sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 1, 1, TimeUnit.SECONDS);
+
         initpixelMap2Board();
+    }
+
+    private void checkForDisplayMapChanges(){
+        if(this.service.displayMapManager.debug)
+            initpixelMap2Board();
     }
 
     public int getMultiplier4Speed() {
@@ -96,7 +109,7 @@ public class BurnerBoardV4 extends BurnerBoard {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
             for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
+                int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
                     //BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
@@ -104,26 +117,29 @@ public class BurnerBoardV4 extends BurnerBoard {
             }
         }
 
-        for (y = 0; y < boardMap.length; y++) {
-            if (boardMap[y].stripDirection == 1) {
-                // Strip has x1 ... x2
-                for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
-                    int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
+        for (x = 0; x < 5; x++) {
+            if (boardMap[x].stripDirection == 1) {
+                // Strip has y1 ... y2
+                for (y = boardMap[x].startY; y <= boardMap[x].endY; y++) {
+                    int stripOffset = boardMap[x].stripOffset + y - boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
-                // Strip has x2 ... x1 (reverse order)
-                for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
-                    int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
+                // Strip has y2 ... y1 (reverse order)
+                for (y = boardMap[x].endY; y <= boardMap[x].startY; y++) {
+                    int stripOffset = boardMap[x].stripOffset - y + boardMap[x].startY;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             }
         }
+        /*
         for (int s = 0; s < kStrips; s++) {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+                BLog.i(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
             }
         }
+        */
+        int i = 1;
     }
 }
