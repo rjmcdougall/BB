@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 public class BMS_BQTeensy extends BMS {
     private String TAG = this.getClass().getSimpleName();
-    public int[] mBatteryStats = new int[16];
+  //  public int[] mBatteryStats = new int[16];
     private static final int kAzulBatteryMah = 38000;
 
     public BMS_BQTeensy(BBService service) {
@@ -38,12 +38,12 @@ public class BMS_BQTeensy extends BMS {
                 (tmpBatteryStats[1] != -1) &&  // level
                 (tmpBatteryStats[5] > 20000)) { // voltage
             service.boardState.batteryLevel = tmpBatteryStats[1];
-            System.arraycopy(tmpBatteryStats, 0, mBatteryStats, 0, 16);
+            System.arraycopy(tmpBatteryStats, 0, tmpBatteryStats, 0, 16);
             BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
                     "voltage: " + getBatteryVoltage() + ", " +
                     "current: " + getBatteryCurrent() + ", " +
                     "current instant: " + getBatteryCurrentInstant() + ", " +
-                    "flags: " + mBatteryStats[0] + ", " +
+                    "flags: " + tmpBatteryStats[0] + ", " +
                     "battery stats: " + Arrays.toString(tmpBatteryStats)  );
         } else {
             BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
@@ -54,13 +54,12 @@ public class BMS_BQTeensy extends BMS {
 
 
     public int getBatteryHealth() {
-        return 100 * mBatteryStats[5] / kAzulBatteryMah;
+        return 100 * this.service.burnerBoard.getmBatteryStats()[5] / kAzulBatteryMah;
     }
-
 
     // Instant current in milliamps
     public int getBatteryCurrent() {
-        int codedLevel = mBatteryStats[6];
+        int codedLevel = this.service.burnerBoard.getmBatteryStats()[6];
         if (codedLevel > 32768) {
             return 10 * (codedLevel - 65536);
         } else {
@@ -69,7 +68,7 @@ public class BMS_BQTeensy extends BMS {
     }
 
     public int getBatteryCurrentInstant() {
-        int codedLevel = mBatteryStats[9];
+        int codedLevel = this.service.burnerBoard.getmBatteryStats()[9];
         if (codedLevel > 32768) {
             return 10 * (codedLevel - 65536);
         } else {
@@ -79,11 +78,7 @@ public class BMS_BQTeensy extends BMS {
 
     // Voltage in millivolts
     public int getBatteryVoltage() {
-        return 0;
-    }
-
-    public String getBatteryStats() {
-        return Arrays.toString(mBatteryStats);
+        return this.service.burnerBoard.getmBatteryStats()[5];
     }
 
 

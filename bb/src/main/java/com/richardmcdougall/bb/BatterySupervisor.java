@@ -79,6 +79,13 @@ public class BatterySupervisor {
             BLog.e(TAG, "Cannot read BMS");
         }
 
+        try {
+            this.service.bms.update();
+        }
+        catch(Exception e){
+            BLog.e(TAG, e.getLocalizedMessage());
+        }
+
 
         BLog.d(TAG, "Board Current(avg) is " + current);
         BLog.d(TAG, "Board Current(Instant) is " + currentInstant);
