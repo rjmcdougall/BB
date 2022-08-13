@@ -58,6 +58,7 @@ public class BoardState {
     public int videoContrastMultiplier = 1;
     public boolean rotatingDisplay = false;
     public String profile = "";
+    public boolean displayDebug = false;
 
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
@@ -153,6 +154,7 @@ public class BoardState {
         targetAPKVersion = this.allBoards.targetAPKVersion(BOARD_ID);
         videoContrastMultiplier = this.allBoards.videoContrastMultiplier(BOARD_ID);
         profile = this.allBoards.getProfile(BOARD_ID);
+        displayDebug = this.allBoards.displayDebug(BOARD_ID);
 
         BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier + " " + this.profile);
     }

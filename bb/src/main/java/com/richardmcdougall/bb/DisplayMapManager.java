@@ -1,7 +1,5 @@
 package com.richardmcdougall.bb;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.richardmcdougall.bb.board.TranslationMap;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.FileHelpers;
@@ -33,11 +31,10 @@ public class DisplayMapManager {
     private int currentFailedChecks = 0;
     public FileHelpers.OnDownloadProgressType onProgressCallback = null;
     public ArrayList<TranslationMap> displayMap = new ArrayList<>();
-
+    public boolean debug = false;
 
     public DisplayMapManager(BBService service) {
         this.service = service;
-
 
         filesDir = this.service.context.getFilesDir().getAbsolutePath();
 
@@ -47,9 +44,13 @@ public class DisplayMapManager {
         // wait 5 seconds to hopefully get wifi before starting the download.
         Runnable initialCheckForDisplayMap = () -> initialCheck();
         Runnable periodicCheckForDisplayMap = () -> periodicCheck();
+        Runnable debugCheckForDisplayMap = () -> frequentCheck();
+        Runnable checkForDebugStatus = () -> checkForDebug();
 
         sch.scheduleWithFixedDelay(initialCheckForDisplayMap, 3, 5, TimeUnit.SECONDS);
         sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 1, 2, TimeUnit.MINUTES);
+        sch.scheduleWithFixedDelay(debugCheckForDisplayMap, 1, 5, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(checkForDebugStatus, 1, 1, TimeUnit.SECONDS);
 
         this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
@@ -63,7 +64,7 @@ public class DisplayMapManager {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    service.speak("Downloading " + file + ", " + percent + " Percent", "downloading display");
+                    service.speak("Downloading " + file + "", "downloading display");
                     lastTextTime = curTime;
                     BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
                 }
@@ -82,8 +83,26 @@ public class DisplayMapManager {
             downloadSuccessDisplayMap = GetNewDisplayMapJSON();
     }
 
+    private void checkForDebug(){
+        boolean currentDebug = this.debug;
+        boolean newDebug = this.service.boardState.displayDebug;
+
+        if(!currentDebug && newDebug)
+            this.service.speak("Display Debug On", "debug status");
+
+        if(currentDebug && !newDebug)
+            this.service.speak("Display Debug Off", "debug status");
+
+        this.debug = newDebug;
+    }
+
     private void periodicCheck(){
-        downloadSuccessDisplayMap = GetNewDisplayMapJSON();
+        if(!debug)
+            downloadSuccessDisplayMap = GetNewDisplayMapJSON();
+    }
+    private void frequentCheck(){
+        if(debug)
+            downloadSuccessDisplayMap = GetNewDisplayMapJSON();
     }
 
     private void LoadInitialDisplayMap() {
@@ -91,13 +110,12 @@ public class DisplayMapManager {
             File[] flist = new File(filesDir).listFiles();
             if (flist != null) {
 
-                // if files are no longer referenced in the Data Directory, delete them.
                 String origDir = FileHelpers.LoadTextFile(this.displauMapJSONFilename, filesDir);
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataDisplayMap = dir;
                     CreateDisplayMapFromJSON();
-                    BLog.d(TAG, "Dir " + origDir.substring(0,1000));
+                    BLog.d(TAG, "Dir " + origDir.substring(0,100));
                 }
             }
 
