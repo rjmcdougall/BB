@@ -48,7 +48,7 @@ public class BMS {
             if (service.boardState.GetBoardType() == BoardState.BoardType.classic ||
                     service.boardState.GetBoardType() == BoardState.BoardType.azul ||
                     service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
-                if (BoardState.GetPlatformType() == BoardState.PlatformType.npi) {
+                if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4) {
                     BLog.d(TAG, "BMS: Using BQ on I2c");
                     bms = new BMS_BQ(service);
                 } else {
