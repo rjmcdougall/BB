@@ -108,7 +108,16 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     private void initpixelMap2Board(){
         int x, y;
 
-        boardMap = TranslationMapBag.panel; //this.service.displayMapManager.GetDisplayMap();
+        TranslationMap[] panel = {
+//X,StartY,End Y,Direction,Strip #,Offset in strip
+                new TranslationMap(0, 0, 32, -1, 1, 0),
+                new TranslationMap(1, 0, 32, -1, 2, 0),
+                new TranslationMap(2, 0, 32, -1, 3, 0),
+                new TranslationMap(3, 0, 32, -1, 4, 0),
+                new TranslationMap(4, 0, 32, -1, 5, 0)
+        };
+
+        boardMap = panel; //this.service.displayMapManager.GetDisplayMap();
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {
