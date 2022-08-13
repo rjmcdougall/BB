@@ -116,6 +116,9 @@ public abstract class BurnerBoard {
         } else if (BoardState.BoardType.panel == service.boardState.GetBoardType()) {
             BLog.d(TAG, "Visualization: Using Panel");
             burnerBoard = new BurnerBoardPanel(service);
+        } else if (BoardState.BoardType.dynamicPanel == service.boardState.GetBoardType()) {
+            BLog.d(TAG, "Visualization: Using Dynamic Panel");
+            burnerBoard = new BurnerBoardDynamicPanel(service);
         } else if (BoardState.BoardType.wspanel == service.boardState.GetBoardType()) {
             BLog.d(TAG, "Visualization: Using WSPanel");
             burnerBoard = new BurnerBoardWSPanel(service);

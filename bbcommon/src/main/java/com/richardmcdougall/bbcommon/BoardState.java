@@ -234,6 +234,7 @@ public class BoardState {
         boombox("boombox"),
         backpack("backpack"),
         v4("v4"),
+        dynamicPanel("dynamicPanel"),
         unknown("unknown");
 
         private String stringValue;
