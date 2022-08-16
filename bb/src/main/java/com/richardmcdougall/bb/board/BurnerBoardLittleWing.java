@@ -103,7 +103,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
         pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map( x,  y, PIXEL_BLUE);
     }
 
-    private void initpixelMap2Board() {
+    public void initpixelMap2Board() {
         int x, y;
 
         boardMap = TranslationMapBag.littlewing;

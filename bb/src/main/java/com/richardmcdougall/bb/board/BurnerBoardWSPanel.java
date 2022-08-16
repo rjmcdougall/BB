@@ -157,7 +157,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     }
 
-    private void initpixelMap2Board() {
+    public void initpixelMap2Board() {
 
         BLog.d(TAG, "initmap");
 

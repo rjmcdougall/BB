@@ -67,6 +67,7 @@ public abstract class BurnerBoard {
     public abstract void flush();
     public abstract void setOtherlightsAutomatically();
     public abstract void start();
+    public abstract void initpixelMap2Board();
 
     private int flushCnt = 0;
 

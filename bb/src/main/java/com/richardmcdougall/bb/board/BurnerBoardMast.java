@@ -80,7 +80,7 @@ public class BurnerBoardMast extends BurnerBoard {
         pixelMap2BoardTable[stripNo][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
-    private void initpixelMap2Board() {
+    public void initpixelMap2Board() {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {

@@ -46,7 +46,9 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mListener.attach(8, getBatteryLevelCallback);
 
     }
-
+    public void initpixelMap2Board() {
+        
+    }
     public void flush() {
 
         this.logFlush();

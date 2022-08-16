@@ -115,6 +115,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         return false;
     }
 
+    public void initpixelMap2Board() {
+
+    }
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
 
         //System.out.println("setpixelotherlight pixel:" + pixel + " light:" + other);

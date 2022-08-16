@@ -110,24 +110,10 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
         pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
-    private void initpixelMap2Board(){
+    public void initpixelMap2Board(){
         int x, y;
 
-        TranslationMap[] panel = {
-//X,StartY,End Y,Direction,Strip #,Offset in strip
-                new TranslationMap(0, 0, 31, 1, 1, 0),
-                new TranslationMap(1, 0, 31, 1, 2, 0),
-                new TranslationMap(2, 0, 31, 1, 3, 0),
-                new TranslationMap(3, 0, 31, 1, 4, 0),
-                new TranslationMap(4, 0, 31, 1, 5, 0),
-                new TranslationMap(5, 0, 31, 1, 6, 0),
-                new TranslationMap(6, 0, 31, 1, 7, 0),
-                new TranslationMap(7, 0, 31, 1, 8, 0),
-                new TranslationMap(8, 0, 31, 1, 9, 0),
-                new TranslationMap(9, 0, 31, 1, 10, 0)
-        };
-
-        boardMap = panel; //this.service.displayMapManager.GetDisplayMap();
+        boardMap = this.service.displayMapManager.GetDisplayMap();
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {
@@ -164,7 +150,5 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
 //                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
 //            }
 //        }
-
-        int i = 1;
     }
 }
