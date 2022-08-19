@@ -191,6 +191,13 @@ public class BBService extends Service {
             localCrisisController = new LocalCrisisController(this);
 
             displayMapManager = new DisplayMapManager(this);
+            if(boardState.GetBoardType() == BoardState.BoardType.dynamicPanel ||
+                    boardState.GetBoardType() == BoardState.BoardType.v4){
+                while (displayMapManager.displayMap == null) {
+                    BLog.i(TAG, "Display Map file is required to be downloaded before proceeding.  Please hold.");
+                    Thread.sleep(2000);
+                }
+            }
 
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.textBuilder.setText90(boardState.BOARD_ID, 5000, burnerBoard.getFrameRate(), new RGBList().getColor("white"));
