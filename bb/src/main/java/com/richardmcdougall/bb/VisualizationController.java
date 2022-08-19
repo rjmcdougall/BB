@@ -68,14 +68,10 @@ public class VisualizationController {
     private int frameCnt = 0;
     private String TAG = this.getClass().getSimpleName();
     private BBService service;
-    private int mBoardWidth;
-    private int mBoardHeight;
-    private int[] mBoardScreen;
     public boolean inhibitVisual = false;
     public boolean inhibitVisualGTFO = false;
     public boolean lowBatteryVisual = false;
     private boolean showBattery = false;
-    private int mFrameRate;
     private int batteryCnt = 0;
     private Visualizer mVisualizer;
     private int mAudioSessionId;
@@ -87,13 +83,9 @@ public class VisualizationController {
         this.service = service;
         BLog.d(TAG, "Starting Board Visualization " + service.boardState.GetBoardType().toString() + " on " + service.boardState.BOARD_ID);
 
-        mBoardWidth = service.burnerBoard.boardWidth;
-        mBoardHeight = service.burnerBoard.boardHeight;
         mMultipler4Speed = service.burnerBoard.getMultiplier4Speed();
-        mBoardScreen = service.burnerBoard.boardScreen;
-        mFrameRate = service.burnerBoard.getFrameRate();
 
-        BLog.d(TAG, "Board framerate set to " + mFrameRate);
+        BLog.d(TAG, "Board framerate set to " + service.burnerBoard.getFrameRate());
 
         mVisualizationMatrix = new Matrix(service);
         mVisualizationAudioTile = new AudioTile(service);
@@ -156,7 +148,7 @@ public class VisualizationController {
 
     public int displayAlgorithm(String algorithm) {
 
-        int frameRate = mFrameRate;
+        int frameRate = service.burnerBoard.getFrameRate();
 
         if(algorithm.contains("simpleSign")){
             String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
@@ -274,7 +266,7 @@ public class VisualizationController {
             }
 
             if (showBattery) {
-                if (batteryCnt % mFrameRate == 0) {
+                if (batteryCnt % service.burnerBoard.getFrameRate() == 0) {
                     service.burnerBoard.showBattery();
                 }
                 batteryCnt++;
@@ -328,12 +320,12 @@ public class VisualizationController {
             }
 
             if (mode < 0) {
-                return mFrameRate;
+                return service.burnerBoard.getFrameRate();
             }
 
             JSONObject videos = service.mediaManager.GetVideo();
             if (videos == null) {
-                return mFrameRate;
+                return service.burnerBoard.getFrameRate();
             }
             
              this.service.burnerBoard.lineBuilder.clearLine();
@@ -343,14 +335,14 @@ public class VisualizationController {
                 return displayAlgorithm(algorithm);
             } else {
                 if (service.boardState.platformType == BoardState.PlatformType.rpi) {
-                    return mFrameRate;
+                    return service.burnerBoard.getFrameRate();
                 }
                 mVisualizationVideo.update(mode);
-                return mFrameRate;
+                return service.burnerBoard.getFrameRate();
             }
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
-            return mFrameRate;
+            return service.burnerBoard.getFrameRate();
         }
     }
 
@@ -410,7 +402,7 @@ public class VisualizationController {
     }
 
     public void showMap() {
-        showingMap = mFrameRate * 15;
+        showingMap = service.burnerBoard.getFrameRate() * 15;
     }
 
     public void setMode(int mode) {
