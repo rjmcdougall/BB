@@ -6,8 +6,8 @@ public class PixelOffset {
     private BurnerBoard board = null;
 
     // Convert from xy to buffer memory
-    static int pixel2OffsetCalc(int boardWidth, int x, int y, int rgb) {
-        return (y * boardWidth + x) * 3 + rgb;
+    int pixel2OffsetCalc(int x, int y, int rgb) {
+        return (y * this.board.boardWidth + x) * 3 + rgb;
     }
 
     public PixelOffset(BurnerBoard board){
@@ -19,7 +19,7 @@ public class PixelOffset {
         for (int x = 0; x < this.board.boardWidth; x++) {
             for (int y = 0; y < this.board.boardHeight; y++) {
                 for (int rgb = 0; rgb < 3; rgb++) {
-                    pixel2OffsetTable[x][y][rgb] = pixel2OffsetCalc(this.board.boardWidth, x, y, rgb);
+                    pixel2OffsetTable[x][y][rgb] = pixel2OffsetCalc(x, y, rgb);
                 }
             }
         }

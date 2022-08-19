@@ -6,7 +6,6 @@ import com.richardmcdougall.bbcommon.BoardState;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class BurnerBoardV4 extends BurnerBoard {
 
@@ -15,42 +14,24 @@ public class BurnerBoardV4 extends BurnerBoard {
     static int[] pixelsPerStrip = new int[16];
     static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
-    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
-
     static {
-        boardWidth = 26;
-        boardHeight = 220;
         textSizeHorizontal = 14;
         textSizeVertical = 20;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
         renderTextOnScreen = true;
         boardType = BoardState.BoardType.v4;
-        renderLineOnScreen = false;
     }
 
     public BurnerBoardV4(BBService service) {
         super(service);
-
         BLog.i(TAG, "Burner Board V4 init...");
-
-        Runnable periodicCheckForDisplayMap = () -> checkForDisplayMapChanges();
-        sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 1, 1, TimeUnit.SECONDS);
 
         initpixelMap2Board();
     }
 
-    private void checkForDisplayMapChanges(){
-        if(this.service.displayMapManager.debug)
-            initpixelMap2Board();
-    }
-
     public int getMultiplier4Speed() {
-        if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4)
-            return 1; // dkw need to config this
-        else
-            return 2; // dkw need to config this
-
+            return 1;
     }
 
     public void start() {
@@ -64,10 +45,8 @@ public class BurnerBoardV4 extends BurnerBoard {
     public int getFrameRate() {
         return 30;
     }
-
     public void setOtherlightsAutomatically() {
     }
-
     public void flush() {
 
         this.logFlush();
@@ -112,34 +91,30 @@ public class BurnerBoardV4 extends BurnerBoard {
                 int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
-                    //BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
 
-        for (x = 0; x < 5; x++) {
-            if (boardMap[x].stripDirection == 1) {
-                // Strip has y1 ... y2
-                for (y = boardMap[x].startY; y <= boardMap[x].endY; y++) {
-                    int stripOffset = boardMap[x].stripOffset + y - boardMap[x].startY;
+        for (y = 0; y < boardMap.length; y++) {
+            if (boardMap[y].stripDirection == 1) {
+                // Strip has x1 ... x2
+                for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
+                    int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             } else {
-                // Strip has y2 ... y1 (reverse order)
-                for (y = boardMap[x].endY; y <= boardMap[x].startY; y++) {
-                    int stripOffset = boardMap[x].stripOffset - y + boardMap[x].startY;
+                // Strip has x2 ... x1 (reverse order)
+                for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
+                    int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
                     pixelRemap(x, y, stripOffset * 3);
                 }
             }
         }
-        /*
-        for (int s = 0; s < kStrips; s++) {
-            // Walk through all the pixels in the strip
-            for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-                BLog.i(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
-            }
-        }
-        */
-        int i = 1;
+//        for (int s = 0; s < kStrips; s++) {
+//            // Walk through all the pixels in the strip
+//            for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
+//                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+//            }
+//        }
     }
 }

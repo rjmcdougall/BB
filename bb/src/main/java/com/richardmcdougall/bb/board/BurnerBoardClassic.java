@@ -15,8 +15,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int[] mBoardOtherlights;
 
     static {
-        boardWidth = 10;
-        boardHeight = 70;
         textSizeHorizontal = 6;
         textSizeVertical = 12;
         enableBatteryMonitoring = true;
@@ -29,7 +27,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     public BurnerBoardClassic(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Classic initing...");
-
+        boardWidth = 10;
+        boardHeight = 70;
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
 
     }

@@ -27,8 +27,6 @@ public class BurnerBoardAzul extends BurnerBoard {
     private TranslationMap[] boardMap;
 
     static {
-        boardWidth = 46;
-        boardHeight = 118;
         textSizeHorizontal = 14;
         textSizeVertical = 10;
         enableBatteryMonitoring = true;
@@ -40,6 +38,8 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public BurnerBoardAzul(BBService service) {
         super(service);
+        boardWidth = 46;
+        boardHeight = 118;
 
         BLog.i(TAG, "Burner Board Azul initing...");
 

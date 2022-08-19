@@ -13,8 +13,6 @@ public class BurnerBoardMast extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
 
     static {
-        boardWidth = 24;
-        boardHeight = 159;
         textSizeHorizontal = 12;
         textSizeVertical = 12;
         enableBatteryMonitoring = false;
@@ -26,6 +24,8 @@ public class BurnerBoardMast extends BurnerBoard {
 
     public BurnerBoardMast(BBService service) {
         super(service);
+        boardWidth = 24;
+        boardHeight = 159;
         BLog.i(TAG, "Burner Board Mast initing...");
 
         initpixelMap2Board();

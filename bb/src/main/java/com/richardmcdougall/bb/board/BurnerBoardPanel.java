@@ -37,8 +37,6 @@ public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
 
     static {
-        boardWidth = 32;
-        boardHeight = 64;
         textSizeHorizontal = 12;
         textSizeVertical = 12;
         enableBatteryMonitoring = true;
@@ -50,6 +48,8 @@ public class BurnerBoardPanel extends BurnerBoard {
 
     public BurnerBoardPanel(BBService service) {
         super(service);
+        boardWidth = 32;
+        boardHeight = 64;
         BLog.i(TAG, "Burner Board Panel initting...");
     }
 

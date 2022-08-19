@@ -11,8 +11,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
     private static int kStrips = 8;
 
     static {
-        boardWidth = 1;
-        boardHeight = 166;
         textSizeVertical = 0;
         textSizeHorizontal = 0;
         enableBatteryMonitoring = false;
@@ -24,6 +22,8 @@ public class BurnerBoardDirectMap extends BurnerBoard {
 
     public BurnerBoardDirectMap(BBService service) {
         super(service);
+        boardWidth = 1;
+        boardHeight = 166;
         BLog.i(TAG, " Direct Map initing ");
     }
 

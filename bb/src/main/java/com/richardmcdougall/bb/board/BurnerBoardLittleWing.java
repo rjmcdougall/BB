@@ -27,8 +27,6 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     private TranslationMap[] boardMap;
 
     static {
-        boardWidth = 32; //26
-        boardHeight = 255; //220
         textSizeHorizontal = 14;
         textSizeVertical = 20;
         enableBatteryMonitoring = true;
@@ -40,7 +38,8 @@ public class BurnerBoardLittleWing extends BurnerBoard {
 
     public BurnerBoardLittleWing(BBService service) {
         super(service);
-
+        boardWidth = 32;
+        boardHeight = 255;
         BLog.i(TAG, "Burner Board Little Wing initting...");
 
         initpixelMap2Board();

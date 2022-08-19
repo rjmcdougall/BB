@@ -35,14 +35,11 @@ import java.lang.reflect.Array;
 
 public class BurnerBoardDynamicPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
-    static int kStrips = 64;
+    public int kStrips = 1;
     static int[] pixelsPerStrip = new int[64];
     static int[][] pixelMap2BoardTable = new int[64][2048];
     private TranslationMap[] boardMap;
-
     static {
-        boardWidth = 32;
-        boardHeight = 64;
         textSizeHorizontal = 12;
         textSizeVertical = 12;
         enableBatteryMonitoring = true;
@@ -54,7 +51,6 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     public BurnerBoardDynamicPanel(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Panel initting...");
-
         initpixelMap2Board();
     }
 
@@ -113,9 +109,14 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     public void initpixelMap2Board(){
         int x, y;
 
-        boardMap = this.service.displayMapManager.GetDisplayMap();
 
-        // Walk through all the strips and find the number of pixels in the strip
+        boardMap = this.service.displayMapManager.GetDisplayMap();
+        boardWidth = this.service.displayMapManager.boardWidth;
+        boardHeight = this.service.displayMapManager.boardHeight;
+        kStrips = this.service.displayMapManager.numberOfStrips;
+        boardScreen = new int[this.boardWidth * this.boardHeight * 3];
+        pixelOffset = new PixelOffset(this);
+
         for (int s = 0; s < kStrips; s++) {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
@@ -123,7 +124,7 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
                 int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
-                    BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
+ //                   BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
