@@ -2,9 +2,6 @@ package com.richardmcdougall.bb;
 
 import java.util.Random;
 
-import com.richardmcdougall.bb.board.BoardDisplay;
-import com.richardmcdougall.bb.board.BurnerBoard;
-import com.richardmcdougall.bb.board.PixelOffset;
 import com.richardmcdougall.bb.board.TranslationMap;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.FileHelpers;
@@ -36,6 +33,9 @@ public class DisplayMapManager {
     private int currentFailedChecks = 0;
     public FileHelpers.OnDownloadProgressType onProgressCallback = null;
     public ArrayList<TranslationMap> displayMap = new ArrayList<>();
+    public int boardHeight = 0;
+    public int boardWidth = 0;
+    public int numberOfStrips = 0;
     public boolean debug = false;
     private Random rand = new Random();
 
@@ -194,6 +194,9 @@ public class DisplayMapManager {
     private void CreateDisplayMapFromJSON(){
 
         JSONObject displayMapTemp;
+        int numberOfStripsTemp = 0;
+        int boardHeightTemp = 0;
+        int boardWidthTemp = 0;
 
         try {
 
@@ -213,7 +216,18 @@ public class DisplayMapManager {
                                     displayMapTemp.getInt("stripOffset")
                             )
                     );
+                    if(displayMapTemp.getInt("stripNumber") > numberOfStripsTemp)
+                        numberOfStripsTemp = displayMapTemp.getInt("stripNumber");
+                    if(displayMapTemp.getInt("xy") > boardHeightTemp)
+                        boardHeightTemp = displayMapTemp.getInt("xy");
+                    if((displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY")) > boardWidthTemp)
+                        boardWidthTemp = (displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY")) + 1;
                 }
+
+                boardHeight = boardHeightTemp;
+                boardWidth = boardWidthTemp;
+                numberOfStrips = numberOfStripsTemp;
+
             }
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
