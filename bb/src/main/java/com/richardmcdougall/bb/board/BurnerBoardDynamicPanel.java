@@ -31,13 +31,12 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
-import java.lang.reflect.Array;
-
 public class BurnerBoardDynamicPanel extends BurnerBoard {
+
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
-    static int[] pixelsPerStrip = new int[64];
-    static int[][] pixelMap2BoardTable = new int[64][2048];
+    public int[] pixelsPerStrip = new int[1];
+    static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
     static {
         textSizeHorizontal = 12;
@@ -109,12 +108,14 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     public void initpixelMap2Board(){
         int x, y;
 
-
         boardMap = this.service.displayMapManager.GetDisplayMap();
         boardWidth = this.service.displayMapManager.boardWidth;
         boardHeight = this.service.displayMapManager.boardHeight;
         kStrips = this.service.displayMapManager.numberOfStrips;
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
+        pixelsPerStrip = new int[kStrips];
+        pixelMap2BoardTable = new int[kStrips][2048];
+
         pixelOffset = new PixelOffset(this);
 
         for (int s = 0; s < kStrips; s++) {

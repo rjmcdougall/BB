@@ -4,14 +4,11 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-
 public class BurnerBoardV4 extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
-    static int kStrips = 12;
-    static int[] pixelsPerStrip = new int[16];
+    public int kStrips = 1;
+    public int[] pixelsPerStrip = new int[1];
     static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
     static {
@@ -26,7 +23,6 @@ public class BurnerBoardV4 extends BurnerBoard {
     public BurnerBoardV4(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board V4 init...");
-
         initpixelMap2Board();
     }
 
@@ -82,8 +78,15 @@ public class BurnerBoardV4 extends BurnerBoard {
         int x, y;
 
         boardMap = this.service.displayMapManager.GetDisplayMap();
+        boardWidth = this.service.displayMapManager.boardWidth;
+        boardHeight = this.service.displayMapManager.boardHeight;
+        kStrips = this.service.displayMapManager.numberOfStrips;
+        boardScreen = new int[this.boardWidth * this.boardHeight * 3];
+        pixelsPerStrip = new int[kStrips];
+        pixelMap2BoardTable = new int[kStrips][2048];
 
-        // Walk through all the strips and find the number of pixels in the strip
+        pixelOffset = new PixelOffset(this);
+
         for (int s = 0; s < kStrips; s++) {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
