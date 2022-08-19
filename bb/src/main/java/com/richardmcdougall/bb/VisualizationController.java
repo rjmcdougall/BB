@@ -5,6 +5,7 @@ import android.media.audiofx.Visualizer;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
+import com.richardmcdougall.bb.visualization.MatrixTest;
 import com.richardmcdougall.bb.visualization.PixelMapTest;
 import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bb.visualization.JosPack;
@@ -64,6 +65,7 @@ public class VisualizationController {
     public Visualization mVisualizationPlayaMap;
     public Visualization mVisualizationSimpleSign;
     public Visualization mPixelMapTest;
+    public Visualization mMatrixTest;
 
     private int frameCnt = 0;
     private String TAG = this.getClass().getSimpleName();
@@ -96,6 +98,7 @@ public class VisualizationController {
         mVisualizationPlayaMap = new PlayaMap(service);
         mVisualizationSimpleSign = new SimpleSign(service);
         mPixelMapTest = new PixelMapTest(service);
+        mMatrixTest = new MatrixTest(service);
 
     }
 
@@ -220,7 +223,9 @@ public class VisualizationController {
                 case "modePlayaMap()":
                     mVisualizationPlayaMap.update(Visualization.kDefault);
                     break;
-
+                case "matrixTest()":
+                    mMatrixTest.update(Visualization.kDefault);
+                    break;
                 default:
                     break;
             }

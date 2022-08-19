@@ -32,7 +32,7 @@ public class DisplayMapManager {
     private int  maxFailedChecks = 60;
     private int currentFailedChecks = 0;
     public FileHelpers.OnDownloadProgressType onProgressCallback = null;
-    public ArrayList<TranslationMap> displayMap = new ArrayList<>();
+    public ArrayList<TranslationMap> displayMap;
     public int boardHeight = 0;
     public int boardWidth = 0;
     public int numberOfStrips = 0;
