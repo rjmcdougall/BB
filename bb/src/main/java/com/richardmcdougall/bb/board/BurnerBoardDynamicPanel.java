@@ -31,12 +31,14 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
+import org.eclipse.paho.client.mqttv3.internal.wire.MqttOutputStream;
+
 public class BurnerBoardDynamicPanel extends BurnerBoard {
 
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     public int[] pixelsPerStrip = new int[1];
-    static int[][] pixelMap2BoardTable = new int[16][4096];
+    static int[][] pixelMap2BoardTable = new int[1][4096];
     private TranslationMap[] boardMap;
     static {
         textSizeHorizontal = 12;
