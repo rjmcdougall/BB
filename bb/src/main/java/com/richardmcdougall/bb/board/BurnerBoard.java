@@ -33,8 +33,8 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    public int boardWidth = 1;
-    public int boardHeight = 1;
+    public int boardWidth = 46;
+    public int boardHeight = 118;
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;

@@ -25,6 +25,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     static int[] pixelsPerStrip = new int[8];
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;
+    public int boardWidth = 46;
+    public int boardHeight = 118;
 
     static {
         textSizeHorizontal = 14;
@@ -38,8 +40,6 @@ public class BurnerBoardAzul extends BurnerBoard {
 
     public BurnerBoardAzul(BBService service) {
         super(service);
-        boardWidth = 46;
-        boardHeight = 118;
 
         BLog.i(TAG, "Burner Board Azul initing...");
 
@@ -89,8 +89,8 @@ public class BurnerBoardAzul extends BurnerBoard {
             }
             setStrip(s, stripPixels);
             // Send to board
-            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
-                flush2Board();
+//            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
+//                flush2Board();
         }
         // Render on board
         update();
@@ -108,7 +108,12 @@ public class BurnerBoardAzul extends BurnerBoard {
         int x, y;
 
         boardMap = TranslationMapBag.azul;
-
+        boardWidth = 46;
+        boardHeight = 118;
+        kStrips = 8;
+        boardScreen = new int[this.boardWidth * this.boardHeight * 3];
+        pixelsPerStrip = new int[kStrips];
+        pixelMap2BoardTable = new int[kStrips][2048];
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {
