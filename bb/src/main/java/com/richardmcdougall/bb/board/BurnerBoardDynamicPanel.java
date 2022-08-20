@@ -1,37 +1,8 @@
 package com.richardmcdougall.bb.board;
 
-/*
-
-   Back
-         32,64
- +------+
- |      |
- |      |
- |      |
- |      |
- |      |
- |      | Y
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- |      |
- +------+
- 0,0 X
- Front
-
- */
-
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
-
-import org.eclipse.paho.client.mqttv3.internal.wire.MqttOutputStream;
 
 public class BurnerBoardDynamicPanel extends BurnerBoard {
 
@@ -51,7 +22,6 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
 
     public BurnerBoardDynamicPanel(BBService service) {
         super(service);
-        BLog.i(TAG, "Burner Board Panel initting...");
         initpixelMap2Board();
     }
 
@@ -127,7 +97,6 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
                 int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
- //                   BLog.i(TAG, "boardmap: strip " + s + " has " + pixelsPerStrip[s] + " pixels" );
                 }
             }
         }
@@ -147,7 +116,6 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
                 }
             }
         }
-        
 //        for (int s = 0; s < kStrips; s++) {
 //            // Walk through all the pixels in the strip
 //            for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {

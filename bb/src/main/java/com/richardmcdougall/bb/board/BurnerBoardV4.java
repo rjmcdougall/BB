@@ -9,7 +9,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     public int[] pixelsPerStrip = new int[1];
-    static int[][] pixelMap2BoardTable = new int[16][4096];
+    static int[][] pixelMap2BoardTable = new int[1][4096];
     private TranslationMap[] boardMap;
     static {
         textSizeHorizontal = 14;
@@ -22,7 +22,6 @@ public class BurnerBoardV4 extends BurnerBoard {
 
     public BurnerBoardV4(BBService service) {
         super(service);
-        BLog.i(TAG, "Burner Board V4 init...");
         initpixelMap2Board();
     }
 
@@ -62,6 +61,9 @@ public class BurnerBoardV4 extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels);
+            // Send to board
+            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
+                flush2Board();
         }
         // Render on board
         update();
