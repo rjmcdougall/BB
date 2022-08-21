@@ -220,8 +220,8 @@ public class DisplayMapManager {
                         numberOfStripsTemp = displayMapTemp.getInt("stripNumber");
                     if(displayMapTemp.getInt("xy") > boardHeightTemp)
                         boardHeightTemp = displayMapTemp.getInt("xy");
-                    if((displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY")) > boardWidthTemp)
-                        boardWidthTemp = (displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY")) + 1;
+                    if(Math.abs((displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY"))) + 1 > boardWidthTemp)
+                        boardWidthTemp = Math.abs((displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY"))) + 1;
                 }
 
                 boardHeight = boardHeightTemp;
