@@ -71,9 +71,9 @@ public class BurnerBoardV4 extends BurnerBoard {
 
     }
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset] = this.pixelOffset.Map(x, y, PIXEL_RED);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(x, y, PIXEL_GREEN);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map( x,  y, PIXEL_BLUE);
     }
 
     public void initpixelMap2Board() {
@@ -85,7 +85,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         kStrips = this.service.displayMapManager.numberOfStrips;
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
         pixelsPerStrip = new int[kStrips];
-        pixelMap2BoardTable = new int[kStrips][2048];
+        pixelMap2BoardTable = new int[kStrips][4096];
 
         pixelOffset = new PixelOffset(this);
 
@@ -115,11 +115,14 @@ public class BurnerBoardV4 extends BurnerBoard {
                 }
             }
         }
-//        for (int s = 0; s < kStrips; s++) {
-//            // Walk through all the pixels in the strip
-//            for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-//                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
-//            }
-//        }
+        int i=1;
+        i = 1;
+
+        for (int s = 0; s < kStrips; s++) {
+            // Walk through all the pixels in the strip
+            for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
+                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+            }
+        }
     }
 }
