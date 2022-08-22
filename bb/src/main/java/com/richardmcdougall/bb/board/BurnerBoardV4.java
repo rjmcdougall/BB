@@ -38,7 +38,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 30;
+        return 3;
     }
     public void setOtherlightsAutomatically() {
     }
@@ -62,8 +62,8 @@ public class BurnerBoardV4 extends BurnerBoard {
             }
             setStrip(s, stripPixels);
             // Send to board
-            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
-                flush2Board();
+ //           if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
+  //              flush2Board();
         }
         // Render on board
         update();
@@ -71,9 +71,9 @@ public class BurnerBoardV4 extends BurnerBoard {
 
     }
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset] = this.pixelOffset.Map(x, y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(x, y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map( x,  y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     public void initpixelMap2Board() {
@@ -86,14 +86,13 @@ public class BurnerBoardV4 extends BurnerBoard {
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
         pixelsPerStrip = new int[kStrips];
         pixelMap2BoardTable = new int[kStrips][4096];
-
         pixelOffset = new PixelOffset(this);
 
         for (int s = 0; s < kStrips; s++) {
             pixelsPerStrip[s] = 0;
             // Search strips and find longest pixel count
             for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
+                int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
                 if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
                     pixelsPerStrip[s] = endPixel;
                 }
@@ -115,13 +114,10 @@ public class BurnerBoardV4 extends BurnerBoard {
                 }
             }
         }
-        int i=1;
-        i = 1;
-
         for (int s = 0; s < kStrips; s++) {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+                BLog.d(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
             }
         }
     }
