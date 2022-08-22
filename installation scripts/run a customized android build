@@ -1,0 +1,26 @@
+0. Look Here for the Build Machine bits
+https://docs.google.com/document/d/1FvKU7d4kgIg8V68WX43mWQqMqBuFUl8R8etucL6kyAU/edit#
+
+1. start build server
+gcloud compute instances start dkw-android-build
+
+2. start build
+gcloud compute ssh danielkeithw@dkw-android-build
+cd rk3399-android-8.1
+./build-nanopc-t4.sh -F -M
+
+3. zip outputs
+rm ~/sourcecode/rk3399-android-8.1/rockdev/android.zip
+zip -r ~/sourcecode/rk3399-android-8.1/rockdev/android.zip  ~/sourcecode/rk3399-android-8.1/rockdev/Image-nanopc_t4/  
+
+4. download zip to ubuntu machine
+gcloud compute scp danielkeithw@dkw-android-build:~/sourcecode/rk3399-android-8.1/rockdev/android.zip ~/
+
+5. make writable mounts for existing eflasher img
+gnome-disk-image-mounter --writable /home/dan/Desktop/rk3399-eflasher-android8-20220712.img
+
+ 
+
+
+
+gcloud compute instances stop dkw-android-build

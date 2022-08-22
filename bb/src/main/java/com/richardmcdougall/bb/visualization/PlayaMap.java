@@ -109,7 +109,7 @@ public class PlayaMap extends Visualization {
                 }
             }
 
-        } else if (BoardState.BoardType.panel == service.boardState.GetBoardType()) {
+        } else if (BoardState.BoardType.panel == service.boardState.GetBoardType() || BoardState.BoardType.dynamicPanel == service.boardState.GetBoardType()) {
 
             service.burnerBoard.fillScreen(30, 30, 30);
 

@@ -23,12 +23,14 @@ public class TextBuilder {
     private int[] layeredScreen;
 
     public TextBuilder(BurnerBoard board){
-        this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
         this.board = board;
     }
 
     // Draw text on screen and delay for n seconds
     public void setText(String text, int delay, int refreshRate,  RGB color) {
+
+        this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+
         textDisplayingCountdown = delay * refreshRate / 1000;
 
         if (this.board.boardWidth < 15) {
@@ -98,6 +100,9 @@ public class TextBuilder {
 
     // Draw text on screen and delay for n seconds
     public void setText90(String text, int delay, int refreshRate, RGB color) {
+
+        this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+
         textDisplayingCountdown = delay * refreshRate / 1000;
 
         try {

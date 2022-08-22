@@ -15,8 +15,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int[] mBoardOtherlights;
 
     static {
-        boardWidth = 10;
-        boardHeight = 70;
         textSizeHorizontal = 6;
         textSizeVertical = 12;
         enableBatteryMonitoring = true;
@@ -29,7 +27,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     public BurnerBoardClassic(BBService service) {
         super(service);
         BLog.i(TAG, "Burner Board Classic initing...");
-
+        boardWidth = 10;
+        boardHeight = 70;
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
 
     }
@@ -115,6 +114,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         return false;
     }
 
+    public void initpixelMap2Board() {
+
+    }
     public void setPixelOtherlight(int pixel, int other, int r, int g, int b) {
 
         //System.out.println("setpixelotherlight pixel:" + pixel + " light:" + other);

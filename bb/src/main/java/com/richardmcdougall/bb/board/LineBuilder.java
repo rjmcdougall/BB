@@ -21,7 +21,6 @@ public class LineBuilder {
 
     public LineBuilder(BurnerBoard board){
         this.board = board;
-        this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
     }
 
     public void clearLine(){
@@ -29,6 +28,7 @@ public class LineBuilder {
     }
 
     public void drawLine() {
+        this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
 
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(this.board.boardWidth, this.board.boardHeight, Bitmap.Config.ARGB_8888);

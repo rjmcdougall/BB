@@ -6,6 +6,7 @@ import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class BMS {
 
@@ -45,8 +46,9 @@ public class BMS {
             }
         } else {
             if (service.boardState.GetBoardType() == BoardState.BoardType.classic ||
-                    (service.boardState.GetBoardType() == BoardState.BoardType.azul)) {
-                if (BoardState.GetPlatformType() == BoardState.PlatformType.npi) {
+                    service.boardState.GetBoardType() == BoardState.BoardType.azul ||
+                    service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
+                if (service.boardState.displayTeensy == BoardState.TeensyType.teensy4) {
                     BLog.d(TAG, "BMS: Using BQ on I2c");
                     bms = new BMS_BQ(service);
                 } else {
@@ -96,22 +98,25 @@ public class BMS {
 //          cmdMessenger.sendCmdArg(batteryCurrent);
 //          cmdMessenger.sendCmdArg(batteryFlagsB);
 //          cmdMessenger.sendCmdEnd();
-        int [] stats = new int[16];
-        stats[0] =
-        stats[1] = 0; // batteryControl
-        stats[2] = (int)get_level(); // batteryStateOfCharge
-        stats[3] = 0; // batteryMaxError
-        stats[4] = 0; // batteryRemainingCapacity
-        stats[5] = 0; // batteryFullChargeCapacity
-        stats[6] = 0; // batteryVoltage
-        stats[7] = 0; // batteryAverageCurrent
-        stats[8] = 0; // batteryTemperature
-        stats[9] = 0; // batteryFlags
-        stats[10] = 0;// batteryCurrent
-        stats[11] = 0;// batteryFlagsB
+        int[] stats = new int[16];
+        try {
+            stats[0] = 0; // batteryControl
+            stats[1] = (int) get_level(); // batteryStateOfCharge
+            stats[2] = 0; // batteryMaxError
+            stats[3] = 0; // batteryRemainingCapacity
+            stats[4] = 0; // batteryFullChargeCapacity
+            stats[5] = (int) (1000 * get_voltage()); // batteryVoltage
+            stats[6] = (int) (100 * get_current_instant()); // batteryAverageCurrent
+            stats[7] = 0; // batteryTemperature
+            stats[8] = 0; // batteryFlags
+            stats[9] = 0;// batteryCurrent
+            stats[10] = (int) (100 * get_current());// batteryFlagsB
+        } catch (IOException e) {
 
-        return stats.toString();
+        }
+        BLog.d(TAG, "BMS: getBatteryStatsIoT: " + Arrays.toString(stats));
+
+        return Arrays.toString(stats);
     }
 }
-
 

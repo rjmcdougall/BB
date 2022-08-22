@@ -9,8 +9,6 @@ import com.richardmcdougall.bb.BBService;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
-import static com.richardmcdougall.bb.board.BurnerBoard.boardHeight;
-
 public class ArcBuilder {
 
     private String TAG = this.getClass().getSimpleName();
@@ -20,7 +18,7 @@ public class ArcBuilder {
 
     public ArcBuilder(BurnerBoard board){
         this.board = board;
-        this.drawBuffer = IntBuffer.allocate(board.boardWidth * boardHeight * 4);
+        this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
     }
 
     public void drawArc(float left, float top, float right, float bottom,

@@ -24,8 +24,6 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
 
     static {
-        boardWidth = 20;
-        boardHeight = 180;
         textSizeHorizontal = 20;
         textSizeVertical = 10;
         enableBatteryMonitoring = false;
@@ -51,6 +49,8 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     public BurnerBoardWSPanel(BBService service) {
         super(service);
+        boardWidth = 20;
+        boardHeight = 180;
         BLog.i(TAG, "Burner Board WSPanel initting...");
         initpixelMap2Board();
     }
@@ -157,7 +157,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
 
     }
 
-    private void initpixelMap2Board() {
+    public void initpixelMap2Board() {
 
         BLog.d(TAG, "initmap");
 

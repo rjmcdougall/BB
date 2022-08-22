@@ -33,8 +33,8 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    public static int boardWidth = 1;
-    public static int boardHeight = 1;
+    public int boardWidth = 46;
+    public int boardHeight = 118;
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;
@@ -67,6 +67,7 @@ public abstract class BurnerBoard {
     public abstract void flush();
     public abstract void setOtherlightsAutomatically();
     public abstract void start();
+    public abstract void initpixelMap2Board();
 
     private int flushCnt = 0;
 
@@ -116,6 +117,9 @@ public abstract class BurnerBoard {
         } else if (BoardState.BoardType.panel == service.boardState.GetBoardType()) {
             BLog.d(TAG, "Visualization: Using Panel");
             burnerBoard = new BurnerBoardPanel(service);
+        } else if (BoardState.BoardType.dynamicPanel == service.boardState.GetBoardType()) {
+            BLog.d(TAG, "Visualization: Using Dynamic Panel");
+            burnerBoard = new BurnerBoardDynamicPanel(service);
         } else if (BoardState.BoardType.wspanel == service.boardState.GetBoardType()) {
             BLog.d(TAG, "Visualization: Using WSPanel");
             burnerBoard = new BurnerBoardWSPanel(service);
@@ -128,7 +132,10 @@ public abstract class BurnerBoard {
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
             BLog.d(TAG, "Visualization: Using LittleWing");
             burnerBoard = new BurnerBoardLittleWing(service);
-        } else {
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
+            BLog.d(TAG, "Visualization: Using V4");
+            burnerBoard = new BurnerBoardV4(service);
+         } else {
             BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
             burnerBoard = new BurnerBoardAzul(service);
         }
@@ -164,12 +171,21 @@ public abstract class BurnerBoard {
         Arrays.fill(boardScreen, 0);
     }
 
+    static final int testPix1 = 21;
+    static final int testPix2 = 180;
+    static final int testX = 4;
+
     public final void setPixel(int x, int y, int color) {
 
         int b = (color & 0xff);
         int g = ((color & 0xff00) >> 8);
         int r = ((color & 0xff0000) >> 16);
+        //y = testPix1;
+        //x = testX;
         setPixel(x, y, r, g, b);
+        //y = testPix2;
+        //r = g = b = 255;
+        //setPixel(x, y, r, g, b);
     }
 
     public final void setPixel(int x, int y, int r, int g, int b) {
@@ -178,9 +194,19 @@ public abstract class BurnerBoard {
             BLog.d(TAG, "setPixel out of range: " + x + "," + y);
             return;
         }
+        //x = testX;
+        //y = testPix1;
+        //r = g = b = 255;
+
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] = r;
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] = g;
         boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
+
+        //y = testPix2;
+        //boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] = r;
+        //boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] = g;
+        //boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] = b;
+
     }
 
     public final void fillScreen(int r, int g, int b) {
@@ -194,6 +220,7 @@ public abstract class BurnerBoard {
     }
 
     public void scrollPixels(boolean down) {
+        //if (true) return;
 
         if (boardScreen == null) {
             return;

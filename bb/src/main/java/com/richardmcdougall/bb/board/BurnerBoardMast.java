@@ -13,8 +13,6 @@ public class BurnerBoardMast extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
 
     static {
-        boardWidth = 24;
-        boardHeight = 159;
         textSizeHorizontal = 12;
         textSizeVertical = 12;
         enableBatteryMonitoring = false;
@@ -26,6 +24,8 @@ public class BurnerBoardMast extends BurnerBoard {
 
     public BurnerBoardMast(BBService service) {
         super(service);
+        boardWidth = 24;
+        boardHeight = 159;
         BLog.i(TAG, "Burner Board Mast initing...");
 
         initpixelMap2Board();
@@ -80,7 +80,7 @@ public class BurnerBoardMast extends BurnerBoard {
         pixelMap2BoardTable[stripNo][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
-    private void initpixelMap2Board() {
+    public void initpixelMap2Board() {
 
         for (int x = 0; x < boardWidth; x++) {
             for (int y = 0; y < boardHeight; y++) {

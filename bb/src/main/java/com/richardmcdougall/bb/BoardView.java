@@ -38,6 +38,9 @@ public class BoardView extends View {
         } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.panel) {
             mBoardWidth = 32;
             mBoardHeight = 64;
+        } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.dynamicPanel) {
+            mBoardWidth = 32;
+            mBoardHeight = 64;
         } else if (DebugConfigs.OVERRIDE_BOARD_TYPE == BoardState.BoardType.mast) {
             mBoardWidth = 24;
             mBoardHeight = 159;

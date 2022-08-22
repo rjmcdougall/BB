@@ -1,0 +1,14 @@
+$ diff --git a/frameworks/base/core/res/res/values/config.xml b/frameworks/base/core/res/res/values/config.xml
+index 7222818cff..5ed56ebd37 100644
+--- a/frameworks/base/core/res/res/values/config.xml
++++ b/frameworks/base/core/res/res/values/config.xml
+@@ -2079,7 +2079,7 @@
+
+     <!-- If true, then we do not ask user for permission for apps to connect to USB devices.
+          Do not set this to true for production devices. Doing so will cause you to fail CTS. -->
+-    <bool name="config_disableUsbPermissionDialogs">false</bool>
++    <bool name="config_disableUsbPermissionDialogs">true</bool>
+
+     <!-- Whether safe headphone volume is enabled or not (country specific). -->
+-    <bool name="config_safe_media_volume_enabled">true</bool>
++    <bool name="config_safe_media_volume_enabled">false</bool>

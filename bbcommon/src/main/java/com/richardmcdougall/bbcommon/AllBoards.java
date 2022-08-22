@@ -44,7 +44,7 @@ public class AllBoards {
         Runnable periodicCheckForBoards = () -> periodicCheck();
 
         sch.scheduleWithFixedDelay(initialCheckForBoards, 3, 5, TimeUnit.SECONDS);
-        sch.scheduleWithFixedDelay(periodicCheckForBoards, 1, 2, TimeUnit.MINUTES);
+        sch.scheduleWithFixedDelay(periodicCheckForBoards, 1, 1, TimeUnit.MINUTES);
 
         this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
             long lastTextTime = 0;
@@ -58,7 +58,7 @@ public class AllBoards {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    voice.speak("Downloading " + file + ", " + percent + " Percent", TextToSpeech.QUEUE_ADD, null,"downloading");
+                    voice.speak("Downloading " + file + "", TextToSpeech.QUEUE_ADD, null,"downloading");
                     lastTextTime = curTime;
                     BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
                 }
@@ -230,6 +230,21 @@ public class AllBoards {
             BLog.e(TAG, e.getMessage());
         }
         return targetAPKVersion;
+    }
+
+    public boolean displayDebug(String boardID) {
+
+        JSONObject board;
+        boolean displayDebug = false;
+
+        try {
+            board = getBoardByID(boardID);
+            displayDebug = board.getBoolean("displayDebug");
+
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        return displayDebug;
     }
 
     public BoardState.BoardType getBoardType(String boardID) {

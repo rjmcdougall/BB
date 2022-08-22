@@ -74,14 +74,23 @@ public class BatterySupervisor {
             current = service.bms.get_current();
             currentInstant = service.bms.get_current_instant();
             level = service.bms.get_level();
+            service.boardState.batteryLevel = (int)level;
         } catch (IOException e) {
             BLog.e(TAG, "Cannot read BMS");
+        }
+
+        try {
+            this.service.bms.update();
+        }
+        catch(Exception e){
+            BLog.e(TAG, e.getLocalizedMessage());
         }
 
 
         BLog.d(TAG, "Board Current(avg) is " + current);
         BLog.d(TAG, "Board Current(Instant) is " + currentInstant);
         BLog.d(TAG, "Board Voltage is " + voltage);
+        BLog.d(TAG, "Board Level is " + level);
 
         // Save CPU cycles for lower power mode
         // current is milliamps

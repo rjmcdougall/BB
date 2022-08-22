@@ -1,0 +1,21 @@
+https://stackoverflow.com/questions/60487784/how-to-add-pre-built-app-system-app-in-aosp-source-code
+
+1. Create a folder for your application in ~/sourcecode/rk3399-android-8.1/package/bbinstaller  
+
+2. move in the makefile
+gcloud compute scp "installation scripts"/Android.mk danielkeithw@dkw-android-build:~/sourcecode/rk3399-android-8.1/package/bbinstaller/
+
+3. copy in the apk
+gcloud compute scp bbinstaller/build/outputs/apk/release/bbinstaller-release.apk danielkeithw@dkw-android-build:~/sourcecode/rk3399-android-8.1/package/bbinstaller/
+
+4. add the permissions to the platform permissions file. 
+nano ~/sourcecode/rk3399-android-8.1/frameworks/base/data/etc/privapp-permissions-platform.xml
+then copy everything from this privapp-permissions-com.richardmcdougall.bbinstaller.xml into privapp-permissions-platform.xml
+
+5. Now we've to include the apk in the system image to do that, to do that we've to mention the module name in the PRODUCT_PACKAGES list  
+gcloud compute ssh danielkeithw@dkw-android-build
+nano ~/sourcecode/rk3399-android-8.1/build/target/product/core.mk
+
+
+
+
