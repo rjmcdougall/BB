@@ -224,13 +224,13 @@ public class DisplayMapManager {
                         boardWidthTemp = Math.abs((displayMapTemp.getInt("endXY") - displayMapTemp.getInt("startXY"))) + 1;
                 }
 
-                boardHeight = boardHeightTemp;
-                boardWidth = boardWidthTemp;
+                boardHeight = boardHeightTemp + 1;
+                boardWidth = boardWidthTemp + 1;
                 numberOfStrips = numberOfStripsTemp;
 
             }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.i(TAG, e.getMessage());
         }
     }
 }
