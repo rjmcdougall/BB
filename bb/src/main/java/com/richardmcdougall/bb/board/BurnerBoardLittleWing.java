@@ -25,6 +25,8 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     static int[] pixelsPerStrip = new int[16];
     static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
+    private PixelDimmer mDimmer = new PixelDimmer();
+
 
     static {
         textSizeHorizontal = 14;
@@ -71,7 +73,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(3, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(3, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer

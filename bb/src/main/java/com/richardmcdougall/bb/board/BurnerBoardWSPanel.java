@@ -22,6 +22,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
     // Number of hardware strips
     static int kStrips = 10; //boardHeight / panel height
     static int[][] pixelMap2BoardTable = new int[kMaxStrips][kMaxStripLength * 3];
+    private PixelDimmer mDimmer = new PixelDimmer();
 
     static {
         textSizeHorizontal = 20;
@@ -94,7 +95,7 @@ public class BurnerBoardWSPanel extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(20, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(20, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer

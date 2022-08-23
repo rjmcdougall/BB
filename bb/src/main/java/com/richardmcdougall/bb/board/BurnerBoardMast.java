@@ -11,6 +11,8 @@ public class BurnerBoardMast extends BurnerBoard {
     static int kStrips = 8;
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private String TAG = this.getClass().getSimpleName();
+    private PixelDimmer mDimmer = new PixelDimmer();
+
 
     static {
         textSizeHorizontal = 12;
@@ -53,7 +55,7 @@ public class BurnerBoardMast extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(12, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(12, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
