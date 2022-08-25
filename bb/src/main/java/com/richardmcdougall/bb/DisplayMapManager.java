@@ -160,7 +160,7 @@ public class DisplayMapManager {
                 BLog.d(TAG, "Downloaded Display Map JSON: " + dirTxt.substring(0,10));
 
                 if (onProgressCallback != null) {
-                    if (!dirTxt.equalsIgnoreCase(origDir)) {
+                    if (!(dirTxt.length() == origDir.length())) {
                         BLog.d(TAG, "New Display Map Synced.");
 
                         // got new display map.  Update!
@@ -280,7 +280,7 @@ public class DisplayMapManager {
                 Collections.reverse(displayMap);
 
                 boardHeight =  boardHeightTemp;
-                boardWidth = 70; // boardWidthTemp;
+                boardWidth = boardWidthTemp;
                 numberOfStrips = numberOfStripsTemp;
 
             }
