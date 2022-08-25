@@ -38,7 +38,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 3;
+        return 30;
     }
     public void setOtherlightsAutomatically() {
     }
