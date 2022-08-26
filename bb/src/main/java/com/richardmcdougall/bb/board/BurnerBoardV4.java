@@ -16,7 +16,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         textSizeVertical = 20;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
-        renderTextOnScreen = true;
+        renderTextOnScreen = false;
         boardType = BoardState.BoardType.v4;
     }
 
