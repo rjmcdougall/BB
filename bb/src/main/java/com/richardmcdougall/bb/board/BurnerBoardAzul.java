@@ -27,6 +27,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     private TranslationMap[] boardMap;
     public int boardWidth = 46;
     public int boardHeight = 118;
+    private PixelDimmer mDimmer = new PixelDimmer();
+
 
     static {
         textSizeHorizontal = 14;
@@ -75,7 +77,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer

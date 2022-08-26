@@ -11,6 +11,8 @@ public class BurnerBoardV4 extends BurnerBoard {
     public int[] pixelsPerStrip = new int[1];
     static int[][] pixelMap2BoardTable = new int[1][4096];
     private TranslationMap[] boardMap;
+    private PixelDimmer mDimmer = new PixelDimmer();
+
     static {
         textSizeHorizontal = 14;
         textSizeVertical = 20;
@@ -38,7 +40,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 30;
+        return 40;
     }
     public void setOtherlightsAutomatically() {
     }
@@ -48,7 +50,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(1, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
@@ -61,6 +63,10 @@ public class BurnerBoardV4 extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
             }
             setStrip(s, stripPixels);
+            if ((s % 3) == 0) {
+                flush2Board();
+            }
+
             // Send to board
             if(s % 3 == 0)
                 flush2Board();

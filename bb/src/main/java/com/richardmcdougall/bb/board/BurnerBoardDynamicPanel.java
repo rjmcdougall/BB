@@ -11,6 +11,8 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     public int[] pixelsPerStrip = new int[1];
     static int[][] pixelMap2BoardTable = new int[1][4096];
     private TranslationMap[] boardMap;
+    private PixelDimmer mDimmer = new PixelDimmer();
+
     static {
         textSizeHorizontal = 12;
         textSizeVertical = 12;
@@ -48,7 +50,7 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer

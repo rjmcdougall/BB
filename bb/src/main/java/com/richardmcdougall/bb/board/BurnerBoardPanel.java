@@ -35,6 +35,7 @@ import java.lang.reflect.Array;
 
 public class BurnerBoardPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
+    private PixelDimmer mDimmer = new PixelDimmer();
 
     static {
         textSizeHorizontal = 12;
@@ -78,7 +79,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         int[] rowPixels = new int[boardWidth * 3];

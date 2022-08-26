@@ -13,6 +13,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
     private int mBoardSideLights = 79;
     private int[] mBoardOtherlights;
+    private PixelDimmer mDimmer = new PixelDimmer();
 
     static {
         textSizeHorizontal = 6;
@@ -228,7 +229,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = PixelDimmer.Dim(0, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(0, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Suppress updating when displaying a text message
