@@ -56,9 +56,9 @@ public class DisplayMapManager {
         Runnable debugCheckForDisplayMap = () -> frequentCheck();
         Runnable checkForDebugStatus = () -> checkForDebug();
 
-        sch.scheduleWithFixedDelay(initialCheckForDisplayMap, 3, 5, TimeUnit.SECONDS);
-        sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 1, 2, TimeUnit.MINUTES);
-        sch.scheduleWithFixedDelay(debugCheckForDisplayMap, 1, 5, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(initialCheckForDisplayMap, 1, 5, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 30, 30, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(debugCheckForDisplayMap, 5, 5, TimeUnit.SECONDS);
         sch.scheduleWithFixedDelay(checkForDebugStatus, 1, 1, TimeUnit.SECONDS);
 
         this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
@@ -160,7 +160,7 @@ public class DisplayMapManager {
                 BLog.d(TAG, "Downloaded Display Map JSON: " + dirTxt.substring(0,10));
 
                 if (onProgressCallback != null) {
-                    if (!(dirTxt.length() == origDir.length())) {
+                    if (!dirTxt.equalsIgnoreCase(origDir)) {
                         BLog.d(TAG, "New Display Map Synced.");
 
                         // got new display map.  Update!
@@ -168,13 +168,14 @@ public class DisplayMapManager {
                         CreateDisplayMapFromJSON();
                         service.burnerBoard.initpixelMap2Board();
 
+                        // Update the directory so the board can use it.
+                        new File(filesDir, DISPLAY_MAP_TMP_FILENAME).renameTo(new File(filesDir, this.displauMapJSONFilename));
+                        origDir = FileHelpers.LoadTextFile(this.displauMapJSONFilename, filesDir);
+
                         onProgressCallback.onVoiceCue("New Display Map Synced.");
                     } else
                         BLog.d(TAG, "no changes discovered in Display Map JSON.");
                 }
-
-                // Update the directory so the board can use it.
-                new File(filesDir, DISPLAY_MAP_TMP_FILENAME).renameTo(new File(filesDir, this.displauMapJSONFilename));
 
                 if (dataDisplayMap != null)
                     if (dir.toString().length() == dataDisplayMap.toString().length()) {

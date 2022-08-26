@@ -1,0 +1,5 @@
+gsutil cp bb-5041.apk gs://burner-board/BurnerBoardApps
+
+NOTE YOU MUST CHANGE THE FILE SIZE.
+
+gsutil cp mermaid.json gs://burner-board/BurnerBoardDisplayTranslation
