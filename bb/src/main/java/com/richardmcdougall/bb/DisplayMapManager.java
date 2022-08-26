@@ -1,10 +1,12 @@
 package com.richardmcdougall.bb;
 
+import java.util.Collections;
 import java.util.Random;
 
 import com.richardmcdougall.bb.board.TranslationMap;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.FileHelpers;
+import com.richardmcdougall.bb.board.TranslationMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.Hashtable;
 
 public class DisplayMapManager {
 
@@ -38,6 +41,7 @@ public class DisplayMapManager {
     public int numberOfStrips = 0;
     public boolean debug = false;
     private Random rand = new Random();
+    String origDir = "";
 
     public DisplayMapManager(BBService service) {
         this.service = service;
@@ -69,7 +73,7 @@ public class DisplayMapManager {
                     lastTextTime = curTime;
                     long percent = bytesDownloaded * 100 / fileSize;
 
-                    service.speak("Downloading " + file + "", "downloading display");
+                  //  service.speak("Downloading " + file + "", "downloading display");
                     lastTextTime = curTime;
                     BLog.d(TAG, "Downloading " + file + ", " + percent + " Percent");
                 }
@@ -115,7 +119,7 @@ public class DisplayMapManager {
             File[] flist = new File(filesDir).listFiles();
             if (flist != null) {
 
-                String origDir = FileHelpers.LoadTextFile(this.displauMapJSONFilename, filesDir);
+                origDir = FileHelpers.LoadTextFile(this.displauMapJSONFilename, filesDir);
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
                     dataDisplayMap = dir;
@@ -128,6 +132,8 @@ public class DisplayMapManager {
             BLog.e(TAG, er.getMessage());
         }
     }
+
+    String dirTxt;
 
     private boolean GetNewDisplayMapJSON() {
 
@@ -148,13 +154,13 @@ public class DisplayMapManager {
             } else {
                 new File(filesDir, DISPLAY_MAP_TEMP2_FILENAME).renameTo(new File(filesDir, DISPLAY_MAP_TMP_FILENAME));
 
-                String dirTxt = FileHelpers.LoadTextFile(DISPLAY_MAP_TMP_FILENAME, filesDir);
+                dirTxt = FileHelpers.LoadTextFile(DISPLAY_MAP_TMP_FILENAME, filesDir);
                 JSONArray dir = new JSONArray(dirTxt);
 
                 BLog.d(TAG, "Downloaded Display Map JSON: " + dirTxt.substring(0,10));
 
                 if (onProgressCallback != null) {
-                    if (dataDisplayMap == null || dir.length() != dataDisplayMap.length()) {
+                    if (!dirTxt.equalsIgnoreCase(origDir)) {
                         BLog.d(TAG, "New Display Map Synced.");
 
                         // got new display map.  Update!
@@ -230,24 +236,37 @@ public class DisplayMapManager {
         int boardHeightTemp = 0;
         int boardWidthTemp = 0;
 
+        interperetOffset();
+
         try {
 
             if (dataDisplayMap == null) {
                 BLog.d(TAG, "Could not find display map");
             } else {
                 displayMap = new ArrayList<>();
-                for (int i = 0; i < dataDisplayMap.length(); i++) {
+                for (int i = dataDisplayMap.length() - 1; i >= 0 ; i--) {
+
                     displayMapTemp = dataDisplayMap.getJSONObject(i);
-                    displayMap.add(
-                            new TranslationMap(
-                                    displayMapTemp.getInt("xy"),
-                                    displayMapTemp.getInt("startXY"),
-                                    displayMapTemp.getInt("endXY"),
-                                    displayMapTemp.getInt("stripDirection"),
-                                    displayMapTemp.getInt("stripNumber"),
-                                    displayMapTemp.getInt("stripOffset")
-                            )
+                    startXY = displayMapTemp.getInt("startXY");
+                    endXY = displayMapTemp.getInt("endXY");
+                    stripNumber = displayMapTemp.getInt("stripNumber");
+                    rowLength = startXY - endXY + 1;
+
+                    offsets.put( stripNumber,offsets.get(stripNumber) - rowLength);
+
+                    TranslationMap m = new TranslationMap(
+                            displayMapTemp.getInt("xy"),
+                            startXY,
+                            endXY,
+                            displayMapTemp.getInt("stripDirection"),
+                            stripNumber,
+                            offsets.get(stripNumber)
                     );
+
+                    displayMap.add(m);
+
+                    BLog.d(TAG, "Display Map" + m);
+
                     if(displayMapTemp.getInt("stripNumber") > numberOfStripsTemp)
                         numberOfStripsTemp = displayMapTemp.getInt("stripNumber");
                     if(displayMapTemp.getInt("xy") > boardHeightTemp)
@@ -264,7 +283,7 @@ public class DisplayMapManager {
 
             }
         } catch (Exception e) {
-            BLog.i(TAG, e.getMessage());
+            BLog.e(TAG, e.getMessage());
         }
     }
 }
