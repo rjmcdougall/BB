@@ -68,8 +68,8 @@ public class BurnerBoardV4 extends BurnerBoard {
             }
 
             // Send to board
- //           if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
-  //              flush2Board();
+            if(s % 3 == 0)
+                flush2Board();
         }
         // Render on board
         update();
@@ -85,6 +85,8 @@ public class BurnerBoardV4 extends BurnerBoard {
     public void initpixelMap2Board() {
         int x, y;
 
+        this.clearPixels();
+
         boardMap = this.service.displayMapManager.GetDisplayMap();
         boardWidth = this.service.displayMapManager.boardWidth;
         boardHeight = this.service.displayMapManager.boardHeight;
@@ -94,36 +96,41 @@ public class BurnerBoardV4 extends BurnerBoard {
         pixelMap2BoardTable = new int[kStrips][4096];
         pixelOffset = new PixelOffset(this);
 
-        for (int s = 0; s < kStrips; s++) {
-            pixelsPerStrip[s] = 0;
-            // Search strips and find longest pixel count
-            for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
-                if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
-                    pixelsPerStrip[s] = endPixel;
+        try {
+            for (int s = 0; s < kStrips; s++) {
+                pixelsPerStrip[s] = 0;
+                // Search strips and find longest pixel count
+                for (int i = 0; i < boardMap.length; i++) {
+                    int endPixel = java.lang.Math.abs(boardMap[i].endX - boardMap[i].startX) + 1 + boardMap[i].stripOffset;
+                    if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
+                        pixelsPerStrip[s] = endPixel;
+                    }
                 }
             }
+            for (y = 0; y < boardMap.length; y++) {
+                if (boardMap[y].stripDirection == 1) {
+                    // Strip has x1 ... x2
+                    for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
+                        int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
+                        pixelRemap(x, y, stripOffset * 3);
+                    }
+                } else {
+                    // Strip has x2 ... x1 (reverse order)
+                    for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
+                        int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
+                        pixelRemap(x, y, stripOffset * 3);
+                    }
+                }
+            }
+        }
+        catch (Exception e){
+            BLog.e(TAG, e.getMessage());
         }
 
-        for (y = 0; y < boardMap.length; y++) {
-            if (boardMap[y].stripDirection == 1) {
-                // Strip has x1 ... x2
-                for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
-                    int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
-                    pixelRemap(x, y, stripOffset * 3);
-                }
-            } else {
-                // Strip has x2 ... x1 (reverse order)
-                for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
-                    int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
-                    pixelRemap(x, y, stripOffset * 3);
-                }
-            }
-        }
         for (int s = 0; s < kStrips; s++) {
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-                BLog.d(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
+     //           BLog.d(TAG, "Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
             }
         }
     }

@@ -1,6 +1,8 @@
 package com.richardmcdougall.bb.board;
 
 
+import java.lang.reflect.Field;
+
 public class TranslationMap {
     int y;
     int startX;
@@ -29,5 +31,17 @@ public class TranslationMap {
         this.stripDirection = stripDirection;
         this.stripNumber = stripNumber;
         this.stripOffset = stripOffset;
+    }
+
+    @Override
+    public String toString() {
+        String s = "";
+        s += "xy " + this.x + " ";
+        s += "stripNumber " + this.stripNumber + " ";
+        s += "startXY " + this.startX + " ";
+        s += "endXY " + this.endX + " ";
+        s += "stripOffset " + this.stripOffset + " ";
+
+        return s;
     }
 }
