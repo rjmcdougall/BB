@@ -19,8 +19,11 @@ public class Matrix extends Visualization {
     public static final int kMatrixBurnerColor = 1;
     public static final int kMatrixLunarian = 3;
     public static final int kMatrixSync = 10;
+    public static final int kMatrixMermaid = 7;
 
     private int fireColor = 40;
+
+    private static RGBList rgbList = new RGBList();
 
     public void update(int mode) {
 
@@ -44,6 +47,17 @@ public class Matrix extends Visualization {
                     } else {
                         color = mWheel.wheelState();
                         mWheel.wheelInc(1);
+                    }
+                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
+                    break;
+
+                case kMatrixMermaid:
+                    if (service.visualizationController.mRandom.nextInt(3) == 0) {
+                        color = rgbList.getColor("mediumseagreen").getARGBInt();
+                    } else if (service.visualizationController.mRandom.nextInt(3) == 1) {
+                        color = rgbList.getColor("black").getARGBInt();
+                    } else {
+                        color = rgbList.getColor("green").getARGBInt();
                     }
                     service.burnerBoard.setPixel(pixelSkip * x, y, color);
                     break;
