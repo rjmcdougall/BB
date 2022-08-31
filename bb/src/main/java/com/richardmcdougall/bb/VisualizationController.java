@@ -153,7 +153,10 @@ public class VisualizationController {
 
         int frameRate = service.burnerBoard.getFrameRate();
 
-        if(algorithm.contains("simpleSign")){
+        if(this.service.boardState.displayDebug==true){
+            mMatrixTest.update(Visualization.kDefault);
+        }
+        else if(algorithm.contains("simpleSign")){
             String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
 
             List<String> params = Arrays.asList(parameter.split(","));
@@ -174,6 +177,10 @@ public class VisualizationController {
 
                 case "modeMatrix(kMatrixLunarian)":
                     mVisualizationMatrix.update(Matrix.kMatrixLunarian);
+                    break;
+
+                case "modeMatrix(kMatrixMermaid)":
+                    mVisualizationMatrix.update(Matrix.kMatrixMermaid);
                     break;
 
                 case "modeAudioCenter()":
