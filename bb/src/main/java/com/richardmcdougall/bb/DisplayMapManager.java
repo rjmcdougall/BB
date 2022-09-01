@@ -58,7 +58,7 @@ public class DisplayMapManager {
 
         sch.scheduleWithFixedDelay(initialCheckForDisplayMap, 1, 5, TimeUnit.SECONDS);
         sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 30, 30, TimeUnit.SECONDS);
-        sch.scheduleWithFixedDelay(debugCheckForDisplayMap, 5, 5, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(debugCheckForDisplayMap, 5, 10, TimeUnit.SECONDS);
         sch.scheduleWithFixedDelay(checkForDebugStatus, 1, 1, TimeUnit.SECONDS);
 
         this.onProgressCallback = new FileHelpers.OnDownloadProgressType() {
@@ -111,7 +111,8 @@ public class DisplayMapManager {
     }
     private void frequentCheck(){
         if(debug)
-            downloadSuccessDisplayMap = GetNewDisplayMapJSON();
+
+            LoadInitialDisplayMap();
     }
 
     private void LoadInitialDisplayMap() {
@@ -122,8 +123,11 @@ public class DisplayMapManager {
                 origDir = FileHelpers.LoadTextFile(this.displauMapJSONFilename, filesDir);
                 if (origDir != null) {
                     JSONArray dir = new JSONArray(origDir);
+
                     dataDisplayMap = dir;
                     CreateDisplayMapFromJSON();
+                    service.burnerBoard.initpixelMap2Board();
+
                     BLog.d(TAG, "Dir " + origDir.substring(0,100));
                 }
             }
