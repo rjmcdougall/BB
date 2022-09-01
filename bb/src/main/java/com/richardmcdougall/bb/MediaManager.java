@@ -261,6 +261,7 @@ public class MediaManager {
         }
 
     }
+    JSONObject elm;
 
     public boolean GetNewDirectory() {
 
@@ -298,14 +299,9 @@ public class MediaManager {
                     JSONArray tList = dir.getJSONArray(dTypes[i]);
                     for (int j = 0; j < tList.length(); j++) {
 
-                        JSONObject elm = tList.getJSONObject(j);
+                        elm = tList.getJSONObject(j);
 
-                        // if there is no URL, it is an algorithm and should be skipped for download.
-                        // Note, NEW entries in the DB always have a 'URL' field, so we have to check the contents --jib
-                        if (elm.has("URL") &&
-                                !elm.isNull("URL") &&
-                                elm.getString("URL").length() > 0
-                        ) {
+                        if(!elm.has("algorithm")){
                             if (!isUpToDate(elm))
                                 changedFiles.put(elm);
                         }
