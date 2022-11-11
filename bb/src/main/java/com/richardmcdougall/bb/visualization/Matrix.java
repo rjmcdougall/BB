@@ -55,7 +55,7 @@ public class Matrix extends Visualization {
                     if (service.visualizationController.mRandom.nextInt(3) == 0) {
                         color = rgbList.getColor("mediumseagreen").getARGBInt();
                     } else if (service.visualizationController.mRandom.nextInt(3) == 1) {
-                        color = rgbList.getColor("black").getARGBInt();
+                        color = rgbList.getColor("green").getARGBInt();
                     } else {
                         color = rgbList.getColor("green").getARGBInt();
                     }
