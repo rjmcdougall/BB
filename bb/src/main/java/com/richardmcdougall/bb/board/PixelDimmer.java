@@ -44,7 +44,7 @@ public class PixelDimmer {
         powerPercent = powerPercent / powerHistory.length;
 
         powerLimitMultiplierPercent = (int) (100 - Math.min(90, Math.max((powerPercent * .5) - subtract, 0)));
-        BLog.i("BB.PixelDimmer", "pt/pp = " + powerPercentTmp + "/" + powerPercent + ", plmp = " + powerLimitMultiplierPercent);
+     //   BLog.i("BB.PixelDimmer", "pt/pp = " + powerPercentTmp + "/" + powerPercent + ", plmp = " + powerLimitMultiplierPercent);
 
 
         for (int pixel = 0; pixel < boardScreen.length; pixel++) {
