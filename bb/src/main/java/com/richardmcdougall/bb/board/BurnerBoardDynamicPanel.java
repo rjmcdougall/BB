@@ -82,9 +82,13 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     public void initpixelMap2Board(){
         int x, y;
 
+
+
         boardMap = this.service.displayMapManager.GetDisplayMap();
-        boardWidth = this.service.displayMapManager.boardWidth;
-        boardHeight = this.service.displayMapManager.boardHeight;
+//        boardWidth = this.service.displayMapManager.boardWidth;
+//        boardHeight = this.service.displayMapManager.boardHeight;
+        boardWidth = 32;
+        boardHeight = 64;
         kStrips = this.service.displayMapManager.numberOfStrips;
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
         pixelsPerStrip = new int[kStrips];
