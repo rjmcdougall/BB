@@ -9,7 +9,7 @@ public class PixelDimmer {
     public int[] Dim(int subtract, int[] boardScreen){
 
         int timeslot = (int) ((System.currentTimeMillis() / 1000 ) % powerHistory.length);
-        BLog.i("BB.PixelDimmer", "ts = " + timeslot);
+  //      BLog.i("BB.PixelDimmer", "ts = " + timeslot);
 
         //public static int[] Dim(int subtract, int[] boardScreen){
         // Here we calculate the total power percentage of the whole board
