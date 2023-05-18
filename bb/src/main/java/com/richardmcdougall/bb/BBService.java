@@ -151,6 +151,7 @@ public class BBService extends Service {
             BLog.i(TAG, "State Tyoe " + boardState.GetBoardType());
             BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
             BLog.i(TAG, "Video Contrast Multiplier  " + boardState.videoContrastMultiplier);
+            BLog.i(TAG, "Display Debug  " + boardState.displayDebug);
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();
