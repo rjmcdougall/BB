@@ -16,16 +16,6 @@ public class BatterySupervisor {
     private long lastLowStatement = System.currentTimeMillis();
     private int iotReportEveryNSeconds = 10;
 
-
-    Runnable batteryIOT = () -> {
-        try {
-            String stats = service.bms.getBatteryStatsIoT();
-            service.iotClient.sendUpdate("bbtelemetery", stats);
-        } catch (IOException e) {
-            BLog.e(TAG, "Cannot read battery for IOT Update");
-        }
-    };
-
     Runnable batterySupervisor = () ->  checkBattery();
 
     BatterySupervisor(BBService service) {
@@ -37,9 +27,6 @@ public class BatterySupervisor {
 
         if (service.burnerBoard.enableBatteryMonitoring)
             sch.scheduleWithFixedDelay(batterySupervisor, 10, 10, TimeUnit.SECONDS);
-
-        if (service.burnerBoard.enableIOTReporting)
-            sch.scheduleWithFixedDelay(batteryIOT, 10, iotReportEveryNSeconds, TimeUnit.SECONDS);
 
     }
 

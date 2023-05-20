@@ -52,7 +52,7 @@ public class BBService extends Service {
     public BluetoothCommands bluetoothCommands = null;
     public BluetoothConnManager bluetoothConnManager = null;
     public VisualizationController visualizationController = null;
-    public IoTClient iotClient = null;
+
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
@@ -180,7 +180,6 @@ public class BBService extends Service {
             };
             sch.schedule(seekAndPlay, 3, TimeUnit.SECONDS);
 
-            iotClient = new IoTClient(this);
             mediaManager = new MediaManager(this);
 
             while (mediaManager.dataDirectory == null) {

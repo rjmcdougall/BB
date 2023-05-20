@@ -60,8 +60,6 @@ public class FindMyFriends {
 
                 if (sinceLastFix > kMaxFixAge) {
                     BLog.d(TAG, "FMF: sending GPS update");
-                    service.iotClient.sendUpdate("bbevent", "[" +
-                            service.boardState.BOARD_ID + "," + 0 + "," + mLat / 1000000.0 + "," + mLon / 1000000.0 + "]");
                     broadcastGPSpacket(mLat, mLon, mAlt, mAmIAccurate, 0, 0);
                     mLastFix = System.currentTimeMillis();
 
@@ -179,9 +177,6 @@ public class FindMyFriends {
                         "theirLat = " + mTheirLat + ", " +
                         "theirLon = " + mTheirLon +
                         "theirBatt = " + mTheirBatt);
-                service.iotClient.sendUpdate("bbevent", "[" +
-                        service.allBoards.boardAddressToName(mTheirAddress) + "," +
-                        sigStrength + "," + mTheirLat + "," + mTheirLon + "]");
                 this.service.boardLocations.updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone(), mTheirInCrisis);
                 return true;
             }
