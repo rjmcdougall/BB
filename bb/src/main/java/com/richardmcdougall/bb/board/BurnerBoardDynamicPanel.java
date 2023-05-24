@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardDynamicPanel extends BurnerBoard {
@@ -9,9 +8,10 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     public int[] pixelsPerStrip = new int[1];
-    static int[][] pixelMap2BoardTable = new int[1][4096];
-    private TranslationMap[] boardMap;
+    static int[][] mapPixelsToStips = new int[1][4096];
+
     private PixelDimmer mDimmer = new PixelDimmer();
+    private PixelColorSections mColorSections = new PixelColorSections();
 
     static {
         textSizeHorizontal = 12;
@@ -24,7 +24,6 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
 
     public BurnerBoardDynamicPanel(BBService service) {
         super(service);
-        initpixelMap2Board();
     }
 
     @Override
@@ -50,17 +49,19 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        mOutputScreen = this.mColorSections.ColorSections(mOutputScreen, this.service.displayMapManager2);
         mOutputScreen = mDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
+
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
+                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
+                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
             }
             setStrip(s, stripPixels);
             // Send to board
@@ -72,61 +73,33 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
         flush2Board();
 
     }
-    
-    private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
-    }
 
-    public void initpixelMap2Board(){
-        int x, y;
+    public void initpixelMap2Board() {
 
-
-
-        boardMap = this.service.displayMapManager.GetDisplayMap();
-//        boardWidth = this.service.displayMapManager.boardWidth;
-//        boardHeight = this.service.displayMapManager.boardHeight;
-        boardWidth = 32;
-        boardHeight = 64;
-        kStrips = this.service.displayMapManager.numberOfStrips;
+        boardWidth = this.service.displayMapManager2.boardWidth;
+        boardHeight = this.service.displayMapManager2.boardHeight;
+        kStrips = this.service.displayMapManager2.numberOfStrips;
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
-        pixelsPerStrip = new int[kStrips];
-        pixelMap2BoardTable = new int[kStrips][2048];
+        pixelsPerStrip = this.service.displayMapManager2.pixelsPerStrip();
+        mapPixelsToStips = new int[kStrips][2048];
 
         pixelOffset = new PixelOffset(this);
 
-        for (int s = 0; s < kStrips; s++) {
-            pixelsPerStrip[s] = 0;
-            // Search strips and find longest pixel count
-            for (int i = 0; i < boardMap.length; i++) {
-                int endPixel = Math.abs(boardMap[i].endY - boardMap[i].startY) + 1 + boardMap[i].stripOffset;
-                if (s == (boardMap[i].stripNumber - 1) && endPixel > pixelsPerStrip[s]) {
-                    pixelsPerStrip[s] = endPixel;
-                }
-            }
-        }
+        for (int y = 0; y < this.service.displayMapManager2.boardHeight; y++) {
 
-        for (y = 0; y < boardMap.length; y++) {
-            if (boardMap[y].stripDirection == 1) {
-                // Strip has x1 ... x2
-                for (x = boardMap[y].startX; x <= boardMap[y].endX; x++) {
-                    int stripOffset = boardMap[y].stripOffset + x - boardMap[y].startX;
-                    pixelRemap(x, y, stripOffset * 3);
-                }
-            } else {
-                // Strip has x2 ... x1 (reverse order)
-                for (x = boardMap[y].endX; x <= boardMap[y].startX; x++) {
-                    int stripOffset = boardMap[y].stripOffset - x + boardMap[y].startX;
-                    pixelRemap(x, y, stripOffset * 3);
-                }
+            // Strip has x1 ... x2
+            for (int x = 0; x < this.service.displayMapManager2.boardWidth; x++) {
+
+                int strip = this.service.displayMapManager2.whichStripAmI(y * this.service.displayMapManager2.boardWidth + x);
+                int pixelsInPreviousStrips = this.service.displayMapManager2.stripOffsets.get(strip);
+                int stripOffset = 3 * (y * this.service.displayMapManager2.boardWidth + x - pixelsInPreviousStrips);
+
+                // calculate which strip and which location
+                mapPixelsToStips[strip][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+                mapPixelsToStips[strip][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+                mapPixelsToStips[strip][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+
             }
         }
-//        for (int s = 0; s < kStrips; s++) {
-//            // Walk through all the pixels in the strip
-//            for (int offset = 0; offset < pixelsPerStrip[s] * 3; offset++) {
-//                //l("Strip " + s + " offset " + offset + " =  pixel offset " + pixelMap2BoardTable[s][offset]);
-//            }
-//        }
     }
 }

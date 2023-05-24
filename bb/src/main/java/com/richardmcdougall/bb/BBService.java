@@ -75,6 +75,7 @@ public class BBService extends Service {
     public LocalCrisisController localCrisisController = null;
     public RotatingDisplayController rotatingDisplayController = null;
     public DisplayMapManager displayMapManager = null;
+    public DisplayMapManager2 displayMapManager2 = null;
     private boolean textToSpeechReady = false;
 
 
@@ -190,11 +191,18 @@ public class BBService extends Service {
             remoteCrisisController = new RemoteCrisisController(this);
             localCrisisController = new LocalCrisisController(this);
 
+            displayMapManager2 = new DisplayMapManager2(this);
+            if(boardState.GetBoardType() == BoardState.BoardType.dynamicPanel) {
+                while (displayMapManager2.displayMap == null) {
+                    BLog.i(TAG, "Display Map JSON file is required to be downloaded before proceeding.  Please hold.");
+                    Thread.sleep(2000);
+                }
+            }
+
             displayMapManager = new DisplayMapManager(this);
-            if(boardState.GetBoardType() == BoardState.BoardType.dynamicPanel ||
-                    boardState.GetBoardType() == BoardState.BoardType.v4){
+            if(boardState.GetBoardType() == BoardState.BoardType.v4){
                 while (displayMapManager.displayMap == null) {
-                    BLog.i(TAG, "Display Map file is required to be downloaded before proceeding.  Please hold.");
+                    BLog.i(TAG, "Display Map CSV file is required to be downloaded before proceeding.  Please hold.");
                     Thread.sleep(2000);
                 }
             }
