@@ -56,7 +56,10 @@ public abstract class BurnerBoard {
     public LineBuilder lineBuilder = null;
     protected AppDisplay appDisplay = null;
     protected BoardDisplay boardDisplay = null;
-    protected PixelOffset pixelOffset = null;
+    public PixelColorSections pixelColorSections = null;
+    public PixelDimmer pixelDimmer = null;
+    public PixelOffset pixelOffset = null;
+
     long lastFlushTime = java.lang.System.currentTimeMillis();
     private SerialInputOutputManager mSerialIoManager;
     public UsbDevice mUsbDevice = null;
@@ -87,6 +90,8 @@ public abstract class BurnerBoard {
         this.textBuilder = new TextBuilder(this);
         this.lineBuilder = new LineBuilder(this);
         this.arcBuilder = new ArcBuilder(this);
+        this.pixelDimmer = new PixelDimmer();
+        this.pixelColorSections = new PixelColorSections(this.service);
         initUsb();
     }
 
