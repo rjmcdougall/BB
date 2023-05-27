@@ -12,8 +12,11 @@ public class PixelColorSections {
     }
     public int[] ColorSections(int[] boardScreen){
 
+        String mode = String.valueOf(this.service.boardState.displayMode);
+
+
         for (int offset = 0; offset < this.service.displayMapManager2.XYOverrideMap.size() * 3; ) {
-            if (this.service.displayMapManager2.XYOverrideMap.get(offset / 3) == 3){
+            if (mode.contains(String.valueOf(this.service.displayMapManager2.XYOverrideMap.get(offset / 3)))){
                 boardScreen[offset] = 0;
                 offset++;
                 boardScreen[offset] = 0;
@@ -30,5 +33,6 @@ public class PixelColorSections {
 
         return boardScreen;
     }
+
 
 }

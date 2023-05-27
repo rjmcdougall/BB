@@ -280,7 +280,18 @@ public class BluetoothCommands {
                     sendStateResponse(command, device);
 
                 });
+        service.bLEServer.addCallback("DisplayMode",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got DisplayMode command:" + payload.toString());
+                    try {
+                        int displayMode = payload.getInt("arg");
+                        service.visualizationController.setDisplayMode(displayMode);
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error setting display mode: " + e.getMessage());
+                    }
+                    sendStateResponse(command, device);
 
+                });
         service.bLEServer.addCallback("getstate",
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
                     BLog.d(TAG, "BBservice get state command:" + payload.toString());
@@ -383,6 +394,7 @@ public class BluetoothCommands {
             state.put("p", service.boardState.password);
             state.put("r",service.boardState.inCrisis);
             state.put("rd",service.boardState.rotatingDisplay);
+            state.put("dm", service.boardState.displayMode);
 
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());

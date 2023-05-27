@@ -417,6 +417,10 @@ public class VisualizationController {
         showingMap = service.burnerBoard.getFrameRate() * 15;
     }
 
+    public void setDisplayMode(int displayMode) {
+        service.boardState.displayMode = displayMode;
+    }
+
     public void setMode(int mode) {
 
         // Likely not connected to physical burner board, fallback

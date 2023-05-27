@@ -44,6 +44,7 @@ public class BoardState {
     public int batteryLevel = -1;
     public int currentRadioChannel = 0;
     public int currentVideoMode = 0;
+    public int displayMode = 0;
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy;
