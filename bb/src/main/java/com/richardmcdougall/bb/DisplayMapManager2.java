@@ -188,15 +188,33 @@ public class DisplayMapManager2 {
         return array;
     }
 
-    public int whichStripAmI(int pixel){
-        int strip = 0;
-        for(int i = 0; i< stripMaxPixels.size();i++){
-            if(pixel >= stripOffsets.get(i).intValue() && pixel < stripMaxPixels.get(i).intValue()) {
-                strip = i;
-            }
-        }
-        return strip;
+    public int FindMyStrip(int x, int y){
+        return this.displayMap.get(y).stripNumber;
     }
+    public int FindMe(int x, int y){
+        //find my strip
+
+        DisplayMapRow myRow = this.displayMap.get(y);
+
+        ArrayList<DisplayMapRow> rows = displayMapForStrip(myRow.stripNumber);
+
+        //find all pixels taken by previous rows within this strip.
+        int previousPixels = 0;
+        for(DisplayMapRow row: rows){
+            if(row.row == y)
+                break;
+
+            previousPixels += row.rowLength();
+        }
+
+        //for this row, figure out how many buffer pixels need to be skipped and add them.
+        int paddingPixels = (boardWidth - myRow.rowLength()) / 2;
+
+        // all of the pixels used in previous rows within this strip plus the current x (less padding offset)
+        return previousPixels + (x - paddingPixels);
+
+    }
+
 
     public ArrayList<DisplayMapRow> displayMapForStrip(int stripNumber){
         ArrayList<DisplayMapRow> map = new ArrayList<>();

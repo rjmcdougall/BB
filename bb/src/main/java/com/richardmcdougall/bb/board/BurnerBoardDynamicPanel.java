@@ -87,9 +87,8 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
             // Strip has x1 ... x2
             for (int x = 0; x < this.service.displayMapManager2.boardWidth; x++) {
 
-                int strip = this.service.displayMapManager2.whichStripAmI(y * this.service.displayMapManager2.boardWidth + x);
-                int pixelsInPreviousStrips = this.service.displayMapManager2.stripOffsets.get(strip);
-                int stripOffset = 3 * (y * this.service.displayMapManager2.boardWidth + x - pixelsInPreviousStrips);
+                int stripOffset = 3 * this.service.displayMapManager2.FindMe(x,y);
+                int strip = this.service.displayMapManager2.FindMyStrip(x,y);
 
                 // calculate which strip and which location
                 mapPixelsToStips[strip][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
