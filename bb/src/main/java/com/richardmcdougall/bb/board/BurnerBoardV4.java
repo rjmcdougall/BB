@@ -9,7 +9,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     public int[] pixelsPerStrip = new int[1];
-    static int[][] pixelMap2BoardTable = new int[1][4096];
+    static int[][] mapPixelsToStips = new int[1][4096];
     private TranslationMap[] boardMap;
     private PixelDimmer mDimmer = new PixelDimmer();
 
@@ -58,9 +58,9 @@ public class BurnerBoardV4 extends BurnerBoard {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
+                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
+                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
             }
             setStrip(s, stripPixels);
             if ((s % 3) == 0) {
@@ -77,9 +77,9 @@ public class BurnerBoardV4 extends BurnerBoard {
 
     }
     private void pixelRemap(int x, int y, int stripOffset) {
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
+        mapPixelsToStips[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
+        mapPixelsToStips[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);
+        mapPixelsToStips[boardMap[y].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_BLUE);
     }
 
     public void initpixelMap2Board() {
@@ -93,7 +93,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         kStrips = this.service.displayMapManager.numberOfStrips;
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
         pixelsPerStrip = new int[kStrips];
-        pixelMap2BoardTable = new int[kStrips][4096];
+        mapPixelsToStips = new int[kStrips][4096];
         pixelOffset = new PixelOffset(this);
 
         try {
