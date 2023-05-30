@@ -56,7 +56,7 @@ public abstract class BurnerBoard {
     public LineBuilder lineBuilder = null;
     protected AppDisplay appDisplay = null;
     protected BoardDisplay boardDisplay = null;
-    public PixelColorSections pixelColorSections = null;
+    public PixelBlackoutSections pixelBlackoutSections = null;
     public PixelDimmer pixelDimmer = null;
     public PixelOffset pixelOffset = null;
 
@@ -91,7 +91,7 @@ public abstract class BurnerBoard {
         this.lineBuilder = new LineBuilder(this);
         this.arcBuilder = new ArcBuilder(this);
         this.pixelDimmer = new PixelDimmer();
-        this.pixelColorSections = new PixelColorSections(this.service);
+        this.pixelBlackoutSections = new PixelBlackoutSections(this.service);
         initUsb();
     }
 

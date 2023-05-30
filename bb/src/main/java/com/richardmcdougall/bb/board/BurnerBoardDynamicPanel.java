@@ -46,7 +46,7 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = this.pixelColorSections.ColorSections(mOutputScreen);
+        mOutputScreen = this.pixelBlackoutSections.ColorSections(mOutputScreen);
         mOutputScreen = this.pixelDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 

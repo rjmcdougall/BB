@@ -26,13 +26,14 @@ public class DisplayMapManager2 {
     public int numberOfStrips = 0;
     String displayMapText = "";
     long lastDisplayMapModified = 0;
+    public String displayDebugPattern = "";
 
     public ArrayList<Integer> stripOffsets = new ArrayList<>();
     public ArrayList<Integer> stripMaxPixels = new ArrayList<>();
     public ArrayList<Integer> stripPixelsPer = new ArrayList<>();
     public ArrayList<ArrayList> stripSectionMap = new ArrayList<>();
-
-    public ArrayList<Integer> XYOverrideMap = new ArrayList<>();
+    public ArrayList<ArrayList<Integer>> twoDimensionalSectionMap = new ArrayList<>();
+    public ArrayList<Integer> oneDimensionalSectionMap = new ArrayList<>();
 
     public DisplayMapManager2(BBService service) {
         this.service = service;
@@ -62,7 +63,8 @@ public class DisplayMapManager2 {
                 analyzeDisplayMap();
                 calculateStripOffsets();
                 createStripSectionMap();
-                createXYDisplayOverrideMap();
+                createOneDimensionalSectionMap();
+                createTwoDimesionalSectionMap();
 
                 try{
                     service.burnerBoard.initpixelMap2Board();
@@ -130,13 +132,13 @@ public class DisplayMapManager2 {
         }
     }
 
-    private void createXYDisplayOverrideMap(){
+    private void createOneDimensionalSectionMap(){
 
         //build an array that can be used to override and black out sections (like the underrail).
         // the map created here should be the same height / width as the OutputScreen.
         // because each of our rows are different lengths, we need to be centering our rows as we build this map.
         // there may be an issue here with non-even out-of-bounds.
-        XYOverrideMap = new ArrayList<Integer>();
+        oneDimensionalSectionMap = new ArrayList<Integer>();
 
         for(int y = 0; y<boardHeight;y++ ){
             ArrayList<Integer> xyOverrideRow = new ArrayList<>();
@@ -150,12 +152,32 @@ public class DisplayMapManager2 {
             for(int i=0;i<paddingPixels;i++)
                 xyOverrideRow.add(d.OUTOFBOUNDS);
 
-            XYOverrideMap.addAll(xyOverrideRow);
+            oneDimensionalSectionMap.addAll(xyOverrideRow);
         }
     }
 
-    public int stripPixelSection(int strip, int offset){
-        return (int) stripSectionMap.get(strip).get(offset);
+    private void createTwoDimesionalSectionMap(){
+
+        //build an array that can be used to override and black out sections (like the underrail).
+        // the map created here should be the same height / width as the OutputScreen.
+        // because each of our rows are different lengths, we need to be centering our rows as we build this map.
+        // there may be an issue here with non-even out-of-bounds.
+        twoDimensionalSectionMap = new ArrayList<>();
+
+        for(int y = 0; y<boardHeight;y++ ){
+            ArrayList<Integer> xyOverrideRow = new ArrayList<>();
+
+            DisplayMapRow d = displayMap.get(y);
+            int paddingPixels = (boardWidth - d.rowLength()) / 2;
+            for(int i=0;i<paddingPixels;i++)
+                xyOverrideRow.add(d.OUTOFBOUNDS);
+
+            xyOverrideRow.addAll(d.rowPixels);
+            for(int i=0;i<paddingPixels;i++)
+                xyOverrideRow.add(d.OUTOFBOUNDS);
+
+            twoDimensionalSectionMap.add(xyOverrideRow);
+        }
     }
 
     public int[] pixelsPerStrip(){
@@ -192,9 +214,17 @@ public class DisplayMapManager2 {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
+            while ((line = reader.readLine()) != null) {
 
-            // Skip the header line
-            reader.readLine();
+                String[] parts = line.split(",");
+                if(parts.length>0){
+                    if (parts[0].equals("displayDebug"))
+                        displayDebugPattern = parts[1];
+
+                    if(parts[0].equals("stripNumber"))
+                        break;
+                }
+            }
 
             while ((line = reader.readLine()) != null) {
                 BLog.d(TAG, line);

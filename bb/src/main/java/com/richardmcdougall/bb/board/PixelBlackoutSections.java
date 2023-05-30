@@ -1,13 +1,12 @@
 package com.richardmcdougall.bb.board;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.DisplayMapManager2;
 
-public class PixelColorSections {
+public class PixelBlackoutSections {
 
     BBService service = null;
 
-    public PixelColorSections(BBService service){
+    public PixelBlackoutSections(BBService service){
         this.service = service;
     }
     public int[] ColorSections(int[] boardScreen){
@@ -15,8 +14,8 @@ public class PixelColorSections {
         String mode = String.valueOf(this.service.boardState.displayMode);
 
 
-        for (int offset = 0; offset < this.service.displayMapManager2.XYOverrideMap.size() * 3; ) {
-            if (mode.contains(String.valueOf(this.service.displayMapManager2.XYOverrideMap.get(offset / 3)))){
+        for (int offset = 0; offset < this.service.displayMapManager2.oneDimensionalSectionMap.size() * 3; ) {
+            if (mode.contains(String.valueOf(this.service.displayMapManager2.oneDimensionalSectionMap.get(offset / 3)))){
                 boardScreen[offset] = 0;
                 offset++;
                 boardScreen[offset] = 0;

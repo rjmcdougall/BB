@@ -1,12 +1,15 @@
 package com.richardmcdougall.bb;
 
 import android.media.audiofx.Visualizer;
+import android.opengl.Visibility;
 
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
+import com.richardmcdougall.bb.visualization.DisplayRowTest;
+import com.richardmcdougall.bb.visualization.DisplaySectionTest;
 import com.richardmcdougall.bb.visualization.MatrixTest;
-import com.richardmcdougall.bb.visualization.PixelMapTest;
+import com.richardmcdougall.bb.visualization.DisplayLineTest;
 import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bb.visualization.JosPack;
 import com.richardmcdougall.bb.visualization.Matrix;
@@ -66,6 +69,9 @@ public class VisualizationController {
     public Visualization mVisualizationSimpleSign;
     public Visualization mPixelMapTest;
     public Visualization mMatrixTest;
+    public Visualization mDisplaySectionTest;
+    public Visualization mDisplayLineTest;
+    public Visualization mDisplayRowTest;
 
     private int frameCnt = 0;
     private String TAG = this.getClass().getSimpleName();
@@ -97,9 +103,11 @@ public class VisualizationController {
         mVisualizationAudioBar = new AudioBar(service);
         mVisualizationPlayaMap = new PlayaMap(service);
         mVisualizationSimpleSign = new SimpleSign(service);
-        mPixelMapTest = new PixelMapTest(service);
+        mPixelMapTest = new DisplayLineTest(service);
         mMatrixTest = new MatrixTest(service);
-
+        mDisplaySectionTest = new DisplaySectionTest(service);
+        mDisplayLineTest = new DisplayLineTest(service);
+        mDisplayRowTest = new DisplayRowTest(service);
     }
 
     void Run() {
@@ -153,8 +161,17 @@ public class VisualizationController {
 
         int frameRate = service.burnerBoard.getFrameRate();
 
-        if(this.service.boardState.displayDebug==true){
+        if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("matrixTest")){
             mMatrixTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("displaySectionTest")){
+            mDisplaySectionTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("displayLineTest")){
+            mDisplayLineTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("displayRowTest")){
+            mDisplayRowTest.update(Visualization.kDefault);
         }
         else if(algorithm.contains("simpleSign")){
             String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
@@ -166,10 +183,6 @@ public class VisualizationController {
         else {
 
             switch (algorithm) {
-
-                case "pixelMapTest()":
-                    mPixelMapTest.update(Visualization.kDefault);
-                    break;
 
                 case "modeMatrix(kMatrixBurnerColor)":
                     mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
@@ -199,7 +212,6 @@ public class VisualizationController {
                     mVisualizationAudioTile.update(Matrix.kDefault);
                     break;
 
-                // JosPack visualizations go here
                 case "JPGold()":
                     mVisualizationJosPack.update(JosPack.kJPGold);
                     break;
@@ -229,9 +241,6 @@ public class VisualizationController {
                     break;
                 case "modePlayaMap()":
                     mVisualizationPlayaMap.update(Visualization.kDefault);
-                    break;
-                case "matrixTest()":
-                    mMatrixTest.update(Visualization.kDefault);
                     break;
                 default:
                     break;
@@ -438,7 +447,7 @@ public class VisualizationController {
         else if (service.boardState.currentVideoMode < 0)
             service.boardState.currentVideoMode = maxModes-1;
 
-            if (service.boardState.masterRemote)
+        if (service.boardState.masterRemote)
             service.masterController.SendVideo();
 
         BLog.d(TAG, "Setting visualization mode to: " + service.boardState.currentVideoMode);
