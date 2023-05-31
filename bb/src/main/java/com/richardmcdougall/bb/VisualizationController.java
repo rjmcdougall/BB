@@ -184,6 +184,10 @@ public class VisualizationController {
 
             switch (algorithm) {
 
+                case "modeMatrix(kMatrixMezcal)":
+                    mVisualizationMatrix.update(Matrix.kMatrixMezcal);
+                    break;
+
                 case "modeMatrix(kMatrixBurnerColor)":
                     mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
                     break;
