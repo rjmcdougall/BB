@@ -3,6 +3,7 @@ package com.richardmcdougall.bb.visualization;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.TimeSync;
 import com.richardmcdougall.bb.board.RGB;
+import com.richardmcdougall.bbcommon.BoardState;
 
 /**
  * Created by rmc on 6/21/18.
@@ -30,13 +31,24 @@ public class Matrix extends Visualization {
         int color;
         int x;
         int y;
-        int pixelSkip;
+        int pixelSkip = 1;
+        int multiplier4Speed = service.visualizationController.mMultipler4Speed;
 
-        pixelSkip = 1;
+        if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
+            pixelSkip = 2;
+            if (multiplier4Speed == 1) {
+                multiplier4Speed = 2;
+            }
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.azul) {
+            pixelSkip = 2;
+            if (multiplier4Speed == 1) {
+                multiplier4Speed = 2;
+            }
+        }
 
         y = service.burnerBoard.boardHeight - 1;
 
-        for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x++) {
+        for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x+= pixelSkip) {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixBurnerColor:
@@ -48,7 +60,9 @@ public class Matrix extends Visualization {
                         color = mWheel.wheelState();
                         mWheel.wheelInc(1);
                     }
-                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
+                    for (int p = 0; p < pixelSkip; p++) {
+                        service.burnerBoard.setPixel(pixelSkip * x + p, y, color);
+                    }
                     break;
 
                 case kMatrixMermaid:
@@ -59,14 +73,17 @@ public class Matrix extends Visualization {
                     } else {
                         color = rgbList.getColor("green").getARGBInt();
                     }
-                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
+                    for (int p = 0; p < pixelSkip; p++) {
+                        service.burnerBoard.setPixel(pixelSkip * x + p, y, color);
+                    }
                     break;
 
                 case kMatrixLunarian:
                     color = service.visualizationController.mRandom.nextInt(2) == 0 ?
                             RGB.getARGBInt(0, 0, 0) : RGB.getARGBInt(255, 255, 255);
-                    service.burnerBoard.setPixel(pixelSkip * x, y, color);
-
+                    for (int p = 0; p < pixelSkip; p++) {
+                        service.burnerBoard.setPixel(pixelSkip * x + p, y, color);
+                    }
                     break;
 
                 default:
@@ -79,7 +96,7 @@ public class Matrix extends Visualization {
 
         }
 
-        for (int i = 0; i < service.visualizationController.mMultipler4Speed; i++) {
+        for (int i = 0; i < multiplier4Speed; i++) {
             service.burnerBoard.scrollPixels(true);
         }
 
