@@ -23,7 +23,12 @@ public class Matrix extends Visualization {
     public static final int kMatrixMermaid = 7;
 
     private int fireColor = 40;
+    public static final int kMatrixMezcal = 20;
 
+    private int diagonal = 4;
+    private int mexcal_color = mWheel.wheelState();
+
+    private int mezcal_row = 2;
     private static RGBList rgbList = new RGBList();
 
     public void update(int mode) {
@@ -46,9 +51,15 @@ public class Matrix extends Visualization {
             }
         }
 
+        // Specific params for Mezcal pattern
+        if (mode == kMatrixMezcal) {
+            pixelSkip = 1;
+            multiplier4Speed = 4;
+        }
+
         y = service.burnerBoard.boardHeight - 1;
 
-        for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x+= pixelSkip) {
+        for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x += pixelSkip) {
             //Chance of 1/3rd
             switch (mode) {
                 case kMatrixBurnerColor:
@@ -85,6 +96,26 @@ public class Matrix extends Visualization {
                         service.burnerBoard.setPixel(pixelSkip * x + p, y, color);
                     }
                     break;
+                case kMatrixMezcal:
+                    if ((x == diagonal) || ((service.burnerBoard.boardWidth - x) == diagonal)) {
+                        service.burnerBoard.setPixel(pixelSkip * x, y, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 1, y, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 2, y, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x, y - 1, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 1, y - 1, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 2, y - 1, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x, y - 2, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 1, y - 2, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 2, y - 2, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x, y - 3, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 1, y - 3, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 2, y - 3, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x, y - 4, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 1, y - 4, mexcal_color);
+                        service.burnerBoard.setPixel(pixelSkip * x - 2, y - 4, mexcal_color);
+                    } else {
+                        service.burnerBoard.setPixel(pixelSkip * x, y, RGB.getARGBInt(0, 0, 0));
+                    }
 
                 default:
             }
@@ -93,7 +124,13 @@ public class Matrix extends Visualization {
             if (fireColor > 180) {
                 fireColor = 40;
             }
+        }
 
+        diagonal += 3;
+        if (diagonal >= service.burnerBoard.boardWidth / 2) {
+            diagonal = 5;
+            mexcal_color = mWheel.wheelState();
+            mWheel.wheelInc(60);
         }
 
         for (int i = 0; i < multiplier4Speed; i++) {
@@ -103,7 +140,7 @@ public class Matrix extends Visualization {
         switch (mode) {
             case kMatrixSync:
                 int syncColor =
-                        mWheel.wheel((int)(TimeSync.GetCurrentClock() / 5) % 360);
+                        mWheel.wheel((int) (TimeSync.GetCurrentClock() / 5) % 360);
                 if (syncColor > 0) {
                     service.burnerBoard.fillScreenMask(syncColor);
 
