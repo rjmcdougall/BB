@@ -57,6 +57,11 @@ public class Matrix extends Visualization {
             multiplier4Speed = 4;
         }
 
+        if (mode == kMatrixMermaid) {
+            pixelSkip = 1;
+            multiplier4Speed = 1;
+        }
+
         y = service.burnerBoard.boardHeight - 1;
 
         for (x = 0; x < service.burnerBoard.boardWidth / pixelSkip; x += pixelSkip) {
@@ -88,6 +93,7 @@ public class Matrix extends Visualization {
                         service.burnerBoard.setPixel(pixelSkip * x + p, y, color);
                     }
                     break;
+
 
                 case kMatrixLunarian:
                     color = service.visualizationController.mRandom.nextInt(2) == 0 ?
