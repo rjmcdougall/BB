@@ -37,13 +37,13 @@ public class DisplayMapManager2 {
 
     public DisplayMapManager2(BBService service) {
         this.service = service;
-        filesDir = this.service.context.getFilesDir().getAbsolutePath();
-
-        this.displauMapXLSX = this.service.boardState.BOARD_ID + ".csv";
-
-        Runnable periodicCheckForDisplayMap = () -> LoadDisplayMap();
-
-        sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 1, 1, TimeUnit.SECONDS);
+//        filesDir = this.service.context.getFilesDir().getAbsolutePath();
+//
+//        this.displauMapXLSX = this.service.boardState.BOARD_ID + ".csv";
+//
+//        Runnable periodicCheckForDisplayMap = () -> LoadDisplayMap();
+//
+//        sch.scheduleWithFixedDelay(periodicCheckForDisplayMap, 1, 1, TimeUnit.SECONDS);
 
     }
 
