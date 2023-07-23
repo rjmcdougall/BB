@@ -1,4 +1,5 @@
 [
+{"displayDebug":"displayLineTest"},
 {"xy":"0","startXY":36,"endXY":29,"stripOffset":0,"stripNumber":"1"},   
 {"xy":"1","rowLength":6,"centerPoint":8,"stripNumber":"1"},
 {"xy":"2","rowLength":10,"centerPoint":14,"stripNumber":"1"},
@@ -20,7 +21,6 @@
 {"xy":"18","rowLength":19,"centerPoint":369,"stripNumber":"1"},
 
 {"xy":"19","startXY":50,"endXY":20,"stripOffset":0,"stripNumber":"2"},  
-
 {"xy":"20","rowLength":19,"centerPoint":31,"stripNumber":"2"},
 {"xy":"21","rowLength":19,"centerPoint":65,"stripNumber":"2"},
 {"xy":"22","rowLength":19,"centerPoint":100,"stripNumber":"2"},
@@ -44,6 +44,7 @@
 {"xy":"39","rowLength":30,"centerPoint":310,"stripNumber":"3"},
 {"xy":"40","rowLength":30,"centerPoint":358,"stripNumber":"3"},
 {"xy":"41","rowLength":30,"centerPoint":407,"stripNumber":"3"},
+
 {"xy":"42","startXY":60,"endXY":11,"stripOffset":0,"stripNumber":"4"},
 {"xy":"43","rowLength":50,"centerPoint":24,"stripNumber":"4"},
 {"xy":"44","rowLength":50,"centerPoint":75,"stripNumber":"4"},
@@ -53,6 +54,7 @@
 {"xy":"48","rowLength":50,"centerPoint":284,"stripNumber":"4"},
 {"xy":"49","rowLength":50,"centerPoint":336,"stripNumber":"4"},
 {"xy":"50","rowLength":50,"centerPoint":389,"stripNumber":"4"},
+
 {"xy":"51","startXY":60,"endXY":11,"stripOffset":0,"stripNumber":"5"},
 {"xy":"52","rowLength":50,"centerPoint":29,"stripNumber":"5"},
 {"xy":"53","rowLength":50,"centerPoint":85,"stripNumber":"5"},
@@ -255,5 +257,3 @@
 {"xy":"227","rowLength":20,"centerPoint":158,"stripNumber":"27"},
 {"xy":"228","rowLength":20,"centerPoint":179,"stripNumber":"27"}
 ] 
-
-

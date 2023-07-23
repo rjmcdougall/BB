@@ -25,6 +25,8 @@ public class DisplayMapManager {
     public JSONArray dataDisplayMap;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     private String filesDir;
+    public String displayDebugPattern;
+
     public FileHelpers.OnDownloadProgressType onProgressCallback = null;
     public ArrayList<TranslationMap> displayMap;
     public int boardHeight = 0;
@@ -101,51 +103,60 @@ public class DisplayMapManager {
             if (dataDisplayMap == null) {
                 BLog.d(TAG, "Could not find display map");
             } else {
+
                 displayMap = new ArrayList<>();
+                displayDebugPattern = "";
+
                 for (int i =0; i < dataDisplayMap.length() ; i++) {
 
                     displayMapTemp = dataDisplayMap.getJSONObject(i);
-                    int rowLength = 0;
-                    int centerPoint = 0;
-                    int stripOffset = 0;
 
-                    if(displayMapTemp.has("centerPoint"))
-                        centerPoint = displayMapTemp.getInt("centerPoint");
+                    if(displayMapTemp.has("displayDebug")){
+                        displayDebugPattern = displayMapTemp.getString("displayDebug");
+                    }
+                    else {
+                        int rowLength = 0;
+                        int centerPoint = 0;
+                        int stripOffset = 0;
 
-                    if(displayMapTemp.has("rowLength"))
-                        rowLength = displayMapTemp.getInt("rowLength");
+                        if(displayMapTemp.has("centerPoint"))
+                            centerPoint = displayMapTemp.getInt("centerPoint");
 
-                    if(displayMapTemp.has("startXY"))
-                        startXY = displayMapTemp.getInt("startXY");
-                    else
-                        startXY = boardCenterXCoordinate + rowLength / 2;
+                        if(displayMapTemp.has("rowLength"))
+                            rowLength = displayMapTemp.getInt("rowLength");
 
-                    if(displayMapTemp.has("endXY"))
-                        endXY = displayMapTemp.getInt("endXY");
-                    else
-                        endXY = boardCenterXCoordinate - rowLength / 2;
-                    if(displayMapTemp.has("stripOffset"))
-                        stripOffset = displayMapTemp.getInt("stripOffset");
-                    else
-                        stripOffset = centerPoint + rowLength / 2;
+                        if(displayMapTemp.has("startXY"))
+                            startXY = displayMapTemp.getInt("startXY");
+                        else
+                            startXY = boardCenterXCoordinate + rowLength / 2;
 
-                    stripNumber = displayMapTemp.getInt("stripNumber");
+                        if(displayMapTemp.has("endXY"))
+                            endXY = displayMapTemp.getInt("endXY");
+                        else
+                            endXY = boardCenterXCoordinate - rowLength / 2;
+                        if(displayMapTemp.has("stripOffset"))
+                            stripOffset = displayMapTemp.getInt("stripOffset");
+                        else
+                            stripOffset = centerPoint + rowLength / 2;
 
-                    TranslationMap m = new TranslationMap(
-                            displayMapTemp.getInt("xy"),
-                            startXY,
-                            endXY,
-                            0,// not used
-                            stripNumber,
-                            stripOffset
-                    );
+                        stripNumber = displayMapTemp.getInt("stripNumber");
 
-                    displayMap.add(m);
+                        TranslationMap m = new TranslationMap(
+                                displayMapTemp.getInt("xy"),
+                                startXY,
+                                endXY,
+                                0,// not used
+                                stripNumber,
+                                stripOffset
+                        );
 
-                    BLog.d(TAG, "Display Map" + m);
+                        displayMap.add(m);
 
-                    if(numberOfStrips<stripNumber)
+                        BLog.d(TAG, "Display Map" + m);
+
+                        if(numberOfStrips<stripNumber)
                             numberOfStrips = stripNumber;
+                    }
                 }
             }
         } catch (Exception e) {

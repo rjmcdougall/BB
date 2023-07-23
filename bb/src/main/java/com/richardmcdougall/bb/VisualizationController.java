@@ -161,27 +161,26 @@ public class VisualizationController {
 
         int frameRate = service.burnerBoard.getFrameRate();
 
-//        if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("matrixTest")){
-//            mMatrixTest.update(Visualization.kDefault);
-//        }
-//        else if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("displaySectionTest")){
-//            mDisplaySectionTest.update(Visualization.kDefault);
-//        }
-//        else if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("displayLineTest")){
-//            mDisplayLineTest.update(Visualization.kDefault);
-//        }
-//        else if(this.service.displayMapManager2.displayDebugPattern.equalsIgnoreCase("displayRowTest")){
-//            mDisplayRowTest.update(Visualization.kDefault);
-//        }
-//       else
-//        if(algorithm.contains("simpleSign")){
-//            String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
-//
-//            List<String> params = Arrays.asList(parameter.split(","));
-//            mVisualizationSimpleSign.setText(params.get(0),params.get(1).trim(),params.get(2).trim());
-//            mVisualizationSimpleSign.update(Visualization.kDefault);
-//        }
-//        else {
+        if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("matrixTest")){
+            mMatrixTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displaySectionTest")){
+            mDisplaySectionTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displayLineTest")){
+            mDisplayLineTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displayRowTest")){
+            mDisplayRowTest.update(Visualization.kDefault);
+        }
+       else if(algorithm.contains("simpleSign")){
+            String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
+
+            List<String> params = Arrays.asList(parameter.split(","));
+            mVisualizationSimpleSign.setText(params.get(0),params.get(1).trim(),params.get(2).trim());
+            mVisualizationSimpleSign.update(Visualization.kDefault);
+        }
+        else {
 
             switch (algorithm) {
 
@@ -250,7 +249,7 @@ public class VisualizationController {
                 default:
                     break;
             }
-     //   }
+        }
 
         return frameRate;
     }
