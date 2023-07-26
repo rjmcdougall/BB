@@ -54,9 +54,9 @@ public class BurnerBoardV4 extends BurnerBoard {
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
-            int[] stripPixels = new int[500 * 3];
+            int[] stripPixels = new int[600 * 3];
             // Walk through all the pixels in the strip
-            for (int offset = 0; offset < 500 * 3; ) {
+            for (int offset = 0; offset < 600 * 3; ) {
                 stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
                 stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
                 stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
