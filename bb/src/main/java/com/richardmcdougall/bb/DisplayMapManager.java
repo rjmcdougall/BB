@@ -137,7 +137,7 @@ public class DisplayMapManager {
                         if(displayMapTemp.has("stripOffset"))
                             stripOffset = displayMapTemp.getInt("stripOffset");
                         else
-                            stripOffset = centerPoint + rowLength / 2;
+                            stripOffset = centerPoint - rowLength / 2;
 
                         stripNumber = displayMapTemp.getInt("stripNumber");
 
