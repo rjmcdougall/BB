@@ -74,7 +74,6 @@ public class Matrix extends Visualization {
                         color = RGB.getARGBInt(0, 0, 0);
                     } else {
                         color = mWheel.wheelState();
-                        mWheel.wheelInc(1);
                     }
                     for (int p = 0; p < pixelSkip; p++) {
                         service.burnerBoard.setPixel(pixelSkip * x + p, y, color);
@@ -132,13 +131,6 @@ public class Matrix extends Visualization {
             }
         }
 
-        diagonal += 3;
-        if (diagonal >= service.burnerBoard.boardWidth / 2) {
-            diagonal = 5;
-            mexcal_color = mWheel.wheelState();
-            mWheel.wheelInc(60);
-        }
-
         for (int i = 0; i < multiplier4Speed; i++) {
             service.burnerBoard.scrollPixels(true);
         }
@@ -151,10 +143,19 @@ public class Matrix extends Visualization {
                     service.burnerBoard.fillScreenMask(syncColor);
 
                 }
+                break;
 
+            case kMatrixMezcal:
+                diagonal += 3;
+                if (diagonal >= service.burnerBoard.boardWidth / 2) {
+                    diagonal = 5;
+                    mexcal_color = mWheel.wheelState();
+                    mWheel.wheelInc(60);
+                }
                 break;
 
             default:
+                mWheel.wheelInc(4);
                 break;
         }
         service.burnerBoard.flush();
