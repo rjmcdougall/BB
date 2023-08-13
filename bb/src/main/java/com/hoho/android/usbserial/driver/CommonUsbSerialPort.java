@@ -1,21 +1,6 @@
 /* Copyright 2011-2013 Google Inc.
  * Copyright 2013 mike wakerly <opensource@hoho.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
- * USA.
- *
  * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
 
@@ -23,42 +8,60 @@ package com.hoho.android.usbserial.driver;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbRequest;
+import android.util.Log;
+
+import com.hoho.android.usbserial.util.MonotonicClock;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.EnumSet;
 
 /**
  * A base class shared by several driver implementations.
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-abstract class CommonUsbSerialPort implements UsbSerialPort {
+public abstract class CommonUsbSerialPort implements UsbSerialPort {
 
-    public static final int DEFAULT_READ_BUFFER_SIZE = 16 * 1024;
-    public static final int DEFAULT_WRITE_BUFFER_SIZE = 16 * 1024;
+    public static boolean DEBUG = false;
+
+    private static final String TAG = CommonUsbSerialPort.class.getSimpleName();
+    private static final int MAX_READ_SIZE = 16 * 1024; // = old bulkTransfer limit
 
     protected final UsbDevice mDevice;
     protected final int mPortNumber;
 
     // non-null when open()
     protected UsbDeviceConnection mConnection = null;
+    protected UsbEndpoint mReadEndpoint;
+    protected UsbEndpoint mWriteEndpoint;
+    protected UsbRequest mUsbRequest;
+    private UsbRequest writeRequest = null;
 
-    protected final Object mReadBufferLock = new Object();
-    protected final Object mWriteBufferLock = new Object();
+    private boolean mEnableAsyncWrites;
+    private boolean mEnableAsyncReads;
 
-    /** Internal read buffer.  Guarded by {@link #mReadBufferLock}. */
-    protected byte[] mReadBuffer;
 
-    /** Internal write buffer.  Guarded by {@link #mWriteBufferLock}. */
+    /**
+     * Internal write buffer.
+     * Guarded by {@link #mWriteBufferLock}.
+     * Default length = mReadEndpoint.getMaxPacketSize()
+     **/
     protected byte[] mWriteBuffer;
+    protected final Object mWriteBufferLock = new Object();
+    protected final Object mReadBufferLock = new Object();
+
 
     public CommonUsbSerialPort(UsbDevice device, int portNumber) {
         mDevice = device;
         mPortNumber = portNumber;
+        mEnableAsyncWrites = true;
+        mEnableAsyncReads = true;
 
-        mReadBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
-        mWriteBuffer = new byte[DEFAULT_WRITE_BUFFER_SIZE];
     }
-    
+
     @Override
     public String toString() {
         return String.format("<%s device_name=%s device_id=%s port_number=%s>",
@@ -66,12 +69,8 @@ abstract class CommonUsbSerialPort implements UsbSerialPort {
                 mDevice.getDeviceId(), mPortNumber);
     }
 
-    /**
-     * Returns the currently-bound USB device.
-     *
-     * @return the device
-     */
-    public final UsbDevice getDevice() {
+    @Override
+    public UsbDevice getDevice() {
         return mDevice;
     }
 
@@ -79,10 +78,21 @@ abstract class CommonUsbSerialPort implements UsbSerialPort {
     public int getPortNumber() {
         return mPortNumber;
     }
-    
+
+    @Override
+    public UsbEndpoint getWriteEndpoint() {
+        return mWriteEndpoint;
+    }
+
+    @Override
+    public UsbEndpoint getReadEndpoint() {
+        return mReadEndpoint;
+    }
+
     /**
      * Returns the device serial number
-     *  @return serial number
+     *
+     * @return serial number
      */
     @Override
     public String getSerial() {
@@ -91,28 +101,21 @@ abstract class CommonUsbSerialPort implements UsbSerialPort {
 
     /**
      * Sets the size of the internal buffer used to exchange data with the USB
-     * stack for read operations.  Most users should not need to change this.
-     *
-     * @param bufferSize the size in bytes
-     */
-    public final void setReadBufferSize(int bufferSize) {
-        synchronized (mReadBufferLock) {
-            if (bufferSize == mReadBuffer.length) {
-                return;
-            }
-            mReadBuffer = new byte[bufferSize];
-        }
-    }
-
-    /**
-     * Sets the size of the internal buffer used to exchange data with the USB
      * stack for write operations.  Most users should not need to change this.
      *
-     * @param bufferSize the size in bytes
+     * @param bufferSize the size in bytes, <= 0 resets original size
      */
     public final void setWriteBufferSize(int bufferSize) {
         synchronized (mWriteBufferLock) {
-            if (bufferSize == mWriteBuffer.length) {
+            if (bufferSize <= 0) {
+                if (mWriteEndpoint != null) {
+                    bufferSize = mWriteEndpoint.getMaxPacketSize();
+                } else {
+                    mWriteBuffer = null;
+                    return;
+                }
+            }
+            if (mWriteBuffer != null && bufferSize == mWriteBuffer.length) {
                 return;
             }
             mWriteBuffer = new byte[bufferSize];
@@ -120,48 +123,320 @@ abstract class CommonUsbSerialPort implements UsbSerialPort {
     }
 
     @Override
-    public abstract void open(UsbDeviceConnection connection) throws IOException;
+    public void open(UsbDeviceConnection connection) throws IOException {
+        if (mEnableAsyncWrites) {
+            Log.d(TAG, "Async writes enabled");
+        } else {
+            Log.d(TAG, "Async writes disabled.");
+        }
+        if (mConnection != null) {
+            throw new IOException("Already open");
+        }
+        if (connection == null) {
+            throw new IllegalArgumentException("Connection is null");
+        }
+        mConnection = connection;
+        try {
+            openInt();
+            if (mReadEndpoint == null || mWriteEndpoint == null) {
+                throw new IOException("Could not get read & write endpoints");
+            }
+            mUsbRequest = new UsbRequest();
+            mUsbRequest.initialize(mConnection, mReadEndpoint);
+        } catch (Exception e) {
+            try {
+                close();
+            } catch (Exception ignored) {
+            }
+            throw e;
+        }
+    }
+
+    protected abstract void openInt() throws IOException;
 
     @Override
-    public abstract void close() throws IOException;
+    public void close() throws IOException {
+        if (mConnection == null) {
+            throw new IOException("Already closed");
+        }
+        try {
+            mUsbRequest.cancel();
+        } catch (Exception ignored) {
+        }
+        mUsbRequest = null;
+        try {
+            closeInt();
+        } catch (Exception ignored) {
+        }
+        try {
+            mConnection.close();
+        } catch (Exception ignored) {
+        }
+        mConnection = null;
+    }
+
+    protected abstract void closeInt();
+
+    /**
+     * use simple USB request supported by all devices to test if connection is still valid
+     */
+    protected void testConnection() throws IOException {
+        byte[] buf = new byte[2];
+        int len = mConnection.controlTransfer(0x80 /*DEVICE*/, 0 /*GET_STATUS*/, 0, 0, buf, buf.length, 200);
+        if (len < 0)
+            throw new IOException("USB get_status request failed");
+    }
 
     @Override
-    public abstract int read(final byte[] dest, final int timeoutMillis) throws IOException;
+    public int read(final byte[] dest, final int timeout) throws IOException {
+        return read(dest, timeout, true);
+    }
+
+    protected int read(final byte[] dest, final int timeout, boolean testConnection) throws IOException {
+        if (mConnection == null) {
+            throw new IOException("Connection closed");
+        }
+        if (dest.length <= 0) {
+            throw new IllegalArgumentException("Read buffer to small");
+        }
+        final int nread;
+
+        if (mEnableAsyncReads) {
+
+            if (timeout != 0) {
+                // bulkTransfer will cause data loss with short timeout + high baud rates + continuous transfer
+                //   https://stackoverflow.com/questions/9108548/android-usb-host-bulktransfer-is-losing-data
+                // but mConnection.requestWait(timeout) available since Android 8.0 es even worse,
+                // as it crashes with short timeout, e.g.
+                //   A/libc: Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x276a in tid 29846 (pool-2-thread-1), pid 29618 (.usbserial.test)
+                //     /system/lib64/libusbhost.so (usb_request_wait+192)
+                //     /system/lib64/libandroid_runtime.so (android_hardware_UsbDeviceConnection_request_wait(_JNIEnv*, _jobject*, long)+84)
+                // data loss / crashes were observed with timeout up to 200 msec
+                long endTime = testConnection ? MonotonicClock.millis() + timeout : 0;
+                int readMax = Math.min(dest.length, MAX_READ_SIZE);
+                nread = mConnection.bulkTransfer(mReadEndpoint, dest, readMax, timeout);
+                // Android error propagation is improvable:
+                //  nread == -1 can be: timeout, connection lost, buffer to small, ???
+                if (nread == -1 && testConnection && MonotonicClock.millis() < endTime)
+                    testConnection();
+
+            } else {
+                final ByteBuffer buf = ByteBuffer.wrap(dest);
+                if (!mUsbRequest.queue(buf, dest.length)) {
+                    throw new IOException("Queueing USB request failed");
+                }
+                final UsbRequest response = mConnection.requestWait();
+                if (response == null) {
+                    throw new IOException("Waiting for USB request failed");
+                }
+                nread = buf.position();
+                // Android error propagation is improvable:
+                //   response != null & nread == 0 can be: connection lost, buffer to small, ???
+                if (nread == 0) {
+                    testConnection();
+                }
+            }
+        } else {
+            final int numBytesRead;
+            synchronized (mReadBufferLock) {
+                final ByteBuffer buf = ByteBuffer.wrap(dest);
+                int readAmt = Math.min(dest.length, dest.length);
+                numBytesRead = mConnection.bulkTransfer(mReadEndpoint, dest, readAmt,
+                        timeout);
+                if (numBytesRead < 0) {
+                    // This sucks: we get -1 on timeout, not 0 as preferred.
+                    // We *should* use UsbRequest, except it has a bug/api oversight
+                    // where there is no way to determine the number of bytes read
+                    // in response :\ -- http://b.android.com/28023
+                    if (timeout == Integer.MAX_VALUE) {
+                        // Hack: Special case "~infinite timeout" as an error.
+                        return -1;
+                    }
+                    return 0;
+                }
+                System.arraycopy(buf, 0, dest, 0, numBytesRead);
+            }
+            nread = numBytesRead;
+        }
+        return Math.max(nread, 0);
+    }
 
     @Override
-    public abstract int write(final byte[] src, final int timeoutMillis) throws IOException;
+    public void write(final byte[] src, final int timeout) throws IOException {
+        int offset = 0;
+        long latency = 0;
+
+        if (DEBUG) {
+            Log.d(TAG, "write() length " + src.length);
+        }
+        final long endTime = (timeout == 0) ? 0 : (MonotonicClock.millis() + timeout);
+
+        if (mConnection == null) {
+            throw new IOException("Connection closed");
+        }
+
+        if (mEnableAsyncWrites) {
+
+            //final UsbRequest request = new UsbRequest();
+
+            if (writeRequest == null) {
+                writeRequest = new UsbRequest();
+                writeRequest.initialize(mConnection, mWriteEndpoint);
+                if (DEBUG) {
+                    Log.d(TAG, "write() newUsbRequest " + src.length);
+                }
+            } else {
+                if (DEBUG) {
+                    Log.d(TAG, "write() requestWait " + src.length);
+                }
+                mConnection.requestWait();
+            }
+            try {
+                latency = MonotonicClock.millis();
+
+                //if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
+                if (DEBUG) {
+                    Log.d(TAG, "write() queue " + src.length);
+                }
+                if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
+                    throw new IOException("Error queueing request.");
+                }
+                latency = MonotonicClock.millis() - latency;
+                //final UsbRequest response = mConnection.requestWait();
+                //if (response == null) {
+                //    throw new IOException("Null response");
+                //}
+            } finally {
+                //request.close();
+            }
+            if (DEBUG) {
+                Log.d(TAG, "Wrote " + src.length + "latency " + latency);
+
+            }
+        } else {
+
+            while (offset < src.length) {
+                int requestTimeout;
+                final int requestLength;
+                final int actualLength;
+
+                synchronized (mWriteBufferLock) {
+                    final byte[] writeBuffer;
+
+                    if (mWriteBuffer == null) {
+                        mWriteBuffer = new byte[mWriteEndpoint.getMaxPacketSize()];
+                        //mWriteBuffer = new byte[16384];
+                    }
+                    if (DEBUG) {
+                        Log.d(TAG, "write mWritebufferlen = " + mWriteBuffer.length);
+                    }
+
+                    requestLength = Math.min(src.length - offset, mWriteBuffer.length);
+                    if (offset == 0) {
+                        writeBuffer = src;
+                    } else {
+                        // bulkTransfer does not support offsets, make a copy.
+                        System.arraycopy(src, offset, mWriteBuffer, 0, requestLength);
+                        writeBuffer = mWriteBuffer;
+                    }
+
+
+                    if (timeout == 0 || offset == 0) {
+                        requestTimeout = timeout;
+                    } else {
+                        requestTimeout = (int) (endTime - MonotonicClock.millis());
+                        if (requestTimeout == 0)
+                            requestTimeout = -1;
+                    }
+                    if (requestTimeout < 0) {
+                        actualLength = -2;
+                    } else {
+                        latency = MonotonicClock.millis();
+                        actualLength = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, requestLength, requestTimeout);
+                        latency = MonotonicClock.millis() - latency;
+                    }
+
+
+                    if (DEBUG) {
+                        Log.d(TAG, "Wrote " + actualLength + "/" + requestLength + " offset " + offset + "/" + src.length + " timeout " + requestTimeout + "latency " + latency);
+                    }
+                    if (actualLength <= 0) {
+                        if (timeout != 0 && MonotonicClock.millis() >= endTime) {
+                            SerialTimeoutException ex = new SerialTimeoutException("Error writing " + requestLength + " bytes at offset " + offset + " of total " + src.length + ", rc=" + actualLength);
+                            ex.bytesTransferred = offset;
+                            throw ex;
+                        } else {
+                            throw new IOException("Error writing " + requestLength + " bytes at offset " + offset + " of total " + src.length);
+                        }
+                    }
+                }
+                offset += actualLength;
+            }
+        }
+    }
 
     @Override
-    public abstract void setParameters(
-            int baudRate, int dataBits, int stopBits, int parity) throws IOException;
+    public boolean isOpen() {
+        return mConnection != null;
+    }
 
     @Override
-    public abstract boolean getCD() throws IOException;
+    public abstract void setParameters(int baudRate, int dataBits, int stopBits, @Parity int parity) throws IOException;
 
     @Override
-    public abstract boolean getCTS() throws IOException;
+    public boolean getCD() throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public abstract boolean getDSR() throws IOException;
+    public boolean getCTS() throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public abstract boolean getDTR() throws IOException;
+    public boolean getDSR() throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public abstract void setDTR(boolean value) throws IOException;
+    public boolean getDTR() throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public abstract boolean getRI() throws IOException;
+    public void setDTR(boolean value) throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public abstract boolean getRTS() throws IOException;
+    public boolean getRI() throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public abstract void setRTS(boolean value) throws IOException;
+    public boolean getRTS() throws IOException {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
-    public boolean purgeHwBuffers(boolean flushReadBuffers, boolean flushWriteBuffers) throws IOException {
-        return !flushReadBuffers && !flushWriteBuffers;
+    public void setRTS(boolean value) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public abstract EnumSet<ControlLine> getControlLines() throws IOException;
+
+    @Override
+    public abstract EnumSet<ControlLine> getSupportedControlLines() throws IOException;
+
+    @Override
+    public void purgeHwBuffers(boolean purgeWriteBuffers, boolean purgeReadBuffers) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setBreak(boolean value) throws IOException {
+        throw new UnsupportedOperationException();
     }
 
 }

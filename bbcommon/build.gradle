@@ -1,14 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 27
 
-    buildToolsVersion '28.0.3'
     defaultConfig {
         minSdkVersion 23
-        targetSdkVersion 23
-        versionCode 5036
-        versionName "5036"
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 27
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -23,7 +21,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable false
         }
     }
 
@@ -33,6 +30,7 @@ android {
         // but continue the build even when errors are found:
         abortOnError false
     }
+    namespace 'com.richardmcdougall.bbcommon'
 }
 
 dependencies {
@@ -40,4 +38,5 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:23.1.1'
     implementation 'com.android.support:support-v4:23.1.1'
     testImplementation 'junit:junit:4.12'
+
 }

@@ -236,7 +236,10 @@ public class RF {
                 BLog.d(TAG, "Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
-                mSerialIoManager = new SerialInputOutputManager(sPort, mListener, null);
+                mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+                mSerialIoManager.setReadTimeout(100);
+                //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
+
                 mExecutor.submit(mSerialIoManager);
 
                 // attach default cmdMessenger callback

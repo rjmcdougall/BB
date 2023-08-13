@@ -10,10 +10,10 @@ android {
         }
     }
     compileSdkVersion 27
-    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.richardmcdougall.bb"
         minSdkVersion 23
+        //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 27
 
         versionCode 5046
@@ -51,6 +51,7 @@ android {
         exclude 'META-INF/license'
         exclude 'META-INF/license.txt'
     }
+    namespace 'com.richardmcdougall.bb'
 }
 
 repositories {
@@ -68,10 +69,13 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt:0.7.0'
     implementation 'eu.chainfire:libsuperuser:1.0.0.+'
     implementation 'net.sf.marineapi:marineapi:0.10.0'
+    //implementation project(path: ':usb-serial-for-android:usbSerialForAndroid')
+    //implementation project(':usb-serial-for-android')
     compileOnly 'com.google.android.things:androidthings:+'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.google.android.exoplayer:exoplayer:2.9.0'
     implementation project(':bbcommon')
     implementation 'joda-time:joda-time:2.1'
+
 }
 
