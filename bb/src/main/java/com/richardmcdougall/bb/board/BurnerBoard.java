@@ -498,7 +498,13 @@ public abstract class BurnerBoard {
                 BLog.d(TAG, "Starting io manager ..");
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
-                mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
+                mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
+                mSerialIoManager.setReadTimeout(0);
+                //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
+
+                // Important for teensy4 performance
+                //mSerialIoManager.setWriteBufferSize(65536);
+
                 mExecutor.submit(mSerialIoManager);
 
                 start();

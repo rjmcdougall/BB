@@ -62,13 +62,10 @@ public class BurnerBoardV4 extends BurnerBoard {
                 stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
             }
             setStrip(s, stripPixels);
-            if ((s % 3) == 0) {
+            //if ((s % 3) == 0) {
                 flush2Board();
-            }
+            //}
 
-            // Send to board
-            if(s % 3 == 0)
-                flush2Board();
         }
         // Render on board
         update();

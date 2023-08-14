@@ -1,21 +1,6 @@
 /* Copyright 2011-2013 Google Inc.
  * Copyright 2013 mike wakerly <opensource@hoho.com>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
- * USA.
- *
  * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
 
@@ -23,7 +8,7 @@ package com.hoho.android.usbserial.driver;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.util.Log;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -34,8 +19,6 @@ import java.util.List;
  * @author mike wakerly (opensource@hoho.com)
  */
 public class UsbSerialProber {
-
-    private final String TAG = "UsbSerialProber";
 
     private final ProbeTable mProbeTable;
 
@@ -53,6 +36,8 @@ public class UsbSerialProber {
         probeTable.addDriver(Cp21xxSerialDriver.class);
         probeTable.addDriver(FtdiSerialDriver.class);
         probeTable.addDriver(ProlificSerialDriver.class);
+        probeTable.addDriver(Ch34xSerialDriver.class);
+        probeTable.addDriver(GsmModemSerialDriver.class);
         return probeTable;
     }
 
@@ -62,11 +47,11 @@ public class UsbSerialProber {
      * not require permission from the Android USB system, since it does not
      * open any of the devices.
      *
-     * @param usbManager
+     * @param usbManager usb manager
      * @return a list, possibly empty, of all compatible drivers
      */
     public List<UsbSerialDriver> findAllDrivers(final UsbManager usbManager) {
-        final List<UsbSerialDriver> result = new ArrayList<UsbSerialDriver>();
+        final List<UsbSerialDriver> result = new ArrayList<>();
 
         for (final UsbDevice usbDevice : usbManager.getDeviceList().values()) {
             final UsbSerialDriver driver = probeDevice(usbDevice);
@@ -85,28 +70,15 @@ public class UsbSerialProber {
      *         {@code null} if none available.
      */
     public UsbSerialDriver probeDevice(final UsbDevice usbDevice) {
-        final int vendorId = usbDevice.getVendorId();
-        final int productId = usbDevice.getProductId();
-
-        Log.d(TAG, "Probing USB vendor" + vendorId + " product " + productId);
-
-        final Class<? extends UsbSerialDriver> driverClass =
-                mProbeTable.findDriver(vendorId, productId);
+        final Class<? extends UsbSerialDriver> driverClass = mProbeTable.findDriver(usbDevice);
         if (driverClass != null) {
             final UsbSerialDriver driver;
             try {
                 final Constructor<? extends UsbSerialDriver> ctor =
                         driverClass.getConstructor(UsbDevice.class);
                 driver = ctor.newInstance(usbDevice);
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException(e);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            } catch (InvocationTargetException e) {
+            } catch (NoSuchMethodException | IllegalArgumentException | InstantiationException |
+                     IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
             return driver;

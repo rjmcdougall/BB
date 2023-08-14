@@ -144,6 +144,8 @@ public class DisplayMapManager {
                         TranslationMap m = new TranslationMap(
                                 displayMapTemp.getInt("xy"),
                                 startXY,
+                                0,
+                                0,
                                 endXY,
                                 0,// not used
                                 stripNumber,
