@@ -1,3 +1,2 @@
 include ':bb', ':bbcommon'
 include ':bbinstaller'
-include ':usb-serial-for-android:usbSerialForAndroid'
