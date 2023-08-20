@@ -16,8 +16,8 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 27
 
-        versionCode 5046
-        versionName "5046"
+        versionCode 5047
+        versionName "5047"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true

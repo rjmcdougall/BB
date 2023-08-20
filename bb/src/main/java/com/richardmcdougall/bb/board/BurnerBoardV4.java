@@ -51,15 +51,33 @@ public class BurnerBoardV4 extends BurnerBoard {
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = mDimmer.Dim(1, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
+        int r,g,b;
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
             int[] stripPixels = new int[600 * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < 600 * 3; ) {
-                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
-                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
-                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
+
+                r=offset;
+                stripPixels[r] = mOutputScreen[mapPixelsToStips[s][r]];
+                offset++;
+
+                g=offset;
+                stripPixels[g] = mOutputScreen[mapPixelsToStips[s][g]];
+                offset++;
+
+                b=offset;
+                stripPixels[b] = mOutputScreen[mapPixelsToStips[s][b]];
+                offset++;
+
+                if((r==0 && g==0 && b==0) ||
+                        (r==1 && g==1 && b==1)
+                ){
+                    stripPixels[r]=2;
+                    stripPixels[g]=2;
+                    stripPixels[b]=2;
+                }
             }
             setStrip(s, stripPixels);
             //if ((s % 3) == 0) {
