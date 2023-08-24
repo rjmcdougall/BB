@@ -1,7 +1,7 @@
 [
-{"displayDebug":"displayRowTesdsst"},
-{"xy":"0","startXY":35,"endXY":34,"stripOffset":0,"stripNumber":"1"},
-{"xy":"1","rowLength":4,"centerPoint":4,"stripNumber":"1"},
+{"displayDebug":"displayLine2Test"},
+{"xy":"0","startXY":35,"endXY":32,"stripOffset":0,"stripNumber":"1"},
+{"xy":"1","rowLength":2,"centerPoint":4,"stripNumber":"1"},
 {"xy":"2","rowLength":2,"centerPoint":6,"stripNumber":"1"},
 {"xy":"3","rowLength":8,"centerPoint":14,"stripNumber":"1"},
 {"xy":"4","rowLength":11,"centerPoint":25,"stripNumber":"1"},
@@ -22,7 +22,7 @@
 {"xy":"19","rowLength":32,"centerPoint":379,"stripNumber":"1"},
 {"xy":"20","rowLength":34,"centerPoint":413,"stripNumber":"1"},
 
-{"xy":"21","startXY":69,"endXY":17,"stripOffset":0,"stripNumber":"2"},
+{"xy":"21","startXY":51,"endXY":17,"stripOffset":0,"stripNumber":"2"},
 {"xy":"22","rowLength":35,"centerPoint":53,"stripNumber":"2"},
 {"xy":"23","rowLength":36,"centerPoint":89,"stripNumber":"2"},
 {"xy":"24","rowLength":37,"centerPoint":126,"stripNumber":"2"},
@@ -36,7 +36,7 @@
 {"xy":"32","rowLength":43,"centerPoint":448,"stripNumber":"2"},
 {"xy":"33","rowLength":44,"centerPoint":492,"stripNumber":"2"},
 
-{"xy":"34","startXY":60,"endXY":12,"stripOffset":0,"stripNumber":"3"},
+{"xy":"34","startXY":56,"endXY":12,"stripOffset":0,"stripNumber":"3"},
 {"xy":"35","rowLength":46,"centerPoint":68,"stripNumber":"3"},
 {"xy":"36","rowLength":46,"centerPoint":114,"stripNumber":"3"},
 {"xy":"37","rowLength":46,"centerPoint":160,"stripNumber":"3"},
@@ -66,7 +66,7 @@
 {"xy":"59","rowLength":58,"centerPoint":374,"stripNumber":"5"},
 {"xy":"60","rowLength":59,"centerPoint":433,"stripNumber":"5"},
 
-{"xy":"61","startXY":64,"endXY":4,"stripOffset":0,"stripNumber":"6"},
+{"xy":"61","startXY":62,"endXY":4,"stripOffset":0,"stripNumber":"6"},
 {"xy":"62","rowLength":59,"centerPoint":93,"stripNumber":"6"},
 {"xy":"63","rowLength":60,"centerPoint":153,"stripNumber":"6"},
 {"xy":"64","rowLength":60,"centerPoint":213,"stripNumber":"6"},
@@ -84,7 +84,7 @@
 {"xy":"75","rowLength":64,"centerPoint":351,"stripNumber":"7"},
 {"xy":"76","rowLength":65,"centerPoint":416,"stripNumber":"7"},
 
-{"xy":"77","startXY":66,"endXY":1,"stripOffset":0,"stripNumber":"8"},
+{"xy":"77","startXY":65,"endXY":1,"stripOffset":0,"stripNumber":"8"},
 {"xy":"78","rowLength":65,"centerPoint":99,"stripNumber":"8"},
 {"xy":"79","rowLength":65,"centerPoint":164,"stripNumber":"8"},
 {"xy":"80","rowLength":66,"centerPoint":230,"stripNumber":"8"},
@@ -92,7 +92,7 @@
 {"xy":"82","rowLength":66,"centerPoint":361,"stripNumber":"8"},
 {"xy":"83","rowLength":67,"centerPoint":428,"stripNumber":"8"},
 
-{"xy":"84","startXY":66,"endXY":-2,"stripOffset":0,"stripNumber":"9"},
+{"xy":"84","startXY":64,"endXY":-2,"stripOffset":0,"stripNumber":"9"},
 {"xy":"85","rowLength":68,"centerPoint":103,"stripNumber":"9"},
 {"xy":"86","rowLength":66,"centerPoint":169,"stripNumber":"9"},
 {"xy":"87","rowLength":67,"centerPoint":236,"stripNumber":"9"},
@@ -116,7 +116,7 @@
 {"xy":"103","rowLength":68,"centerPoint":377,"stripNumber":"11"},
 {"xy":"104","rowLength":69,"centerPoint":446,"stripNumber":"11"},
 
-{"xy":"105","startXY":66,"endXY":-1,"stripOffset":0,"stripNumber":"12"},
+{"xy":"105","startXY":67,"endXY":-1,"stripOffset":0,"stripNumber":"12"},
 {"xy":"106","rowLength":69,"centerPoint":104,"stripNumber":"12"},
 {"xy":"107","rowLength":69,"centerPoint":173,"stripNumber":"12"},
 {"xy":"108","rowLength":69,"centerPoint":242,"stripNumber":"12"},
@@ -132,7 +132,7 @@
 {"xy":"117","rowLength":69,"centerPoint":385,"stripNumber":"13"},
 {"xy":"118","rowLength":69,"centerPoint":455,"stripNumber":"13"},
 
-{"xy":"119","startXY":68,"endXY":-1,"stripOffset":0,"stripNumber":"14"},
+{"xy":"119","startXY":66,"endXY":-2,"stripOffset":0,"stripNumber":"14"},
 {"xy":"120","rowLength":69,"centerPoint":106,"stripNumber":"14"},
 {"xy":"121","rowLength":68,"centerPoint":174,"stripNumber":"14"},
 {"xy":"122","rowLength":69,"centerPoint":243,"stripNumber":"14"},
@@ -140,7 +140,7 @@
 {"xy":"124","rowLength":69,"centerPoint":382,"stripNumber":"14"},
 {"xy":"125","rowLength":69,"centerPoint":452,"stripNumber":"14"},
 
-{"xy":"126","startXY":68,"endXY":-3,"stripOffset":0,"stripNumber":"15"},
+{"xy":"126","startXY":65,"endXY":-3,"stripOffset":0,"stripNumber":"15"},
 {"xy":"127","rowLength":69,"centerPoint":107,"stripNumber":"15"},
 {"xy":"128","rowLength":69,"centerPoint":176,"stripNumber":"15"},
 {"xy":"129","rowLength":69,"centerPoint":245,"stripNumber":"15"},
@@ -148,7 +148,7 @@
 {"xy":"131","rowLength":69,"centerPoint":384,"stripNumber":"15"},
 {"xy":"132","rowLength":69,"centerPoint":453,"stripNumber":"15"},
 
-{"xy":"133","startXY":68,"endXY":-1,"stripOffset":0,"stripNumber":"16"},
+{"xy":"133","startXY":67,"endXY":-1,"stripOffset":0,"stripNumber":"16"},
 {"xy":"134","rowLength":69,"centerPoint":105,"stripNumber":"16"},
 {"xy":"135","rowLength":69,"centerPoint":174,"stripNumber":"16"},
 {"xy":"136","rowLength":69,"centerPoint":243,"stripNumber":"16"},
@@ -156,7 +156,7 @@
 {"xy":"138","rowLength":69,"centerPoint":381,"stripNumber":"16"},
 {"xy":"139","rowLength":68,"centerPoint":449,"stripNumber":"16"},
 
-{"xy":"140","startXY":68,"endXY":-2,"stripOffset":0,"stripNumber":"17"},
+{"xy":"140","startXY":66,"endXY":-2,"stripOffset":0,"stripNumber":"17"},
 {"xy":"141","rowLength":68,"centerPoint":105,"stripNumber":"17"},
 {"xy":"142","rowLength":69,"centerPoint":174,"stripNumber":"17"},
 {"xy":"143","rowLength":68,"centerPoint":242,"stripNumber":"17"},
@@ -164,8 +164,7 @@
 {"xy":"145","rowLength":68,"centerPoint":378,"stripNumber":"17"},
 {"xy":"146","rowLength":67,"centerPoint":445,"stripNumber":"17"},
 
-
-{"xy":"147","startXY":67,"endXY":-1,"stripOffset":0,"stripNumber":"18"},
+{"xy":"147","startXY":64,"endXY":-1,"stripOffset":0,"stripNumber":"18"},
 {"xy":"148","rowLength":67,"centerPoint":104,"stripNumber":"18"},
 {"xy":"149","rowLength":67,"centerPoint":171,"stripNumber":"18"},
 {"xy":"150","rowLength":68,"centerPoint":239,"stripNumber":"18"},
@@ -173,7 +172,7 @@
 {"xy":"152","rowLength":68,"centerPoint":374,"stripNumber":"18"},
 {"xy":"153","rowLength":67,"centerPoint":441,"stripNumber":"18"},
 
-{"xy":"154","startXY":67,"endXY":0,"stripOffset":0,"stripNumber":"19"},
+{"xy":"154","startXY":66,"endXY":0,"stripOffset":0,"stripNumber":"19"},
 {"xy":"155","rowLength":67,"centerPoint":101,"stripNumber":"19"},
 {"xy":"156","rowLength":66,"centerPoint":167,"stripNumber":"19"},
 {"xy":"157","rowLength":67,"centerPoint":234,"stripNumber":"19"},
@@ -181,7 +180,7 @@
 {"xy":"159","rowLength":66,"centerPoint":365,"stripNumber":"19"},
 {"xy":"160","rowLength":64,"centerPoint":429,"stripNumber":"19"},
 
-{"xy":"161","startXY":64,"endXY":1,"stripOffset":0,"stripNumber":"20"},
+{"xy":"161","startXY":65,"endXY":1,"stripOffset":0,"stripNumber":"20"},
 {"xy":"162","rowLength":64,"centerPoint":99,"stripNumber":"20"},
 {"xy":"163","rowLength":64,"centerPoint":163,"stripNumber":"20"},
 {"xy":"164","rowLength":64,"centerPoint":227,"stripNumber":"20"},
@@ -190,7 +189,7 @@
 {"xy":"167","rowLength":63,"centerPoint":418,"stripNumber":"20"},
 {"xy":"168","rowLength":64,"centerPoint":482,"stripNumber":"20"},
 
-{"xy":"169","startXY":64,"endXY":2,"stripOffset":0,"stripNumber":"21"},
+{"xy":"169","startXY":66,"endXY":2,"stripOffset":0,"stripNumber":"21"},
 {"xy":"170","rowLength":64,"centerPoint":97,"stripNumber":"21"},
 {"xy":"171","rowLength":62,"centerPoint":159,"stripNumber":"21"},
 {"xy":"172","rowLength":62,"centerPoint":221,"stripNumber":"21"},
@@ -208,7 +207,7 @@
 {"xy":"183","rowLength":57,"centerPoint":381,"stripNumber":"22"},
 {"xy":"184","rowLength":58,"centerPoint":439,"stripNumber":"22"},
 
-{"xy":"185","startXY":57,"endXY":6,"stripOffset":0,"stripNumber":"23"},
+{"xy":"185","startXY":64,"endXY":6,"stripOffset":0,"stripNumber":"23"},
 {"xy":"186","rowLength":57,"centerPoint":86,"stripNumber":"23"},
 {"xy":"187","rowLength":57,"centerPoint":143,"stripNumber":"23"},
 {"xy":"188","rowLength":55,"centerPoint":198,"stripNumber":"23"},
@@ -218,7 +217,7 @@
 {"xy":"192","rowLength":55,"centerPoint":418,"stripNumber":"23"},
 {"xy":"193","rowLength":53,"centerPoint":471,"stripNumber":"23"},
 
-{"xy":"194","startXY":55,"endXY":7,"stripOffset":0,"stripNumber":"24"},
+{"xy":"194","startXY":59,"endXY":7,"stripOffset":0,"stripNumber":"24"},
 {"xy":"195","rowLength":54,"centerPoint":81,"stripNumber":"24"},
 {"xy":"196","rowLength":53,"centerPoint":134,"stripNumber":"24"},
 {"xy":"197","rowLength":51,"centerPoint":185,"stripNumber":"24"},
@@ -228,7 +227,7 @@
 {"xy":"201","rowLength":50,"centerPoint":388,"stripNumber":"24"},
 {"xy":"202","rowLength":50,"centerPoint":438,"stripNumber":"24"},
 
-{"xy":"203","startXY":50,"endXY":8,"stripOffset":0,"stripNumber":"25"},
+{"xy":"203","startXY":58,"endXY":8,"stripOffset":0,"stripNumber":"25"},
 {"xy":"204","rowLength":50,"centerPoint":76,"stripNumber":"25"},
 {"xy":"205","rowLength":47,"centerPoint":123,"stripNumber":"25"},
 {"xy":"206","rowLength":47,"centerPoint":170,"stripNumber":"25"},
@@ -240,7 +239,7 @@
 {"xy":"212","rowLength":45,"centerPoint":445,"stripNumber":"25"},
 {"xy":"213","rowLength":42,"centerPoint":487,"stripNumber":"25"},
 
-{"xy":"214","startXY":42,"endXY":14,"stripOffset":0,"stripNumber":"26"},
+{"xy":"214","startXY":56,"endXY":14,"stripOffset":0,"stripNumber":"26"},
 {"xy":"215","rowLength":41,"centerPoint":63,"stripNumber":"26"},
 {"xy":"216","rowLength":40,"centerPoint":103,"stripNumber":"26"},
 {"xy":"217","rowLength":40,"centerPoint":143,"stripNumber":"26"},
@@ -252,7 +251,7 @@
 {"xy":"223","rowLength":35,"centerPoint":365,"stripNumber":"26"},
 {"xy":"224","rowLength":34,"centerPoint":399,"stripNumber":"26"},
 
-{"xy":"225","startXY":35,"endXY":18,"stripOffset":0,"stripNumber":"27"},
+{"xy":"225","startXY":52,"endXY":18,"stripOffset":0,"stripNumber":"27"},
 {"xy":"226","rowLength":33,"centerPoint":50,"stripNumber":"27"},
 {"xy":"227","rowLength":31,"centerPoint":81,"stripNumber":"27"},
 {"xy":"228","rowLength":28,"centerPoint":109,"stripNumber":"27"},
