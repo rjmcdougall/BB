@@ -25,7 +25,7 @@ public class DisplayMapManager {
     public JSONArray dataDisplayMap;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     private String filesDir;
-    public String displayDebugPattern;
+    public String displayDebugPattern = "";
 
     public FileHelpers.OnDownloadProgressType onProgressCallback = null;
     public ArrayList<TranslationMap> displayMap;
