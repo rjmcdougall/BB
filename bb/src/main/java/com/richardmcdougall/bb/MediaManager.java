@@ -398,7 +398,7 @@ public class MediaManager {
     String GetAudioFileLocalName(int index) {
         if (index >= 0 && index < GetTotalAudio()) {
             try {
-                String fn = GetAudio().getString("localName");
+                String fn = dataDirectory.getJSONArray("audio").getJSONObject(index).getString("localName");
                 return fn;
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
@@ -414,12 +414,12 @@ public class MediaManager {
             try {
                 String fn = "";
                 if (GetVideo().has("friendlyName")) {
-                    fn = GetVideo().getString("friendlyName");
+                    fn = dataDirectory.getJSONArray("video").getJSONObject(index).getString("friendlyName");
                 } else {
                     if (GetVideo().has("algorithm"))
-                        fn = GetVideo().getString("algorithm");
+                        fn = dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
                     else
-                        fn = GetVideo().getString("localName");
+                        fn = dataDirectory.getJSONArray("video").getJSONObject(index).getString("localName");
                 }
                 return fn;
             } catch (JSONException e) {

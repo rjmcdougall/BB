@@ -57,7 +57,7 @@ public class MasterController implements Runnable {
 
     public void RemoteAudio(long value){
 
-        for (int i = 1; i <= service.mediaManager.GetTotalAudio(); i++) {
+        for (int i = 0; i <= service.mediaManager.GetTotalAudio(); i++) {
             String name = service.musicController.getRadioChannelInfo(i);
             long hashed = MediaManager.hashTrackName(name);
             if (hashed == value) {
