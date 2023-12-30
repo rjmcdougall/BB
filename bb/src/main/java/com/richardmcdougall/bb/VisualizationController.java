@@ -9,6 +9,7 @@ import com.richardmcdougall.bb.visualization.AudioTile;
 import com.richardmcdougall.bb.visualization.DisplayRowTest;
 import com.richardmcdougall.bb.visualization.DisplaySectionTest;
 import com.richardmcdougall.bb.visualization.MatrixTest;
+import com.richardmcdougall.bb.visualization.PowerTest;
 import com.richardmcdougall.bb.visualization.DisplayLineTest;
 import com.richardmcdougall.bb.visualization.RGBList;
 import com.richardmcdougall.bb.visualization.JosPack;
@@ -69,6 +70,7 @@ public class VisualizationController {
     public Visualization mVisualizationSimpleSign;
     public Visualization mPixelMapTest;
     public Visualization mMatrixTest;
+    public Visualization mPowerTest;
     public Visualization mDisplaySectionTest;
     public Visualization mDisplayLineTest;
     public Visualization mDisplayRowTest;
@@ -105,6 +107,7 @@ public class VisualizationController {
         mVisualizationSimpleSign = new SimpleSign(service);
         mPixelMapTest = new DisplayLineTest(service);
         mMatrixTest = new MatrixTest(service);
+        mPowerTest = new PowerTest(service);
         mDisplaySectionTest = new DisplaySectionTest(service);
         mDisplayLineTest = new DisplayLineTest(service);
         mDisplayRowTest = new DisplayRowTest(service);
@@ -163,6 +166,9 @@ public class VisualizationController {
 
         if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("matrixTest")){
             mMatrixTest.update(Visualization.kDefault);
+        }
+        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("powerTest")){
+            mPowerTest.update(Visualization.kDefault);
         }
         else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displaySectionTest")){
             mDisplaySectionTest.update(Visualization.kDefault);

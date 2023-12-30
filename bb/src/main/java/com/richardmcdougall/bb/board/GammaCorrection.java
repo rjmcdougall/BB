@@ -18,4 +18,19 @@ public class GammaCorrection {
             144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
             177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
             215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255};
+
+
+    static final int gammaCorrect(int value) {
+        //return ((value / 255) ^ (1 / gamma)) * 255;
+        if (value > 255) value = 255;
+        if (value < 0) value = 0;
+        return GammaCorrection.gamma8[value];
+    }
+
+    public int[] Correct(int[] boardScreen) {
+        for (int pixel = 0; pixel < boardScreen.length; pixel++) {
+            boardScreen[pixel] = gammaCorrect(boardScreen[pixel]);
+        }
+        return boardScreen;
+    }
 }

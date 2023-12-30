@@ -28,7 +28,7 @@ public class BurnerBoardDynamicPanel extends BurnerBoard {
         return 3;
     }
     public int getFrameRate() {
-        return 12;
+        return 40;
     }
     public void setOtherlightsAutomatically(){};
 

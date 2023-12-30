@@ -15,6 +15,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     private int[] mBoardOtherlights;
     private PixelDimmer mDimmer = new PixelDimmer();
 
+    private GammaCorrection mGammaCorrection = new GammaCorrection();
+
     static {
         textSizeHorizontal = 6;
         textSizeVertical = 12;
@@ -88,13 +90,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         // Send pixel row to in-app visual display
         this.appDisplay.sendVisual(15, other, pixels);
 
-        // Do color correction on burner board display pixels
-        //byte [] newPixels = new byte[pixels.length];
         byte[] newPixels = new byte[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte) pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(pixels[pixel + 2]);
+        for (int pixel = 0; pixel < pixels.length; pixel++) {
+            newPixels[pixel] = (byte) pixels[pixel];
         }
 
         //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
@@ -200,12 +198,9 @@ public class BurnerBoardClassic extends BurnerBoard {
         // Send pixel row to in-app visual display
         this.appDisplay.sendVisual(14, row, pixels);
 
-        // Do color correction on burner board display pixels
-        byte[] newPixels = new byte[boardWidth * 3];
-        for (int pixel = 0; pixel < boardWidth * 3; pixel = pixel + 3) {
-            newPixels[pixel] = (byte) pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(pixels[pixel + 2]);
+        byte[] newPixels = new byte[pixels.length];
+        for (int pixel = 0; pixel < pixels.length; pixel++) {
+            newPixels[pixel] = (byte) pixels[pixel];
         }
 
         //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
@@ -229,6 +224,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(0, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 

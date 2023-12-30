@@ -102,12 +102,6 @@ public abstract class BurnerBoard {
         return (RGB.getARGBInt(r, g, b));
     }
 
-    static final int gammaCorrect(int value) {
-        //return ((value / 255) ^ (1 / gamma)) * 255;
-        if (value > 255) value = 255;
-        if (value < 0) value = 0;
-        return GammaCorrection.gamma8[value];
-    }
 
     public final static BurnerBoard Builder(BBService service) {
 
@@ -315,26 +309,10 @@ public abstract class BurnerBoard {
         return RGB.getARGBInt(r, g, b);
     }
 
-    protected final int pixelColorCorrectionRed(int red) {
-        return gammaCorrect(red);
-    }
-
-    protected final int pixelColorCorrectionGreen(int green) {
-        return gammaCorrect(green);
-    }
-
-    protected final int pixelColorCorrectionBlue(int blue) {
-        return gammaCorrect(blue);
-    }// Send a strip of pixels to the board
-
     protected final void setStrip(int strip, int[] pixels) {
-
-        // Do color correction on burner board display pixels
         byte[] newPixels = new byte[pixels.length];
-        for (int pixel = 0; pixel < pixels.length; pixel = pixel + 3) {
-            newPixels[pixel] = (byte) pixelColorCorrectionRed(pixels[pixel]);
-            newPixels[pixel + 1] = (byte) pixelColorCorrectionGreen(pixels[pixel + 1]);
-            newPixels[pixel + 2] = (byte) pixelColorCorrectionBlue(pixels[pixel + 2]);
+        for (int pixel = 0; pixel < pixels.length; pixel++) {
+            newPixels[pixel] = (byte) pixels[pixel];
         }
 
         //l("sendCommand: 14,n,...");

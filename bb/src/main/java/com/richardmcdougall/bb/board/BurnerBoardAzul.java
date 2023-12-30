@@ -28,6 +28,7 @@ public class BurnerBoardAzul extends BurnerBoard {
     public int boardWidth = 46;
     public int boardHeight = 118;
     private PixelDimmer mDimmer = new PixelDimmer();
+    private GammaCorrection mGammaCorrection = new GammaCorrection();
 
 
     static {
@@ -77,6 +78,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(15, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 

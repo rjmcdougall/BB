@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.board;
 
+import com.hoho.android.usbserial.util.MonotonicClock;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
@@ -10,6 +11,7 @@ public class BurnerBoardV4 extends BurnerBoard {
     public int kStrips = 1;
     static int[][] mapPixelsToStips = new int[1][4096];
     private TranslationMap[] boardMap;
+    private GammaCorrection mGammaCorrection = new GammaCorrection();
     private PixelDimmer mDimmer = new PixelDimmer();
 
     static {
@@ -39,17 +41,38 @@ public class BurnerBoardV4 extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 40;
+        return 25;
     }
     public void setOtherlightsAutomatically() {
     }
+
+    // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
+    private static int pixelWorkaround(int level) {
+        switch (level) {
+            case 0:
+                level = 1;
+                break;
+            case ',':
+                level += 1;
+            case ';':
+                level += 1;
+            case '\\':
+                level += 1;
+            default:
+        }
+        return level;
+    }
     public void flush() {
 
+        long latency = 0;
+        latency = MonotonicClock.millis();
         this.logFlush();
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = mDimmer.Dim(1, mOutputScreen);
+        // TODO: gamma correction should be here before dimmer
+        mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
+        mOutputScreen = mDimmer.Dim(10, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
@@ -57,19 +80,27 @@ public class BurnerBoardV4 extends BurnerBoard {
             int[] stripPixels = new int[600 * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < 600 * 3; ) {
-                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
-                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
-                stripPixels[offset] = mOutputScreen[mapPixelsToStips[s][offset++]];
+                stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
+                stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
+                stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
             }
+            latency = MonotonicClock.millis();
             setStrip(s, stripPixels);
-            //if ((s % 3) == 0) {
+            //BLog.d(TAG, "setstrip latency = " + (MonotonicClock.millis()- latency));
+            if ((s % 2) == 0) {
+                latency = MonotonicClock.millis();
                 flush2Board();
-            //}
+                //BLog.d(TAG, "flush latency = " + (MonotonicClock.millis()- latency));
+            }
 
         }
         // Render on board
+        latency = MonotonicClock.millis();
         update();
+        //BLog.d(TAG, "update latency = " + (MonotonicClock.millis()- latency));
+        latency = MonotonicClock.millis();
         flush2Board();
+        //BLog.d(TAG, "flush latency = " + (MonotonicClock.millis()- latency));
     }
     private void pixelRemap(int x, int y, int stripOffset) {
         mapPixelsToStips[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);

@@ -21,14 +21,14 @@ public class PowerTest extends Visualization {
         framesToHold = this.service.burnerBoard.getFrameRate() * 5;
 
 
-        for(int i=1; i <= 256; i=i*2){
-            colorArray.add(new RGB(i-1,0,0));
+        for (int i = 1; i <= 256; i = i * 2) {
+            colorArray.add(new RGB(i - 1, 0, 0));
         }
-        for(int i=1; i <= 256; i=i*2){
-            colorArray.add(new RGB(0,i-1,0));
+        for (int i = 1; i <= 256; i = i * 2) {
+            colorArray.add(new RGB(0, i - 1, 0));
         }
-        for(int i=1; i <= 256; i=i*2){
-            colorArray.add(new RGB(0,0,i-1));
+        for (int i = 1; i <= 256; i = i * 2) {
+            colorArray.add(new RGB(0, 0, i - 1));
         }
 
     }
@@ -38,13 +38,13 @@ public class PowerTest extends Visualization {
 
         frameCounter++;
 
-        if(frameCounter % framesToHold == 0){
+        if (frameCounter % framesToHold == 0) {
             colorInc++;
-            BLog.d(TAG, "Color " + colorArray.get(colorInc).r + "-" + colorArray.get(colorInc).g + " - " + colorArray.get(colorInc).b + " - " + colorArray.get(colorInc).getARGBInt());
+            BLog.d(TAG, "Color " + colorArray.get(colorInc).r + ":" + colorArray.get(colorInc).g + ":" + colorArray.get(colorInc).b + " - " + colorArray.get(colorInc).getARGBInt());
         }
 
         for (int x = 0; x < service.burnerBoard.boardWidth; x++) {
-            for (int y = 0; y < service.burnerBoard.boardHeight; y++) {
+            for (int y = 0; y < service.burnerBoard.boardHeight / (colorArray.get(colorInc).getARGBInt() == 0 ? 1 : 4); y++) {
                 service.burnerBoard.setPixel(x, y, colorArray.get(colorInc).getARGBInt());
             }
         }
