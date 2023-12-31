@@ -7,6 +7,7 @@ import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardV4 extends BurnerBoard {
 
+    private static final int kMaxV4DisplayPower = 12;
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     static int[][] mapPixelsToStips = new int[1][4096];
@@ -48,6 +49,9 @@ public class BurnerBoardV4 extends BurnerBoard {
 
     // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
     private static int pixelWorkaround(int level) {
+        return level;
+    }
+    /*
         switch (level) {
             case 0:
                 level = 1;
@@ -62,6 +66,8 @@ public class BurnerBoardV4 extends BurnerBoard {
         }
         return level;
     }
+    */
+
     public void flush() {
 
         long latency = 0;
@@ -72,7 +78,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         // TODO: gamma correction should be here before dimmer
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
-        mOutputScreen = mDimmer.Dim(10, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(kMaxV4DisplayPower, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer

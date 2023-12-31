@@ -20,6 +20,7 @@ import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardAzul extends BurnerBoard {
 
+    private static final int kMaxAzulDisplayPower = 50;
     private String TAG = this.getClass().getSimpleName();
     static int kStrips = 8;
     static int[] pixelsPerStrip = new int[8];
@@ -79,7 +80,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
-        mOutputScreen = mDimmer.Dim(15, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(kMaxAzulDisplayPower, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
