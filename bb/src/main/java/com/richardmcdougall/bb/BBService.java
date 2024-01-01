@@ -11,6 +11,8 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bb.board.BurnerBoard;
+import com.richardmcdougall.bb.hardware.Canable;
+import com.richardmcdougall.bb.hardware.VescController;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
@@ -45,6 +47,8 @@ public class BBService extends Service {
     public RF radio = null;
     public Gps gps = null;
     public BMS bms = null;
+    public Canable canbus = null;
+    public VescController vesc = null;
     public Gyro gyro = null;
     public RFClientServer rfClientServer = null;
     public FindMyFriends findMyFriends = null;
@@ -229,6 +233,8 @@ public class BBService extends Service {
             bLEServer = new BluetoothLEServer(this);
             gps = new Gps(this);
             radio = new RF(this);
+            canbus = new Canable(this);
+            vesc = new VescController(this, canbus);
 
             bms = BMS.Builder(this);
 

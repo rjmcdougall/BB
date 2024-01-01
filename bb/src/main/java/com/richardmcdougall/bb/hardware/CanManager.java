@@ -13,7 +13,7 @@ public class CanManager {
 
     public CanManager(Context context, BoardState boardState) {
 
-        BLog.e(TAG, "Can startihng");
+        BLog.e(TAG, "Can starting");
         try {
             BLog.e(TAG, "Can opening" + mMcp);
             mMcp = mMcp.open("SPI1.0");
