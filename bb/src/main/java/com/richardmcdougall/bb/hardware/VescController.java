@@ -24,8 +24,6 @@ public class VescController implements CanListener {
     public VESC_IOBOARD_ADC_VALUES vesc_ioboard_adc_values;
     public VESC_IOBOARD_DIGITAL_VALUES vesc_ioboard_digital_values;
 
-    protected VESC_CAN_PACKET_ID vesc_can_packed_id;
-
     public VescController(BBService service, Canable canbus) {
         canbus.addListener(this);
     }
@@ -61,27 +59,27 @@ public class VescController implements CanListener {
     @Override
     public void canReceived(CanFrame f) {
 
-        BLog.d(TAG, "VESC received id " + f.getId() + " DLC " + f.getDlc());
+        //BLog.d(TAG, "VESC received id " + f.getId() + " DLC " + f.getDlc());
         int id = f.getId() & 0xFF;
         int cmd = f.getId() >> 8;
         int[] data = f.getData();
-        BLog.d(TAG, "id " + id + " cmd " + cmd);
+        //BLog.d(TAG, "id " + id + " cmd " + cmd);
 
-        if (cmd == vesc_can_packed_id.CAN_PACKET_STATUS) {
+        if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS) {
             vesc_can_status_msg.rpm = getInt32(data, 0);
             vesc_can_status_msg.current = getInt16(data, 4);
             vesc_can_status_msg.duty = getInt16(data, 6);
-            BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
-        } else if (cmd == vesc_can_packed_id.CAN_PACKET_STATUS_4) {
+            //BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
+        } else if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS_4) {
             vesc_can_status_msg_4.temp_fet = getFloat16(data, 0, 1.0f);
             vesc_can_status_msg_4.temp_motor = getFloat16(data, 2, 1.0f);
             vesc_can_status_msg_4.current_in = getFloat16(data, 4, 1.0f);
             vesc_can_status_msg_4.pid_pos_now = getFloat16(data, 6, 1.0f);
-            BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
-        } else if (cmd == vesc_can_packed_id.CAN_PACKET_STATUS_5) {
+            //BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
+        } else if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS_5) {
             vesc_can_status_msg_5.v_in = getFloat16(data, 4, 10.0f);
             vesc_can_status_msg_5.tacho_value = getInt32(data, 0);
-            BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);
+            //BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);
         }
     }
 }

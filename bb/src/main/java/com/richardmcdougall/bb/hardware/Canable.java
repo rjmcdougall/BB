@@ -18,6 +18,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 /*
@@ -53,7 +55,11 @@ class Canable implements SerialInputOutputManager.Listener {
     private BBService service = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    private ScheduledThreadPoolExecutor sch = (java.util.concurrent.ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    Runnable usbSupervisor = () -> usbSupervisor();
+
     protected final Object mSerialConn = new Object();
+    UsbDeviceConnection mDeviceConnection = null;
     private static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
     private UsbDevice mUsbDevice = null;
@@ -66,33 +72,78 @@ class Canable implements SerialInputOutputManager.Listener {
     List<Byte> frameBytes = new ArrayList<>();
 
     public Canable(BBService service) {
+        BLog.e(TAG, "creating service");
         try {
             this.service = service;
-            initUsb();
+            sch.scheduleWithFixedDelay(usbSupervisor, 1, 1, TimeUnit.SECONDS);
+
         } catch (Exception e) {
 
         }
     }
 
+    private void usbSupervisor() {
+        //BLog.e(TAG, "supervisor");
+
+        // Check in case iomanager left serial port open but manager shutdown on error
+        try {
+            if (mSerialIoManager.getState() != SerialInputOutputManager.State.RUNNING) {
+                if (sPort != null) {
+                    BLog.d(TAG, "supervisor closing serial port");
+                    sPort.close();
+                }
+                mDeviceConnection.close();
+                mUsbDevice = null;
+            }
+        } catch (Exception e) {}
+
+        try {
+            if (mUsbDevice == null) {
+                BLog.d(TAG, "supervisor initUsb");
+                initUsb();
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "supervisor failed init  of USB: " + e.getMessage());
+        }
+        try {
+            if (mUsbDevice != null &&
+                    (sPort == null ||
+                    (sPort != null && sPort.isOpen() == false))) {
+                BLog.d(TAG, "supervisor usbConnect");
+                usbConnect(mUsbDevice);
+            }
+        } catch (Exception e) {
+            BLog.d(TAG, "supervisor failed connect of USB: " + e.getMessage());
+        }
+        try {
+            if (mSerialIoManager == null || mSerialIoManager.getState() == SerialInputOutputManager.State.STOPPED) {
+                BLog.d(TAG, "supervisor startIoManager");
+                startIoManager();
+                BLog.d(TAG, "supervisor initCanableDevice");
+                initCanableDevice();
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "supervisor failed starting iomanager and sending init: " + e.getMessage());
+        }
+        //BLog.d(TAG, "sport: " + sPort.toString() + " " + sPort.isOpen() + " iomanager: " + mSerialIoManager.getState().toString());
+    }
+
     @Override
     public void onRunError(Exception e) {
         BLog.e(TAG, "Serial Error: " + e.getMessage());
-        stopIoManager();
-        startIoManager();
-        initCanableDevice();
     }
 
     @Override
     public void onNewData(byte[] data) {
         if (data.length > 0) {
-            BLog.d(TAG, "Received " + data.length + "bytes: " + new String(data));
+            //BLog.d(TAG, "Received " + data.length + "bytes: " + new String(data));
             try {
 
                 for (byte b : data) {
                     if (b == '\r') {
                         // end of frame data received
                         CanFrame f = slcanToFrame(frameBytes.toArray(new Byte[frameBytes.size()]));
-                        BLog.d(TAG, "CAN frame " + f.str());
+                        //BLog.d(TAG, "CAN frame " + f.str());
                         giveFrame(f);
                         frameBytes.clear();
                     } else {
@@ -278,8 +329,6 @@ class Canable implements SerialInputOutputManager.Listener {
         if (!mUsbManager.hasPermission(mUsbDevice)) {
             BLog.d(TAG, "USB: No Permission");
             return;
-        } else {
-            usbConnect(mUsbDevice);
         }
     }
 
@@ -292,15 +341,23 @@ class Canable implements SerialInputOutputManager.Listener {
             return;
         }
 
-        UsbDeviceConnection connection = mUsbManager.openDevice(mDriver.getDevice());
-        if (connection == null) {
+        // Close any lingering open ports
+        try {
+            if (sPort != null) {
+                sPort.close();
+            }
+        } catch (IOException e) {}
+
+        mDeviceConnection = mUsbManager.openDevice(mDriver.getDevice());
+
+        if (mDeviceConnection == null) {
             BLog.d(TAG, "open device failed");
             return;
         }
 
         try {
             sPort = (UsbSerialPort) mDriver.getPorts().get(0);//Most have just one port (port 0)
-            sPort.open(connection);
+            sPort.open(mDeviceConnection);
             sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
             sPort.setDTR(true);
 
@@ -314,31 +371,7 @@ class Canable implements SerialInputOutputManager.Listener {
             BLog.d(TAG, ("USB Device Error"));
             return;
         }
-
         BLog.d(TAG, "USB: Connected");
-        startIoManager();
-        initCanableDevice();
-    }
-
-    public void stopIoManager() {
-        synchronized (mSerialConn) {
-            //status.setText("Disconnected");
-            if (mSerialIoManager != null) {
-                BLog.d(TAG, "Stopping io manager ..");
-                mSerialIoManager.stop();
-                mSerialIoManager = null;
-            }
-            if (sPort != null) {
-                try {
-                    sPort.close();
-                } catch (IOException e) {
-                    // Ignore.
-                }
-                sPort = null;
-            }
-            BLog.d(TAG, "USB Disconnected");
-
-        }
     }
 
     public void startIoManager() {

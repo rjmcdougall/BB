@@ -15,7 +15,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.List;
 
-public class FileHelpers {
+public class    FileHelpers {
     private static String TAG = "FileHelpers";
 
     public static String LoadTextFile(String filename, String fileDir) {
