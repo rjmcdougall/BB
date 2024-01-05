@@ -46,11 +46,11 @@ public class BatteryOverlayBuilder {
             bigBatteryWidth = 20;
             bigBatterystartRow = 60;
             bigBatteryEndRow = 150;
-            bigBatteryCenter = 35;
-            littleBatteryRow = 170;
-            littleBattMiddle = 35;
+            bigBatteryCenter = 36;
+            littleBatteryRow = 180;
+            littleBattMiddle = 36;
             littleBattWidth = 6;
-            littleBattHeight = 9;
+            littleBattHeight = 18;
         } else {
             // Azul
             // Little battery at top
@@ -177,7 +177,7 @@ public class BatteryOverlayBuilder {
         int row;
         int level;
         int battLeft = littleBattMiddle - (littleBattWidth / 2);
-        int battRight = littleBattMiddle + (littleBattWidth / 2);
+        int battRight = littleBattMiddle + (littleBattWidth / 2) - 1;
 
         try {
             boolean batteryCritical = (service.bms.getBatteryLevelState() == BMS.batteryLevelStates.STATE_CRITICAL);
@@ -203,7 +203,7 @@ public class BatteryOverlayBuilder {
             }
 
             // Battery Top
-            for (x = battLeft; x < battRight; x++) {
+            for (x = battLeft; x <= battRight; x++) {
                 setPixel(x, row, RGB.getARGBInt(kRgbMax, kRgbMax, kRgbMax));
             }
             row++;
@@ -231,13 +231,13 @@ public class BatteryOverlayBuilder {
                 } else { // Green
                     batteryColor = RGB.getARGBInt(0, kRgbMax, 0);
                 }
-                for (row = littleBatteryRow; row < littleBatteryRow + level; row++) {
-                    for (x = battLeft + 1; x < battRight - 1; x++) {
+                for (row = littleBatteryRow + 1; row < littleBatteryRow + level; row++) {
+                    for (x = battLeft + 1; x < battRight ; x++) {
                         setPixel(x, row, batteryColor);
                     }
                 }
                 for (; row < littleBatteryRow + littleBattHeight - 2; row++) {
-                    for (x = battLeft + 1; x < battRight - level - 1; x++) {
+                    for (x = battLeft + 1; x < battRight; x++) {
                         setPixel(x, row, 0);
                     }
                 }
