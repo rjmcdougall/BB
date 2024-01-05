@@ -19,15 +19,15 @@ public class BMS_None extends BMS {
     public void update() {
     }
     
-    public float get_voltage() {
+    public float getVoltage() {
         return 40;
     }
 
-    public float get_current() {
+    public float getCurrent() {
         return 2;
     }
 
-    public float get_level() {
+    public float getLevel() {
         return 90;
     }
 }

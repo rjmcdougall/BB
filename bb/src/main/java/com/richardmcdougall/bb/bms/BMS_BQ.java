@@ -80,19 +80,31 @@ public class BMS_BQ extends BMS {
         service.boardState.batteryLevel = mBQ.state_of_charge_pct();
     }
 
-    public float get_voltage() throws IOException {
+    public float getVoltage() throws IOException {
+        if (mBQ.voltage_volts() == 0) {
+            throw new IOException("unkown BQ reading");
+        }
         return mBQ.voltage_volts();
     }
 
-    public float get_current()  throws IOException {
+    public float getCurrent()  throws IOException {
+        if (mBQ.voltage_volts() == 0) {
+            throw new IOException("unkown BQ reading");
+        }
         return mBQ.average_current_amps();
     }
 
-    public float get_current_instant()  throws IOException {
+    public float getCurrentInstant()  throws IOException {
+        if (mBQ.voltage_volts() == 0) {
+            throw new IOException("unkown BQ reading");
+        }
         return mBQ.current_amps();
     }
 
-    public float get_level()  throws IOException {
+    public float getLevel()  throws IOException {
+        if (mBQ.voltage_volts() == 0) {
+            throw new IOException("unkown BQ reading");
+        }
         return mBQ.state_of_charge_pct();
     }
 }

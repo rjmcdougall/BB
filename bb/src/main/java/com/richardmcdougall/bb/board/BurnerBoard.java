@@ -52,6 +52,7 @@ public abstract class BurnerBoard {
     public int[] boardScreen;
     public int[] mBatteryStats = new int[16];
     public TextBuilder textBuilder = null;
+    public BatteryOverlayBuilder batteryOverlayBuilder = null;
     public ArcBuilder arcBuilder = null;
     public LineBuilder lineBuilder = null;
     protected AppDisplay appDisplay = null;
@@ -88,6 +89,7 @@ public abstract class BurnerBoard {
         this.pixelOffset = new PixelOffset(this);
         this.appDisplay = new AppDisplay(this.service,this);
         this.textBuilder = new TextBuilder(this);
+        this.batteryOverlayBuilder = new BatteryOverlayBuilder(this.service, this);
         this.lineBuilder = new LineBuilder(this);
         this.arcBuilder = new ArcBuilder(this);
         this.pixelDimmer = new PixelDimmer();
@@ -153,16 +155,11 @@ public abstract class BurnerBoard {
         }
     }
 
-    public void showBattery() {
+    public enum batteryType {LARGE, SMALL, CRITICAL}
+    public void showBattery(batteryType type) {
 
         this.appDisplay.sendVisual(9);
-        BLog.d(TAG, "sendCommand: 7");
-        if (mListener != null) {
-            mListener.sendCmd(7);
-            mListener.sendCmdEnd();
-            flush2Board();
-            return;
-        }
+        this.batteryOverlayBuilder.drawBattery(type);
         return;
     }
 

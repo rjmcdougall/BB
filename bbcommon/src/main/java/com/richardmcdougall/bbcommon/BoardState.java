@@ -49,6 +49,7 @@ public class BoardState {
     public String password = "";
     public TeensyType displayTeensy;
     private BoardType boardType;
+
     public static String serial = Build.SERIAL;
     public PlatformType platformType = PlatformType.dragonboard;
     public boolean inCrisis = false;
@@ -227,6 +228,11 @@ public class BoardState {
         }
     }
 
+    public enum BatteryState {
+        NORMAL,
+        LOW,
+        CRITICAL
+    }
     public enum BoardType {
         littlewing("littlewing"),
         azul("azul"),

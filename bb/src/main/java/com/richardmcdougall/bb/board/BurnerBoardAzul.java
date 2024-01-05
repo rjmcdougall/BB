@@ -79,6 +79,7 @@ public class BurnerBoardAzul extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(kMaxAzulDisplayPower, mOutputScreen);
         this.appDisplay.send(mOutputScreen);

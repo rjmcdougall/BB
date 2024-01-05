@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb.bms;
 
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BatterySupervisor;
 import com.richardmcdougall.bb.hardware.BQ34Z100;
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -10,7 +11,7 @@ import java.util.Arrays;
 
 public class BMS_BQTeensy extends BMS {
     private String TAG = this.getClass().getSimpleName();
-  //  public int[] mBatteryStats = new int[16];
+    //  public int[] mBatteryStats = new int[16];
     private static final int kAzulBatteryMah = 38000;
 
     public BMS_BQTeensy(BBService service) {
@@ -44,7 +45,7 @@ public class BMS_BQTeensy extends BMS {
                     "current: " + getBatteryCurrent() + ", " +
                     "current instant: " + getBatteryCurrentInstant() + ", " +
                     "flags: " + tmpBatteryStats[0] + ", " +
-                    "battery stats: " + Arrays.toString(tmpBatteryStats)  );
+                    "battery stats: " + Arrays.toString(tmpBatteryStats));
         } else {
             BLog.d(TAG, "getBatteryLevel error: " + tmpBatteryStats[1] + "%, " +
                     "voltage: " + tmpBatteryStats[5] + ", " +
@@ -58,7 +59,7 @@ public class BMS_BQTeensy extends BMS {
     }
 
     // Instant current in milliamps
-    public int getBatteryCurrent() {
+    private int getBatteryCurrent() {
         int codedLevel = this.service.burnerBoard.getmBatteryStats()[6];
         if (codedLevel > 32768) {
             return 10 * (codedLevel - 65536);
@@ -67,7 +68,7 @@ public class BMS_BQTeensy extends BMS {
         }
     }
 
-    public int getBatteryCurrentInstant() {
+    private int getBatteryCurrentInstant() {
         int codedLevel = this.service.burnerBoard.getmBatteryStats()[9];
         if (codedLevel > 32768) {
             return 10 * (codedLevel - 65536);
@@ -77,25 +78,70 @@ public class BMS_BQTeensy extends BMS {
     }
 
     // Voltage in millivolts
-    public int getBatteryVoltage() {
+    private int getBatteryVoltage() {
         return this.service.burnerBoard.getmBatteryStats()[5];
     }
 
 
-    public float get_voltage() {
-        return (float)getBatteryVoltage();
-     }
+    public float getVoltage() throws  IOException {
 
-    public float get_current() {
-        return (float)getBatteryCurrent();
+        if (getBatteryVoltage() == 0) {
+            throw new IOException("unkown BQ reading");
+        }
+        return (float) getBatteryVoltage();
     }
 
-    public float get_current_instant() {
-        return (float)getBatteryCurrentInstant();
+    public float getCurrent() throws  IOException {
+        if (getBatteryVoltage() == 0) {
+            throw new IOException("unkown BQ reading");
         }
+        return (float) getBatteryCurrent();
+    }
 
-    public float get_level() {
+    public float getCurrentInstant() throws  IOException {
+        if (getBatteryVoltage() == 0) {
+            throw new IOException("unkown BQ reading");
+        }
+        return (float) getBatteryCurrentInstant();
+    }
+
+    public float getLevel() {
         return 100.0f;
+    }
+
+    public batteryStates getBatteryState() {
+
+        // Azul BQ boards have flakey BMS reading.
+        // Non-standard
+
+        try {
+            float voltage = getVoltage();
+            float currentInstant = getCurrentInstant();
+            float current = getCurrent();
+
+            // Slow transition from to idle
+            if ((voltage > 20) && (current > -.150) && (current < .010)) {
+                // Any state -> IDLE
+                mBatteryState = batteryStates.STATE_IDLE.STATE_IDLE;
+                // Fast transition from idle to discharging
+            } else if ((voltage > 20) && (currentInstant < -.150)) {
+                // Any state -> Displaying
+                mBatteryState = batteryStates.STATE_IDLE.STATE_DISCHARGING;
+            } else if (mBatteryState == batteryStates.STATE_DISCHARGING &&
+                    (voltage > 20) && (current > 5)) {                 // STATE_DISCHARGING -> Charging (avg current)
+                mBatteryState = batteryStates.STATE_CHARGING;
+            } else if (mBatteryState == batteryStates.STATE_IDLE &&
+                    (voltage > 20) && (currentInstant > .01)) {
+                // STATE_IDLE -> Charging // instant
+                mBatteryState = batteryStates.STATE_CHARGING;
+            } else if ((voltage > 20) && (current > .01)) {
+                // Anystate other state -> Charging // avg current
+                mBatteryState = batteryStates.STATE_CHARGING;
+            }
+            return mBatteryState;
+        } catch (Exception e) {
+            return batteryStates.STATE_UNKNOWN;
+        }
     }
 }
 

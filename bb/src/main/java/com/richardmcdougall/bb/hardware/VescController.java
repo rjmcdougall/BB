@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb.hardware;
 
+import android.os.SystemClock;
+
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -24,16 +26,37 @@ public class VescController implements CanListener {
     public VESC_IOBOARD_ADC_VALUES vesc_ioboard_adc_values;
     public VESC_IOBOARD_DIGITAL_VALUES vesc_ioboard_digital_values;
 
+    private static int kAliveCheckMilliSeconds = 1000;
+
     public VescController(BBService service, Canable canbus) {
         canbus.addListener(this);
+    }
+
+    public boolean vescOn() {
+        BLog.d(TAG, "e " + SystemClock.elapsedRealtime() + " - r " + vesc_can_status_msg.rx_time + " = " + (SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time));
+        if ((SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time) < kAliveCheckMilliSeconds) {
+            return true;
+        }
+        return false;
+    }
+
+    public boolean vescMoving() {
+        if (((SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time) < kAliveCheckMilliSeconds)
+                && (vesc_can_status_msg.rpm > 0)) {
+            return true;
+        }
+        return false;
     }
 
     public float getVoltage() {
         return (vesc_can_status_msg_5.v_in);
     }
 
-    public int getRPM() {
-        return (vesc_can_status_msg_5.tacho_value);
+    public float getRPM() {
+        if ((SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time) < kAliveCheckMilliSeconds) {
+            return (vesc_can_status_msg.rpm);
+        }
+        return 0;
     }
 
     public float getBatteryCurrent() {
@@ -66,17 +89,20 @@ public class VescController implements CanListener {
         //BLog.d(TAG, "id " + id + " cmd " + cmd);
 
         if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS) {
+            vesc_can_status_msg.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg.rpm = getInt32(data, 0);
             vesc_can_status_msg.current = getInt16(data, 4);
             vesc_can_status_msg.duty = getInt16(data, 6);
             //BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
         } else if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS_4) {
+            vesc_can_status_msg_4.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_4.temp_fet = getFloat16(data, 0, 1.0f);
             vesc_can_status_msg_4.temp_motor = getFloat16(data, 2, 1.0f);
             vesc_can_status_msg_4.current_in = getFloat16(data, 4, 1.0f);
             vesc_can_status_msg_4.pid_pos_now = getFloat16(data, 6, 1.0f);
             //BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
         } else if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS_5) {
+            vesc_can_status_msg_5.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_5.v_in = getFloat16(data, 4, 10.0f);
             vesc_can_status_msg_5.tacho_value = getInt32(data, 0);
             //BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);

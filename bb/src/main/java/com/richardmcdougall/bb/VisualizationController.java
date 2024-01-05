@@ -1,8 +1,8 @@
 package com.richardmcdougall.bb;
 
 import android.media.audiofx.Visualizer;
-import android.opengl.Visibility;
 
+import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
@@ -80,12 +80,11 @@ public class VisualizationController {
     private BBService service;
     public boolean inhibitVisual = false;
     public boolean inhibitVisualGTFO = false;
-    public boolean lowBatteryVisual = false;
-    private boolean showBattery = false;
-    private int batteryCnt = 0;
+    public boolean batteryCrisisVisual = false;
     private Visualizer mVisualizer;
     private int mAudioSessionId;
     private int[] oldLevels = new int[kNumLevels];
+
     private int showingMap = 0;
 
     VisualizationController(BBService service) {
@@ -121,9 +120,7 @@ public class VisualizationController {
         t.start();
     }
 
-    public void showBattery(boolean show) {
-        showBattery = show;
-    }    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
+    // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
     // VideoMode() = 1 sets it to the beginning of the profile.
     void NextVideo() {
         int next = service.boardState.currentVideoMode + 1;
@@ -274,7 +271,7 @@ public class VisualizationController {
             if (inhibitVisual || inhibitVisualGTFO) {
                 BLog.d(TAG, "inhibit");
                 service.burnerBoard.clearPixels();
-                service.burnerBoard.showBattery();
+                service.burnerBoard.showBattery(BurnerBoard.batteryType.LARGE);
                 service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
@@ -283,24 +280,16 @@ public class VisualizationController {
                 continue;
             }
 
-            if (lowBatteryVisual) {
+            if (batteryCrisisVisual) {
                 BLog.d(TAG, "inhibit");
-                service.burnerBoard.clearPixels();
-                service.burnerBoard.fillScreen(255, 0, 0);
-                service.burnerBoard.showBattery();
-                service.burnerBoard.flush();
+                //service.burnerBoard.clearPixels();
+                //service.burnerBoard.fillScreen(255, 0, 0);
+                //service.burnerBoard.flush();
                 try {
                     Thread.sleep(1000);
                 } catch (Throwable er) {
                 }
                 continue;
-            }
-
-            if (showBattery) {
-                if (batteryCnt % service.burnerBoard.getFrameRate() == 0) {
-                    service.burnerBoard.showBattery();
-                }
-                batteryCnt++;
             }
 
             if (showingMap > 0) {

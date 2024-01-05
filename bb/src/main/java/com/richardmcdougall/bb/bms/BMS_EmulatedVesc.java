@@ -4,20 +4,27 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.util.Arrays;
+import java.io.IOException;
 
+
+// For VESC systems with no BMS, this estimates battery level using cell voltage from VESC
 
 public class BMS_EmulatedVesc extends BMS {
     private String TAG = this.getClass().getSimpleName();
 
     private float voltageFromVesc = 0;
     private float currentFromVesc = 0;
-    private int level = 0;
+    private int level = -2;
 
     // Defaults for Mezcal and 13s packs
     private static final float kMaxSampleCurrent = 5.0f;
     private static final float kCellMin = 3.2f;
     private static final float kCellMax = 4.2f;
     private static final int kNumCells = 13;
+
+    private float[] batteryCurrentHistory = new float[10];
+
+    private static final float kPresumedCurrentLoadLights = -5.0f;
 
     public BMS_EmulatedVesc(BBService service) {
         super(service);
@@ -27,29 +34,23 @@ public class BMS_EmulatedVesc extends BMS {
 
     public void update() {
 
-        if (service == null) {
-            return;
-        }
-        if (service.burnerBoard == null) {
-            return;
-        }
-
         // TODO: Smooth voltage over n samples, deal with absent values
         try {
-            voltageFromVesc = service.vesc.getVoltage();
-            currentFromVesc = service.vesc.getBatteryCurrent();
-            // Only calculate estimated capacity if no load on the motor
-            if ((currentFromVesc >= 0.0f) && (currentFromVesc < kMaxSampleCurrent)) {
-                level = (int) (100.0f * liion_norm_v_to_capacity(map(voltageFromVesc / kNumCells, kCellMin, kCellMax, 0.0f, 1.0f)));
-                service.boardState.batteryLevel = level;
+            if (service.vesc.vescOn()) {
+                voltageFromVesc = service.vesc.getVoltage();
+                currentFromVesc = service.vesc.getBatteryCurrent();
+                // Only calculate estimated capacity if no load on the motor
+                if ((currentFromVesc >= 0.0f) && (currentFromVesc < kMaxSampleCurrent)) {
+                    level = (int) (100.0f * liion_norm_v_to_capacity(map(voltageFromVesc / kNumCells, kCellMin, kCellMax, 0.0f, 1.0f)));
+                    service.boardState.batteryLevel = level;
+                }
+                BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
+                        "voltage: " + getVoltage() + ", " +
+                        "current: " + getCurrent() + ", " +
+                        "current instant: " + getCurrentInstant());
             }
         } catch (Exception E) {
         }
-
-        BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
-                "voltage: " + getBatteryVoltage() + ", " +
-                "current: " + getBatteryCurrent() + ", " +
-                "current instant: " + getBatteryCurrentInstant());
     }
 
     private float map(float x, float in_min, float in_max, float out_min, float out_max) {
@@ -83,34 +84,36 @@ public class BMS_EmulatedVesc extends BMS {
         return 100;
     }
 
-    // Instant current in milliamps
-    public int getBatteryCurrent() {
-        return ((int) (currentFromVesc * 1000f));
-    }
-
-    public int getBatteryCurrentInstant() {
-        return ((int) (currentFromVesc * 1000f));
-    }
-
-    // Voltage in millivolts
-    public int getBatteryVoltage() {
-        return ((int) (voltageFromVesc * 1000f));
-    }
-
-
-    public float get_voltage() {
+    public float getVoltage() throws IOException {
+        if (level < 0) {
+            throw new IOException("unknown emulated BMS voltage");
+        }
         return (voltageFromVesc * 1000f);
     }
 
-    public float get_current() {
-        return (currentFromVesc);
+    public float getCurrent() {
+        float current = getCurrentInstant();
+        int timeslot = (int) ((System.currentTimeMillis() / 1000 ) % batteryCurrentHistory.length);
+        batteryCurrentHistory[timeslot] = current;
+        float averageCurrent = 0;
+        for (int i = 0; i < batteryCurrentHistory.length; i++) {
+            averageCurrent = averageCurrent + batteryCurrentHistory[i];
+        }
+        averageCurrent = averageCurrent / batteryCurrentHistory.length;
+        return (averageCurrent);
     }
 
-    public float get_current_instant() {
-        return (currentFromVesc);
+    public float getCurrentInstant() {
+        if (service.vesc.vescOn()) {
+            return (kPresumedCurrentLoadLights - (-1.0f * currentFromVesc));
+        }
+        return (0);
     }
 
-    public float get_level() {
+    public float getLevel() throws IOException {
+        if (level < 0) {
+            throw new IOException("unknown emulated BMS level");
+        }
         return level;
     }
 }

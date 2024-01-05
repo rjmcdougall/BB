@@ -38,7 +38,6 @@ public class BurnerBoardV4 extends BurnerBoard {
         // attach getBatteryLevel cmdMessenger callback
         BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
         mListener.attach(8, getBatteryLevelCallback);
-
     }
 
     public int getFrameRate() {
@@ -76,6 +75,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);
         // TODO: gamma correction should be here before dimmer
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(kMaxV4DisplayPower, mOutputScreen);

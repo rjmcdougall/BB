@@ -12,6 +12,7 @@ public class BMS {
 
     private static String TAG = "BMS";
 
+    protected batteryStates mBatteryState = batteryStates.STATE_UNKNOWN;
     BBService service;
 
     public BMS(BBService service) {
@@ -42,21 +43,72 @@ public class BMS {
     public void update() throws IOException {
     }
 
-    public float get_level() throws IOException {
-        return 90;
+    public float getLevel() throws IOException {
+        throw new IOException("unknown BMS state");
     }
 
-    public float get_voltage() throws IOException {
-        return 40;
+    public float getVoltage() throws IOException {
+        throw new IOException("unknown BMS state");
     }
 
-    public float get_current() throws IOException {
-        return 1;
+    public float getCurrent() throws IOException {
+        throw new IOException("unknown BMS state");
     }
 
-    public float get_current_instant() throws IOException {
-        return 2;
+    public float getCurrentInstant() throws IOException {
+        throw new IOException("unknown BMS state");
     }
+
+    public batteryLevelStates getBatteryLevelState() {
+        try {
+            float level = getLevel();
+            if (level < 15) {
+                return batteryLevelStates.STATE_CRITICAL;
+            } else if (level < 25) {
+                return batteryLevelStates.STATE_LOW;
+            } else {
+                return batteryLevelStates.STATE_NORMAL;
+            }
+        } catch (Exception e) {
+            return batteryLevelStates.STATE_UNKNOWN;
+        }
+    }
+
+    public batteryStates getBatteryState() {
+
+        try {
+            float voltage = getVoltage();
+            float currentInstant = getCurrentInstant();
+            float current = getCurrent();
+
+            // Slow transition from to idle
+            if ((current > -.150) && (current < .010)) {
+                // Any state -> IDLE
+                mBatteryState = batteryStates.STATE_IDLE.STATE_IDLE;
+                // Fast transition from idle to discharging
+            } else if ((currentInstant < -.150)) {
+                // Any state -> Displaying
+                mBatteryState = batteryStates.STATE_IDLE.STATE_DISCHARGING;
+            } else if (mBatteryState == batteryStates.STATE_DISCHARGING &&
+                    (current > 5)) {                 // STATE_DISCHARGING -> Charging (avg current)
+                mBatteryState = batteryStates.STATE_CHARGING;
+            } else if (mBatteryState == batteryStates.STATE_IDLE &&
+                    (currentInstant > .01)) {
+                // STATE_IDLE -> Charging // instant
+                mBatteryState = batteryStates.STATE_CHARGING;
+            } else if ((current > .01)) {
+                // Anystate other state -> Charging // avg current
+                mBatteryState = batteryStates.STATE_CHARGING;
+            }
+            return mBatteryState;
+        } catch (Exception e) {
+            return batteryStates.STATE_UNKNOWN;
+        }
+    }
+
+    public enum batteryStates {STATE_UNKNOWN, STATE_CHARGING, STATE_IDLE, STATE_DISCHARGING}
+
+    public enum batteryLevelStates {STATE_UNKNOWN, STATE_NORMAL, STATE_LOW, STATE_CRITICAL}
 
 
 }

@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.view.KeyEvent;
 
+import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -127,7 +128,7 @@ public class ButtonReceiver extends BroadcastReceiver {
 
     public void onBatteryButton() {
         if (service.burnerBoard != null) {
-            service.burnerBoard.showBattery();
+            service.burnerBoard.showBattery(BurnerBoard.batteryType.SMALL);
             if ((SystemClock.elapsedRealtime() - lastPressed) < 600) {
                 if (pressCnt == 1) {
                     final Handler handler = new Handler();

@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb;
 
+import com.richardmcdougall.bb.bms.BMS;
+import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -16,7 +18,9 @@ public class BatterySupervisor {
     private long lastLowStatement = System.currentTimeMillis();
     private int iotReportEveryNSeconds = 10;
 
-    Runnable batterySupervisor = () ->  checkBattery();
+    private int returnFromIdle = 0;
+
+    Runnable batterySupervisor = () -> checkBattery();
 
     BatterySupervisor(BBService service) {
         this.service = service;
@@ -26,10 +30,9 @@ public class BatterySupervisor {
         BLog.d(TAG, "Enable IoT Reporting? " + service.burnerBoard.enableIOTReporting);
 
         if (service.burnerBoard.enableBatteryMonitoring)
-            sch.scheduleWithFixedDelay(batterySupervisor, 10, 10, TimeUnit.SECONDS);
+            sch.scheduleWithFixedDelay(batterySupervisor, 10, 1, TimeUnit.SECONDS);
 
     }
-
 
     float voltage = 0.0f;
     float current = 0.0f;
@@ -42,34 +45,24 @@ public class BatterySupervisor {
         boolean announce;
         powerStates powerState = powerStates.STATE_DISPLAYING;
 
-        // Old config w/teensy3
-        /*
-        float level = service.boardState.batteryLevel;
-        float current = service.burnerBoard.getBatteryCurrent();
-        float currentInstant = service.burnerBoard.getBatteryCurrentInstant();
-        float voltage = service.burnerBoard.getBatteryVoltage();
-        */
-
-
         // Temporary hack to check and report gyro for testing
         if (this.service.gyro != null) {
             this.service.gyro.update();
         }
 
         try {
-            voltage = service.bms.get_voltage();
-            current = service.bms.get_current();
-            currentInstant = service.bms.get_current_instant();
-            level = service.bms.get_level();
-            service.boardState.batteryLevel = (int)level;
+            voltage = service.bms.getVoltage();
+            current = service.bms.getCurrent();
+            currentInstant = service.bms.getCurrentInstant();
+            level = service.bms.getLevel();
+            service.boardState.batteryLevel = (int) level;
         } catch (IOException e) {
             BLog.e(TAG, "Cannot read BMS");
         }
 
         try {
             this.service.bms.update();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             BLog.e(TAG, e.getLocalizedMessage());
         }
 
@@ -79,63 +72,54 @@ public class BatterySupervisor {
         BLog.d(TAG, "Board Voltage is " + voltage);
         BLog.d(TAG, "Board Level is " + level);
 
-        // Save CPU cycles for lower power mode
-        // current is milliamps
-        // Current with brain running is about 100ma
-        // Check voltage to make sure we're really reading the battery gauge
-        // Make sure we're not seeing +ve current, which is charging
-        // Average current use to enter STATE_IDLE
-        // Instant current used to exit STATE_IDLE
-        if ((voltage > 20) && (current > -.150) && (current < .010)) {
+        BMS.batteryStates batteryState = service.bms.getBatteryState();
+        BMS.batteryLevelStates batteryLevelState = service.bms.getBatteryLevelState();
+
+        BLog.d(TAG, "Battery is " + batteryLevelState);
+        BLog.d(TAG, "Battery state is " + batteryState);
+
+        if (batteryState == BMS.batteryStates.STATE_IDLE) {
             // Any state -> IDLE
             powerState = powerStates.STATE_IDLE;
             service.visualizationController.inhibitVisual = true;
-        } else if ((voltage > 20) && (currentInstant < -.150)) {
+        } else if (batteryState == BMS.batteryStates.STATE_DISCHARGING) {
+            // Idle -> Displaying
+            if (powerState == powerStates.STATE_IDLE) {
+                // Show battery when board is powered up
+                service.burnerBoard.showBattery(BurnerBoard.batteryType.LARGE);
+            }
+            if (batteryLevelState == BMS.batteryLevelStates.STATE_LOW) {
+                // Show battery when board is powered up
+                service.burnerBoard.showBattery(BurnerBoard.batteryType.SMALL);
+            } else if(batteryLevelState == BMS.batteryLevelStates.STATE_CRITICAL) {
+                service.burnerBoard.showBattery(BurnerBoard.batteryType.CRITICAL);
+            }
             // Any state -> Displaying
             powerState = powerStates.STATE_DISPLAYING;
             service.visualizationController.inhibitVisual = false;
-        } else if (powerState == powerStates.STATE_DISPLAYING &&
-                // DISPLAYING -> Charging (avg current)
-                (voltage > 20) && (current > 10)) {
+        } else if (batteryState == BMS.batteryStates.STATE_CHARGING) {
             powerState = powerStates.STATE_CHARGING;
             service.visualizationController.inhibitVisual = false;
-        } else if (powerState == powerStates.STATE_IDLE &&
-                (voltage > 20) && (currentInstant > .010)) {
-            // STATE_IDLE -> Charging // instant
-            powerState = powerStates.STATE_CHARGING;
-            service.visualizationController.inhibitVisual = false;
-        } else if ((voltage > 20) && (current > .010)) {
-            // Anystate -> Charging // avg current
-            powerState = powerStates.STATE_CHARGING;
-            service.visualizationController.inhibitVisual = false;
+            service.burnerBoard.showBattery(BurnerBoard.batteryType.LARGE);
         } else {
             BLog.d(TAG, "Unhandled power state " + powerState);
             service.visualizationController.inhibitVisual = false; // this occurs on all nonstandard devices.
         }
 
+        // uncomment to test battery display
+        // service.burnerBoard.showBattery(BurnerBoard.batteryType.LARGE);
+
         BLog.d(TAG, "Power state is " + powerState);
-
-        // Show battery if charging
-        service.visualizationController.showBattery(powerState == powerStates.STATE_CHARGING);
-
-        // Battery voltage is critically low
-        // Board will come to a halt in < 60 seconds
-        // current is milliamps
-        if ((voltage > 20.000) && (voltage < 35.300)) {
-            service.visualizationController.lowBatteryVisual = true;
-        } else {
-            service.visualizationController.lowBatteryVisual = false;
-        }
 
         announce = false;
 
-        if ((level >= 0) && (level < 15)) {
-            if (System.currentTimeMillis() - lastOkStatement > 60000) {
+        if (batteryLevelState == BMS.batteryLevelStates.STATE_CRITICAL) {
+            if (System.currentTimeMillis() - lastOkStatement > 300000) {
                 lastOkStatement = System.currentTimeMillis();
                 announce = true;
             }
-        } else if ((level >= 0) && (level <= 25)) {
-            if (System.currentTimeMillis() - lastLowStatement > 300000) {
+        } else if (batteryLevelState == BMS.batteryLevelStates.STATE_LOW) {
+            if (System.currentTimeMillis() - lastLowStatement > 600000) {
                 lastLowStatement = System.currentTimeMillis();
                 announce = true;
             }
@@ -144,7 +128,6 @@ public class BatterySupervisor {
         if (announce) {
             service.speak("Battery Level is " + level + " percent", "batteryLow");
         }
-
     }
 
     public enum powerStates {STATE_CHARGING, STATE_IDLE, STATE_DISPLAYING}

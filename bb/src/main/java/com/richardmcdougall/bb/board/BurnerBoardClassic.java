@@ -68,7 +68,7 @@ public class BurnerBoardClassic extends BurnerBoard {
     }
 
     @Override
-    public void showBattery() {
+    public void showBattery(batteryType type) {
 
         this.appDisplay.sendVisual(9);
         BLog.d(TAG, "sendCommand: 9");
