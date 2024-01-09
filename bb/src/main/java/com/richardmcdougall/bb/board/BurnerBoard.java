@@ -43,7 +43,7 @@ public abstract class BurnerBoard {
     public static boolean renderLineOnScreen = false;
     public static BoardState.BoardType boardType = null;
     private static String TAG = "BurnerBoard";
-    private static UsbSerialPort sPort = null;
+    public static UsbSerialPort sPort = null;
     private static UsbSerialDriver mDriver = null;
     protected final Object mSerialConn = new Object();
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -62,7 +62,7 @@ public abstract class BurnerBoard {
     public PixelOffset pixelOffset = null;
 
     long lastFlushTime = java.lang.System.currentTimeMillis();
-    private SerialInputOutputManager mSerialIoManager;
+    public SerialInputOutputManager mSerialIoManager;
     public UsbDevice mUsbDevice = null;
     private BoardUSBReceiver boardUSBReceiver = null;
 
@@ -306,7 +306,7 @@ public abstract class BurnerBoard {
         return RGB.getARGBInt(r, g, b);
     }
 
-    protected final void setStrip(int strip, int[] pixels) {
+    public void setStrip(int strip, int[] pixels) {
         byte[] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             newPixels[pixel] = (byte) pixels[pixel];
@@ -475,12 +475,15 @@ public abstract class BurnerBoard {
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
                 mSerialIoManager.setReadTimeout(0);
+                mSerialIoManager.setWriteTimeout(1);
+                mSerialIoManager.setName("BoardThread");
                 //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
 
                 // Important for teensy4 performance
                 //mSerialIoManager.setWriteBufferSize(65536);
 
                 mExecutor.submit(mSerialIoManager);
+
 
                 start();
 
@@ -564,7 +567,7 @@ public abstract class BurnerBoard {
         return false;
     }// We use this to catch the USB accessory detached message
 
-    public final void flush2Board() {
+    public void flush2Board() {
 
         if (mListener != null) {
             mListener.flushWrites();

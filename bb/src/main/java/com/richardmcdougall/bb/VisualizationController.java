@@ -114,7 +114,7 @@ public class VisualizationController {
 
     void Run() {
         Thread t = new Thread(() -> {
-            Thread.currentThread().setName("BB Board Display");
+            Thread.currentThread().setName("BB Visualization");
             boardDisplayThread();
         });
         t.start();

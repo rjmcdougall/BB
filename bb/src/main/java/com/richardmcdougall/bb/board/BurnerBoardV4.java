@@ -5,6 +5,8 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
+import java.nio.ByteBuffer;
+
 public class BurnerBoardV4 extends BurnerBoard {
 
     private static final int kMaxV4DisplayPower = 12;
@@ -41,16 +43,16 @@ public class BurnerBoardV4 extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 25;
+        return 43;
     }
     public void setOtherlightsAutomatically() {
     }
 
     // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
     private static int pixelWorkaround(int level) {
-        return level;
-    }
-    /*
+        //return level;
+    //}
+
         switch (level) {
             case 0:
                 level = 1;
@@ -65,7 +67,7 @@ public class BurnerBoardV4 extends BurnerBoard {
         }
         return level;
     }
-    */
+
 
     public void flush() {
 
@@ -92,10 +94,11 @@ public class BurnerBoardV4 extends BurnerBoard {
             }
             latency = MonotonicClock.millis();
             setStrip(s, stripPixels);
+            flush2Board();
             //BLog.d(TAG, "setstrip latency = " + (MonotonicClock.millis()- latency));
             if ((s % 2) == 0) {
                 latency = MonotonicClock.millis();
-                flush2Board();
+                //flush2Board();
                 //BLog.d(TAG, "flush latency = " + (MonotonicClock.millis()- latency));
             }
 
@@ -108,6 +111,48 @@ public class BurnerBoardV4 extends BurnerBoard {
         flush2Board();
         //BLog.d(TAG, "flush latency = " + (MonotonicClock.millis()- latency));
     }
+
+    private ByteBuffer mWriteBuffer = ByteBuffer.allocate(16384);
+    private static final byte[] teensyPrefix = "10,".getBytes();
+    private static final byte[] teensyPostfix = ";".getBytes();
+    private static final byte[] teensyUpdate = "6;".getBytes();
+
+    public void setStrip(int strip, int[] pixels) {
+        int len = Math.min(552 * 3, pixels.length);
+        byte[] newPixels = new byte[len];
+        for (int pixel = 0; pixel < len; pixel++) {
+            newPixels[pixel] = (byte) pixels[pixel];
+        }
+
+        mWriteBuffer.put(teensyPrefix);
+        mWriteBuffer.put(String.format("%d,", strip).getBytes());
+        mWriteBuffer.put(newPixels);
+        mWriteBuffer.put(teensyPostfix);
+
+    }
+
+    public boolean update() {
+        try {
+            mWriteBuffer.put(teensyUpdate);
+
+        } catch (Exception e) {}
+        return true;
+    }
+    public void flush2Board() {
+        try {
+            int len = mWriteBuffer.position();
+            if (len > 0) {
+                byte[] buffer = new byte[len];
+                mWriteBuffer.rewind();
+                mWriteBuffer.get(buffer, 0, len);
+                mWriteBuffer.clear();
+                //BLog.d(TAG, "write " + len + " bytes");
+                mSerialIoManager.writeAsync(buffer);
+                //mSerialIoManager.flush();
+            }
+        } catch (Exception e) {}
+    }
+
     private void pixelRemap(int x, int y, int stripOffset) {
         mapPixelsToStips[boardMap[y].stripNumber - 1][stripOffset] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_RED);
         mapPixelsToStips[boardMap[y].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(boardWidth - 1 - x, boardHeight - 1 - y, PIXEL_GREEN);

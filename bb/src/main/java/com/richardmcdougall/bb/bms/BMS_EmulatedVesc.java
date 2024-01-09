@@ -14,6 +14,14 @@ public class BMS_EmulatedVesc extends BMS {
 
     private float voltageFromVesc = 0;
     private float currentFromVesc = 0;
+
+    private float voltageFromVescPrior = 0;
+    private float voltageFromVescInstant = 0;
+
+    private float currentFromVescInstant = 0;
+
+    private float estimatedChargerCurrent = 0;
+    private float voltageDelta = 0;
     private int level = -2;
 
     // Defaults for Mezcal and 13s packs
@@ -23,8 +31,9 @@ public class BMS_EmulatedVesc extends BMS {
     private static final int kNumCells = 13;
 
     private float[] batteryCurrentHistory = new float[10];
+    private float[] batteryVoltageHistory = new float[10];
 
-    private static final float kPresumedCurrentLoadLights = -5.0f;
+    private static final float kPresumedCurrentLoadLights = -3.0f;
 
     public BMS_EmulatedVesc(BBService service) {
         super(service);
@@ -36,18 +45,51 @@ public class BMS_EmulatedVesc extends BMS {
 
         // TODO: Smooth voltage over n samples, deal with absent values
         try {
+            int timeslot = (int) ((System.currentTimeMillis() / 1000 ) % batteryCurrentHistory.length);
             if (service.vesc.vescOn()) {
-                voltageFromVesc = service.vesc.getVoltage();
-                currentFromVesc = service.vesc.getBatteryCurrent();
+
+                voltageFromVescInstant = service.vesc.getVoltage();;
+                voltageFromVescInstant += service.vesc.getVoltage();;
+                voltageFromVescInstant += service.vesc.getVoltage();;
+                voltageFromVescInstant = voltageFromVescInstant / 3;;
+
+                batteryVoltageHistory[timeslot] = voltageFromVescInstant;
+                float averageVoltageTmp = 0;
+                for (int i = 0; i < batteryVoltageHistory.length; i++) {
+                    averageVoltageTmp = averageVoltageTmp + batteryVoltageHistory[i];
+                }
+                voltageFromVesc = averageVoltageTmp / batteryVoltageHistory.length;
+
+                if (voltageFromVescPrior > 0) {
+                    voltageDelta = voltageFromVesc - voltageFromVescPrior;
+                }
+                voltageFromVescPrior = voltageFromVesc;
+
+                if (voltageDelta > 0) {
+                    estimatedChargerCurrent = 0.05f / voltageDelta;
+                } else {
+                    estimatedChargerCurrent = 0;
+                }
+
+                currentFromVescInstant = service.vesc.getBatteryCurrent();// + estimatedChargerCurrent;
+
+                batteryCurrentHistory[timeslot] = currentFromVescInstant;
+                float averageCurrentTmp = 0;
+                for (int i = 0; i < batteryCurrentHistory.length; i++) {
+                    averageCurrentTmp = averageCurrentTmp + batteryCurrentHistory[i];
+                }
+                currentFromVesc = averageCurrentTmp / batteryCurrentHistory.length;
+
                 // Only calculate estimated capacity if no load on the motor
-                if ((currentFromVesc >= 0.0f) && (currentFromVesc < kMaxSampleCurrent)) {
-                    level = (int) (100.0f * liion_norm_v_to_capacity(map(voltageFromVesc / kNumCells, kCellMin, kCellMax, 0.0f, 1.0f)));
+                if ((currentFromVescInstant >= 0.0f) && (currentFromVescInstant < kMaxSampleCurrent)) {
+                    level = (int) (100.0f * liion_norm_v_to_capacity(map(voltageFromVescInstant / kNumCells, kCellMin, kCellMax, 0.0f, 1.0f)));
                     service.boardState.batteryLevel = level;
                 }
                 BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +
                         "voltage: " + getVoltage() + ", " +
                         "current: " + getCurrent() + ", " +
-                        "current instant: " + getCurrentInstant());
+                        "current instant: " + getCurrentInstant() + ", " +
+                        "voltage delta: " + voltageDelta);
             }
         } catch (Exception E) {
         }
@@ -92,20 +134,15 @@ public class BMS_EmulatedVesc extends BMS {
     }
 
     public float getCurrent() {
-        float current = getCurrentInstant();
-        int timeslot = (int) ((System.currentTimeMillis() / 1000 ) % batteryCurrentHistory.length);
-        batteryCurrentHistory[timeslot] = current;
-        float averageCurrent = 0;
-        for (int i = 0; i < batteryCurrentHistory.length; i++) {
-            averageCurrent = averageCurrent + batteryCurrentHistory[i];
+        if (service.vesc.vescOn()) {
+            return (kPresumedCurrentLoadLights - (-1.0f * currentFromVesc));
         }
-        averageCurrent = averageCurrent / batteryCurrentHistory.length;
-        return (averageCurrent);
+        return (0);
     }
 
     public float getCurrentInstant() {
         if (service.vesc.vescOn()) {
-            return (kPresumedCurrentLoadLights - (-1.0f * currentFromVesc));
+            return (kPresumedCurrentLoadLights - (-1.0f * currentFromVescInstant));
         }
         return (0);
     }
@@ -116,5 +153,6 @@ public class BMS_EmulatedVesc extends BMS {
         }
         return level;
     }
+
 }
 

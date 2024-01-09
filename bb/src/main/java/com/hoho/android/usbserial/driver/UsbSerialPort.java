@@ -17,7 +17,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.BufferOverflowException;
 import java.util.EnumSet;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Interface for a single serial port.
@@ -131,7 +133,7 @@ public interface UsbSerialPort extends Closeable {
      *                                ex.bytesTransferred may contain bytes transferred
      * @throws IOException if an error occurred during writing
      */
-    void write(final byte[] src, final int timeout) throws IOException;
+    void write(final byte[] src, final int timeout) throws IOException, TimeoutException, BufferOverflowException;
 
     /**
      * Sets various serial port parameters.
@@ -257,5 +259,4 @@ public interface UsbSerialPort extends Closeable {
      * Returns the current state of the connection.
      */
     boolean isOpen();
-
 }

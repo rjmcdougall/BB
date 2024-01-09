@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb;
 
+import static com.richardmcdougall.bb.rf.RFUtil.bytesToHex;
+
 import android.os.Handler;
 import android.util.Log;
 
@@ -13,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 public class CmdMessenger implements SerialInputOutputManager.Listener {
@@ -86,14 +89,16 @@ public class CmdMessenger implements SerialInputOutputManager.Listener {
         } catch (Exception e) {
             e("div setup failed: " + e.getMessage());
         }
-
     }
 
     public void flushWrites() {
-        //BLog.e(TAG, ("BB.CmdMessenger flushWrites: " + sendBuffer.size() + "," + bytesToHex(sendBuffer.toByteArray()));
+        //BLog.d(TAG, "BB.CmdMessenger flushWrites: " + sendBuffer.size());// + "," + bytesToHex(sendBuffer.toByteArray()));
         if (sendBuffer.size() > 0) {
             try {
-                Serial.write(sendBuffer.toByteArray().clone(), 500);
+                //Serial.write(sendBuffer.toByteArray().clone(), 500);
+                Serial.write(sendBuffer.toByteArray(), 500);
+
+                //Serial.write(data, 500);
                 sendBuffer.reset();
             } catch (Exception e) {
                 BLog.e(TAG, "Write Failed: " + e.toString());

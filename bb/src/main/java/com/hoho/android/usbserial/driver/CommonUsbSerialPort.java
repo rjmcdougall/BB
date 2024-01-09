@@ -15,8 +15,10 @@ import android.util.Log;
 import com.hoho.android.usbserial.util.MonotonicClock;
 
 import java.io.IOException;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.util.EnumSet;
+import java.util.concurrent.TimeoutException;
 
 /**
  * A base class shared by several driver implementations.
@@ -38,7 +40,7 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
     protected UsbEndpoint mReadEndpoint;
     protected UsbEndpoint mWriteEndpoint;
     protected UsbRequest mUsbRequest;
-    private UsbRequest writeRequest = null;
+    protected UsbRequest mUsbWriteRequest;
 
     private boolean mEnableAsyncWrites;
     private boolean mEnableAsyncReads;
@@ -143,6 +145,8 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
             }
             mUsbRequest = new UsbRequest();
             mUsbRequest.initialize(mConnection, mReadEndpoint);
+            mUsbWriteRequest = new UsbRequest();
+            mUsbWriteRequest.initialize(mConnection, mWriteEndpoint);
         } catch (Exception e) {
             try {
                 close();
@@ -261,10 +265,28 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
         return Math.max(nread, 0);
     }
 
+    // https://android.googlesource.com/kernel/common/+/android-trusty-3.10/Documentation/usb/usbmon.txt
+    // cat /sys/kernel/debug/usb/devices
+    // T:  Bus=02 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=480  MxCh= 0
+    //D:  Ver= 2.00 Cls=ef(misc ) Sub=02 Prot=01 MxPS=64 #Cfgs=  1
+    //P:  Vendor=16c0 ProdID=0483 Rev= 2.80
+    //S:  Manufacturer=Teensyduino
+    //S:  Product=USB Serial
+    //S:  SerialNumber=11964340
+    //C:* #Ifs= 2 Cfg#= 1 Atr=c0 MxPwr=100mA
+    //A:  FirstIf#= 0 IfCount= 2 Cls=02(comm.) Sub=02 Prot=01
+    //I:* If#= 0 Alt= 0 #EPs= 1 Cls=02(comm.) Sub=02 Prot=01 Driver=(none)
+    //E:  Ad=82(I) Atr=03(Int.) MxPS=  16 Ivl=2ms
+    //I:* If#= 1 Alt= 0 #EPs= 2 Cls=0a(data ) Sub=00 Prot=00 Driver=(none)
+    //E:  Ad=03(O) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+    //E:  Ad=84(I) Atr=02(Bulk) MxPS= 512 Ivl=0ms
+    //
+    // cat /sys/kernel/debug/usb/usbmon/2u
     @Override
-    public void write(final byte[] src, final int timeout) throws IOException {
+    public void write(final byte[] src, final int timeout) throws IOException, TimeoutException, BufferOverflowException {
         int offset = 0;
         long latency = 0;
+        latency = MonotonicClock.millis();
 
         if (DEBUG) {
             Log.d(TAG, "write() length " + src.length);
@@ -275,42 +297,49 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
             throw new IOException("Connection closed");
         }
 
+        //Log.d(TAG, "DTR: " + getDTR() +  "RTS: " + getRTS());
+
         if (mEnableAsyncWrites) {
 
-            //final UsbRequest request = new UsbRequest();
-
-            if (writeRequest == null) {
-                writeRequest = new UsbRequest();
-                writeRequest.initialize(mConnection, mWriteEndpoint);
+            // Teensy default: see https://forum.pjrc.com/index.php?threads/increase-the-usb-buffer-size-in-teensy-4-1.73656/
+            if (src.length > 4096) {
                 if (DEBUG) {
-                    Log.d(TAG, "write() newUsbRequest " + src.length);
+                    Log.d(TAG, "write() too large " + src.length);
                 }
-            } else {
-                if (DEBUG) {
-                    Log.d(TAG, "write() requestWait " + src.length);
-                }
-                mConnection.requestWait();
+                return;
             }
-            try {
-                latency = MonotonicClock.millis();
 
-                //if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
-                if (DEBUG) {
-                    Log.d(TAG, "write() queue " + src.length);
-                }
-                if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
-                    throw new IOException("Error queueing request.");
-                }
-                latency = MonotonicClock.millis() - latency;
-                //final UsbRequest response = mConnection.requestWait();
-                //if (response == null) {
-                //    throw new IOException("Null response");
-                //}
+            if (DEBUG) {
+                Log.d(TAG, "write() newUsbRequest " + src.length);
+            }
+
+            try {
+
+                    //if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
+                    if (DEBUG) {
+                        Log.d(TAG, "write() queue " + src.length);
+                    }
+                    //if (!writeRequest.queue(ByteBuffer.wrap(src), src.length)) {
+                    ByteBuffer data = ByteBuffer.allocateDirect(src.length);
+                    data.put(src);
+                    //if (!writeRequest.queue(data)) {
+                    if (!mUsbWriteRequest.queue(ByteBuffer.wrap(src))) {
+                        throw new IOException("Error queueing request.");
+                    }
+                    latency = MonotonicClock.millis() - latency;
+                    UsbRequest response = mConnection.requestWait();
+                    if (response == null) {
+                        throw new IOException("request response is null");
+                    }
+
+
             } finally {
-                //request.close();
+                //mUsbWriteRequest.close();
             }
             if (DEBUG) {
-                Log.d(TAG, "Wrote " + src.length + "latency " + latency);
+                if (latency > 0) {
+                    Log.d(TAG, "Wrote " + src.length + "latency " + latency);
+                }
 
             }
         } else {
@@ -325,7 +354,6 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
 
                     if (mWriteBuffer == null) {
                         mWriteBuffer = new byte[mWriteEndpoint.getMaxPacketSize()];
-                        //mWriteBuffer = new byte[16384];
                     }
                     if (DEBUG) {
                         Log.d(TAG, "write mWritebufferlen = " + mWriteBuffer.length);
@@ -339,7 +367,6 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
                         System.arraycopy(src, offset, mWriteBuffer, 0, requestLength);
                         writeBuffer = mWriteBuffer;
                     }
-
 
                     if (timeout == 0 || offset == 0) {
                         requestTimeout = timeout;
@@ -355,7 +382,6 @@ public abstract class CommonUsbSerialPort implements UsbSerialPort {
                         actualLength = mConnection.bulkTransfer(mWriteEndpoint, writeBuffer, requestLength, requestTimeout);
                         latency = MonotonicClock.millis() - latency;
                     }
-
 
                     if (DEBUG) {
                         Log.d(TAG, "Wrote " + actualLength + "/" + requestLength + " offset " + offset + "/" + src.length + " timeout " + requestTimeout + "latency " + latency);

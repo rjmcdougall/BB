@@ -238,6 +238,8 @@ public class RF {
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
                 mSerialIoManager.setReadTimeout(100);
+                mSerialIoManager.setName("RF");
+
                 //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
 
                 mExecutor.submit(mSerialIoManager);

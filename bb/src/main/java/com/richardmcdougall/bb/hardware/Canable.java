@@ -381,6 +381,8 @@ class Canable implements SerialInputOutputManager.Listener {
                 BLog.d(TAG, "Starting io manager ..");
                 mSerialIoManager = new SerialInputOutputManager(sPort, this);
                 mSerialIoManager.setReadTimeout(100);
+                mSerialIoManager.setName("Canable");
+
                 //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
                 mExecutor.submit(mSerialIoManager);
                 BLog.d(TAG, "USB Connected to Canable CANBUS");
