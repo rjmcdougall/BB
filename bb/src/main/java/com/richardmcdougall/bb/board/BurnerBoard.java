@@ -133,9 +133,9 @@ public abstract class BurnerBoard {
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
             BLog.d(TAG, "Visualization: Using LittleWing");
             burnerBoard = new BurnerBoardLittleWing(service);
-        } else if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
-            BLog.d(TAG, "Visualization: Using V4");
-            burnerBoard = new BurnerBoardV4(service);
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
+            BLog.d(TAG, "Visualization: Using Mezcal");
+            burnerBoard = new BurnerBoardMezcal(service);
          } else {
             BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
             burnerBoard = new BurnerBoardAzul(service);

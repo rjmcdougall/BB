@@ -242,7 +242,7 @@ public class BoardState {
         classic("classic"),
         boombox("boombox"),
         backpack("backpack"),
-        v4("v4"),
+        mezcal("mezcal"),
         dynamicPanel("dynamicPanel"),
         unknown("unknown");
 

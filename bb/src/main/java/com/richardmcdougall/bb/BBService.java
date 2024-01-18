@@ -204,7 +204,7 @@ public class BBService extends Service {
             }
 
             displayMapManager = new DisplayMapManager(this);
-            if(boardState.GetBoardType() == BoardState.BoardType.v4){
+            if(boardState.GetBoardType() == BoardState.BoardType.mezcal){
                 while (displayMapManager.displayMap == null) {
                     BLog.i(TAG, "Display Map CSV file is required to be downloaded before proceeding.  Please hold.");
                     Thread.sleep(2000);

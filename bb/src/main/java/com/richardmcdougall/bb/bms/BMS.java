@@ -3,10 +3,8 @@ package com.richardmcdougall.bb.bms;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
-import com.richardmcdougall.bbcommon.DebugConfigs;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 public class BMS {
 
@@ -23,7 +21,7 @@ public class BMS {
 
         BMS bms;
 
-        if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
             BLog.d(TAG, "BMS: Emulated BMS from VESC ");
             bms = new BMS_EmulatedVesc(service);
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {

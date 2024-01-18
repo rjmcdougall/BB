@@ -7,7 +7,7 @@ import com.richardmcdougall.bbcommon.BoardState;
 
 import java.nio.ByteBuffer;
 
-public class BurnerBoardV4 extends BurnerBoard {
+public class BurnerBoardMezcal extends BurnerBoard {
 
     private static final int kMaxV4DisplayPower = 12;
     private String TAG = this.getClass().getSimpleName();
@@ -23,10 +23,10 @@ public class BurnerBoardV4 extends BurnerBoard {
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
         renderTextOnScreen = false;
-        boardType = BoardState.BoardType.v4;
+        boardType = BoardState.BoardType.mezcal;
     }
 
-    public BurnerBoardV4(BBService service) {
+    public BurnerBoardMezcal(BBService service) {
         super(service);
         initpixelMap2Board();
     }

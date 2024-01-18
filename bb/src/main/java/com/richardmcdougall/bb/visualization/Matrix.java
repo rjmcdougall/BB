@@ -39,7 +39,7 @@ public class Matrix extends Visualization {
         int pixelSkip = 1;
         int multiplier4Speed = service.visualizationController.mMultipler4Speed;
 
-        if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
             pixelSkip = 2;
             if (multiplier4Speed == 1) {
                 multiplier4Speed = 2;
