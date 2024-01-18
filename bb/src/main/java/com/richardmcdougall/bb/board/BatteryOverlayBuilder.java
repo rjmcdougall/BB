@@ -32,25 +32,33 @@ public class BatteryOverlayBuilder {
     private int bigBatterystartRow;
     private int bigBatteryEndRow;
 
+    private int bigBatteyDivider;
+
     private int littleBatteryRow = 105;
     private int littleBattMiddle;
     private int littleBattWidth;
     private int littleBattHeight;
+    private int littleBattDivider;
+
+    private BurnerBoard.batteryType mLastBatteryType = BurnerBoard.batteryType.SMALL;
 
     BatteryOverlayBuilder(BBService service, BurnerBoard board) {
         this.service = service;
         this.board = board;
 
-        if (service.boardState.GetBoardType() == BoardState.BoardType.v4) {
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
             // Mezcal
             bigBatteryWidth = 20;
             bigBatterystartRow = 60;
-            bigBatteryEndRow = 150;
+            bigBatteryEndRow = 160;
             bigBatteryCenter = 36;
+            bigBatteyDivider = 1;
             littleBatteryRow = 180;
             littleBattMiddle = 36;
             littleBattWidth = 6;
-            littleBattHeight = 18;
+            littleBattHeight = 20;
+            littleBattDivider = 5;
+
         } else {
             // Azul
             // Little battery at top
@@ -62,16 +70,25 @@ public class BatteryOverlayBuilder {
             bigBatterystartRow = 34;
             bigBatteryEndRow = 84;
             bigBatteryCenter = 23;
+            bigBatteyDivider = 2;
             littleBatteryRow = 105;
             littleBattMiddle = 23;
             littleBattWidth = 6;
             littleBattHeight = 9;
+            littleBattDivider = 15;
         }
     }
 
     public void drawBattery(BurnerBoard.batteryType type) {
+        mLastBatteryType = type;
         batteryScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
         batteryDisplayingCountdown = kDisplayForSeconds;
+        if (type == BurnerBoard.batteryType.CRITICAL) {
+            batteryDisplayingCountdown = batteryDisplayingCountdown * 4;
+        }
+        drawBatteryInternal(type);
+    }
+    private void drawBatteryInternal(BurnerBoard.batteryType type) {
         if (type == BurnerBoard.batteryType.CRITICAL) {
             critical = true;
             batteryDisplayingCountdown = batteryDisplayingCountdown * 4;
@@ -106,7 +123,7 @@ public class BatteryOverlayBuilder {
             boolean batteryCritical = (service.bms.getBatteryLevelState() == BMS.batteryLevelStates.STATE_CRITICAL);
             boolean batteryLow = (service.bms.getBatteryLevelState() == BMS.batteryLevelStates.STATE_LOW);
 
-            level = service.boardState.batteryLevel / 2; // convert 100 to max of 50
+            level = service.boardState.batteryLevel / bigBatteyDivider; // convert 100 to max of 50
 
             row = bigBatterystartRow;
 
@@ -267,10 +284,14 @@ public class BatteryOverlayBuilder {
         return layeredScreen;
     }
 
+    public boolean isDisplaying() {
+        return (batteryDisplayingCountdown > 0);
+    }
     public int[] renderBattery(int[] origScreen) {
         // Suppress updating when displaying a text message
         if (batteryDisplayingCountdown > 0) {
             batteryDisplayingCountdown--;
+            drawBatteryInternal(mLastBatteryType);
             return this.overlayScreen(origScreen);
         } else {
             return origScreen;
