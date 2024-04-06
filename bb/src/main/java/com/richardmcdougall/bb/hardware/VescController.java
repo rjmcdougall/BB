@@ -11,6 +11,7 @@ import com.richardmcdougall.bbcommon.BLog;
 // https://electric-skateboard.builders/t/vesc-can-message-structure/98092/5
 
 
+
 public class VescController implements CanListener {
     private String TAG = this.getClass().getSimpleName();
 
@@ -25,8 +26,12 @@ public class VescController implements CanListener {
     public VESC_GNSS_DATA vesc_gnss_data;
     public VESC_IOBOARD_ADC_VALUES vesc_ioboard_adc_values;
     public VESC_IOBOARD_DIGITAL_VALUES vesc_ioboard_digital_values;
+    public VESC_CAN_BURNERBOARD_POWER1 vesc_burnerboard_power1 = new VESC_CAN_BURNERBOARD_POWER1();
+    public VESC_CAN_BURNERBOARD_POWER2 vesc_burnerboard_power2 = new VESC_CAN_BURNERBOARD_POWER2();
 
     private static int kAliveCheckMilliSeconds = 1000;
+
+    private static final float kPresumedCurrentLoadLights = 3.0f;
 
     public VescController(BBService service, Canable canbus) {
         canbus.addListener(this);
@@ -49,7 +54,11 @@ public class VescController implements CanListener {
     }
 
     public float getVoltage() {
-        return (vesc_can_status_msg_5.v_in);
+        if (vesc_burnerboard_power1.voltage > 0) {
+            return (vesc_burnerboard_power1.voltage);
+        } else {
+            return (vesc_can_status_msg_5.v_in);
+        }
     }
 
     public float getRPM() {
@@ -60,7 +69,11 @@ public class VescController implements CanListener {
     }
 
     public float getBatteryCurrent() {
-        return (vesc_can_status_msg_4.current_in);
+        if (vesc_can_status_msg_4.current_in == 0) {
+            return (vesc_burnerboard_power1.current);
+        } else {
+            return (kPresumedCurrentLoadLights + vesc_can_status_msg_4.current_in);
+        }
     }
 
     private int getInt32(int[] data, int offset) {
@@ -82,30 +95,41 @@ public class VescController implements CanListener {
     @Override
     public void canReceived(CanFrame f) {
 
-        //BLog.d(TAG, "VESC received id " + f.getId() + " DLC " + f.getDlc());
+        BLog.d(TAG, "VESC received id " + f.getId() + " DLC " + f.getDlc());
         int id = f.getId() & 0xFF;
         int cmd = f.getId() >> 8;
         int[] data = f.getData();
-        //BLog.d(TAG, "id " + id + " cmd " + cmd);
+        BLog.d(TAG, "id " + id + " cmd " + cmd);
 
-        if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS) {
+        if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS) {
             vesc_can_status_msg.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg.rpm = getInt32(data, 0);
             vesc_can_status_msg.current = getInt16(data, 4);
             vesc_can_status_msg.duty = getInt16(data, 6);
-            //BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
-        } else if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS_4) {
+            BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
+        } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS_4) {
             vesc_can_status_msg_4.rx_time = SystemClock.elapsedRealtime();
-            vesc_can_status_msg_4.temp_fet = getFloat16(data, 0, 1.0f);
-            vesc_can_status_msg_4.temp_motor = getFloat16(data, 2, 1.0f);
+            vesc_can_status_msg_4.temp_fet = getFloat16(data, 0, 10.0f);
+            vesc_can_status_msg_4.temp_motor = getFloat16(data, 2, 10.0f);
             vesc_can_status_msg_4.current_in = getFloat16(data, 4, 1.0f);
             vesc_can_status_msg_4.pid_pos_now = getFloat16(data, 6, 1.0f);
-            //BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
-        } else if (cmd == vesc_can_packet_id.CAN_PACKET_STATUS_5) {
+            BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
+        } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS_5) {
             vesc_can_status_msg_5.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_5.v_in = getFloat16(data, 4, 10.0f);
             vesc_can_status_msg_5.tacho_value = getInt32(data, 0);
-            //BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);
+            BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);
+        } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_BURNERBOARD_POWER1) {
+            vesc_burnerboard_power1.rx_time = SystemClock.elapsedRealtime();
+            vesc_burnerboard_power1.voltage = getFloat32(data, 0, 100.0f);
+            vesc_burnerboard_power1.current = getFloat32(data, 4, 100.0f);
+            BLog.d(TAG, " voltage " + vesc_burnerboard_power1.voltage + " current " + vesc_burnerboard_power1.current);
+        } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_BURNERBOARD_POWER2) {
+            vesc_burnerboard_power2.rx_time = SystemClock.elapsedRealtime();
+            vesc_burnerboard_power2.power = getFloat32(data, 0, 100.0f);
+            vesc_burnerboard_power2.temp = getFloat32(data, 4, 100.0f);
+            BLog.d(TAG,  " power " + vesc_burnerboard_power2.power + " temp " + vesc_burnerboard_power2.temp);
         }
     }
+
 }

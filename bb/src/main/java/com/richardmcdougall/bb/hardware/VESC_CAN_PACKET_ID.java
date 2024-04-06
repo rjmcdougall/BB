@@ -1,7 +1,7 @@
 package com.richardmcdougall.bb.hardware;
 
 // CAN commands
-public class VESC_CAN_PACKET_ID {
+public final class VESC_CAN_PACKET_ID {
     public static final int CAN_PACKET_SET_DUTY = 0;
     public static final int CAN_PACKET_SET_CURRENT = 1;
     public static final int CAN_PACKET_SET_CURRENT_BRAKE = 2;
@@ -65,6 +65,8 @@ public class VESC_CAN_PACKET_ID {
     public static final int CAN_PACKET_GNSS_LAT = 60;
     public static final int CAN_PACKET_GNSS_LON = 61;
     public static final int CAN_PACKET_GNSS_ALT_SPEED_HDOP = 62;
+    public static final int CAN_PACKET_BURNERBOARD_POWER1 = 100;
+    public static final int CAN_PACKET_BURNERBOARD_POWER2 = 101;
     public static final int CAN_PACKET_MAKE_ENUM_32_BITS = 0xFFFFFFFF;
 
     private VESC_CAN_PACKET_ID() {

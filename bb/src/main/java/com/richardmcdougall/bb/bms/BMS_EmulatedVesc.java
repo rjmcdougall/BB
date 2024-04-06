@@ -33,7 +33,6 @@ public class BMS_EmulatedVesc extends BMS {
     private float[] batteryCurrentHistory = new float[10];
     private float[] batteryVoltageHistory = new float[10];
 
-    private static final float kPresumedCurrentLoadLights = -3.0f;
 
     public BMS_EmulatedVesc(BBService service) {
         super(service);
@@ -135,14 +134,14 @@ public class BMS_EmulatedVesc extends BMS {
 
     public float getCurrent() {
         if (service.vesc.vescOn()) {
-            return (kPresumedCurrentLoadLights - (-1.0f * currentFromVesc));
+            return (-1.0f * currentFromVesc);
         }
         return (0);
     }
 
     public float getCurrentInstant() {
         if (service.vesc.vescOn()) {
-            return (kPresumedCurrentLoadLights - (-1.0f * currentFromVescInstant));
+            return (-1.0f * currentFromVescInstant);
         }
         return (0);
     }
