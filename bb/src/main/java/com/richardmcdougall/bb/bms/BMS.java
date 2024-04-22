@@ -21,7 +21,7 @@ public class BMS {
 
         BMS bms;
 
-        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
+        if (true || (service.boardState.GetBoardType() == BoardState.BoardType.mezcal)) {
             BLog.d(TAG, "BMS: Emulated BMS from VESC ");
             bms = new BMS_EmulatedVesc(service);
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
@@ -30,6 +30,9 @@ public class BMS {
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.classic || service.boardState.GetBoardType() == BoardState.BoardType.azul) {
             BLog.d(TAG, "BMS: Teensy+BQ");
             bms = new BMS_BQTeensy(service);
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.panel) {
+            BLog.d(TAG, "BMS: Emulated BMS from VESC ");
+            bms = new BMS_EmulatedVesc(service);
         } else {
             BLog.d(TAG, "BMS: Using none");
             bms = new BMS_None(service);
@@ -80,11 +83,11 @@ public class BMS {
             float current = getCurrent();
 
             // Slow transition from to idle
-            if ((current > -.150) && (current < .010)) {
+            if ((current > -.1) && (current < .010)) {
                 // Any state -> IDLE
                 mBatteryState = batteryStates.STATE_IDLE.STATE_IDLE;
                 // Fast transition from idle to discharging
-            } else if ((currentInstant < -.150)) {
+            } else if ((currentInstant < -.1)) {
                 // Any state -> Displaying
                 mBatteryState = batteryStates.STATE_IDLE.STATE_DISCHARGING;
             } else if (mBatteryState == batteryStates.STATE_DISCHARGING &&

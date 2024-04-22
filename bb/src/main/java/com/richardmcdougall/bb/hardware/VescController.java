@@ -38,7 +38,7 @@ public class VescController implements CanListener {
     }
 
     public boolean vescOn() {
-        BLog.d(TAG, "e " + SystemClock.elapsedRealtime() + " - r " + vesc_can_status_msg.rx_time + " = " + (SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time));
+        //BLog.d(TAG, "e " + SystemClock.elapsedRealtime() + " - r " + vesc_can_status_msg.rx_time + " = " + (SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time));
         if ((SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time) < kAliveCheckMilliSeconds) {
             return true;
         }
@@ -68,20 +68,35 @@ public class VescController implements CanListener {
         return 0;
     }
 
-    public float getBatteryCurrent() {
-        if (vesc_can_status_msg_4.current_in == 0) {
+    public float getDuty() {
+        if ((SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time) < kAliveCheckMilliSeconds) {
+            return (vesc_can_status_msg.duty);
+        }
+        return 0;
+    }
+
+    public float getEmulatedBatteryCurrent() {
+        // If there is a BB Power PCB with current sensor on the LEDs, use that.
+        // Otherwise, use the VESC power and presume lights are on when VESC is on.
+        BLog.d(TAG, "power board voltage = " + vesc_burnerboard_power1.voltage +
+                ", vesc voltage = " + vesc_can_status_msg_5.v_in);
+        if (vesc_burnerboard_power1.current != 0.0) {
             return (vesc_burnerboard_power1.current);
         } else {
             return (kPresumedCurrentLoadLights + vesc_can_status_msg_4.current_in);
         }
     }
 
+    public float getMotorCurrent() {
+        return vesc_can_status_msg_4.current_in;
+    }
+
     private int getInt32(int[] data, int offset) {
         return data[offset] * 16777216 + data[offset + 1] * 65536 + data[offset + 2] * 256 + data[offset + 3];
     }
 
-    private int getInt16(int[] data, int offset) {
-        return data[offset] * 256 + data[offset + 1];
+    private short getInt16(int[] data, int offset) {
+        return (short) (data[offset] * 256 + data[offset + 1]);
     }
 
     private float getFloat16(int[] data, int offset, float divider) {
@@ -95,30 +110,30 @@ public class VescController implements CanListener {
     @Override
     public void canReceived(CanFrame f) {
 
-        BLog.d(TAG, "VESC received id " + f.getId() + " DLC " + f.getDlc());
+        //BLog.d(TAG, "VESC received id " + f.getId() + " DLC " + f.getDlc());
         int id = f.getId() & 0xFF;
         int cmd = f.getId() >> 8;
         int[] data = f.getData();
-        BLog.d(TAG, "id " + id + " cmd " + cmd);
+        //BLog.d(TAG, "id " + id + " cmd " + cmd);
 
         if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS) {
             vesc_can_status_msg.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg.rpm = getInt32(data, 0);
             vesc_can_status_msg.current = getInt16(data, 4);
             vesc_can_status_msg.duty = getInt16(data, 6);
-            BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
+            //BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
         } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS_4) {
             vesc_can_status_msg_4.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_4.temp_fet = getFloat16(data, 0, 10.0f);
             vesc_can_status_msg_4.temp_motor = getFloat16(data, 2, 10.0f);
             vesc_can_status_msg_4.current_in = getFloat16(data, 4, 1.0f);
             vesc_can_status_msg_4.pid_pos_now = getFloat16(data, 6, 1.0f);
-            BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
+            //BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
         } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS_5) {
             vesc_can_status_msg_5.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_5.v_in = getFloat16(data, 4, 10.0f);
             vesc_can_status_msg_5.tacho_value = getInt32(data, 0);
-            BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);
+            //BLog.d(TAG, " v_in " + vesc_can_status_msg_5.v_in + " tacho_value " + vesc_can_status_msg_5.tacho_value);
         } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_BURNERBOARD_POWER1) {
             vesc_burnerboard_power1.rx_time = SystemClock.elapsedRealtime();
             vesc_burnerboard_power1.voltage = getFloat32(data, 0, 100.0f);

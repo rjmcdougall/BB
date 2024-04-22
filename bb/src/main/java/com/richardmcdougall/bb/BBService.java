@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -59,6 +60,8 @@ public class BBService extends Service {
 
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
+    public MotionSupervisor motionSupervisor = null;
+
     public MusicPlayerSupervisor musicPlayerSupervisor = null;
     public MediaManager mediaManager;
     private Thread musicPlayerThread;
@@ -82,6 +85,7 @@ public class BBService extends Service {
     public DisplayMapManager2 displayMapManager2 = null;
     private boolean textToSpeechReady = false;
 
+    private ActivityManager.MemoryInfo mMemoryInfo = null;
 
     public BBService() {
     }
@@ -107,6 +111,17 @@ public class BBService extends Service {
         stopSelf();
     }
 
+    // Get a MemoryInfo object for the device's current memory status.
+    private ActivityManager.MemoryInfo getAvailableMemory() {
+        ActivityManager activityManager = (ActivityManager) this.getSystemService(ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        try {
+            activityManager.getMemoryInfo(memoryInfo);
+        } catch (Exception e) {
+        }
+        return memoryInfo;
+    }
+
     @Override
     public void onCreate() {
 
@@ -115,6 +130,15 @@ public class BBService extends Service {
             super.onCreate();
 
             BLog.i(TAG, "onCreate");
+
+            //VMRuntime.getRuntime().setMinimumHeapSize(BIGGER_SIZE);
+
+
+            mMemoryInfo = getAvailableMemory();
+
+            if (mMemoryInfo != null) {
+                BLog.d(TAG, "Total mem: " + mMemoryInfo.totalMem + " avail: " + mMemoryInfo.availMem);
+            }
 
             context = getApplicationContext();
 
@@ -223,6 +247,7 @@ public class BBService extends Service {
             TimeSync.InitClock();
             musicController = new MusicController(this);
             musicPlayerThread = new Thread(musicController);
+            musicPlayerThread.setName("BB Music Player");
             musicPlayerThread.start();
 
             if (!DebugConfigs.BYPASS_MUSIC_SYNC) {
@@ -245,6 +270,7 @@ public class BBService extends Service {
             bluetoothCommands = new BluetoothCommands(this);
 
             batterySupervisor = new BatterySupervisor(this);
+            motionSupervisor = new MotionSupervisor(this);
 
             masterController = new MasterController(this);
             masterControllerThread = new Thread(masterController);

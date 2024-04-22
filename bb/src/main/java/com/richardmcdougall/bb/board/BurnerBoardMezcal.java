@@ -21,6 +21,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
         textSizeHorizontal = 14;
         textSizeVertical = 20;
         enableBatteryMonitoring = true;
+        enableMotionMonitoring = true;
         enableIOTReporting = true;
         renderTextOnScreen = false;
         boardType = BoardState.BoardType.mezcal;
@@ -43,7 +44,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 43;
+        return 40;
     }
     public void setOtherlightsAutomatically() {
     }
@@ -78,10 +79,11 @@ public class BurnerBoardMezcal extends BurnerBoard {
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);
+        mOutputScreen = this.brakeOverlayBuilder.renderBrake(mOutputScreen);
         // TODO: gamma correction should be here before dimmer
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(kMaxV4DisplayPower, mOutputScreen);
-        this.appDisplay.send(mOutputScreen);
+        //this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {

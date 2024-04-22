@@ -58,6 +58,19 @@ public class BatteryOverlayBuilder {
             littleBattWidth = 6;
             littleBattHeight = 20;
             littleBattDivider = 5;
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.panel) {
+            // Panel
+
+            bigBatteryWidth = 20;
+            bigBatterystartRow = 3;
+            bigBatteryEndRow = 52;
+            bigBatteryCenter = 16;
+            bigBatteyDivider = 2; // 50 100 %
+            littleBatteryRow =40;
+            littleBattMiddle = 16;
+            littleBattWidth = 6;
+            littleBattHeight = 10;
+            littleBattDivider = 10;
 
         } else {
             // Azul
@@ -88,6 +101,7 @@ public class BatteryOverlayBuilder {
         }
         drawBatteryInternal(type);
     }
+
     private void drawBatteryInternal(BurnerBoard.batteryType type) {
         if (type == BurnerBoard.batteryType.CRITICAL) {
             critical = true;
@@ -114,9 +128,9 @@ public class BatteryOverlayBuilder {
         int white;
 
         if (critical) {
-            white = new RGB(32,32,32).getARGBInt();
+            white = new RGB(32, 32, 32).getARGBInt();
         } else {
-            white = new RGB( kRgbMax, kRgbMax, kRgbMax).getARGBInt();
+            white = new RGB(kRgbMax, kRgbMax, kRgbMax).getARGBInt();
         }
 
         try {
@@ -185,7 +199,7 @@ public class BatteryOverlayBuilder {
                 }
             }
         } catch (Exception e) {
-            BLog.e(TAG, "battery render error");
+            BLog.e(TAG, "battery render error: " + e.getMessage());
         }
     }
 
@@ -249,7 +263,7 @@ public class BatteryOverlayBuilder {
                     batteryColor = RGB.getARGBInt(0, kRgbMax, 0);
                 }
                 for (row = littleBatteryRow + 1; row < littleBatteryRow + level; row++) {
-                    for (x = battLeft + 1; x < battRight ; x++) {
+                    for (x = battLeft + 1; x < battRight; x++) {
                         setPixel(x, row, batteryColor);
                     }
                 }
@@ -260,6 +274,7 @@ public class BatteryOverlayBuilder {
                 }
             }
         } catch (Exception e) {
+            BLog.e(TAG, "battery small render error: " + e.getMessage());
         }
     }
 
@@ -287,6 +302,7 @@ public class BatteryOverlayBuilder {
     public boolean isDisplaying() {
         return (batteryDisplayingCountdown > 0);
     }
+
     public int[] renderBattery(int[] origScreen) {
         // Suppress updating when displaying a text message
         if (batteryDisplayingCountdown > 0) {

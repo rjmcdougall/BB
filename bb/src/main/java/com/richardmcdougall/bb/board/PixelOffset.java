@@ -1,8 +1,14 @@
 package com.richardmcdougall.bb.board;
 
+import com.richardmcdougall.bbcommon.BLog;
+
+
 public class PixelOffset {
     // Max board pixel size limited by the following: need to make dynamic, or adjustable.
     private int[][][] pixel2OffsetTable = new int[768][768][3];
+
+    private String TAG = this.getClass().getSimpleName();
+
     private BurnerBoard board = null;
 
     // Convert from xy to buffer memory
@@ -10,7 +16,8 @@ public class PixelOffset {
         return (y * this.board.boardWidth + x) * 3 + rgb;
     }
 
-    public PixelOffset(BurnerBoard board){
+    public PixelOffset(BurnerBoard board) {
+        BLog.d(TAG, "width: " + board.boardWidth + " height: " + board.boardHeight);
         this.board = board;
         this.initPixelOffset();
     }

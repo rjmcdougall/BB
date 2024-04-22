@@ -27,7 +27,7 @@ public class BMS_EmulatedVesc extends BMS {
     // Defaults for Mezcal and 13s packs
     private static final float kMaxSampleCurrent = 5.0f;
     private static final float kCellMin = 3.2f;
-    private static final float kCellMax = 4.2f;
+    private static final float kCellMax = 4.15f;
     private static final int kNumCells = 13;
 
     private float[] batteryCurrentHistory = new float[10];
@@ -38,6 +38,10 @@ public class BMS_EmulatedVesc extends BMS {
         super(service);
 
         BLog.e(TAG, "Emulated VESC BMS starting");
+
+        for (int i = 0; i < batteryCurrentHistory.length; i++) {
+            update();
+        }
     }
 
     public void update() {
@@ -70,7 +74,7 @@ public class BMS_EmulatedVesc extends BMS {
                     estimatedChargerCurrent = 0;
                 }
 
-                currentFromVescInstant = service.vesc.getBatteryCurrent();// + estimatedChargerCurrent;
+                currentFromVescInstant = service.vesc.getEmulatedBatteryCurrent();// + estimatedChargerCurrent;
 
                 batteryCurrentHistory[timeslot] = currentFromVescInstant;
                 float averageCurrentTmp = 0;
@@ -81,7 +85,7 @@ public class BMS_EmulatedVesc extends BMS {
 
                 // Only calculate estimated capacity if no load on the motor
                 if ((currentFromVescInstant >= 0.0f) && (currentFromVescInstant < kMaxSampleCurrent)) {
-                    level = (int) (100.0f * liion_norm_v_to_capacity(map(voltageFromVescInstant / kNumCells, kCellMin, kCellMax, 0.0f, 1.0f)));
+                    level = (int) Math.round((100.0f * liion_norm_v_to_capacity(map(voltageFromVescInstant / kNumCells, kCellMin, kCellMax, 0.0f, 1.0f))));
                     service.boardState.batteryLevel = level;
                 }
                 BLog.d(TAG, "getBatteryLevel: " + service.boardState.batteryLevel + "%, " +

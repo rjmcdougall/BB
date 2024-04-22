@@ -33,11 +33,12 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    public int boardWidth = 46;
-    public int boardHeight = 118;
+    public int boardWidth = 256;
+    public int boardHeight = 256;
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;
+    public static boolean enableMotionMonitoring = false;
     public static boolean enableIOTReporting = false;
     public static boolean renderTextOnScreen = false;
     public static boolean renderLineOnScreen = false;
@@ -53,6 +54,7 @@ public abstract class BurnerBoard {
     public int[] mBatteryStats = new int[16];
     public TextBuilder textBuilder = null;
     public BatteryOverlayBuilder batteryOverlayBuilder = null;
+    public BrakeOverlayBuilder brakeOverlayBuilder = null;
     public ArcBuilder arcBuilder = null;
     public LineBuilder lineBuilder = null;
     protected AppDisplay appDisplay = null;

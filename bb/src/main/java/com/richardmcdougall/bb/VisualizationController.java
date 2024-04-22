@@ -321,7 +321,7 @@ public class VisualizationController {
                 try {
                     Thread.sleep(frameTime - thisFrame);
                 } catch (Throwable er) {
-                    BLog.e(TAG, er.getMessage());
+                    BLog.e(TAG, "Visualization error: " + er.getMessage());
                 }
             }
 
@@ -361,8 +361,8 @@ public class VisualizationController {
                 return service.burnerBoard.getFrameRate();
             }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
-            return service.burnerBoard.getFrameRate();
+             BLog.e(TAG, "Visualization error: " + e.getMessage());
+             return service.burnerBoard.getFrameRate();
         }
     }
 
