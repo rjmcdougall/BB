@@ -4,6 +4,7 @@ import android.media.audiofx.Visualizer;
 
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.visualization.AudioBar;
+import com.richardmcdougall.bb.visualization.AudioBarHorizontal;
 import com.richardmcdougall.bb.visualization.AudioCenter;
 import com.richardmcdougall.bb.visualization.AudioTile;
 import com.richardmcdougall.bb.visualization.DisplayRowTest;
@@ -66,6 +67,7 @@ public class VisualizationController {
     public Visualization mVisualizationVideo;
     public Visualization mVisualizationJosPack;
     public Visualization mVisualizationAudioBar;
+    public Visualization mVisualizationAudioBarHorizontal;
     public Visualization mVisualizationPlayaMap;
     public Visualization mVisualizationSimpleSign;
     public Visualization mPixelMapTest;
@@ -102,6 +104,7 @@ public class VisualizationController {
         mVisualizationVideo = new Video(service);
         mVisualizationJosPack = new JosPack(service);
         mVisualizationAudioBar = new AudioBar(service);
+        mVisualizationAudioBarHorizontal = new AudioBarHorizontal(service);
         mVisualizationPlayaMap = new PlayaMap(service);
         mVisualizationSimpleSign = new SimpleSign(service);
         mPixelMapTest = new DisplayLineTest(service);
@@ -208,7 +211,8 @@ public class VisualizationController {
                     break;
 
                 case "modeAudioBarV()":
-                    mVisualizationAudioBar.update(Matrix.kDefault);
+                    mVisualizationAudioBarHorizontal.update(Matrix.kDefault);
+                    //mVisualizationAudioBar.update(Matrix.kDefault);
                     break;
 
                 case "modeMatrix(kMatrixSync)":
@@ -380,6 +384,9 @@ public class VisualizationController {
                 return null;
             }
 
+
+
+
             int[] dbLevels = new int[16];
             byte rfk;
             byte ifk;
@@ -398,6 +405,52 @@ public class VisualizationController {
                 dbLevels[i / 32] += dbValue;
                 dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
 
+            }
+            return dbLevels;
+        }
+    }
+
+
+    // Get levels from Android visualizer engine
+    // 128 int buckets of frequency levels from low to high
+    // Range is 0-255 per bucket
+    public int[] getLevels128() {
+        if (mBoardFFT == null)
+            return null;
+        synchronized (mVisualizer) {
+            try {
+                if (mVisualizer.getFft(mBoardFFT) != mVisualizer.SUCCESS)
+                    return null;
+            } catch (Exception e) {
+                return null;
+            }
+
+            int n = mBoardFFT.length;
+            float[] magnitudes = new float[n / 2 + 1];
+            float[] phases = new float[n / 2 + 1];
+            magnitudes[0] = (float)Math.abs(mBoardFFT[0]);      // DC
+            magnitudes[n / 2] = (float)Math.abs(mBoardFFT[1]);  // Nyquist
+            phases[0] = phases[n / 2] = 0;
+            for (int k = 1; k < n / 2; k++) {
+                int i = k * 2;
+                magnitudes[k] = (float)Math.hypot(mBoardFFT[i], mBoardFFT[i + 1]);
+                phases[k] = (float)Math.atan2(mBoardFFT[i + 1], mBoardFFT[i]);
+            }
+
+            int[] dbLevels = new int[128];
+            int fftLevels = (n / 2);
+            int divider = fftLevels / 128;
+
+            int dbValue = 0;
+            for (int i = 1; i < fftLevels; i ++) {
+                if ((i % divider) == 0) {
+                    dbValue = 0;
+                }
+                dbValue = (int) Math.max(0, 200.0 + 200.0 * (Math.log10(magnitudes[i]) - 1));
+                if (dbValue < 0)
+                    dbValue = 0;
+                dbLevels[i / divider] = dbValue;
+                dbLevels[i / divider] = java.lang.Math.min(dbLevels[i  / divider], 255);
             }
             return dbLevels;
         }
