@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements InputManagerCompa
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        l("MainActivity: onWindowFocusChanged()");
+        //BLog.d(TAG, "MainActivity: onWindowFocusChanged()");
 
         if (preventDialogs == false) {
             return;

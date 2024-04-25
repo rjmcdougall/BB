@@ -155,7 +155,7 @@ public class Matrix extends Visualization {
                 break;
 
             default:
-                mWheel.wheelInc(4);
+                mWheel.wheelInc(2);
                 break;
         }
         service.burnerBoard.flush();

@@ -69,10 +69,15 @@ public abstract class BurnerBoard {
     private BoardUSBReceiver boardUSBReceiver = null;
 
     public abstract int getFrameRate();
+
     public abstract int getMultiplier4Speed();
+
     public abstract void flush();
+
     public abstract void setOtherlightsAutomatically();
+
     public abstract void start();
+
     public abstract void initpixelMap2Board();
 
     private int flushCnt = 0;
@@ -89,7 +94,7 @@ public abstract class BurnerBoard {
         this.boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this);
         this.pixelOffset = new PixelOffset(this);
-        this.appDisplay = new AppDisplay(this.service,this);
+        this.appDisplay = new AppDisplay(this.service, this);
         this.textBuilder = new TextBuilder(this);
         this.batteryOverlayBuilder = new BatteryOverlayBuilder(this.service, this);
         this.lineBuilder = new LineBuilder(this);
@@ -138,7 +143,7 @@ public abstract class BurnerBoard {
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
             BLog.d(TAG, "Visualization: Using Mezcal");
             burnerBoard = new BurnerBoardMezcal(service);
-         } else {
+        } else {
             BLog.d(TAG, "Could not identify board type! Falling back to Azul for backwards compatibility");
             burnerBoard = new BurnerBoardAzul(service);
         }
@@ -158,6 +163,7 @@ public abstract class BurnerBoard {
     }
 
     public enum batteryType {LARGE, SMALL, CRITICAL}
+
     public void showBattery(batteryType type) {
 
         this.appDisplay.sendVisual(9);
@@ -246,6 +252,34 @@ public abstract class BurnerBoard {
                 }
             }
         }
+    }
+
+    public void zagPixels() {
+
+        if (boardScreen == null) {
+            return;
+        }
+        for (int x = 0; x < boardWidth / 2 - 1; x++) {
+            for (int y = 0; y < boardHeight - 1; y++) {
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] =
+                        boardScreen[this.pixelOffset.Map(x + 1, y + 1, PIXEL_RED)];
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] =
+                        boardScreen[this.pixelOffset.Map(x + 1, y + 1, PIXEL_GREEN)];
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] =
+                        boardScreen[this.pixelOffset.Map(x + 1, y + 1, PIXEL_BLUE)];
+            }
+        }
+        for (int x = boardWidth - 1; x > (boardWidth / 2) + 1; x--) {
+            for (int y = 0; y < boardHeight - 1; y++) {
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] =
+                        boardScreen[this.pixelOffset.Map(x - 1, y + 1, PIXEL_RED)];
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)] =
+                        boardScreen[this.pixelOffset.Map(x - 1, y + 1, PIXEL_GREEN)];
+                boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)] =
+                        boardScreen[this.pixelOffset.Map(x - 1, y + 1, PIXEL_BLUE)];
+            }
+        }
+
     }
 
     public boolean update() {

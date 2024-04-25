@@ -50,7 +50,9 @@ public class PlayaMap extends Visualization {
 
     public void update(int mode) {
 
-        if (service.boardState.GetBoardType() == BoardState.BoardType.azul) {
+        if ((service.boardState.GetBoardType() == BoardState.BoardType.azul) ||
+                (BoardState.BoardType.panel == service.boardState.GetBoardType()) ||
+                (BoardState.BoardType.mezcal == service.boardState.GetBoardType())) {
             final float outerRing = service.burnerBoard.service.burnerBoard.boardWidth * (float) kMapSizeRatio;
             final float innerRing = outerRing / (float) kRingRatio;
             final float theMan = 2;
@@ -68,7 +70,7 @@ public class PlayaMap extends Visualization {
                     (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    RGB.getARGBInt(100, 100, 100));
+                    new RGB(100, 100, 100));
             // Inner ring
             service.burnerBoard.arcBuilder.drawArc((service.burnerBoard.boardWidth - innerRing) / 2,
                     (service.burnerBoard.boardHeight - innerRing) / 2,
@@ -78,31 +80,31 @@ public class PlayaMap extends Visualization {
                     (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    RGB.getARGBInt(0, 0, 0));
+                    new RGB(0, 10, 0));
 
             List<BoardLocations.boardLocation> boardLocations = this.service.boardLocations.getBoardLocations();
 
             boolean boardInCrisis = false;
             for (BoardLocations.boardLocation location : boardLocations) {
-                if (location.inCrisis){
+                if (location.inCrisis) {
                     boardColor = RGBList.getColor("red");
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,
-                                RGB.getARGBInt(boardColor.r,
+                                new RGB(boardColor.r,
                                         boardColor.g,
                                         boardColor.b));
                     }
-                    boardInCrisis=true;
+                    boardInCrisis = true;
                 }
             }
 
-            if(!boardInCrisis){
+            if (!boardInCrisis) {
                 for (BoardLocations.boardLocation location : boardLocations) {
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,
-                                RGB.getARGBInt(boardColor.r,
+                                new RGB(boardColor.r,
                                         boardColor.g,
                                         boardColor.b));
                     }
@@ -111,16 +113,16 @@ public class PlayaMap extends Visualization {
 
         } else if (BoardState.BoardType.panel == service.boardState.GetBoardType() || BoardState.BoardType.dynamicPanel == service.boardState.GetBoardType()) {
 
-            service.burnerBoard.fillScreen(30, 30, 30);
+            service.burnerBoard.fillScreen(0, 10, 0);
 
             service.burnerBoard.arcBuilder.drawArc(0,
-                                                service.burnerBoard.boardHeight, service.burnerBoard.boardWidth, 0,
+                    service.burnerBoard.boardHeight - 1, service.burnerBoard.boardWidth - 1, 0,
                     (float) kDegrees2, (float) (kDegrees10 - kDegrees2),
                     true,
                     true,
-                    RGB.getARGBInt(50, 50, 50));
+                    new RGB(50, 50, 50));
 
-        }  else if (BoardState.BoardType.classic == service.boardState.GetBoardType()) {
+        } else if (BoardState.BoardType.classic == service.boardState.GetBoardType()) {
             service.burnerBoard.fillScreen(30, 0, 0);
 
         }
@@ -139,7 +141,7 @@ public class PlayaMap extends Visualization {
     }
 
     // Plot a board on the map
-    public void plotBoard(double lat, double lon, int color) {
+    public void plotBoard(double lat, double lon, RGB color) {
 
         // Convert to angle/distance from man and then back again
         // given the rotation of map.
@@ -230,6 +232,11 @@ public class PlayaMap extends Visualization {
     // 2018 Playa
     //static final double  kManLat =  40.786590041367525;
     //static final double  kManLon = -119.20656204564455;
+
+    // 2023 Playa
+    //static final double  kManLat =  40.78635263982717;
+    //static final double  kManLon = -119.20356038558928
+
 
     static final double kPlayaElev = 1190.;  // m
     static final double kScale = 1.;

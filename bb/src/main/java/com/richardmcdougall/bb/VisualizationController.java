@@ -211,8 +211,12 @@ public class VisualizationController {
                     break;
 
                 case "modeAudioBarV()":
-                    mVisualizationAudioBarHorizontal.update(Matrix.kDefault);
                     //mVisualizationAudioBar.update(Matrix.kDefault);
+                    mVisualizationAudioBarHorizontal.update(Matrix.kDefault);
+                    break;
+
+                case "modeAudioBarH()":
+                    mVisualizationAudioBarHorizontal.update(Matrix.kDefault);
                     break;
 
                 case "modeMatrix(kMatrixSync)":
@@ -399,7 +403,7 @@ public class VisualizationController {
                 rfk = mBoardFFT[i];
                 ifk = mBoardFFT[i + 1];
                 float magnitude = (rfk * rfk + ifk * ifk);
-                dbValue += java.lang.Math.max(0, 50 * (Math.log10(magnitude) - 1));
+                dbValue += java.lang.Math.max(0, 50 + 50 * (Math.log10(magnitude) - 1));
                 if (dbValue < 0)
                     dbValue = 0;
                 dbLevels[i / 32] += dbValue;
