@@ -85,6 +85,7 @@ public abstract class BurnerBoard {
     public BurnerBoard(BBService service) {
         this.service = service;
         this.boardUSBReceiver = new BoardUSBReceiver(this);
+        BLog.d(TAG, "Burnerboard starting...");
         // Register to receive attach/detached messages that are proxied from MainActivity
         IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
         this.service.registerReceiver(this.boardUSBReceiver, filter);
@@ -97,6 +98,7 @@ public abstract class BurnerBoard {
         this.appDisplay = new AppDisplay(this.service, this);
         this.textBuilder = new TextBuilder(this);
         this.batteryOverlayBuilder = new BatteryOverlayBuilder(this.service, this);
+        this.brakeOverlayBuilder = new BrakeOverlayBuilder(this.service, this);
         this.lineBuilder = new LineBuilder(this);
         this.arcBuilder = new ArcBuilder(this);
         this.pixelDimmer = new PixelDimmer();

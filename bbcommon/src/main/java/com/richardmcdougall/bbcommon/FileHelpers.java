@@ -70,6 +70,7 @@ public class    FileHelpers {
             long fileSize = -1;
             long downloadSize = 0;
 
+            BLog.d(TAG, "Attempting to download " + URLString);
             List values = urlConnection.getHeaderFields().get("content-Length");
             if (values != null && !values.isEmpty()) {
                 String sLength = (String) values.get(0);

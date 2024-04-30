@@ -57,6 +57,7 @@ public class BBService extends Service {
     public BluetoothCommands bluetoothCommands = null;
     public BluetoothConnManager bluetoothConnManager = null;
     public VisualizationController visualizationController = null;
+    public AudioVisualizer audioVisualizer = null;
 
     public BurnerBoard burnerBoard;
     public BatterySupervisor batterySupervisor = null;
@@ -237,6 +238,8 @@ public class BBService extends Service {
 
             burnerBoard = BurnerBoard.Builder(this);
             burnerBoard.textBuilder.setText90(boardState.BOARD_ID, 5000, burnerBoard.getFrameRate(), new RGBList().getColor("white"));
+
+            audioVisualizer = new AudioVisualizer(this);
 
             visualizationController = new VisualizationController(this);
             visualizationController.Run();

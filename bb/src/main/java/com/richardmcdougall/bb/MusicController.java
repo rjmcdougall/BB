@@ -274,7 +274,7 @@ public class MusicController implements Runnable {
                 player = null;
                 CreateExoplayer();
 
-                service.visualizationController.attachAudio(player.getAudioSessionId());
+                service.audioVisualizer.attachAudio(player.getAudioSessionId());
             }
 
             this.handler.post(() -> mSeekAndPlay());

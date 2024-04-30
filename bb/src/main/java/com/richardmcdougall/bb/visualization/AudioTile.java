@@ -23,7 +23,7 @@ public class AudioTile extends Visualization {
 
         service.burnerBoard.fadePixels(5);
 
-        if (service.visualizationController.getLevel() > 110) {
+        if (service.audioVisualizer.getLevel() > 110) {
             for (int tile = 0; tile < tiles; tile++) {
                 int c = mWheel.wheelState();
 

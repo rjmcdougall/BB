@@ -32,7 +32,7 @@ public class AudioCenter extends Visualization {
     public void update(int mode) {
 
         int level;
-        level = service.visualizationController.getLevel();
+        level = service.audioVisualizer.getLevel();
         service.burnerBoard.fadePixels(15);
         if (level > 110) {
             for (int x = 0; x < (service.burnerBoard.boardHeight / 2) + 1; x++) {

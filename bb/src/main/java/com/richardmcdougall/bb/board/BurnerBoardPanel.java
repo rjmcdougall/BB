@@ -39,8 +39,8 @@ public class BurnerBoardPanel extends BurnerBoard {
     private PixelDimmer mDimmer = new PixelDimmer();
 
     static {
-        textSizeHorizontal = 12;
-        textSizeVertical = 12;
+        textSizeHorizontal = 6;
+        textSizeVertical = 6;
         enableBatteryMonitoring = true;
         enableIOTReporting = true;
         enableMotionMonitoring = true;
