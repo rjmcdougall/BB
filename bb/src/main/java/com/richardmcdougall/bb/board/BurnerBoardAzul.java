@@ -26,8 +26,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     static int[] pixelsPerStrip = new int[8];
     static int[][] pixelMap2BoardTable = new int[8][4096];
     private TranslationMap[] boardMap;
-    public int boardWidth = 46;
-    public int boardHeight = 118;
+    //public int boardWidth = 46;
+    //public int boardHeight = 118;
     private PixelDimmer mDimmer = new PixelDimmer();
     private GammaCorrection mGammaCorrection = new GammaCorrection();
 
@@ -47,6 +47,9 @@ public class BurnerBoardAzul extends BurnerBoard {
 
         BLog.i(TAG, "Burner Board Azul initing...");
 
+        boardWidth = 46;
+        boardHeight = 118;
+        init(boardWidth, boardHeight);
         initpixelMap2Board();
     }
 
@@ -73,6 +76,8 @@ public class BurnerBoardAzul extends BurnerBoard {
     public void setOtherlightsAutomatically() {
     }
 
+
+
     public void flush() {
 
         this.logFlush();
@@ -96,7 +101,7 @@ public class BurnerBoardAzul extends BurnerBoard {
             setStrip(s, stripPixels);
             // Send to board
 //            if (this.service.boardState.displayTeensy == BoardState.TeensyType.teensy3)
-//                flush2Board();
+               flush2Board();
         }
         // Render on board
         update();

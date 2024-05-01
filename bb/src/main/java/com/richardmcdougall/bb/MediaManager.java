@@ -413,10 +413,10 @@ public class MediaManager {
         if (index >= 0 && index < GetTotalVideo()) {
             try {
                 String fn = "";
-                if (GetVideo().has("friendlyName")) {
+                if (GetVideo(index).has("friendlyName")) {
                     fn = dataDirectory.getJSONArray("video").getJSONObject(index).getString("friendlyName");
                 } else {
-                    if (GetVideo().has("algorithm"))
+                    if (GetVideo(index).has("algorithm"))
                         fn = dataDirectory.getJSONArray("video").getJSONObject(index).getString("algorithm");
                     else
                         fn = dataDirectory.getJSONArray("video").getJSONObject(index).getString("localName");
@@ -433,7 +433,7 @@ public class MediaManager {
 
     public String GetVideoFile(int index) {
         try {
-            String fn = filesDir + "/" + GetVideo().getString("localName");
+            String fn = filesDir + "/" + GetVideo(index).getString("localName");
             return fn;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
@@ -486,10 +486,10 @@ public class MediaManager {
         }
     }
 
-    JSONObject GetVideo() {
+    JSONObject GetVideo(int mode) {
         if (dataDirectory.has("video")) {
             try {
-                return dataDirectory.getJSONArray("video").getJSONObject(service.boardState.currentVideoMode);
+                return dataDirectory.getJSONArray("video").getJSONObject(mode);
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
                 return null;
@@ -498,10 +498,10 @@ public class MediaManager {
             return null;
     }
 
-    String GetAlgorithm() {
+    String GetAlgorithm(int mode) {
         if (dataDirectory.has("video")) {
             try {
-                return dataDirectory.getJSONArray("video").getJSONObject(service.boardState.currentVideoMode).getString("algorithm");
+                return dataDirectory.getJSONArray("video").getJSONObject(mode).getString("algorithm");
             } catch (JSONException e) {
                 BLog.e(TAG, e.getMessage());
                 return null;

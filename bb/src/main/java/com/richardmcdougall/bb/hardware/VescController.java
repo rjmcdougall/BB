@@ -15,6 +15,8 @@ import com.richardmcdougall.bbcommon.BLog;
 public class VescController implements CanListener {
     private String TAG = this.getClass().getSimpleName();
 
+    private boolean vescHeard = false;
+
     public VESC_CAN_PACKET_ID vesc_can_packet_id;
     public VESC_CAN_STATUS_MSG vesc_can_status_msg = new VESC_CAN_STATUS_MSG();
     public VESC_CAN_STATUS_MSG_2 vesc_can_status_msg_2 = new VESC_CAN_STATUS_MSG_2();
@@ -35,6 +37,10 @@ public class VescController implements CanListener {
 
     public VescController(BBService service, Canable canbus) {
         canbus.addListener(this);
+    }
+
+    public boolean vescHeard() {
+        return vescHeard;
     }
 
     public boolean vescOn() {
@@ -117,12 +123,14 @@ public class VescController implements CanListener {
         //BLog.d(TAG, "id " + id + " cmd " + cmd);
 
         if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS) {
+            vescHeard = true;
             vesc_can_status_msg.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg.rpm = getInt32(data, 0);
             vesc_can_status_msg.current = getInt16(data, 4);
             vesc_can_status_msg.duty = getInt16(data, 6);
             //BLog.d(TAG, " rpm " + vesc_can_status_msg.rpm + " current " + vesc_can_status_msg.current + " duty " + vesc_can_status_msg.duty);
         } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS_4) {
+            vescHeard = true;
             vesc_can_status_msg_4.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_4.temp_fet = getFloat16(data, 0, 10.0f);
             vesc_can_status_msg_4.temp_motor = getFloat16(data, 2, 10.0f);
@@ -130,6 +138,7 @@ public class VescController implements CanListener {
             vesc_can_status_msg_4.pid_pos_now = getFloat16(data, 6, 1.0f);
             //BLog.d(TAG, " temp_fet " + vesc_can_status_msg_4.temp_fet + " current_in " + vesc_can_status_msg_4.current_in);
         } else if (cmd == VESC_CAN_PACKET_ID.CAN_PACKET_STATUS_5) {
+            vescHeard = true;
             vesc_can_status_msg_5.rx_time = SystemClock.elapsedRealtime();
             vesc_can_status_msg_5.v_in = getFloat16(data, 4, 10.0f);
             vesc_can_status_msg_5.tacho_value = getInt32(data, 0);

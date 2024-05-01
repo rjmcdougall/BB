@@ -96,8 +96,6 @@ public class AudioVisualizer {
             } catch (Exception e) {
                 return null;
             }
-
-
             // Only use the lower half (0-10khz)
             int n = mBoardFFT.length / 2;
             //BLog.d(TAG, "fft levels: " + n);

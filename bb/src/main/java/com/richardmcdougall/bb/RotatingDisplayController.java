@@ -54,8 +54,8 @@ public class RotatingDisplayController {
             BLog.d(TAG, "Display Mode video switch to mode " + this.service.boardState.currentVideoMode);
             int secondsBeforeSwitch = 10;
 
-            if (this.service.mediaManager.GetVideo().has("Length")) {
-                secondsBeforeSwitch = this.service.mediaManager.GetVideo().getInt("Length");
+            if (this.service.mediaManager.GetVideo(this.service.boardState.currentVideoMode).has("Length")) {
+                secondsBeforeSwitch = this.service.mediaManager.GetVideo(this.service.boardState.currentVideoMode).getInt("Length");
             }
 
             sch.schedule(switchVideo, secondsBeforeSwitch, TimeUnit.SECONDS);

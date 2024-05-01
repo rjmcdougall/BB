@@ -238,6 +238,7 @@ public class PlayaMap extends Visualization {
     //static final double  kManLon = -119.20356038558928
 
 
+
     static final double kPlayaElev = 1190.;  // m
     static final double kScale = 1.;
     static final double kDegPerRAD = (180. / 3.1415926535);

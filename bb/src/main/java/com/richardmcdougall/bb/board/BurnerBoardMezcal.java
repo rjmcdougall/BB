@@ -29,6 +29,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
 
     public BurnerBoardMezcal(BBService service) {
         super(service);
+        init(boardWidth, boardHeight);
         initpixelMap2Board();
     }
 

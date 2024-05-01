@@ -3,6 +3,7 @@ package com.richardmcdougall.bb;
 import android.media.audiofx.Visualizer;
 
 import com.richardmcdougall.bb.board.BurnerBoard;
+import com.richardmcdougall.bb.visualization.Zagger;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioBarHorizontal;
 import com.richardmcdougall.bb.visualization.AudioCenter;
@@ -56,10 +57,15 @@ import java.util.Random;
  */
 
 public class VisualizationController {
+    private int autoVideoMode = 0;
+    private long parkedSinceMilliseconds = System.currentTimeMillis();;
+    private long lastAutoVideoMilliseconds = System.currentTimeMillis();;
     public Random mRandom = new Random();
     public int mMultipler4Speed;
+
     public Visualization mVisualizationMatrix;
     public Visualization mVisualizationTextColors;
+    public Visualization mVisualizationZagger;
     public Visualization mVisualizationAudioTile;
     public Visualization mVisualizationAudioCenter;
     public Visualization mVisualizationVideo;
@@ -95,6 +101,7 @@ public class VisualizationController {
         BLog.d(TAG, "Board framerate set to " + service.burnerBoard.getFrameRate());
 
         mVisualizationMatrix = new Matrix(service);
+        mVisualizationZagger = new Zagger(service);
         mVisualizationAudioTile = new AudioTile(service);
         mVisualizationAudioCenter = new AudioCenter(service);
         mVisualizationVideo = new Video(service);
@@ -117,6 +124,15 @@ public class VisualizationController {
             boardDisplayThread();
         });
         t.start();
+    }
+
+    void nextAutoVideo() {
+            int next = autoVideoMode + 1;
+            if (next >= service.mediaManager.GetTotalVideo()) {
+                next = 0;
+            }
+            BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next));
+            autoVideoMode = next;
     }
 
     // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
@@ -167,6 +183,10 @@ public class VisualizationController {
 
                 case "modeMatrix(kMatrixBurnerColor)":
                     mVisualizationMatrix.update(Matrix.kMatrixBurnerColor);
+                    break;
+
+                case "modeZagger()":
+                    mVisualizationZagger.update(Visualization.kDefault);
                     break;
 
                 case "modeMatrix(kMatrixLunarian)":
@@ -293,9 +313,28 @@ public class VisualizationController {
                 }
                 continue;
             }
-            
-            frameRate = runVisualization(service.boardState.currentVideoMode);
 
+
+            try {
+                if (!service.motionSupervisor.getState().equals(MotionSupervisor.motionStates.STATE_PARKED)) {
+                    //BLog.d(TAG, "! STATE_PARKED");
+                    parkedSinceMilliseconds = System.currentTimeMillis();
+                }
+            } catch (Exception e) {
+                //BLog.d(TAG, "vesc getState exception");
+            }
+            //BLog.d(TAG, "parkedSince = " + (System.currentTimeMillis() - parkedSinceMilliseconds));
+            if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 30000) {
+                if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 20000) {
+                    BLog.d(TAG, "Parked and next video...");
+                    nextAutoVideo();
+                    lastAutoVideoMilliseconds = System.currentTimeMillis();
+                }
+                frameRate = runVisualization(autoVideoMode);
+            } else {
+                frameRate = runVisualization(service.boardState.currentVideoMode);
+                autoVideoMode = service.boardState.currentVideoMode;
+            }
             long frameTime = 1000 / frameRate;
             long curFrameTime = System.currentTimeMillis();
             long thisFrame = (curFrameTime - lastFrameTime);
@@ -326,7 +365,7 @@ public class VisualizationController {
                 return service.burnerBoard.getFrameRate();
             }
 
-            JSONObject videos = service.mediaManager.GetVideo();
+            JSONObject videos = service.mediaManager.GetVideo(mode);
             if (videos == null) {
                 return service.burnerBoard.getFrameRate();
             }
@@ -334,7 +373,7 @@ public class VisualizationController {
              this.service.burnerBoard.lineBuilder.clearLine();
 
              if (videos.has("algorithm")) {
-                String algorithm = service.mediaManager.GetAlgorithm();
+                String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
                 if (service.boardState.platformType == BoardState.PlatformType.rpi) {
@@ -358,6 +397,9 @@ public class VisualizationController {
     }
 
     public void setMode(int mode) {
+
+        parkedSinceMilliseconds = System.currentTimeMillis();
+        lastAutoVideoMilliseconds = System.currentTimeMillis();
 
         // Likely not connected to physical burner board, fallback
          if (mode == 99) {

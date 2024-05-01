@@ -30,7 +30,8 @@ public class VideoDecoder extends AndroidTestCase {
     private static final int MAX_FRAMES = 10;       // stop extracting after this many
 
     public String sourceFilename;
-    public int outWidth = 118, outHeight = 46;
+    //public int outWidth = 118, outHeight = 46;
+    public int outWidth = 230, outHeight = 70;
     private boolean stopRequested = false;
     public Thread decodeThread = null;
 

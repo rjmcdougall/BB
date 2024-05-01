@@ -53,6 +53,7 @@ public class BurnerBoardPanel extends BurnerBoard {
         super(service);
         boardWidth = 32;
         boardHeight = 64;
+        init(boardWidth, boardHeight);
         initpixelMap2Board();
         BLog.i(TAG, "Burner Board Panel initting...");
     }

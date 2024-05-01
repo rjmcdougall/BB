@@ -17,12 +17,11 @@ public class PixelOffset {
     }
 
     public PixelOffset(BurnerBoard board) {
-        BLog.d(TAG, "width: " + board.boardWidth + " height: " + board.boardHeight);
         this.board = board;
-        this.initPixelOffset();
     }
 
-    private void initPixelOffset() {
+    public void initPixelOffset() {
+        BLog.d(TAG, "width: " + board.boardWidth + " height: " + board.boardHeight);
         for (int x = 0; x < this.board.boardWidth; x++) {
             for (int y = 0; y < this.board.boardHeight; y++) {
                 for (int rgb = 0; rgb < 3; rgb++) {

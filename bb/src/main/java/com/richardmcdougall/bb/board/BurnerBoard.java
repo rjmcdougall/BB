@@ -19,6 +19,7 @@ import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -33,8 +34,8 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    public int boardWidth = 256;
-    public int boardHeight = 256;
+    public int boardWidth;
+    public int boardHeight;
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;
@@ -104,6 +105,12 @@ public abstract class BurnerBoard {
         this.pixelDimmer = new PixelDimmer();
         this.pixelBlackoutSections = new PixelBlackoutSections(this.service);
         initUsb();
+    }
+
+    void init (int width, int height) {
+        boardWidth = width;
+        boardHeight = height;
+        this.pixelOffset.initPixelOffset();
     }
 
     static final public int colorDim(int dimValue, int color) {
@@ -271,7 +278,7 @@ public abstract class BurnerBoard {
                         boardScreen[this.pixelOffset.Map(x + 1, y + 1, PIXEL_BLUE)];
             }
         }
-        for (int x = boardWidth - 1; x > (boardWidth / 2) + 1; x--) {
+        for (int x = boardWidth - 1; x > (boardWidth / 2); x--) {
             for (int y = 0; y < boardHeight - 1; y++) {
                 boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)] =
                         boardScreen[this.pixelOffset.Map(x - 1, y + 1, PIXEL_RED)];
@@ -284,7 +291,7 @@ public abstract class BurnerBoard {
 
     }
 
-    public boolean update() {
+    public boolean oupdate() {
 
         this.appDisplay.sendVisual(8);
 
@@ -344,7 +351,7 @@ public abstract class BurnerBoard {
         return RGB.getARGBInt(r, g, b);
     }
 
-    public void setStrip(int strip, int[] pixels) {
+    public void osetStrip(int strip, int[] pixels) {
         byte[] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
             newPixels[pixel] = (byte) pixels[pixel];
@@ -358,6 +365,68 @@ public abstract class BurnerBoard {
                 mListener.sendCmdEscArg(newPixels);
                 mListener.sendCmdEnd();
             }
+        }
+    }
+
+
+
+
+    public void oflush2Board() {
+
+        if (mListener != null) {
+            mListener.flushWrites();
+        } else {
+            // Emulate board's 30ms refresh time
+            try {
+                Thread.sleep(2);
+            } catch (Throwable e) {
+            }
+        }
+    }
+
+    private ByteBuffer mWriteBuffer = ByteBuffer.allocate(16384);
+    private static final byte[] teensyPrefix = "10,".getBytes();
+    private static final byte[] teensyPostfix = ";".getBytes();
+    private static final byte[] teensyUpdate = "6;".getBytes();
+
+    public void setStrip(int strip, int[] pixels) {
+        int len = Math.min(600 * 3, pixels.length);
+        byte[] newPixels = new byte[len];
+        for (int pixel = 0; pixel < len; pixel++) {
+            newPixels[pixel] = (byte) (((pixels[pixel] == 0) ||
+                    (pixels[pixel] == ';') ||
+                    (pixels[pixel] == ',') ||
+                    (pixels[pixel] == '\\')) ? pixels[pixel] + 1 : pixels[pixel]);
+        }
+
+        mWriteBuffer.put(teensyPrefix);
+        mWriteBuffer.put(String.format("%d,", strip).getBytes());
+        mWriteBuffer.put(newPixels);
+        mWriteBuffer.put(teensyPostfix);
+
+    }
+
+    public boolean update() {
+        try {
+            mWriteBuffer.put(teensyUpdate);
+
+        } catch (Exception e) {}
+        return true;
+    }
+    public void flush2Board() {
+        try {
+            int len = mWriteBuffer.position();
+            if (len > 0) {
+                byte[] buffer = new byte[len];
+                mWriteBuffer.rewind();
+                mWriteBuffer.get(buffer, 0, len);
+                mWriteBuffer.clear();
+                //BLog.d(TAG, "write " + len + " bytes");
+                mSerialIoManager.writeAsync(buffer);
+                //mSerialIoManager.flush();
+            }
+        } catch (Exception e) {
+            BLog.d(TAG, "flush2Board failed");
         }
     }
 
@@ -512,7 +581,7 @@ public abstract class BurnerBoard {
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
-                mSerialIoManager.setReadTimeout(0);
+                mSerialIoManager.setReadTimeout(1);
                 mSerialIoManager.setWriteTimeout(1);
                 mSerialIoManager.setName("BoardThread");
                 //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
@@ -605,18 +674,6 @@ public abstract class BurnerBoard {
         return false;
     }// We use this to catch the USB accessory detached message
 
-    public void flush2Board() {
-
-        if (mListener != null) {
-            mListener.flushWrites();
-        } else {
-            // Emulate board's 30ms refresh time
-            try {
-                Thread.sleep(2);
-            } catch (Throwable e) {
-            }
-        }
-    }
 
     private final class PermissionReceiver extends BroadcastReceiver {
         @Override
@@ -651,6 +708,7 @@ public abstract class BurnerBoard {
             for (int i = 0; i < mBatteryStats.length; i++) {
                 mBatteryStats[i] = mListener.readIntArg();
             }
+            BLog.d(TAG, "Battery Callback: " + Arrays.toString(mBatteryStats));
 
             if (!requireBMS) {
                 if (mBatteryStats[1] != -1) {

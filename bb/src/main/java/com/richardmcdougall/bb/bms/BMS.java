@@ -21,7 +21,7 @@ public class BMS {
 
         BMS bms;
 
-        if (true || (service.boardState.GetBoardType() == BoardState.BoardType.mezcal)) {
+        if ((service.boardState.GetBoardType() == BoardState.BoardType.mezcal)) {
             BLog.d(TAG, "BMS: Emulated BMS from VESC ");
             bms = new BMS_EmulatedVesc(service);
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {

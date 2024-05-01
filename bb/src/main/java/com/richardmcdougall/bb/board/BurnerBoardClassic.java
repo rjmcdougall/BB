@@ -32,6 +32,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         BLog.i(TAG, "Burner Board Classic initing...");
         boardWidth = 10;
         boardHeight = 70;
+        init(boardWidth, boardHeight);
         mBoardOtherlights = new int[mBoardSideLights * 3 * 2];
 
     }
