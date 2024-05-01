@@ -93,6 +93,12 @@ public abstract class BurnerBoard {
         filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_ATTACHED);
         this.service.registerReceiver(this.boardUSBReceiver, filter);
 
+        initUsb();
+    }
+
+    void init (int width, int height) {
+        boardWidth = width;
+        boardHeight = height;
         this.boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this);
         this.pixelOffset = new PixelOffset(this);
@@ -104,12 +110,6 @@ public abstract class BurnerBoard {
         this.arcBuilder = new ArcBuilder(this);
         this.pixelDimmer = new PixelDimmer();
         this.pixelBlackoutSections = new PixelBlackoutSections(this.service);
-        initUsb();
-    }
-
-    void init (int width, int height) {
-        boardWidth = width;
-        boardHeight = height;
         this.pixelOffset.initPixelOffset();
     }
 

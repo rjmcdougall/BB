@@ -19,7 +19,7 @@ public class Zagger extends Visualization {
         int color;
         int y;
         int x = service.burnerBoard.boardWidth / 2 - 1;
-        int pixelSkip = 1;
+        int pixelSkip = 2;
 
         for (y = 0; y < service.burnerBoard.boardHeight / pixelSkip; y += pixelSkip) {
             if (service.visualizationController.mRandom.nextInt(3) != 0) {

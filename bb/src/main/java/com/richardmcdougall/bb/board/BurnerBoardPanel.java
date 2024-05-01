@@ -81,7 +81,7 @@ public class BurnerBoardPanel extends BurnerBoard {
     }
 
     public void initpixelMap2Board() {
-        pixelOffset = new PixelOffset(this);
+        //pixelOffset = new PixelOffset(this);
     }
 
     public void flush() {

@@ -2,6 +2,7 @@ package com.richardmcdougall.bb;
 
 
 import android.media.audiofx.Visualizer;
+import android.media.audiofx.Equalizer;
 
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -32,12 +33,14 @@ public class AudioVisualizer {
                 mVisualizer.release();
             }
             mVisualizer = new Visualizer(audioSessionId);
+
             synchronized (mVisualizer) {
                 // Create the Visualizer object and attach it to our media player.
                 vSize = Visualizer.getCaptureSizeRange()[1];
                 mVisualizer.setEnabled(false);
                 mBoardFFT = new byte[vSize];
                 mVisualizer.setCaptureSize(vSize);
+                mVisualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
                 mVisualizer.setEnabled(true);
             }
         } catch (Exception e) {
@@ -45,7 +48,6 @@ public class AudioVisualizer {
             return;
         }
         BLog.d(TAG, "Enabled audio visualizer FFT with " + vSize + " bytes");
-        mVisualizer.setScalingMode(Visualizer.SCALING_MODE_NORMALIZED);
         BLog.d(TAG, "Audio FFT enabled with sampling rate " + mVisualizer.getSamplingRate());
     }
 

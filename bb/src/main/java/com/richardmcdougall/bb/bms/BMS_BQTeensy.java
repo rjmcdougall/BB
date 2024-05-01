@@ -106,7 +106,24 @@ public class BMS_BQTeensy extends BMS {
     }
 
     public float getLevel() {
-        return 100.0f;
+        int[] tmpBatteryStats = new int[16];
+
+        if (service == null) {
+            return 100.0f;
+        }
+        if (service.burnerBoard == null) {
+            return 100.0f;
+        }
+
+        tmpBatteryStats = service.burnerBoard.getmBatteryStats();
+        if ((tmpBatteryStats[0] > 0) && //flags
+                (tmpBatteryStats[1] != -1) &&  // level
+                (tmpBatteryStats[5] > 20000)) {
+            return (tmpBatteryStats[1]);
+
+        } else {
+            return 100.0f;
+        }
     }
 
     public batteryStates getBatteryState() {
