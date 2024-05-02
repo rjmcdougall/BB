@@ -260,6 +260,9 @@ public class VisualizationController {
         return frameRate;
     }
 
+    public void resetParkedTime() {
+        parkedSinceMilliseconds = System.currentTimeMillis();
+    }
 // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
@@ -324,8 +327,8 @@ public class VisualizationController {
                 //BLog.d(TAG, "vesc getState exception");
             }
             //BLog.d(TAG, "parkedSince = " + (System.currentTimeMillis() - parkedSinceMilliseconds));
-            if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 30000) {
-                if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 20000) {
+            if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 60000) {
+                if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 30000) {
                     BLog.d(TAG, "Parked and next video...");
                     nextAutoVideo();
                     lastAutoVideoMilliseconds = System.currentTimeMillis();
@@ -358,7 +361,7 @@ public class VisualizationController {
          try {
             frameCnt++;
             if (frameCnt % 100 == 0) {
-                BLog.d(TAG, "Frames: " + frameCnt);
+                BLog.d(TAG, "Frames: " + frameCnt + ", parked for " + (System.currentTimeMillis() - parkedSinceMilliseconds));
             }
 
             if (mode < 0) {

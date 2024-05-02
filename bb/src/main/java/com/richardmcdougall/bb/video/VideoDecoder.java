@@ -1,10 +1,12 @@
 package com.richardmcdougall.bb.video;
 
+import com.richardmcdougall.bb.TimeSync;
 import com.richardmcdougall.bbcommon.BLog;
 
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.media.MediaMetadataRetriever;
 import android.opengl.GLES20;
 import android.test.AndroidTestCase;
 
@@ -34,6 +36,8 @@ public class VideoDecoder extends AndroidTestCase {
     public int outWidth = 230, outHeight = 70;
     private boolean stopRequested = false;
     public Thread decodeThread = null;
+
+    private long videoDuration;
 
     enum StateType {
         STOPPED,
@@ -172,6 +176,13 @@ public class VideoDecoder extends AndroidTestCase {
                 }
                 extractor.selectTrack(trackIndex);
 
+                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                retriever.setDataSource(inputFile.toString());
+                String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                long timeInMillisec = Long.parseLong(time );
+                BLog.d(TAG, "Video file " + inputFile.toString() + " is " + timeInMillisec / 1000 + "seconds long");
+                retriever.release();
+
                 MediaFormat format = extractor.getTrackFormat(trackIndex);
 
                 // Could use width/height from the MediaFormat to get full-size frames.
@@ -192,6 +203,7 @@ public class VideoDecoder extends AndroidTestCase {
 
                 BLog.v(TAG, "Dec: Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" + format.getInteger(MediaFormat.KEY_HEIGHT));
                 BLog.v(TAG,"Dec: Duration: " + format.getLong(MediaFormat.KEY_DURATION));
+                videoDuration = format.getLong(MediaFormat.KEY_DURATION);
 
                 // dkw note that this does not exist on Dragonboard
                 try{
@@ -202,6 +214,13 @@ public class VideoDecoder extends AndroidTestCase {
                 BLog.v(TAG,"Dec: Codec: " + codec.getName());
 
                 codec.start();
+
+                // Start the video at the same offset on each board through timesync
+                long syncClockMicroseconds = TimeSync.CurrentClockAdjusted() * 1000;
+                long seekOffsetMicroseconds = syncClockMicroseconds % getVideoDuration();
+                BLog.d(TAG, "seekTo: " + seekOffsetMicroseconds / 1000000);
+                extractor.seekTo(seekOffsetMicroseconds, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+
 
                 doExtract(extractor, trackIndex, codec, outputSurface, onFrameReady, this);
 
@@ -247,6 +266,10 @@ public class VideoDecoder extends AndroidTestCase {
         return -1;
     }
 
+    private long getVideoDuration() {
+        return videoDuration;
+    }
+
     /**
      * Work loop.
      */
@@ -262,6 +285,7 @@ public class VideoDecoder extends AndroidTestCase {
         boolean outputDone = false;
         boolean inputDone = false;
         long lastFrameTime = System.currentTimeMillis();
+
 
         while (!outputDone && !parent.stopRequested) {
 

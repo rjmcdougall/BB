@@ -16,6 +16,8 @@ public class AudioVisualizer {
 
     private static final int kNumLevels = 8;
 
+    private int musicVolume = 100;
+
     AudioVisualizer(BBService service) {
 
         this.service = service;
@@ -27,6 +29,8 @@ public class AudioVisualizer {
 
         BLog.d(TAG, "enabling audio Visualizer on session=" + audioSessionId);
         mAudioSessionId = audioSessionId;
+
+        musicVolume = service.musicController.getAndroidVolumePercent();
 
         try {
             if (mVisualizer != null) {
@@ -49,6 +53,16 @@ public class AudioVisualizer {
         }
         BLog.d(TAG, "Enabled audio visualizer FFT with " + vSize + " bytes");
         BLog.d(TAG, "Audio FFT enabled with sampling rate " + mVisualizer.getSamplingRate());
+    }
+
+    public void setVolume(int percent) {
+        musicVolume = percent;
+        BLog.d(TAG, "Multiplier = " + volumeMultiplier());
+    }
+
+    // It appears SCALING_MODE_NORMALIZED is broken, so here we do manual compensation
+    private float volumeMultiplier() {
+        return (1.0f + ((100.0f / (Math.max((float)musicVolume, 10)) - 1.0f) * 0.2f));
     }
 
     // Get levels from Android visualizer engine
@@ -77,11 +91,11 @@ public class AudioVisualizer {
                 rfk = mBoardFFT[i];
                 ifk = mBoardFFT[i + 1];
                 float magnitude = (rfk * rfk + ifk * ifk);
-                dbValue += java.lang.Math.max(0, 50 + 50 * (Math.log10(magnitude) - 1));
+                dbValue += java.lang.Math.max(0, 15 + 15 * (Math.log10(magnitude) - 1));
                 if (dbValue < 0)
                     dbValue = 0;
                 dbLevels[i / 32] += dbValue;
-                dbLevels[i / 32] = java.lang.Math.min(dbLevels[i / 32], 255);
+                dbLevels[i / 32] = java.lang.Math.min((int)(volumeMultiplier() * (float)dbLevels[i / 32]), 255);
 
             }
             return dbLevels;
@@ -118,11 +132,11 @@ public class AudioVisualizer {
                 ifk = mBoardFFT[16 + i + 1];
                 float magnitude = ((float)rfk * (float)rfk + (float)ifk * (float)ifk);
 
-                dbValue = (int)java.lang.Math.max(0,   64 * (Math.log10(magnitude)));
+                dbValue = (int)java.lang.Math.max(0,   40 * (Math.log10(magnitude)));
                 if (dbValue < 0)
                     dbValue = 0;
                 dbLevels[i / divider] += dbValue;
-                dbLevels[i / divider] = java.lang.Math.min(dbLevels[i / divider], 255);
+                dbLevels[i / divider] = java.lang.Math.min((int)(volumeMultiplier() * (float)dbLevels[i / divider]), 255);
                 //BLog.d(TAG, "bin: " + i + ", magnitude: " + magnitude + ", level: " +
                 //        (float)Math.log10(magnitude) + ", dbvalue: " + dbValue + ", dbout = " +  dbLevels[i / divider]);
 

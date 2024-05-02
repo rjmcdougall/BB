@@ -200,6 +200,8 @@ public class MusicController implements Runnable {
     public void setBoardVolume(int v) {
         if (v >= 0 && v <= 100) {
             setAndroidVolumePercent(v);
+            // Also set the volume in the visulizer to scale FFT
+            service.audioVisualizer.setVolume(v);
         } else {
             BLog.e(TAG, "Invalid Volume Percent: " + v);
         }

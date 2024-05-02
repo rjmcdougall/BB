@@ -18,9 +18,15 @@ public class Zagger extends Visualization {
     public void update(int mode) {
         int color;
         int y;
-        int x = service.burnerBoard.boardWidth / 2 - 1;
+        int x;
         int pixelSkip = 2;
 
+        y = service.burnerBoard.boardHeight - 1;
+        for (x = 0; x < service.burnerBoard.boardWidth; x++) {
+            service.burnerBoard.setPixel(x, y , 0);
+        }
+
+        x = service.burnerBoard.boardWidth / 2 - 1;
         for (y = 0; y < service.burnerBoard.boardHeight / pixelSkip; y += pixelSkip) {
             if (service.visualizationController.mRandom.nextInt(3) != 0) {
                 color = RGB.getARGBInt(0, 0, 0);

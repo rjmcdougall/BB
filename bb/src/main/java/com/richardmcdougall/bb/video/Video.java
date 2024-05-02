@@ -28,6 +28,7 @@ public class Video extends Visualization {
 
         int nVideos = service.mediaManager.GetTotalVideo();
         videoContrastMultiplier = service.boardState.videoContrastMultiplier;
+        service.visualizationController.resetParkedTime();
 
         if (nVideos == 0)
             return;
