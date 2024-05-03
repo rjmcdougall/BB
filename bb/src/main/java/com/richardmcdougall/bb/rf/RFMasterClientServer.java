@@ -184,7 +184,7 @@ public class RFMasterClientServer {
                     this.service.masterController.RemoteAudio(value);
                     break;
                 case RFUtil.REMOTE_VIDEO_TRACK_CODE:
-                 //   this.service.masterController.RemoteVideo(value);
+                    this.service.masterController.RemoteVideo(value);
                     break;
                 case RFUtil.REMOTE_VOLUME_CODE:
                     this.service.masterController.RemoteVolume(value);

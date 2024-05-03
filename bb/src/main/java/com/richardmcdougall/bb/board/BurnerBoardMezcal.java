@@ -29,8 +29,8 @@ public class BurnerBoardMezcal extends BurnerBoard {
 
     public BurnerBoardMezcal(BBService service) {
         super(service);
-        init(boardWidth, boardHeight);
         initpixelMap2Board();
+        init(boardWidth, boardHeight);
     }
 
     public int getMultiplier4Speed() {
@@ -38,9 +38,9 @@ public class BurnerBoardMezcal extends BurnerBoard {
     }
 
     public void start() {
-
         // attach getBatteryLevel cmdMessenger callback
-        BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(true);
+        BoardCallbackGetBatteryLevel getBatteryLevelCallback =
+                new BoardCallbackGetBatteryLevel(true);
         mListener.attach(8, getBatteryLevelCallback);
     }
 
@@ -121,6 +121,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
     private static final byte[] teensyUpdate = "6;".getBytes();
 
     public void setStrip(int strip, int[] pixels) {
+        //BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
         int len = Math.min(552 * 3, pixels.length);
         byte[] newPixels = new byte[len];
         for (int pixel = 0; pixel < len; pixel++) {
@@ -165,15 +166,17 @@ public class BurnerBoardMezcal extends BurnerBoard {
     public void initpixelMap2Board() {
         int x, y;
 
-        this.clearPixels();
 
         boardMap = this.service.displayMapManager.GetDisplayMap();
         boardWidth = this.service.displayMapManager.boardWidth;
         boardHeight = this.service.displayMapManager.boardHeight;
         kStrips = this.service.displayMapManager.numberOfStrips;
+        BLog.d(TAG, "init board " + boardWidth + "," + boardHeight + " strips " + kStrips);
         boardScreen = new int[this.boardWidth * this.boardHeight * 3];
         mapPixelsToStips = new int[kStrips][4096];
         pixelOffset = new PixelOffset(this);
+        this.pixelOffset.initPixelOffset();
+        this.clearPixels();
 
         try {
             for (y = 0; y < boardMap.length; y++) {

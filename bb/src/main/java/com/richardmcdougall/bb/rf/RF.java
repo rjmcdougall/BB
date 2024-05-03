@@ -281,6 +281,7 @@ public class RF {
             for (int i = 0; i < len; i++) {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));
             }
+            BLog.d(TAG, "Radio Receive Packet: len(" + recvBytes.toByteArray().length + "), data: " + RFUtil.bytesToHex(recvBytes.toByteArray()));
 
             Intent in = new Intent(ACTION.BB_PACKET);
             in.putExtra("sigStrength", sigStrength);

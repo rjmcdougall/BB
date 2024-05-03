@@ -261,6 +261,7 @@ public class VisualizationController {
     }
 
     public void resetParkedTime() {
+        BLog.d(TAG, "resetParkedTime...");
         parkedSinceMilliseconds = System.currentTimeMillis();
     }
 // Main thread to drive the Board's display & get status (mode, voltage,...)

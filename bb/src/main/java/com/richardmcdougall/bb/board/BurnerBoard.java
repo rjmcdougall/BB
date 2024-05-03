@@ -34,8 +34,8 @@ public abstract class BurnerBoard {
     static final int PIXEL_RED = 0;
     static final int PIXEL_GREEN = 1;
     static final int PIXEL_BLUE = 2;
-    public int boardWidth;
-    public int boardHeight;
+    public int boardWidth = 255;
+    public int boardHeight = 255;
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;
@@ -391,6 +391,7 @@ public abstract class BurnerBoard {
 
     public void setStrip(int strip, int[] pixels) {
         int len = Math.min(600 * 3, pixels.length);
+        BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
         byte[] newPixels = new byte[len];
         for (int pixel = 0; pixel < len; pixel++) {
             newPixels[pixel] = (byte) (((pixels[pixel] == 0) ||
