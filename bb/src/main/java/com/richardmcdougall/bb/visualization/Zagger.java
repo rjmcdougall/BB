@@ -28,7 +28,7 @@ public class Zagger extends Visualization {
 
         x = service.burnerBoard.boardWidth / 2 - 1;
         for (y = 0; y < service.burnerBoard.boardHeight / pixelSkip; y += pixelSkip) {
-            if (service.visualizationController.mRandom.nextInt(3) != 0) {
+            if (service.visualizationController.mRandom.nextInt(6) != 0) {
                 color = RGB.getARGBInt(0, 0, 0);
             } else {
                 color = mWheel.wheelState();
@@ -37,8 +37,12 @@ public class Zagger extends Visualization {
                 service.burnerBoard.setPixel(x, pixelSkip * y + p, color);
                 service.burnerBoard.setPixel(x + 1, pixelSkip * y + p, color);
             }
-            mWheel.wheelInc(1);
+            // For Azul
+            // mWheel.wheelInc(1);
+
         }
+        // For Mezcal
+        mWheel.wheelInc(10);
 
         service.burnerBoard.flush();
         service.burnerBoard.zagPixels();
