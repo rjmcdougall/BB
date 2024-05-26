@@ -19,6 +19,7 @@ public class AudioBarHorizontal extends Visualization {
     public void update(int mode) {
 
         int color;
+        boolean solid = false;
 
         int[] dbLevels = service.audioVisualizer.getLevels128();
         if (dbLevels == null)
@@ -46,7 +47,7 @@ public class AudioBarHorizontal extends Visualization {
                 if (mode == kStaticVUColor) {
                     color = vuColor(x);
                 } else {
-                    if (true || service.visualizationController.mRandom.nextInt(3) != 0) {
+                    if (solid || service.visualizationController.mRandom.nextInt(3) != 0) {
                         color = wheelColor();
                     } else {
                         color = 0;

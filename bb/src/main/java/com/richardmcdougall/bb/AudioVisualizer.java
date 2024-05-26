@@ -132,7 +132,7 @@ public class AudioVisualizer {
                 ifk = mBoardFFT[16 + i + 1];
                 float magnitude = ((float)rfk * (float)rfk + (float)ifk * (float)ifk);
 
-                dbValue = (int)java.lang.Math.max(0,   40 * (Math.log10(magnitude)));
+                dbValue = (int)java.lang.Math.max(0,   30 * (Math.log10(magnitude)));
                 if (dbValue < 0)
                     dbValue = 0;
                 dbLevels[i / divider] += dbValue;
