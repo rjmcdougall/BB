@@ -328,7 +328,7 @@ public class VisualizationController {
                 //BLog.d(TAG, "vesc getState exception");
             }
             //BLog.d(TAG, "parkedSince = " + (System.currentTimeMillis() - parkedSinceMilliseconds));
-            if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 60000) {
+            if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 300000) {
                 if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 30000) {
                     BLog.d(TAG, "Parked and next video...");
                     nextAutoVideo();

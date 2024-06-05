@@ -171,8 +171,11 @@ public class MusicController implements Runnable {
 
             Float speed = 1.0f + (seekOff - curPos) / 1000.0f;
 
-            BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " + TimeSync.serverTimeOffset +
-                    " SeekOff " + seekOff + " RTT " + TimeSync.serverRoundTripTime + " Strm" + service.boardState.currentRadioChannel + " Current Clock Adjusted: " + TimeSync.GetCurrentClock());
+            BLog.d(TAG, "SeekAndPlay:curPos = " + curPos + " SeekErr " + seekErr + " SvOff " +
+                    TimeSync.getServerClockOffset() + " SeekOff " + seekOff + " RTT " +
+                    TimeSync.getServerRoundTripTime() + " Strm" +
+                    service.boardState.currentRadioChannel +
+                    " Current Clock Adjusted: " + TimeSync.CurrentClockAdjusted());
 
             if (curPos == 0 || Math.abs(seekErr) > 100) {
                 player.seekTo((int) seekOff + 170);

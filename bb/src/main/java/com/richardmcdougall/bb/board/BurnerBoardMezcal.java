@@ -9,7 +9,9 @@ import java.nio.ByteBuffer;
 
 public class BurnerBoardMezcal extends BurnerBoard {
 
-    private static final int kMaxV4DisplayPower = 12;
+    //private static final int kMaxV4DisplayPower = 12;
+    // Try 9, since 12 was getting too hot on kronos 6/4/2024
+    private static final int kMaxV4DisplayPower = 9;
     private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     static int[][] mapPixelsToStips = new int[1][4096];

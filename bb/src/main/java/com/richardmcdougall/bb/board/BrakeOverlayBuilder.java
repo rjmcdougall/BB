@@ -22,7 +22,7 @@ public class BrakeOverlayBuilder {
     public ArrayList<RGB> pixels = new ArrayList<>();
     private static final int kRgbMax = 255;
 
-    private static final int brakeColor = RGB.getARGBInt(0, kRgbMax, 0);
+    private static final int brakeColor = RGB.getARGBInt(kRgbMax, 0, 0);
 
     private int[] BrakeScreen;
 
@@ -42,14 +42,14 @@ public class BrakeOverlayBuilder {
     public void drawBrake() {
 
         int x, y;
-        int brakeStart = this.board.boardHeight - 1;
-        int brakeEnd = this.board.boardHeight - 20;
+        int brakeStart = 0;
+        int brakeEnd = 10;
 
         BrakeScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
         BrakeDisplayingCountdown = kDisplayForMilliSeconds;
 
         try {
-            for (y = brakeEnd; y <= brakeStart; y++) {
+            for (y = brakeStart; y <= brakeEnd; y++) {
                 for (x = 0; x < this.board.boardWidth; x++) {
                     setPixel(x , y, brakeColor);
                 }

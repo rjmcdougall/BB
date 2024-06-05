@@ -8,18 +8,35 @@ import com.richardmcdougall.bbcommon.BoardState;
 public class Zagger extends Visualization {
 
     private Wheel mWheel = new Wheel();
+    private int pixelSkip = 2;
+    private int pixelSlow = 1;
 
     public Zagger(BBService service) {
 
         super(service);
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
+            pixelSkip = 2;
+            pixelSlow = 2;
+        } else {
+            pixelSkip = 2;
+            pixelSlow = 0;
+        }
     }
 
-
+    private int iter = 0;
     public void update(int mode) {
         int color;
         int y;
         int x;
-        int pixelSkip = 2;
+
+        iter++;
+
+        // Reduce speed for mezcals, etc...
+        if (pixelSlow > 0) {
+            if ((iter % pixelSlow) == 0) {
+                return;
+            }
+        }
 
         y = service.burnerBoard.boardHeight - 1;
         for (x = 0; x < service.burnerBoard.boardWidth; x++) {

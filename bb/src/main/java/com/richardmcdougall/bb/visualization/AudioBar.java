@@ -2,11 +2,20 @@ package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.board.RGB;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class AudioBar extends Visualization {
 
+    private int fadeAmount;
+
     public AudioBar(BBService service) {
         super(service);
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal
+                || service.boardState.GetBoardType() == BoardState.BoardType.azul) {
+            fadeAmount = 20;
+        } else {
+            fadeAmount = 80;
+        }
     }
 
     public void update(int mode) {
@@ -14,7 +23,7 @@ public class AudioBar extends Visualization {
         int[] dbLevels = service.audioVisualizer.getLevels();
         if (dbLevels == null)
             return;
-        service.burnerBoard.fadePixels(80);
+        service.burnerBoard.fadePixels(fadeAmount);
         // Iterate through frequency bins: dbLevels[0] is lowest, [15] is highest
         int row = 0;
         for (int value = 3; value < 15; value += 2) {

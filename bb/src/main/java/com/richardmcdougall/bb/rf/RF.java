@@ -237,7 +237,7 @@ public class RF {
                 //mListener = new BBListenerAdapter();
                 mListener = new CmdMessenger(sPort, ',', ';', '\\');
                 mSerialIoManager = new SerialInputOutputManager(sPort, mListener);
-                mSerialIoManager.setReadTimeout(100);
+                mSerialIoManager.setReadTimeout(5);
                 mSerialIoManager.setName("RF");
 
                 //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);

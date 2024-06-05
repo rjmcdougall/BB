@@ -7,6 +7,7 @@ import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
 import android.view.Surface;
+import android.os.Handler;
 
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -48,7 +49,7 @@ public class CodecOutputSurface
      * new EGL context and surface will be made current.  Creates a Surface that can be passed
      * to MediaCodec.configure().
      */
-    public CodecOutputSurface(int width, int height) {
+    public CodecOutputSurface(int width, int height, Handler handler) {
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException();
         }
@@ -57,32 +58,19 @@ public class CodecOutputSurface
 
         eglSetup();
         makeCurrent();
-        setup();
+        setup(handler);
     }
 
     /**
      * Creates interconnected instances of TextureRender, SurfaceTexture, and Surface.
      */
-    private void setup() {
+    private void setup(Handler handler) {
         mTextureRender = new STextureRender();
         mTextureRender.surfaceCreated();
 
-        BLog.v(TAG,"textureID=" + mTextureRender.getTextureId());
+        BLog.v(TAG, "textureID=" + mTextureRender.getTextureId());
         mSurfaceTexture = new SurfaceTexture(mTextureRender.getTextureId());
-
-        // This doesn't work if this object is created on the thread that CTS started for
-        // these test cases.
-        //
-        // The CTS-created thread has a Looper, and the SurfaceTexture constructor will
-        // create a Handler that uses it.  The "frame available" message is delivered
-        // there, but since we're not a Looper-based thread we'll never see it.  For
-        // this to do anything useful, CodecOutputSurface must be created on a thread without
-        // a Looper, so that SurfaceTexture uses the main application Looper instead.
-        //
-        // Java language note: passing "this" out of a constructor is generally unwise,
-        // but we should be able to get away with it here.
-        mSurfaceTexture.setOnFrameAvailableListener(this);
-
+        mSurfaceTexture.setOnFrameAvailableListener(this, handler);
         mSurface = new Surface(mSurfaceTexture);
 
         outImage.mPixelBuf = ByteBuffer.allocateDirect(outImage.width * outImage.height * 4);

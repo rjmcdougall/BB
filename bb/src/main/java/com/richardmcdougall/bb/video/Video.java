@@ -6,6 +6,10 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.visualization.Visualization;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by rmc on 6/21/18.
  */
@@ -18,12 +22,19 @@ public class Video extends Visualization {
     private int lastVideoMode = -1;
     private BBService service = null;
     private int videoContrastMultiplier = 1;
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    Runnable videoSpeedController = this::videoSpeedController;
 
     public Video(BBService service ) {
         super(service );
         this.service = service;
+        sch.scheduleWithFixedDelay(videoSpeedController, 1, 1, TimeUnit.SECONDS);
+
     }
 
+    public void videoSpeedController() {
+
+    }
     public void update(int mode) {
 
         int nVideos = service.mediaManager.GetTotalVideo();
@@ -34,7 +45,7 @@ public class Video extends Visualization {
 
         int curVidIndex = mode % nVideos;
 
-        if (curVidIndex!=lastVideoMode && mVideoDecoder.IsRunning()) {
+        if (curVidIndex != lastVideoMode && mVideoDecoder.IsRunning()) {
             service.visualizationController.resetParkedTime();
             mVideoDecoder.Stop();
         }
@@ -60,7 +71,7 @@ public class Video extends Visualization {
                 lastVideoMode = curVidIndex;
             }
         }
-        if (currentVideoFrame!=null) {
+        if (currentVideoFrame != null) {
             SimpleImage curVideo = currentVideoFrame;  // save pointer to current video frame, it might change in another thread
             int totalPixels = curVideo.width * curVideo.height;
             BurnerBoard ba = service.burnerBoard;

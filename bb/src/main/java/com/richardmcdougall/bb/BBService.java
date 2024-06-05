@@ -144,7 +144,7 @@ public class BBService extends Service {
             context = getApplicationContext();
 
             BLog.i(TAG, "Current Clock: " + TimeSync.GetCurrentClock());
-            BLog.i(TAG, "startElapsedTime: " + TimeSync.startElapsedTime);
+            //BLog.i(TAG, "startElapsedTime: " + TimeSync.startElapsedTime);
 
             BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
             BLog.i(TAG, "Build Model " + Build.MODEL);

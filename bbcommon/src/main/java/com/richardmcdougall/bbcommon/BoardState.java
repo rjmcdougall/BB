@@ -62,6 +62,8 @@ public class BoardState {
     public String profile = "";
     public boolean displayDebug = false;
 
+    public int pixelSlow;
+
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     public BoardType GetBoardType() {
@@ -157,6 +159,8 @@ public class BoardState {
         videoContrastMultiplier = this.allBoards.videoContrastMultiplier(BOARD_ID);
         profile = this.allBoards.getProfile(BOARD_ID);
         displayDebug = this.allBoards.displayDebug(BOARD_ID);
+        pixelSlow = this.allBoards.pixelSlow(BOARD_ID);
+
 
         BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier + " " + this.profile);
     }

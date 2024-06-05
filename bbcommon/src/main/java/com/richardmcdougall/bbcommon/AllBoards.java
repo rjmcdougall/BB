@@ -122,8 +122,6 @@ public class AllBoards {
                     if (a.has("address")) a.remove("address");
                     if (a.has("isProfileGlobal")) a.remove("isProfileGlobal");
                     if (a.has("profile")) a.remove("profile");
-                    if (a.has("isProfileGlobal2")) a.remove("isProfileGlobal2");
-                    if (a.has("profile2")) a.remove("profile2");
                     if (a.has("type")) a.remove("type");
                     if (a.has("displayTeensy")) a.remove("displayTeensy");
                 }
@@ -217,6 +215,19 @@ public class AllBoards {
         return videoContrastMultiplier;
     }
 
+    public int pixelSlow(String boardID) {
+
+        JSONObject board;
+        int pixelSlow = 0;
+
+        try {
+            board = getBoardByID(boardID);
+            pixelSlow = board.getInt("pixelSlow");
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        return pixelSlow;
+    }
     public int targetAPKVersion(String boardID) {
 
         JSONObject board;

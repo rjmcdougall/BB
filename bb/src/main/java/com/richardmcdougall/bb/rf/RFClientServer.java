@@ -175,26 +175,28 @@ public class RFClientServer {
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
 
-        if (roundTripTime < 300) {
+        BLog.d(TAG, "server time: " + svTimeStamp + ", mytime rx from server: " + myTimeStamp + ", currentTime: " + curTime);
 
-            //waht is the difference between my time i sent the server and its time?
+        // This used to be ok at rtt max of 300ms, now some radios are >300
+        if (roundTripTime < 500) {
 
+            // what is the difference between my time i sent the server and its time?
             adjDrift = (svTimeStamp - myTimeStamp) - roundTripTime / 2;
 
-            BLog.d(TAG, "Pre-calc Drift is " + (svTimeStamp - myTimeStamp) + " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
+            BLog.d(TAG, "Pre-calc Drift is " + (svTimeStamp - myTimeStamp) +
+                    " round trip = " + (curTime - myTimeStamp) + " adjDrift = " + adjDrift);
 
             driftCalculator.AddSample(adjDrift, roundTripTime);
 
             DriftCalculator.Sample s = driftCalculator.BestSample();
             mLatency = s.roundTripTime;
-
             replyCount++;
 
             BLog.d(TAG, "Final Drift=" + (s.drift) + " RTT=" + s.roundTripTime);
-
             TimeSync.SetServerClockOffset(s.drift, s.roundTripTime);
         }
     }
+
 
     // Thread/ loop to send out requests
     void RunBroadcastLoop() {

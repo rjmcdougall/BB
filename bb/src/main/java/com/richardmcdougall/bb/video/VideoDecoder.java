@@ -8,14 +8,18 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMetadataRetriever;
 import android.opengl.GLES20;
-import android.test.AndroidTestCase;
+import android.os.Handler;
+import android.os.HandlerThread;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Extract frames from an MP4 using MediaExtractor, MediaCodec, and GLES.  Put a .mp4 file
@@ -34,15 +38,53 @@ public class VideoDecoder {
     private boolean stopRequested = false;
     public Thread decodeThread = null;
 
+    private float speed = 1.0f;
+    private float desiredSpeed = 1.0f;
+
+    // TODO: Set automatically to mp4 metadata
+    private int targetFrameRate = 30;
+
     private long videoDuration;
+
+    private int decodeCount = 0;
+    private int lastDecodeCount = 0;
+    private int displayCount = 0;
+    private int lastDisplayCount = 0;
+
+    private long videoDelay = 0;
+    private long lastSpeedCheck = System.currentTimeMillis();
+
+    long presentationTimeUs = 0;
+    float displayTime = 0.0f;
+
+    float syncTime = 0.0f;
+
+    ScheduledThreadPoolExecutor schStats = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    ScheduledThreadPoolExecutor schVideo;
+    Runnable videoStats = this::videoStats;
+    Runnable extractFrame = this::extractFrame;
 
     enum StateType {
         STOPPED,
         DECODING
     }
 
-    ;
     StateType state = StateType.STOPPED;
+
+    public VideoDecoder() {
+        schStats.scheduleWithFixedDelay(videoStats, 1, 1, TimeUnit.SECONDS);
+    }
+
+    private void videoStats() {
+        int framesDecoded = decodeCount - lastDecodeCount;
+        int framesDisplayed = displayCount - lastDisplayCount;
+        lastDisplayCount = displayCount;
+        lastDecodeCount = decodeCount;
+        speed = (float) framesDisplayed / (float) (System.currentTimeMillis() - lastSpeedCheck);
+        if (IsRunning()) {
+            BLog.i(TAG, "Video Player sync-time " + syncTime + " pres: " + (float) presentationTimeUs / 1000000.0f + " disp:" + displayTime + ", decode: " + framesDecoded + ", playing: " + framesDisplayed + " videodelay = " + videoDelay);
+        }
+    }
 
     public Boolean IsRunning() {
         if (decodeThread != null && !decodeThread.isAlive()) {
@@ -54,9 +96,17 @@ public class VideoDecoder {
         return state == StateType.DECODING;
     }
 
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        desiredSpeed = speed;
+    }
+
     public void Start(String fname, int xRes, int yRes) throws Throwable {
         BLog.v(TAG, "starting decodeThread");
-        Stop();
+        //Stop();
         stopRequested = false;
         sourceFilename = fname;
         outWidth = xRes;
@@ -96,7 +146,9 @@ public class VideoDecoder {
 
 
     public void VideoDecoderThread() {
+
         try {
+            BLog.e(TAG, "starting extractMpegFrames");
             extractMpegFrames();
         } catch (Throwable th) {
             BLog.e(TAG, "extractMpegFrames failed");
@@ -118,16 +170,51 @@ public class VideoDecoder {
      * it by adjusting the GL viewport to get letterboxing or pillarboxing, but generally if
      * you're extracting frames you don't want black bars.
      */
+    private MediaCodec codec = null;
+    private CodecOutputSurface outputSurface = null;
+    private MediaExtractor extractor = null;
+    private Handler mHandler;
+    private HandlerThread mHandlerThread;
+
+    private MediaCodec.BufferInfo info;
+
     private void extractMpegFrames() throws IOException {
-        MediaCodec codec = null;
-        CodecOutputSurface outputSurface = null;
-        MediaExtractor extractor = null;
+
         int saveWidth = outWidth;
         int saveHeight = outHeight;
 
-        while (!stopRequested) {
-            try {
+        BLog.d(TAG, "extractMpegFrames: Video file " + sourceFilename);
 
+        schVideo = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
+        mHandlerThread = new HandlerThread("video-surface-thread");
+        mHandlerThread.start();
+        mHandler = new Handler(mHandlerThread.getLooper());
+
+        Runnable codecCreatetask = () -> {
+            outputSurface = new CodecOutputSurface(saveWidth, saveHeight, mHandler);
+
+        };
+        // Start the codec on the same thread as the frame rate schedule driven task
+        schVideo.schedule(codecCreatetask, 0, TimeUnit.SECONDS);
+        try {
+            schVideo.awaitTermination(0, TimeUnit.SECONDS);
+        } catch (Exception e) {
+
+        }
+
+        while (!stopRequested) {
+
+            inputDone = false;
+            outputDone = false;
+
+            try {
+                // TODO: Could use width/height from the MediaFormat to get full-size frames.
+                BLog.e(TAG, "CodecOutputSurface: " + saveWidth + "," + saveHeight);
+
+
+
+                BLog.d(TAG, "extractMpegFrames: In loop Open Video file " + sourceFilename);
                 File inputFile = new File(sourceFilename);   // must be an absolute path
                 // The MediaExtractor error messages aren't very useful.  Check to see if the input
                 // file exists so we can throw a better one if it's not there.
@@ -143,6 +230,7 @@ public class VideoDecoder {
                 if (trackIndex < 0) {
                     throw new RuntimeException("No video track found in " + inputFile);
                 }
+                BLog.v(TAG, "select track : " + trackIndex);
                 extractor.selectTrack(trackIndex);
 
                 MediaMetadataRetriever retriever = new MediaMetadataRetriever();
@@ -154,8 +242,8 @@ public class VideoDecoder {
 
                 MediaFormat format = extractor.getTrackFormat(trackIndex);
 
-                // Could use width/height from the MediaFormat to get full-size frames.
-                outputSurface = new CodecOutputSurface(saveWidth, saveHeight);
+
+
 
                 // Create a MediaCodec decoder, and configure it with the MediaFormat from the
                 // extractor.  It's very important to use the format from the extractor because
@@ -166,9 +254,15 @@ public class VideoDecoder {
                 // DKW note that the NPI would fail to display videos because of an effort to use
                 // the hardware codec OMX.rk.video_decoder.avc when allowing automatic selection.
                 // Dragonboard used the software codec  so I am setting it explicitly.
+                BLog.v(TAG, "createByCodecName");
+
                 codec = MediaCodec.createByCodecName("OMX.google.h264.decoder");
 
-                codec.configure(format, outputSurface.getSurface(), null, 0);
+                try {
+                    codec.configure(format, outputSurface.getSurface(), null, 0);
+                } catch (Exception e) {
+                    BLog.e(TAG, "error configuring codec: " + e.getMessage() + ", coded = " + codec.toString());
+                }
 
                 BLog.v(TAG, "Dec: Video size is " + format.getInteger(MediaFormat.KEY_WIDTH) + "x" + format.getInteger(MediaFormat.KEY_HEIGHT));
                 BLog.v(TAG, "Dec: Duration: " + format.getLong(MediaFormat.KEY_DURATION));
@@ -182,6 +276,7 @@ public class VideoDecoder {
                 BLog.v(TAG, "Dec: MIME: " + format.getString(MediaFormat.KEY_MIME));
                 BLog.v(TAG, "Dec: Codec: " + codec.getName());
 
+                BLog.v(TAG, "codec.start()");
                 codec.start();
 
                 // Start the video at the same offset on each board through timesync
@@ -191,15 +286,25 @@ public class VideoDecoder {
                 extractor.seekTo(seekOffsetMicroseconds, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
 
 
-                doExtract(extractor, trackIndex, codec, outputSurface, onFrameReady, this);
+                BLog.v(TAG, "scheduleWithFixedDelay(extractFrame)");
+                schVideo.scheduleWithFixedDelay(extractFrame, 0, 30, TimeUnit.MILLISECONDS);
+
+                while (!outputDone && !stopRequested) {
+                    //BLog.v(TAG, "waiting for !outputDone && !stopRequested");
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception e) {
+                    }
+                }
+
+
+                int numSaved = (MAX_FRAMES < decodeCount) ? MAX_FRAMES : decodeCount;
+                BLog.v(TAG, "Saving " + numSaved);
 
             } finally {
                 // release everything we grabbed
                 BLog.v(TAG, "Exiting extractMpegFrames");
-                if (outputSurface != null) {
-                    outputSurface.release();
-                    outputSurface = null;
-                }
+
                 if (codec != null) {
                     codec.stop();
                     codec.release();
@@ -209,9 +314,20 @@ public class VideoDecoder {
                     extractor.release();
                     extractor = null;
                 }
+
             }
         }
 
+        if (outputSurface != null) {
+            outputSurface.release();
+            outputSurface = null;
+        }
+
+        if (mHandlerThread != null) {
+            mHandlerThread.quit();
+        }
+        BLog.v(TAG, "schVideo.shutdownNow()");
+        schVideo.shutdownNow();
         state = StateType.STOPPED;
     }
 
@@ -239,130 +355,127 @@ public class VideoDecoder {
         return videoDuration;
     }
 
-    /**
-     * Work loop.
-     */
-    private void doExtract(MediaExtractor extractor, int trackIndex, MediaCodec codec,
-                           CodecOutputSurface outputSurface, OnFrameReadyCallback callback,
-                           VideoDecoder parent) throws IOException {
+
+    private boolean outputDone = false;
+    private boolean inputDone = false;
+    private int inputChunk = 0;
+
+    private void extractFrame() {
+        //BLog.v(TAG, "extractFrame()");
         final int TIMEOUT_USEC = 10000;
+        // Feed more data to the decoder.
+        if (!inputDone) {
+            int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_USEC);
+            if (inputBufIndex >= 0) {
+                ByteBuffer inputBuf = codec.getInputBuffer(inputBufIndex);
 
-        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-        int inputChunk = 0;
-        int decodeCount = 0;
-
-
-        boolean outputDone = false;
-        boolean inputDone = false;
-        long lastFrameTime = System.currentTimeMillis();
-        long lastLogTime = System.currentTimeMillis();
-
-
-        while (!outputDone && !parent.stopRequested) {
-
-            // Feed more data to the decoder.
-            if (!inputDone) {
-                int inputBufIndex = codec.dequeueInputBuffer(TIMEOUT_USEC);
-                if (inputBufIndex >= 0) {
-                    ByteBuffer inputBuf = codec.getInputBuffer(inputBufIndex);
-
-                    // Read the sample data into the ByteBuffer.  This neither respects nor
-                    // updates inputBuf's position, limit, etc.
-                    int chunkSize = extractor.readSampleData(inputBuf, 0);
-                    //BLog.v(TAG,"chuck size" + chunkSize);
-                    if (chunkSize < 0) {
-                        // End of stream -- send empty frame with EOS flag set.
-                        codec.queueInputBuffer(inputBufIndex, 0, 0, 0L,
-                                MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-                        inputDone = true;
-                        BLog.v(TAG, "sent input EOS");
-                    } else {
-                        if (extractor.getSampleTrackIndex() != trackIndex) {
-                            BLog.w(TAG, "WEIRD: got sample from track " +
-                                    extractor.getSampleTrackIndex() + ", expected " + trackIndex);
-                        }
-                        long presentationTimeUs = extractor.getSampleTime();
-                        codec.queueInputBuffer(inputBufIndex, 0, chunkSize, presentationTimeUs, 0 /*flags*/);
-                        if ((System.currentTimeMillis() - lastLogTime) > 1000) {
-                            //lastLogTime = System.currentTimeMillis();
-                            BLog.v(TAG, "submitted frame " + inputChunk + " to dec, size=" + chunkSize + " presentation time: " + presentationTimeUs / 1000000);
-                        }
-
-                        inputChunk++;
-                        extractor.advance();
-                    }
+                // Read the sample data into the ByteBuffer.  This neither respects nor
+                // updates inputBuf's position, limit, etc.
+                int chunkSize = extractor.readSampleData(inputBuf, 0);
+                //BLog.v(TAG, "chunk size" + chunkSize);
+                if (chunkSize < 0) {
+                    // End of stream -- send empty frame with EOS flag set.
+                    //BLog.v(TAG, "codec.queueInputBuffer()");
+                    codec.queueInputBuffer(inputBufIndex, 0, 0, 0L,
+                            MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+                    inputDone = true;
+                    BLog.v(TAG, "sent input EOS");
                 } else {
-                    BLog.v(TAG, "input buffer not available");
+                    /*
+                    if (extractor.getSampleTrackIndex() != trackIndex) {
+                        BLog.w(TAG, "WEIRD: got sample from track " +
+                                extractor.getSampleTrackIndex() + ", expected " + trackIndex);
+                    }
+                     */
+                    presentationTimeUs = extractor.getSampleTime();
+                    //BLog.v(TAG, "codec.queueInputBuffer() for frame time " + presentationTimeUs);
+                    try {
+                        codec.queueInputBuffer(inputBufIndex, 0, chunkSize, presentationTimeUs, 0 /*flags*/);
+                    } catch (Exception e) {
+                        BLog.d(TAG, "codec.queueInputBuffer: " + e.getMessage());
+                    }
+                    //if ((System.currentTimeMillis() - lastLogTime) > 1000) {
+                    //lastLogTime = System.currentTimeMillis();
+                    // BLog.v(TAG, "submitted frame " + inputChunk + " to dec, size=" + chunkSize + " presentation time: " + presentationTimeUs / 1000000);
+                    //}
+
+                    inputChunk++;
+                    extractor.advance();
+                    decodeCount++;
+
                 }
+            } else {
+                BLog.v(TAG, "input buffer not available");
             }
+        }
 
-            if (!outputDone) {
+        if (!outputDone) {
+            //BLog.v(TAG, "output loop iter");
+            int decoderStatus = 0;
+            info = new MediaCodec.BufferInfo();
 
-                int decoderStatus = codec.dequeueOutputBuffer(info, TIMEOUT_USEC);
-                if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
-                    // no output available yet
-                    BLog.v(TAG, "no output from decoder available");
-                } else if (decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
-                    // not important for us, since we're using Surface
-                    BLog.v(TAG, "decoder output buffers changed");
-                } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                    MediaFormat newFormat = codec.getOutputFormat();
-                    BLog.v(TAG, "decoder output format changed: " + newFormat);
-                } else if (decoderStatus < 0) {
-                    throw (new IOException("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus));
-                } else { // decoderStatus >= 0
+            try {
+                decoderStatus = codec.dequeueOutputBuffer(info, TIMEOUT_USEC);
+            } catch (Exception e) {
+                BLog.e(TAG, "codec.dequeueOutputBuffer: " + e.getMessage());
+            }
+            if (decoderStatus == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                // no output available yet
+                BLog.v(TAG, "no output from decoder available");
+            } else if (decoderStatus == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+                // not important for us, since we're using Surface
+                BLog.v(TAG, "decoder output buffers changed");
+            } else if (decoderStatus == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                MediaFormat newFormat = codec.getOutputFormat();
+                BLog.v(TAG, "decoder output format changed: " + newFormat);
+            } else if (decoderStatus < 0) {
+                BLog.e(TAG, "unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus);
+                //throw (new IOException("unexpected result from decoder.dequeueOutputBuffer: " + decoderStatus));
+            } else { // decoderStatus >= 0
 
-                    //BLog.v(TAG,"surface decoder given buffer " + decoderStatus + " (size=" + info.size + ")");
+                //BLog.v(TAG,"surface decoder given buffer " + decoderStatus + " (size=" + info.size + ")");
 
-                    if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-                        BLog.v(TAG, "output EOS");
-                        outputDone = true;
-                    }
+                if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                    BLog.v(TAG, "output EOS");
+                    outputDone = true;
+                }
 
-                    boolean doRender = (info.size != 0);
+                boolean doRender = (info.size != 0);
+                //BLog.v(TAG, "output loop doRender = " + doRender);
 
-                    // As soon as we call releaseOutputBuffer, the buffer will be forwarded
-                    // to SurfaceTexture to convert to a texture.  The API doesn't guarantee
-                    // that the texture will be available before the call returns, so we
-                    // need to wait for the onFrameAvailable callback to fire.
-                    codec.releaseOutputBuffer(decoderStatus, doRender);
+                displayTime = (float) info.presentationTimeUs / 1000000.0f;
 
-                    if (doRender) {
-                        //BLog.v(TAG,"awaiting decode of frame " + decodeCount);
-                        outputSurface.awaitNewImage();
-                        outputSurface.drawImage(true);
+                // Start the video at the same offset on each board through timesync
+                long syncClockMicroseconds = TimeSync.CurrentClockAdjusted() * 1000;
+                long seekOffsetMicroseconds = syncClockMicroseconds % videoDuration;
+                syncTime = seekOffsetMicroseconds / 1000000.0f;
 
-                        outputSurface.outImage.mPixelBuf.rewind();
+                // As soon as we call releaseOutputBuffer, the buffer will be forwarded
+                // to SurfaceTexture to convert to a texture.  The API doesn't guarantee
+                // that the texture will be available before the call returns, so we
+                // need to wait for the onFrameAvailable callback to fire.
+                codec.releaseOutputBuffer(decoderStatus, doRender);
 
-                        GLES20.glReadPixels(0, 0, outputSurface.outImage.width, outputSurface.outImage.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
-                                outputSurface.outImage.mPixelBuf);
+                if (doRender) {
+                    //BLog.v(TAG,"doRender awaiting decode of frame " + decodeCount);
+                    outputSurface.awaitNewImage();
+                    outputSurface.drawImage(true);
+                    //BLog.v(TAG,"doRender got decode of frame " + decodeCount);
 
-                        if (callback != null)
-                            callback.callbackCall(outputSurface.outImage);
+                    outputSurface.outImage.mPixelBuf.rewind();
 
-                        long curFrameTime = System.currentTimeMillis();
+                    GLES20.glReadPixels(0, 0, outputSurface.outImage.width, outputSurface.outImage.height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE,
+                            outputSurface.outImage.mPixelBuf);
 
-                        // limit output framerate to 30fps (33ms per frame)
-                        if ((curFrameTime - lastFrameTime) < 33) {
-                            try {
-                                Thread.sleep(33 - (curFrameTime - lastFrameTime));
-                            } catch (Throwable er) {
-                                BLog.e(TAG, er.getMessage());
-                            }
-                        }
-                        lastFrameTime = curFrameTime;
-                        if ((System.currentTimeMillis() - lastLogTime) > 1000) {
-                            lastLogTime = System.currentTimeMillis();
-                            BLog.v(TAG, "Decoding frame " + decodeCount);
-                        }
-                        decodeCount++;
-                    }
+                    //BLog.v(TAG,"onFrameReady.callbackCall");
+                    onFrameReady.callbackCall(outputSurface.outImage);
+
+                    displayCount++;
                 }
             }
         }
 
-        int numSaved = (MAX_FRAMES < decodeCount) ? MAX_FRAMES : decodeCount;
-        BLog.v(TAG, "Saving " + numSaved);
+
     }
 
 }

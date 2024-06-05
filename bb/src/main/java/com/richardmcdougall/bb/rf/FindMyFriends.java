@@ -173,15 +173,16 @@ public class FindMyFriends {
                 mLastRecv = System.currentTimeMillis();
                 mLastHeardLocation = packet.clone();
                 BLog.d(TAG, service.allBoards.boardAddressToName(mTheirAddress) +
-                        " strength " + sigStrength +
+                        " strength " + sigStrength +  ", " +
                         "theirLat = " + mTheirLat + ", " +
-                        "theirLon = " + mTheirLon +
-                        "theirBatt = " + mTheirBatt);
+                        "theirLon = " + mTheirLon + ", " +
+                        "theirBatt = " + mTheirBatt + ", " +
+                        "inCrisis = " + mTheirInCrisis);
                 this.service.boardLocations.updateBoardLocations(mTheirAddress, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone(), mTheirInCrisis);
                 return true;
             }
             else {
-                BLog.d(TAG, "rogue packet not for us!");
+                //BLog.d(TAG, "rogue packet not for us!");
             }
             return false;
         } catch (Exception e) {

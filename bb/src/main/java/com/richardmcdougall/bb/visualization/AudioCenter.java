@@ -1,13 +1,20 @@
 package com.richardmcdougall.bb.visualization;
 
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bbcommon.BoardState;
 
 public class AudioCenter extends Visualization {
 
     private Wheel mWheel = new Wheel();
+    private int pixelSlow;
 
     public AudioCenter(BBService service) {
         super(service);
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
+            pixelSlow = 2;
+        } else {
+            pixelSlow = 0;
+        }
     }
 
     private void drawRectCenter(int size, int color) {
@@ -29,8 +36,17 @@ public class AudioCenter extends Visualization {
         }
     }
 
+    private int iter = 0;
     public void update(int mode) {
 
+        iter++;
+
+        // Reduce speed for mezcals, etc...
+        if (pixelSlow > 0) {
+            if ((iter % pixelSlow) == 0) {
+                return;
+            }
+        }
         int level;
         level = service.audioVisualizer.getLevel();
         service.burnerBoard.fadePixels(15);
