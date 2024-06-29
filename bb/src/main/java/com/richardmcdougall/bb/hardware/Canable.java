@@ -25,6 +25,10 @@ import java.util.concurrent.TimeUnit;
 /*
     Canable serial CANBUS
 
+    We use Canable 1 hardware
+    Must be running sclan firmware
+    Update the device with https://canable.io/updater/canable1.html
+
     https://github.com/normaldotcom/cantact-fw
 
     O - Open channel
