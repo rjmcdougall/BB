@@ -126,7 +126,7 @@ public class BatterySupervisor {
 
         }
         if (announce) {
-            service.speak("Battery Level is " + level + " percent", "batteryLow");
+            service.speak("Battery Level is " + (int)level + " percent", "batteryLow");
         }
     }
 
