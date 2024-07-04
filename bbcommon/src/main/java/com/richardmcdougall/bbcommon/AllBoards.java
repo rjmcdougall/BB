@@ -120,10 +120,16 @@ public class AllBoards {
                 for (int i = 0; i < boards2.length(); i++) {
                     JSONObject a = boards2.getJSONObject(i);
                     if (a.has("address")) a.remove("address");
+                    if (a.has("bootName")) a.remove("bootName");
                     if (a.has("isProfileGlobal")) a.remove("isProfileGlobal");
+                    if (a.has("isProfileGlobal2")) a.remove("isProfileGlobal2");
                     if (a.has("profile")) a.remove("profile");
+                    if (a.has("profile2")) a.remove("profile2");
                     if (a.has("type")) a.remove("type");
                     if (a.has("displayTeensy")) a.remove("displayTeensy");
+                    if (a.has("displayDebug")) a.remove("displayDebug");
+                    if (a.has("createdDate")) a.remove("createdDate");
+                    if (a.has("videoContrastMultiplier")) a.remove("videoContrastMultiplier");
                 }
             } catch (Exception e) {
                 BLog.d(TAG, "Could not get boards directory: " + e.getMessage());
