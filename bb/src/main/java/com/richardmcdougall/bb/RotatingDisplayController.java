@@ -31,7 +31,7 @@ public class RotatingDisplayController {
 
     public RotatingDisplayController(BBService service) {
         this.service = service;
-        sch.scheduleAtFixedRate(checkForRotatingDisplay, 10, 1, TimeUnit.SECONDS);
+        sch.scheduleWithFixedDelay(checkForRotatingDisplay, 10, 1, TimeUnit.SECONDS);
     }
 
     public void EnableRotatingDisplay(boolean isRotatingDisplay) {
@@ -52,7 +52,7 @@ public class RotatingDisplayController {
         try {
             this.service.visualizationController.setMode(99);
             BLog.d(TAG, "Display Mode video switch to mode " + this.service.boardState.currentVideoMode);
-            int secondsBeforeSwitch = 10;
+            int secondsBeforeSwitch = 6;
 
             if (this.service.mediaManager.GetVideo(this.service.boardState.currentVideoMode).has("Length")) {
                 secondsBeforeSwitch = this.service.mediaManager.GetVideo(this.service.boardState.currentVideoMode).getInt("Length");
