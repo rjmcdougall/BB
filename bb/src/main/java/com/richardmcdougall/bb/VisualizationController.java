@@ -396,8 +396,8 @@ public class VisualizationController {
         showingMap = service.burnerBoard.getFrameRate() * 15;
     }
 
-    public void setDisplayMode(int displayMode) {
-        service.boardState.displayMode = displayMode;
+    public void setFunMode(boolean funMode) {
+        service.boardState.funMode = funMode;
     }
 
     public void setMode(int mode) {
