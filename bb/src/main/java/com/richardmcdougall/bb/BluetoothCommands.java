@@ -205,6 +205,9 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Video command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
+                        //must set the state before setting the channel or a race condition
+                        //will result in the wrong video being posted back to the app.
+                        service.boardState.currentVideoMode=track;
                         service.visualizationController.setMode(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting video track: " + e.getMessage());
@@ -273,6 +276,9 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Audio command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
+                        //must set the state before setting the channel or a race condition
+                        //will result in the wrong track being posted back to the app.
+                        service.boardState.currentRadioChannel = track;
                         service.musicController.SetRadioChannel(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting audio track: " + e.getMessage());
@@ -379,8 +385,8 @@ public class BluetoothCommands {
     public JSONObject MinimizedState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("acn", service.boardState.currentRadioChannel - 1);
-            state.put("vcn", service.boardState.currentVideoMode - 1);
+            state.put("acn", service.boardState.currentRadioChannel);
+            state.put("vcn", service.boardState.currentVideoMode);
             state.put("v", service.musicController.getAndroidVolumePercent());
             state.put("b", service.boardState.batteryLevel);
             state.put("am", service.boardState.masterRemote);
