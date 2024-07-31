@@ -208,6 +208,9 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Video command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
+                        //must set the state before setting the channel or a race condition
+                        //will result in the wrong video being posted back to the app.
+                        service.boardState.currentVideoMode=track;
                         service.visualizationController.setMode(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting video track: " + e.getMessage());
@@ -276,6 +279,9 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got Audio command:" + payload.toString());
                     try {
                         int track = payload.getInt("arg");
+                        //must set the state before setting the channel or a race condition
+                        //will result in the wrong track being posted back to the app.
+                        service.boardState.currentRadioChannel = track;
                         service.musicController.SetRadioChannel(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting audio track: " + e.getMessage());
@@ -283,14 +289,14 @@ public class BluetoothCommands {
                     sendStateResponse(command, device);
 
                 });
-        service.bLEServer.addCallback("DisplayMode",
+        service.bLEServer.addCallback("FunMode",
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
-                    BLog.d(TAG, "BBservice got DisplayMode command:" + payload.toString());
+                    BLog.d(TAG, "BBservice got FunMode command:" + payload.toString());
                     try {
-                        int displayMode = payload.getInt("arg");
-                        service.visualizationController.setDisplayMode(displayMode);
+                        boolean funMode = payload.getBoolean("arg");
+                        service.boardState.funMode=funMode;
                     } catch (Exception e) {
-                        BLog.e(TAG, "error setting display mode: " + e.getMessage());
+                        BLog.e(TAG, "error setting FunMode: " + e.getMessage());
                     }
                     sendStateResponse(command, device);
 
@@ -382,8 +388,8 @@ public class BluetoothCommands {
     public JSONObject MinimizedState() {
         JSONObject state = new JSONObject();
         try {
-            state.put("acn", service.boardState.currentRadioChannel - 1);
-            state.put("vcn", service.boardState.currentVideoMode - 1);
+            state.put("acn", service.boardState.currentRadioChannel);
+            state.put("vcn", service.boardState.currentVideoMode);
             state.put("v", service.musicController.getAndroidVolumePercent());
             state.put("b", service.boardState.batteryLevel);
             state.put("am", service.boardState.masterRemote);
@@ -397,7 +403,7 @@ public class BluetoothCommands {
             state.put("p", service.boardState.password);
             state.put("r",service.boardState.inCrisis);
             state.put("rd",service.boardState.rotatingDisplay);
-            state.put("dm", service.boardState.displayMode);
+            state.put("fm", service.boardState.funMode);
 
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());

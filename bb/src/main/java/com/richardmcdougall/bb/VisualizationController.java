@@ -369,7 +369,14 @@ public class VisualizationController {
                 return service.burnerBoard.getFrameRate();
             }
 
-            JSONObject videos = service.mediaManager.GetVideo(mode);
+         JSONObject videos;
+         if(this.service.boardState.funMode){
+                videos = service.mediaManager.GetFuuModeVide();
+            }
+            else {
+                 videos = service.mediaManager.GetVideo(mode);
+            }
+
             if (videos == null) {
                 return service.burnerBoard.getFrameRate();
             }
@@ -394,10 +401,6 @@ public class VisualizationController {
 
     public void showMap() {
         showingMap = service.burnerBoard.getFrameRate() * 15;
-    }
-
-    public void setDisplayMode(int displayMode) {
-        service.boardState.displayMode = displayMode;
     }
 
     public void setMode(int mode) {
