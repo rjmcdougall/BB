@@ -22,6 +22,8 @@ public class Video extends Visualization {
     private int lastVideoMode = -1;
     private BBService service = null;
     private int videoContrastMultiplier = 1;
+    private boolean lastFunMode = false;
+
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     Runnable videoSpeedController = this::videoSpeedController;
 
@@ -45,7 +47,8 @@ public class Video extends Visualization {
 
         int curVidIndex = mode % nVideos;
 
-        if (curVidIndex != lastVideoMode && mVideoDecoder.IsRunning()) {
+        if(this.service.boardState.funMode != lastFunMode || curVidIndex != lastVideoMode
+                && mVideoDecoder.IsRunning()){
             service.visualizationController.resetParkedTime();
             mVideoDecoder.Stop();
         }
@@ -62,13 +65,18 @@ public class Video extends Visualization {
             };
 
             try {
-                mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), service.burnerBoard.boardWidth, service.burnerBoard.boardHeight);
+                if(this.service.boardState.funMode)
+                    mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), service.burnerBoard.boardWidth, service.burnerBoard.boardHeight);
+
             } catch (Throwable throwable) {
                 //Log.d(TAG, "Unable to start decoder");
                 //throwable.printStackTrace();
             }
             if (curVidIndex != lastVideoMode) {
                 lastVideoMode = curVidIndex;
+            }
+            if(this.service.boardState.funMode != lastFunMode){
+                lastFunMode = this.service.boardState.funMode;
             }
         }
         if (currentVideoFrame != null) {

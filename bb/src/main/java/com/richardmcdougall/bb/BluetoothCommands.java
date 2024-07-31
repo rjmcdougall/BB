@@ -291,7 +291,7 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got FunMode command:" + payload.toString());
                     try {
                         boolean funMode = payload.getBoolean("arg");
-                        service.visualizationController.setFunMode(funMode);
+                        service.boardState.funMode=funMode;
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting FunMode: " + e.getMessage());
                     }

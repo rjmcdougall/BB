@@ -172,7 +172,8 @@ public class MediaManager {
             for (int i = 0; i < flist.length; i++) {
                 String fname = flist[i].getName();
 
-                if (fname.endsWith(".mp4") || fname.endsWith(".mp3") || fname.endsWith(".m4a")) {
+                if ((fname.endsWith(".mp4") || fname.endsWith(".mp3") || fname.endsWith(".m4a"))
+                && !fname.startsWith("fun")) { // dont delete fun mode.
                     if (!refrerencedFiles.contains(fname)) {
                         flist[i].delete();
                     }
@@ -433,7 +434,14 @@ public class MediaManager {
 
     public String GetVideoFile(int index) {
         try {
-            String fn = filesDir + "/" + GetVideo(index).getString("localName");
+
+            String fn;
+            if(this.service.boardState.funMode){
+                fn = filesDir + "/" + GetFuuModeVide().getString("localName");
+            }
+            else {
+                fn = filesDir + "/" + GetVideo(index).getString("localName");
+            }
             return fn;
         } catch (JSONException e) {
             BLog.e(TAG, e.getMessage());
@@ -486,6 +494,15 @@ public class MediaManager {
         }
     }
 
+    JSONObject GetFuuModeVide(){
+        try {
+            JSONObject jObject = new JSONObject("{\"localName\":\"fun" + this.service.boardState.BOARD_ID + ".mp4\",\"Size\":0,\"URL\":\"https:\\/\\/storage.googleapis.com\\/burner-board\\/BurnerBoardMedia\\/global\\/SnapshotWithM4As\\/lightrays.mp4\",\"ordinal\":1000}");
+            return jObject;
+        } catch (JSONException e) {
+            BLog.e(TAG, e.getMessage());
+            return null;
+        }
+    }
     JSONObject GetVideo(int mode) {
         if (dataDirectory.has("video")) {
             try {
