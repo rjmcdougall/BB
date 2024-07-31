@@ -164,7 +164,9 @@ public class BluetoothLEServer {
                 } catch (Exception e) {
                     BLog.e(TAG, "Bluetooth tx response failed.");
                 }
-                return;
+                BLog.d(TAG, "Bluetooth tx response done");
+
+            return;
 
         });
         t.start();

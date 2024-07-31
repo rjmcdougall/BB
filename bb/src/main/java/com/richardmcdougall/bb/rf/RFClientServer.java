@@ -175,7 +175,7 @@ public class RFClientServer {
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
 
-        BLog.d(TAG, "server time: " + svTimeStamp + ", mytime rx from server: " + myTimeStamp + ", currentTime: " + curTime);
+        BLog.d(TAG, "BB Sync Packet server time: " + svTimeStamp + ", mytime rx from server: " + myTimeStamp + ", currentTime: " + curTime);
 
         // This used to be ok at rtt max of 300ms, now some radios are >300
         if (roundTripTime < 500) {
