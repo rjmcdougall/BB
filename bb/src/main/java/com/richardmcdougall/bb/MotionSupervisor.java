@@ -85,7 +85,7 @@ public class MotionSupervisor {
         }
 
         if (mMotionState == motionStates.STATE_BRAKING) {
-            service.burnerBoard.brakeOverlayBuilder.setBrake(true);
+            //service.burnerBoard.brakeOverlayBuilder.setBrake(true);
         }
         if (!mMotionState.equals(priorMotionState)) {
             BLog.d(TAG, "State changed to " + mMotionState);

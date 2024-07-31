@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb.video;
 
 import com.richardmcdougall.bb.TimeSync;
+import com.richardmcdougall.bb.hardware.Canable;
 import com.richardmcdougall.bbcommon.BLog;
 
 import android.media.MediaCodec;
@@ -19,6 +20,7 @@ import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +61,16 @@ public class VideoDecoder {
 
     float syncTime = 0.0f;
 
-    ScheduledThreadPoolExecutor schStats = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    VideoThreadFactory videoThreadFactory= new VideoThreadFactory();
+    class VideoThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("videoDecoder");
+            return t;
+        }
+    }
+
+    ScheduledThreadPoolExecutor schStats = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, videoThreadFactory);
     ScheduledThreadPoolExecutor schVideo;
     Runnable videoStats = this::videoStats;
     Runnable extractFrame = this::extractFrame;
@@ -185,7 +196,7 @@ public class VideoDecoder {
 
         BLog.d(TAG, "extractMpegFrames: Video file " + sourceFilename);
 
-        schVideo = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+        schVideo = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, videoThreadFactory);
 
         mHandlerThread = new HandlerThread("video-surface-thread");
         mHandlerThread.start();

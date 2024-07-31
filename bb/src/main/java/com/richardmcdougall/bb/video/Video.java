@@ -8,6 +8,7 @@ import com.richardmcdougall.bb.visualization.Visualization;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -22,7 +23,16 @@ public class Video extends Visualization {
     private int lastVideoMode = -1;
     private BBService service = null;
     private int videoContrastMultiplier = 1;
-    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+
+    VideoThreadFactory videoThreadFactory= new VideoThreadFactory();
+    class VideoThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("video");
+            return t;
+        }
+    }
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, videoThreadFactory);
     Runnable videoSpeedController = this::videoSpeedController;
 
     public Video(BBService service ) {
