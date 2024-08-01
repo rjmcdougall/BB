@@ -436,7 +436,7 @@ public class MediaManager {
         try {
 
             String fn;
-            if(this.service.boardState.funMode){
+            if(this.service.boardState.GetFunMode()){
                 fn = filesDir + "/" + GetFuuModeVide().getString("localName");
             }
             else {

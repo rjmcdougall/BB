@@ -47,7 +47,7 @@ public class Video extends Visualization {
 
         int curVidIndex = mode % nVideos;
 
-        if(this.service.boardState.funMode != lastFunMode || curVidIndex != lastVideoMode
+        if(this.service.boardState.GetFunMode() != lastFunMode || curVidIndex != lastVideoMode
                 && mVideoDecoder.IsRunning()){
             service.visualizationController.resetParkedTime();
             mVideoDecoder.Stop();
@@ -65,7 +65,7 @@ public class Video extends Visualization {
             };
 
             try {
-                if(this.service.boardState.funMode)
+                if(this.service.boardState.GetFunMode())
                     mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), service.burnerBoard.boardWidth, service.burnerBoard.boardHeight);
 
             } catch (Throwable throwable) {
@@ -75,8 +75,8 @@ public class Video extends Visualization {
             if (curVidIndex != lastVideoMode) {
                 lastVideoMode = curVidIndex;
             }
-            if(this.service.boardState.funMode != lastFunMode){
-                lastFunMode = this.service.boardState.funMode;
+            if(this.service.boardState.GetFunMode() != lastFunMode){
+                lastFunMode = this.service.boardState.GetFunMode();
             }
         }
         if (currentVideoFrame != null) {

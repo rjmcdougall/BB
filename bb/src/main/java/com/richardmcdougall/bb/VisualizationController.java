@@ -370,7 +370,7 @@ public class VisualizationController {
             }
 
          JSONObject videos;
-         if(this.service.boardState.funMode){
+         if(this.service.boardState.GetFunMode()){
                 videos = service.mediaManager.GetFuuModeVide();
             }
             else {

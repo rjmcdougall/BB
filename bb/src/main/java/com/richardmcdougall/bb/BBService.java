@@ -24,6 +24,7 @@ import com.richardmcdougall.bbcommon.BBWifi;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
+import com.richardmcdougall.bbcommon.PersistentCache;
 
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -85,6 +86,7 @@ public class BBService extends Service {
     public DisplayMapManager displayMapManager = null;
     public DisplayMapManager2 displayMapManager2 = null;
     private boolean textToSpeechReady = false;
+    public PersistentCache persistentCache = null;
 
     private ActivityManager.MemoryInfo mMemoryInfo = null;
 
@@ -157,6 +159,8 @@ public class BBService extends Service {
                 Thread.sleep(2000);
             }
             boardState = new BoardState(this.context, this.allBoards);
+            persistentCache = new PersistentCache(this);
+
             BLog.i(TAG, "State Device ID " + boardState.DEVICE_ID);
 
             wifi = new BBWifi(context,boardState);
@@ -182,6 +186,7 @@ public class BBService extends Service {
             BLog.i(TAG, "Display Teensy " + boardState.displayTeensy);
             BLog.i(TAG, "Video Contrast Multiplier  " + boardState.videoContrastMultiplier);
             BLog.i(TAG, "Display Debug  " + boardState.displayDebug);
+            BLog.i(TAG, "Fun Mode " + boardState.GetFunMode());
 
             // register to recieve USB events
             IntentFilter ufilter = new IntentFilter();

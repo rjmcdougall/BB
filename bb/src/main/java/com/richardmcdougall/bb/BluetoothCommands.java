@@ -291,7 +291,7 @@ public class BluetoothCommands {
                     BLog.d(TAG, "BBservice got FunMode command:" + payload.toString());
                     try {
                         boolean funMode = payload.getBoolean("arg");
-                        service.boardState.funMode=funMode;
+                        service.boardState.SetFunMode(funMode);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting FunMode: " + e.getMessage());
                     }
@@ -400,7 +400,7 @@ public class BluetoothCommands {
             state.put("p", service.boardState.password);
             state.put("r",service.boardState.inCrisis);
             state.put("rd",service.boardState.rotatingDisplay);
-            state.put("fm", service.boardState.funMode);
+            state.put("fm", service.boardState.GetFunMode());
 
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());

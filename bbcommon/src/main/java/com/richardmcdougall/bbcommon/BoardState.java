@@ -44,7 +44,7 @@ public class BoardState {
     public int batteryLevel = -1;
     public int currentRadioChannel = 0;
     public int currentVideoMode = 0;
-    public boolean funMode = false;
+    private boolean funMode = false;
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy;
@@ -61,6 +61,7 @@ public class BoardState {
     public boolean rotatingDisplay = false;
     public String profile = "";
     public boolean displayDebug = false;
+    private PersistentCache persistentCache = null;
 
     public int pixelSlow;
 
@@ -73,6 +74,15 @@ public class BoardState {
         else
             return boardType;
 
+    }
+
+    public void SetFunMode(boolean funMode){
+        this.persistentCache.saveData("funMode",String.valueOf(funMode));
+        this.funMode = funMode;
+    }
+
+    public boolean GetFunMode(){
+        return this.funMode;
     }
 
     public static PlatformType GetPlatformType() {
@@ -143,6 +153,10 @@ public class BoardState {
             setSSISAndPassword(WIFI_SSID, WIFI_PASS);
             getSSIDAndPassword();
         }
+
+        this.persistentCache = new PersistentCache(context);
+        if(persistentCache.exists("funMode"))
+            this.funMode = Boolean.parseBoolean(persistentCache.getData("funMode")) ;
 
         // check every minute to see if AllBoards updates happened.
         Runnable checkForUpdates = () -> UpdateFromAllBoards();
