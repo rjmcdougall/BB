@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 
@@ -59,7 +60,8 @@ class Canable implements SerialInputOutputManager.Listener {
     private BBService service = null;
     private SerialInputOutputManager mSerialIoManager;
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
-    private ScheduledThreadPoolExecutor sch = (java.util.concurrent.ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    CanableThreadFactory canableThreadFactory= new CanableThreadFactory();
+    private ScheduledThreadPoolExecutor sch = (java.util.concurrent.ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, canableThreadFactory);
     Runnable usbSupervisor = () -> usbSupervisor();
 
     protected final Object mSerialConn = new Object();
@@ -86,6 +88,13 @@ class Canable implements SerialInputOutputManager.Listener {
         }
     }
 
+    class CanableThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("canable");
+            return t;
+        }
+    }
     private void usbSupervisor() {
         //BLog.e(TAG, "supervisor");
 

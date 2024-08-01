@@ -78,7 +78,11 @@ public class MusicController implements Runnable {
 
         CreateExoplayer();
 
-        Looper.loop();
+        try {
+            Looper.loop();
+        } catch (Exception e) {
+
+        }
     }
 
     private void CreateExoplayer() {
@@ -135,7 +139,11 @@ public class MusicController implements Runnable {
         if (nextRadioChannel >= service.mediaManager.GetTotalAudio())
             nextRadioChannel = 0;
 
-        this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
+        try {
+            this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
+        } catch (Exception e) {
+
+        }
     }
 
     public void PreviousStream() {
@@ -143,11 +151,19 @@ public class MusicController implements Runnable {
         if (nextRadioChannel < 0) {
             nextRadioChannel = service.mediaManager.GetTotalAudio() -1;
         }
-        this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
+        try {
+            this.handler.post(() -> mSetRadioChannel(nextRadioChannel));
+        } catch (Exception e) {
+
+        }
     }
 
     public void RadioMode() {
-        this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel));
+        try {
+            this.handler.post(() -> mSetRadioChannel(service.boardState.currentRadioChannel));
+        } catch (Exception e) {
+
+        }
     }
 
     private long GetCurrentStreamLengthInSeconds() {
@@ -257,18 +273,18 @@ public class MusicController implements Runnable {
         BLog.d(TAG, "SetRadioChannel: " + index);
         service.boardState.currentRadioChannel = index;
 
-        // If I am set to be the master, broadcast to other boards
-        if (service.boardState.masterRemote && (service.rfClientServer != null)) {
-
-            BLog.d(TAG, "Sending remote");
-
-            String fileName = getRadioChannelInfo(index);
-            if(service.boardState.masterRemote)
-                service.masterController.SendAudio();
-
-        }
-
         try {
+            // If I am set to be the master, broadcast to other boards
+            if (service.boardState.masterRemote && (service.rfClientServer != null)) {
+
+                BLog.d(TAG, "Sending remote");
+
+                String fileName = getRadioChannelInfo(index);
+                if (service.boardState.masterRemote)
+                    service.masterController.SendAudio();
+
+            }
+
             BLog.d(TAG, "Radio Mode");
             String[] shortName = getRadioChannelInfo(index).split("\\.", 2);
             service.burnerBoard.textBuilder.setText(shortName[0], 2000, service.burnerBoard.getFrameRate(), new RGBList().getColor("white"));
@@ -284,7 +300,7 @@ public class MusicController implements Runnable {
 
             this.handler.post(() -> mSeekAndPlay());
         } catch (Throwable err) {
-            BLog.e(TAG, "Radio mode failed" + err.getMessage());
+            BLog.e(TAG, "Radio mode failed " + err.getMessage());
         }
 
     }

@@ -8,6 +8,7 @@ import com.richardmcdougall.bb.visualization.Visualization;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -24,7 +25,15 @@ public class Video extends Visualization {
     private int videoContrastMultiplier = 1;
     private boolean lastFunMode = false;
 
-    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+    VideoThreadFactory videoThreadFactory= new VideoThreadFactory();
+    class VideoThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("video");
+            return t;
+        }
+    }
+    ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, videoThreadFactory);
     Runnable videoSpeedController = this::videoSpeedController;
 
     public Video(BBService service ) {
@@ -47,9 +56,9 @@ public class Video extends Visualization {
 
         int curVidIndex = mode % nVideos;
 
-        if(this.service.boardState.GetFunMode() != lastFunMode || curVidIndex != lastVideoMode
+        if((this.service.boardState.GetFunMode() != lastFunMode || curVidIndex != lastVideoMode)
                 && mVideoDecoder.IsRunning()){
-            service.visualizationController.resetParkedTime();
+     //       service.visualizationController.resetParkedTime();
             mVideoDecoder.Stop();
         }
 
@@ -65,9 +74,7 @@ public class Video extends Visualization {
             };
 
             try {
-                if(this.service.boardState.GetFunMode())
-                    mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), service.burnerBoard.boardWidth, service.burnerBoard.boardHeight);
-
+                mVideoDecoder.Start(service.mediaManager.GetVideoFile(curVidIndex), service.burnerBoard.boardWidth, service.burnerBoard.boardHeight);
             } catch (Throwable throwable) {
                 //Log.d(TAG, "Unable to start decoder");
                 //throwable.printStackTrace();

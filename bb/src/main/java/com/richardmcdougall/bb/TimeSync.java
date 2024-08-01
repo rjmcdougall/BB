@@ -29,7 +29,7 @@ public class TimeSync {
 
     public static long CurrentClockAdjusted() {
         long cca = GetCurrentClock() + serverTimeOffset;
-        BLog.d(TAG, GetCurrentClock() + " + " + serverTimeOffset + " = " + cca);
+        //BLog.d(TAG, GetCurrentClock() + " + " + serverTimeOffset + " = " + cca);
         return cca;
     }
 

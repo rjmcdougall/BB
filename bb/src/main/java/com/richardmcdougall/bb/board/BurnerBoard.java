@@ -389,7 +389,7 @@ public abstract class BurnerBoard {
 
     public void setStrip(int strip, int[] pixels) {
         int len = Math.min(600 * 3, pixels.length);
-        BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
+        //BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
         byte[] newPixels = new byte[len];
         for (int pixel = 0; pixel < len; pixel++) {
             newPixels[pixel] = (byte) (((pixels[pixel] == 0) ||

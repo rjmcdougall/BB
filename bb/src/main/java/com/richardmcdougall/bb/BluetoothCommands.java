@@ -22,6 +22,7 @@ public class BluetoothCommands {
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
                     BLog.d(TAG, "BBservice got getboards OnAction");
                     JSONObject response = new JSONObject();
+
                     try {
                         response.put("command", command);
                         response.put("boards", service.allBoards.MinimizedBoards());
@@ -33,7 +34,7 @@ public class BluetoothCommands {
                         }
                     }
 
-                    service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes());
+                    service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes().clone());
 
                     BLog.d(TAG, "BBservice done getboards command: " + response.toString());
 
@@ -98,12 +99,14 @@ public class BluetoothCommands {
                     JSONObject response = new JSONObject();
                     try {
                         response.put("command", command);
-                        response.put("boards", service.allBoards.MinimizedBoards());
                         JSONArray audio = service.mediaManager.MinimizedAudio();
                         if (audio == null)
                             BLog.d(TAG, "Empty Audio");
                         else
                             response.put("audio", audio);
+
+                        response.put("boards", service.allBoards.MinimizedBoards());
+
                         JSONArray video = service.mediaManager.MinimizedVideo();
                         if (video == null)
                             BLog.d(TAG, "Empty VideoMedia");

@@ -388,10 +388,15 @@ public class MediaManager {
 
     String GetAudioFile() {
         try {
-            String fn = filesDir + "/" + GetAudio().getString("localName");
-            return fn;
+            JSONObject audio = GetAudio();
+            if (audio != null) {
+                String fn = filesDir + "/" + GetAudio().getString("localName");
+                return fn;
+            } else {
+                return null;
+            }
         } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "GetAudioFile" + e.getMessage());
             return null;
         }
     }
@@ -402,7 +407,7 @@ public class MediaManager {
                 String fn = dataDirectory.getJSONArray("audio").getJSONObject(index).getString("localName");
                 return fn;
             } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
+                BLog.e(TAG, "GetAudioFileLocalName" + e.getMessage());
                 return null;
             }
         } else {
@@ -424,7 +429,7 @@ public class MediaManager {
                 }
                 return fn;
             } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
+                BLog.e(TAG, "GetVideoFileLocalName" + e.getMessage());
                 return null;
             }
         } else {
@@ -444,7 +449,7 @@ public class MediaManager {
             }
             return fn;
         } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "GetVideoFile" + e.getMessage());
             return null;
         }
     }
@@ -454,7 +459,7 @@ public class MediaManager {
         try {
             return dataDirectory.getJSONArray("audio").length();
         } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "GetTotalAudio" + e.getMessage());
             return 0;
         }
 
@@ -478,7 +483,7 @@ public class MediaManager {
 
                 return map;
             } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
+                BLog.e(TAG, "GetMapMode" + e.getMessage());
                 return -1;
             }
         } else
@@ -489,7 +494,7 @@ public class MediaManager {
         try {
             return dataDirectory.getJSONArray("video").length();
         } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "GetTotalVideo" + e.getMessage());
             return 0;
         }
     }
@@ -508,7 +513,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(mode);
             } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
+                BLog.e(TAG, "GetVideo" + e.getMessage());
                 return null;
             }
         } else
@@ -520,7 +525,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("video").getJSONObject(mode).getString("algorithm");
             } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
+                BLog.e(TAG, "GetAlgorithm" + e.getMessage());
                 return null;
             }
         } else
@@ -532,7 +537,7 @@ public class MediaManager {
             try {
                 return dataDirectory.getJSONArray("audio").getJSONObject(service.boardState.currentRadioChannel);
             } catch (JSONException e) {
-                BLog.e(TAG, e.getMessage());
+                BLog.e(TAG, "GetAudio " + e.getMessage());
                 return null;
             }
         } else
@@ -543,7 +548,7 @@ public class MediaManager {
         try {
             return GetAudio().getLong("Length");
         } catch (JSONException e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "GetAudioLength " + e.getMessage());
             return 1000;   // return a dummy value
         }
     }
