@@ -136,7 +136,6 @@ public class BBService extends Service {
 
             //VMRuntime.getRuntime().setMinimumHeapSize(BIGGER_SIZE);
 
-
             mMemoryInfo = getAvailableMemory();
 
             if (mMemoryInfo != null) {
@@ -203,17 +202,6 @@ public class BBService extends Service {
             // Register to know when bluetooth remote connects
             btReceive = new BluetoothReceiver(this);
             context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
-
-            ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
-            Runnable seekAndPlay = () -> {
-                if (boardState.platformType == BoardState.PlatformType.rpi) {
-                    speak("Raspberry PI detected","rpi diagnostic");
-                    if (wifi.ipAddress != null) {
-                        speak("My WiFi IP is: " + wifi.ipAddress,"wifi ip");
-                    }
-                }
-            };
-            sch.schedule(seekAndPlay, 3, TimeUnit.SECONDS);
 
             mediaManager = new MediaManager(this);
 

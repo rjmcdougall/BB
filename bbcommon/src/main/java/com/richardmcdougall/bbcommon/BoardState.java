@@ -27,8 +27,6 @@ public class BoardState {
     private static final String WIFI_SSID = "burnerboard";
     private static final String WIFI_PASS = "firetruck";
 
-    // Raspberry PIs have some subtle different behaviour. Use this Boolean to toggle
-    public static final boolean kIsRPI = Build.MODEL.contains("rpi3");
     public static final boolean kIsNano = Build.MODEL.contains("NanoPC-T4");
 
     public String BOARD_ID = "";
@@ -51,7 +49,7 @@ public class BoardState {
     private BoardType boardType;
 
     public static String serial = Build.SERIAL;
-    public PlatformType platformType = PlatformType.dragonboard;
+    public PlatformType platformType = PlatformType.npi;
     public boolean inCrisis = false;
     private Context context = null;
     private String filesDir = "";
@@ -89,9 +87,7 @@ public class BoardState {
         if (DebugConfigs.OVERRIDE_PLATFORM_TYPE != PlatformType.none) {
             return DebugConfigs.OVERRIDE_PLATFORM_TYPE;
         } else {
-            if (Build.MODEL.contains("rpi3"))
-                return PlatformType.rpi;
-            else if (Build.MODEL.contains("NanoPC-T4"))
+            if (Build.MODEL.contains("NanoPC-T4"))
                 return PlatformType.npi;
             else
                 return PlatformType.dragonboard;
@@ -104,11 +100,7 @@ public class BoardState {
         if (DebugConfigs.OVERRIDE_DEVICE_ID != "") {
             return DebugConfigs.OVERRIDE_DEVICE_ID;
         } else {
-
-            if (GetPlatformType() == PlatformType.rpi) {
-                return "pi" + serial.substring(Math.max(serial.length() - 6, 0),
-                        serial.length());
-            } else if (GetPlatformType() == PlatformType.npi) {
+            if (GetPlatformType() == PlatformType.npi) {
                 String androidId = GetRockChipSerial();
                 return "n" + androidId.toUpperCase();
             } else { // dragonboard
@@ -308,7 +300,6 @@ public class BoardState {
     }
 
     public enum PlatformType {
-        rpi("rpi"),
         npi("npi"),
         dragonboard("dragonboard"),
         none("none");

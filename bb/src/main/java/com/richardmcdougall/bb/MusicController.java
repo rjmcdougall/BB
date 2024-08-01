@@ -42,9 +42,6 @@ public class MusicController implements Runnable {
             case npi:
                 phoneModelAudioLatency = 50;
                 break;
-            case rpi:
-                phoneModelAudioLatency = 80;
-                break;
             case dragonboard:
                 phoneModelAudioLatency = 0;
                 break;

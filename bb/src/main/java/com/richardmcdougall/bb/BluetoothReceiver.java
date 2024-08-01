@@ -21,7 +21,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
 
     BluetoothReceiver(BBService service) {
         this.service = service;
-        kBeepOnConnect = (service.boardState.platformType == BoardState.PlatformType.rpi);
+        kBeepOnConnect = true;
     }
 
     public void onReceive(Context context, Intent intent) {

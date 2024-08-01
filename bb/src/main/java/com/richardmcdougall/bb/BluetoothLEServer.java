@@ -71,9 +71,6 @@ public class BluetoothLEServer {
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
 
-        delay = (service.boardState.platformType== BoardState.PlatformType.dragonboard ||
-                service.boardState.platformType== BoardState.PlatformType.rpi);
-
         // We can't continue without proper Bluetooth support
         if (bluetoothAdapter == null) {
             BLog.d(TAG, "Bluetooth is not supported");

@@ -387,9 +387,6 @@ public class VisualizationController {
                 String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
-                if (service.boardState.platformType == BoardState.PlatformType.rpi) {
-                    return service.burnerBoard.getFrameRate();
-                }
                 mVisualizationVideo.update(mode);
                 return service.burnerBoard.getFrameRate();
             }

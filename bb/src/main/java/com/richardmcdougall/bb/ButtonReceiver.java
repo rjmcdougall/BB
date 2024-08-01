@@ -60,12 +60,7 @@ public class ButtonReceiver extends BroadcastReceiver {
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-
-        if (!BoardState.kIsRPI) {
-            return onKeyDownBurnerBoard(keyCode, event);
-        } else {
-            return onKeyDownRPI(keyCode, event);
-        }
+        return onKeyDownBurnerBoard(keyCode, event);
     }
 
     public boolean onKeyDownBurnerBoard(int keyCode, KeyEvent event) {
@@ -97,30 +92,6 @@ public class ButtonReceiver extends BroadcastReceiver {
                 break;
             case 88: //satachi left button
                 service.visualizationController.setMode(99);
-                break;
-        }
-        return true;
-    }
-
-    public boolean onKeyDownRPI(int keyCode, KeyEvent event) {
-        boolean handled = false;
-        if (event.getRepeatCount() == 0) {
-            BLog.d(TAG, "RPI Keycode:" + keyCode);
-        }
-
-        switch (keyCode) {
-            case 85: // satachi Play button
-                service.visualizationController.NextVideo();
-                break;
-
-            /* Audio stream control */
-            case 87: // satachi right button
-                BLog.d(TAG, "RPI Bluetooth Right Button");
-                service.musicController.NextStream();
-                break;
-            case 88: //satachi left button
-                BLog.d(TAG, "RPI Bluetooth Left Button");
-                service.musicController.PreviousStream();
                 break;
         }
         return true;
