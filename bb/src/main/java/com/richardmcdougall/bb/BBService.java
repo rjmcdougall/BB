@@ -26,6 +26,8 @@ import com.richardmcdougall.bbcommon.BoardState;
 import com.richardmcdougall.bbcommon.DebugConfigs;
 import com.richardmcdougall.bbcommon.PersistentCache;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -145,6 +147,10 @@ public class BBService extends Service {
             context = getApplicationContext();
 
             BLog.i(TAG, "Current Clock: " + TimeSync.GetCurrentClock());
+            Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String datetime = formatter.format(new java.util.Date());
+            BLog.i(TAG, "Current DateTime: " + datetime);
+
             //BLog.i(TAG, "startElapsedTime: " + TimeSync.startElapsedTime);
 
             BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
