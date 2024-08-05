@@ -497,7 +497,7 @@ char* CmdMessenger::readStringArg()
 		return current;
 	}
 	ArgOk = false;
-	return '\0';
+	return (char *)'\0';
 }
 
 /**
