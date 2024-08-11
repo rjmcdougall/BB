@@ -6,6 +6,7 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bb.board.RGB;
 import com.richardmcdougall.bb.rf.FindMyFriends;
+import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 import java.util.List;
@@ -101,6 +102,15 @@ public class PlayaMap extends Visualization {
 
             if (!boardInCrisis) {
                 for (BoardLocations.boardLocation location : boardLocations) {
+
+                    try{
+                        String boardName = this.service.allBoards.boardAddressToName(location.address);
+                        boardColor = RGBList.getColor(this.service.allBoards.getBoardColor(boardName));
+                    }
+                    catch (Exception e){
+                        BLog.e(TAG, "Missing or invalid color for board address" +  location.address);
+                        boardColor = RGBList.getColor("black");
+                    }
 
                     if (flashColor(updateCnt, location.address)) {
                         plotBoard(location.latitude, location.longitude,

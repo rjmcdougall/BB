@@ -138,6 +138,20 @@ public class AllBoards {
         return boards2;
     }
 
+    public String getBoardColor(String boardID) {
+
+        JSONObject board;
+        String color = "";
+
+        try {
+            board = getBoardByID(boardID);
+            color = board.getString("color");
+        } catch (Exception e) {
+            BLog.e(TAG, e.getMessage());
+        }
+        return color;
+    }
+
     public int getBoardAddress(String boardID) {
 
         JSONObject board;
