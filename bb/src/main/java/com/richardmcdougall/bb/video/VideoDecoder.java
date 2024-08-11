@@ -317,29 +317,33 @@ public class VideoDecoder {
                 BLog.v(TAG, "Exiting extractMpegFrames");
 
                 if (codec != null) {
-                    codec.stop();
-                    codec.release();
+                    BLog.i(TAG, "codec.stop(); ");codec.stop();
+                    try {
+                        Thread.sleep(60);
+                    }
+                    catch (InterruptedException ie) {}
+                    BLog.i(TAG, "codec.release();");codec.release();
                     codec = null;
                 }
                 if (extractor != null) {
-                    extractor.release();
-                    extractor = null;
+                    BLog.i(TAG, "extractor.release(); ");extractor.release();
+                    BLog.i(TAG, "extractor = null;"); extractor = null;
                 }
 
             }
         }
 
         if (outputSurface != null) {
-            outputSurface.release();
-            outputSurface = null;
+            BLog.i(TAG, "outputSurface.release();"); outputSurface.release();
+            BLog.i(TAG, "outputSurface = null;"); outputSurface = null;
         }
 
         if (mHandlerThread != null) {
-            mHandlerThread.quit();
+            BLog.i(TAG, "mHandlerThread.quit();");mHandlerThread.quit();
         }
         BLog.v(TAG, "schVideo.shutdownNow()");
-        schVideo.shutdownNow();
-        state = StateType.STOPPED;
+        BLog.i(TAG, "schVideo.shutdownNow();");schVideo.shutdownNow();
+        BLog.i(TAG, "state = StateType.STOPPED;");state = StateType.STOPPED;
     }
 
     /**
