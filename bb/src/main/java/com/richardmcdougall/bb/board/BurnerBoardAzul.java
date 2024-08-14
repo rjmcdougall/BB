@@ -20,7 +20,8 @@ import com.richardmcdougall.bbcommon.BoardState;
 
 public class BurnerBoardAzul extends BurnerBoard {
 
-    private static final int kMaxAzulDisplayPower = 50;
+    // Was 50, was popping reg. Try 40...
+    private static final int kMaxAzulDisplayPower = 40;
     private String TAG = this.getClass().getSimpleName();
     static int kStrips = 8;
     static int[] pixelsPerStrip = new int[8];
