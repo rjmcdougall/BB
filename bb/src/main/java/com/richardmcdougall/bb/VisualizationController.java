@@ -318,7 +318,6 @@ public class VisualizationController {
                 continue;
             }
 
-
             try {
                 if (!service.motionSupervisor.getState().equals(MotionSupervisor.motionStates.STATE_PARKED)) {
                     //BLog.d(TAG, "! STATE_PARKED");
@@ -331,7 +330,8 @@ public class VisualizationController {
             if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 300000) {
                 if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 30000) {
                     BLog.d(TAG, "Parked and next video...");
-                    nextAutoVideo();
+                    if(!service.boardState.GetBlockAudtoRotation() && !service.boardState.GetFunMode())
+                        nextAutoVideo();
                     lastAutoVideoMilliseconds = System.currentTimeMillis();
                 }
                 frameRate = runVisualization(autoVideoMode);
@@ -339,6 +339,7 @@ public class VisualizationController {
                 frameRate = runVisualization(service.boardState.currentVideoMode);
                 autoVideoMode = service.boardState.currentVideoMode;
             }
+
             long frameTime = 1000 / frameRate;
             long curFrameTime = System.currentTimeMillis();
             long thisFrame = (curFrameTime - lastFrameTime);

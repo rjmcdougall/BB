@@ -301,6 +301,19 @@ public class BluetoothCommands {
                     sendStateResponse(command, device);
 
                 });
+        service.bLEServer.addCallback("BlockAutoRotation",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got BlockAutoRotation command:" + payload.toString());
+                    try {
+                        boolean blockAutoRotation = payload.getBoolean("arg");
+                        service.boardState.SetBlockAutoRotation(blockAutoRotation);
+                        BLog.e(TAG, "setting blockAutoRotation: " + blockAutoRotation);
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error setting blockAutoRotation: " + e.getMessage());
+                    }
+                    sendStateResponse(command, device);
+
+                });
         service.bLEServer.addCallback("getstate",
                 (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
                     BLog.d(TAG, "BBservice get state command:" + payload.toString());
@@ -404,7 +417,7 @@ public class BluetoothCommands {
             state.put("r",service.boardState.inCrisis);
             state.put("rd",service.boardState.rotatingDisplay);
             state.put("fm", service.boardState.GetFunMode());
-
+            state.put("bar", service.boardState.GetBlockAudtoRotation());
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());
         }

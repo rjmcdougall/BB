@@ -43,6 +43,8 @@ public class BoardState {
     public int currentRadioChannel = 0;
     public int currentVideoMode = 0;
     private boolean funMode = false;
+    private boolean blockAutoRotation = false;
+
     public String SSID = "";
     public String password = "";
     public TeensyType displayTeensy;
@@ -78,6 +80,13 @@ public class BoardState {
         this.persistentCache.saveData("funMode",String.valueOf(funMode));
         this.funMode = funMode;
     }
+
+    public void SetBlockAutoRotation(boolean blockAutoRotation){
+        this.persistentCache.saveData("blockAutoRotation",String.valueOf(blockAutoRotation));
+        this.blockAutoRotation = blockAutoRotation;
+    }
+
+    public boolean GetBlockAudtoRotation() {return this.blockAutoRotation; }
 
     public boolean GetFunMode(){
         return this.funMode;
@@ -149,6 +158,8 @@ public class BoardState {
         this.persistentCache = new PersistentCache(context);
         if(persistentCache.exists("funMode"))
             this.funMode = Boolean.parseBoolean(persistentCache.getData("funMode")) ;
+        if(persistentCache.exists("blockAutoRotation"))
+            this.blockAutoRotation = Boolean.parseBoolean(persistentCache.getData("blockAutoRotation")) ;
 
         // check every minute to see if AllBoards updates happened.
         Runnable checkForUpdates = () -> UpdateFromAllBoards();
