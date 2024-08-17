@@ -111,8 +111,11 @@ public class DisplayMapManager {
 
                     displayMapTemp = dataDisplayMap.getJSONObject(i);
 
-                    if(displayMapTemp.has("displayDebug")){
+                    if(displayMapTemp.has("displayDebug")) {
                         displayDebugPattern = displayMapTemp.getString("displayDebug");
+                    }
+                    else if(displayMapTemp.has("boardCenterXCoordinate")) {
+                        boardCenterXCoordinate = displayMapTemp.getInt("boardCenterXCoordinate");
                     }
                     else {
                         int rowLength = 0;
