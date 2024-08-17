@@ -330,7 +330,7 @@ public class VisualizationController {
             if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 300000) {
                 if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 30000) {
                     BLog.d(TAG, "Parked and next video...");
-                    if(!service.boardState.GetBlockAudtoRotation() && !service.boardState.GetFunMode())
+                    if(!service.boardState.GetBlockAudtoRotation() && !service.boardState.GetFunMode() && !service.boardState.inCrisis)
                         nextAutoVideo();
                     lastAutoVideoMilliseconds = System.currentTimeMillis();
                 }
