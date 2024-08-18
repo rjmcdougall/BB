@@ -285,11 +285,8 @@ public class BBService extends Service {
             voice = new TextToSpeech(context, (int status) -> {
                 // check for successful instantiation
                 if (status == TextToSpeech.SUCCESS) {
-                    if (voice.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE)
-                        voice.setLanguage(Locale.US);
+                    voice.setLanguage(Locale.US);
                     BLog.i(TAG, "Text To Speech ready...");
-                    voice.setPitch((float) 0.8);
-                    voice.setSpeechRate((float) 0.9);
                     textToSpeechReady = true;
                     voice.speak(boardState.BOARD_ID, TextToSpeech.QUEUE_FLUSH, null, "iam");
                 } else {
