@@ -90,10 +90,12 @@ public class RF {
         if (mListener != null) {
             synchronized (mSerialConn) {
                 mListener.sendCmdStart(5);
-                mListener.sendCmdArg(packet.length);
+                mListener.sendCmdArg(packet.length + 1);
                 for (int i = 0; i < packet.length; i++) {
                     mListener.sendCmdArg((int) packet[i]);
                 }
+                // packet validator
+                mListener.sendCmdArg(0xBB);
                 mListener.sendCmdEnd();
                 mListener.flushWrites();
             }
@@ -281,15 +283,20 @@ public class RF {
             for (int i = 0; i < len; i++) {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));
             }
-            BLog.d(TAG, "Radio Receive Packet: len(" + recvBytes.toByteArray().length + "), data: " + RFUtil.bytesToHex(recvBytes.toByteArray()));
+            if (mListener.readIntArg() != 0xBB) {
+                BLog.e(TAG, "Bad packet:  len(" + recvBytes.toByteArray().length + "), data: " + RFUtil.bytesToHex(recvBytes.toByteArray()));
 
-            Intent in = new Intent(ACTION.BB_PACKET);
-            in.putExtra("sigStrength", sigStrength);
-            in.putExtra("packet", recvBytes.toByteArray());
-            LocalBroadcastManager.getInstance(service).sendBroadcast(in);
+            } else {
+                BLog.d(TAG, "Radio Receive Packet: len(" + recvBytes.toByteArray().length + "), data: " + RFUtil.bytesToHex(recvBytes.toByteArray()));
 
-            if (mRadioCallback != null) {
-                mRadioCallback.receivePacket(recvBytes.toByteArray(), sigStrength);
+                Intent in = new Intent(ACTION.BB_PACKET);
+                in.putExtra("sigStrength", sigStrength);
+                in.putExtra("packet", recvBytes.toByteArray());
+                LocalBroadcastManager.getInstance(service).sendBroadcast(in);
+
+                if (mRadioCallback != null) {
+                    mRadioCallback.receivePacket(recvBytes.toByteArray(), sigStrength);
+                }
             }
         }
     }
