@@ -88,6 +88,7 @@ public class RemoteCrisisController {
         for (Integer addressInCrisis : service.boardLocations.BoardsInCrisis()) {
             service.burnerBoard.textBuilder.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000, service.burnerBoard.getFrameRate(),  new RGBList().getColor("white"));
             service.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis),  "mode");
+            BLog.i(TAG,"Board in crisis - " + service.allBoards.boardAddressToName(addressInCrisis));
         }
 
         sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);
