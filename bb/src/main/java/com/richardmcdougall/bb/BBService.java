@@ -282,18 +282,21 @@ public class BBService extends Service {
 
             gtfoController = new GTFOController(this);
 
-            voice = new TextToSpeech(context, (int status) -> {
-                // check for successful instantiation
-                if (status == TextToSpeech.SUCCESS) {
-                    voice.setLanguage(Locale.US);
-                    BLog.i(TAG, "Text To Speech ready...");
-                    textToSpeechReady = true;
-                    voice.speak(boardState.BOARD_ID, TextToSpeech.QUEUE_FLUSH, null, "iam");
-                } else {
-                    textToSpeechReady = false;
-                    BLog.i(TAG, "Sorry! Text To Speech failed...");
-                }
-            });
+            if(!(boardState.BOARD_ID.equalsIgnoreCase("monitor"))){
+                voice = new TextToSpeech(context, (int status) -> {
+                    // check for successful instantiation
+                    if (status == TextToSpeech.SUCCESS) {
+                        voice.setLanguage(Locale.US);
+                        BLog.i(TAG, "Text To Speech ready...");
+                        textToSpeechReady = true;
+                        voice.speak(boardState.BOARD_ID, TextToSpeech.QUEUE_FLUSH, null, "iam");
+                    } else {
+                        textToSpeechReady = false;
+                        BLog.i(TAG, "Sorry! Text To Speech failed...");
+                    }
+                });
+            }
+
 
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
@@ -377,6 +380,7 @@ public class BBService extends Service {
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
-        voice.shutdown();
+        if(voice != null)
+            voice.shutdown();
     }
 }
