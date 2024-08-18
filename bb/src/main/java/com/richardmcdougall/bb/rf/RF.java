@@ -280,7 +280,7 @@ public class RF {
             int len = mListener.readIntArg();
             BLog.d(TAG, "radio receive callback: sigstrength" + sigStrength + ", " + len + " bytes");
             ByteArrayOutputStream recvBytes = new ByteArrayOutputStream();
-            for (int i = 0; i < len; i++) {
+            for (int i = 0; i < len - 1; i++) {
                 recvBytes.write(Math.min(mListener.readIntArg(), 255));
             }
             if (mListener.readIntArg() != 0xBB) {
