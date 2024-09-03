@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+import paho.mqtt.client as paho
+
+def on_message(mosq, obj, msg):
+    print("%-20s %d %s" % (msg.topic, msg.qos, msg.payload))
+    #mosq.publish('pong', 'ack', 0)
+
+def on_publish(mosq, obj, mid, reason_codes, properties):
+    pass
+
+if __name__ == '__main__':
+    client = paho.Client(paho.CallbackAPIVersion.VERSION2)
+    client.on_message = on_message
+    client.on_publish = on_publish
+
+    print("connecting...")
+
+    client.username_pw_set("meshdev", "large4cats")
+
+    client.connect("mqtt.bayme.sh", 1883, 60)
+
+    print("subscribing...")
+    client.subscribe("msh/US/#", 0)
+#    client.subscribe("msh/US/bman/#", 0)
+
+    print("waiting...")
+
+    while client.loop() == 0:
+        pass

@@ -367,13 +367,13 @@ void processRepeaterStats() {
   }
 
   void* p = buf + MAGIC_NUMBER_LEN;
-  int address = *(int16_t*)p;
+  int address = *(uint16_t*)p - 32768;
   p = (int16_t*)p + 1;
   int battery3 = *(int8_t*)p;
   p = (int8_t*)p + 1;
-  int packetsForwarded = *(int32_t*)p;
+  int packetsForwarded = *(uint32_t*)p;
   p = (int32_t*)p + 1;
-  int packetsIgnored = *(int32_t*)p;
+  int packetsIgnored = *(uint32_t*)p;
 
 
   Serial.print("    Repeater Address ");
