@@ -14,6 +14,7 @@ import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.hardware.Canable;
 import com.richardmcdougall.bb.hardware.VescController;
+import com.richardmcdougall.bb.mesh.Meshtastic;
 import com.richardmcdougall.bb.rf.FindMyFriends;
 import com.richardmcdougall.bb.rf.RF;
 import com.richardmcdougall.bb.rf.RFClientServer;
@@ -53,6 +54,7 @@ public class BBService extends Service {
     public BMS bms = null;
     public Canable canbus = null;
     public VescController vesc = null;
+    public Meshtastic mesh = null;
     public Gyro gyro = null;
     public RFClientServer rfClientServer = null;
     public FindMyFriends findMyFriends = null;
@@ -262,6 +264,7 @@ public class BBService extends Service {
             radio = new RF(this);
             canbus = new Canable(this);
             vesc = new VescController(this, canbus);
+            mesh = new Meshtastic(this);
 
             bms = BMS.Builder(this);
 
