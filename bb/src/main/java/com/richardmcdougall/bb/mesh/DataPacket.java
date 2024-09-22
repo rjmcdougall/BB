@@ -1,0 +1,165 @@
+package com.richardmcdougall.bb.mesh;
+
+import android.os.Parcel;
+import android.os.Parcelable;
+import com.geeksville.mesh.*;
+import com.google.protobuf.InvalidProtocolBufferException;
+
+import java.util.Arrays;
+
+
+public class DataPacket implements Parcelable {
+    // Special node IDs
+    public static final String ID_BROADCAST = "^all";
+    public static final String ID_LOCAL = "^local";
+    public static final int NODENUM_BROADCAST = (0xffffffff);
+
+    public String to; // a nodeID string, or ID_BROADCAST for broadcast
+    public byte[] bytes;
+    public int dataType;  // A port number (see portnums.proto)
+    public String from; // a nodeID string, or ID_LOCAL for localhost
+    public long time; // msecs since 1970
+    public int id; // 0 means unassigned
+    public MessageStatus status;
+    public int hopLimit;
+    public int channel; // channel index
+
+    public String errorMessage; // If there was an error with this message
+
+    // Constructors
+
+    public DataPacket(String to, int channel, String text) {
+        this.id = PacketIdGenerator.generatePacketId();
+        this.to = to;
+        this.bytes = text.getBytes();
+        this.dataType = Portnums.PortNum.TEXT_MESSAGE_APP_VALUE;
+        this.channel = channel;
+        this.from = ID_LOCAL; // Default to local sender
+        this.time = System.currentTimeMillis();
+    }
+
+    public DataPacket(String to, int channel, MeshProtos.NodeInfo nodeinfo) {
+        this.id = PacketIdGenerator.generatePacketId();
+        this.to = to;
+        this.bytes = nodeinfo.toByteArray();
+        this.dataType = Portnums.PortNum.NODEINFO_APP_VALUE;
+        this.channel = channel;
+        this.from = ID_LOCAL; // Default to local sender
+        this.time = System.currentTimeMillis();
+    }
+
+    public DataPacket(String to, int channel, MeshProtos.Position position) {
+        this.id = PacketIdGenerator.generatePacketId();
+        this.to = to;
+        this.bytes = position.toByteArray();
+        this.dataType = Portnums.PortNum.POSITION_APP_VALUE;
+        this.channel = channel;
+        this.from = ID_LOCAL; // Default to local sender
+        this.time = System.currentTimeMillis();
+    }
+
+    public DataPacket(String to, int channel, MeshProtos.Waypoint waypoint) {
+        this.to = to;
+        this.bytes = waypoint.toByteArray();
+        this.dataType = Portnums.PortNum.WAYPOINT_APP_VALUE;
+        this.channel = channel;
+        this.from = ID_LOCAL; // Default to local sender
+        this.time = System.currentTimeMillis();
+    }
+
+    // Parcelable Implementation
+
+    public DataPacket(Parcel in) {
+        to = in.readString();
+        bytes = in.createByteArray();
+        dataType = in.readInt();
+        from = in.readString();
+        time = in.readLong();
+        id = in.readInt();
+        status = in.readParcelable(MessageStatus.class.getClassLoader());
+        hopLimit = in.readInt();
+        channel = in.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(to);
+        dest.writeByteArray(bytes);
+        dest.writeInt(dataType);
+        dest.writeString(from);
+        dest.writeLong(time);
+        dest.writeInt(id);
+        dest.writeParcelable(status, flags);
+        dest.writeInt(hopLimit);
+        dest.writeInt(channel);
+    }
+
+    public void readFromParcel(Parcel in) {
+        to = in.readString();
+        in.createByteArray(); // Skip reading bytes
+        in.readInt(); // Skip reading dataType
+        from = in.readString();
+        time = in.readLong();
+        id = in.readInt();
+        status = in.readParcelable(MessageStatus.class.getClassLoader());
+        hopLimit = in.readInt();
+        channel = in.readInt();
+    }
+
+    public static final Parcelable.Creator<DataPacket> CREATOR = new Parcelable.Creator<DataPacket>() {
+        public DataPacket createFromParcel(Parcel in) {
+            return new DataPacket(in);
+        }
+
+        public DataPacket[] newArray(int size) {
+            return new DataPacket[size];
+        }
+    };
+
+    // Getters (add setters if needed)
+
+    public String getText() {
+        if (dataType == Portnums.PortNum.TEXT_MESSAGE_APP_VALUE) {
+            return new String(bytes);
+        } else {
+            return null;
+        }
+    }
+
+    public MeshProtos.Waypoint getWaypoint() {
+        if (dataType == Portnums.PortNum.WAYPOINT_APP_VALUE) {
+            try {
+                return MeshProtos.Waypoint.parseFrom(bytes);
+            } catch (InvalidProtocolBufferException e) {
+                // Handle exception
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+
+    @Override
+    public String toString() {
+        return "DataPacket{" +
+                "to='" + to + '\'' +
+                ", bytes=" + Arrays.toString(bytes) +
+                ", dataType=" + dataType +
+                ", from='" + from + '\'' +
+                ", time=" + time +
+                ", id=" + id +
+                ", status=" + status +
+                ", hopLimit=" + hopLimit +
+                ", channel=" + channel +
+                ", errorMessage='" + errorMessage + '\'' +
+                '}';
+    }
+
+    // Other methods (equals, hashCode, toString)
+}

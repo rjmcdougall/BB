@@ -106,6 +106,8 @@ dependencies {
     implementation 'joda-time:joda-time:2.1'
     //implementation 'com.google.protobuf:protobuf-java:3.24.4'  // Or the latest stable version
     implementation "com.google.protobuf:protobuf-java:4.27.3"
+    implementation 'org.osmdroid:osmdroid-android:6.1.20'
+    implementation 'mil.nga:mgrs:2.1.3'
 
 }
 
