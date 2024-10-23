@@ -29,6 +29,7 @@ public class BurnerBoardMast extends BurnerBoard {
         boardWidth = 24;
         boardHeight = 159;
         BLog.i(TAG, "Burner Board Mast initing...");
+        init(boardWidth, boardHeight);
 
         initpixelMap2Board();
     }
