@@ -36,6 +36,7 @@ public class Matrix extends Visualization {
         int color;
         int x;
         int y;
+        int colorInc = 1;
         int pixelSkip = 1;
         int multiplier4Speed = service.visualizationController.mMultipler4Speed;
 
@@ -49,6 +50,8 @@ public class Matrix extends Visualization {
             if (multiplier4Speed == 1) {
                 multiplier4Speed = 2;
             }
+        } else if (service.boardState.GetBoardType() == BoardState.BoardType.mast) {
+            colorInc = 15;
         }
 
         // Specific params for Mezcal pattern
@@ -61,6 +64,7 @@ public class Matrix extends Visualization {
             pixelSkip = 1;
             multiplier4Speed = 1;
         }
+
 
         y = service.burnerBoard.boardHeight - 1;
 
@@ -155,7 +159,7 @@ public class Matrix extends Visualization {
                 break;
 
             default:
-                mWheel.wheelInc(2);
+                mWheel.wheelInc(colorInc);
                 break;
         }
         service.burnerBoard.flush();
