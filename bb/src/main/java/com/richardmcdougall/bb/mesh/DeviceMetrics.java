@@ -26,6 +26,10 @@ public class DeviceMetrics implements Parcelable {
         this(currentTime(), 0, voltage, channelUtilization, airUtilTx, uptimeSeconds);
     }
 
+    public DeviceMetrics(int batteryLevel, float voltage, float channelUtilization, float airUtilTx, int uptimeSeconds) {
+        this(currentTime(), batteryLevel, voltage, channelUtilization, airUtilTx, uptimeSeconds);
+    }
+
     public DeviceMetrics(int time, int batteryLevel, float voltage,
                          float channelUtilization, float airUtilTx, int uptimeSeconds) {
         this.time = time;

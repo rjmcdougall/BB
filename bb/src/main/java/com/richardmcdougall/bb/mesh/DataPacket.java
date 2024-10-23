@@ -3,6 +3,7 @@ package com.richardmcdougall.bb.mesh;
 import android.os.Parcel;
 import android.os.Parcelable;
 import com.geeksville.mesh.*;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.util.Arrays;
@@ -43,6 +44,17 @@ public class DataPacket implements Parcelable {
         this.to = to;
         this.bytes = nodeinfo.toByteArray();
         this.dataType = Portnums.PortNum.NODEINFO_APP_VALUE;
+        this.channel = channel;
+        this.from = ID_LOCAL; // Default to local sender
+        this.time = System.currentTimeMillis();
+    }
+
+
+    public DataPacket(String to, int channel, TelemetryProtos.Telemetry metrics) {
+        this.id = PacketIdGenerator.generatePacketId();
+        this.to = to;
+        this.bytes = metrics.toByteArray();
+        this.dataType = Portnums.PortNum.TELEMETRY_APP_VALUE;
         this.channel = channel;
         this.from = ID_LOCAL; // Default to local sender
         this.time = System.currentTimeMillis();
@@ -161,5 +173,40 @@ public class DataPacket implements Parcelable {
                 '}';
     }
 
+    public MeshProtos.MeshPacket toProto(NodeDB nodeDB) {
+        DataPacket p = this;
+        int toNum = nodeDB.toNodeNum(p.to);
+        int fromNum = nodeDB.toNodeNum(p.from);
+
+        MeshProtos.MeshPacket.Builder builder = MeshProtos.MeshPacket.newBuilder();
+        builder.setFrom(fromNum); // Assuming the sender node number is always 0
+        builder.setTo(toNum);
+        builder.setId(p.id);
+        builder.setWantAck(false);
+        builder.setHopLimit(p.hopLimit);
+        builder.setChannel(p.channel);
+
+        MeshProtos.Data.Builder dataBuilder = MeshProtos.Data.newBuilder();
+        dataBuilder.setPortnumValue(p.dataType);
+        dataBuilder.setPayload(ByteString.copyFrom(p.bytes));
+
+
+        // Add PKI encryption logic if necessary based on your application:
+        /* if (dataBuilder.getPortnumValue() == Portnums.PortNum.TEXT_MESSAGE_APP_VALUE ||
+               dataBuilder.getPortnumValue() == Portnums.PortNum.ADMIN_APP_VALUE) {
+            NodeEntity destNode = nodeDBbyNodeNum.get(toNum);
+            if (destNode != null && destNode.getUser().hasPublicKey()) {
+                ByteString publicKey = destNode.getUser().getPublicKey();
+                if (!publicKey.isEmpty()) {
+                    builder.setPkiEncrypted(true);
+                    builder.setPublicKey(publicKey);
+                }
+            }
+        } */
+
+
+        builder.setDecoded(dataBuilder.build());
+        return builder.build();
+    }
     // Other methods (equals, hashCode, toString)
 }
