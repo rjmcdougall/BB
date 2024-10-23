@@ -56,7 +56,7 @@ public class BurnerBoardMast extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = mDimmer.Dim(12, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(2, mOutputScreen);
         this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
