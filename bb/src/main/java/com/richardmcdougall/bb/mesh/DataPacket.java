@@ -29,6 +29,16 @@ public class DataPacket implements Parcelable {
 
     // Constructors
 
+    public DataPacket(String from, String to, long rxtime, int id, int dataType, byte[] data, int hoplimit) {
+        this.id = id;
+        this.to = to;
+        this.bytes = data;
+        this.dataType = dataType;
+        //this.channel = channel;
+        this.from = from;
+        this.time = rxtime;
+    }
+
     public DataPacket(String to, int channel, String text) {
         this.id = PacketIdGenerator.generatePacketId();
         this.to = to;
@@ -206,6 +216,7 @@ public class DataPacket implements Parcelable {
 
 
         builder.setDecoded(dataBuilder.build());
+
         return builder.build();
     }
     // Other methods (equals, hashCode, toString)

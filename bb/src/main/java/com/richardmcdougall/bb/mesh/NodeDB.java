@@ -60,6 +60,10 @@ public class NodeDB {
         }
     }
 
+
+    public static String toNodeID(int nodeNum) {
+        return String.format("0x%08X", nodeNum);
+    }
     private MeshProtos.NodeInfo toNodeInfo(String idm) {
         // Implement logic to retrieve NodeEntity based on ID.
         // Throw appropriate exceptions if not found.
