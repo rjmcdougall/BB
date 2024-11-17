@@ -23,7 +23,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
         textSizeHorizontal = 14;
         textSizeVertical = 20;
         enableBatteryMonitoring = true;
-        enableMotionMonitoring = true;
+        enableMotionMonitoring = false;
         enableIOTReporting = true;
         renderTextOnScreen = false;
         boardType = BoardState.BoardType.mezcal;
