@@ -34,7 +34,7 @@ class Meshtastic {
     private String TAG = this.getClass().getSimpleName();
     private BBService service = null;
 
-    ByteString sessionPasskey;
+    ByteString sessionPasskey = null;
 
     private NodeDB nodeDB;
 
@@ -139,7 +139,14 @@ class Meshtastic {
             Thread.sleep(1000);
             packetProcessor.connect();
             Thread.sleep(1000);
-            requestKey();
+            resetDevice();
+            Thread.sleep(5000);
+            while (sessionPasskey == null) {
+                Thread.sleep(2000);
+                requestKey();
+            }
+            Thread.sleep(5000);
+            setDeviceDefaults();
             Thread.sleep(5000);
             setRadioDefaults();
             Thread.sleep(5000);
@@ -193,6 +200,18 @@ class Meshtastic {
         }
     }
 
+    private void resetDevice() {
+        // TODO: check passkey
+        MeshProtos.ToRadio.Builder packet;
+        AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+        admin.setRebootSeconds(1);
+        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        packet = MeshProtos.ToRadio.newBuilder();
+        packet.setPacket(data.toProto(nodeDB));
+        packet.build();
+        BLog.d(TAG, "sending data: \n" + packet.toString());
+        sendToRadio(packet);
+    }
     private void requestKey() {
         MeshProtos.ToRadio.Builder packet;
         AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
@@ -214,6 +233,27 @@ class Meshtastic {
         sendToRadio(packet);
     }
 
+
+    private void setDeviceDefaults() {
+        // TODO: check passkey
+        MeshProtos.ToRadio.Builder packet;
+        AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+        ConfigProtos.Config.DeviceConfig.Builder device = ConfigProtos.Config.DeviceConfig.newBuilder();
+        device.setRole(ConfigProtos.Config.DeviceConfig.Role.CLIENT);
+        device.setRebroadcastMode(ConfigProtos.Config.DeviceConfig.RebroadcastMode.ALL);
+        device.setNodeInfoBroadcastSecs(300);
+        device.build();
+        ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
+        config.setDevice(device);
+        admin.setSetConfig(config.build());
+        admin.setSessionPasskey(sessionPasskey);
+        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        packet = MeshProtos.ToRadio.newBuilder();
+        packet.setPacket(data.toProto(nodeDB));
+        packet.build();
+        BLog.d(TAG, "sending data: \n" + packet.toString());
+        sendToRadio(packet);
+    }
     private void setRadioDefaults() {
         // TODO: check passkey
         MeshProtos.ToRadio.Builder packet;
@@ -227,7 +267,6 @@ class Meshtastic {
         ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
         config.setLora(lora.build());
         admin.setSetConfig(config.build());
-        admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.LORA_CONFIG);
         admin.setSessionPasskey(sessionPasskey);
         DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
         packet = MeshProtos.ToRadio.newBuilder();
