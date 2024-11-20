@@ -1,36 +1,17 @@
 package com.richardmcdougall.bb.mesh;
 
-import android.content.Context;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
-
 import com.google.protobuf.ByteString;
-import com.hoho.android.usbserial.driver.UsbSerialDriver;
-import com.hoho.android.usbserial.driver.UsbSerialPort;
-import com.hoho.android.usbserial.driver.UsbSerialProber;
-import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.hardware.Canable;
 import com.richardmcdougall.bbcommon.BLog;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-
 import com.geeksville.mesh.*;
-import com.richardmcdougall.bbcommon.BoardState;
 
 /*
 [  482.550531] usb 5-1.2: new full-speed USB device number 3 using xhci-hcd
@@ -52,6 +33,8 @@ public
 class Meshtastic {
     private String TAG = this.getClass().getSimpleName();
     private BBService service = null;
+
+    ByteString sessionPasskey;
 
     private NodeDB nodeDB;
 
@@ -137,7 +120,7 @@ class Meshtastic {
         }
         try {
             this.service = service;
-            sch.scheduleWithFixedDelay(meshSendLoop, 1, 300, TimeUnit.SECONDS);
+            sch.scheduleWithFixedDelay(meshSendLoop, 30, 300, TimeUnit.SECONDS);
 
         } catch (Exception e) {
 
@@ -155,25 +138,12 @@ class Meshtastic {
         try {
             Thread.sleep(1000);
             packetProcessor.connect();
-            MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
-            packet.setWantConfigId(123456);
-            sendToRadio(packet);
-
-            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
-            admin.setSessionPasskey(ByteString.EMPTY);
-            MeshProtos.MeshPacket.Builder builder = MeshProtos.MeshPacket.newBuilder();
-            builder.setFrom(0); // Assuming the sender node number is always 0
-            builder.setTo(0);
-            builder.setId(1);
-            builder.setWantAck(true);
-            builder.setHopLimit(0);
-            builder.setChannel(0);
-            packet = MeshProtos.ToRadio.newBuilder();
-            packet.setPacket(builder.build());
-            packet.build();
-            BLog.d(TAG, "sending data: \n" + packet.toString());
-            sendToRadio(packet);
-
+            Thread.sleep(1000);
+            requestKey();
+            Thread.sleep(5000);
+            setRadioDefaults();
+            Thread.sleep(5000);
+            requestConfig();
 
             /*
             packet = MeshProtos.ToRadio.newBuilder();
@@ -209,28 +179,63 @@ class Meshtastic {
             admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.DEVICE_CONFIG);
             sendToRadio(admin);
 
-            admin = AdminProtos.AdminMessage.newBuilder();
-            config = ConfigProtos.Config.newBuilder();
-            ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
-            lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
-            lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
-            lora.setUsePreset(true);
-            lora.setTxEnabled(true);
-            lora.setChannelNum(20);
-            lora.build();
-            config.setLora(lora);
-            config.build();
-            admin.setSetConfig(config);
-            admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.LORA_CONFIG);
-            sendToRadio(admin);
+
 
              */
+
+/*
+
+
+ */
 
         } catch (Exception e) {
             BLog.d(TAG, "Error sending meshtastic setup" + e.getMessage());
         }
     }
 
+    private void requestKey() {
+        MeshProtos.ToRadio.Builder packet;
+        AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+        admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.SESSIONKEY_CONFIG);
+        admin.setSessionPasskey(AdminProtos.AdminMessage.newBuilder().getSessionPasskey());
+        //BLog.d(TAG, admin.build().toString());
+        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        packet = MeshProtos.ToRadio.newBuilder();
+        packet.setPacket(data.toProto(nodeDB));
+        packet.build();
+        BLog.d(TAG, "sending data: \n" + packet.toString());
+        sendToRadio(packet);
+    }
+
+    private void requestConfig() {
+        MeshProtos.ToRadio.Builder packet;
+        packet = MeshProtos.ToRadio.newBuilder();
+        packet.setWantConfigId(123456);
+        sendToRadio(packet);
+    }
+
+    private void setRadioDefaults() {
+        // TODO: check passkey
+        MeshProtos.ToRadio.Builder packet;
+        AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+        ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
+        lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
+        lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
+        lora.setUsePreset(true);
+        lora.setTxEnabled(true);
+        lora.setChannelNum(20);
+        ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
+        config.setLora(lora.build());
+        admin.setSetConfig(config.build());
+        admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.LORA_CONFIG);
+        admin.setSessionPasskey(sessionPasskey);
+        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        packet = MeshProtos.ToRadio.newBuilder();
+        packet.setPacket(data.toProto(nodeDB));
+        packet.build();
+        BLog.d(TAG, "sending data: \n" + packet.toString());
+        sendToRadio(packet);
+    }
 
     private void meshSendLoop() {
         try {
@@ -282,12 +287,6 @@ class Meshtastic {
         packetProcessor.sendToRadio(packet.toByteArray());
     }
 
-    public void sendToRadio(AdminProtos.AdminMessage.Builder a) {
-        AdminProtos.AdminMessage admin = a.build();
-        BLog.d(TAG, "Sending admin to radio:\n" + admin.toString());
-        packetProcessor.sendToRadio(admin.toByteArray());
-    }
-
 
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
@@ -312,7 +311,7 @@ class Meshtastic {
         }
 
         if (fromRadio != null) {
-            //BLog.d(TAG, "packet: " + fromRadio);
+            BLog.d(TAG, "packet: " + fromRadio);
         }
 
         try {
@@ -385,6 +384,11 @@ class Meshtastic {
                     break;
                 case Portnums.PortNum.ADMIN_APP_VALUE:
                     BLog.d(TAG, "Admin Message");
+                    try {
+                        AdminProtos.AdminMessage admin = AdminProtos.AdminMessage.parseFrom(data.bytes);
+                        BLog.d(TAG, "Admin Message: " + admin.toString());
+                        handleReceivedAdmin(packet.getFrom(), admin);
+                    } catch (Exception e) {}
                     break;
                 case Portnums.PortNum.NODEINFO_APP_VALUE:
                     BLog.d(TAG, "Nodeinfo");
@@ -408,6 +412,49 @@ class Meshtastic {
             BLog.d(TAG, packet.toString());
         }
     }
+
+
+    int myNodeNum = 0;
+    private void handleReceivedAdmin(int fromNodeNum, AdminProtos.AdminMessage a) {
+
+        if (fromNodeNum == myNodeNum) {
+            switch (a.getPayloadVariantCase()) {
+
+
+                case GET_CONFIG_RESPONSE:
+
+                    ConfigProtos.Config response = a.getGetConfigResponse();
+                    BLog.d(TAG, "Admin: received config " + response.getPayloadVariantCase());
+                    //setLocalConfig(response);
+                    break;
+
+                case GET_CHANNEL_RESPONSE:
+                    ChannelProtos.Channel ch = a.getGetChannelResponse();
+                    BLog.d(TAG,"Admin: Received channel " + ch.getIndex());
+                    /*
+                    MyNodeInfo mi = myNodeInfo;
+                    if (mi != null) {
+
+
+                        if (ch.getIndex() + 1 < mi.getMaxChannels()) {
+                            handleChannel(ch);
+                        }
+                    }
+
+                     */
+                    break;
+
+                default:
+                    BLog.d(TAG,"No special processing needed for " + a.getPayloadVariantCase());
+                    break;
+            }
+        } else {
+            BLog.d(TAG,"Admin: Received session_passkey from " + fromNodeNum);
+            sessionPasskey = a.getSessionPasskey();
+        }
+    }
+
+
     private DataPacket toDataPacket(MeshProtos.MeshPacket packet) {
         if (!packet.hasDecoded()) {
             // We never convert packets that are not DataPackets
@@ -430,41 +477,7 @@ class Meshtastic {
 
 }
 
-    /*
-    int myNodeNum = 0;
-    private void handleReceivedAdmin(int fromNodeNum, AdminProtos.AdminMessage a) {
 
-        if (fromNodeNum == myNodeNum) {
-            switch (a.getPayloadVariantCase()) {
-                case GET_CONFIG_RESPONSE:
-
-                    AdminProtos.AdminMessage. response = a.getGetConfigResponse();
-                    BLog.d(TAG, "Admin: received config " + response.getPayloadVariantCase());
-                    setLocalConfig(response);
-                    break;
-
-                case GET_CHANNEL_RESPONSE:
-                    MyNodeInfo mi = myNodeInfo;
-                    if (mi != null) {
-                        AdminProtos.GetChannelResponse ch = a.getGetChannelResponse();
-                        BLog.d(TAG,"Admin: Received channel " + ch.getIndex());
-
-                        if (ch.getIndex() + 1 < mi.getMaxChannels()) {
-                            handleChannel(ch);
-                        }
-                    }
-                    break;
-
-                default:
-                    BLog.d(TAG,"No special processing needed for " + a.getPayloadVariantCase());
-                    break;
-            }
-        } else {
-            BLog.d(TAG,"Admin: Received session_passkey from " + fromNodeNum);
-            sessionPasskey = a.getSessionPasskey();
-        }
-    }
-*/
 
     /*
 
