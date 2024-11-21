@@ -140,7 +140,7 @@ class Meshtastic {
             packetProcessor.connect();
             Thread.sleep(1000);
             resetDevice();
-            Thread.sleep(5000);
+            Thread.sleep(10000);
             while (sessionPasskey == null) {
                 Thread.sleep(2000);
                 requestKey();
@@ -410,6 +410,7 @@ class Meshtastic {
     void handleReceivedMeshPacket(MeshProtos.MeshPacket packet) {
 
         BLog.d(TAG, "Meshpacket...");
+        acknowledgePacket(packet);
         DataPacket data = null;
 
         if (packet.hasDecoded()) {
@@ -513,7 +514,34 @@ class Meshtastic {
             );
         }
     }
+    public void acknowledgePacket(MeshProtos.MeshPacket receivedPacket) {
+        if (receivedPacket.getWantAck()) {  // Only ack if requested
 
+            MeshProtos.Routing routing = MeshProtos.Routing.newBuilder()
+                    .setErrorReason(MeshProtos.Routing.Error.NONE)  // Indicate success
+                    .build();
+            MeshProtos.MeshPacket ackPacket = MeshProtos.MeshPacket.newBuilder()
+                    .setFrom(530602760) // Your node ID
+                    // TODO: fix my nodenum
+                    .setTo(receivedPacket.getFrom())   // Send back to the sender
+                    .setChannel(receivedPacket.getChannel()) // Same channel as received packet
+                    .setDecoded(MeshProtos.Data.newBuilder()
+                            .setPortnum(Portnums.PortNum.ROUTING_APP) // Indicate a routing message
+                            .setPayload(routing.toByteString())
+                            .setRequestId(receivedPacket.getId()) // Link to original packet ID
+                            .build())
+                    .setWantAck(false) // ACKs themselves don't need ACKs
+                    .setPriority(MeshProtos.MeshPacket.Priority.ACK)  // High priority
+                    .build();
+
+            // 3. Send the ACK packet
+            MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(ackPacket);
+            packet.build();
+            BLog.d(TAG, "sending ack");
+            sendToRadio(packet);
+        }
+    }
 }
 
 
