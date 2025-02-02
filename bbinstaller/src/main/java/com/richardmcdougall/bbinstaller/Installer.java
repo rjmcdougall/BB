@@ -1,16 +1,13 @@
 package com.richardmcdougall.bbinstaller;
 
-import android.app.Service;
+import android.app.job.JobParameters;
+import android.app.job.JobService;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
 import android.os.Build;
-import android.os.IBinder;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 
 import com.richardmcdougall.bbcommon.AllBoards;
@@ -29,7 +26,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class Installer extends Service {
+public class Installer extends JobService {
+    //public class Installer extends Service {
 
     public BBDownloadManager dlManager;
     int mVersion = 0;
@@ -46,15 +44,23 @@ public class Installer extends Service {
     public Installer() {
     }
 
+    /*
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+     */
 
     @Override
-    public void onCreate() {
+    public boolean onStopJob(JobParameters param) {
+        return true;
+    }
+
+    @Override
+    //public void onCreate() {
+    public boolean onStartJob(JobParameters param) {
 
         super.onCreate();
 
@@ -174,6 +180,7 @@ public class Installer extends Service {
 
         sch.scheduleWithFixedDelay(checkForInstall, 20, 60, TimeUnit.SECONDS);
 
+        return false;
     }
 
     public void speak(String txt, String id) {

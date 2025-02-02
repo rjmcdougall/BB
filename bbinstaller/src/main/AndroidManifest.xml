@@ -3,6 +3,7 @@
 
     <!-- Required to act as a custom watch face. -->
     <uses-permission android:name="android.permission.REBOOT" />
+    <uses-permission android:name="android.permission.BIND_JOB_SERVICE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -58,7 +59,8 @@
         <service
             android:name=".Installer"
             android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE">
         </service>
 
         <!-- Mqtt Service -->

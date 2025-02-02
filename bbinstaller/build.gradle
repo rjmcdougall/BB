@@ -11,7 +11,7 @@ android {
     }
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.richardmcdougall.bbinstaller"
+        applicationId "com.richardmcdougall.bbinstallertest"
         minSdkVersion 27
         targetSdkVersion 27
         versionCode 5033
