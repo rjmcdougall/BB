@@ -9,11 +9,11 @@ android {
             storePassword 'kermit01'
         }
     }
-    compileSdkVersion 23
+    compileSdkVersion 27
     defaultConfig {
         applicationId "com.richardmcdougall.bbinstaller"
-        minSdkVersion 23
-        targetSdkVersion 23
+        minSdkVersion 27
+        targetSdkVersion 27
         versionCode 5033
         versionName "5033"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
