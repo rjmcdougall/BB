@@ -67,6 +67,7 @@ public class BluetoothLEServer {
     public BluetoothLEServer(BBService service) {
 
         this.service = service;
+        BLog.d(TAG, "Bluetooth starting");
         mHandler = new Handler(Looper.getMainLooper());
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();

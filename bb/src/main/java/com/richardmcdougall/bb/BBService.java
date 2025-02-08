@@ -1,6 +1,9 @@
 package com.richardmcdougall.bb;
 
 import android.app.ActivityManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +11,7 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.bms.BMS;
@@ -40,6 +44,10 @@ public class BBService extends Service {
 
     private String TAG = this.getClass().getSimpleName();
 
+
+    private static final String CHANNEL_ID = "BBForegroundServiceChannel";
+    private static final int NOTIFICATION_ID = 1;
+    private volatile boolean isRunning = true;
     public enum buttons {
         BUTTON_KEYCODE, BUTTON_TRACK, BUTTON_DRIFT_UP,
         BUTTON_DRIFT_DOWN, BUTTON_MODE_UP, BUTTON_MODE_DOWN, BUTTON_MODE_PAUSE,
@@ -135,10 +143,38 @@ public class BBService extends Service {
         try {
 
             super.onCreate();
-
             BLog.i(TAG, "onCreate");
+            createNotificationChannel();
+        } catch (Exception e) {
+            BLog.e(TAG, "could not create notification channel");
+        }
+    }
 
-            //VMRuntime.getRuntime().setMinimumHeapSize(BIGGER_SIZE);
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Foreground Service Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(serviceChannel);
+        }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        BLog.i(TAG, "onStartCommand");
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("My Foreground Service")
+                .setContentText("Running in the background...")
+                .setSmallIcon(android.R.drawable.ic_media_play) // Replace with your icon
+                .build();
+
+        startForeground(NOTIFICATION_ID, notification);
+
+        try {
 
             mMemoryInfo = getAvailableMemory();
 
@@ -304,6 +340,8 @@ public class BBService extends Service {
         } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
+        return START_STICKY;
+
     }
 
     public void speak(String txt, String id){
@@ -319,14 +357,7 @@ public class BBService extends Service {
             BLog.e(TAG,e.getMessage());
         }
     }
-    /**
-     * The service is starting, due to a call to startService()
-     */
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        BLog.i(TAG, "onStartCommand");
-        return super.onStartCommand(intent, flags, startId);
-    }
+
 
     /**
      * A client is binding to the service with bindService()
@@ -358,7 +389,6 @@ public class BBService extends Service {
 
         this.bluetoothConnManager.UnregisterReceivers();
         this.rfMasterClientServer.UnregisterReceivers();
-        this.wifi.UnregisterReceivers();;
         this.rfClientServer.UnregisterReceiver();
         this.burnerBoard.UnregisterReceivers();
 

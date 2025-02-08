@@ -225,7 +225,11 @@ public class BluetoothCommands {
                     JSONObject response = new JSONObject();
                     try {
                         response.put("command", command);
-                        JSONArray wifi = service.wifi.getScanResults();
+
+                        JSONArray wifi = null;
+                        wifi = service.wifi.getScanResults();
+                        // Temporarily Disabled on Android 10
+                        //wifi = new JSONArray(service.wifi.ipAddress);
                         if (wifi == null)
                             BLog.d(TAG, "Empty wifi");
                         else
