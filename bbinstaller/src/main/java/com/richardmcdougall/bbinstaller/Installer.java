@@ -1,10 +1,14 @@
 package com.richardmcdougall.bbinstaller;
 
+import android.app.PendingIntent;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.PowerManager;
@@ -19,7 +23,10 @@ import com.richardmcdougall.bbcommon.FileHelpers;
 import org.json.JSONObject;
 
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -67,6 +74,8 @@ public class Installer extends JobService {
         BLog.i(TAG, "Starting BB Installer");
 
         BLog.i(TAG, "onCreate");
+
+
 
         // Stop the Android popup for verifying apps
         BLog.i(TAG, " BB Installer set package_verifier_enable 0");
@@ -200,9 +209,9 @@ public class Installer extends JobService {
         try {
 
             int currentBBVersion = getBBversion();
-            BLog.i(TAG, "Running Installer Check targetAPK:" + boardState.targetAPKVersion + "currentBBVersion: " + currentBBVersion);
+            BLog.i(TAG, "Running Installer Check targetAPK:" + boardState.targetAPKVersion + ", currentBBVersion: " + currentBBVersion);
 
-            if (boardState.targetAPKVersion > 0 && boardState.targetAPKVersion != currentBBVersion) {
+            if (boardState.targetAPKVersion > 0 && boardState.targetAPKVersion > currentBBVersion) {
                 String apkFile = null;
                 int thisBFileId = 0;
                 try {
@@ -213,14 +222,12 @@ public class Installer extends JobService {
                 }
 
                 if (apkFile != null) {
-                    if (installApk(apkFile)) {
+                    if (installApkinstallApkAndroid11andHigher(apkFile)) {
                         BLog.d(TAG, "Installed BB version " + boardState.targetAPKVersion);
                         speak("Installed Software version " + boardState.targetAPKVersion, "swvers");
-                        Thread.sleep(5000);
+                        Thread.sleep(10000);
 
-                        speak("Re booting", "swvers");
-                        Thread.sleep(3000);
-                        doReboot("Upgrade");
+
 
                     } else {
                         BLog.e(TAG, "Failed installing BB version " + boardState.targetAPKVersion);
@@ -266,7 +273,107 @@ public class Installer extends JobService {
         }
     }
 
-    public boolean installApk(String path) {
+
+    private boolean installApkinstallApkAndroid11andHigher(String apkPath) {
+        PackageInstaller packageInstaller = getPackageManager().getPackageInstaller();
+        PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
+                PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+        params.setAppPackageName("com.richardmcdougall.bb");
+
+        //params.setInstallFlags(params.getInstallFlags() | PackageManager.INSTALL_GRANT_RUNTIME_PERMISSIONS);
+
+
+
+        try {
+            int sessionId = packageInstaller.createSession(params);
+            PackageInstaller.Session session = packageInstaller.openSession(sessionId);
+            OutputStream out = session.openWrite("bb", 0, -1);
+            FileInputStream fis = new FileInputStream(new File(apkPath));
+            byte [] buffer = new byte[65536];
+            int n;
+            while ((n = fis.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+            }
+            session.fsync(out);
+            fis.close();
+            out.close();
+
+            Intent intent = new Intent(this, InstallerReceiver.class);
+            intent.putExtra(PackageInstaller.EXTRA_SESSION_ID, sessionId);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+            session.commit(pendingIntent.getIntentSender());
+
+        } catch (Exception e) {
+            BLog.e(TAG, "Error installing APK: " + e.getMessage());
+        }
+        return true;
+    }
+
+    public class InstallerReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int sessionId = intent.getIntExtra(PackageInstaller.EXTRA_SESSION_ID, -1);
+            if (sessionId!= -1) {
+                int status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -1);
+                String message = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
+                switch (status) {
+                    case PackageInstaller.STATUS_PENDING_USER_ACTION:
+                        BLog.d(TAG, "Installation user action required");
+// User action required, launch the installer UI
+                        Intent installerIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                        if (installerIntent!= null) {
+                            installerIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            context.startActivity(installerIntent);
+                        }
+                        break;
+                    case PackageInstaller.STATUS_SUCCESS:
+                        BLog.d(TAG, "Installation succeeded");
+                        grantPerms();
+                        // Installation succeeded
+                        try {
+                            speak("Rebooting", "swvers");
+
+                            Thread.sleep(10000);
+                            doReboot("Upgrade");
+                        } catch (Exception e) {
+
+                        }
+                        break;
+                    case PackageInstaller.STATUS_FAILURE:
+                        BLog.d(TAG, "Installation failed");
+// Installation failed
+                        break;
+                    default:
+                        // Unknown status
+                }
+            }
+        }
+    }
+
+
+    public boolean grantPerms() {
+        BLog.i(TAG, "Granting perms");
+
+        final String libs = "LD_LIBRARY_PATH=/vendor/lib64:/system/lib64 ";
+
+        try {
+            if (Build.MODEL.contains("NanoPC-T4")) {
+                final String[] commands = {
+                        "pm grant com.richardmcdougall.bb android.permission.ACCESS_FINE_LOCATION",
+                        "pm grant com.richardmcdougall.bb android.permission.RECORD_AUDIO"
+                };
+                return execute_as_root(commands);
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "installAPK Failure: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    public boolean installApkAndroid10andLower(String path) {
         BLog.i(TAG, "Installing software update " + path);
 
         final String libs = "LD_LIBRARY_PATH=/vendor/lib64:/system/lib64 ";
@@ -274,7 +381,7 @@ public class Installer extends JobService {
         try {
             if (Build.MODEL.contains("NanoPC-T4")) {
                 final String[] commands = {
-                        "settings put global package_verifier_enable 0",
+                        "settings put global package_verifier_enable    0",
                         "pm install -i com.richardmcdougall.bbinstaller --user 0 -g " + path,
                         "am start com.richardmcdougall.bb/.MainActivity"
                 };

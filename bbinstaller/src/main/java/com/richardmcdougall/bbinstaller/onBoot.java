@@ -23,6 +23,7 @@ public class onBoot extends BroadcastReceiver {
         //Intent intent = new Intent(context,Installer.class);
         //context.startService(intent);
         BLog.i("BBInstaller", "onBoot()");
+
         JobScheduler jobScheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         JobInfo jobInfo = new JobInfo.Builder(JOB_ID, new ComponentName(context, Installer.class))
                 .setPersisted(true) // To survive reboots
