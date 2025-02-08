@@ -58,7 +58,6 @@ public abstract class BurnerBoard {
     public BrakeOverlayBuilder brakeOverlayBuilder = null;
     public ArcBuilder arcBuilder = null;
     public LineBuilder lineBuilder = null;
-    protected AppDisplay appDisplay = null;
     protected BoardDisplay boardDisplay = null;
     public PixelDimmer pixelDimmer = null;
     public PixelOffset pixelOffset = null;
@@ -101,7 +100,6 @@ public abstract class BurnerBoard {
         this.boardScreen = new int[boardWidth * boardHeight * 3];
         this.boardDisplay = new BoardDisplay(this);
         this.pixelOffset = new PixelOffset(this);
-        this.appDisplay = new AppDisplay(this.service, this);
         this.textBuilder = new TextBuilder(this);
         this.batteryOverlayBuilder = new BatteryOverlayBuilder(this.service, this);
         this.brakeOverlayBuilder = new BrakeOverlayBuilder(this.service, this);
@@ -173,7 +171,6 @@ public abstract class BurnerBoard {
 
     public void showBattery(batteryType type) {
 
-        this.appDisplay.sendVisual(9);
         this.batteryOverlayBuilder.drawBattery(type);
         return;
     }
@@ -290,8 +287,6 @@ public abstract class BurnerBoard {
     }
 
     public boolean oupdate() {
-
-        this.appDisplay.sendVisual(8);
 
         //l("sendCommand: 5");
         synchronized (mSerialConn) {

@@ -25,8 +25,8 @@ public class BMS {
             BLog.d(TAG, "BMS: Emulated BMS from VESC ");
             bms = new BMS_EmulatedVesc(service);
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
-            BLog.d(TAG, "BMS: Using BQ on I2c");
-            bms = new BMS_BQ(service);
+            BLog.d(TAG, "Sorry Ed, no android things support for littlewing. BMS: Using BQ on I2c");
+            bms = new BMS_EmulatedVesc(service);
         } else if (service.boardState.GetBoardType() == BoardState.BoardType.classic || service.boardState.GetBoardType() == BoardState.BoardType.azul) {
             BLog.d(TAG, "BMS: Teensy+BQ");
             bms = new BMS_BQTeensy(service);

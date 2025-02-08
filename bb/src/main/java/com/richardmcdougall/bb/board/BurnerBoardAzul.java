@@ -89,7 +89,6 @@ public class BurnerBoardAzul extends BurnerBoard {
         mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(kMaxAzulDisplayPower, mOutputScreen);
-        this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {

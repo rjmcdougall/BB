@@ -4,12 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.StrictMode;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
+
+import net.sf.marineapi.nmea.util.Time;
+import net.sf.marineapi.provider.event.PositionEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -55,24 +56,31 @@ public class RFMasterClientServer {
 
         this.service = service;
 
-        IntentFilter packetFilter = new IntentFilter(ACTION.BB_PACKET);
-        LocalBroadcastManager.getInstance(this.service).registerReceiver(RFReceiver, packetFilter);
-
         Runnable runBroadcastLoop = () -> RunBroadcastLoop();
+
+        service.radio.attach(new RF.radioEvents() {
+            @Override
+            public void receivePacket(byte[] bytes, int sigStrength) {
+                BLog.d(TAG, "RFClientServer Recv Packet: len(" + bytes.length + "), " +
+                        "data: " + RFUtil.bytesToHex(bytes));
+                processReceive(bytes, sigStrength);
+
+            }
+
+            @Override
+            public void GPSevent(PositionEvent gps) {
+            }
+
+
+            @Override
+            public void timeEvent(Time time) {
+                BLog.d(TAG, "FMF Time: " + time.toString());
+            }
+
+        });
+
         sch.scheduleWithFixedDelay(runBroadcastLoop, 5, kThreadSleepTime, TimeUnit.SECONDS);
 
-    }
-
-    public void UnregisterReceivers() {
-        try{
-            if(RFReceiver!=null)
-                LocalBroadcastManager.getInstance(this.service).unregisterReceiver(RFReceiver);
-
-            BLog.i(TAG,"Unregistered Receivers");
-        }catch(Exception e)
-        {
-            BLog.e(TAG, e.getMessage());
-        }
     }
 
     void processReceive(byte[] packet, int sigstrength) {
@@ -96,7 +104,7 @@ public class RFMasterClientServer {
 
     // Thread/ loop to send out requests
     void RunBroadcastLoop() {
-        try{
+        try {
             // Do we need to tell nearby clients who the media master is still?
             if (kMasterBroadcastsLeft > 0) {
                 BLog.d(TAG, "Resending master client packet. Iterations remaining: " + kMasterBroadcastsLeft);
@@ -119,8 +127,7 @@ public class RFMasterClientServer {
 
                 kMasterBroadcastsLeft--;
             }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
     }

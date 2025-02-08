@@ -74,7 +74,6 @@ public class BurnerBoardLittleWing extends BurnerBoard {
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = mDimmer.Dim(3, mOutputScreen);
-        this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         // last two strips are emulated side strips

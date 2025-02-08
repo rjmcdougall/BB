@@ -58,7 +58,6 @@ public class BurnerBoardDirectMap extends BurnerBoard {
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = mDimmer.Dim(200, mOutputScreen);
-        this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {

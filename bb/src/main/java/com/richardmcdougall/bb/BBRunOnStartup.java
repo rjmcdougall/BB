@@ -1,6 +1,5 @@
 package com.richardmcdougall.bb;
 
-import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,7 +19,7 @@ public class BBRunOnStartup extends BroadcastReceiver {
         if (headless) {
             // Launch the specified service when this message is received
             Intent startServiceIntent = new Intent(context, BBService.class);
-            startWakefulService(context, startServiceIntent);
+            context.startService(startServiceIntent);
         } else {
             Intent myStarterIntent = new Intent(context, MainActivity.class);
             myStarterIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

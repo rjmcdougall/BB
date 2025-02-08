@@ -11,8 +11,6 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
 import android.speech.tts.TextToSpeech;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bb.board.BurnerBoard;
@@ -34,9 +32,7 @@ import com.richardmcdougall.bbcommon.PersistentCache;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+
 
 import static android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED;
 
@@ -63,7 +59,6 @@ public class BBService extends Service {
     public Canable canbus = null;
     public VescController vesc = null;
     public Meshtastic mesh = null;
-    public Gyro gyro = null;
     public RFClientServer rfClientServer = null;
     public FindMyFriends findMyFriends = null;
     public BluetoothLEServer bLEServer = null;
@@ -166,7 +161,7 @@ public class BBService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         BLog.i(TAG, "onStartCommand");
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification notification = new Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle("My Foreground Service")
                 .setContentText("Running in the background...")
                 .setSmallIcon(android.R.drawable.ic_media_play) // Replace with your icon
@@ -208,13 +203,6 @@ public class BBService extends Service {
 
             wifi = new BBWifi(context,boardState);
 
-//            try {
-//                gyro = new Gyro(context, boardState);
-//            }
-//            catch(Exception e){
-//                BLog.e(TAG,"Gyro is fucked.");
-//            }
-
             boardLocations = new BoardLocations(this);
             serverElector = new ServerElector(this);
 
@@ -241,7 +229,6 @@ public class BBService extends Service {
             // Register to receive button messages
             IntentFilter filter = new IntentFilter(ACTION.BUTTONS);
             buttonReceiver = new ButtonReceiver(this);
-            LocalBroadcastManager.getInstance(this).registerReceiver(buttonReceiver, filter);
 
             // Register to know when bluetooth remote connects
             btReceive = new BluetoothReceiver(this);
@@ -388,31 +375,7 @@ public class BBService extends Service {
     public void CleanUp(){
 
         this.bluetoothConnManager.UnregisterReceivers();
-        this.rfMasterClientServer.UnregisterReceivers();
-        this.rfClientServer.UnregisterReceiver();
         this.burnerBoard.UnregisterReceivers();
-
-        try{
-            if(usbReceiver!=null)
-                this.unregisterReceiver(usbReceiver);
-            BLog.i(TAG, "Unregistered Receivers usbReceiver");
-        }catch(Exception e) {
-            BLog.e(TAG, e.getMessage());
-        }
-        try {
-            if (usbReceiver != null)
-                LocalBroadcastManager.getInstance(this).unregisterReceiver(buttonReceiver);
-            BLog.i(TAG, "Unregistered Receivers buttonReceiver");
-        } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
-        }
-        try {
-            if (usbReceiver != null)
-                context.unregisterReceiver(btReceive);
-            BLog.i(TAG, "Unregistered Receivers btReceive");
-        } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
-        }
         if(voice != null)
             voice.shutdown();
     }

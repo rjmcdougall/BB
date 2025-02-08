@@ -56,7 +56,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     @Override
     public boolean update() {
 
-        this.appDisplay.sendVisual(8);
         //l("sendCommand: 8");
         synchronized (mSerialConn) {
             if (mListener != null) {
@@ -71,7 +70,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     @Override
     public void showBattery(batteryType type) {
 
-        this.appDisplay.sendVisual(9);
         BLog.d(TAG, "sendCommand: 9");
         if (mListener != null) {
             mListener.sendCmd(9);
@@ -89,7 +87,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     public boolean setOtherlight(int other, int[] pixels) {
 
         // Send pixel row to in-app visual display
-        this.appDisplay.sendVisual(15, other, pixels);
 
         byte[] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
@@ -197,7 +194,6 @@ public class BurnerBoardClassic extends BurnerBoard {
     private boolean setRow(int row, int[] pixels) {
 
         // Send pixel row to in-app visual display
-        this.appDisplay.sendVisual(14, row, pixels);
 
         byte[] newPixels = new byte[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
@@ -227,7 +223,6 @@ public class BurnerBoardClassic extends BurnerBoard {
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
         mOutputScreen = mDimmer.Dim(0, mOutputScreen);
-        this.appDisplay.send(mOutputScreen);
 
         // Suppress updating when displaying a text message
         int[] rowPixels = new int[boardWidth * 3];

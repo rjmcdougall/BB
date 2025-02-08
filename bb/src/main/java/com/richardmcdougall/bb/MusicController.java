@@ -123,7 +123,7 @@ public class MusicController implements Runnable {
         AudioAttributes.Builder b = new AudioAttributes.Builder();
         b.setContentType(C.CONTENT_TYPE_MUSIC);
         b.setUsage(C.USAGE_MEDIA);
-        player.setAudioAttributes(b.build());
+        player.setAudioAttributes(b.build(), false);
 
         player.prepare(audioSource, false, false);
         player.setPlayWhenReady(true);

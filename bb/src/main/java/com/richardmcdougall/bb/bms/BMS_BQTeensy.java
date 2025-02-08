@@ -1,8 +1,6 @@
 package com.richardmcdougall.bb.bms;
 
 import com.richardmcdougall.bb.BBService;
-import com.richardmcdougall.bb.BatterySupervisor;
-import com.richardmcdougall.bb.hardware.BQ34Z100;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;

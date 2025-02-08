@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb.visualization;
 
+import android.graphics.Color;
 public class Wheel {
 
     int wheel_color = 0;
@@ -9,7 +10,7 @@ public class Wheel {
         hsl[0] = wheelPos * 1.0f;
         hsl[1] = 1.0f;
         hsl[2] = 0.5f;
-        return android.support.v4.graphics.ColorUtils.HSLToColor(hsl) & 0xFFFFFF;
+        return android.graphics.Color.HSVToColor(hsl) & 0xFFFFFF;
     }
 
     int wheelState() {
@@ -22,7 +23,7 @@ public class Wheel {
         hsl[0] = wheelPos * 1.0f;
         hsl[1] = 1.0f;
         hsl[2] = 0.5f * brightness;
-        return android.support.v4.graphics.ColorUtils.HSLToColor(hsl) & 0xFFFFFF;
+        return android.graphics.Color.HSVToColor(hsl) & 0xFFFFFF;
     }
 
     void wheelInc(int amount) {

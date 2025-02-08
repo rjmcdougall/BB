@@ -6,7 +6,6 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -62,7 +61,6 @@ public class BoardsContentProvider extends ContentProvider {
      * @param sortOrder     Whether to sort, and if so, whether ascending or descending.
      * @return a Cursor of any kind with the response data inside.
      */
-    @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
@@ -132,7 +130,6 @@ public class BoardsContentProvider extends ContentProvider {
     }
 
     // getType must be implemented.
-    @Nullable
     @Override
     public String getType(Uri uri) {
         switch (sUriMatcher.match(uri)) {
@@ -146,7 +143,6 @@ public class BoardsContentProvider extends ContentProvider {
         }
     }
 
-    @Nullable
     @Override
     // Inserts the values into the provider.
     // Returns a URI that points to the newly inserted record.

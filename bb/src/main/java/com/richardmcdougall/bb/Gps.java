@@ -1,7 +1,6 @@
 package com.richardmcdougall.bb;
 
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -78,7 +77,8 @@ public class Gps {
                             Intent in = new Intent(ACTION.BB_LOCATION);
                             in.putExtra("lat", evt.getPosition().getLatitude());
                             in.putExtra("lon", evt.getPosition().getLatitude());
-                            LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
+                            // TODO: find a new way to send location to findmyfriends
+                            //LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
                         }
                     } catch (Exception e) {
                         BLog.e(TAG, "Position Event failed: " + e.getMessage() + " " + e.getStackTrace());

@@ -4,12 +4,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.TimeSync;
 import com.richardmcdougall.bbcommon.BLog;
+
+import net.sf.marineapi.nmea.util.Time;
+import net.sf.marineapi.provider.event.PositionEvent;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -40,9 +42,6 @@ public class RFClientServer {
 
         this.service = service;
 
-        IntentFilter packetFilter = new IntentFilter(ACTION.BB_PACKET);
-        LocalBroadcastManager.getInstance(this.service).registerReceiver(RFReceiver, packetFilter);
-
         mDrift = 0;
         mRtt = 100;
 
@@ -51,21 +50,30 @@ public class RFClientServer {
         Runnable runBroadcastLoop = () -> RunBroadcastLoop();
         sch.scheduleWithFixedDelay(runBroadcastLoop, 5, kThreadSleepTime, TimeUnit.SECONDS);
 
+        service.radio.attach(new RF.radioEvents() {
+            @Override
+            public void receivePacket(byte[] bytes, int sigStrength) {
+                BLog.d(TAG, "RFClientServer Recv Packet: len(" + bytes.length + "), " +
+                        "data: " + RFUtil.bytesToHex(bytes));
+                processReceive(bytes, sigStrength);
+
+            }
+            @Override
+            public void GPSevent(PositionEvent gps) {
+            }
+
+
+            @Override
+            public void timeEvent(Time time) {
+                BLog.d(TAG, "FMF Time: " + time.toString());
+            }
+
+        });
     }
 
-    public void UnregisterReceiver(){
-        try{
-            if(RFReceiver!=null)
-                LocalBroadcastManager.getInstance(this.service).unregisterReceiver(RFReceiver);
-
-            BLog.i(TAG,"Unregistered Receivers");
-        }catch(Exception e)
-        {
-            BLog.e(TAG, e.getMessage());
-        }
-    }
     // Send time-sync reply to specific client
-    void ProcessServerReply(byte[] packet, int toClient, long clientTimestamp, long curTimeStamp) {
+    void ProcessServerReply(byte[] packet, int toClient, long clientTimestamp,
+                            long curTimeStamp) {
 
         BLog.d(TAG, "Server reply : " +
                 service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")" +
@@ -102,6 +110,7 @@ public class RFClientServer {
             processReceive(packet, sigStrength);
         }
     };
+
 
     void processReceive(byte[] packet, int sigstrength) {
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
@@ -258,6 +267,6 @@ public class RFClientServer {
 
     public long getLatency() {
         return mLatency / 2;
-    }
 
+    }
 }

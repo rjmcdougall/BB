@@ -45,10 +45,6 @@ public class BatterySupervisor {
         boolean announce;
         powerStates powerState = powerStates.STATE_DISPLAYING;
 
-        // Temporary hack to check and report gyro for testing
-        if (this.service.gyro != null) {
-            this.service.gyro.update();
-        }
 
         try {
             voltage = service.bms.getVoltage();
@@ -91,7 +87,7 @@ public class BatterySupervisor {
             if (batteryLevelState == BMS.batteryLevelStates.STATE_LOW) {
                 // Show battery when board is powered up
                 service.burnerBoard.showBattery(BurnerBoard.batteryType.SMALL);
-            } else if(batteryLevelState == BMS.batteryLevelStates.STATE_CRITICAL) {
+            } else if (batteryLevelState == BMS.batteryLevelStates.STATE_CRITICAL) {
                 service.burnerBoard.showBattery(BurnerBoard.batteryType.CRITICAL);
             }
             // Any state -> Displaying
@@ -126,7 +122,7 @@ public class BatterySupervisor {
 
         }
         if (announce) {
-            service.speak("Battery Level is " + (int)level + " percent", "batteryLow");
+            service.speak("Battery Level is " + (int) level + " percent", "batteryLow");
         }
     }
 

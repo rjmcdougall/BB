@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbManager;
 import android.os.Parcelable;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.richardmcdougall.bbcommon.BLog;
 
@@ -29,7 +28,8 @@ public class USBReceiver extends BroadcastReceiver {
                 broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
                 // Broadcast this event so we can receive it
-                LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                // TODO:  How to do this now?
+                //LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
 
                 if (service.burnerBoard != null) {
                     service.burnerBoard.initUsb();
@@ -45,7 +45,8 @@ public class USBReceiver extends BroadcastReceiver {
                 broadcastIntent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
 
                 // Broadcast this event so we can receive it
-                LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
+                // TODO:  How to do this now?
+                //LocalBroadcastManager.getInstance(context).sendBroadcast(broadcastIntent);
             }
         }
     }
