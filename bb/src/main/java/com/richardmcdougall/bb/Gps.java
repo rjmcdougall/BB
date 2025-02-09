@@ -1,5 +1,6 @@
 package com.richardmcdougall.bb;
 
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 
 import com.richardmcdougall.bbcommon.BLog;
@@ -26,7 +27,7 @@ public class Gps {
     private String TAG = this.getClass().getSimpleName();
 
     // This enabled GPS Time being polled
-    public static final boolean ENABLE_GPS_TIME = false;
+    public static final boolean ENABLE_GPS_TIME = true;
     public GpsEvents mGpsCallback = null;
     private PipedInputStream mSentenceInput;
     private PipedOutputStream mSentenceOutput;
@@ -77,8 +78,9 @@ public class Gps {
                             Intent in = new Intent(ACTION.BB_LOCATION);
                             in.putExtra("lat", evt.getPosition().getLatitude());
                             in.putExtra("lon", evt.getPosition().getLatitude());
-                            // TODO: find a new way to send location to findmyfriends
-                            //LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
+                            // TODO: find a new way to send location
+                            // see https://stackoverflow.com/questions/74264850/localbroadcastmanager-is-now-deprecated-how-to-send-data-from-service-to-activi
+                            // LocalBroadcastManager.getInstance(Gps.this.service).sendBroadcast(in);
                         }
                     } catch (Exception e) {
                         BLog.e(TAG, "Position Event failed: " + e.getMessage() + " " + e.getStackTrace());
