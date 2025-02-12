@@ -231,8 +231,8 @@ public class BBService extends Service {
             buttonReceiver = new ButtonReceiver(this);
 
             // Register to know when bluetooth remote connects
-            btReceive = new BluetoothReceiver(this);
-            context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
+            //btReceive = new BluetoothReceiver(this);
+            //context.registerReceiver(btReceive, new IntentFilter(ACTION_ACL_CONNECTED));
 
             mediaManager = new MediaManager(this);
 

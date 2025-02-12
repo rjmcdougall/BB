@@ -11,20 +11,20 @@ import java.util.Calendar;
 // adb shell "su 0 toybox date 010100072020.00"
 public class TimeSync {
     private static String TAG = "TimeSync";
-    private static long startElapsedTime;
+    //private static long startElapsedTime;
     private static long serverTimeOffset = 0;
     private static long serverRoundTripTime = 0;
-    private static long startClock = 0;
 
     public static void InitClock() {
-        startElapsedTime = SystemClock.uptimeMillis();
-        startElapsedTime = SystemClock.elapsedRealtime();
+        //startElapsedTime = SystemClock.uptimeMillis();
+        //startElapsedTime = SystemClock.elapsedRealtime();
+        // startElapsedTime = System.currentTimeMillis();
         //startClock = Calendar.getInstance().getTimeInMillis();
     }
 
     public static long GetCurrentClock() {
-        return SystemClock.elapsedRealtime() - startElapsedTime ;
-        //return SystemClock.uptimeMillis() ;
+        //return SystemClock.elapsedRealtime() - startElapsedTime ;
+        return System.currentTimeMillis();
     }
 
     public static long CurrentClockAdjusted() {

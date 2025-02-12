@@ -56,12 +56,10 @@ public class RFClientServer {
                 BLog.d(TAG, "RFClientServer Recv Packet: len(" + bytes.length + "), " +
                         "data: " + RFUtil.bytesToHex(bytes));
                 processReceive(bytes, sigStrength);
-
             }
             @Override
             public void GPSevent(PositionEvent gps) {
             }
-
 
             @Override
             public void timeEvent(Time time) {
@@ -101,18 +99,11 @@ public class RFClientServer {
         replyCount++;
     }
 
-    // Define the callback for what to do when stats are received
-    private BroadcastReceiver RFReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int sigStrength = intent.getIntExtra("sigStrength", 0);
-            byte[] packet = intent.getByteArrayExtra("packet").clone();
-            processReceive(packet, sigStrength);
-        }
-    };
-
 
     void processReceive(byte[] packet, int sigstrength) {
+        BLog.d(TAG, "RFClientServer Recv Packet: len(" + packet.length + "), " +
+                "data: " + RFUtil.bytesToHex(packet));
+
         ByteArrayInputStream bytes = new ByteArrayInputStream(packet);
 
         int recvMagicNumber = RFUtil.magicNumberToInt(new int[]{bytes.read(), bytes.read()});
@@ -170,21 +161,57 @@ public class RFClientServer {
 
     private void ProcessTimeFromServer(byte[] recvPacket) {
 
-        BLog.d(TAG, "BB Sync Packet receive from server len (" + recvPacket.length + ") " +
-                service.allBoards.boardAddressToName(service.serverElector.serverAddress) + "(" + service.serverElector.serverAddress + ")" +
-                " -> " + service.allBoards.boardAddressToName(service.boardState.address) + "(" + service.boardState.address + ")");
+
         ByteArrayInputStream packet = new ByteArrayInputStream(recvPacket);
 
-        long packetHeader = RFUtil.int16FromPacket(packet);
-        long clientAddress = RFUtil.int16FromPacket(packet);
-        long serverAddress = RFUtil.int16FromPacket(packet);
+        int packetHeaderFromPacket  = (int)RFUtil.int16FromPacket(packet);
+        int serverAddressFromPacket = (int)RFUtil.int16FromPacket(packet);
+        int clientAddressFromPacket  = (int)RFUtil.int16FromPacket(packet);
+        int myLocalAddress = service.boardState.address;
+        int electedServer = service.serverElector.serverAddress;
+        String electedServerName = service.allBoards.boardAddressToName(electedServer);
+        String myName = service.allBoards.boardAddressToName(myLocalAddress);
+        String serverNameFromPacket = service.allBoards.boardAddressToName(serverAddressFromPacket);
+
+        BLog.d(TAG, "BB Sync Packet receive from server len (" + recvPacket.length + ") " +
+                serverNameFromPacket + "(" + serverAddressFromPacket + ")" +
+                " -> " + myName + "(" + myLocalAddress + ")");
+
+
+        if (serverAddressFromPacket != service.serverElector.serverAddress) {
+            BLog.d(TAG, "BB Sync Packet: From server != my elected server: " +
+                    serverNameFromPacket +
+                    " != " + electedServerName);
+        }
+
         long myTimeStamp = RFUtil.int64FromPacket(packet);
         long svTimeStamp = RFUtil.int64FromPacket(packet);
         long curTime = TimeSync.GetCurrentClock();
         long adjDrift;
         long roundTripTime = (curTime - myTimeStamp);
 
-        BLog.d(TAG, "BB Sync Packet server time: " + svTimeStamp + ", mytime rx from server: " + myTimeStamp + ", currentTime: " + curTime);
+        BLog.d(TAG, "BB Sync Packet from " + serverNameFromPacket + " says server time: " +
+                svTimeStamp + ", sends back mytime as " +
+                myTimeStamp + ", compared to currentTime: " + curTime);
+
+        // 1739332417386
+        // 2114409600000
+        if (svTimeStamp > 2114409600000L) {
+            BLog.e(TAG, "Server time stamp bad (>2038)");
+            return;
+        }
+        if (svTimeStamp < 0) {
+            BLog.e(TAG, "Server time stamp bad (<0)");
+            return;
+        }
+        if (myTimeStamp > 2114409600000L) {
+            BLog.e(TAG, "Server returned my time stamp bad (>2038)");
+            return;
+        }
+        if (myTimeStamp < 0) {
+            BLog.e(TAG, "Server returned my time stamp bad (<0)");
+            return;
+        }
 
         // This used to be ok at rtt max of 300ms, now some radios are >300
         if (roundTripTime < 500) {
@@ -208,6 +235,13 @@ public class RFClientServer {
 
 
     // Thread/ loop to send out requests
+    // This has been updated in refactoring to measure the last 10 samples and return
+    // the calcualted drift for the one sample that has the shorted rtt
+    //
+    // We may want to reconsider since the original algorithm had a decayed seek towards
+    // the average of samples.
+    // This implementation can cause time to jump and make music to be off for 10 samples
+    // We should consider a median calculation for the drift and min for rtt.
     void RunBroadcastLoop() {
 
         // This section is for TIME syncing. NOT media syncing!!!

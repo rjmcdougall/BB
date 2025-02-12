@@ -1,11 +1,13 @@
 package com.richardmcdougall.bb.rf;
 
+import android.Manifest;
+import android.app.PendingIntent;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -13,13 +15,20 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import com.richardmcdougall.bb.ACTION;
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BluetoothLEServer;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bb.CmdMessenger;
 import com.richardmcdougall.bb.Gps;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,7 +52,7 @@ public class RF {
     private UsbManager mUsbManager = null;
     protected static final String GET_USB_PERMISSION = "GetUsbPermission";
     private BBService service = null;
-    public RF.radioEvents mRadioCallback = null;
+    private List<RF.radioEvents> mRadioCallbacks = new ArrayList<RF.radioEvents>();
 
     public RF(BBService service) {
         try {
@@ -52,15 +61,23 @@ public class RF {
             service.gps.attach(new Gps.GpsEvents() {
                 public void timeEvent(net.sf.marineapi.nmea.util.Time time) {
                     BLog.d(TAG, "Radio Time: " + time.toString());
-                    if (mRadioCallback != null) {
-                        mRadioCallback.timeEvent(time);
+                    Iterator it = mRadioCallbacks.iterator();
+                    while (it.hasNext()) {
+                        radioEvents callback = (radioEvents) it.next();
+                        if (callback != null) {
+                            callback.timeEvent(time);
+                        }
                     }
                 }
 
                 public void positionEvent(net.sf.marineapi.provider.event.PositionEvent gps) {
                     BLog.d(TAG, "Radio Position: " + gps.toString());
-                    if (mRadioCallback != null) {
-                        mRadioCallback.GPSevent(gps);
+                    Iterator it = mRadioCallbacks.iterator();
+                    while (it.hasNext()) {
+                        radioEvents callback = (radioEvents) it.next();
+                        if (callback != null) {
+                            callback.GPSevent(gps);
+                        }
                     }
                 }
 
@@ -82,7 +99,7 @@ public class RF {
     }
 
     public void attach(radioEvents newfunction) {
-        mRadioCallback = newfunction;
+        mRadioCallbacks.add(newfunction);
     }
 
     public void broadcast(byte[] packet) {
@@ -169,11 +186,13 @@ public class RF {
 
         if (!mUsbManager.hasPermission(mUsbDevice)) {
             BLog.d(TAG, "USB: No Permission");
+
             return;
         } else {
             usbConnect(mUsbDevice);
         }
     }
+
 
     private void usbConnect(UsbDevice device) {
 
@@ -289,13 +308,14 @@ public class RF {
             } else {
                 BLog.d(TAG, "Radio Receive Packet: len(" + recvBytes.toByteArray().length + "), data: " + RFUtil.bytesToHex(recvBytes.toByteArray()));
 
-                Intent in = new Intent(ACTION.BB_PACKET);
-                in.putExtra("sigStrength", sigStrength);
-                in.putExtra("packet", recvBytes.toByteArray());
-                LocalBroadcastManager.getInstance(service).sendBroadcast(in);
+                // TODO: Check that packets work with callback instead of broadcast
 
-                if (mRadioCallback != null) {
-                    mRadioCallback.receivePacket(recvBytes.toByteArray(), sigStrength);
+                Iterator it = mRadioCallbacks.iterator();
+                while (it.hasNext()) {
+                    radioEvents callback = (radioEvents) it.next();
+                    if (callback != null) {
+                        callback.receivePacket(recvBytes.toByteArray(), sigStrength);
+                    }
                 }
             }
         }
