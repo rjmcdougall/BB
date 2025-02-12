@@ -8,10 +8,12 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+//import android.support.v4.app.ActivityCompat;
 import android.text.format.Formatter;
 
 import org.json.JSONArray;
 
+import java.security.spec.ECField;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -29,6 +31,18 @@ public class BBWifi {
     private Context context = null;
     private BoardState boardState = null;
 
+    public BBWifi(Context context, BoardState boardState) {
+        this.context = context;
+        this.boardState = boardState;
+
+        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+
+        BLog.d(TAG, "Enable WiFi reconnect? " + enableWifiReconnect);
+
+        sch.scheduleWithFixedDelay(wifiSupervisor, 30, wifiReconnectEveryNSeconds, TimeUnit.SECONDS);
+    }
+
+
     private final BroadcastReceiver mWifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
@@ -38,45 +52,10 @@ public class BBWifi {
             }
         }
     };
-
-    public BBWifi(Context context, BoardState boardState) {
-        this.context = context;
-        this.boardState = boardState;
-
-        wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        context.registerReceiver(mWifiScanReceiver,
-                new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-
-        wifiManager.startScan();
-
-        BLog.d(TAG, "Enable WiFi reconnect? " + enableWifiReconnect);
-
-        sch.scheduleWithFixedDelay(wifiSupervisor, 10, wifiReconnectEveryNSeconds, TimeUnit.SECONDS);
-    }
-
-    public void UnregisterReceivers() {
-        try{
-            if(mWifiScanReceiver!=null)
-                this.context.unregisterReceiver(mWifiScanReceiver);
-
-            BLog.i(TAG,"Unregistered Receivers");
-        }catch(Exception e)
-        {
-            BLog.e(TAG, e.getMessage());
-        }
-    }
-
     public String getConnectedSSID() {
         return wifiManager.getConnectionInfo().getSSID();
     }
 
-    public JSONArray getScanResults() {
-        JSONArray a = new JSONArray();
-        for (ScanResult s : scanResults) {
-            a.put(s.SSID);
-        }
-        return a;
-    }
 
     public void checkWifiReconnect() {
 
@@ -98,9 +77,11 @@ public class BBWifi {
                     if (!wifiManager.setWifiEnabled(true)) {
                         throw new Exception("Failed to enable wifi");
                     }
+                    Thread.sleep(10000);
                     if (!wifiManager.reassociate()) {
                         throw new Exception("Failed to associate wifi");
                     }
+                    Thread.sleep(10000);
                 }
 
                 // are you on a network?
@@ -128,6 +109,13 @@ public class BBWifi {
         }
     }
 
+    public JSONArray getScanResults() {
+        JSONArray a = new JSONArray();
+        for (ScanResult s : scanResults) {
+            a.put(s.SSID);
+        }
+        return a;
+    }
     private String fixWifiSSidAndPass(String ssid) {
         String fixedSSid = ssid;
         fixedSSid = ssid.startsWith("\"") ? fixedSSid : "\"" + fixedSSid;
