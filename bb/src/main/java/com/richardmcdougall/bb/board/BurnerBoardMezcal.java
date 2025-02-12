@@ -19,6 +19,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
     private GammaCorrection mGammaCorrection = new GammaCorrection();
     private PixelDimmer mDimmer = new PixelDimmer();
 
+
     static {
         textSizeHorizontal = 14;
         textSizeVertical = 20;
@@ -36,7 +37,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
     }
 
     public int getMultiplier4Speed() {
-            return 1;
+        return 1;
     }
 
     public void start() {
@@ -49,13 +50,14 @@ public class BurnerBoardMezcal extends BurnerBoard {
     public int getFrameRate() {
         return 40;
     }
+
     public void setOtherlightsAutomatically() {
     }
 
     // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
     private static int pixelWorkaround(int level) {
         //return level;
-    //}
+        //}
 
         switch (level) {
             case 0:
@@ -79,6 +81,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
         latency = MonotonicClock.millis();
         this.logFlush();
         int[] mOutputScreen = boardScreen.clone();
+        sharpener.sharpen(mOutputScreen, service.burnerBoard.boardSharpenMode);
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);
@@ -97,7 +100,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
             }
-            latency = MonotonicClock.millis();
+            //latency = MonotonicClock.millis();
             setStrip(s, stripPixels);
             flush2Board();
             //BLog.d(TAG, "setstrip latency = " + (MonotonicClock.millis()- latency));
@@ -109,10 +112,10 @@ public class BurnerBoardMezcal extends BurnerBoard {
 
         }
         // Render on board
-        latency = MonotonicClock.millis();
+        //latency = MonotonicClock.millis();
         update();
         //BLog.d(TAG, "update latency = " + (MonotonicClock.millis()- latency));
-        latency = MonotonicClock.millis();
+        //latency = MonotonicClock.millis();
         flush2Board();
         //BLog.d(TAG, "flush latency = " + (MonotonicClock.millis()- latency));
     }
@@ -141,9 +144,11 @@ public class BurnerBoardMezcal extends BurnerBoard {
         try {
             mWriteBuffer.put(teensyUpdate);
 
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         return true;
     }
+
     public void flush2Board() {
         try {
             int len = mWriteBuffer.position();
@@ -156,7 +161,8 @@ public class BurnerBoardMezcal extends BurnerBoard {
                 mSerialIoManager.writeAsync(buffer);
                 //mSerialIoManager.flush();
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
     }
 
     private void pixelRemap(int x, int y, int stripOffset) {
@@ -189,8 +195,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
                     stripOffset++;
                 }
             }
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             BLog.e(TAG, e.getMessage());
         }
     }

@@ -64,7 +64,7 @@ public class BurnerBoardPanel extends BurnerBoard {
     }
 
     public int getFrameRate() {
-        return 12;
+        return 40;
     }
 
     public void setOtherlightsAutomatically() {
@@ -84,10 +84,13 @@ public class BurnerBoardPanel extends BurnerBoard {
         //pixelOffset = new PixelOffset(this);
     }
 
+
     public void flush() {
 
         this.logFlush();
         int[] mOutputScreen = boardScreen.clone();
+        sharpener.sharpen(mOutputScreen, service.burnerBoard.boardSharpenMode);
+
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
         mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);

@@ -3,6 +3,7 @@ package com.richardmcdougall.bb;
 import android.media.audiofx.Visualizer;
 
 import com.richardmcdougall.bb.board.BurnerBoard;
+import com.richardmcdougall.bb.board.Sharpener;
 import com.richardmcdougall.bb.visualization.Zagger;
 import com.richardmcdougall.bb.visualization.AudioBar;
 import com.richardmcdougall.bb.visualization.AudioBarHorizontal;
@@ -58,8 +59,10 @@ import java.util.Random;
 
 public class VisualizationController {
     private int autoVideoMode = 0;
-    private long parkedSinceMilliseconds = System.currentTimeMillis();;
-    private long lastAutoVideoMilliseconds = System.currentTimeMillis();;
+    private long parkedSinceMilliseconds = System.currentTimeMillis();
+    ;
+    private long lastAutoVideoMilliseconds = System.currentTimeMillis();
+    ;
     public Random mRandom = new Random();
     public int mMultipler4Speed;
 
@@ -127,12 +130,12 @@ public class VisualizationController {
     }
 
     void nextAutoVideo() {
-            int next = autoVideoMode + 1;
-            if (next >= service.mediaManager.GetTotalVideo()) {
-                next = 0;
-            }
-            BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next));
-            autoVideoMode = next;
+        int next = autoVideoMode + 1;
+        if (next >= service.mediaManager.GetTotalVideo()) {
+            next = 0;
+        }
+        BLog.d(TAG, "Setting Video to: " + service.mediaManager.GetVideoFileLocalName(next));
+        autoVideoMode = next;
     }
 
     // For reasons I don't understand, VideoMode() = 0 doesn't have a profile associated with it.
@@ -149,31 +152,27 @@ public class VisualizationController {
 
     public int displayAlgorithm(String algorithm) {
 
+        this.service.burnerBoard.boardSharpenMode = Sharpener.sharpenMode.LAPLACE2;
+
         int frameRate = service.burnerBoard.getFrameRate();
 
-        if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("matrixTest")){
+        if (this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("matrixTest")) {
             mMatrixTest.update(Visualization.kDefault);
-        }
-        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("powerTest")){
+        } else if (this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("powerTest")) {
             mPowerTest.update(Visualization.kDefault);
-        }
-        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displaySectionTest")){
+        } else if (this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displaySectionTest")) {
             mDisplaySectionTest.update(Visualization.kDefault);
-        }
-        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displayLineTest")){
+        } else if (this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displayLineTest")) {
             mDisplayLineTest.update(Visualization.kDefault);
-        }
-        else if(this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displayRowTest")){
+        } else if (this.service.displayMapManager.displayDebugPattern.equalsIgnoreCase("displayRowTest")) {
             mDisplayRowTest.update(Visualization.kDefault);
-        }
-       else if(algorithm.contains("simpleSign")){
-            String parameter = algorithm.substring(algorithm.indexOf("(")+1,algorithm.indexOf(")"));
+        } else if (algorithm.contains("simpleSign")) {
+            String parameter = algorithm.substring(algorithm.indexOf("(") + 1, algorithm.indexOf(")"));
 
             List<String> params = Arrays.asList(parameter.split(","));
-            mVisualizationSimpleSign.setText(params.get(0),params.get(1).trim(),params.get(2).trim());
+            mVisualizationSimpleSign.setText(params.get(0), params.get(1).trim(), params.get(2).trim());
             mVisualizationSimpleSign.update(Visualization.kDefault);
-        }
-        else {
+        } else {
 
             switch (algorithm) {
 
@@ -194,6 +193,7 @@ public class VisualizationController {
                     break;
 
                 case "modeMatrix(kMatrixMermaid)":
+                    this.service.burnerBoard.boardSharpenMode = Sharpener.sharpenMode.NONE;
                     mVisualizationMatrix.update(Matrix.kMatrixMermaid);
                     break;
 
@@ -264,7 +264,8 @@ public class VisualizationController {
         BLog.d(TAG, "resetParkedTime...");
         parkedSinceMilliseconds = System.currentTimeMillis();
     }
-// Main thread to drive the Board's display & get status (mode, voltage,...)
+
+    // Main thread to drive the Board's display & get status (mode, voltage,...)
     void boardDisplayThread() {
 
         long lastFrameTime = System.currentTimeMillis();
@@ -306,7 +307,7 @@ public class VisualizationController {
             }
 
             if (service.remoteCrisisController.boardInCrisisPhase == 1
-            || service.localCrisisController.boardInCrisisPhase == 1) {
+                    || service.localCrisisController.boardInCrisisPhase == 1) {
 
                 service.burnerBoard.clearPixels();
                 service.burnerBoard.fillScreen(255, 0, 0);
@@ -330,7 +331,7 @@ public class VisualizationController {
             if ((System.currentTimeMillis() - parkedSinceMilliseconds) > 300000) {
                 if ((System.currentTimeMillis() - lastAutoVideoMilliseconds) > 30000) {
                     BLog.d(TAG, "Parked and next video...");
-                    if(!service.boardState.GetBlockAudtoRotation() && !service.boardState.GetFunMode() && !service.boardState.inCrisis)
+                    if (!service.boardState.GetBlockAudtoRotation() && !service.boardState.GetFunMode() && !service.boardState.inCrisis)
                         nextAutoVideo();
                     lastAutoVideoMilliseconds = System.currentTimeMillis();
                 }
@@ -360,7 +361,7 @@ public class VisualizationController {
 
     int runVisualization(int mode) {
 
-         try {
+        try {
             frameCnt++;
             if (frameCnt % 100 == 0) {
                 BLog.d(TAG, "Frames: " + frameCnt + ", parked for " + (System.currentTimeMillis() - parkedSinceMilliseconds));
@@ -370,21 +371,20 @@ public class VisualizationController {
                 return service.burnerBoard.getFrameRate();
             }
 
-         JSONObject videos;
-         if(this.service.boardState.GetFunMode()){
+            JSONObject videos;
+            if (this.service.boardState.GetFunMode()) {
                 videos = service.mediaManager.GetFuuModeVide();
-            }
-            else {
-                 videos = service.mediaManager.GetVideo(mode);
+            } else {
+                videos = service.mediaManager.GetVideo(mode);
             }
 
             if (videos == null) {
                 return service.burnerBoard.getFrameRate();
             }
-            
-             this.service.burnerBoard.lineBuilder.clearLine();
 
-             if (videos.has("algorithm")) {
+            this.service.burnerBoard.lineBuilder.clearLine();
+
+            if (videos.has("algorithm")) {
                 String algorithm = service.mediaManager.GetAlgorithm(mode);
                 return displayAlgorithm(algorithm);
             } else {
@@ -392,8 +392,8 @@ public class VisualizationController {
                 return service.burnerBoard.getFrameRate();
             }
         } catch (Exception e) {
-             BLog.e(TAG, "Visualization error: " + e.getMessage());
-             return service.burnerBoard.getFrameRate();
+            BLog.e(TAG, "Visualization error: " + e.getMessage());
+            return service.burnerBoard.getFrameRate();
         }
     }
 
@@ -407,7 +407,7 @@ public class VisualizationController {
         lastAutoVideoMilliseconds = System.currentTimeMillis();
 
         // Likely not connected to physical burner board, fallback
-         if (mode == 99) {
+        if (mode == 99) {
             service.boardState.currentVideoMode++;
         } else if (mode == 98) {
             service.boardState.currentVideoMode--;
@@ -419,7 +419,7 @@ public class VisualizationController {
         if (service.boardState.currentVideoMode >= maxModes)
             service.boardState.currentVideoMode = 0;
         else if (service.boardState.currentVideoMode < 0)
-            service.boardState.currentVideoMode = maxModes-1;
+            service.boardState.currentVideoMode = maxModes - 1;
 
         if (service.boardState.masterRemote)
             service.masterController.SendVideo();

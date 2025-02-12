@@ -1,5 +1,7 @@
 package com.richardmcdougall.bb.board;
 
+import static com.richardmcdougall.bb.board.Sharpener.sharpenMode.NONE;
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -36,6 +38,9 @@ public abstract class BurnerBoard {
     static final int PIXEL_BLUE = 2;
     public int boardWidth = 255;
     public int boardHeight = 255;
+
+    public Sharpener.sharpenMode boardSharpenMode = NONE;
+
     public static int textSizeHorizontal = 1;
     public static int textSizeVertical = 1;
     public static boolean enableBatteryMonitoring = false;
@@ -56,6 +61,8 @@ public abstract class BurnerBoard {
     public TextBuilder textBuilder = null;
     public BatteryOverlayBuilder batteryOverlayBuilder = null;
     public BrakeOverlayBuilder brakeOverlayBuilder = null;
+
+    public Sharpener sharpener = null;
     public ArcBuilder arcBuilder = null;
     public LineBuilder lineBuilder = null;
     protected BoardDisplay boardDisplay = null;
@@ -106,6 +113,7 @@ public abstract class BurnerBoard {
         this.lineBuilder = new LineBuilder(this);
         this.arcBuilder = new ArcBuilder(this);
         this.pixelDimmer = new PixelDimmer();
+        this.sharpener = new Sharpener(this);
         this.pixelOffset.initPixelOffset();
     }
 
