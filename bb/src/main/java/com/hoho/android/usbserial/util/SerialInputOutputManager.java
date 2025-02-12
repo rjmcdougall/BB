@@ -11,6 +11,7 @@ import android.os.Process;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
 import java.nio.BufferOverflowException;
@@ -167,7 +168,17 @@ public class SerialInputOutputManager implements Runnable {
             Log.d(TAG, "writeAsync " + data.length);
         }
         synchronized (mWriteBufferLock) {
-            mWriteBufferQueue.add(data);
+            if (mWriteBufferQueue.size() > 100) {
+                BLog.d(TAG, "large write buffer " + mWriteBufferQueue.size());
+                try {
+                    mWriteBufferQueue.clear();
+                    Thread.sleep(10);
+                } catch (Exception e) {
+
+                }
+            } else {
+                mWriteBufferQueue.add(data);
+            }
         }
         try {
             if (mThread != null) {
