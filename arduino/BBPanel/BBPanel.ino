@@ -1,10 +1,10 @@
 
 
 #include <CmdMessenger.h>
-#include <i2c_t3.h>
+//#include <i2c_t3.h>
 
-#include <SmartLEDShieldV4.h>  // uncomment this line for SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
-#include <SmartMatrix3.h>
+#include <MatrixHardware_Teensy4_ShieldV5.h>        // SmartLED Shield for Teensy 4 (V5)
+#include <SmartMatrix4.h>
 
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
@@ -407,28 +407,11 @@ void batteryStats() {
 #define BQ34Z100 0x55
 
 int getBattery8(int reg) {
-  Wire.beginTransmission(BQ34Z100);
-  Wire.write(reg);
-  Wire.endTransmission();
-  Wire.requestFrom(BQ34Z100,1);
-  return (Wire.read());
+  0;
 }
 
 int getBattery16(int register1, int register2) {
-  unsigned int low;
-  unsigned int high;
-  unsigned int high1;
-  int value = -1;
-  
-  if ((value = getBattery8(register1)) != -1) {
-    low = value;
-    if ((value = getBattery8(register2)) != -1) {
-      high1 = value << 8;
-      high1 = high1 + low;
-      return(high1);
-    }
-  }
-  return(-1);
+  return 0;
 }
 
 /* 
@@ -718,8 +701,8 @@ void setup() {
   Wire.begin();
   */
   // Setup for Master mode, pins 18/19, internal pullups, 100kHz, 200ms default timeout
-  Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 100000);
-  Wire.setDefaultTimeout(200000); // 200ms
+//  Wire.begin(I2C_MASTER, 0x00, I2C_PINS_18_19, I2C_PULLUP_EXT, 100000);
+//  Wire.setDefaultTimeout(200000); // 200ms
 
   // setup matrix
   matrix.addLayer(&backgroundLayer); 
@@ -729,8 +712,8 @@ void setup() {
   // switch pins to use 16/17 for I2C instead of 18/19, after calling matrix.begin()//
   pinMode(18, INPUT);
   pinMode(19, INPUT);
-  CORE_PIN16_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
-  CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
+//  CORE_PIN16_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
+ // CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
 
   // display a simple message - will stay on the screen if calls to the RTC library fail later
   backgroundLayer.fillScreen({0,0,0});
