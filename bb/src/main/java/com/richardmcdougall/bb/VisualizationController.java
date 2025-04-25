@@ -149,7 +149,10 @@ public class VisualizationController {
         setMode(next);
     }
 
+    //int slowDownFactor = 2; // Mezcal. this thing is too fast now!!
+    int slowDownFactor = 0;
 
+    int slowdown = 0;
     public int displayAlgorithm(String algorithm) {
 
         this.service.burnerBoard.boardSharpenMode = Sharpener.sharpenMode.LAPLACE2;
@@ -173,6 +176,11 @@ public class VisualizationController {
             mVisualizationSimpleSign.setText(params.get(0), params.get(1).trim(), params.get(2).trim());
             mVisualizationSimpleSign.update(Visualization.kDefault);
         } else {
+            if (slowdown > 0) {
+                slowdown--;
+                return frameRate;
+            }
+            slowdown = slowDownFactor;
 
             switch (algorithm) {
 

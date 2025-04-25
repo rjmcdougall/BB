@@ -13,7 +13,6 @@ public class BurnerBoardMast extends BurnerBoard {
     private String TAG = this.getClass().getSimpleName();
     private PixelDimmer mDimmer = new PixelDimmer();
 
-
     static {
         textSizeHorizontal = 12;
         textSizeVertical = 12;
@@ -43,11 +42,9 @@ public class BurnerBoardMast extends BurnerBoard {
     public void setOtherlightsAutomatically(){};
 
     public void start() {
-
         // attach getBatteryLevel cmdMessenger callback
         BurnerBoardMast.BoardCallbackGetBatteryLevel getBatteryLevelCallback = new BoardCallbackGetBatteryLevel(false);
         mListener.attach(8, getBatteryLevelCallback);
-
     }
 
     public void flush() {
@@ -56,7 +53,7 @@ public class BurnerBoardMast extends BurnerBoard {
         int[] mOutputScreen = boardScreen.clone();
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = mDimmer.Dim(2, mOutputScreen);
+        mOutputScreen = mDimmer.Dim(8, mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
