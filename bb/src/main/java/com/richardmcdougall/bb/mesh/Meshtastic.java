@@ -155,6 +155,8 @@ class Meshtastic {
             */
 
             requestConfig();
+            requestKey();
+
 
             /*
             packet = MeshProtos.ToRadio.newBuilder();
@@ -442,6 +444,8 @@ class Meshtastic {
             switch (data.dataType) {
                 case Portnums.PortNum.TEXT_MESSAGE_APP_VALUE:
                     BLog.d(TAG, "Meshpacket Text Message");
+                    String message = new String(data.bytes);
+                    handleText(packet, message);
                     break;
                 case Portnums.PortNum.ADMIN_APP_VALUE:
                     BLog.d(TAG, "Meshpacket Admin Message");
@@ -491,7 +495,7 @@ class Meshtastic {
                     break;
             }
         } else {
-            BLog.d(TAG, "empty packet: " + packet.toString());
+            BLog.d(TAG, "empty packet"); //: " + packet.toString());
         }
     }
 
@@ -525,6 +529,7 @@ class Meshtastic {
     //05-26 04:34:41.676 13231 13341 D BB.Meshtastic: }
     private void handleNode(MeshProtos.NodeInfo node) {
         BLog.d(TAG, "New Node " + node);
+        nodeDB.addNode(node);
     }
 
     //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: Node user message from mesh: id: "!99a34093"
@@ -548,17 +553,74 @@ class Meshtastic {
     //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   hop_start: 3
     //05-26 04:38:47.980 13231 13341 D BB.Meshtastic: }
     private void handleUser(MeshProtos.MeshPacket packet, MeshProtos.User user) {
-        BLog.d(TAG, "Node " + packet.getFrom() + " user message from mesh: " + user.toString());
+        //BLog.d(TAG, "Node " + packet.getFrom() + " user message from mesh: " + user.toString());
+        try {
+            MeshProtos.NodeInfo node = nodeDB.findNode(packet.getFrom());
+            if (node == null) {
+                node = MeshProtos.NodeInfo.getDefaultInstance();
+            }
+            MeshProtos.NodeInfo newnode = node.toBuilder()
+                    .setUser(user)
+                    .build();
+            nodeDB.addNode(newnode);
+            BLog.d(TAG, "Updated node: " + newnode.getUser().getLongName());
+        } catch (Exception e) {
+            BLog.d(TAG, "cannot update node from user message" + e.getMessage());
+        }
     }
 
     private void handlePosition(MeshProtos.MeshPacket packet, MeshProtos.Position position) {
-        BLog.d(TAG, "Position " + packet.getFrom() + " user message from mesh: " + position.toString());
+        //BLog.d(TAG, "Position " + packet.getFrom() + " user message from mesh: " + position.toString());
+        try {
+            MeshProtos.NodeInfo node = nodeDB.findNode(packet.getFrom());
+            if (node == null) {
+                node = MeshProtos.NodeInfo.getDefaultInstance();
+            }
+            MeshProtos.NodeInfo newnode = node.toBuilder()
+                    .setPosition(position)
+                    .build();
+            nodeDB.addNode(newnode);
+            BLog.d(TAG, "Position, node: " + newnode.getUser().getLongName() + ", " +
+                    position.getLatitudeI() / 10000000.0f + "," +
+                    position.getLongitudeI() / 10000000.0f);
+        } catch (Exception e) {
+            BLog.d(TAG, "cannot update node from position message" + e.getMessage());
+        }
     }
 
     private void handleTelemetry(MeshProtos.MeshPacket packet, TelemetryProtos.Telemetry telemetry) {
-        BLog.d(TAG, "Telemetry " + packet.getFrom() + " Telemetry message from mesh: " + telemetry.toString());
+        //BLog.d(TAG, "Telemetry " + packet.getFrom() + " Telemetry message from mesh: " + telemetry.toString());
+        try {
+            MeshProtos.NodeInfo node = nodeDB.findNode(packet.getFrom());
+            if (node == null) {
+                node = MeshProtos.NodeInfo.getDefaultInstance();
+            }
+            MeshProtos.NodeInfo newnode = node.toBuilder()
+                    .setDeviceMetrics(telemetry.getDeviceMetrics())
+                    .build();
+            nodeDB.addNode(newnode);
+            BLog.d(TAG, "Telemetry, node: " + newnode.getUser().getLongName() +
+                    ", battery: " + newnode.getDeviceMetrics().getBatteryLevel());
+        } catch (Exception e) {
+            BLog.d(TAG, "cannot update node from telemetry message" + e.getMessage());
+        }
     }
 
+    public void handleText(MeshProtos.MeshPacket packet, String message) {
+        try {
+            String username;
+
+            MeshProtos.NodeInfo node = nodeDB.findNode(packet.getFrom());
+            if (node == null) {
+                username = "unknown";
+            } else {
+                username = node.getUser().getLongName();
+            }
+            BLog.d(TAG, username + ": " + message);
+        } catch (Exception e) {
+            BLog.d(TAG, "can't get text message" + e.getMessage());
+        }
+    }
     int myNodeNum = 0;
 
     private void handleReceivedAdmin(int fromNodeNum, AdminProtos.AdminMessage a) {
