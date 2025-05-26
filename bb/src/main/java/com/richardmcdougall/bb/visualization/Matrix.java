@@ -36,11 +36,12 @@ public class Matrix extends Visualization {
         int color;
         int x;
         int y;
-        int colorInc = 1;
+        int colorInc = 2;
         int pixelSkip = 1;
         int multiplier4Speed = service.visualizationController.mMultipler4Speed;
 
-        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal) {
+        if (service.boardState.GetBoardType() == BoardState.BoardType.mezcal ||
+        service.boardState.GetBoardType() == BoardState.BoardType.panel) {
             pixelSkip = 2;
             if (multiplier4Speed == 1) {
                 multiplier4Speed = 2;

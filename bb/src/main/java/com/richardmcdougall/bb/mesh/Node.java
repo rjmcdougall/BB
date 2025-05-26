@@ -1,91 +1,42 @@
 package com.richardmcdougall.bb.mesh;
 
-import android.annotation.SuppressLint;
 import android.graphics.Color;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Pair;
 
 import com.geeksville.mesh.ConfigProtos;
 import com.geeksville.mesh.MeshProtos;
+import com.geeksville.mesh.TelemetryProtos;
 
-public class NodeInfo implements Parcelable {
+public class Node {
 
     public int num; // This is immutable, and used as a key
-    //@Embedded(prefix = "user_") // Not needed in pure Java
-    public MeshUser user;
-    //@Embedded(prefix = "position_") // Not needed in pure Java
-    public Position position;
+    public MeshProtos.User user;
+    public MeshProtos.Position position;
     public float snr = Float.MAX_VALUE;
     public int rssi = Integer.MAX_VALUE;
     public int lastHeard; // the last time we've seen this node in secs since 1970
-    public DeviceMetrics deviceMetrics;
+    public TelemetryProtos.DeviceMetrics deviceMetrics;
     public int channel;
-    public EnvironmentMetrics environmentMetrics;
-    //@ColumnInfo(name = "hopsAway", defaultValue = "0") // Not needed in pure Java
+    public TelemetryProtos.EnvironmentMetrics environmentMetrics;
     public int hopsAway;
 
     // Constructors
 
-    public NodeInfo(int num, MeshUser user) {
+    public Node(int num, MeshProtos.User user) {
         this.num = num;
         this.user = user;
     }
 
-    public NodeInfo(int num, MeshUser user, Position position) {
+    public Node(int num, MeshProtos.User user, MeshProtos.Position position) {
         this(num, user);
         this.position = position;
     }
 
-    public NodeInfo(int num, MeshUser user, Position position, DeviceMetrics metrics) {
+    public Node(int num, MeshProtos.User user, MeshProtos.Position position, TelemetryProtos.DeviceMetrics metrics) {
         this(num, user);
         this.position = position;
         this.deviceMetrics = metrics;
     }
-
-    // Parcelable Implementation
-
-    public NodeInfo(Parcel in) {
-        num = in.readInt();
-        user = in.readParcelable(MeshUser.class.getClassLoader());
-        position = in.readParcelable(Position.class.getClassLoader());
-        snr = in.readFloat();
-        rssi = in.readInt();
-        lastHeard = in.readInt();
-        deviceMetrics = in.readParcelable(DeviceMetrics.class.getClassLoader());
-        channel = in.readInt();
-        environmentMetrics = in.readParcelable(EnvironmentMetrics.class.getClassLoader());
-        hopsAway = in.readInt();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(num);
-        dest.writeParcelable(user, flags);
-        dest.writeParcelable(position, flags);
-        dest.writeFloat(snr);
-        dest.writeInt(rssi);
-        dest.writeInt(lastHeard);
-        dest.writeParcelable(deviceMetrics, flags);
-        dest.writeInt(channel);
-        dest.writeParcelable(environmentMetrics, flags);
-        dest.writeInt(hopsAway);
-    }
-
-    public final Parcelable.Creator<NodeInfo> CREATOR = new Parcelable.Creator<NodeInfo>() {
-        public NodeInfo createFromParcel(Parcel in) {
-            return new NodeInfo(in);
-        }
-
-        public NodeInfo[] newArray(int size) {
-            return new NodeInfo[size];
-        }
-    };
 
     // Other methods
 
@@ -98,11 +49,11 @@ public class NodeInfo implements Parcelable {
     }
 
     public Integer getBatteryLevel() {
-        return deviceMetrics != null ? deviceMetrics.batteryLevel : null;
+        return deviceMetrics != null ? deviceMetrics.getBatteryLevel() : null;
     }
 
     public Float getVoltage() {
-        return deviceMetrics != null ? deviceMetrics.voltage : null;
+        return deviceMetrics != null ? deviceMetrics.getVoltage() : null;
     }
 
     public String getBatteryStr() {
@@ -116,23 +67,25 @@ public class NodeInfo implements Parcelable {
         return (now - lastHeard <= timeout);
     }
 
-    public Position getValidPosition() {
+    /*
+
+    public MeshProtos.Position getValidPosition() {
         if (position != null && position.isValid()) {
             return position;
         }
         return null;
     }
 
-    public Integer distance(NodeInfo o) {
-        Position p = getValidPosition();
-        Position op = o.getValidPosition();
+    public Integer distance(Node o) {
+        MeshProtos.Position p = getValidPosition();
+        MeshProtos.Position op = o.getValidPosition();
         if (p != null && op != null) {
             return (int) p.distance(op);
         }
         return null;
     }
 
-    public Integer bearing(NodeInfo o) {
+    public Integer bearing(Node o) {
         Position p = getValidPosition();
         Position op = o.getValidPosition();
         if (p != null && op != null) {
@@ -141,7 +94,7 @@ public class NodeInfo implements Parcelable {
         return null;
     }
 
-    public String distanceStr(NodeInfo o, int prefUnits) {
+    public String distanceStr(Node o, int prefUnits) {
         Integer dist = distance(o);
         if (dist == null) {
             return null;
@@ -161,4 +114,6 @@ public class NodeInfo implements Parcelable {
             return null;
         }
     }
+
+     */
 }

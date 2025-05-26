@@ -6,7 +6,7 @@ import android.os.Parcelable;
 import com.geeksville.mesh.ConfigProtos;
 import com.geeksville.mesh.MeshProtos;
 
-public class Position implements Parcelable {
+public class Position  {
 
     public double latitude;
     public double longitude;
@@ -57,66 +57,6 @@ public class Position implements Parcelable {
                 position.getPrecisionBits()
         );
     }
-
-    // Parcelable Implementation
-
-    public Position(Parcel in) {
-        latitude = in.readDouble();
-        longitude = in.readDouble();
-        altitude = in.readInt();
-        time = in.readInt();
-        satellitesInView = in.readInt();
-        groundSpeed = in.readInt();
-        groundTrack = in.readInt();
-        precisionBits = in.readInt();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    /**
-     * Converts this Position object to a MeshProtos.Position Protobuf message.
-     *
-     * @return The equivalent MeshProtos.Position object.
-     */
-    public MeshProtos.Position toProto() {
-        return MeshProtos.Position.newBuilder()
-                .setLatitudeI(degI(latitude))
-                .setLongitudeI(degI(longitude))
-                .setAltitude(altitude)
-                .setTime(time)
-                .setSatsInView(satellitesInView)
-                .setGroundSpeed(groundSpeed)
-                .setGroundTrack(groundTrack)
-                .setPrecisionBits(precisionBits)
-                .build();
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeDouble(latitude);
-        dest.writeDouble(longitude);
-        dest.writeInt(altitude);
-        dest.writeInt(time);
-        dest.writeInt(satellitesInView);
-        dest.writeInt(groundSpeed);
-        dest.writeInt(groundTrack);
-        dest.writeInt(precisionBits);
-    }
-
-    public final Parcelable.Creator<Position> CREATOR = new Parcelable.Creator<Position>() {
-        public Position createFromParcel(Parcel in) {
-            return new Position(in);
-        }
-
-        public Position[] newArray(int size) {
-            return new Position[size];
-        }
-    };
-
-    // Helper Methods (Companion Object in Kotlin)
 
     public static int currentTime() {
         return (int) (System.currentTimeMillis() / 1000);

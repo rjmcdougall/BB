@@ -22,7 +22,6 @@ public class NodeDB {
 
     // The database of active nodes, indexed by node number
     private final ConcurrentHashMap<Integer, MeshProtos.NodeInfo> nodeDBbyNodeNum = new ConcurrentHashMap<>();
-    // ... Other methods and fields related to NodeDB ...
 
     public NodeDB(BBService service) {
         this.service = service;
@@ -33,6 +32,42 @@ public class NodeDB {
         //nodeDB.nodeDBbyNodeNum.put(newNode.num, newNode);
     }
 
+    /**
+     * Adds or updates a node in the database.
+     * The node number obtained from {@code nodeInfo.getNodeNum()} is used as the key.
+     * If a node with the same node number already exists, its information will be updated.
+     *
+     * @param nodeInfo The {@link MeshProtos.NodeInfo} object to add or update. Must not be null.
+     * The {@code nodeInfo.getNodeNum()} will be used as the key.
+     * @throws IllegalArgumentException if {@code nodeInfo} is null.
+     */
+    public void addNode(MeshProtos.NodeInfo nodeInfo) {
+        if (nodeInfo == null) {
+            // ConcurrentHashMap does not permit null values.
+            throw new IllegalArgumentException("NodeInfo cannot be null.");
+        }
+        // nodeInfo.getNodeNum() returns int, which is autoboxed to Integer for the key.
+        // ConcurrentHashMap does not permit null keys.
+        nodeDBbyNodeNum.put(nodeInfo.getNum(), nodeInfo);
+        BLog.d(TAG, "Added/Updated node: " + nodeInfo.getNum());
+    }
+
+    /**
+     * Finds a node in the database by its node number.
+     *
+     * @param nodeNum The node number (Integer) to search for.
+     * @return The {@link MeshProtos.NodeInfo} object if found, or {@code null} if no node
+     * with the given number exists or if {@code nodeNum} is null.
+     */
+    public MeshProtos.NodeInfo findNode(Integer nodeNum) {
+        if (nodeNum == null) {
+            // ConcurrentHashMap does not permit null keys for get(), it would throw NullPointerException.
+            // So, we handle it explicitly by returning null or logging.
+            // System.err.println("Attempted to find node with null nodeNum.");
+            return null;
+        }
+        return nodeDBbyNodeNum.get(nodeNum);
+    }
 
     public int getMyNodeNum() {
         try {

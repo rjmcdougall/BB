@@ -10,7 +10,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Arrays;
 
 
-public class DataPacket implements Parcelable {
+public class DataPacket  {
     // Special node IDs
     public static final String ID_BROADCAST = "^all";
     public static final String ID_LOCAL = "^local";
@@ -101,61 +101,6 @@ public class DataPacket implements Parcelable {
         this.time = System.currentTimeMillis();
     }
 
-    // Parcelable Implementation
-
-    public DataPacket(Parcel in) {
-        to = in.readString();
-        bytes = in.createByteArray();
-        dataType = in.readInt();
-        from = in.readString();
-        time = in.readLong();
-        id = in.readInt();
-        status = in.readParcelable(MessageStatus.class.getClassLoader());
-        hopLimit = in.readInt();
-        channel = in.readInt();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(to);
-        dest.writeByteArray(bytes);
-        dest.writeInt(dataType);
-        dest.writeString(from);
-        dest.writeLong(time);
-        dest.writeInt(id);
-        dest.writeParcelable(status, flags);
-        dest.writeInt(hopLimit);
-        dest.writeInt(channel);
-    }
-
-    public void readFromParcel(Parcel in) {
-        to = in.readString();
-        in.createByteArray(); // Skip reading bytes
-        in.readInt(); // Skip reading dataType
-        from = in.readString();
-        time = in.readLong();
-        id = in.readInt();
-        status = in.readParcelable(MessageStatus.class.getClassLoader());
-        hopLimit = in.readInt();
-        channel = in.readInt();
-    }
-
-    public static final Parcelable.Creator<DataPacket> CREATOR = new Parcelable.Creator<DataPacket>() {
-        public DataPacket createFromParcel(Parcel in) {
-            return new DataPacket(in);
-        }
-
-        public DataPacket[] newArray(int size) {
-            return new DataPacket[size];
-        }
-    };
-
-    // Getters (add setters if needed)
 
     public String getText() {
         if (dataType == Portnums.PortNum.TEXT_MESSAGE_APP_VALUE) {
@@ -204,7 +149,7 @@ public class DataPacket implements Parcelable {
         int fromNum = nodeDB.toNodeNum(p.from);
         if (
                 this.dataType == Portnums.PortNum.ADMIN_APP_VALUE) {
-            toNum = 530602760;
+                toNum = 530602760;
             wantAck = true;
         }
 
@@ -238,7 +183,6 @@ public class DataPacket implements Parcelable {
             }
         }
         */
-
 
         builder.setDecoded(dataBuilder.build());
 

@@ -138,18 +138,22 @@ class Meshtastic {
         try {
             Thread.sleep(1000);
             packetProcessor.connect();
+            /*
             Thread.sleep(1000);
-            resetDevice();
             Thread.sleep(10000);
             while (sessionPasskey == null) {
-                Thread.sleep(2000);
+                resetDevice();
+                Thread.sleep(10000);
                 requestKey();
+                Thread.sleep(60000);
             }
             Thread.sleep(5000);
             setDeviceDefaults();
             Thread.sleep(5000);
             setRadioDefaults();
             Thread.sleep(5000);
+            */
+
             requestConfig();
 
             /*
@@ -190,10 +194,10 @@ class Meshtastic {
 
              */
 
-/*
+            /*
 
 
- */
+             */
 
         } catch (Exception e) {
             BLog.d(TAG, "Error sending meshtastic setup" + e.getMessage());
@@ -212,6 +216,7 @@ class Meshtastic {
         BLog.d(TAG, "sending data: \n" + packet.toString());
         sendToRadio(packet);
     }
+
     private void requestKey() {
         MeshProtos.ToRadio.Builder packet;
         AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
@@ -254,6 +259,7 @@ class Meshtastic {
         BLog.d(TAG, "sending data: \n" + packet.toString());
         sendToRadio(packet);
     }
+
     private void setRadioDefaults() {
         // TODO: check passkey
         MeshProtos.ToRadio.Builder packet;
@@ -278,8 +284,8 @@ class Meshtastic {
 
     private void meshSendLoop() {
         try {
-            sendPosition();
-            TimeUnit.SECONDS.sleep(2);
+            //sendPosition();
+            //TimeUnit.SECONDS.sleep(1800);
             sendTelemetry();
         } catch (Exception e) {
 
@@ -287,8 +293,11 @@ class Meshtastic {
     }
 
     void sendPosition() {
-        Position position = new Position(37.472604, -122.155005, 0);
-        DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 0, position.toProto());
+        MeshProtos.Position position = MeshProtos.Position.newBuilder()
+                .setLatitudeI((int) (1.0e7 * 37.472604))
+                .setLongitudeI((int) (1.0e7 * -122.155005))
+                .build();
+        DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 0, position);
         data.hopLimit = 2;
         MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
         MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
@@ -305,11 +314,16 @@ class Meshtastic {
         float airUtilTx = 1;
         int uptimeSeconds = 1000;
 
-        DeviceMetrics metrics = new DeviceMetrics(batteryLevel, voltage,
-                channelUtilization, airUtilTx, uptimeSeconds);
+        TelemetryProtos.DeviceMetrics metrics = TelemetryProtos.DeviceMetrics.newBuilder()
+                .setBatteryLevel(batteryLevel)
+                .setVoltage(voltage)
+                .setChannelUtilization(channelUtilization)
+                .setUptimeSeconds(uptimeSeconds)
+                .setAirUtilTx(airUtilTx)
+                .build();
         TelemetryProtos.Telemetry.Builder telemetry = TelemetryProtos.Telemetry.newBuilder();
         telemetry.setTime((int) (System.currentTimeMillis() / 1000));
-        telemetry.setDeviceMetrics(metrics.toProto());
+        telemetry.setDeviceMetrics(metrics);
         DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 0, telemetry.build());
         data.hopLimit = 2;
         MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
@@ -350,12 +364,14 @@ class Meshtastic {
         }
 
         if (fromRadio != null) {
-            BLog.d(TAG, "packet: " + fromRadio);
+            //BLog.d(TAG, "packet: " + fromRadio);
         }
 
         try {
+
             switch (fromRadio.getPayloadVariantCase().getNumber()) {
                 case MeshProtos.FromRadio.PACKET_FIELD_NUMBER:
+                    acknowledgePacket(fromRadio.getPacket());
                     handleReceivedMeshPacket(fromRadio.getPacket());
                     break;
                 case MeshProtos.FromRadio.CONFIG_COMPLETE_ID_FIELD_NUMBER:
@@ -365,7 +381,9 @@ class Meshtastic {
                     handleMyInfo(fromRadio.getMyInfo());
                     break;
                 case MeshProtos.FromRadio.NODE_INFO_FIELD_NUMBER:
-                    handleNodeInfo(fromRadio.getNodeInfo());
+                    MeshProtos.NodeInfo node = fromRadio.getNodeInfo();
+                    BLog.d(TAG, "Node from radio: " + node.getNum());
+                    handleNode(node);
                     break;
                 case MeshProtos.FromRadio.CHANNEL_FIELD_NUMBER:
                     //handleChannel(fromRadio.getChannel());
@@ -405,12 +423,12 @@ class Meshtastic {
 
     void handleNodeInfo(MeshProtos.NodeInfo node) {
         BLog.d(TAG, "nodeinfo packet: " + node.toString());
+        nodeDB.addNode(node);
     }
 
     void handleReceivedMeshPacket(MeshProtos.MeshPacket packet) {
 
         BLog.d(TAG, "Meshpacket...");
-        acknowledgePacket(packet);
         DataPacket data = null;
 
         if (packet.hasDecoded()) {
@@ -418,29 +436,53 @@ class Meshtastic {
         }
 
         if (data != null) {
+            if (data.pkiEncrypted) {
+                BLog.d(TAG, "packet is encrypted");
+            }
             switch (data.dataType) {
                 case Portnums.PortNum.TEXT_MESSAGE_APP_VALUE:
-                    BLog.d(TAG, "Text Message");
+                    BLog.d(TAG, "Meshpacket Text Message");
                     break;
                 case Portnums.PortNum.ADMIN_APP_VALUE:
-                    BLog.d(TAG, "Admin Message");
+                    BLog.d(TAG, "Meshpacket Admin Message");
                     try {
                         AdminProtos.AdminMessage admin = AdminProtos.AdminMessage.parseFrom(data.bytes);
                         BLog.d(TAG, "Admin Message: " + admin.toString());
                         handleReceivedAdmin(packet.getFrom(), admin);
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                        BLog.e(TAG, "Admin Message parse failed: " + e.getMessage());
+                    }
                     break;
                 case Portnums.PortNum.NODEINFO_APP_VALUE:
-                    BLog.d(TAG, "Nodeinfo");
+                    BLog.d(TAG, "Meshpacket User");
+                    try {
+                        //MeshProtos.NodeInfo node = MeshProtos.NodeInfo.parseFrom(data.bytes);
+                        MeshProtos.User user = MeshProtos.User.parseFrom(data.bytes);
+                        handleUser(packet, user);
+                    } catch (Exception e) {
+                        BLog.e(TAG, "Node info parse failed: " + e.getMessage());
+                    }
                     break;
                 case Portnums.PortNum.POSITION_APP_VALUE:
-                    BLog.d(TAG, "Position");
+                    BLog.d(TAG, "Meshpacket Position");
+                    try {
+                        MeshProtos.Position position = MeshProtos.Position.parseFrom(data.bytes);
+                        handlePosition(packet, position);
+                    } catch (Exception e) {
+                        BLog.e(TAG, "Position parse failed: " + e.getMessage());
+                    }
                     break;
                 case Portnums.PortNum.ROUTING_APP_VALUE:
                     BLog.d(TAG, "Routing");
                     break;
                 case Portnums.PortNum.TELEMETRY_APP_VALUE:
-                    BLog.d(TAG, "Telemetry");
+                    BLog.d(TAG, "Meshpacket Telemetry");
+                    try {
+                        TelemetryProtos.Telemetry telemetry = TelemetryProtos.Telemetry.parseFrom(data.bytes);
+                        handleTelemetry(packet, telemetry);
+                    } catch (Exception e) {
+                        BLog.e(TAG, "Telemetry parse failed: " + e.getMessage());
+                    }
                     break;
                 default:
                     BLog.d(TAG, "other datatype " + data.dataType);
@@ -449,12 +491,76 @@ class Meshtastic {
                     break;
             }
         } else {
-            BLog.d(TAG, packet.toString());
+            BLog.d(TAG, "empty packet: " + packet.toString());
         }
     }
 
+    // 05-26 04:34:41.676 13231 13341 D BB.Meshtastic: packet: node_info {
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   num: 1227682206
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   user {
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     id: "!492cf19e"
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     long_name: "Meshtastic f19e"
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     short_name: "f19e"
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     macaddr: "\342>I,\361\236"
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     hw_model: TRACKER_T1000_E
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     role: CLIENT_MUTE
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     public_key: "\316\234\3347/\270*\313\337\350\220\230\036L\360#\027C3\324\250GUTZ\220\344G\3331\fx"
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   }
+    //05-26 06:34:06.103 26946 27059 D BB.Meshtastic:   position {
+    //05-26 06:34:06.103 26946 27059 D BB.Meshtastic:     latitude_i: 376700928
+    //05-26 06:34:06.103 26946 27059 D BB.Meshtastic:     longitude_i: -1210318848
+    //05-26 06:34:06.103 26946 27059 D BB.Meshtastic:     altitude: 40
+    //05-26 06:34:06.103 26946 27059 D BB.Meshtastic:     location_source: LOC_MANUAL
+    //05-26 06:34:06.103 26946 27059 D BB.Meshtastic:   }
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   snr: 8.75
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   last_heard: 1748227721
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   device_metrics {
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     battery_level: 101
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     voltage: 4.192
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     channel_utilization: 3.7233334
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     air_util_tx: 0.014611111
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:     uptime_seconds: 6840085
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   }
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   hops_away: 3
+    //05-26 04:34:41.676 13231 13341 D BB.Meshtastic: }
+    private void handleNode(MeshProtos.NodeInfo node) {
+        BLog.d(TAG, "New Node " + node);
+    }
+
+    //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: Node user message from mesh: id: "!99a34093"
+    //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: long_name: "Router-01"
+    //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: short_name: "rtr1"
+    //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: macaddr: "\356\r\231\243@\223"
+    //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: hw_model: RAK4631
+    //05-26 04:38:47.977 13231 13341 D BB.Meshtastic: new packet... length 85
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic: packet: packet {
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   from: 1128212352
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   to: 2109068568
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   decoded {
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:     portnum: NODEINFO_APP
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:     payload: "\n\t!433f2780\022\bMTB Base\032\004MTBB\"\006H\312C?\'\200(+"
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:     want_response: true
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   }
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   id: 4081294526
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   rx_time: 1748234329
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   rx_snr: 8.0
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   rx_rssi: -85
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic:   hop_start: 3
+    //05-26 04:38:47.980 13231 13341 D BB.Meshtastic: }
+    private void handleUser(MeshProtos.MeshPacket packet, MeshProtos.User user) {
+        BLog.d(TAG, "Node " + packet.getFrom() + " user message from mesh: " + user.toString());
+    }
+
+    private void handlePosition(MeshProtos.MeshPacket packet, MeshProtos.Position position) {
+        BLog.d(TAG, "Position " + packet.getFrom() + " user message from mesh: " + position.toString());
+    }
+
+    private void handleTelemetry(MeshProtos.MeshPacket packet, TelemetryProtos.Telemetry telemetry) {
+        BLog.d(TAG, "Telemetry " + packet.getFrom() + " Telemetry message from mesh: " + telemetry.toString());
+    }
 
     int myNodeNum = 0;
+
     private void handleReceivedAdmin(int fromNodeNum, AdminProtos.AdminMessage a) {
 
         if (fromNodeNum == myNodeNum) {
@@ -470,7 +576,7 @@ class Meshtastic {
 
                 case GET_CHANNEL_RESPONSE:
                     ChannelProtos.Channel ch = a.getGetChannelResponse();
-                    BLog.d(TAG,"Admin: Received channel " + ch.getIndex());
+                    BLog.d(TAG, "Admin: Received channel " + ch.getIndex());
                     /*
                     MyNodeInfo mi = myNodeInfo;
                     if (mi != null) {
@@ -485,11 +591,11 @@ class Meshtastic {
                     break;
 
                 default:
-                    BLog.d(TAG,"No special processing needed for " + a.getPayloadVariantCase());
+                    BLog.d(TAG, "No special processing needed for " + a.getPayloadVariantCase());
                     break;
             }
         } else {
-            BLog.d(TAG,"Admin: Received session_passkey from " + fromNodeNum);
+            BLog.d(TAG, "Admin: Received session_passkey from " + fromNodeNum);
             sessionPasskey = a.getSessionPasskey();
         }
     }
@@ -514,11 +620,14 @@ class Meshtastic {
             );
         }
     }
+
     public void acknowledgePacket(MeshProtos.MeshPacket receivedPacket) {
         if (receivedPacket.getWantAck()) {  // Only ack if requested
 
+
             MeshProtos.Routing routing = MeshProtos.Routing.newBuilder()
                     .setErrorReason(MeshProtos.Routing.Error.NONE)  // Indicate success
+
                     .build();
             MeshProtos.MeshPacket ackPacket = MeshProtos.MeshPacket.newBuilder()
                     .setFrom(530602760) // Your node ID
