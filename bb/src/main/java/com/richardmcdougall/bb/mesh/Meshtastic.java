@@ -2,9 +2,13 @@ package com.richardmcdougall.bb.mesh;
 
 import com.google.protobuf.ByteString;
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bbcommon.BLog;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -127,6 +131,11 @@ class Meshtastic {
         }
         nodeDB = new NodeDB(service);
         initMyNode();
+    }
+
+    public List<Node> getNodes() {
+        List<Node> nodes = nodeDB.getNodes();
+        return nodes;
     }
 
     private void initMyNode() {
@@ -571,12 +580,13 @@ class Meshtastic {
 
     private void handlePosition(MeshProtos.MeshPacket packet, MeshProtos.Position position) {
         //BLog.d(TAG, "Position " + packet.getFrom() + " user message from mesh: " + position.toString());
+        MeshProtos.NodeInfo newnode = null;
         try {
             MeshProtos.NodeInfo node = nodeDB.findNode(packet.getFrom());
             if (node == null) {
                 node = MeshProtos.NodeInfo.getDefaultInstance();
             }
-            MeshProtos.NodeInfo newnode = node.toBuilder()
+            newnode = node.toBuilder()
                     .setPosition(position)
                     .build();
             nodeDB.addNode(newnode);
@@ -585,6 +595,19 @@ class Meshtastic {
                     position.getLongitudeI() / 10000000.0f);
         } catch (Exception e) {
             BLog.d(TAG, "cannot update node from position message" + e.getMessage());
+        }
+        try {
+            if (newnode != null && newnode.getUser().getLongName().length() > 0) {
+                this.service.boardLocations.updateBoardLocations(newnode.getUser().getLongName(),
+                        (int)packet.getRxSnr(),
+                        newnode.getPosition().getLatitudeI() / 10000000.0,
+                        newnode.getPosition().getLongitudeI() / 10000000.0,
+                        (int)newnode.getDeviceMetrics().getBatteryLevel(),
+                        null,
+                        false);
+
+            }
+        } catch (Exception e) {
         }
     }
 
@@ -600,7 +623,8 @@ class Meshtastic {
                     .build();
             nodeDB.addNode(newnode);
             BLog.d(TAG, "Telemetry, node: " + newnode.getUser().getLongName() +
-                    ", battery: " + newnode.getDeviceMetrics().getBatteryLevel());
+                    ", battery: " + newnode.getDeviceMetrics().getBatteryLevel() +
+                    ", voltage: " + newnode.getDeviceMetrics().getVoltage());
         } catch (Exception e) {
             BLog.d(TAG, "cannot update node from telemetry message" + e.getMessage());
         }

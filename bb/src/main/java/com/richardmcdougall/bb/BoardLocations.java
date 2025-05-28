@@ -20,42 +20,44 @@ import java.util.Map;
 public class BoardLocations {
     private String TAG = this.getClass().getSimpleName();
     private BBService service = null;
-    private HashMap<Integer, boardLocation> mBoardLocations = new HashMap<>();
-    private HashMap<Integer, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
+    private HashMap<String, boardLocation> mBoardLocations = new HashMap<>();
+    private HashMap<String, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
 
     BoardLocations(BBService service){
         this.service = service;
     }
 
-    public void updateBoardLocations(int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket, boolean inCrisis) {
+    public void updateBoardLocations(String board, int sigstrength, double lat, double lon, int bat, byte[] locationPacket, boolean inCrisis) {
 
         boardLocation loc = new boardLocation();
 
         try {
-            loc.address = address;
+            loc.board = board;
+            //loc.address = address;
             loc.lastHeard = SystemClock.elapsedRealtime();
             loc.sigStrength = sigstrength;
             loc.lastHeardDate = System.currentTimeMillis();
             loc.latitude = lat;
             loc.longitude = lon;
             loc.inCrisis = inCrisis;
-            mBoardLocations.put(address, loc); // add to current locations
+            mBoardLocations.put(board, loc); // add to current locations
         } catch (Exception e) {
-            BLog.e(TAG, "Error storing the current location for " + address + " " + e.getMessage());
+            BLog.e(TAG, "Error storing the current location for " + board + " " + e.getMessage());
         }
 
         try {
             boardLocationHistory blh;
 
-            if (mBoardLocationHistory.containsKey(address)) {
-                blh = mBoardLocationHistory.get(address);
+            if (mBoardLocationHistory.containsKey(board)) {
+                blh = mBoardLocationHistory.get(board);
             } else {
                 blh = new boardLocationHistory();
             }
-            blh.a = loc.address;
-            blh.b = bat;
+            //blh.address = loc.address;
+            blh.board = board;
+            blh.bat = bat;
             blh.AddLocationHistory(loc.lastHeardDate, lat, lon);
-            mBoardLocationHistory.put(address, blh);
+            mBoardLocationHistory.put(board, blh);
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
             JSONArray ct = getBoardLocationsJSON(15);
@@ -66,25 +68,25 @@ public class BoardLocations {
 
             service.context.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
-            for (int addr : mBoardLocations.keySet()) {
-                boardLocation l = mBoardLocations.get(addr);
-                BLog.d(TAG, "Location Entry:" + service.allBoards.boardAddressToName(addr) + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+            for (String thisboard : mBoardLocations.keySet()) {
+                boardLocation l = mBoardLocations.get(thisboard);
+                BLog.d(TAG, "Location Entry:" + thisboard + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
             }
         } catch (Exception e) {
-            BLog.e(TAG, "Error storing the board location history for " + address + " " + e.getMessage());
+            BLog.e(TAG, "Error storing the board location history for " + board + " " + e.getMessage());
         }
 
     }
 
-    public ArrayList<Integer> BoardsInCrisis(){
-        ArrayList<Integer> i = new ArrayList<>();
+    public ArrayList<String> BoardsInCrisis(){
+        ArrayList<String> i = new ArrayList<>();
 
-        for(Map.Entry<Integer, boardLocation> b : mBoardLocations.entrySet()) {
-            Integer key = b.getKey();
-            boardLocation value = b.getValue();
+        for(Map.Entry<String, boardLocation> thisboard : mBoardLocations.entrySet()) {
+            String key = thisboard.getKey();
+            boardLocation value = thisboard.getValue();
 
             if(value.inCrisis){
-                i.add(value.address);
+                i.add(value.board);
             }
         }
         return i;
@@ -100,13 +102,13 @@ public class BoardLocations {
         return list;
     }
 
-    public HashMap<Integer, boardLocationHistory> DeepCloneHashMap(HashMap<Integer, boardLocationHistory> blh) {
+    public HashMap<String, boardLocationHistory> DeepCloneHashMap(HashMap<String, boardLocationHistory> blh) {
         Gson gson = new Gson();
         String jsonString = gson.toJson(blh);
 
-        java.lang.reflect.Type type = new TypeToken<HashMap<Integer, boardLocationHistory>>() {
+        java.lang.reflect.Type type = new TypeToken<HashMap<String, boardLocationHistory>>() {
         }.getType();
-        HashMap<Integer, boardLocationHistory> clonedMap = gson.fromJson(jsonString, type);
+        HashMap<String, boardLocationHistory> clonedMap = gson.fromJson(jsonString, type);
         return clonedMap;
 
     }
@@ -114,19 +116,19 @@ public class BoardLocations {
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
         JsonArray list = null;
-        HashMap<Integer, boardLocationHistory> blh = DeepCloneHashMap(mBoardLocationHistory);
+        HashMap<String, boardLocationHistory> blh = DeepCloneHashMap(mBoardLocationHistory);
 
         List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
-            for (boardLocationHistory b : locs) {
-                b.board = service.allBoards.boardAddressToName(b.a);
+            for (boardLocationHistory thisboard : locs) {
+                //b.board = service.allBoards.boardAddressToName(b.address);
 
-                Iterator<locationHistory> iter = b.locations.iterator();
+                Iterator<locationHistory> iter = thisboard.locations.iterator();
                 while (iter.hasNext()) {
-                    locationHistory lll = iter.next();
-                    long d = lll.d;
+                    locationHistory location = iter.next();
+                    long datetime_this = location.datetime;
                     long min = System.currentTimeMillis() - (age * 60 * 1000);
-                    if (d < min)
+                    if (datetime_this < min)
                         iter.remove();
                 }
             }
@@ -153,27 +155,27 @@ public class BoardLocations {
 
     // keep a historical list of minimal location data
     public class locationHistory {
-        public long d; // dateTime
-        public double a; // latitude
-        public double o; // longitude
+        public long datetime; // dateTime
+        public double latitude; // latitude
+        public double longitude; // longitude
     }
 
     // Keep a list of board GPS locations
     public class boardLocation {
-        public int address;
+        public String board;
+        //public int address;
         public int sigStrength;
         public long lastHeard;
         public double latitude;
         public double longitude;
         public long lastHeardDate;
-        public String board;
         public boolean inCrisis;
     }
 
     private class boardLocationHistory {
         public String board;
-        public int a;
-        public int b;
+        //public int address;
+        public int bat;
 
         List<locationHistory> locations = new ArrayList<>();
 
@@ -186,19 +188,19 @@ public class BoardLocations {
 
                 boolean found = false;
                 for (locationHistory l : locations) {
-                    long lMinutes = l.d / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
+                    long lMinutes = l.datetime / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
                     if (minute == lMinutes) {
-                        l.d = lastHeardDate;
-                        l.a = latitude;
-                        l.o = longitude;
+                        l.datetime = lastHeardDate;
+                        l.latitude = latitude;
+                        l.longitude = longitude;
                         found = true;
                     }
                 }
                 if (!found) {
                     locationHistory lh = new locationHistory();
-                    lh.d = lastHeardDate;
-                    lh.a = latitude;
-                    lh.o = longitude;
+                    lh.datetime = lastHeardDate;
+                    lh.latitude = latitude;
+                    lh.longitude = longitude;
                     locations.add(lh);
                 }
 
@@ -207,12 +209,12 @@ public class BoardLocations {
 
                 Iterator<locationHistory> iter = locations.iterator();
                 while (iter.hasNext()) {
-                    if (iter.next().d < maxAge)
+                    if (iter.next().datetime < maxAge)
                         iter.remove();
                 }
 
             } catch (Exception e) {
-                BLog.e(TAG, "Error Adding a Location History for " + a + " " + e.getMessage());
+                BLog.e(TAG, "Error Adding a Location History for " + board + " " + e.getMessage());
             }
         }
     }

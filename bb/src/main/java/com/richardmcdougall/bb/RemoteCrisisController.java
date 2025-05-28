@@ -85,10 +85,10 @@ public class RemoteCrisisController {
         boardInCrisisPhase = 1;
         service.musicController.Mute();
 
-        for (Integer addressInCrisis : service.boardLocations.BoardsInCrisis()) {
-            service.burnerBoard.textBuilder.setText(service.allBoards.boardAddressToName(addressInCrisis), 10000, service.burnerBoard.getFrameRate(),  new RGBList().getColor("white"));
-            service.speak("EMERGENCY! " + service.allBoards.boardAddressToName(addressInCrisis),  "mode");
-            BLog.i(TAG,"Board in crisis - " + service.allBoards.boardAddressToName(addressInCrisis));
+        for (String boardInCrisis : service.boardLocations.BoardsInCrisis()) {
+            service.burnerBoard.textBuilder.setText(boardInCrisis, 10000, service.burnerBoard.getFrameRate(),  new RGBList().getColor("white"));
+            service.speak("EMERGENCY! " + boardInCrisis,  "mode");
+            BLog.i(TAG,"Board in crisis - " + boardInCrisis);
         }
 
         sch.schedule(moveToPhase2, 5, TimeUnit.SECONDS);

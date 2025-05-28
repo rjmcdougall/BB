@@ -90,7 +90,7 @@ public class PlayaMap extends Visualization {
                 if (location.inCrisis) {
                     boardColor = RGBList.getColor("red");
 
-                    if (flashColor(updateCnt, location.address)) {
+                    if (flashColor(updateCnt, location.board)) {
                         plotBoard(location.latitude, location.longitude,
                                 new RGB(boardColor.r,
                                         boardColor.g,
@@ -104,15 +104,15 @@ public class PlayaMap extends Visualization {
                 for (BoardLocations.boardLocation location : boardLocations) {
 
                     try{
-                        String boardName = this.service.allBoards.boardAddressToName(location.address);
+                        String boardName = location.board;
                         boardColor = RGBList.getColor(this.service.allBoards.getBoardColor(boardName));
                     }
                     catch (Exception e){
-                        BLog.e(TAG, "Missing or invalid color for board address" +  location.address);
+                        BLog.e(TAG, "Missing or invalid color for board address" +  location.board);
                         boardColor = RGBList.getColor("black");
                     }
 
-                    if (flashColor(updateCnt, location.address)) {
+                    if (flashColor(updateCnt, location.board)) {
                         plotBoard(location.latitude, location.longitude,
                                 new RGB(boardColor.r,
                                         boardColor.g,
@@ -142,7 +142,8 @@ public class PlayaMap extends Visualization {
 
     }
 
-    private boolean flashColor(int cnt, int seed) {
+    private boolean flashColor(int cnt, String board) {
+        int seed = board.hashCode();
         if ((seed * 97 + cnt) % 20 > 10) {
             return true;
         } else {

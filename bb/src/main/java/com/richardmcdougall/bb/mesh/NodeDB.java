@@ -7,6 +7,9 @@ import com.richardmcdougall.bbcommon.BLog;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,6 +33,26 @@ public class NodeDB {
         //user.id =
         //NodeInfo newNode = new NodeInfo(NODENUM_BROADCAST, );
         //nodeDB.nodeDBbyNodeNum.put(newNode.num, newNode);
+    }
+
+    public List<Node> getNodes() {
+        List<Node> nodelist = new ArrayList<>();
+        for (Map.Entry<Integer, MeshProtos.NodeInfo> entry : nodeDBbyNodeNum.entrySet()) {
+            Integer key = entry.getKey();
+            MeshProtos.NodeInfo nodeinfo = entry.getValue();
+            try {
+                Node node = new Node();
+                node.name = nodeinfo.getUser().getLongName();
+                node.latitude = nodeinfo.getPosition().getLatitudeI() / 10000000.0;
+                node.longitude = nodeinfo.getPosition().getLongitudeI() / 10000000.0;
+                node.battery_pct = 1.0f * nodeinfo.getDeviceMetrics().getBatteryLevel();
+                node.lastheard_epoch_ms = nodeinfo.getLastHeard();
+                nodelist.add(node);
+            } catch (Exception e) {
+            }
+
+        }
+        return nodelist;
     }
 
     /**
