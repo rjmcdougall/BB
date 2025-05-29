@@ -539,6 +539,25 @@ class Meshtastic {
     private void handleNode(MeshProtos.NodeInfo node) {
         BLog.d(TAG, "New Node " + node);
         nodeDB.addNode(node);
+        //pushLocation(node);
+    }
+
+    private void pushLocation(MeshProtos.NodeInfo node) {
+        try {
+            if ((node != null) && (node.getUser().getShortName().length() > 0) &&
+                    (node.getPosition().getLatitudeI() > 0)) {
+                this.service.boardLocations.updateBoardLocations(node.getUser().getShortName(),
+                        0,
+                        999,
+                        node.getPosition().getLatitudeI() / 10000000.0,
+                        node.getPosition().getLongitudeI() / 10000000.0,
+                        (int)node.getDeviceMetrics().getBatteryLevel(),
+                        null,
+                        false);
+
+            }
+        } catch (Exception e) {
+        }
     }
 
     //05-26 04:38:44.355 13231 13341 D BB.Meshtastic: Node user message from mesh: id: "!99a34093"
@@ -596,19 +615,7 @@ class Meshtastic {
         } catch (Exception e) {
             BLog.d(TAG, "cannot update node from position message" + e.getMessage());
         }
-        try {
-            if (newnode != null && newnode.getUser().getLongName().length() > 0) {
-                this.service.boardLocations.updateBoardLocations(newnode.getUser().getLongName(),
-                        (int)packet.getRxSnr(),
-                        newnode.getPosition().getLatitudeI() / 10000000.0,
-                        newnode.getPosition().getLongitudeI() / 10000000.0,
-                        (int)newnode.getDeviceMetrics().getBatteryLevel(),
-                        null,
-                        false);
-
-            }
-        } catch (Exception e) {
-        }
+        pushLocation(newnode);
     }
 
     private void handleTelemetry(MeshProtos.MeshPacket packet, TelemetryProtos.Telemetry telemetry) {

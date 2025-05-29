@@ -141,7 +141,7 @@ public class FindMyFriends {
         mLastSend = System.currentTimeMillis();
         BLog.d(TAG, "Sent packet...");
         String board = service.allBoards.boardAddressToName(service.boardState.address);
-        this.service.boardLocations.updateBoardLocations(board, 999,
+        this.service.boardLocations.updateBoardLocations(board, service.boardState.address,999,
                 lat / 1000000.0, lon / 1000000.0, service.boardState.batteryLevel, radioPacket.toByteArray(), service.boardState.inCrisis);
     }
 
@@ -180,7 +180,8 @@ public class FindMyFriends {
                         "theirBatt = " + mTheirBatt + ", " +
                         "inCrisis = " + mTheirInCrisis);
                 String board = service.allBoards.boardAddressToName(mTheirAddress);
-                this.service.boardLocations.updateBoardLocations(board, sigStrength, mTheirLat, mTheirLon, mTheirBatt, packet.clone(), mTheirInCrisis);
+                this.service.boardLocations.updateBoardLocations(board, mTheirAddress, sigStrength,
+                        mTheirLat, mTheirLon, mTheirBatt, packet.clone(), mTheirInCrisis);
                 return true;
             }
             else {

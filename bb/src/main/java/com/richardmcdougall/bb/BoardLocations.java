@@ -1,6 +1,7 @@
 package com.richardmcdougall.bb;
 
 import android.content.ContentValues;
+import android.content.Intent;
 import android.os.SystemClock;
 
 import com.google.gson.Gson;
@@ -23,18 +24,27 @@ public class BoardLocations {
     private HashMap<String, boardLocation> mBoardLocations = new HashMap<>();
     private HashMap<String, boardLocationHistory> mBoardLocationHistory = new HashMap<>();
 
+    private int nextAddr = 200;
+    private HashMap<String, Integer> mFakeAddresses = new HashMap<>();
     BoardLocations(BBService service){
         this.service = service;
     }
 
-    public void updateBoardLocations(String board, int sigstrength, double lat, double lon, int bat, byte[] locationPacket, boolean inCrisis) {
+    public void updateBoardLocations(String board, int address, int sigstrength, double lat, double lon, int bat, byte[] locationPacket, boolean inCrisis) {
 
+        // Manufacture a fake address for Meshtastic locations to keep BBMobile app happy
+        if (address == 0) {
+            address = mFakeAddresses.getOrDefault(board, nextAddr++);
+            mFakeAddresses.put(board, nextAddr);
+        }
+
+        BLog.d(TAG, "updateBoardLocations: " + board + "," + sigstrength + "," + lat + "," + lon + "," + bat);
         boardLocation loc = new boardLocation();
 
         try {
             loc.board = board;
-            //loc.address = address;
-            loc.lastHeard = SystemClock.elapsedRealtime();
+            loc.address = address;
+            //loc.lastHeard = SystemClock.elapsedRealtime();
             loc.sigStrength = sigstrength;
             loc.lastHeardDate = System.currentTimeMillis();
             loc.latitude = lat;
@@ -53,14 +63,14 @@ public class BoardLocations {
             } else {
                 blh = new boardLocationHistory();
             }
-            //blh.address = loc.address;
+            blh.a = address;
             blh.board = board;
-            blh.bat = bat;
+            blh.b = bat;
             blh.AddLocationHistory(loc.lastHeardDate, lat, lon);
             mBoardLocationHistory.put(board, blh);
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
-            JSONArray ct = getBoardLocationsJSON(15);
+            JSONArray ct = getBoardLocationsJSON(300);
             ContentValues v = new ContentValues(ct.length());
             for (int i = 0; i < ct.length(); i++) {
                 v.put(String.valueOf(i), ct.getJSONObject(i).toString());
@@ -70,7 +80,7 @@ public class BoardLocations {
 
             for (String thisboard : mBoardLocations.keySet()) {
                 boardLocation l = mBoardLocations.get(thisboard);
-                BLog.d(TAG, "Location Entry:" + thisboard + ", age:" + (SystemClock.elapsedRealtime() - l.lastHeard));
+                BLog.d(TAG, "Location Entry:" + thisboard + ", age:" + (System.currentTimeMillis() - l.lastHeardDate) / 1000 + " seconds");
             }
         } catch (Exception e) {
             BLog.e(TAG, "Error storing the board location history for " + board + " " + e.getMessage());
@@ -115,8 +125,13 @@ public class BoardLocations {
 
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
+
         JsonArray list = null;
         HashMap<String, boardLocationHistory> blh = DeepCloneHashMap(mBoardLocationHistory);
+
+        if (age < 5) {
+                age = 5;
+        }
 
         List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
@@ -126,10 +141,16 @@ public class BoardLocations {
                 Iterator<locationHistory> iter = thisboard.locations.iterator();
                 while (iter.hasNext()) {
                     locationHistory location = iter.next();
-                    long datetime_this = location.datetime;
+                    long datetime_this = location.d;
                     long min = System.currentTimeMillis() - (age * 60 * 1000);
                     if (datetime_this < min)
                         iter.remove();
+                }
+                // If there are no valid locations for this board, remove it from JSON
+                // Keeps the JSON smaller, and also the BBMobile app thinks any blank
+                // location list means there are no more boards in the list...
+                if (thisboard.locations.isEmpty()) {
+                    locs.remove(thisboard);
                 }
             }
             //list = new JSONArray(valuesList);
@@ -155,17 +176,17 @@ public class BoardLocations {
 
     // keep a historical list of minimal location data
     public class locationHistory {
-        public long datetime; // dateTime
-        public double latitude; // latitude
-        public double longitude; // longitude
+        public long d; // dateTime
+        public double a; // latitude
+        public double o; // longitude
     }
 
     // Keep a list of board GPS locations
     public class boardLocation {
         public String board;
-        //public int address;
+        public int address;
         public int sigStrength;
-        public long lastHeard;
+        //public long lastHeard;
         public double latitude;
         public double longitude;
         public long lastHeardDate;
@@ -174,8 +195,8 @@ public class BoardLocations {
 
     private class boardLocationHistory {
         public String board;
-        //public int address;
-        public int bat;
+        public int a;
+        public int b;
 
         List<locationHistory> locations = new ArrayList<>();
 
@@ -188,19 +209,19 @@ public class BoardLocations {
 
                 boolean found = false;
                 for (locationHistory l : locations) {
-                    long lMinutes = l.datetime / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
+                    long lMinutes = l.d / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
                     if (minute == lMinutes) {
-                        l.datetime = lastHeardDate;
-                        l.latitude = latitude;
-                        l.longitude = longitude;
+                        l.d = lastHeardDate;
+                        l.a = latitude;
+                        l.o = longitude;
                         found = true;
                     }
                 }
                 if (!found) {
                     locationHistory lh = new locationHistory();
-                    lh.datetime = lastHeardDate;
-                    lh.latitude = latitude;
-                    lh.longitude = longitude;
+                    lh.d = lastHeardDate;
+                    lh.a = latitude;
+                    lh.o = longitude;
                     locations.add(lh);
                 }
 
@@ -209,7 +230,7 @@ public class BoardLocations {
 
                 Iterator<locationHistory> iter = locations.iterator();
                 while (iter.hasNext()) {
-                    if (iter.next().datetime < maxAge)
+                    if (iter.next().d < maxAge)
                         iter.remove();
                 }
 
