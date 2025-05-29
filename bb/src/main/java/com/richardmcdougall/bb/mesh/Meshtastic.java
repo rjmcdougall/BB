@@ -1,10 +1,14 @@
 package com.richardmcdougall.bb.mesh;
 
+import android.os.SystemClock;
+import android.os.health.HealthStats;
+
 import com.google.protobuf.ByteString;
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bbcommon.BLog;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -319,11 +323,16 @@ class Meshtastic {
     }
 
     void sendTelemetry() {
-        int batteryLevel = 91;
-        float voltage = 54f;
+        int batteryLevel = 0;
+        float voltage = 0;
         float channelUtilization = 10;
         float airUtilTx = 1;
-        int uptimeSeconds = 1000;
+        int uptimeSeconds = service.boardState.inCrisis ? 999999999 : (int) (SystemClock.uptimeMillis() / 1000);
+        try {
+            batteryLevel = (int) service.bms.getLevel();
+            voltage = service.bms.getVoltage();
+        } catch (IOException e) {
+        }
 
         TelemetryProtos.DeviceMetrics metrics = TelemetryProtos.DeviceMetrics.newBuilder()
                 .setBatteryLevel(batteryLevel)
@@ -344,6 +353,7 @@ class Meshtastic {
         BLog.d(TAG, "sending data: \n" + data.toString());
         sendToRadio(packet);
     }
+
 
     public void sendToRadio(MeshProtos.ToRadio.Builder p) {
         MeshProtos.ToRadio packet = p.build();
@@ -551,7 +561,7 @@ class Meshtastic {
                         999,
                         node.getPosition().getLatitudeI() / 10000000.0,
                         node.getPosition().getLongitudeI() / 10000000.0,
-                        (int)node.getDeviceMetrics().getBatteryLevel(),
+                        (int) node.getDeviceMetrics().getBatteryLevel(),
                         null,
                         false);
 
@@ -652,6 +662,7 @@ class Meshtastic {
             BLog.d(TAG, "can't get text message" + e.getMessage());
         }
     }
+
     int myNodeNum = 0;
 
     private void handleReceivedAdmin(int fromNodeNum, AdminProtos.AdminMessage a) {

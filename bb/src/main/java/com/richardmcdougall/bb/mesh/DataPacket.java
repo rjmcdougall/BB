@@ -10,7 +10,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.Arrays;
 
 
-public class DataPacket  {
+public class DataPacket {
     // Special node IDs
     public static final String ID_BROADCAST = "^all";
     public static final String ID_LOCAL = "^local";
@@ -149,7 +149,7 @@ public class DataPacket  {
         int fromNum = nodeDB.toNodeNum(p.from);
         if (
                 this.dataType == Portnums.PortNum.ADMIN_APP_VALUE) {
-                toNum = 530602760;
+            toNum = 530602760;
             wantAck = true;
         }
 

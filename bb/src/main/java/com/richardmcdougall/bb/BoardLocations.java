@@ -70,12 +70,12 @@ public class BoardLocations {
             mBoardLocationHistory.put(board, blh);
 
             // Update the JSON blob in the ContentProvider. Used in integration with BBMoblie for the Panel.
-            JSONArray ct = getBoardLocationsJSON(300);
+            // Grab 30 minutes of history for Monitor
+            JSONArray ct = getBoardLocationsJSON(30);
             ContentValues v = new ContentValues(ct.length());
             for (int i = 0; i < ct.length(); i++) {
                 v.put(String.valueOf(i), ct.getJSONObject(i).toString());
             }
-
             service.context.getContentResolver().update(Contract.CONTENT_URI, v, null, null);
 
             for (String thisboard : mBoardLocations.keySet()) {
@@ -85,7 +85,6 @@ public class BoardLocations {
         } catch (Exception e) {
             BLog.e(TAG, "Error storing the board location history for " + board + " " + e.getMessage());
         }
-
     }
 
     public ArrayList<String> BoardsInCrisis(){
@@ -123,34 +122,56 @@ public class BoardLocations {
 
     }
 
+    // Check boardname
+    public static boolean containsNonStandardAsciiChars(String inputText) {
+        if (inputText == null || inputText.isEmpty()) {
+            return false; // Or throw IllegalArgumentException, depending on desired behavior
+        }
+
+        for (int i = 0; i < inputText.length(); i++) {
+            char c = inputText.charAt(i);
+            if (c > 127) { // Standard ASCII characters are in the range 0-127
+                return true; // Found a character outside the standard ASCII range
+            }
+        }
+        return false; // All characters are standard ASCII
+    }
+
     // Create device list in JSON format for app use
     public JSONArray getBoardLocationsJSON(int age) {
 
         JsonArray list = null;
         HashMap<String, boardLocationHistory> blh = DeepCloneHashMap(mBoardLocationHistory);
 
-        if (age < 5) {
-                age = 5;
+        // Force the BBMobile app to gather at least 10 min of history
+        if (age < 10) {
+                age = 10;
         }
 
         List<boardLocationHistory> locs = new ArrayList<>(blh.values());
         try {
-            for (boardLocationHistory thisboard : locs) {
-                //b.board = service.allBoards.boardAddressToName(b.address);
+            Iterator<boardLocationHistory> boardIter = locs.iterator(); // Use an explicit iterator
+            while (boardIter.hasNext()) {
+                boardLocationHistory thisboard = boardIter.next();
+
+                if (containsNonStandardAsciiChars(thisboard.board)) {
+                    thisboard.board = String.valueOf(thisboard.a);
+                }
 
                 Iterator<locationHistory> iter = thisboard.locations.iterator();
                 while (iter.hasNext()) {
                     locationHistory location = iter.next();
                     long datetime_this = location.d;
                     long min = System.currentTimeMillis() - (age * 60 * 1000);
-                    if (datetime_this < min)
+                    if (datetime_this < min) {
                         iter.remove();
+                    }
                 }
                 // If there are no valid locations for this board, remove it from JSON
                 // Keeps the JSON smaller, and also the BBMobile app thinks any blank
                 // location list means there are no more boards in the list...
                 if (thisboard.locations.isEmpty()) {
-                    locs.remove(thisboard);
+                    boardIter.remove();
                 }
             }
             //list = new JSONArray(valuesList);
@@ -158,7 +179,7 @@ public class BoardLocations {
             }.getType());
 
         } catch (Exception e) {
-            BLog.e(TAG, "Error building board location json");
+            BLog.e(TAG, "Error building board location json: " + e.getMessage());
             return null;
         }
 
@@ -203,7 +224,7 @@ public class BoardLocations {
         public void AddLocationHistory(long lastHeardDate, double latitude, double longitude) {
 
             try {
-                // we only want to store one location every minute and drop everything older than 15 minutes
+                // we only want to store one location n minutes and drop everything older than 30 minutes
                 // not using a hash because it dorks the json.
                 long minute = lastHeardDate / (1000 * 60 * RFUtil.LOCATION_INTERVAL_MINUTES);
 

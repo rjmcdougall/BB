@@ -10,8 +10,8 @@ public class RFUtil {
     public static final int REMOTE_VIDEO_TRACK_CODE = 0x02;
     public static final int REMOTE_VOLUME_CODE = 0x03;
     public static final int REMOTE_MASTER_NAME_CODE = 0x04;
-    public static final int MAX_LOCATION_STORAGE_MINUTES = 180;
-    public static final int LOCATION_INTERVAL_MINUTES = 1;
+    public static final int MAX_LOCATION_STORAGE_MINUTES = 30;
+    public static final int LOCATION_INTERVAL_MINUTES = 5;
 
     public static final int[] kClientSyncMagicNumber = new int[]{0xbb, 0x03};
     public static final int[] kServerSyncMagicNumber = new int[]{0xbb, 0x04};
