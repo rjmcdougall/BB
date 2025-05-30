@@ -61,6 +61,8 @@ public class BluetoothLEServer {
     private BluetoothGattCharacteristic mRxCharacteristic;
     private BluetoothGattCharacteristic mTxCharacteristic;
 
+    private int serverMtu = 18;
+
     private Handler mHandler;
     private boolean delay = false;
 
@@ -142,9 +144,9 @@ public class BluetoothLEServer {
                     BLog.d(TAG, "Creating Thread to service Bluetooth tx response");
 
                     ByteArrayInputStream buffer = new ByteArrayInputStream(data);
-                    byte[] txBuf = new byte[20];
+                    byte[] txBuf = new byte[serverMtu + 2];
                     int nBytes;
-                    while ((nBytes = buffer.read(txBuf, 0, 18)) > 0) {
+                    while ((nBytes = buffer.read(txBuf, 0, serverMtu)) > 0) {
                         byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
                         mTxCharacteristic.setValue(sendBuf);
 
@@ -222,6 +224,7 @@ public class BluetoothLEServer {
         // Add service to allow remote service discovery
         BluetoothGattService service = new BluetoothGattService(UART_SERVICE_UUID,
                 BluetoothGattService.SERVICE_TYPE_PRIMARY);
+
         // Setup the rx channel
         mRxCharacteristic = new BluetoothGattCharacteristic(RX_CHAR_UUID,
                 BluetoothGattCharacteristic.PROPERTY_WRITE,
@@ -274,17 +277,26 @@ public class BluetoothLEServer {
     private BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
 
         @Override
+        public void onMtuChanged(BluetoothDevice device, int mtu)
+        {
+            BLog.d(TAG, "Gattserver onMtuChanged - mtu " + mtu);
+        }
+
+        @Override
         public void onServiceAdded(int service, BluetoothGattService gattService) {
             BLog.d(TAG, "Gattserver onServiceAdded");
             // We have only one service (serial), so it's save to start advertising
             startAdvertising();
         }
 
+
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             super.onConnectionStateChange(device, status, newState);
+
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
                 //stopAdvertising();
+
                 BLog.d(TAG, "BluetoothDevice CONNECTED: " + device);
                 try {
                     // Setup tx buffer
@@ -316,7 +328,7 @@ public class BluetoothLEServer {
 
         // Fix MTU to 18 for now
         // TODO: query phy MTU
-        private static final int kMTU = 18;
+        private  final int kMTU = 18;
 
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
