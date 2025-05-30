@@ -122,19 +122,19 @@ public class BoardLocations {
 
     }
 
-    // Check boardname
+    // Check boardname for non-ASCII characters
     public static boolean containsNonStandardAsciiChars(String inputText) {
         if (inputText == null || inputText.isEmpty()) {
-            return false; // Or throw IllegalArgumentException, depending on desired behavior
+            return false;
         }
 
         for (int i = 0; i < inputText.length(); i++) {
             char c = inputText.charAt(i);
-            if (c > 127) { // Standard ASCII characters are in the range 0-127
-                return true; // Found a character outside the standard ASCII range
+            if (c > 127) {
+                return true;
             }
         }
-        return false; // All characters are standard ASCII
+        return false;
     }
 
     // Create device list in JSON format for app use

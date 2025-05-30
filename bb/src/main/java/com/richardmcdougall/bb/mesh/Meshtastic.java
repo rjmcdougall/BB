@@ -549,7 +549,7 @@ class Meshtastic {
     private void handleNode(MeshProtos.NodeInfo node) {
         BLog.d(TAG, "New Node " + node);
         nodeDB.addNode(node);
-        //pushLocation(node);
+        pushLocation(node);
     }
 
     private void pushLocation(MeshProtos.NodeInfo node) {
