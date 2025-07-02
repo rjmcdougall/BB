@@ -35,6 +35,20 @@ import com.geeksville.mesh.*;
 [ 8294.620818] usb 5-1.2: New USB device strings: Mfr=0, Product=2, SerialNumber=3
 [ 8294.620848] usb 5-1.2: Product: USB Single Serial
 [ 8294.620890] usb 5-1.2: SerialNumber: 576D026358
+
+
+   1.949558] usb 5-1.2: new high-speed USB device number 3 using xhci-hcd
+[    2.139977] usb 5-1.2: New USB device found, idVendor=16c0, idProduct=0483, bcdDevice= 2.80
+[    2.139996] usb 5-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    2.140001] usb 5-1.2: Product: USB Serial
+[    2.140006] usb 5-1.2: Manufacturer: Teensyduino
+[    2.140011] usb 5-1.2: SerialNumber: 11964340
+[    2.372808] usb 5-1.3: new full-speed USB device number 4 using xhci-hcd
+[    2.584125] usb 5-1.3: New USB device found, idVendor=303a, idProduct=1001, bcdDevice= 1.00
+[    2.584143] usb 5-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    2.584148] usb 5-1.3: Product: Heltec Wireless Tracker
+[    2.584153] usb 5-1.3: Manufacturer: Espressif Systems
+
  */
 
 public
@@ -69,6 +83,10 @@ class Meshtastic {
         @Override
         public boolean checkDevice(int vid, int pid) {
             if ((pid == 0x55d4) && (vid == 0x1a86)) {
+                BLog.d(TAG, "Found device");
+                return true;
+            }
+            if ((pid == 0x1001) && (vid == 0x303a)) {
                 BLog.d(TAG, "Found device");
                 return true;
             }
@@ -547,7 +565,7 @@ class Meshtastic {
     //05-26 04:34:41.676 13231 13341 D BB.Meshtastic:   hops_away: 3
     //05-26 04:34:41.676 13231 13341 D BB.Meshtastic: }
     private void handleNode(MeshProtos.NodeInfo node) {
-        BLog.d(TAG, "New Node " + node);
+        //BLog.d(TAG, "New Node " + node);
         nodeDB.addNode(node);
         pushLocation(node);
     }
