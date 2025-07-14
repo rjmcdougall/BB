@@ -52,11 +52,16 @@ public class BluetoothLEServer {
     /* Collection of notification subscribers */
     private Set<BluetoothDevice> mRegisteredDevices = new HashSet<>();
 
-    private final static UUID kBurnerBoardUUID = UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
-    private static final UUID UART_SERVICE_UUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
-    private static final UUID TX_CHAR_UUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
-    private static final UUID RX_CHAR_UUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
-    private static final UUID CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+    private final static UUID kBurnerBoardUUID =
+            UUID.fromString("58fdc6ee-15d1-11e8-b642-0ed5f89f718b");
+    private static final UUID UART_SERVICE_UUID =
+            UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+    private static final UUID TX_CHAR_UUID =
+            UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+    private static final UUID RX_CHAR_UUID =
+            UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+    private static final UUID CCCD =
+            UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private BluetoothGattCharacteristic mRxCharacteristic;
     private BluetoothGattCharacteristic mTxCharacteristic;
@@ -136,15 +141,16 @@ public class BluetoothLEServer {
 
     public void tx(BluetoothDevice device, final byte[] data) {
 
+        BLog.d(TAG, "Creating Thread to service Bluetooth tx response");
         // a thread is required here because the sleep interferes with the mp4's being displayed.
         // the thread terminates immediately after completion.
         Thread t = new Thread(() -> {
                 try {
                     Thread.currentThread().setName("Bluetooth TX Response.");
-                    BLog.d(TAG, "Creating Thread to service Bluetooth tx response");
+                    BLog.d(TAG, "Running Thread to service Bluetooth tx response");
 
                     ByteArrayInputStream buffer = new ByteArrayInputStream(data);
-                    byte[] txBuf = new byte[serverMtu + 2];
+                    byte[] txBuf = new byte[serverMtu + 3];
                     int nBytes;
                     while ((nBytes = buffer.read(txBuf, 0, serverMtu)) > 0) {
                         byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
@@ -158,8 +164,10 @@ public class BluetoothLEServer {
                             }
                         }
 
-                        mBluetoothGattServer.notifyCharacteristicChanged(device,
+                        BLog.d(TAG, "notify client of new data via setvalue()");
+                        boolean success = mBluetoothGattServer.notifyCharacteristicChanged(device,
                                 mTxCharacteristic, false);
+                        BLog.d(TAG, "notify client of new data via setvalue(): " + success);
                     }
                 } catch (Exception e) {
                     BLog.e(TAG, "Bluetooth tx response failed.");
@@ -274,12 +282,13 @@ public class BluetoothLEServer {
      * Callback to handle incoming requests to the GATT server.
      * All read/write requests for characteristics and descriptors are handled here.
      */
-    private BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
+    private final BluetoothGattServerCallback mGattServerCallback = new BluetoothGattServerCallback() {
 
         @Override
         public void onMtuChanged(BluetoothDevice device, int mtu)
         {
             BLog.d(TAG, "Gattserver onMtuChanged - mtu " + mtu);
+            //serverMtu = mtu;
         }
 
         @Override
@@ -293,6 +302,9 @@ public class BluetoothLEServer {
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             super.onConnectionStateChange(device, status, newState);
+
+            BLog.d(TAG, "BluetoothDevice State Change: " + device + " status: " + status +
+                    " newstate:" + newState);
 
             if (newState == android.bluetooth.BluetoothProfile.STATE_CONNECTED) {
                 //stopAdvertising();
@@ -319,6 +331,9 @@ public class BluetoothLEServer {
                 //Remove device from any active subscriptions
                 mRegisteredDevices.remove(device);
                 stopAdvertising();
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {}
                 startAdvertising();
             } else {
                 BLog.d(TAG, "BluetoothDevice State Change: " + device + " status: " + status +
@@ -334,15 +349,18 @@ public class BluetoothLEServer {
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
                                                 BluetoothGattCharacteristic characteristic) {
             long now = System.currentTimeMillis();
-            BLog.d(TAG, "Read characteristic...");
+            BLog.d(TAG, "onCharacteristicReadRequest: Read characteristic..." + characteristic.getUuid());
+            /*
             if (TX_CHAR_UUID.equals(characteristic.getUuid())) {
                 // We notified the client that there is Tx data available, now they are reading it
-                BLog.d(TAG, "Client reads our Tx data");
+                BLog.d(TAG, "onCharacteristicReadRequest: Client reads our Tx data");
                 PipedInputStream TxStream = mTransmitInput.get(device);
+                BLog.d(TAG, "onCharacteristicReadRequest: Client read our Tx data");
                 if (TxStream != null) {
                     try {
-                        byte[] tmpBuf = new byte[kMTU];
+                        byte[] tmpBuf = new byte[1024];
                         int cnt = TxStream.read(tmpBuf, 0, kMTU);
+                        BLog.d(TAG, "onCharacteristicReadRequest: Client read our Tx data: " + cnt + " bytes");
                         byte[] sendBuf = Arrays.copyOf(tmpBuf, cnt);
                         mBluetoothGattServer.sendResponse(device,
                                 requestId,
@@ -358,7 +376,15 @@ public class BluetoothLEServer {
             } else {
                 BLog.d(TAG, "read of undefined characteristic: " + characteristic.getUuid());
             }
+
+             */
+            mBluetoothGattServer.sendResponse(device,
+                    requestId,
+                    BluetoothGatt.GATT_FAILURE,
+                    0,
+                    null);
         }
+
 
         @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device,
