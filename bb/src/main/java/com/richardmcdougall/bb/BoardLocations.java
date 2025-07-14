@@ -80,7 +80,7 @@ public class BoardLocations {
 
             for (String thisboard : mBoardLocations.keySet()) {
                 boardLocation l = mBoardLocations.get(thisboard);
-                BLog.d(TAG, "Location Entry:" + thisboard + ", age:" + (System.currentTimeMillis() - l.lastHeardDate) / 1000 + " seconds");
+                //BLog.d(TAG, "Location Entry:" + thisboard + ", age:" + (System.currentTimeMillis() - l.lastHeardDate) / 1000 + " seconds");
             }
         } catch (Exception e) {
             BLog.e(TAG, "Error storing the board location history for " + board + " " + e.getMessage());
@@ -190,7 +190,7 @@ public class BoardLocations {
             BLog.e(TAG, "Cannot convert locations to json: " + e.getMessage());
         }
 
-        BLog.d(TAG, "location JSON max age " + age + " : " + json.toString());
+        //BLog.d(TAG, "location JSON max age " + age + " : " + json.toString());
 
         return (json);
     }

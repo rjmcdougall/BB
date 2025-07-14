@@ -81,12 +81,13 @@ public class BMS_BQTeensy extends BMS {
     }
 
 
+    // Volts
     public float getVoltage() throws  IOException {
 
         if (getBatteryVoltage() == 0) {
             throw new IOException("unkown BQ reading");
         }
-        return (float) getBatteryVoltage();
+        return (float) getBatteryVoltage() / 1000.0f;
     }
 
     public float getCurrent() throws  IOException {

@@ -47,9 +47,10 @@ public class BMS_EmulatedVesc extends BMS {
     public void update() {
 
         // TODO: Smooth voltage over n samples, deal with absent values
+        BLog.d(TAG, "update");
         try {
             int timeslot = (int) ((System.currentTimeMillis() / 1000 ) % batteryCurrentHistory.length);
-            if (service.vesc.vescOn()) {
+            if (service.vesc.hasBBPower() || service.vesc.vescOn()) {
 
                 voltageFromVescInstant = service.vesc.getVoltage();;
                 voltageFromVescInstant += service.vesc.getVoltage();;
@@ -94,7 +95,8 @@ public class BMS_EmulatedVesc extends BMS {
                         "current instant: " + getCurrentInstant() + ", " +
                         "voltage delta: " + voltageDelta);
             }
-        } catch (Exception E) {
+        } catch (Exception e) {
+            BLog.d(TAG, "cannot get status: " + e.getMessage());
         }
     }
 
@@ -133,7 +135,7 @@ public class BMS_EmulatedVesc extends BMS {
         if (level < 0) {
             throw new IOException("unknown emulated BMS voltage");
         }
-        return (voltageFromVesc * 1000f);
+        return (voltageFromVesc * 1.0f);
     }
 
     public float getCurrent() {

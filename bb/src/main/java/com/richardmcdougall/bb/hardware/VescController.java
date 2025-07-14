@@ -51,6 +51,16 @@ public class VescController implements CanListener {
         return false;
     }
 
+    public boolean hasBBPower() {
+        BLog.d(TAG, "hasBBPower: " + SystemClock.elapsedRealtime() + " - r " + vesc_burnerboard_power1.rx_time + " = " + (SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time));
+        if ((SystemClock.elapsedRealtime() - vesc_burnerboard_power1.rx_time) < kAliveCheckMilliSeconds) {
+            if (vesc_burnerboard_power1.voltage > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean vescMoving() {
         if (((SystemClock.elapsedRealtime() - vesc_can_status_msg.rx_time) < kAliveCheckMilliSeconds)
                 && (vesc_can_status_msg.rpm > 0)) {

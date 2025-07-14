@@ -341,17 +341,31 @@ class Meshtastic {
     }
 
     void sendTelemetry() {
-        int batteryLevel = 0;
+        float batteryLevel = 0;
         float voltage = 0;
+        float ledCurrent = 0;
+        float motorCurrent = 0;
         float channelUtilization = 10;
         float airUtilTx = 1;
         int uptimeSeconds = service.boardState.inCrisis ? 999999999 : (int) (SystemClock.uptimeMillis() / 1000);
         try {
-            batteryLevel = (int) service.bms.getLevel();
+            batteryLevel = service.bms.getLevel() / 100.0f;
             voltage = service.bms.getVoltage();
+            ledCurrent = service.bms.getCurrentInstant();
         } catch (IOException e) {
         }
+        try {
+            motorCurrent = service.vesc.getMotorCurrent();
+        } catch (Exception e) {
+        }
 
+        TelemetryProtos.PowerMetrics powerMetrics = TelemetryProtos.PowerMetrics.newBuilder()
+                .setCh1Voltage(voltage)
+                .setCh1Current(motorCurrent)
+                .setCh2Voltage(batteryLevel)
+                .setCh2Current(ledCurrent)
+                .build();
+/*
         TelemetryProtos.DeviceMetrics metrics = TelemetryProtos.DeviceMetrics.newBuilder()
                 .setBatteryLevel(batteryLevel)
                 .setVoltage(voltage)
@@ -359,9 +373,12 @@ class Meshtastic {
                 .setUptimeSeconds(uptimeSeconds)
                 .setAirUtilTx(airUtilTx)
                 .build();
+
+ */
         TelemetryProtos.Telemetry.Builder telemetry = TelemetryProtos.Telemetry.newBuilder();
         telemetry.setTime((int) (System.currentTimeMillis() / 1000));
-        telemetry.setDeviceMetrics(metrics);
+        //telemetry.setDeviceMetrics(metrics);
+        telemetry.setPowerMetrics(powerMetrics);
         DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 0, telemetry.build());
         data.hopLimit = 2;
         MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
