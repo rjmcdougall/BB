@@ -103,6 +103,20 @@ public class VescController implements CanListener {
         }
     }
 
+    public float getLedCurrent() {
+        // If there is a BB Power PCB with current sensor on the LEDs, use that.
+        // Otherwise, use the VESC power and presume lights are on when VESC is on.
+        BLog.d(TAG, "getLedCurrent = " + vesc_burnerboard_power1.current);
+            return (vesc_burnerboard_power1.current);
+    }
+
+    public float getLedTemp() {
+        // If there is a BB Power PCB with current sensor on the LEDs, use that.
+        // Otherwise, use the VESC power and presume lights are on when VESC is on.
+        BLog.d(TAG, "getLedTemp = " + vesc_burnerboard_power2.temp);
+        return (vesc_burnerboard_power2.temp);
+    }
+
     public float getMotorCurrent() {
         return vesc_can_status_msg_4.current_in;
     }

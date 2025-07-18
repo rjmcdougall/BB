@@ -4,6 +4,8 @@ import android.os.SystemClock;
 
 import com.richardmcdougall.bbcommon.BLog;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 
 public class ServerElector {
@@ -110,6 +112,32 @@ public class ServerElector {
             }
         }
     }
+
+    public JSONObject getServerStats() {
+        JSONObject ss = new JSONObject();
+        int serverAddress = service.serverElector.serverAddress;
+        String s = service.allBoards.boardAddressToName(serverAddress);
+        boardVote v = mBoardVotes.get(serverAddress);
+        long lastheard = 0;
+        if (v != null ) {
+            lastheard = (SystemClock.elapsedRealtime() - v.lastHeard);
+        }
+        int nBoards = 0;
+        for (int board : mBoardVotes.keySet()) {
+            v = mBoardVotes.get(board);
+            if (v.votes > 0) {
+                nBoards++;
+            }
+        }
+        try {
+            ss.put("s", s);
+            ss.put("lh", lastheard);
+            ss.put("nb", nBoards);
+        } catch (Exception e) {
+        }
+        return ss;
+    }
+
 
     // Keep score of boards's we've heard from
     // If in range, vote +2 for it

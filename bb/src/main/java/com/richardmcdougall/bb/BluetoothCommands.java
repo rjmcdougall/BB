@@ -13,7 +13,8 @@ public class BluetoothCommands {
 
     public BluetoothCommands(BBService service) {
         this.service = service;
-        init();;
+        init();
+        ;
     }
 
     private void init() {
@@ -210,7 +211,7 @@ public class BluetoothCommands {
                         int track = payload.getInt("arg");
                         //must set the state before setting the channel or a race condition
                         //will result in the wrong video being posted back to the app.
-                        service.boardState.currentVideoMode=track;
+                        service.boardState.currentVideoMode = track;
                         service.visualizationController.setMode(track);
                     } catch (Exception e) {
                         BLog.e(TAG, "error setting video track: " + e.getMessage());
@@ -399,6 +400,33 @@ public class BluetoothCommands {
                     }
 
                 });
+
+        service.bLEServer.addCallback("power",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got power command:" + payload.toString());
+                    try {
+                        String subcmd = payload.getString("subcmd");
+
+                        if (subcmd.equals("amp")) {
+                            boolean state = payload.getBoolean("arg");
+                            service.powerController.leds(state);
+                        } else if (subcmd.equals("leds")) {
+                            boolean state = payload.getBoolean("arg");
+                            service.powerController.leds(state);
+                        } else if (subcmd.equals("fud")) {
+                            service.powerController.fud();
+                        } else if (subcmd.equals("set-brain-sleep")) {
+                            int age = age = payload.getInt("arg");
+
+                        } else if (subcmd.equals("auto")) {
+                            boolean state = payload.getBoolean("arg");
+                            service.powerController.auto(state);
+                        }
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error setting BTSelect: " + e.getMessage());
+                    }
+
+                });
     }
 
 
@@ -418,10 +446,25 @@ public class BluetoothCommands {
             state.put("s", service.wifi.getConnectedSSID());
             state.put("c", service.boardState.SSID);
             state.put("p", service.boardState.password);
-            state.put("r",service.boardState.inCrisis);
-            state.put("rd",service.boardState.rotatingDisplay);
+            state.put("r", service.boardState.inCrisis);
+            state.put("rd", service.boardState.rotatingDisplay);
             state.put("fm", service.boardState.GetFunMode());
             state.put("bar", service.boardState.GetBlockAudtoRotation());
+        } catch (Exception e) {
+            BLog.e(TAG, "Could not get state: " + e.getMessage());
+        }
+        try {
+            state.put("pc", service.powerController.getCurrent());
+            state.put("pv", service.bms.getVoltage());
+            state.put("pt", service.powerController.getTemp());
+        } catch (Exception e) {
+            BLog.e(TAG, "Could not get state: " + e.getMessage());
+        }
+        try {
+            JSONObject a = service.serverElector.getServerStats();
+            state.put("as", a.get("s"));
+            state.put("ah", a.get("lh"));
+            state.put("an", a.get("nb"));
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());
         }

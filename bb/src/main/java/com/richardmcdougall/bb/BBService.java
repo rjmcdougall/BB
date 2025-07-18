@@ -15,6 +15,7 @@ import android.speech.tts.TextToSpeech;
 import com.richardmcdougall.bb.bms.BMS;
 import com.richardmcdougall.bb.board.BurnerBoard;
 import com.richardmcdougall.bb.hardware.Canable;
+import com.richardmcdougall.bb.hardware.PowerController;
 import com.richardmcdougall.bb.hardware.VescController;
 import com.richardmcdougall.bb.mesh.Meshtastic;
 import com.richardmcdougall.bb.rf.FindMyFriends;
@@ -58,6 +59,7 @@ public class BBService extends Service {
     public BMS bms = null;
     public Canable canbus = null;
     public VescController vesc = null;
+    public PowerController powerController = null;
     public Meshtastic mesh = null;
     public RFClientServer rfClientServer = null;
     public FindMyFriends findMyFriends = null;
@@ -189,7 +191,11 @@ public class BBService extends Service {
             BLog.i(TAG, "Build Manufacturer " + Build.MANUFACTURER);
             BLog.i(TAG, "Build Model " + Build.MODEL);
             BLog.i(TAG, "Build Serial " + Build.SERIAL);
-
+            try {
+                BLog.d(TAG, "getVoltage");
+                vesc.getVoltage();
+            } catch (Exception e) {
+            }
             allBoards = new AllBoards(context, voice);
 
             while (allBoards.dataBoards == null) {
@@ -287,6 +293,7 @@ public class BBService extends Service {
             radio = new RF(this);
             canbus = new Canable(this);
             vesc = new VescController(this, canbus);
+            powerController = new PowerController(this);
             mesh = new Meshtastic(this);
 
             bms = BMS.Builder(this);

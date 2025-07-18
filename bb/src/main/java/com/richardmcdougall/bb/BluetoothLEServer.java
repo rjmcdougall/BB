@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.ParcelUuid;
 
@@ -75,7 +76,6 @@ public class BluetoothLEServer {
 
         this.service = service;
         BLog.d(TAG, "Bluetooth starting");
-        mHandler = new Handler(Looper.getMainLooper());
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
 
@@ -89,6 +89,10 @@ public class BluetoothLEServer {
             BLog.d(TAG, "Bluetooth LE is not supported");
             return;
         }
+
+        HandlerThread backgroundThread = new HandlerThread("BLE server thread");
+        backgroundThread.start();
+        mHandler = new Handler(backgroundThread.getLooper());
 
         if (!bluetoothAdapter.isEnabled()) {
             BLog.d(TAG, "Bluetooth is currently disabled...enabling");
@@ -164,10 +168,10 @@ public class BluetoothLEServer {
                             }
                         }
 
-                        BLog.d(TAG, "notify client of new data via setvalue()");
+                        //BLog.d(TAG, "notify client of new data via setvalue()");
                         boolean success = mBluetoothGattServer.notifyCharacteristicChanged(device,
                                 mTxCharacteristic, false);
-                        BLog.d(TAG, "notify client of new data via setvalue(): " + success);
+                        //BLog.d(TAG, "notify client of new data via setvalue(): " + success);
                     }
                 } catch (Exception e) {
                     BLog.e(TAG, "Bluetooth tx response failed.");
@@ -524,8 +528,8 @@ public class BluetoothLEServer {
         // TODO: do we run these on the calling thread, or a separate thread?
         boolean processCommand(BluetoothDevice device, JSONObject cmdJson) {
 
-            BLog.d(TAG, "callbackFuncs = " + callbackFuncs.toString());
-            BLog.d(TAG, "callbackCommands = " + callbackCommands.toString());
+            //BLog.d(TAG, "callbackFuncs = " + callbackFuncs.toString());
+            //BLog.d(TAG, "callbackCommands = " + callbackCommands.toString());
 
             Iterator it = callbackCommands.entrySet().iterator();
             while (it.hasNext()) {
