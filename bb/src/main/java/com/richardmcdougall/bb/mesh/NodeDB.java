@@ -43,6 +43,7 @@ public class NodeDB {
             try {
                 Node node = new Node();
                 node.name = nodeinfo.getUser().getLongName();
+                node.shortname = nodeinfo.getUser().getShortName();
                 node.latitude = nodeinfo.getPosition().getLatitudeI() / 10000000.0;
                 node.longitude = nodeinfo.getPosition().getLongitudeI() / 10000000.0;
                 node.battery_pct = 1.0f * nodeinfo.getDeviceMetrics().getBatteryLevel();

@@ -12,12 +12,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import com.geeksville.mesh.*;
 
@@ -155,9 +158,40 @@ class Meshtastic {
         initMyNode();
     }
 
+    // Predefined whitelist of node names (exact match on Node.name)
+    private final Set<String> whitelistedNodeNames = new HashSet<>(Arrays.asList(
+            "Burnulance",
+            "Proto 1",
+            "Proto 2",
+            "Proto 3",
+            "Proto 4",
+            "Blinky Things Hospital",
+            "Blinky Things",
+            "Three Emus"
+            // Add more whitelisted node names as needed
+    ));
+
+    // include any nodes with the meshtastic shortname in the form BBnn
+    private final Pattern shortnamePattern = Pattern.compile("^BB[0-9][0-9][a-f]$"); // Matches shortnames like BB01a, BB99f, etc.
+
     public List<Node> getNodes() {
         List<Node> nodes = nodeDB.getNodes();
-        return nodes;
+
+        List<Node> filteredNodes = new ArrayList<>();
+        for (Node node : nodes) {
+            boolean isWhitelisted = whitelistedNodeNames.contains(node.name);
+            boolean matchesRegex = node.shortname != null && shortnamePattern.matcher(node.shortname).matches();
+
+            if (isWhitelisted || matchesRegex) {
+                filteredNodes.add(node);
+                BLog.d(TAG, "Including node: " + node.name + " (" + node.shortname + ") - " +
+                        (isWhitelisted ? "whitelisted" : "regex match"));
+            } else {
+                BLog.d(TAG, "Filtering out node: " + node.name + " (" + node.shortname + ")");
+            }
+        }
+
+        return filteredNodes;
     }
 
     private void initMyNode() {
@@ -591,17 +625,32 @@ class Meshtastic {
         try {
             if ((node != null) && (node.getUser().getShortName().length() > 0) &&
                     (node.getPosition().getLatitudeI() > 0)) {
-                this.service.boardLocations.updateBoardLocations(node.getUser().getShortName(),
-                        0,
-                        999,
-                        node.getPosition().getLatitudeI() / 10000000.0,
-                        node.getPosition().getLongitudeI() / 10000000.0,
-                        (int) node.getDeviceMetrics().getBatteryLevel(),
-                        null,
-                        false);
-
+                
+                // Apply the same filtering logic as getNodes()
+                String nodeName = node.getUser().getLongName();
+                String nodeShortName = node.getUser().getShortName();
+                
+                boolean isWhitelisted = whitelistedNodeNames.contains(nodeName);
+                boolean matchesRegex = nodeShortName != null && shortnamePattern.matcher(nodeShortName).matches();
+                
+                if (isWhitelisted || matchesRegex) {
+                    this.service.boardLocations.updateBoardLocations(nodeShortName,
+                            0,
+                            999,
+                            node.getPosition().getLatitudeI() / 10000000.0,
+                            node.getPosition().getLongitudeI() / 10000000.0,
+                            (int) node.getDeviceMetrics().getBatteryLevel(),
+                            null,
+                            false);
+                    
+                    BLog.d(TAG, "Pushed location for node: " + nodeName + " (" + nodeShortName + ") - " +
+                            (isWhitelisted ? "whitelisted" : "regex match"));
+                } else {
+                    BLog.d(TAG, "Filtered out location for node: " + nodeName + " (" + nodeShortName + ")");
+                }
             }
         } catch (Exception e) {
+            BLog.w(TAG, "Error in pushLocation: " + e.getMessage());
         }
     }
 
