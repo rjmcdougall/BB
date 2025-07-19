@@ -65,7 +65,7 @@ public class PowerController {
     public float getCurrent() {
         float value = 0;
         try {
-            BLog.d(TAG, "getVoltage");
+            BLog.d(TAG, "getCurrent");
             value = vesc.getLedCurrent();
         } catch (Exception e) {
         }
