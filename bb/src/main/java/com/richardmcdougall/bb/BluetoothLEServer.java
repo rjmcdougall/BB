@@ -17,10 +17,10 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.ParcelUuid;
 
+import com.richardmcdougall.bb.hardware.Canable;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
@@ -37,6 +37,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by rmc on 2/19/18.
@@ -45,6 +49,11 @@ import java.util.UUID;
 public class BluetoothLEServer {
     private String TAG = this.getClass().getSimpleName();
     private BBService service = null;
+
+    BluetoothLEServer.BleThreadFactory bleThreadFactory= new BluetoothLEServer.BleThreadFactory();
+    private ScheduledThreadPoolExecutor sch =
+            (java.util.concurrent.ScheduledThreadPoolExecutor)
+                    Executors.newScheduledThreadPool(1, bleThreadFactory);
 
     /* Bluetooth API */
     private BluetoothManager mBluetoothManager;
@@ -72,10 +81,15 @@ public class BluetoothLEServer {
     private Handler mHandler;
     private boolean delay = false;
 
+
     public BluetoothLEServer(BBService service) {
 
         this.service = service;
         BLog.d(TAG, "Bluetooth starting");
+        mHandler = new Handler(Looper.getMainLooper());
+
+        sch.scheduleWithFixedDelay(txThread, 1, 1, TimeUnit.SECONDS);
+
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
 
@@ -90,9 +104,6 @@ public class BluetoothLEServer {
             return;
         }
 
-        HandlerThread backgroundThread = new HandlerThread("BLE server thread");
-        backgroundThread.start();
-        mHandler = new Handler(backgroundThread.getLooper());
 
         if (!bluetoothAdapter.isEnabled()) {
             BLog.d(TAG, "Bluetooth is currently disabled...enabling");
@@ -108,7 +119,19 @@ public class BluetoothLEServer {
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         //context.registerReceiver(mBluetoothReceiver, filter);
 
-    }// Callbacks for consumers of Bluetooth events
+    }
+
+    class BleThreadFactory implements ThreadFactory {
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("BleTx");
+            return t;
+        }
+    }
+
+
+
+    // Callbacks for consumers of Bluetooth events
     private HashMap<Integer, BLECallback> callbackFuncs =
             new HashMap<Integer, BLECallback>();
     private HashMap<Integer, String> callbackCommands =
@@ -143,24 +166,32 @@ public class BluetoothLEServer {
     private final HashMap<BluetoothDevice, PipedOutputStream> mTransmitOutput = new HashMap<>();
     private final HashMap<BluetoothDevice, ByteArrayOutputStream> mReceiveBuffers = new HashMap<>();
 
-    public void tx(BluetoothDevice device, final byte[] data) {
 
-        BLog.d(TAG, "Creating Thread to service Bluetooth tx response");
-        // a thread is required here because the sleep interferes with the mp4's being displayed.
-        // the thread terminates immediately after completion.
-        Thread t = new Thread(() -> {
-                try {
-                    Thread.currentThread().setName("Bluetooth TX Response.");
-                    BLog.d(TAG, "Running Thread to service Bluetooth tx response");
+    // Fix MTU to 18 for now
+    // TODO: query phy MTU
+    private  final int kMTU = 18;
+    private BluetoothDevice mDeviceTmp = null;
 
-                    ByteArrayInputStream buffer = new ByteArrayInputStream(data);
-                    byte[] txBuf = new byte[serverMtu + 3];
+    Runnable txThread = () -> txThread();
+
+    private void txThread() {
+        BLog.d(TAG, "Running Thread to service Bluetooth tx response");
+
+        while (true) {
+            try {
+
+                PipedInputStream TxStream = mTransmitInput.get(mDeviceTmp);
+                BLog.d(TAG, "txThread: device write..");
+                if (TxStream != null) {
+                    BLog.d(TAG, "txThread: getting bytes...");
                     int nBytes;
-                    while ((nBytes = buffer.read(txBuf, 0, serverMtu)) > 0) {
+                    byte[] txBuf = new byte[serverMtu + 3];
+                    while ((nBytes = TxStream.read(txBuf, 0, kMTU)) > 0) {
                         byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
+                        BLog.d(TAG, "txThread: writing bytes...");
                         mTxCharacteristic.setValue(sendBuf);
 
-                        if(delay) {
+                        if (delay) {
                             // PREVENT BUFFER ISSUES / OVERFLOW
                             try {
                                 Thread.sleep(15, 0);
@@ -169,20 +200,35 @@ public class BluetoothLEServer {
                         }
 
                         //BLog.d(TAG, "notify client of new data via setvalue()");
-                        boolean success = mBluetoothGattServer.notifyCharacteristicChanged(device,
+                        boolean success = mBluetoothGattServer.notifyCharacteristicChanged(mDeviceTmp,
                                 mTxCharacteristic, false);
                         //BLog.d(TAG, "notify client of new data via setvalue(): " + success);
                     }
-                } catch (Exception e) {
-                    BLog.e(TAG, "Bluetooth tx response failed.");
+                } else {
+                    Thread.sleep(1000);
                 }
-                BLog.d(TAG, "Bluetooth tx response done");
+            } catch (Exception e) {
+                BLog.e(TAG, "Bluetooth tx response failed.");
+            }
+            BLog.d(TAG, "Bluetooth tx response done");
+        }
+    }
 
-            return;
 
-        });
-        t.start();
-    }/**
+    public void tx(BluetoothDevice device, final byte[] data) {
+        mDeviceTmp = device;
+
+        PipedOutputStream TxStream = mTransmitOutput.get(mDeviceTmp);
+        try {
+            TxStream.write(data);
+            BLog.d(TAG, "queue bluetooth tx response");
+        } catch (Exception e) {
+
+        }
+
+    }
+
+    /**
      * Begin advertising over Bluetooth that this device is connectable
      * and supports the Current Time Service.
      */
@@ -345,9 +391,6 @@ public class BluetoothLEServer {
             }
         }
 
-        // Fix MTU to 18 for now
-        // TODO: query phy MTU
-        private  final int kMTU = 18;
 
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
@@ -534,7 +577,7 @@ public class BluetoothLEServer {
             Iterator it = callbackCommands.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry callbackCmd = (Map.Entry) it.next();
-                BLog.d(TAG, "checking callback: " + callbackCmd.getKey() + " = " + callbackCmd.getValue());
+                //BLog.d(TAG, "checking callback: " + callbackCmd.getKey() + " = " + callbackCmd.getValue());
                 try {
                     String thisCallbackCmd = (String) callbackCmd.getValue();
                     int thisCallbackId = (int) callbackCmd.getKey();
