@@ -2,101 +2,27 @@ package com.richardmcdougall.bb.board;
 
 import com.hoho.android.usbserial.util.MonotonicClock;
 import com.richardmcdougall.bb.BBService;
+import com.richardmcdougall.bb.util.LatencyHistogram;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class BurnerBoardMezcal extends BurnerBoard {
 
-    private final Map<String, ConcurrentHashMap<Long, AtomicLong>> latencyHistograms = new HashMap<>();
-    private final ScheduledExecutorService statsScheduler = Executors.newScheduledThreadPool(1);
+private String TAG = this.getClass().getSimpleName();
+    private final LatencyHistogram latencyHistogram = new LatencyHistogram(TAG);
 
     public BurnerBoardMezcal(BBService service) {
         super(service);
         initpixelMap2Board();
         init(boardWidth, boardHeight);
-        latencyHistograms.put("update", new ConcurrentHashMap<>());
-        latencyHistograms.put("flush2Board", new ConcurrentHashMap<>());
-
-        // Schedule stats logging every 10 seconds
-        statsScheduler.scheduleWithFixedDelay(this::logLatencyStats, 10, 10, TimeUnit.SECONDS);
+latencyHistogram.registerMethod("update");
+        latencyHistogram.registerMethod("flush2Board");
+        latencyHistogram.enableAutoLogging(10);
     }
 
-    private void recordLatency(String method, long latency) {
-        ConcurrentHashMap<Long, AtomicLong> histogram = latencyHistograms.get(method);
-        histogram.computeIfAbsent(latency, k -> new AtomicLong()).incrementAndGet();
-    }
-
-    public Map<String, ConcurrentHashMap<Long, AtomicLong>> getLatencyHistograms() {
-        return latencyHistograms;
-    }
-
-    public void logLatencyStats() {
-        for (String method : latencyHistograms.keySet()) {
-            ConcurrentHashMap<Long, AtomicLong> histogram = latencyHistograms.get(method);
-            if (!histogram.isEmpty()) {
-                long totalCalls = histogram.values().stream().mapToLong(AtomicLong::get).sum();
-
-                // Create power of 2 buckets: [0], [1], [2-3], [4-7], [8-15], [16-31], [32-63], [64-127], [128+]
-                long[] buckets = new long[9];
-                String[] bucketLabels = {"0ms", "1ms", "2-3ms", "4-7ms", "8-15ms", "16-31ms", "32-63ms", "64-127ms", "128+ms"};
-
-                for (Map.Entry<Long, AtomicLong> entry : histogram.entrySet()) {
-                    long latency = entry.getKey();
-                    long count = entry.getValue().get();
-
-                    int bucketIndex;
-                    if (latency == 0) {
-                        bucketIndex = 0;
-                    } else if (latency == 1) {
-                        bucketIndex = 1;
-                    } else if (latency <= 3) {
-                        bucketIndex = 2;
-                    } else if (latency <= 7) {
-                        bucketIndex = 3;
-                    } else if (latency <= 15) {
-                        bucketIndex = 4;
-                    } else if (latency <= 31) {
-                        bucketIndex = 5;
-                    } else if (latency <= 63) {
-                        bucketIndex = 6;
-                    } else if (latency <= 127) {
-                        bucketIndex = 7;
-                    } else {
-                        bucketIndex = 8;
-                    }
-
-                    buckets[bucketIndex] += count;
-                }
-
-                // Build the output string with non-zero buckets only
-                StringBuilder bucketStats = new StringBuilder();
-                for (int i = 0; i < buckets.length; i++) {
-                    if (buckets[i] > 0) {
-                        if (bucketStats.length() > 0) {
-                            bucketStats.append(", ");
-                        }
-                        bucketStats.append(bucketLabels[i]).append(":").append(buckets[i]);
-                    }
-                }
-
-                BLog.i(TAG, method + " latency buckets (total: " + totalCalls + ") - " + bucketStats.toString());
-            }
-        }
-    }
-
-    //private static final int kMaxV4DisplayPower = 12;
-    // Try 9, since 12 was getting too hot on kronos 6/4/2024
     private static final int kMaxV4DisplayPower = 9;
-    private String TAG = this.getClass().getSimpleName();
     public int kStrips = 1;
     static int[][] mapPixelsToStips = new int[1][4096];
     private TranslationMap[] boardMap;
@@ -184,7 +110,7 @@ public class BurnerBoardMezcal extends BurnerBoard {
             long beforeFlushLatency = MonotonicClock.millis();
             flush2Board();
             long afterFlushLatency = MonotonicClock.millis();
-            recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
+latencyHistogram.recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
             //BLog.d(TAG, "setstrip latency = " + (MonotonicClock.millis()- latency));
             if ((s % 2) == 0) {
                 //flush2Board();
@@ -196,12 +122,12 @@ public class BurnerBoardMezcal extends BurnerBoard {
         long beforeUpdateLatency = MonotonicClock.millis();
         update();
         long afterUpdateLatency = MonotonicClock.millis();
-        recordLatency("update", afterUpdateLatency - beforeUpdateLatency);
+latencyHistogram.recordLatency("update", afterUpdateLatency - beforeUpdateLatency);
         //latency = MonotonicClock.millis();
         long beforeFlushLatency = MonotonicClock.millis();
         flush2Board();
         long afterFlushLatency = MonotonicClock.millis();
-        recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
+        latencyHistogram.recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
     }
 
     private ByteBuffer mWriteBuffer = ByteBuffer.allocate(16384);
@@ -286,16 +212,6 @@ public class BurnerBoardMezcal extends BurnerBoard {
 
     // Clean up scheduler when the board is destroyed
     public void shutdown() {
-        if (statsScheduler != null && !statsScheduler.isShutdown()) {
-            statsScheduler.shutdown();
-            try {
-                if (!statsScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                    statsScheduler.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                statsScheduler.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-        }
+        latencyHistogram.shutdown();
     }
 }

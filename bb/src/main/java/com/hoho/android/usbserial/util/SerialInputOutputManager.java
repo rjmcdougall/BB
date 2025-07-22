@@ -11,6 +11,7 @@ import android.os.Process;
 import android.util.Log;
 
 import com.hoho.android.usbserial.driver.UsbSerialPort;
+import com.richardmcdougall.bb.util.LatencyHistogram;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
@@ -59,6 +60,7 @@ public class SerialInputOutputManager implements Runnable {
     private State mState = State.STOPPED; // Synchronized by 'this'
     private Listener mListener; // Synchronized by 'this'
     private final UsbSerialPort mSerialPort;
+    private final LatencyHistogram latencyHistogram = new LatencyHistogram(TAG);
 
     public interface Listener {
         /**
@@ -75,6 +77,8 @@ public class SerialInputOutputManager implements Runnable {
     public SerialInputOutputManager(UsbSerialPort serialPort) {
         mSerialPort = serialPort;
         mReadBuffer = ByteBuffer.allocate(serialPort.getReadEndpoint().getMaxPacketSize());
+        latencyHistogram.registerMethod("serialWrite");
+        latencyHistogram.enableAutoLogging(30); // Log every 30 seconds for serial operations
     }
 
     public void setName(String name) {
@@ -85,6 +89,8 @@ public class SerialInputOutputManager implements Runnable {
         mSerialPort = serialPort;
         mListener = listener;
         mReadBuffer = ByteBuffer.allocate(serialPort.getReadEndpoint().getMaxPacketSize());
+        latencyHistogram.registerMethod("serialWrite");
+        latencyHistogram.enableAutoLogging(30); // Log every 30 seconds for serial operations
     }
 
     public synchronized void setListener(Listener listener) {
@@ -249,6 +255,8 @@ public class SerialInputOutputManager implements Runnable {
             synchronized (this) {
                 mState = State.STOPPED;
                 Log.i(TAG, "Stopped");
+                // Clean up latency histogram
+                latencyHistogram.shutdown();
             }
         }
     }
@@ -312,7 +320,10 @@ public class SerialInputOutputManager implements Runnable {
                 Log.d(TAG, "Writing data len=" + len);
             }
             try {
+                long writeStart = MonotonicClock.millis();
                 mSerialPort.write(buffer, mWriteTimeout);
+                long writeEnd = MonotonicClock.millis();
+                latencyHistogram.recordLatency("serialWrite", writeEnd - writeStart);
             } catch (BufferOverflowException e) {
                 // Flow control; put back on buffer and try again.
                 if (DEBUG) {
