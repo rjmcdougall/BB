@@ -15,6 +15,7 @@ public class LineBuilder {
 
     private String TAG = this.getClass().getSimpleName();
     private IntBuffer drawBuffer = null;
+    private int[] argbData = null;
     public ArrayList<RGB> pixels = new ArrayList<>();
     private int[] layeredScreen;
     private BurnerBoard board = null;
@@ -24,11 +25,32 @@ public class LineBuilder {
     }
 
     public void clearLine(){
+        // Recycle existing RGB objects before clearing
+        for (RGB rgb : pixels) {
+            rgb.recycle();
+        }
         this.pixels = new ArrayList<>();
+    }
+    
+    // Cleanup method for proper resource management
+    public void cleanup() {
+        for (RGB rgb : pixels) {
+            rgb.recycle();
+        }
+        pixels.clear();
     }
 
     public void drawLine() {
-        this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+        if (drawBuffer == null || drawBuffer.capacity() != board.boardWidth * board.boardHeight * 4) {
+            this.drawBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+        }
+        drawBuffer.clear();
+        
+        // Reuse argbData array to reduce GC pressure
+        int requiredSize = this.board.boardWidth * this.board.boardHeight;
+        if (argbData == null || argbData.length != requiredSize) {
+            argbData = new int[requiredSize];
+        }
 
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(this.board.boardWidth, this.board.boardHeight, Bitmap.Config.ARGB_8888);
@@ -47,24 +69,45 @@ public class LineBuilder {
         }
 
         int[] temp = drawBuffer.array();
-        pixels.clear();
-        for(int i = 0; i < temp.length;i++){
-            pixels.add(RGB.fromRGBAInt(temp[i]));
+        
+        // Ensure pixels ArrayList has sufficient capacity to avoid resizing
+        int requiredPixels = this.board.boardWidth * this.board.boardHeight;
+        if (pixels.size() != requiredPixels) {
+            // Recycle old RGB objects before clearing
+            for (RGB rgb : pixels) {
+                rgb.recycle();
+            }
+            pixels.clear();
+            pixels.ensureCapacity(requiredPixels);
+            for (int i = 0; i < requiredPixels; i++) {
+                RGB rgb = RGB.obtain();
+                rgb.setFromRGBAInt(temp[i]);
+                pixels.add(rgb);
+            }
+        } else {
+            // Reuse existing RGB objects in the list without creating new ones
+            for (int i = 0; i < requiredPixels; i++) {
+                RGB existingRGB = pixels.get(i);
+                existingRGB.setFromRGBAInt(temp[i]);
+            }
         }
 
     }
-
+    RGB pixel;
+    int pixel_offset;
     public int[] aRGBtoBoardScreen(int[] sourceScreen) {
 
         if (this.pixels.isEmpty()) {
             return sourceScreen;
         }
 
-        layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        if (layeredScreen == null || layeredScreen.length != this.board.boardWidth * this.board.boardHeight * 3) {
+            layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        }
 
         for (int pixelNo = 0; pixelNo < (this.board.boardWidth * this.board.boardHeight); pixelNo++) {
-            int pixel_offset = pixelNo * 3;
-            RGB pixel = this.pixels.get(pixelNo);
+            pixel_offset = pixelNo * 3;
+            pixel = this.pixels.get(pixelNo);
 
             // Render the new text over the original
 

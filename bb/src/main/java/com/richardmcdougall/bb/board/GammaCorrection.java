@@ -1,7 +1,7 @@
 package com.richardmcdougall.bb.board;
 
 public class GammaCorrection {
-    static int gamma8[] = {
+     static final int gamma8[] = {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
             1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,

@@ -25,6 +25,7 @@ public class BrakeOverlayBuilder {
     private static final int brakeColor = RGB.getARGBInt(kRgbMax, 0, 0);
 
     private int[] BrakeScreen;
+    private int[] layeredScreen;
 
 
     BrakeOverlayBuilder(BBService service, BurnerBoard board) {
@@ -45,7 +46,9 @@ public class BrakeOverlayBuilder {
         int brakeStart = 0;
         int brakeEnd = 10;
 
-        BrakeScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        if (BrakeScreen == null || BrakeScreen.length != this.board.boardWidth * this.board.boardHeight * 3) {
+            BrakeScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        }
         BrakeDisplayingCountdown = kDisplayForMilliSeconds;
 
         try {
@@ -61,7 +64,11 @@ public class BrakeOverlayBuilder {
 
     private int[] overlayScreen(int[] sourceScreen) {
 
-        int[] layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        // Reuse layeredScreen array
+        int requiredSize = this.board.boardWidth * this.board.boardHeight * 3;
+        if (layeredScreen == null || layeredScreen.length != requiredSize) {
+            layeredScreen = new int[requiredSize];
+        }
 
         System.arraycopy(BrakeScreen, 0, layeredScreen, 0, BrakeScreen.length);
 

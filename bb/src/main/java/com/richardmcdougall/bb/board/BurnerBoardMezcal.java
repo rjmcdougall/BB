@@ -10,15 +10,30 @@ import java.nio.ByteBuffer;
 
 public class BurnerBoardMezcal extends BurnerBoard {
 
-private String TAG = this.getClass().getSimpleName();
+    private String TAG = this.getClass().getSimpleName();
     private final LatencyHistogram latencyHistogram = new LatencyHistogram(TAG);
 
     public BurnerBoardMezcal(BBService service) {
         super(service);
         initpixelMap2Board();
         init(boardWidth, boardHeight);
-latencyHistogram.registerMethod("update");
+        latencyHistogram.registerMethod("update");
         latencyHistogram.registerMethod("flush2Board");
+        latencyHistogram.registerMethod("flush");
+        latencyHistogram.registerMethod("setStrip");
+        latencyHistogram.enableAutoLogging(10);
+        latencyHistogram.registerMethod("flushOuter");
+        latencyHistogram.registerMethod("flushInner");
+        latencyHistogram.registerMethod("flushInner1");
+        latencyHistogram.registerMethod("flushInner2");
+        latencyHistogram.registerMethod("flushInner3");
+        latencyHistogram.registerMethod("flushInner4");
+        latencyHistogram.registerMethod("flushInner5");
+        latencyHistogram.registerMethod("flushInner6");
+        latencyHistogram.registerMethod("flushInner7");
+        latencyHistogram.registerMethod("flushInner8");
+        latencyHistogram.registerMethod("flushInner9");
+        latencyHistogram.registerMethod("flushInner10");
         latencyHistogram.enableAutoLogging(10);
     }
 
@@ -60,45 +75,56 @@ latencyHistogram.registerMethod("update");
     public void setOtherlightsAutomatically() {
     }
 
-    // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
-    private static int pixelWorkaround(int level) {
-        //return level;
-        //}
 
-        switch (level) {
-            case 0:
-                level = 1;
-                break;
-            case ',':
-                level += 1;
-            case ';':
-                level += 1;
-            case '\\':
-                level += 1;
-            default:
-        }
+    // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
+    // Optimized version with minimal branching for high-frequency calls
+    private static int pixelWorkaround(int level) {
+        // Fast path for most common case (0-255 values except problematic ones)
+        if (level == 0) return 1;
+        if (level == 44) return 45;  // ',' = 44
+        if (level == 59) return 60;  // ';' = 59  
+        if (level == 92) return 93;  // '\\' = 92
         return level;
     }
 
+    long flushEndLatency = 0;
+    int[] stripPixels = null;
 
     public void flush() {
 
-        long startLatency = MonotonicClock.millis();
+
+        long flushStartLatency = MonotonicClock.millis();
+        if (flushEndLatency > 0) {
+            latencyHistogram.recordLatency("flushOuter", flushEndLatency - flushStartLatency);
+        }
+
+        if (stripPixels == null) {
+            stripPixels = new int[600 * 3];
+        }
+
         this.logFlush();
         int[] mOutputScreen = boardScreen.clone();
+        latencyHistogram.recordLatency("flushInner1", MonotonicClock.millis() - flushStartLatency);
         sharpener.sharpen(mOutputScreen, service.burnerBoard.boardSharpenMode);
+        latencyHistogram.recordLatency("flushInner2", MonotonicClock.millis() - flushStartLatency);
         mOutputScreen = this.textBuilder.renderText(mOutputScreen);
+        latencyHistogram.recordLatency("flushInner3", MonotonicClock.millis() - flushStartLatency);
         mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        latencyHistogram.recordLatency("flushInner4", MonotonicClock.millis() - flushStartLatency);
         mOutputScreen = this.batteryOverlayBuilder.renderBattery(mOutputScreen);
+        latencyHistogram.recordLatency("flushInner5", MonotonicClock.millis() - flushStartLatency);
         mOutputScreen = this.brakeOverlayBuilder.renderBrake(mOutputScreen);
+        latencyHistogram.recordLatency("flushInner6", MonotonicClock.millis() - flushStartLatency);
         // TODO: gamma correction should be here before dimmer
+        latencyHistogram.recordLatency("flushInner7", MonotonicClock.millis() - flushStartLatency);
         mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
+        latencyHistogram.recordLatency("flushInner8", MonotonicClock.millis() - flushStartLatency);
         mOutputScreen = mDimmer.Dim(kMaxV4DisplayPower, mOutputScreen);
+        latencyHistogram.recordLatency("flushInner9", MonotonicClock.millis() - flushStartLatency);
         //this.appDisplay.send(mOutputScreen);
 
         // Walk through each strip and fill from the graphics buffer
         for (int s = 0; s < kStrips; s++) {
-            int[] stripPixels = new int[600 * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < 600 * 3; ) {
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
@@ -106,28 +132,37 @@ latencyHistogram.registerMethod("update");
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[mapPixelsToStips[s][offset++]]);
             }
             //latency = MonotonicClock.millis();
+            long beforeSetStripLatency = MonotonicClock.millis();
             setStrip(s, stripPixels);
+            long afterSetStripLatency = MonotonicClock.millis();
+            latencyHistogram.recordLatency("setStrip", afterSetStripLatency - beforeSetStripLatency);
             long beforeFlushLatency = MonotonicClock.millis();
             flush2Board();
             long afterFlushLatency = MonotonicClock.millis();
-latencyHistogram.recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
+            latencyHistogram.recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
             //BLog.d(TAG, "setstrip latency = " + (MonotonicClock.millis()- latency));
             if ((s % 2) == 0) {
                 //flush2Board();
                 //BLog.d(TAG, "flush latency = " + (MonotonicClock.millis()- latency));
             }
         }
-        // Render on board
+        latencyHistogram.recordLatency("flushInner10", MonotonicClock.millis() - flushStartLatency);
+// Render on board
         //latency = MonotonicClock.millis();
         long beforeUpdateLatency = MonotonicClock.millis();
         update();
         long afterUpdateLatency = MonotonicClock.millis();
-latencyHistogram.recordLatency("update", afterUpdateLatency - beforeUpdateLatency);
+        latencyHistogram.recordLatency("update", afterUpdateLatency - beforeUpdateLatency);
         //latency = MonotonicClock.millis();
         long beforeFlushLatency = MonotonicClock.millis();
         flush2Board();
         long afterFlushLatency = MonotonicClock.millis();
         latencyHistogram.recordLatency("flush2Board", afterFlushLatency - beforeFlushLatency);
+        
+        // Record overall flush latency
+        flushEndLatency = MonotonicClock.millis();
+        latencyHistogram.recordLatency("flushInner", flushEndLatency - flushStartLatency);
+        //Runtime.getRuntime().gc();
     }
 
     private ByteBuffer mWriteBuffer = ByteBuffer.allocate(16384);

@@ -9,7 +9,7 @@ public class Wheel {
         float[] hsl = new float[3];
         hsl[0] = wheelPos * 1.0f;
         hsl[1] = 1.0f;
-        hsl[2] = 0.5f;
+        hsl[2] = 1.0f;
         return android.graphics.Color.HSVToColor(hsl) & 0xFFFFFF;
     }
 
@@ -22,7 +22,7 @@ public class Wheel {
         float[] hsl = new float[3];
         hsl[0] = wheelPos * 1.0f;
         hsl[1] = 1.0f;
-        hsl[2] = 0.5f * brightness;
+        hsl[2] = 1.0f * brightness;
         return android.graphics.Color.HSVToColor(hsl) & 0xFFFFFF;
     }
 

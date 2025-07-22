@@ -17,6 +17,7 @@ import java.util.ArrayList;
 public class TextBuilder {
     private String TAG = this.getClass().getSimpleName();
     private IntBuffer textBuffer = null;
+    private int[] argbData = null;
     public int textDisplayingCountdown = 0;
     public ArrayList<RGB> pixels = new ArrayList<>();
     private BurnerBoard board = null;
@@ -25,11 +26,28 @@ public class TextBuilder {
     public TextBuilder(BurnerBoard board){
         this.board = board;
     }
+    
+    // Cleanup method for proper resource management
+    public void cleanup() {
+        for (RGB rgb : pixels) {
+            rgb.recycle();
+        }
+        pixels.clear();
+    }
 
     // Draw text on screen and delay for n seconds
     public void setText(String text, int delay, int refreshRate,  RGB color) {
 
-        this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+        if (textBuffer == null || textBuffer.capacity() != board.boardWidth * board.boardHeight * 4) {
+            this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+        }
+        textBuffer.clear();
+        
+        // Reuse argbData array to reduce GC pressure
+        int requiredSize = this.board.boardWidth * this.board.boardHeight;
+        if (argbData == null || argbData.length != requiredSize) {
+            argbData = new int[requiredSize];
+        }
 
         textDisplayingCountdown = delay * refreshRate / 1000;
 
@@ -54,11 +72,29 @@ public class TextBuilder {
                 bitmap.copyPixelsToBuffer(textBuffer);
             }
 
-            int[] temp = textBuffer.array();
-            pixels.clear();
-            for(int i = 0; i < temp.length;i++){
-                pixels.add(RGB.fromRGBAInt(temp[i]));
+        int[] temp = textBuffer.array();
+        
+        // Ensure pixels ArrayList has sufficient capacity to avoid resizing
+        int requiredPixels = this.board.boardWidth * this.board.boardHeight;
+        if (pixels.size() != requiredPixels) {
+            // Recycle old RGB objects before clearing
+            for (RGB rgb : pixels) {
+                rgb.recycle();
             }
+            pixels.clear();
+            pixels.ensureCapacity(requiredPixels);
+            for (int i = 0; i < requiredPixels; i++) {
+                RGB rgb = RGB.obtain();
+                rgb.setFromRGBAInt(temp[i]);
+                pixels.add(rgb);
+            }
+        } else {
+            // Reuse existing RGB objects in the list without creating new ones
+            for (int i = 0; i < requiredPixels; i++) {
+                RGB existingRGB = pixels.get(i);
+                existingRGB.setFromRGBAInt(temp[i]);
+            }
+        }
         }
         catch(Exception e){
             BLog.e(TAG, e.getMessage());
@@ -71,7 +107,9 @@ public class TextBuilder {
             return null;
         }
 
-        layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        if (layeredScreen == null || layeredScreen.length != this.board.boardWidth * this.board.boardHeight * 3) {
+            layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        }
 
         for (int pixelNo = 0; pixelNo < (this.board.boardWidth * this.board.boardHeight); pixelNo++) {
             int pixel_offset = pixelNo * 3;
@@ -101,7 +139,10 @@ public class TextBuilder {
     // Draw text on screen and delay for n seconds
     public void setText90(String text, int delay, int refreshRate, RGB color) {
 
-        this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+        if (textBuffer == null || textBuffer.capacity() != board.boardWidth * board.boardHeight * 4) {
+            this.textBuffer = IntBuffer.allocate(board.boardWidth * board.boardHeight * 4);
+        }
+        textBuffer.clear();
 
         textDisplayingCountdown = delay * refreshRate / 1000;
 
@@ -124,9 +165,27 @@ public class TextBuilder {
             }
 
             int[] temp = textBuffer.array();
-            pixels.clear();
-            for(int i = 0; i < temp.length;i++){
-                pixels.add(RGB.fromRGBAInt(temp[i]));
+            
+            // Ensure pixels ArrayList has sufficient capacity to avoid resizing
+            int requiredPixels = this.board.boardWidth * this.board.boardHeight;
+            if (pixels.size() != requiredPixels) {
+                // Recycle old RGB objects before clearing
+                for (RGB rgb : pixels) {
+                    rgb.recycle();
+                }
+                pixels.clear();
+                pixels.ensureCapacity(requiredPixels);
+                for (int i = 0; i < requiredPixels; i++) {
+                    RGB rgb = RGB.obtain();
+                    rgb.setFromRGBAInt(temp[i]);
+                    pixels.add(rgb);
+                }
+            } else {
+                // Reuse existing RGB objects in the list without creating new ones
+                for (int i = 0; i < requiredPixels; i++) {
+                    RGB existingRGB = pixels.get(i);
+                    existingRGB.setFromRGBAInt(temp[i]);
+                }
             }
         }
         catch(Exception e){

@@ -74,9 +74,11 @@ public class LatencyHistogram {
             if (!histogram.isEmpty()) {
                 long totalCalls = histogram.values().stream().mapToLong(AtomicLong::get).sum();
 
-                // Create power of 2 buckets: [0], [1], [2-3], [4-7], [8-15], [16-31], [32-63], [64-127], [128+]
-                long[] buckets = new long[9];
-                String[] bucketLabels = {"0ms", "1ms", "2-3ms", "4-7ms", "8-15ms", "16-31ms", "32-63ms", "64-127ms", "128+ms"};
+                // Create power of 2 buckets: [0], [1], [2-3], [4-7], [8-15], [16-31], [32-63],
+                //   [64-127], [128-255], [256-511], [512-1023], [1024+]
+                long[] buckets = new long[12];
+                String[] bucketLabels = {"0ms", "1ms", "2-3ms", "4-7ms", "8-15ms", "16-31ms",
+                        "32-63ms", "64-127ms", "128-255ms", "256-511ms", "512-1023ms", "1024+ms"};
 
                 for (Map.Entry<Long, AtomicLong> entry : histogram.entrySet()) {
                     long latency = entry.getKey();
@@ -100,6 +102,7 @@ public class LatencyHistogram {
                 BLog.i(tag, method + " latency buckets (total: " + totalCalls + ") - " + bucketStats.toString());
             }
         }
+        clear();
     }
 
     /**
@@ -122,8 +125,14 @@ public class LatencyHistogram {
             return 6;
         } else if (latency <= 127) {
             return 7;
-        } else {
+        } else if (latency <= 255) {
             return 8;
+        } else if (latency <= 511) {
+            return 9;
+        } else if (latency <= 1023) {
+            return 10;
+        } else {
+            return 11;
         }
     }
 

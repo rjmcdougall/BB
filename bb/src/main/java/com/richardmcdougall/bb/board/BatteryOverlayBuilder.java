@@ -25,6 +25,7 @@ public class BatteryOverlayBuilder {
     RGB critical_color = new RGB(30, 0, 0);
 
     private int[] batteryScreen;
+    private int[] layeredScreen;
     private static final int kRgbMax = 255;
     private static final int kBatteryGreen = 165;
     private int bigBatteryWidth;
@@ -94,7 +95,9 @@ public class BatteryOverlayBuilder {
 
     public void drawBattery(BurnerBoard.batteryType type) {
         mLastBatteryType = type;
-        batteryScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        if (batteryScreen == null || batteryScreen.length != this.board.boardWidth * this.board.boardHeight * 3) {
+            batteryScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        }
         batteryDisplayingCountdown = kDisplayForSeconds;
         if (type == BurnerBoard.batteryType.CRITICAL) {
             batteryDisplayingCountdown = batteryDisplayingCountdown * 4;
@@ -280,7 +283,11 @@ public class BatteryOverlayBuilder {
 
     private int[] overlayScreen(int[] sourceScreen) {
 
-        int[] layeredScreen = new int[this.board.boardWidth * this.board.boardHeight * 3];
+        // Reuse layeredScreen array
+        int requiredSize = this.board.boardWidth * this.board.boardHeight * 3;
+        if (layeredScreen == null || layeredScreen.length != requiredSize) {
+            layeredScreen = new int[requiredSize];
+        }
 
         System.arraycopy(batteryScreen, 0, layeredScreen, 0, batteryScreen.length);
 
