@@ -6,7 +6,17 @@ import java.util.ArrayList;
 
 public class RGBList {
 
-    private ArrayList<RGB> initColorList() {
+    // Static cache to avoid recreating color list every time
+    private static ArrayList<RGB> COLOR_LIST = null;
+    
+    private static ArrayList<RGB> getColorList() {
+        if (COLOR_LIST == null) {
+            COLOR_LIST = initColorList();
+        }
+        return COLOR_LIST;
+    }
+
+    private static ArrayList<RGB> initColorList() {
         ArrayList<RGB> colorList = new ArrayList<RGB>();
         colorList.add(new RGB("aliceblue", 0xf0, 0xf8, 0xFF));
         colorList.add(new RGB("antiquewhite", 0xfa, 0xeb, 0xD7));
@@ -152,7 +162,7 @@ public class RGBList {
     }
 
     public RGB getColor(String name) {
-        ArrayList<RGB> colorList = initColorList();
+        ArrayList<RGB> colorList = getColorList();
         for (RGB c : colorList) {
             if (c.getName().equals(name)) {
                 return c;
