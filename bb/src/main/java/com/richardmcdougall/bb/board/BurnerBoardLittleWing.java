@@ -40,11 +40,11 @@ public class BurnerBoardLittleWing extends BurnerBoard {
 
     public BurnerBoardLittleWing(BBService service) {
         super(service);
+        init(boardWidth, boardHeight);
+        initpixelMap2Board();
         boardWidth = 32;
         boardHeight = 255;
         BLog.i(TAG, "Burner Board Little Wing initting...");
-
-        initpixelMap2Board();
     }
 
     public int getMultiplier4Speed() {
@@ -106,7 +106,13 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     public void initpixelMap2Board() {
         int x, y;
 
+        boardWidth = 32;
+        boardHeight = 255;
+        BLog.d(TAG, "initpixelMap2Board");
         boardMap = TranslationMapBag.littlewing;
+        pixelOffset = new PixelOffset(this);
+        this.pixelOffset.initPixelOffset();
+        this.clearPixels();
 
         // Walk through all the strips and find the number of pixels in the strip
         for (int s = 0; s < kStrips; s++) {
