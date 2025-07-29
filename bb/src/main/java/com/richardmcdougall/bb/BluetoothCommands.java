@@ -35,6 +35,8 @@ public class BluetoothCommands {
                         }
                     }
 
+                    BLog.d(TAG, "BBservice sending getboards response: " + response.toString());
+
                     service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes().clone());
 
                     BLog.d(TAG, "BBservice done getboards command: " + response.toString());
@@ -427,6 +429,86 @@ public class BluetoothCommands {
                     }
 
                 });
+
+        service.bLEServer.addCallback("getmessages",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got getmessages OnAction");
+                    JSONObject response = new JSONObject();
+                    try {
+                        response.put("command", command);
+                        
+                        if (service.mesh != null && service.mesh.getMessages() != null) {
+                            JSONArray messages = service.mesh.getMessages().getNewMessagesJSON();
+                            response.put("messages", messages);
+                            BLog.d(TAG, "Retrieved " + messages.length() + " messages from mesh");
+                        } else {
+                            // Return empty array if mesh is not available
+                            response.put("messages", new JSONArray());
+                            BLog.d(TAG, "Mesh not available, returning empty messages");
+                        }
+                        
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error getting messages: " + e.getMessage());
+                        try {
+                            response.put("error", "Failed to retrieve messages: " + e.getMessage());
+                            response.put("messages", new JSONArray());
+                        } catch (Exception ex) {
+                            BLog.e(TAG, "error creating error response: " + ex.getMessage());
+                        }
+                    }
+                    
+                    service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes());
+                    BLog.d(TAG, "BBservice done getmessages command: " + response.toString());
+                });
+
+        service.bLEServer.addCallback("sendmessage",
+                (String clientId, BluetoothDevice device, String command, JSONObject payload) -> {
+                    BLog.d(TAG, "BBservice got sendmessage command: " + payload.toString());
+                    JSONObject response = new JSONObject();
+                    boolean success = false;
+                    
+                    try {
+                        String message = payload.getString("arg");
+                        response.put("command", command);
+                        
+                        if (message != null && !message.trim().isEmpty()) {
+                            if (service.mesh != null) {
+                                // Send as broadcast message to all nodes
+                                success = service.mesh.sendBroadcastMessage(message.trim());
+                                
+                                if (success) {
+                                    response.put("status", "sent");
+                                    response.put("message", "Message sent successfully");
+                                    BLog.d(TAG, "Message sent via mesh: " + message);
+                                } else {
+                                    response.put("status", "failed");
+                                    response.put("message", "Failed to send message");
+                                    BLog.e(TAG, "Failed to send message via mesh: " + message);
+                                }
+                            } else {
+                                response.put("status", "unavailable");
+                                response.put("message", "Mesh network not available");
+                                BLog.w(TAG, "Mesh network not available for sending message");
+                            }
+                        } else {
+                            response.put("status", "invalid");
+                            response.put("message", "Empty or invalid message");
+                            BLog.w(TAG, "Received empty or invalid message to send");
+                        }
+                        
+                    } catch (Exception e) {
+                        BLog.e(TAG, "error sending message: " + e.getMessage());
+                        try {
+                            response.put("status", "error");
+                            response.put("message", "Error sending message: " + e.getMessage());
+                        } catch (Exception ex) {
+                            BLog.e(TAG, "error creating error response: " + ex.getMessage());
+                        }
+                    }
+                    
+                    service.bLEServer.tx(device, (String.format("%s;", response.toString())).getBytes());
+                    BLog.d(TAG, "BBservice done sendmessage command: " + response.toString());
+                });
     }
 
 
@@ -454,7 +536,7 @@ public class BluetoothCommands {
             BLog.e(TAG, "Could not get state: " + e.getMessage());
         }
         try {
-            state.put("pc", service.powerController.getCurrent());
+            state.put("pw", service.powerController.getPower());
             state.put("pv", service.bms.getVoltage());
             state.put("pt", service.powerController.getTemp());
         } catch (Exception e) {
@@ -468,11 +550,13 @@ public class BluetoothCommands {
         } catch (Exception e) {
             BLog.e(TAG, "Could not get state: " + e.getMessage());
         }
+        BLog.d(TAG, state.toString());
         return state;
     }
 
     void sendStateResponse(String command, BluetoothDevice device) {
 
+        //BLog.d(TAG, "sendStateResponse");
         JSONObject response = new JSONObject();
         try {
             response.put("command", command);

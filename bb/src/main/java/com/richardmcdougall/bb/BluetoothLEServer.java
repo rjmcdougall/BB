@@ -205,6 +205,7 @@ public class BluetoothLEServer {
                         //BLog.d(TAG, "notify client of new data via setvalue(): " + success);
                     }
                 } else {
+                    BLog.d(TAG,"txthread No input stream");
                     Thread.sleep(1000);
                 }
             } catch (Exception e) {
@@ -216,6 +217,8 @@ public class BluetoothLEServer {
 
 
     public void tx(BluetoothDevice device, final byte[] data) {
+
+        BLog.d(TAG, "tx on device " + device);
         mDeviceTmp = device;
 
         PipedOutputStream TxStream = mTransmitOutput.get(mDeviceTmp);
@@ -380,6 +383,13 @@ public class BluetoothLEServer {
                 BLog.d(TAG, "BluetoothDevice DISCONNECTED: " + device);
                 //Remove device from any active subscriptions
                 mRegisteredDevices.remove(device);
+                mReceiveBuffers.remove(device);
+                try {
+                    mTransmitInput.get(mDeviceTmp).close();
+                    mTransmitOutput.get(mDeviceTmp).close();
+                } catch (Exception e) {}
+                mTransmitInput.remove(device);
+                mTransmitOutput.remove(device);
                 stopAdvertising();
                 try {
                     Thread.sleep(1000);
@@ -533,6 +543,7 @@ public class BluetoothLEServer {
                     // Execute complete command
                     JSONObject cmd;
                     if ((cmd = extractCommand(rxBuffer.toString())) != null) {
+                        BLog.d(TAG, "command " + cmd);
                         success = processCommand(device, cmd);
                     }
                     rxBuffer.reset();
@@ -589,8 +600,10 @@ public class BluetoothLEServer {
                             BLog.d(TAG, "Could not find callback for id: " + thisCallbackId);
                             return false;
                         }
-                        runOnServiceThread(() -> bcb.OnAction("test",
-                                device, requestedCommand, cmdJson));
+                        bcb.OnAction("test",
+                                device, requestedCommand, cmdJson);
+                        //runOnServiceThread(() -> bcb.OnAction("test",
+                        //        device, requestedCommand, cmdJson));
                     }
                 } catch (Exception e) {
                     BLog.e(TAG, "error on bluetooth command: " + e.getMessage());
