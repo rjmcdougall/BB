@@ -4,6 +4,8 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
 import com.richardmcdougall.bbcommon.BoardState;
 
+import java.nio.ByteBuffer;
+
 //  cmdMessenger.sendCmdStart(BBGetBatteryLevel);
 //          cmdMessenger.sendCmdArg(batteryControl);
 //          cmdMessenger.sendCmdArg(batteryStateOfCharge);
@@ -26,6 +28,12 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     static int[][] pixelMap2BoardTable = new int[16][4096];
     private TranslationMap[] boardMap;
     private PixelDimmer mDimmer = new PixelDimmer();
+
+
+    private ByteBuffer mWriteBuffer = ByteBuffer.allocate(16384);
+    private static final byte[] teensyPrefix = "10,".getBytes();
+    private static final byte[] teensyPostfix = ";".getBytes();
+    private static final byte[] teensyUpdate = "6;".getBytes();
 
 
     static {
@@ -61,7 +69,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     public int getFrameRate() {
-            return 35;
+            return 20;
     }
 
     public void setOtherlightsAutomatically() {
@@ -81,15 +89,15 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             int[] stripPixels = new int[pixelsPerStrip[s] * 3];
             // Walk through all the pixels in the strip
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
-                stripPixels[offset] = mOutputScreen[pixelMap2BoardTable[s][offset++]];
+                stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
+                stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
+                stripPixels[offset] =pixelWorkaround( mOutputScreen[pixelMap2BoardTable[s][offset++]]);
             }
             setStrip(s, stripPixels);
             // TODO: something takes a shit upstream if too much data is outstanding before a flush
-            if (s == 8) {
+            //if (s == 8) {
                 flush2Board();
-            }
+            //}
         }
         // Render on board
         update();
@@ -150,5 +158,56 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             }
         }
         */
+    }
+
+    public void flush2Board() {
+        try {
+            int len = mWriteBuffer.position();
+            if (len > 0) {
+                byte[] buffer = new byte[len];
+                mWriteBuffer.rewind();
+                mWriteBuffer.get(buffer, 0, len);
+                mWriteBuffer.clear();
+                //BLog.d(TAG, "write " + len + " bytes");
+                mSerialIoManager.writeAsync(buffer);
+                //mSerialIoManager.flush();
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    public boolean update() {
+        try {
+            mWriteBuffer.put(teensyUpdate);
+
+        } catch (Exception e) {
+        }
+        return true;
+    }
+
+    public void setStrip(int strip, int[] pixels) {
+        //BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
+        int len = Math.min(552 * 3, pixels.length);
+        byte[] newPixels = new byte[len];
+        for (int pixel = 0; pixel < len; pixel++) {
+            newPixels[pixel] = (byte) pixels[pixel];
+        }
+
+        mWriteBuffer.put(teensyPrefix);
+        mWriteBuffer.put(String.format("%d,", strip).getBytes());
+        mWriteBuffer.put(newPixels);
+        mWriteBuffer.put(teensyPostfix);
+
+    }
+
+    // Work around that teensy cmd essenger can't deal with 0, ',', ';', '\\'
+    // Optimized version with minimal branching for high-frequency calls
+    private static int pixelWorkaround(int level) {
+        // Fast path for most common case (0-255 values except problematic ones)
+        if (level == 0) return 1;
+        if (level == 44) return 45;  // ',' = 44
+        if (level == 59) return 60;  // ';' = 59
+        if (level == 92) return 93;  // '\\' = 92
+        return level;
     }
 }
