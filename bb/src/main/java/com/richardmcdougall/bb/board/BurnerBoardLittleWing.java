@@ -91,7 +91,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
-                stripPixels[offset] =pixelWorkaround( mOutputScreen[pixelMap2BoardTable[s][offset++]]);
+                stripPixels[offset] = pixelWorkaround( mOutputScreen[pixelMap2BoardTable[s][offset++]]);
             }
             setStrip(s, stripPixels);
             // TODO: something takes a shit upstream if too much data is outstanding before a flush
@@ -187,7 +187,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
 
     public void setStrip(int strip, int[] pixels) {
         //BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
-        int len = Math.min(552 * 3, pixels.length);
+        int len = Math.min(600 * 3, pixels.length);
         byte[] newPixels = new byte[len];
         for (int pixel = 0; pixel < len; pixel++) {
             newPixels[pixel] = (byte) pixels[pixel];
