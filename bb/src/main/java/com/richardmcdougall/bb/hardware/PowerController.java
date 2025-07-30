@@ -72,4 +72,13 @@ public class PowerController {
         return value;
     }
 
+    public float getPower() {
+        float value = 0;
+        try {
+            BLog.d(TAG, "getPower");
+            value = vesc.getLedPower();
+        } catch (Exception e) {
+        }
+        return value;
+    }
 }

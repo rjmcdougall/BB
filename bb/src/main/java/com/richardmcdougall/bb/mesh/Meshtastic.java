@@ -63,6 +63,9 @@ class Meshtastic {
 
     private NodeDB nodeDB;
 
+    // Messages buffer for text messages received from mesh
+    private Messages messages;
+
     private MeshProtos.MyNodeInfo.Builder myNode = MeshProtos.MyNodeInfo.newBuilder();
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
@@ -155,6 +158,7 @@ class Meshtastic {
 
         }
         nodeDB = new NodeDB(service);
+        messages = new Messages();
         initMyNode();
     }
 
@@ -172,7 +176,8 @@ class Meshtastic {
     ));
 
     // include any nodes with the meshtastic shortname in the form BBnn
-    private final Pattern shortnamePattern = Pattern.compile("^BB[0-9][0-9][a-f]$"); // Matches shortnames like BB01a, BB99f, etc.
+    // Matches shortnames like BB01, BB99, etc.
+    private final Pattern shortnamePattern = Pattern.compile("^BB[0-9a-fA-F][0-9a-fA-F˘]$");
 
     public List<Node> getNodes() {
         List<Node> nodes = nodeDB.getNodes();
@@ -333,10 +338,12 @@ class Meshtastic {
         AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
         ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
         lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
-        lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
+        //lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
+        //lora.setChannelNum(20);
+        lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.MEDIUM_SLOW);
+        lora.setChannelNum(52);
         lora.setUsePreset(true);
         lora.setTxEnabled(true);
-        lora.setChannelNum(20);
         ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
         config.setLora(lora.build());
         admin.setSetConfig(config.build());
@@ -625,14 +632,14 @@ class Meshtastic {
         try {
             if ((node != null) && (node.getUser().getShortName().length() > 0) &&
                     (node.getPosition().getLatitudeI() > 0)) {
-                
+
                 // Apply the same filtering logic as getNodes()
                 String nodeName = node.getUser().getLongName();
                 String nodeShortName = node.getUser().getShortName();
-                
+
                 boolean isWhitelisted = whitelistedNodeNames.contains(nodeName);
                 boolean matchesRegex = nodeShortName != null && shortnamePattern.matcher(nodeShortName).matches();
-                
+
                 if (isWhitelisted || matchesRegex) {
                     this.service.boardLocations.updateBoardLocations(nodeShortName,
                             0,
@@ -642,7 +649,7 @@ class Meshtastic {
                             (int) node.getDeviceMetrics().getBatteryLevel(),
                             null,
                             false);
-                    
+
                     BLog.d(TAG, "Pushed location for node: " + nodeName + " (" + nodeShortName + ") - " +
                             (isWhitelisted ? "whitelisted" : "regex match"));
                 } else {
@@ -742,6 +749,10 @@ class Meshtastic {
                 username = node.getUser().getLongName();
             }
             BLog.d(TAG, username + ": " + message);
+
+            // Add message to buffer for Bluetooth retrieval
+            messages.addMessage(message, username);
+
         } catch (Exception e) {
             BLog.d(TAG, "can't get text message" + e.getMessage());
         }
@@ -839,8 +850,62 @@ class Meshtastic {
             sendToRadio(packet);
         }
     }
-}
 
+
+    /**
+     * Send a text message through Meshtastic network
+     *
+     * @param message The text message to send
+     * @param to      The destination node ID (use ID_BROADCAST for broadcast)
+     * @return true if message was sent successfully, false otherwise
+     */
+    public boolean sendTextMessage(String message, String to) {
+        try {
+            if (message == null || message.trim().isEmpty()) {
+                BLog.w(TAG, "Cannot send empty message");
+                return false;
+            }
+
+            // Create text message DataPacket
+            DataPacket data = new DataPacket(to, 0, message.trim());
+            data.hopLimit = 2; // Set hop limit for mesh forwarding
+
+            // Convert to MeshPacket and send
+            MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
+            MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(meshpacket);
+            packet.build();
+
+            BLog.d(TAG, "Sending text message: " + message + " to: " + to);
+            sendToRadio(packet);
+
+            return true;
+
+        } catch (Exception e) {
+            BLog.e(TAG, "Error sending text message: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Send a broadcast text message to all nodes
+     *
+     * @param message The text message to send
+     * @return true if message was sent successfully, false otherwise
+     */
+    public boolean sendBroadcastMessage(String message) {
+        return sendTextMessage(message, DataPacket.ID_BROADCAST);
+    }
+
+    /**
+     * Get the Messages buffer instance for Bluetooth command access
+     *
+     * @return Messages instance
+     */
+    public Messages getMessages() {
+        return messages;
+    }
+}
 
 
     /*
