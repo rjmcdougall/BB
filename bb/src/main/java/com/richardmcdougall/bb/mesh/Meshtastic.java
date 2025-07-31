@@ -421,7 +421,7 @@ class Meshtastic {
         //telemetry.setDeviceMetrics(metrics);
         telemetry.setPowerMetrics(powerMetrics);
         DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 0, telemetry.build());
-        data.hopLimit = 2;
+        data.hopLimit = 7;
         MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
         MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
         packet.setPacket(meshpacket);
@@ -640,9 +640,13 @@ class Meshtastic {
                 boolean isWhitelisted = whitelistedNodeNames.contains(nodeName);
                 boolean matchesRegex = nodeShortName != null && shortnamePattern.matcher(nodeShortName).matches();
 
+                int boardAddress = 0;
                 if (isWhitelisted || matchesRegex) {
-                    this.service.boardLocations.updateBoardLocations(nodeShortName,
-                            0,
+                    try {
+                        boardAddress = service.allBoards.getBoardAddress(nodeName);
+                    } catch (Exception e) {}
+                    this.service.boardLocations.updateBoardLocations(nodeName,
+                            boardAddress,
                             999,
                             node.getPosition().getLatitudeI() / 10000000.0,
                             node.getPosition().getLongitudeI() / 10000000.0,
@@ -726,13 +730,29 @@ class Meshtastic {
             if (node == null) {
                 node = MeshProtos.NodeInfo.getDefaultInstance();
             }
+            // Convert tunneled board voltage and battery level into node
+            TelemetryProtos.PowerMetrics powerMetrics = telemetry.getPowerMetrics();
+            int batteryLevel = telemetry.getDeviceMetrics().getBatteryLevel();
+            float voltage = telemetry.getDeviceMetrics().getVoltage();
+            float boardVoltage = powerMetrics.getCh1Voltage();
+            int boardBatteryLevel = (int)(powerMetrics.getCh2Voltage() * 100.0);
+            TelemetryProtos.DeviceMetrics deviceMetrics = telemetry.getDeviceMetrics();
+            if (boardVoltage > 20) {
+                voltage = boardVoltage;
+                batteryLevel = boardBatteryLevel;
+            }
+            TelemetryProtos.DeviceMetrics devicemetrics = TelemetryProtos.DeviceMetrics.newBuilder()
+                    .setBatteryLevel(batteryLevel)
+                    .setVoltage(voltage)
+                    .build();
+
             MeshProtos.NodeInfo newnode = node.toBuilder()
-                    .setDeviceMetrics(telemetry.getDeviceMetrics())
+                    .setDeviceMetrics(deviceMetrics)
                     .build();
             nodeDB.addNode(newnode);
             BLog.d(TAG, "Telemetry, node: " + newnode.getUser().getLongName() +
-                    ", battery: " + newnode.getDeviceMetrics().getBatteryLevel() +
-                    ", voltage: " + newnode.getDeviceMetrics().getVoltage());
+                    ", battery: " + batteryLevel +
+                    ", voltage: " + voltage);
         } catch (Exception e) {
             BLog.d(TAG, "cannot update node from telemetry message" + e.getMessage());
         }
