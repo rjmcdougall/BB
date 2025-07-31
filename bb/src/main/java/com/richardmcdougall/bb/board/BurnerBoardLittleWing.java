@@ -69,7 +69,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     }
 
     public int getFrameRate() {
-            return 20;
+        return 20;
     }
 
     public void setOtherlightsAutomatically() {
@@ -91,12 +91,12 @@ public class BurnerBoardLittleWing extends BurnerBoard {
             for (int offset = 0; offset < pixelsPerStrip[s] * 3; ) {
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
                 stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
-                stripPixels[offset] = pixelWorkaround( mOutputScreen[pixelMap2BoardTable[s][offset++]]);
+                stripPixels[offset] = pixelWorkaround(mOutputScreen[pixelMap2BoardTable[s][offset++]]);
             }
             setStrip(s, stripPixels);
             // TODO: something takes a shit upstream if too much data is outstanding before a flush
             //if (s == 8) {
-                flush2Board();
+            flush2Board();
             //}
         }
         // Render on board
@@ -108,7 +108,7 @@ public class BurnerBoardLittleWing extends BurnerBoard {
     private void pixelRemap(int x, int y, int stripOffset) {
         pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset] = this.pixelOffset.Map(x, y, PIXEL_RED);
         pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 1] = this.pixelOffset.Map(x, y, PIXEL_GREEN);
-        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map( x,  y, PIXEL_BLUE);
+        pixelMap2BoardTable[boardMap[x].stripNumber - 1][stripOffset + 2] = this.pixelOffset.Map(x, y, PIXEL_BLUE);
     }
 
     public void initpixelMap2Board() {
