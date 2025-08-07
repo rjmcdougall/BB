@@ -224,8 +224,12 @@ class Meshtastic {
             Thread.sleep(5000);
             */
 
+
             requestConfig();
+            Thread.sleep(5000);
             requestKey();
+            Thread.sleep(5000);
+            setRadioDefaults();
 
 
             /*
@@ -277,33 +281,36 @@ class Meshtastic {
     }
 
     private void resetDevice() {
+        BLog.d(TAG, "resetDevice");
         // TODO: check passkey
         MeshProtos.ToRadio.Builder packet;
         AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
         admin.setRebootSeconds(1);
-        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        DataPacket data = new DataPacket(radioNodeNum, admin.build());
         packet = MeshProtos.ToRadio.newBuilder();
         packet.setPacket(data.toProto(nodeDB));
         packet.build();
-        BLog.d(TAG, "sending data: \n" + packet.toString());
+        BLog.d(TAG, "sending reset device: \n" + packet.toString());
         sendToRadio(packet);
     }
 
     private void requestKey() {
+        BLog.d(TAG, "requestKey");
         MeshProtos.ToRadio.Builder packet;
         AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
         admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.SESSIONKEY_CONFIG);
-        admin.setSessionPasskey(AdminProtos.AdminMessage.newBuilder().getSessionPasskey());
+        //admin.setSessionPasskey(AdminProtos.AdminMessage.newBuilder().getSessionPasskey());
         //BLog.d(TAG, admin.build().toString());
-        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        DataPacket data = new DataPacket(radioNodeNum, admin.build());
         packet = MeshProtos.ToRadio.newBuilder();
         packet.setPacket(data.toProto(nodeDB));
         packet.build();
-        BLog.d(TAG, "sending data: \n" + packet.toString());
+        BLog.d(TAG, "sending request key: \n" + packet.toString());
         sendToRadio(packet);
     }
 
     private void requestConfig() {
+        BLog.d(TAG, "requestConfig");
         MeshProtos.ToRadio.Builder packet;
         packet = MeshProtos.ToRadio.newBuilder();
         packet.setWantConfigId(123456);
@@ -324,7 +331,7 @@ class Meshtastic {
         config.setDevice(device);
         admin.setSetConfig(config.build());
         admin.setSessionPasskey(sessionPasskey);
-        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
+        DataPacket data = new DataPacket(radioNodeNum, admin.build());
         packet = MeshProtos.ToRadio.newBuilder();
         packet.setPacket(data.toProto(nodeDB));
         packet.build();
@@ -333,27 +340,36 @@ class Meshtastic {
     }
 
     private void setRadioDefaults() {
+        BLog.d(TAG, "setRadioDefaults");
         // TODO: check passkey
-        MeshProtos.ToRadio.Builder packet;
-        AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
-        ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
-        lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
-        //lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
-        //lora.setChannelNum(20);
-        lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.MEDIUM_SLOW);
-        lora.setChannelNum(52);
-        lora.setUsePreset(true);
-        lora.setTxEnabled(true);
-        ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
-        config.setLora(lora.build());
-        admin.setSetConfig(config.build());
-        admin.setSessionPasskey(sessionPasskey);
-        DataPacket data = new DataPacket(DataPacket.ID_LOCAL, admin.build());
-        packet = MeshProtos.ToRadio.newBuilder();
-        packet.setPacket(data.toProto(nodeDB));
-        packet.build();
-        BLog.d(TAG, "sending data: \n" + packet.toString());
-        sendToRadio(packet);
+        try {
+            MeshProtos.ToRadio.Builder packet;
+            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+            ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
+            lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
+            //lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
+            //lora.setChannelNum(20);
+            lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.SHORT_TURBO);
+            lora.setChannelNum(31);
+            lora.setUsePreset(true);
+            lora.setTxEnabled(true);
+            lora.setHopLimit(7);
+            ConfigProtos.Config.DeviceConfig.Builder deviceConfig = ConfigProtos.Config.DeviceConfig.newBuilder();
+            deviceConfig.setNodeInfoBroadcastSecs(3601);
+            ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
+            config.setLora(lora.build());
+            config.setDevice(deviceConfig);
+            admin.setSetConfig(config.build());
+            //admin.setSessionPasskey(sessionPasskey);
+            DataPacket data = new DataPacket(radioNodeNum, admin.build());
+            packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(data.toProto(nodeDB));
+            packet.build();
+            BLog.d(TAG, "sending config to radio: \n" + packet.toString());
+            sendToRadio(packet);
+        } catch (Exception e) {
+            BLog.d(TAG, "setup exception: " + e.getMessage());
+        }
     }
 
     private void meshSendLoop() {
@@ -420,7 +436,7 @@ class Meshtastic {
         telemetry.setTime((int) (System.currentTimeMillis() / 1000));
         //telemetry.setDeviceMetrics(metrics);
         telemetry.setPowerMetrics(powerMetrics);
-        DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 0, telemetry.build());
+        DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 1, telemetry.build());
         data.hopLimit = 7;
         MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
         MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
@@ -516,6 +532,7 @@ class Meshtastic {
 
     void handleMyInfo(MeshProtos.MyNodeInfo info) {
         BLog.d(TAG, info.toString());
+        radioNodeNum = info.getMyNodeNum();
     }
 
     void handleNodeInfo(MeshProtos.NodeInfo node) {
@@ -768,7 +785,7 @@ class Meshtastic {
             } else {
                 username = node.getUser().getLongName();
             }
-            BLog.d(TAG, username + ": " + message);
+            BLog.d(TAG, "ch:" + packet.getChannel()  + " username: " + message);
 
             // Add message to buffer for Bluetooth retrieval
             messages.addMessage(message, username);
@@ -778,11 +795,17 @@ class Meshtastic {
         }
     }
 
-    int myNodeNum = 0;
+    int radioNodeNum = 0;
 
     private void handleReceivedAdmin(int fromNodeNum, AdminProtos.AdminMessage a) {
 
-        if (fromNodeNum == myNodeNum) {
+        try {
+            sessionPasskey = a.getSessionPasskey();
+            BLog.d(TAG, "Admin: Received session_passkey from " + fromNodeNum);
+        } catch (Exception e) {
+
+        }
+        if (fromNodeNum == radioNodeNum) {
             switch (a.getPayloadVariantCase()) {
 
 
@@ -814,8 +837,7 @@ class Meshtastic {
                     break;
             }
         } else {
-            BLog.d(TAG, "Admin: Received session_passkey from " + fromNodeNum);
-            sessionPasskey = a.getSessionPasskey();
+
         }
     }
 
@@ -887,7 +909,8 @@ class Meshtastic {
             }
 
             // Create text message DataPacket
-            DataPacket data = new DataPacket(to, 0, message.trim());
+            // We use ch1 per the mesh burn setup with camp channel in #1
+            DataPacket data = new DataPacket(to, 1, message.trim());
             data.hopLimit = 2; // Set hop limit for mesh forwarding
 
             // Convert to MeshPacket and send
