@@ -406,9 +406,9 @@ class Meshtastic {
         float airUtilTx = 1;
         int uptimeSeconds = service.boardState.inCrisis ? 999999999 : (int) (SystemClock.uptimeMillis() / 1000);
         try {
-            batteryLevel = service.bms.getLevel() / 100.0f;
             voltage = service.bms.getVoltage();
             ledCurrent = service.bms.getCurrentInstant();
+            batteryLevel = service.bms.getLevel() / 100.0f;
         } catch (IOException e) {
         }
         try {
@@ -422,6 +422,9 @@ class Meshtastic {
                 .setCh2Voltage(batteryLevel)
                 .setCh2Current(ledCurrent)
                 .build();
+
+        BLog.d(TAG, "Telemetry voltage: " + voltage + ", motorcurrent " + motorCurrent + ", batterylevel " + batteryLevel + ", ledcurrent " + ledCurrent);
+
 /*
         TelemetryProtos.DeviceMetrics metrics = TelemetryProtos.DeviceMetrics.newBuilder()
                 .setBatteryLevel(batteryLevel)
