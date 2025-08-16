@@ -2,6 +2,7 @@ package com.richardmcdougall.bb.bms;
 
 import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bbcommon.BLog;
+import com.richardmcdougall.bbcommon.BoardState;
 
 import java.util.Arrays;
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class BMS_EmulatedVesc extends BMS {
     private static final float kMaxSampleCurrent = 5.0f;
     private static final float kCellMin = 3.2f;
     private static final float kCellMax = 4.15f;
-    private static final int kNumCells = 13;
+    private static int kNumCells = 13;
 
     private float[] batteryCurrentHistory = new float[10];
     private float[] batteryVoltageHistory = new float[10];
@@ -38,6 +39,10 @@ public class BMS_EmulatedVesc extends BMS {
         super(service);
 
         BLog.e(TAG, "Emulated VESC BMS starting");
+
+        if (service.boardState.GetBoardType() == BoardState.BoardType.littlewing) {
+            kNumCells = 10;
+        }
 
         for (int i = 0; i < batteryCurrentHistory.length; i++) {
             update();

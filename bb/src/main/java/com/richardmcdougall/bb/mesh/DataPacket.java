@@ -17,6 +17,7 @@ public class DataPacket {
     public static final int NODENUM_BROADCAST = (0xffffffff);
 
     public String to; // a nodeID string, or ID_BROADCAST for broadcast
+    private int myNodeNum = 0;
     public byte[] bytes;
     public int dataType;  // A port number (see portnums.proto)
     public String from; // a nodeID string, or ID_LOCAL for localhost
@@ -26,6 +27,7 @@ public class DataPacket {
     public int hopLimit;
     public int channel; // channel index
     public boolean pkiEncrypted = false;
+
 
     public String errorMessage; // If there was an error with this message
 
@@ -91,9 +93,10 @@ public class DataPacket {
         this.time = System.currentTimeMillis();
     }
 
-    public DataPacket(String to, AdminProtos.AdminMessage admin) {
+    //public DataPacket(String to, AdminProtos.AdminMessage admin) {
+    public DataPacket(int to, AdminProtos.AdminMessage admin) {
         this.id = PacketIdGenerator.generatePacketId();
-        this.to = to;
+        this.myNodeNum = to;
         this.bytes = admin.toByteArray();
         this.dataType = Portnums.PortNum.ADMIN_APP_VALUE;
         this.channel = 0;
@@ -145,12 +148,13 @@ public class DataPacket {
         DataPacket p = this;
         boolean wantAck = false;
 
-        int toNum = nodeDB.toNodeNum(p.to);
+        int toNum;
         int fromNum = nodeDB.toNodeNum(p.from);
-        if (
-                this.dataType == Portnums.PortNum.ADMIN_APP_VALUE) {
-            toNum = 530602760;
+        if (this.dataType == Portnums.PortNum.ADMIN_APP_VALUE) {
+            toNum = myNodeNum;
             wantAck = true;
+        } else {
+             toNum = nodeDB.toNodeNum(p.to);
         }
 
         MeshProtos.MeshPacket.Builder builder = MeshProtos.MeshPacket.newBuilder();
