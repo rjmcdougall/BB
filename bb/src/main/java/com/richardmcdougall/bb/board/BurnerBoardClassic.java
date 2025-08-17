@@ -53,6 +53,7 @@ public class BurnerBoardClassic extends BurnerBoard {
 
     }
 
+    /*
     @Override
     public boolean update() {
 
@@ -66,6 +67,8 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
         return false;
     }
+    */
+
 
     @Override
     public void showBattery(batteryType type) {
@@ -88,9 +91,9 @@ public class BurnerBoardClassic extends BurnerBoard {
 
         // Send pixel row to in-app visual display
 
-        byte[] newPixels = new byte[pixels.length];
+        int[] newPixels = new int[pixels.length];
         for (int pixel = 0; pixel < pixels.length; pixel++) {
-            newPixels[pixel] = (byte) pixels[pixel];
+            newPixels[pixel] = pixels[pixel];
         }
 
         //System.out.println("flush row:" + y + "," + bytesToHex(newPixels));
@@ -99,15 +102,8 @@ public class BurnerBoardClassic extends BurnerBoard {
 
         //l("sendCommand: 15,n,...");
 
-        synchronized (mSerialConn) {
-            if (mListener != null) {
-                mListener.sendCmdStart(15);
-                mListener.sendCmdArg(other);
-                mListener.sendCmdEscArg(newPixels);
-                mListener.sendCmdEnd();
-                return true;
-            }
-        }
+        setOther(15, other, newPixels);
+
         return false;
     }
 
@@ -191,7 +187,7 @@ public class BurnerBoardClassic extends BurnerBoard {
         }
     }
 
-    private boolean setRow(int row, int[] pixels) {
+    private boolean OsetRow(int row, int[] pixels) {
 
         // Send pixel row to in-app visual display
 
@@ -218,27 +214,8 @@ public class BurnerBoardClassic extends BurnerBoard {
     public void flush() {
 
         this.logFlush();
-        int[] mOutputScreen = boardScreen.clone();
-        mOutputScreen = this.textBuilder.renderText(mOutputScreen);
-        mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
-        mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
-        mOutputScreen = mDimmer.Dim(0, mOutputScreen);
 
-        // Suppress updating when displaying a text message
-        int[] rowPixels = new int[boardWidth * 3];
-        for (int y = 0; y < boardHeight; y++) {
-            //for (int y = 30; y < 31; y++) {
-            for (int x = 0; x < boardWidth; x++) {
-                if (y < boardHeight) {
-                    rowPixels[x * 3 + 0] = boardScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
-                    rowPixels[x * 3 + 1] = boardScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
-                    rowPixels[x * 3 + 2] = boardScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
-                }
-            }
-
-            setRow(y, rowPixels);
-
-        }
+        setOtherlightsAutomatically();
         for (int x = 0; x < kOtherLights; x++) {
             int[] otherPixels = new int[mBoardSideLights * 3];
             for (int pixel = 0; pixel < mBoardSideLights; pixel++) {
@@ -251,8 +228,31 @@ public class BurnerBoardClassic extends BurnerBoard {
             }
             setOtherlight(x, otherPixels);
         }
-        setOtherlightsAutomatically();
-        update();
+        flush2Board();
+
+        int[] mOutputScreen = boardScreen.clone();
+        mOutputScreen = this.textBuilder.renderText(mOutputScreen);
+        mOutputScreen = this.lineBuilder.renderLine(mOutputScreen);
+        mOutputScreen = mGammaCorrection.Correct(mOutputScreen);
+
+        // Suppress updating when displaying a text message
+        int[] rowPixels = new int[boardWidth * 3];
+        for (int y = 0; y < boardHeight; y++) {
+            //for (int y = 30; y < 31; y++) {
+            for (int x = 0; x < boardWidth; x++) {
+                if (y < boardHeight) {
+                    rowPixels[x * 3 + 0] = mOutputScreen[this.pixelOffset.Map(x, y, PIXEL_RED)];
+                    rowPixels[x * 3 + 1] = mOutputScreen[this.pixelOffset.Map(x, y, PIXEL_GREEN)];
+                    rowPixels[x * 3 + 2] = mOutputScreen[this.pixelOffset.Map(x, y, PIXEL_BLUE)];
+                }
+            }
+
+            setRow(y, rowPixels);
+            //flush2Board();
+
+        }
+
+        updateClassic();
         flush2Board();
     }
 }

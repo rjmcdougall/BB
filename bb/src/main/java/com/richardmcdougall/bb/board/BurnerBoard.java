@@ -387,8 +387,12 @@ public abstract class BurnerBoard {
 
     private ByteBuffer mWriteBuffer = ByteBuffer.allocate(16384);
     private static final byte[] teensyPrefix = "10,".getBytes();
+
+    private static final byte[] teensyPrefixClassic = "14,".getBytes();
+
     private static final byte[] teensyPostfix = ";".getBytes();
     private static final byte[] teensyUpdate = "6;".getBytes();
+    private static final byte[] teensyUpdateClassic = "8;".getBytes();
 
     public void setStrip(int strip, int[] pixels) {
         int len = Math.min(600 * 3, pixels.length);
@@ -408,9 +412,55 @@ public abstract class BurnerBoard {
 
     }
 
+    // For classic only...
+    public void setRow(int row, int[] pixels) {
+        int len = Math.min(600 * 3, pixels.length);
+        //BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
+        byte[] newPixels = new byte[len];
+        for (int pixel = 0; pixel < len; pixel++) {
+            newPixels[pixel] = (byte) (((pixels[pixel] == 0) ||
+                    (pixels[pixel] == ';') ||
+                    (pixels[pixel] == ',') ||
+                    (pixels[pixel] == '\\')) ? pixels[pixel] + 1 : pixels[pixel]);
+        }
+
+        mWriteBuffer.put(teensyPrefixClassic);
+        mWriteBuffer.put(String.format("%d,", row).getBytes());
+        mWriteBuffer.put(newPixels);
+        mWriteBuffer.put(teensyPostfix);
+
+    }
+
+    public void setOther(int cmd, int other, int[] pixels) {
+        int len = Math.min(600 * 3, pixels.length);
+        //BLog.d(TAG, "setstrip " + strip + " pixels length " + pixels.length);
+        byte[] newPixels = new byte[len];
+        for (int pixel = 0; pixel < len; pixel++) {
+            newPixels[pixel] = (byte) (((pixels[pixel] == 0) ||
+                    (pixels[pixel] == ';') ||
+                    (pixels[pixel] == ',') ||
+                    (pixels[pixel] == '\\')) ? pixels[pixel] + 1 : pixels[pixel]);
+        }
+
+        BLog.d(TAG, "setother " + newPixels.length);
+        mWriteBuffer.put((cmd + ",").getBytes());
+        mWriteBuffer.put((other + ",").getBytes());
+        mWriteBuffer.put(newPixels);
+        mWriteBuffer.put(teensyPostfix);
+
+    }
+
     public boolean update() {
         try {
             mWriteBuffer.put(teensyUpdate);
+
+        } catch (Exception e) {}
+        return true;
+    }
+
+    public boolean updateClassic() {
+        try {
+            mWriteBuffer.put(teensyUpdateClassic);
 
         } catch (Exception e) {}
         return true;
