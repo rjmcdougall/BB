@@ -24,12 +24,14 @@ public class BBWifi {
 
     public boolean enableWifiReconnect = true;
     public String ipAddress = "0.0.0.0";
+    private String previousIpAddress = "0.0.0.0";
     private int wifiReconnectEveryNSeconds = 20;
     private WifiManager wifiManager = null;
     private List<ScanResult> scanResults;
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     private Context context = null;
     private BoardState boardState = null;
+    private BBmDNSService mdnsService = null;
 
     public BBWifi(Context context, BoardState boardState) {
         this.context = context;
@@ -38,6 +40,12 @@ public class BBWifi {
         wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         BLog.d(TAG, "Enable WiFi reconnect? " + enableWifiReconnect);
+
+        // Initialize mDNS service
+        initializeMDNS();
+        
+        // Set DHCP hostname based on board name
+        setDHCPHostname();
 
         sch.scheduleWithFixedDelay(wifiSupervisor, 30, wifiReconnectEveryNSeconds, TimeUnit.SECONDS);
     }
@@ -102,6 +110,11 @@ public class BBWifi {
                 Thread.sleep(1000);
                 newIPAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
             }
+            
+            // Handle mDNS service based on IP address changes
+            handleMDNSService(newIPAddress);
+            
+            previousIpAddress = ipAddress;
             ipAddress = newIPAddress;
 
         } catch (Exception e) {
@@ -166,5 +179,203 @@ public class BBWifi {
             checkWifiReconnect();
         }
     };
+
+    /**
+     * Initialize mDNS service
+     */
+    private void initializeMDNS() {
+        try {
+            mdnsService = new BBmDNSService(context);
+            if (boardState != null) {
+                mdnsService.configureFromBoardState(boardState);
+            }
+            BLog.i(TAG, "mDNS service initialized");
+        } catch (Exception e) {
+            BLog.e(TAG, "Failed to initialize mDNS service: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handle mDNS service registration based on WiFi connection status
+     */
+    private void handleMDNSService(String currentIpAddress) {
+        if (mdnsService == null) {
+            BLog.w(TAG, "mDNS service not initialized");
+            return;
+        }
+
+        try {
+            // If we have a valid IP address and it changed from disconnected state
+            if (!currentIpAddress.equals("0.0.0.0") && previousIpAddress.equals("0.0.0.0")) {
+                // WiFi just connected - register mDNS service
+                BLog.i(TAG, "WiFi connected, registering mDNS service");
+                mdnsService.registerService();
+            }
+            // If we lost IP address (disconnected)
+            else if (currentIpAddress.equals("0.0.0.0") && !previousIpAddress.equals("0.0.0.0")) {
+                // WiFi disconnected - unregister mDNS service
+                BLog.i(TAG, "WiFi disconnected, unregistering mDNS service");
+                mdnsService.unregisterService();
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "Error handling mDNS service: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get the mDNS service instance
+     */
+    public BBmDNSService getMDNSService() {
+        return mdnsService;
+    }
+
+    /**
+     * Manually register mDNS service
+     */
+    public void registerMDNSService() {
+        if (mdnsService != null && !ipAddress.equals("0.0.0.0")) {
+            mdnsService.registerService();
+        }
+    }
+
+    /**
+     * Manually unregister mDNS service
+     */
+    public void unregisterMDNSService() {
+        if (mdnsService != null) {
+            mdnsService.unregisterService();
+        }
+    }
+
+    /**
+     * Clean up resources including mDNS service
+     */
+    public void cleanup() {
+        if (mdnsService != null) {
+            mdnsService.cleanup();
+        }
+    }
+
+    /**
+     * Set DHCP hostname (Option 12) based on board name
+     * This attempts to set the hostname that will be sent in DHCP requests
+     */
+    private void setDHCPHostname() {
+        if (boardState == null || boardState.BOARD_ID == null) {
+            BLog.w(TAG, "No board state available for hostname setting");
+            return;
+        }
+
+        String hostname = sanitizeHostname(boardState.BOARD_ID);
+        BLog.i(TAG, "Setting DHCP hostname to: " + hostname);
+
+        try {
+            // Method 1: Try to set system property (requires root on most devices)
+            setSystemHostname(hostname);
+            
+            // Method 2: Try to set hostname via WifiConfiguration if supported
+            setWifiConfigHostname(hostname);
+            
+        } catch (Exception e) {
+            BLog.e(TAG, "Failed to set DHCP hostname: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sanitize hostname to comply with RFC standards
+     * - Only alphanumeric characters and hyphens
+     * - Cannot start or end with hyphen
+     * - Maximum 63 characters
+     */
+    private String sanitizeHostname(String boardId) {
+        if (boardId == null) {
+            return "bb-device";
+        }
+        
+        // Convert to lowercase and replace invalid characters with hyphens
+        String hostname = boardId.toLowerCase()
+                .replaceAll("[^a-z0-9-]", "-")
+                .replaceAll("-+", "-"); // Replace multiple hyphens with single hyphen
+        
+        // Remove leading/trailing hyphens
+        hostname = hostname.replaceAll("^-+|-+$", "");
+        
+        // Ensure it's not empty and not too long
+        if (hostname.isEmpty()) {
+            hostname = "bb-device";
+        }
+        if (hostname.length() > 63) {
+            hostname = hostname.substring(0, 63);
+        }
+        
+        return hostname;
+    }
+
+    /**
+     * Attempt to set system hostname using system properties
+     * Note: This typically requires root access on Android
+     */
+    private void setSystemHostname(String hostname) {
+        try {
+            // Try setting net.hostname system property
+            java.lang.reflect.Method setProperty = System.class.getMethod("setProperty", String.class, String.class);
+            setProperty.invoke(null, "net.hostname", hostname);
+            BLog.i(TAG, "Set net.hostname system property to: " + hostname);
+        } catch (Exception e) {
+            BLog.d(TAG, "Could not set net.hostname system property (normal on non-root devices): " + e.getMessage());
+        }
+
+        try {
+            // Try using reflection to call SystemProperties.set (Android internal API)
+            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
+            java.lang.reflect.Method set = systemProperties.getMethod("set", String.class, String.class);
+            set.invoke(null, "net.hostname", hostname);
+            BLog.i(TAG, "Set SystemProperties net.hostname to: " + hostname);
+        } catch (Exception e) {
+            BLog.d(TAG, "Could not set SystemProperties net.hostname (normal on newer Android): " + e.getMessage());
+        }
+    }
+
+    /**
+     * Try to set hostname through WifiConfiguration
+     * Note: Limited support in Android API
+     */
+    private void setWifiConfigHostname(String hostname) {
+        try {
+            // For newer Android versions, try setting via WifiNetworkSpecifier if available
+            // This is mainly for reference - actual implementation depends on Android version
+            BLog.d(TAG, "Hostname will be: " + hostname + " (WiFi config method not fully supported in all Android versions)");
+            
+            // Store hostname for potential use in custom DHCP implementations
+            setSystemProperty("dhcp.hostname", hostname);
+            
+        } catch (Exception e) {
+            BLog.d(TAG, "WiFi config hostname setting not supported: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Attempt to set a system property
+     */
+    private void setSystemProperty(String key, String value) {
+        try {
+            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
+            java.lang.reflect.Method set = systemProperties.getMethod("set", String.class, String.class);
+            set.invoke(null, key, value);
+            BLog.i(TAG, "Set system property " + key + " = " + value);
+        } catch (Exception e) {
+            BLog.d(TAG, "Could not set system property " + key + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get the current hostname that would be used for DHCP
+     */
+    public String getDHCPHostname() {
+        if (boardState != null && boardState.BOARD_ID != null) {
+            return sanitizeHostname(boardState.BOARD_ID);
+        }
+        return "bb-device";
+    }
 
 }

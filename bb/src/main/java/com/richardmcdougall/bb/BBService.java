@@ -385,5 +385,10 @@ public class BBService extends Service {
         this.burnerBoard.UnregisterReceivers();
         if(voice != null)
             voice.shutdown();
+        
+        // Clean up mDNS service
+        if(wifi != null) {
+            wifi.cleanup();
+        }
     }
 }
