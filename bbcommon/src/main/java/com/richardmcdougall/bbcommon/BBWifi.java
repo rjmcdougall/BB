@@ -31,7 +31,7 @@ public class BBWifi {
     ScheduledThreadPoolExecutor sch = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
     private Context context = null;
     private BoardState boardState = null;
-    private BBmDNSService mdnsService = null;
+    private BBJmDNSService jmdnsService = null;
 
     public BBWifi(Context context, BoardState boardState) {
         this.context = context;
@@ -181,78 +181,78 @@ public class BBWifi {
     };
 
     /**
-     * Initialize mDNS service
+     * Initialize JmDNS service
      */
     private void initializeMDNS() {
         try {
-            mdnsService = new BBmDNSService(context);
+            jmdnsService = new BBJmDNSService(context);
             if (boardState != null) {
-                mdnsService.configureFromBoardState(boardState);
+                jmdnsService.configureFromBoardState(boardState);
             }
-            BLog.i(TAG, "mDNS service initialized");
+            BLog.i(TAG, "JmDNS service initialized");
         } catch (Exception e) {
-            BLog.e(TAG, "Failed to initialize mDNS service: " + e.getMessage());
+            BLog.e(TAG, "Failed to initialize JmDNS service: " + e.getMessage());
         }
     }
 
     /**
-     * Handle mDNS service registration based on WiFi connection status
+     * Handle JmDNS service registration based on WiFi connection status
      */
     private void handleMDNSService(String currentIpAddress) {
-        if (mdnsService == null) {
-            BLog.w(TAG, "mDNS service not initialized");
+        if (jmdnsService == null) {
+            BLog.w(TAG, "JmDNS service not initialized");
             return;
         }
 
         try {
             // If we have a valid IP address and it changed from disconnected state
             if (!currentIpAddress.equals("0.0.0.0") && previousIpAddress.equals("0.0.0.0")) {
-                // WiFi just connected - register mDNS service
-                BLog.i(TAG, "WiFi connected, registering mDNS service");
-                mdnsService.registerService();
+                // WiFi just connected - start JmDNS service
+                BLog.i(TAG, "WiFi connected, starting JmDNS service");
+                jmdnsService.start();
             }
             // If we lost IP address (disconnected)
             else if (currentIpAddress.equals("0.0.0.0") && !previousIpAddress.equals("0.0.0.0")) {
-                // WiFi disconnected - unregister mDNS service
-                BLog.i(TAG, "WiFi disconnected, unregistering mDNS service");
-                mdnsService.unregisterService();
+                // WiFi disconnected - stop JmDNS service
+                BLog.i(TAG, "WiFi disconnected, stopping JmDNS service");
+                jmdnsService.stop();
             }
         } catch (Exception e) {
-            BLog.e(TAG, "Error handling mDNS service: " + e.getMessage());
+            BLog.e(TAG, "Error handling JmDNS service: " + e.getMessage());
         }
     }
 
     /**
-     * Get the mDNS service instance
+     * Get the JmDNS service instance
      */
-    public BBmDNSService getMDNSService() {
-        return mdnsService;
+    public BBJmDNSService getJmDNSService() {
+        return jmdnsService;
     }
 
     /**
-     * Manually register mDNS service
+     * Manually start JmDNS service
      */
-    public void registerMDNSService() {
-        if (mdnsService != null && !ipAddress.equals("0.0.0.0")) {
-            mdnsService.registerService();
+    public void startJmDNSService() {
+        if (jmdnsService != null && !ipAddress.equals("0.0.0.0")) {
+            jmdnsService.start();
         }
     }
 
     /**
-     * Manually unregister mDNS service
+     * Manually stop JmDNS service
      */
-    public void unregisterMDNSService() {
-        if (mdnsService != null) {
-            mdnsService.unregisterService();
+    public void stopJmDNSService() {
+        if (jmdnsService != null) {
+            jmdnsService.stop();
         }
     }
 
     /**
-     * Clean up resources including mDNS service
+     * Clean up resources including JmDNS service
      */
     public void cleanup() {
-        if (mdnsService != null) {
-            mdnsService.cleanup();
+        if (jmdnsService != null) {
+            jmdnsService.cleanup();
         }
     }
 

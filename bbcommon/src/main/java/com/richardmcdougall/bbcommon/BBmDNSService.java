@@ -13,12 +13,16 @@ public class BBmDNSService {
     private Context context;
     private NsdManager nsdManager;
     private NsdServiceInfo serviceInfo;
+    private NsdServiceInfo hostnameInfo;
     private String serviceName;
     private String serviceType;
     private int servicePort;
+    private String hostname;
     private boolean isRegistered = false;
+    private boolean isHostnameRegistered = false;
     
     private NsdManager.RegistrationListener registrationListener;
+    private NsdManager.RegistrationListener hostnameRegistrationListener;
     
     public BBmDNSService(Context context) {
         this.context = context;
