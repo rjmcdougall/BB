@@ -88,7 +88,7 @@ public class BluetoothLEServer {
         BLog.d(TAG, "Bluetooth starting");
         mHandler = new Handler(Looper.getMainLooper());
 
-        sch.scheduleWithFixedDelay(txThread, 1, 1, TimeUnit.SECONDS);
+        // Per-device threads are now started on connection
 
         mBluetoothManager = (BluetoothManager) service.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter bluetoothAdapter = mBluetoothManager.getAdapter();
@@ -162,73 +162,123 @@ public class BluetoothLEServer {
         return thisCallbackId;
     }
 
+    // Per-device thread management
     private final HashMap<BluetoothDevice, PipedInputStream> mTransmitInput = new HashMap<>();
     private final HashMap<BluetoothDevice, PipedOutputStream> mTransmitOutput = new HashMap<>();
     private final HashMap<BluetoothDevice, ByteArrayOutputStream> mReceiveBuffers = new HashMap<>();
-
-
+    private final HashMap<BluetoothDevice, DeviceTxThread> mDeviceThreads = new HashMap<>();
+    
     // Fix MTU to 18 for now
     // TODO: query phy MTU
-    private  final int kMTU = 18;
-    private BluetoothDevice mDeviceTmp = null;
+    private final int kMTU = 18;
 
-    Runnable txThread = () -> txThread();
-
-    private void txThread() {
-        BLog.d(TAG, "Running Thread to service Bluetooth tx response");
-
-        while (true) {
-            try {
-
-                PipedInputStream TxStream = mTransmitInput.get(mDeviceTmp);
-                BLog.d(TAG, "txThread: device write..");
-                if (TxStream != null) {
-                    BLog.d(TAG, "txThread: getting bytes...");
-                    int nBytes;
-                    byte[] txBuf = new byte[serverMtu + 3];
-                    while ((nBytes = TxStream.read(txBuf, 0, kMTU)) > 0) {
-                        byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
-                        BLog.d(TAG, "txThread: writing bytes...");
-                        mTxCharacteristic.setValue(sendBuf);
-
-                        if (delay) {
-                            // PREVENT BUFFER ISSUES / OVERFLOW
-                            try {
-                                Thread.sleep(15, 0);
-                            } catch (Exception e) {
+    /**
+     * Per-device transmission thread class
+     */
+    private class DeviceTxThread implements Runnable {
+        private final BluetoothDevice device;
+        private final PipedInputStream inputStream;
+        private volatile boolean running;
+        private Thread thread;
+        
+        public DeviceTxThread(BluetoothDevice device, PipedInputStream inputStream) {
+            this.device = device;
+            this.inputStream = inputStream;
+            this.running = false;
+        }
+        
+        public void start() {
+            if (!running) {
+                running = true;
+                thread = new Thread(this, "BleTx-" + device.getAddress());
+                thread.start();
+                BLog.d(TAG, "Started tx thread for device: " + device.getAddress());
+            }
+        }
+        
+        public void stop() {
+            running = false;
+            if (thread != null) {
+                thread.interrupt();
+                BLog.d(TAG, "Stopped tx thread for device: " + device.getAddress());
+            }
+        }
+        
+        @Override
+        public void run() {
+            BLog.d(TAG, "Running tx thread for device: " + device.getAddress());
+            
+            while (running) {
+                try {
+                    if (inputStream != null && inputStream.available() > 0) {
+                        BLog.d(TAG, "txThread: device write for " + device.getAddress());
+                        
+                        int nBytes;
+                        byte[] txBuf = new byte[serverMtu + 3];
+                        
+                        while ((nBytes = inputStream.read(txBuf, 0, kMTU)) > 0) {
+                            if (!running) break; // Check if we should stop
+                            
+                            byte[] sendBuf = Arrays.copyOf(txBuf, nBytes);
+                            BLog.d(TAG, "txThread: writing " + nBytes + " bytes for " + device.getAddress());
+                            
+                            mTxCharacteristic.setValue(sendBuf);
+                            
+                            if (delay) {
+                                // PREVENT BUFFER ISSUES / OVERFLOW
+                                try {
+                                    Thread.sleep(15, 0);
+                                } catch (InterruptedException e) {
+                                    if (!running) break;
+                                }
+                            }
+                            
+                            // Notify the specific device
+                            boolean success = mBluetoothGattServer.notifyCharacteristicChanged(
+                                    device, mTxCharacteristic, false);
+                            
+                            if (!success) {
+                                BLog.w(TAG, "Failed to notify device: " + device.getAddress());
                             }
                         }
-
-                        //BLog.d(TAG, "notify client of new data via setvalue()");
-                        boolean success = mBluetoothGattServer.notifyCharacteristicChanged(mDeviceTmp,
-                                mTxCharacteristic, false);
-                        //BLog.d(TAG, "notify client of new data via setvalue(): " + success);
+                    } else {
+                        // No data available, sleep briefly
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            if (!running) break;
+                        }
                     }
-                } else {
-                    BLog.d(TAG,"txthread No input stream");
-                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    if (running) { // Only log if we're supposed to be running
+                        BLog.e(TAG, "Bluetooth tx failed for device " + device.getAddress() + ": " + e.getMessage());
+                    }
+                    break;
                 }
-            } catch (Exception e) {
-                BLog.e(TAG, "Bluetooth tx response failed.");
             }
-            BLog.d(TAG, "Bluetooth tx response done");
+            
+            BLog.d(TAG, "Tx thread finished for device: " + device.getAddress());
         }
     }
 
 
+    /**
+     * Send data to a specific Bluetooth device using its dedicated thread
+     */
     public void tx(BluetoothDevice device, final byte[] data) {
-
-        BLog.d(TAG, "tx on device " + device);
-        mDeviceTmp = device;
-
-        PipedOutputStream TxStream = mTransmitOutput.get(mDeviceTmp);
+        BLog.d(TAG, "tx on device " + device.getAddress());
+        
         try {
-            TxStream.write(data);
-            BLog.d(TAG, "queue bluetooth tx response");
+            PipedOutputStream TxStream = mTransmitOutput.get(device);
+            if (TxStream != null) {
+                TxStream.write(data);
+                BLog.d(TAG, "Queued " + data.length + " bytes for device: " + device.getAddress());
+            } else {
+                BLog.e(TAG, "No tx stream found for device: " + device.getAddress());
+            }
         } catch (Exception e) {
-
+            BLog.e(TAG, "Failed to write to device " + device.getAddress() + ": " + e.getMessage());
         }
-
     }
 
     /**
@@ -332,6 +382,46 @@ public class BluetoothLEServer {
     }
 
     /**
+     * Clean up all per-device threads and resources
+     */
+    public void cleanup() {
+        BLog.d(TAG, "Cleaning up BluetoothLEServer resources");
+        
+        // Stop all device threads
+        for (DeviceTxThread deviceThread : mDeviceThreads.values()) {
+            if (deviceThread != null) {
+                deviceThread.stop();
+            }
+        }
+        mDeviceThreads.clear();
+        
+        // Close all streams
+        for (PipedInputStream input : mTransmitInput.values()) {
+            try {
+                if (input != null) input.close();
+            } catch (Exception e) {
+                BLog.w(TAG, "Error closing input stream: " + e.getMessage());
+            }
+        }
+        mTransmitInput.clear();
+        
+        for (PipedOutputStream output : mTransmitOutput.values()) {
+            try {
+                if (output != null) output.close();
+            } catch (Exception e) {
+                BLog.w(TAG, "Error closing output stream: " + e.getMessage());
+            }
+        }
+        mTransmitOutput.clear();
+        
+        // Clear all other collections
+        mReceiveBuffers.clear();
+        mRegisteredDevices.clear();
+        
+        BLog.d(TAG, "BluetoothLEServer cleanup completed");
+    }
+
+    /**
      * Callback to handle incoming requests to the GATT server.
      * All read/write requests for characteristics and descriptors are handled here.
      */
@@ -376,23 +466,45 @@ public class BluetoothLEServer {
                     if (!mReceiveBuffers.containsKey(device)) {
                         mReceiveBuffers.put(device, new ByteArrayOutputStream());
                     }
+                    
+                    // Start per-device transmission thread
+                    if (!mDeviceThreads.containsKey(device)) {
+                        DeviceTxThread deviceThread = new DeviceTxThread(device, input);
+                        mDeviceThreads.put(device, deviceThread);
+                        deviceThread.start();
+                        BLog.d(TAG, "Started tx thread for connected device: " + device.getAddress());
+                    }
                 } catch (Exception e) {
                     BLog.e(TAG, "write buffer pipe failed: " + e.getMessage());
                 }
             } else if (newState == android.bluetooth.BluetoothProfile.STATE_DISCONNECTED) {
                 BLog.d(TAG, "BluetoothDevice DISCONNECTED: " + device);
+                
+                // Stop and remove the device thread
+                DeviceTxThread deviceThread = mDeviceThreads.get(device);
+                if (deviceThread != null) {
+                    deviceThread.stop();
+                    mDeviceThreads.remove(device);
+                    BLog.d(TAG, "Stopped tx thread for disconnected device: " + device.getAddress());
+                }
+                
                 //Remove device from any active subscriptions
                 mRegisteredDevices.remove(device);
                 mReceiveBuffers.remove(device);
                 try {
-                    mTransmitInput.get(mDeviceTmp).close();
-                    mTransmitOutput.get(mDeviceTmp).close();
-                } catch (Exception e) {}
+                    PipedInputStream input = mTransmitInput.get(device);
+                    PipedOutputStream output = mTransmitOutput.get(device);
+                    if (input != null) input.close();
+                    if (output != null) output.close();
+                } catch (Exception e) {
+                    BLog.w(TAG, "Error closing streams for device " + device.getAddress() + ": " + e.getMessage());
+                }
                 mTransmitInput.remove(device);
                 mTransmitOutput.remove(device);
+                
                 stopAdvertising();
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (Exception e) {}
                 startAdvertising();
             } else {
