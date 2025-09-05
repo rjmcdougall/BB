@@ -9,4 +9,10 @@ Code for the Burner Board
 
 Runs on Android 10
 
+VESC Canbus integration
+
+Meshtastic locaton and messaging
+
+LORA music sync
+
 Supported on Nanopi M4B
