@@ -1,11 +1,18 @@
 # BB
-Code for the 2016 (Burner Board Classic) and 2017 (Burner Board HD/Azul)
+Code for the Burner Board
 
-In order to install the brain software, look for the installation scripts here:
+2016 Burner Board Classic
 
-installation scripts/Flash Android OS.txt
+2017 Burner Board HD/Azul
 
-installation scripts/install_bbinstaller_usb.sh
+2022 Burner Board Mezcal
 
-Note that this script is out of date.  Fix later.
-installation scripts/install_bbinstaller_wifi.sh
+Runs on Android 10
+
+VESC Canbus integration
+
+Meshtastic locaton and messaging
+
+LORA music sync
+
+Supported on Nanopi M4B
