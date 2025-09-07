@@ -203,6 +203,9 @@ class Meshtastic {
         myNode.setMyNodeNum(nodeDB.getMyNodeNum());
     }
 
+    private boolean sentDeviceConfig = false;
+    private boolean sentLoraConfig = false;
+    private boolean sentChannelConfig = false;
 
     private void initMeshtasticDevice() {
         try {
@@ -228,9 +231,16 @@ class Meshtastic {
             requestConfig();
             Thread.sleep(5000);
             requestKey();
-            Thread.sleep(5000);
-            setRadioDefaults();
-
+            Thread.sleep(10000);
+            if(sentLoraConfig == false) {
+                setLoraDefaults();
+            }
+            Thread.sleep(2000);
+            if (sentChannelConfig == false) {
+                setChannelDefaults();
+            }
+            Thread.sleep(2000);
+            //resetDevice();
 
             /*
             packet = MeshProtos.ToRadio.newBuilder();
@@ -330,16 +340,17 @@ class Meshtastic {
         ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
         config.setDevice(device);
         admin.setSetConfig(config.build());
-        admin.setSessionPasskey(sessionPasskey);
+        //admin.setSessionPasskey(sessionPasskey);
         DataPacket data = new DataPacket(radioNodeNum, admin.build());
         packet = MeshProtos.ToRadio.newBuilder();
         packet.setPacket(data.toProto(nodeDB));
         packet.build();
         BLog.d(TAG, "sending data: \n" + packet.toString());
         sendToRadio(packet);
+        sentDeviceConfig = true;
     }
 
-    private void setRadioDefaults() {
+    private void setLoraDefaults() {
         BLog.d(TAG, "setRadioDefaults");
         // TODO: check passkey
         try {
@@ -347,26 +358,73 @@ class Meshtastic {
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
             ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
             lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
-            //lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.LONG_FAST);
-            //lora.setChannelNum(20);
-            lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.SHORT_TURBO);
-            lora.setChannelNum(31);
+            lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.MEDIUM_SLOW);
+            lora.setChannelNum(52);
+            //lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.SHORT_TURBO);
+            //lora.setChannelNum(31);
             lora.setUsePreset(true);
             lora.setTxEnabled(true);
             lora.setHopLimit(7);
             ConfigProtos.Config.DeviceConfig.Builder deviceConfig = ConfigProtos.Config.DeviceConfig.newBuilder();
-            deviceConfig.setNodeInfoBroadcastSecs(3601);
+            //deviceConfig.setNodeInfoBroadcastSecs(3601);
             ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
             config.setLora(lora.build());
-            config.setDevice(deviceConfig);
+            //config.setDevice(deviceConfig);
             admin.setSetConfig(config.build());
-            //admin.setSessionPasskey(sessionPasskey);
+            admin.setSessionPasskey(sessionPasskey);
             DataPacket data = new DataPacket(radioNodeNum, admin.build());
             packet = MeshProtos.ToRadio.newBuilder();
             packet.setPacket(data.toProto(nodeDB));
             packet.build();
             BLog.d(TAG, "sending config to radio: \n" + packet.toString());
             sendToRadio(packet);
+            sentLoraConfig = true;
+        } catch (Exception e) {
+            BLog.d(TAG, "setup exception: " + e.getMessage());
+        }
+    }
+
+    private void setChannelDefaults() {
+        BLog.d(TAG, "setChannelDefaults");
+        try {
+            // Configure Channel 0 (default channel) with passkey "AQ=="
+            MeshProtos.ToRadio.Builder packet;
+            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+            ChannelProtos.Channel.Builder channel0 = ChannelProtos.Channel.newBuilder();
+            channel0.setIndex(0);
+            channel0.setRole(ChannelProtos.Channel.Role.PRIMARY);
+            ChannelProtos.ChannelSettings.Builder settings0 = ChannelProtos.ChannelSettings.newBuilder();
+            settings0.setName("");
+            settings0.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("AQ==")));
+            channel0.setSettings(settings0.build());
+            admin.setSetChannel(channel0.build());
+            admin.setSessionPasskey(sessionPasskey);
+            DataPacket data = new DataPacket(radioNodeNum, admin.build());
+            packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(data.toProto(nodeDB));
+            packet.build();
+            BLog.d(TAG, "sending channel 0 to radio: \n" + packet.toString());
+            sendToRadio(packet);
+            Thread.sleep(1000);
+
+            // Configure Channel 1 named "BlinkThing" with passkey "MgkxoOxSr8pwXSkjvXrjt8pH8eStGHEIwKACN3TavNQ="
+            admin = AdminProtos.AdminMessage.newBuilder();
+            ChannelProtos.Channel.Builder channel1 = ChannelProtos.Channel.newBuilder();
+            channel1.setIndex(1);
+            channel0.setRole(ChannelProtos.Channel.Role.SECONDARY);
+            ChannelProtos.ChannelSettings.Builder settings1 = ChannelProtos.ChannelSettings.newBuilder();
+            settings1.setName("BlinkyThing");
+            settings1.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("MgkxoOxSr8pwXSkjvXrjt8pH8eStGHEIwKACN3TavNQ=")));
+            channel1.setSettings(settings1.build());
+            admin.setSetChannel(channel1.build());
+            admin.setSessionPasskey(sessionPasskey);
+            data = new DataPacket(radioNodeNum, admin.build());
+            packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(data.toProto(nodeDB));
+            packet.build();
+            BLog.d(TAG, "sending channel 1 to radio: \n" + packet.toString());
+            sendToRadio(packet);
+            sentChannelConfig = true;
         } catch (Exception e) {
             BLog.d(TAG, "setup exception: " + e.getMessage());
         }
@@ -508,21 +566,27 @@ class Meshtastic {
                     //handleDeviceConfig(fromRadio.getConfig());
                     break;
                 case MeshProtos.FromRadio.MODULECONFIG_FIELD_NUMBER:
+                    BLog.d(TAG, "ModuleConfig FromRadio variant: " + fromRadio.toString());
                     //handleModuleConfig(fromRadio.getModuleConfig());
                     break;
                 case MeshProtos.FromRadio.QUEUESTATUS_FIELD_NUMBER:
+                    BLog.d(TAG, "QueueStatus FromRadio variant: " + fromRadio.toString());
                     //handleQueueStatus(fromRadio.getQueueStatus());
                     break;
                 case MeshProtos.FromRadio.METADATA_FIELD_NUMBER:
+                    BLog.d(TAG, "MetaData FromRadio variant: " + fromRadio.toString());
                     //handleMetadata(fromRadio.getMetadata());
                     break;
                 case MeshProtos.FromRadio.MQTTCLIENTPROXYMESSAGE_FIELD_NUMBER:
+                    BLog.d(TAG, "MQTT FromRadio variant: " + fromRadio.toString());
                     //handleMqttProxyMessage(fromRadio.getMqttClientProxyMessage());
                     break;
                 case MeshProtos.FromRadio.CLIENTNOTIFICATION_FIELD_NUMBER:
+                    BLog.d(TAG, "ClientNotification FromRadio variant: " + fromRadio.toString());
                     //handleClientNotification(fromRadio.getClientNotification());
                     break;
                 case MeshProtos.FromRadio.FILEINFO_FIELD_NUMBER:
+                    BLog.d(TAG, "FileInfo FromRadio variant: " + fromRadio.toString());
                     //handleClientNotification(fromRadio.getFileInfo());
                     break;
                 default:
