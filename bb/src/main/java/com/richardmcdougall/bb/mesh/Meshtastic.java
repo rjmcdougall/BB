@@ -207,6 +207,7 @@ class Meshtastic {
     private boolean sentLoraConfig = false;
     private boolean sentChannelConfig = false;
     private boolean sentUserConfig = false;
+    private boolean sentPositionConfig = false;
 
     private boolean sentReboot = false;
 
@@ -233,6 +234,11 @@ class Meshtastic {
 
             if (sentChannelConfig == false) {
                 setChannelDefaults();
+                Thread.sleep(2000);
+            }
+
+            if (sentPositionConfig == false) {
+                setPositionDefaults();
                 Thread.sleep(2000);
             }
 
@@ -445,6 +451,45 @@ class Meshtastic {
             sentChannelConfig = true;
         } catch (Exception e) {
             BLog.d(TAG, "setup exception: " + e.getMessage());
+        }
+    }
+
+    private void setPositionDefaults() {
+        BLog.d(TAG, "setPositionDefaults");
+        try {
+            // Configure position settings for smart adaptive broadcasting
+            MeshProtos.ToRadio.Builder packet;
+            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+            ConfigProtos.Config.PositionConfig.Builder position = ConfigProtos.Config.PositionConfig.newBuilder();
+            
+            // Enable smart adaptive position broadcasting
+            position.setPositionBroadcastSmartEnabled(true);
+            
+            // Set regular position broadcast interval to 300 seconds (5 minutes) when not moving
+            position.setPositionBroadcastSecs(300);
+            
+            // Set minimum interval to 30 seconds when moving
+            position.setBroadcastSmartMinimumIntervalSecs(30);
+            
+            // Set minimum distance to trigger a broadcast (10 meters)
+            position.setBroadcastSmartMinimumDistance(10);
+            
+            // Build the config and admin message
+            ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
+            config.setPosition(position.build());
+            admin.setSetConfig(config.build());
+            admin.setSessionPasskey(sessionPasskey);
+            
+            // Send the configuration
+            DataPacket data = new DataPacket(radioNodeNum, admin.build());
+            packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(data.toProto(nodeDB));
+            packet.build();
+            BLog.d(TAG, "sending position config to radio: \n" + packet.toString());
+            sendToRadio(packet);
+            sentPositionConfig = true;
+        } catch (Exception e) {
+            BLog.d(TAG, "position config setup exception: " + e.getMessage());
         }
     }
 
