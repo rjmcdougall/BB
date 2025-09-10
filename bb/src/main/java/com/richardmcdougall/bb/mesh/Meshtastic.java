@@ -206,84 +206,39 @@ class Meshtastic {
     private boolean sentDeviceConfig = false;
     private boolean sentLoraConfig = false;
     private boolean sentChannelConfig = false;
+    private boolean sentUserConfig = false;
+
+    private boolean sentReboot = false;
+
 
     private void initMeshtasticDevice() {
         try {
             Thread.sleep(1000);
             packetProcessor.connect();
-            /*
-            Thread.sleep(1000);
-            Thread.sleep(10000);
-            while (sessionPasskey == null) {
-                resetDevice();
-                Thread.sleep(10000);
-                requestKey();
-                Thread.sleep(60000);
-            }
-            Thread.sleep(5000);
-            setDeviceDefaults();
-            Thread.sleep(5000);
-            setRadioDefaults();
-            Thread.sleep(5000);
-            */
-
 
             requestConfig();
             Thread.sleep(5000);
             requestKey();
             Thread.sleep(10000);
+
+            if (sentUserConfig == false) {
+                setUserDefaults();
+                Thread.sleep(2000);
+            }
+
             if(sentLoraConfig == false) {
                 setLoraDefaults();
+                Thread.sleep(2000);
             }
-            Thread.sleep(2000);
+
             if (sentChannelConfig == false) {
                 setChannelDefaults();
+                Thread.sleep(2000);
             }
-            Thread.sleep(2000);
-            //resetDevice();
 
-            /*
-            packet = MeshProtos.ToRadio.newBuilder();
-            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
-            MeshProtos.User.Builder user = MeshProtos.User.newBuilder();
-            user.setId("123456");
-            user.setLongName("Burner Board Test");
-            user.setShortName("BB01");
-            user.build();
-            admin.setSetOwner(user);
-            admin.build();
-
-
-
-            MeshProtos.MeshPacket.Builder builder = MeshProtos.MeshPacket.newBuilder();
-            //builder.setTo(0);
-            builder.setId(PacketIdGenerator.generatePacketId());
-            builder.setWantAck(true);
-            //builder.setPay
-
-            //sendToRadio(meshpacket);
-
-            admin = AdminProtos.AdminMessage.newBuilder();
-            ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
-            ConfigProtos.Config.DeviceConfig.Builder device = ConfigProtos.Config.DeviceConfig.newBuilder();
-            device.setRole(ConfigProtos.Config.DeviceConfig.Role.CLIENT);
-            device.setRebroadcastMode(ConfigProtos.Config.DeviceConfig.RebroadcastMode.ALL);
-            device.setNodeInfoBroadcastSecs(300);
-            device.build();
-            config.setDevice(device);
-            config.build();
-            admin.setSetConfig(config);
-            admin.setGetConfigRequest(AdminProtos.AdminMessage.ConfigType.DEVICE_CONFIG);
-            sendToRadio(admin);
-
-
-
-             */
-
-            /*
-
-
-             */
+            if (sentReboot == false) {
+                resetDevice();
+            }
 
         } catch (Exception e) {
             BLog.d(TAG, "Error sending meshtastic setup" + e.getMessage());
@@ -302,6 +257,7 @@ class Meshtastic {
         packet.build();
         BLog.d(TAG, "sending reset device: \n" + packet.toString());
         sendToRadio(packet);
+        sentReboot = true;
     }
 
     private void requestKey() {
@@ -350,6 +306,54 @@ class Meshtastic {
         sentDeviceConfig = true;
     }
 
+    private void setUserDefaults() {
+        BLog.d(TAG, "setUserDefaults");
+        try {
+            // Get board name from service.boardState.BOARD_ID
+            String boardName = service.boardState.BOARD_ID;
+            
+            // Get serial number and take the last two digits mod 100
+            String serialNumber = android.os.Build.SERIAL;
+            int serialNumeric = 0;
+            try {
+                // Try to extract numeric part from serial number
+                String numericPart = serialNumber.replaceAll("[^0-9]", "");
+                if (!numericPart.isEmpty()) {
+                    serialNumeric = Integer.parseInt(numericPart.substring(Math.max(0, numericPart.length() - 2)));
+                } else {
+                    // If no numeric part, use hashCode mod 100
+                    serialNumeric = Math.abs(serialNumber.hashCode()) % 100;
+                }
+            } catch (Exception e) {
+                // Fallback to hashCode mod 100 if parsing fails
+                serialNumeric = Math.abs(serialNumber.hashCode()) % 100;
+            }
+            String shortName = String.format("BB%02d", serialNumeric % 100);
+            
+            BLog.d(TAG, "Setting user: longName=" + boardName + ", shortName=" + shortName);
+            
+            // Create User object
+            MeshProtos.ToRadio.Builder packet;
+            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+            MeshProtos.User.Builder user = MeshProtos.User.newBuilder();
+            user.setLongName(boardName);
+            user.setShortName(shortName);
+            // Set a default ID based on the board name if needed
+            user.setId("!" + boardName.toLowerCase().replaceAll("[^a-z0-9]", "").substring(0, Math.min(8, boardName.length())));
+            
+            admin.setSetOwner(user.build());
+            admin.setSessionPasskey(sessionPasskey);
+            DataPacket data = new DataPacket(radioNodeNum, admin.build());
+            packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(data.toProto(nodeDB));
+            packet.build();
+            BLog.d(TAG, "sending user config to radio: \n" + packet.toString());
+            sendToRadio(packet);
+            sentUserConfig = true;
+        } catch (Exception e) {
+            BLog.d(TAG, "setup exception: " + e.getMessage());
+        }
+    }
     private void setLoraDefaults() {
         BLog.d(TAG, "setRadioDefaults");
         // TODO: check passkey
@@ -387,7 +391,7 @@ class Meshtastic {
     private void setChannelDefaults() {
         BLog.d(TAG, "setChannelDefaults");
         try {
-            // Configure Channel 0 (default channel) with passkey "AQ=="
+            // Configure Channel 0 (default channel) with passkey "AQ==" and position enabled
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
             ChannelProtos.Channel.Builder channel0 = ChannelProtos.Channel.newBuilder();
@@ -395,7 +399,14 @@ class Meshtastic {
             channel0.setRole(ChannelProtos.Channel.Role.PRIMARY);
             ChannelProtos.ChannelSettings.Builder settings0 = ChannelProtos.ChannelSettings.newBuilder();
             settings0.setName("");
+            settings0.setUplinkEnabled(true);
             settings0.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("AQ==")));
+            
+            // Enable position sharing with high precision for Channel 0
+            ChannelProtos.ModuleSettings.Builder moduleSettings0 = ChannelProtos.ModuleSettings.newBuilder();
+            moduleSettings0.setPositionPrecision(32); // High precision (32 bits)
+            settings0.setModuleSettings(moduleSettings0.build());
+            
             channel0.setSettings(settings0.build());
             admin.setSetChannel(channel0.build());
             admin.setSessionPasskey(sessionPasskey);
@@ -407,14 +418,21 @@ class Meshtastic {
             sendToRadio(packet);
             Thread.sleep(1000);
 
-            // Configure Channel 1 named "BlinkThing" with passkey "MgkxoOxSr8pwXSkjvXrjt8pH8eStGHEIwKACN3TavNQ="
+            // Configure Channel 1 named "BlinkThing" with passkey and position enabled
             admin = AdminProtos.AdminMessage.newBuilder();
             ChannelProtos.Channel.Builder channel1 = ChannelProtos.Channel.newBuilder();
             channel1.setIndex(1);
-            channel0.setRole(ChannelProtos.Channel.Role.SECONDARY);
+            channel1.setRole(ChannelProtos.Channel.Role.SECONDARY);
             ChannelProtos.ChannelSettings.Builder settings1 = ChannelProtos.ChannelSettings.newBuilder();
             settings1.setName("BlinkyThing");
+            settings1.setUplinkEnabled(true);
             settings1.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("MgkxoOxSr8pwXSkjvXrjt8pH8eStGHEIwKACN3TavNQ=")));
+            
+            // Enable position sharing with high precision for Channel 1
+            ChannelProtos.ModuleSettings.Builder moduleSettings1 = ChannelProtos.ModuleSettings.newBuilder();
+            moduleSettings1.setPositionPrecision(32); // High precision (32 bits)
+            settings1.setModuleSettings(moduleSettings1.build());
+            
             channel1.setSettings(settings1.build());
             admin.setSetChannel(channel1.build());
             admin.setSessionPasskey(sessionPasskey);
@@ -434,7 +452,9 @@ class Meshtastic {
         try {
             //sendPosition();
             //TimeUnit.SECONDS.sleep(1800);
-            sendTelemetry();
+            // Send on both default and private channel
+            sendTelemetry(0);
+            sendTelemetry(1);
         } catch (Exception e) {
 
         }
@@ -455,7 +475,7 @@ class Meshtastic {
         sendToRadio(packet);
     }
 
-    void sendTelemetry() {
+    void sendTelemetry(int channel) {
         float batteryLevel = 0;
         float voltage = 0;
         float ledCurrent = 0;
@@ -497,7 +517,7 @@ class Meshtastic {
         telemetry.setTime((int) (System.currentTimeMillis() / 1000));
         //telemetry.setDeviceMetrics(metrics);
         telemetry.setPowerMetrics(powerMetrics);
-        DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, 1, telemetry.build());
+        DataPacket data = new DataPacket(DataPacket.ID_BROADCAST, channel, telemetry.build());
         data.hopLimit = 7;
         MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
         MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
@@ -1016,123 +1036,3 @@ class Meshtastic {
         return messages;
     }
 }
-
-
-    /*
-
-    private String byteArrayToString(Byte[] array) {
-        byte[] bytes = new byte[array.length];
-        int i = 0;
-        for (byte b : array) {
-            bytes[i++] = b;
-        }
-
-        return new String(bytes);
-    }
-
-
-    /*
-       TelemetryProtos.DeviceMetricsOrBuilder metrics = TelemetryProtos.DeviceMetrics.newBuilder();
-       metrics.
-       MeshProtos.NodeInfo.Builder node = MeshProtos.NodeInfo.newBuilder();
-       node.setChannel(0);
-       node.setDeviceMetrics(metrics);
-       DataPacket d = new DataPacket(DataPacket.ID_BROADCAST, );
-       d.dataType =
-
-
-
-       //
-       // public DeviceMetrics(int time, int batteryLevel, float voltage,
-       // float channelUtilization, float airUtilTx, int uptimeSeconds) {
-       int nodeNum = 12356789;
-       String id = "id";
-       String longName = "longname";
-       String shortName = "shortname";
-       //NodeInfo node = new NodeInfo();
-       /*
-
-       MeshProtos.HardwareModel  hwModel = MeshProtos.HardwareModel.PRIVATE_HW;
-       MeshUser user = new MeshUser(id, longName, shortName, hwModel);
-       Position position = new Position(0,0,0);
-       DeviceMetrics metrics = new DeviceMetrics(DeviceMetrics.currentTime(), 91, 54f, 0f, 0f, 100 );
-       NodeInfo node = new NodeInfo(nodeNum, user, position, metrics);
-
-       MeshProtos.NodeInfo.Builder ni = MeshProtos.NodeInfo.newBuilder();
-
-       ni.setNum(node.num);
-       ni.setUser(node.user.toProto());
-       ni.setPosition(node.position.toProto());
-       ni.snr = 1;
-       ni.last_heard = ;
-       ni.setDeviceMetrics(node.deviceMetrics.toProto());
-       ni.channel = ;
-       ni.via_mqtt = ;
-       ni.hops_away = ;
-       ni.is_favorite = ;
-       ni.build();
-
-        */
-
-
-
-
-/*
-    private MeshProtos.MeshPacket toMeshPacket(DataPacket p, boolean wantAck, int hopLimit, int channel, int priority) {
-        MeshProtos.MeshPacket.Builder builder = newMeshPacketTo(toNodeNum(p.to));
-
-        builder.setWantAck(wantAck);
-        builder.setId();
-        builder.setHopLimit(hopLimit);
-        builder.setChannel(channel);
-        builder.setPriority(priority);
-
-        Data.Builder dataBuilder = MeshProtos.Data.newBuilder();
-        initDataFunction.apply(dataBuilder); // Call the function to initialize Data.Builder
-        builder.setDecoded(dataBuilder.build());
-
-
-        return meshPacketBuilder.build(
-                p.id,
-                true,  // wantAck
-                p.hopLimit,
-                p.channel,
-                MeshProtos.MeshPacket.Priority.UNSET, // Assuming default priority
-                dataBuilder -> {
-                    dataBuilder.setPayload(ByteString.copyFrom(p.bytes));
-                    return null; // No need to return anything from the lambda
-                }
-        );
-    }
-
-}
-
- */
-
-/*
-
-    private int toNodeNum(String id) {
-        if (id.equals(DataPacket.ID_BROADCAST)) {
-            return DataPacket.NODENUM_BROADCAST;
-        } else if (id.equals(DataPacket.ID_LOCAL)) {
-            return myNode.getMyNodeNum();  // Assuming 'myNodeNum' is a field in your class
-        } else {
-            //return toNodeInfo(id).num;  // Assuming 'toNodeInfo(id)' returns a NodeInfo object
-            return 123456789;
-        }
-    }
-
-    private MeshProtos.MeshPacket.Builder newMeshPacketTo(int idNum) {
-        //if (myNodeInfo == null) {
-        //    throw new RadioNotConnectedException();
-        //}
-
-        MeshProtos.MeshPacket.Builder builder = MeshProtos.MeshPacket.newBuilder();
-        builder.setFrom(0); // Don't add myNodeNum
-        builder.setTo(idNum);
-        return builder;
-    }
-
-
-
- */

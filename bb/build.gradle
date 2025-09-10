@@ -22,8 +22,8 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 29
 
-        versionCode 5103
-        versionName "5103"
+        versionCode 5204
+        versionName "5204"
 
         // 5048 fixes master audio and volume and disables video.
 
