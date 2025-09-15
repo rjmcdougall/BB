@@ -9,6 +9,7 @@ import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bbcommon.BLog;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -152,7 +153,7 @@ class Meshtastic {
         }
         try {
             this.service = service;
-            sch.scheduleWithFixedDelay(meshSendLoop, 30, 300, TimeUnit.SECONDS);
+            sch.scheduleWithFixedDelay(meshSendLoop, 60, 900, TimeUnit.SECONDS);
 
         } catch (Exception e) {
 
@@ -208,17 +209,21 @@ class Meshtastic {
     private boolean sentChannelConfig = false;
     private boolean sentUserConfig = false;
     private boolean sentPositionConfig = false;
+    private boolean sentPowerConfig = false;
 
     private boolean sentReboot = false;
 
 
     private void initMeshtasticDevice() {
+
+        sessionPasskey = null;
+
         try {
             Thread.sleep(1000);
             packetProcessor.connect();
 
             requestConfig();
-            Thread.sleep(5000);
+            Thread.sleep(10000);
             requestKey();
             Thread.sleep(10000);
 
@@ -227,7 +232,7 @@ class Meshtastic {
                 Thread.sleep(2000);
             }
 
-            if(sentLoraConfig == false) {
+            if (sentLoraConfig == false) {
                 setLoraDefaults();
                 Thread.sleep(2000);
             }
@@ -239,6 +244,11 @@ class Meshtastic {
 
             if (sentPositionConfig == false) {
                 setPositionDefaults();
+                Thread.sleep(2000);
+            }
+
+            if (sentPowerConfig == false) {
+                setPowerDefaults();
                 Thread.sleep(2000);
             }
 
@@ -317,27 +327,16 @@ class Meshtastic {
         try {
             // Get board name from service.boardState.BOARD_ID
             String boardName = service.boardState.BOARD_ID;
-            
-            // Get serial number and take the last two digits mod 100
-            String serialNumber = android.os.Build.SERIAL;
-            int serialNumeric = 0;
-            try {
-                // Try to extract numeric part from serial number
-                String numericPart = serialNumber.replaceAll("[^0-9]", "");
-                if (!numericPart.isEmpty()) {
-                    serialNumeric = Integer.parseInt(numericPart.substring(Math.max(0, numericPart.length() - 2)));
-                } else {
-                    // If no numeric part, use hashCode mod 100
-                    serialNumeric = Math.abs(serialNumber.hashCode()) % 100;
-                }
-            } catch (Exception e) {
-                // Fallback to hashCode mod 100 if parsing fails
-                serialNumeric = Math.abs(serialNumber.hashCode()) % 100;
-            }
-            String shortName = String.format("BB%02d", serialNumeric % 100);
-            
+
+            // Get board address from bbcommon and use it for the two-digit suffix
+            int boardAddress = service.allBoards.getBoardAddress(boardName);
+            int addressSuffix = Math.abs(boardAddress) % 100;
+            String shortName = String.format("BB%02d", addressSuffix);
+
+            BLog.d(TAG, "Using board address " + boardAddress + " for short name suffix");
+
             BLog.d(TAG, "Setting user: longName=" + boardName + ", shortName=" + shortName);
-            
+
             // Create User object
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
@@ -346,7 +345,7 @@ class Meshtastic {
             user.setShortName(shortName);
             // Set a default ID based on the board name if needed
             user.setId("!" + boardName.toLowerCase().replaceAll("[^a-z0-9]", "").substring(0, Math.min(8, boardName.length())));
-            
+
             admin.setSetOwner(user.build());
             admin.setSessionPasskey(sessionPasskey);
             DataPacket data = new DataPacket(radioNodeNum, admin.build());
@@ -360,6 +359,7 @@ class Meshtastic {
             BLog.d(TAG, "setup exception: " + e.getMessage());
         }
     }
+
     private void setLoraDefaults() {
         BLog.d(TAG, "setRadioDefaults");
         // TODO: check passkey
@@ -407,12 +407,12 @@ class Meshtastic {
             settings0.setName("");
             settings0.setUplinkEnabled(true);
             settings0.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("AQ==")));
-            
+
             // Enable position sharing with high precision for Channel 0
             ChannelProtos.ModuleSettings.Builder moduleSettings0 = ChannelProtos.ModuleSettings.newBuilder();
             moduleSettings0.setPositionPrecision(32); // High precision (32 bits)
             settings0.setModuleSettings(moduleSettings0.build());
-            
+
             channel0.setSettings(settings0.build());
             admin.setSetChannel(channel0.build());
             admin.setSessionPasskey(sessionPasskey);
@@ -430,15 +430,15 @@ class Meshtastic {
             channel1.setIndex(1);
             channel1.setRole(ChannelProtos.Channel.Role.SECONDARY);
             ChannelProtos.ChannelSettings.Builder settings1 = ChannelProtos.ChannelSettings.newBuilder();
-            settings1.setName("BlinkyThing");
+            settings1.setName("Blinkything");
             settings1.setUplinkEnabled(true);
             settings1.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("MgkxoOxSr8pwXSkjvXrjt8pH8eStGHEIwKACN3TavNQ=")));
-            
+
             // Enable position sharing with high precision for Channel 1
             ChannelProtos.ModuleSettings.Builder moduleSettings1 = ChannelProtos.ModuleSettings.newBuilder();
             moduleSettings1.setPositionPrecision(32); // High precision (32 bits)
             settings1.setModuleSettings(moduleSettings1.build());
-            
+
             channel1.setSettings(settings1.build());
             admin.setSetChannel(channel1.build());
             admin.setSessionPasskey(sessionPasskey);
@@ -461,25 +461,25 @@ class Meshtastic {
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
             ConfigProtos.Config.PositionConfig.Builder position = ConfigProtos.Config.PositionConfig.newBuilder();
-            
+
             // Enable smart adaptive position broadcasting
             position.setPositionBroadcastSmartEnabled(true);
-            
+
             // Set regular position broadcast interval to 300 seconds (5 minutes) when not moving
             position.setPositionBroadcastSecs(300);
-            
+
             // Set minimum interval to 30 seconds when moving
             position.setBroadcastSmartMinimumIntervalSecs(30);
-            
+
             // Set minimum distance to trigger a broadcast (10 meters)
             position.setBroadcastSmartMinimumDistance(10);
-            
+
             // Build the config and admin message
             ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
             config.setPosition(position.build());
             admin.setSetConfig(config.build());
             admin.setSessionPasskey(sessionPasskey);
-            
+
             // Send the configuration
             DataPacket data = new DataPacket(radioNodeNum, admin.build());
             packet = MeshProtos.ToRadio.newBuilder();
@@ -490,6 +490,36 @@ class Meshtastic {
             sentPositionConfig = true;
         } catch (Exception e) {
             BLog.d(TAG, "position config setup exception: " + e.getMessage());
+        }
+    }
+
+    private void setPowerDefaults() {
+        BLog.d(TAG, "setPowerDefaults");
+        try {
+            // Configure power settings with super deep sleep time
+            MeshProtos.ToRadio.Builder packet;
+            AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+            ConfigProtos.Config.PowerConfig.Builder power = ConfigProtos.Config.PowerConfig.newBuilder();
+
+            // Set super deep sleep time to 43600 seconds (approximately 12.1 hours)
+            power.setSdsSecs(43600);
+
+            // Build the config and admin message
+            ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
+            config.setPower(power.build());
+            admin.setSetConfig(config.build());
+            admin.setSessionPasskey(sessionPasskey);
+
+            // Send the configuration
+            DataPacket data = new DataPacket(radioNodeNum, admin.build());
+            packet = MeshProtos.ToRadio.newBuilder();
+            packet.setPacket(data.toProto(nodeDB));
+            packet.build();
+            BLog.d(TAG, "sending power config to radio: \n" + packet.toString());
+            sendToRadio(packet);
+            sentPowerConfig = true;
+        } catch (Exception e) {
+            BLog.d(TAG, "power config setup exception: " + e.getMessage());
         }
     }
 
@@ -793,7 +823,8 @@ class Meshtastic {
                 if (isWhitelisted || matchesRegex) {
                     try {
                         boardAddress = service.allBoards.getBoardAddress(nodeName);
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                     this.service.boardLocations.updateBoardLocations(nodeName,
                             boardAddress,
                             999,
@@ -884,24 +915,29 @@ class Meshtastic {
             int batteryLevel = telemetry.getDeviceMetrics().getBatteryLevel();
             float voltage = telemetry.getDeviceMetrics().getVoltage();
             float boardVoltage = powerMetrics.getCh1Voltage();
-            int boardBatteryLevel = (int)(powerMetrics.getCh2Voltage() * 100.0);
+            int boardBatteryLevel = (int) (powerMetrics.getCh2Voltage() * 100.0);
             TelemetryProtos.DeviceMetrics deviceMetrics = telemetry.getDeviceMetrics();
-            if (boardVoltage > 20) {
+            // Check if this is a valid board voltage telemetry
+            if (boardVoltage > 20.0) {
                 voltage = boardVoltage;
                 batteryLevel = boardBatteryLevel;
+                TelemetryProtos.DeviceMetrics newDeviceMetrics = deviceMetrics.toBuilder()
+                        .setBatteryLevel(batteryLevel)
+                        .setVoltage(voltage)
+                        .build();
+                MeshProtos.NodeInfo newnode = node.toBuilder()
+                        .setDeviceMetrics(newDeviceMetrics)
+                        .build();
+                nodeDB.addNode(newnode);
+                pushLocation(newnode);
+                BLog.d(TAG, "Telemetry, node: " + newnode.getUser().getLongName() +
+                        ", battery: " + batteryLevel +
+                        ", voltage: " + voltage);
+            } else {
+                BLog.d(TAG, "Telemetry, non-board node: " + node.getUser().getLongName() +
+                        ", battery: " + batteryLevel +
+                        ", voltage: " + voltage);
             }
-            TelemetryProtos.DeviceMetrics devicemetrics = TelemetryProtos.DeviceMetrics.newBuilder()
-                    .setBatteryLevel(batteryLevel)
-                    .setVoltage(voltage)
-                    .build();
-
-            MeshProtos.NodeInfo newnode = node.toBuilder()
-                    .setDeviceMetrics(deviceMetrics)
-                    .build();
-            nodeDB.addNode(newnode);
-            BLog.d(TAG, "Telemetry, node: " + newnode.getUser().getLongName() +
-                    ", battery: " + batteryLevel +
-                    ", voltage: " + voltage);
         } catch (Exception e) {
             BLog.d(TAG, "cannot update node from telemetry message" + e.getMessage());
         }
@@ -917,7 +953,7 @@ class Meshtastic {
             } else {
                 username = node.getUser().getLongName();
             }
-            BLog.d(TAG, "ch:" + packet.getChannel()  + " username: " + message);
+            BLog.d(TAG, "ch:" + packet.getChannel() + " username: " + message);
 
             // Add message to buffer for Bluetooth retrieval
             messages.addMessage(message, username);
@@ -1043,7 +1079,7 @@ class Meshtastic {
             // Create text message DataPacket
             // We use ch1 per the mesh burn setup with camp channel in #1
             DataPacket data = new DataPacket(to, 1, message.trim());
-            data.hopLimit = 2; // Set hop limit for mesh forwarding
+            data.hopLimit = 7; // Set hop limit for mesh forwarding
 
             // Convert to MeshPacket and send
             MeshProtos.MeshPacket meshpacket = data.toProto(nodeDB);
