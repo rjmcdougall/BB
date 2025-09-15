@@ -182,6 +182,10 @@ public class BoardState {
         BLog.i(TAG, "Updating Board State: " + BOARD_ID + " " + address + " " + displayTeensy + " " + boardType + " " + targetAPKVersion + " " + videoContrastMultiplier + " " + this.profile);
     }
 
+    public JSONObject getMeshParams() {
+        return this.allBoards.getMeshParams(BOARD_ID);
+    }
+
     public boolean setSSISAndPassword(String SSID, String password) {
 
         try {

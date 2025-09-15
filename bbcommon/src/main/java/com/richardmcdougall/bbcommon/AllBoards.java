@@ -116,9 +116,17 @@ public class AllBoards {
         if (boards != null) {
             try {
 
-                boards2 = new JSONArray(boards.toString());
-                for (int i = 0; i < boards2.length(); i++) {
-                    JSONObject a = boards2.getJSONObject(i);
+                boards2 = new JSONArray();
+                for (int i = 0; i < boards.length(); i++) {
+                    JSONObject original = boards.getJSONObject(i);
+                    
+                    // Filter out the special 'default' board from external consumers
+                    if (original.has("name") && "default".equals(original.getString("name"))) {
+                        continue; // Skip the default board
+                    }
+                    
+                    // Create a copy and remove sensitive fields
+                    JSONObject a = new JSONObject(original.toString());
                     if (a.has("address")) a.remove("address");
                     if (a.has("bootName")) a.remove("bootName");
                     if (a.has("isProfileGlobal")) a.remove("isProfileGlobal");
@@ -130,6 +138,8 @@ public class AllBoards {
                     if (a.has("displayDebug")) a.remove("displayDebug");
                     if (a.has("createdDate")) a.remove("createdDate");
                     if (a.has("videoContrastMultiplier")) a.remove("videoContrastMultiplier");
+                    
+                    boards2.put(a);
                 }
             } catch (Exception e) {
                 BLog.d(TAG, "Could not get boards directory: " + e.getMessage());
@@ -145,9 +155,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            color = board.getString("color");
+            if (board != null && board.has("color")) {
+                color = board.getString("color");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting board color for " + boardID + ": " + e.getMessage());
         }
         return color;
     }
@@ -159,9 +171,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            myAddress = board.getInt("address");
+            if (board != null && board.has("address")) {
+                myAddress = board.getInt("address");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting board address for " + boardID + ": " + e.getMessage());
         }
         return myAddress;
     }
@@ -173,9 +187,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            profile = board.getString("profile");
+            if (board != null && board.has("profile")) {
+                profile = board.getString("profile");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting profile for " + boardID + ": " + e.getMessage());
         }
         return profile;
     }
@@ -187,10 +203,10 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            if (board.has("displayTeensy"))
+            if (board != null && board.has("displayTeensy"))
                 displayTeensy = BoardState.TeensyType.valueOf(board.getString("displayTeensy"));
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting display teensy for " + boardID + ": " + e.getMessage());
         }
         return displayTeensy;
     }
@@ -207,15 +223,23 @@ public class AllBoards {
             } else {
                 for (int i = 0; i < dataBoards.length(); i++) {
                     board = dataBoards.getJSONObject(i);
-                    if (board.getInt("address") == address) {
-                        boardId = board.getString("name");
+                    // Check if board has required fields before accessing them
+                    if (board != null && board.has("address") && board.has("name")) {
+                        if (board.getInt("address") == address) {
+                            String name = board.getString("name");
+                            // Filter out the special 'default' board from general consumers
+                            if (name != null && !"default".equals(name)) {
+                                boardId = name;
+                                break; // Found the board, exit loop
+                            }
+                        }
                     }
                 }
             }
             return boardId;
 
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error in boardAddressToName: " + e.getMessage());
         }
 
         return boardId;
@@ -228,9 +252,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            videoContrastMultiplier = board.getInt("videoContrastMultiplier");
+            if (board != null && board.has("videoContrastMultiplier")) {
+                videoContrastMultiplier = board.getInt("videoContrastMultiplier");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting video contrast multiplier for " + boardID + ": " + e.getMessage());
         }
         return videoContrastMultiplier;
     }
@@ -242,9 +268,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            pixelSlow = board.getInt("pixelSlow");
+            if (board != null && board.has("pixelSlow")) {
+                pixelSlow = board.getInt("pixelSlow");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting pixel slow for " + boardID + ": " + e.getMessage());
         }
         return pixelSlow;
     }
@@ -255,10 +283,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            targetAPKVersion = board.getInt("targetAPKVersion");
-
+            if (board != null && board.has("targetAPKVersion")) {
+                targetAPKVersion = board.getInt("targetAPKVersion");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting target APK version for " + boardID + ": " + e.getMessage());
         }
         return targetAPKVersion;
     }
@@ -270,12 +299,98 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            displayDebug = board.getBoolean("displayDebug");
-
+            if (board != null && board.has("displayDebug")) {
+                displayDebug = board.getBoolean("displayDebug");
+            }
         } catch (Exception e) {
-            BLog.e(TAG, e.getMessage());
+            BLog.e(TAG, "Error getting display debug for " + boardID + ": " + e.getMessage());
         }
         return displayDebug;
+    }
+
+    public JSONObject getMeshParams(String boardID) {
+
+        JSONObject board;
+        JSONObject meshParams = null;
+
+        try {
+            // Try to get meshparams from the specified board
+            board = getBoardByID(boardID);
+            if (board != null && board.has("meshParams")) {
+                meshParams = getMeshParamsFromBoard(board);
+                if (meshParams != null) {
+                    BLog.d(TAG, "Found meshParams for board: " + boardID);
+                    return meshParams;
+                }
+            }
+            
+            // If not found, try to get meshparams from the special 'default' board
+            JSONObject defaultBoard = getBoardByID("default");
+            if (defaultBoard != null && defaultBoard.has("meshParams")) {
+                meshParams = getMeshParamsFromBoard(defaultBoard);
+                if (meshParams != null) {
+                    BLog.d(TAG, "Using meshParams from 'default' board for: " + boardID);
+                    return meshParams;
+                }
+            }
+            
+            // If still not found, use hard-coded defaults
+            BLog.d(TAG, "No meshparams found for board: " + boardID + ", using hard-coded defaults");
+            meshParams = getDefaultMeshParams();
+            
+        } catch (Exception e) {
+            BLog.e(TAG, "Error getting meshparams: " + e.getMessage());
+            // Return default meshparams on error
+            meshParams = getDefaultMeshParams();
+        }
+        return meshParams;
+    }
+    
+    private JSONObject getMeshParamsFromBoard(JSONObject board) {
+        try {
+            Object meshParamsObj = board.get("meshParams");
+            
+            // Check if it's already a JSONObject
+            if (meshParamsObj instanceof JSONObject) {
+                return (JSONObject) meshParamsObj;
+            }
+            
+            // Check if it's a String that needs to be parsed
+            if (meshParamsObj instanceof String) {
+                String meshParamsStr = (String) meshParamsObj;
+                // Only try to parse if it looks like JSON (starts with { or [)
+                if (meshParamsStr.trim().startsWith("{") || meshParamsStr.trim().startsWith("[")) {
+                    return new JSONObject(meshParamsStr);
+                } else {
+                    BLog.w(TAG, "meshparams is a string but doesn't appear to be JSON: " + meshParamsStr);
+                    return null;
+                }
+            }
+            
+            BLog.w(TAG, "meshparams is of unexpected type: " + meshParamsObj.getClass().getSimpleName());
+            return null;
+            
+        } catch (Exception e) {
+            BLog.e(TAG, "Error parsing meshparams from board: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private JSONObject getDefaultMeshParams() {
+        JSONObject defaultParams = new JSONObject();
+        try {
+            defaultParams.put("meshupdateinterval", 900); // 30 seconds in milliseconds
+            defaultParams.put("channelnum", 1); // Primary channel
+            defaultParams.put("modempreset", "MEDIUM_SLOW"); // Default modem preset
+            defaultParams.put("hoplimit", 7); // Default hop limit
+            defaultParams.put("channel1name", "Blinkything"); // Private channel name
+            defaultParams.put("channel1key", "AQ=="); // Base64 encoded key (null key)
+            defaultParams.put("positionaccuracy", 32); // Position accuracy in meters
+            defaultParams.put("supersleep", 43200); // Super deep sleep in seconds (12 hours)
+        } catch (Exception e) {
+            BLog.e(TAG, "Error creating default mesh params: " + e.getMessage());
+        }
+        return defaultParams;
     }
 
     public BoardState.BoardType getBoardType(String boardID) {
@@ -285,9 +400,11 @@ public class AllBoards {
 
         try {
             board = getBoardByID(boardID);
-            type = BoardState.BoardType.valueOf(board.getString("type"));
+            if (board != null && board.has("type")) {
+                type = BoardState.BoardType.valueOf(board.getString("type"));
+            }
         } catch (Exception e) {
-            BLog.w(TAG, e.getMessage());
+            BLog.w(TAG, "Error getting board type for " + boardID + ": " + e.getMessage());
         }
         return type;
     }
@@ -373,7 +490,9 @@ public class AllBoards {
         String name = deviceID;
         try {
             JSONObject board = getBoardByDeviceID(deviceID);
-            name = board.getString("name");
+            if (board != null && board.has("name")) {
+                name = board.getString("name");
+            }
         } catch (Exception e) {
             BLog.e(TAG, "Could not find publicName for: " + deviceID + " " + e.toString());
         }

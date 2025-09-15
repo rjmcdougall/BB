@@ -8,6 +8,8 @@ import com.richardmcdougall.bb.BBService;
 import com.richardmcdougall.bb.BoardLocations;
 import com.richardmcdougall.bbcommon.BLog;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -153,10 +155,18 @@ class Meshtastic {
         }
         try {
             this.service = service;
-            sch.scheduleWithFixedDelay(meshSendLoop, 60, 900, TimeUnit.SECONDS);
+            
+            // Get meshparams and use meshupdateinterval for scheduling
+            JSONObject meshParams = service.boardState.getMeshParams();
+            int meshUpdateIntervalSeconds = meshParams.optInt("meshupdateinterval", 900); // Default 30 seconds
+
+            BLog.d(TAG, "Using mesh update interval: " + meshUpdateIntervalSeconds + " seconds");
+            sch.scheduleWithFixedDelay(meshSendLoop, 60, meshUpdateIntervalSeconds, TimeUnit.SECONDS);
 
         } catch (Exception e) {
-
+            BLog.e(TAG, "Error setting up mesh scheduler: " + e.getMessage());
+            // Fallback to default 900 seconds (15 minutes)
+            sch.scheduleWithFixedDelay(meshSendLoop, 60, 900, TimeUnit.SECONDS);
         }
         nodeDB = new NodeDB(service);
         messages = new Messages();
@@ -364,17 +374,32 @@ class Meshtastic {
         BLog.d(TAG, "setRadioDefaults");
         // TODO: check passkey
         try {
+            // Get meshparams for LoRa configuration
+            JSONObject meshParams = service.boardState.getMeshParams();
+            int channelNum = meshParams.optInt("channelnum", 52); // Default channel 52
+            String modemPresetStr = meshParams.optString("modempreset", "MEDIUM_SLOW"); // Default MEDIUM_SLOW
+            int hopLimit = meshParams.optInt("hoplimit", 7); // Default 7
+            
+            BLog.d(TAG, "Using LoRa config: channelNum=" + channelNum + ", modemPreset=" + modemPresetStr + ", hopLimit=" + hopLimit);
+            
+            // Convert modem preset string to enum
+            ConfigProtos.Config.LoRaConfig.ModemPreset modemPreset;
+            try {
+                modemPreset = ConfigProtos.Config.LoRaConfig.ModemPreset.valueOf(modemPresetStr);
+            } catch (IllegalArgumentException e) {
+                BLog.w(TAG, "Invalid modem preset: " + modemPresetStr + ", using MEDIUM_SLOW");
+                modemPreset = ConfigProtos.Config.LoRaConfig.ModemPreset.MEDIUM_SLOW;
+            }
+            
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
             ConfigProtos.Config.LoRaConfig.Builder lora = ConfigProtos.Config.LoRaConfig.newBuilder();
             lora.setRegion(ConfigProtos.Config.LoRaConfig.RegionCode.US);
-            lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.MEDIUM_SLOW);
-            lora.setChannelNum(52);
-            //lora.setModemPreset(ConfigProtos.Config.LoRaConfig.ModemPreset.SHORT_TURBO);
-            //lora.setChannelNum(31);
+            lora.setModemPreset(modemPreset);
+            lora.setChannelNum(channelNum);
             lora.setUsePreset(true);
             lora.setTxEnabled(true);
-            lora.setHopLimit(7);
+            lora.setHopLimit(hopLimit);
             ConfigProtos.Config.DeviceConfig.Builder deviceConfig = ConfigProtos.Config.DeviceConfig.newBuilder();
             //deviceConfig.setNodeInfoBroadcastSecs(3601);
             ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
@@ -397,6 +422,14 @@ class Meshtastic {
     private void setChannelDefaults() {
         BLog.d(TAG, "setChannelDefaults");
         try {
+            // Get meshparams for channel configuration
+            JSONObject meshParams = service.boardState.getMeshParams();
+            String channel1Name = meshParams.optString("channel1name", "BBPrivate"); // Default channel 1 name
+            String channel1Key = meshParams.optString("channel1key", "AQ=="); // Default key
+            int positionAccuracy = meshParams.optInt("positionaccuracy", 32); // Default high precision
+            
+            BLog.d(TAG, "Using channel config: channel1Name=" + channel1Name + ", positionAccuracy=" + positionAccuracy);
+            
             // Configure Channel 0 (default channel) with passkey "AQ==" and position enabled
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
@@ -408,9 +441,9 @@ class Meshtastic {
             settings0.setUplinkEnabled(true);
             settings0.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("AQ==")));
 
-            // Enable position sharing with high precision for Channel 0
+            // Enable position sharing with configurable precision for Channel 0
             ChannelProtos.ModuleSettings.Builder moduleSettings0 = ChannelProtos.ModuleSettings.newBuilder();
-            moduleSettings0.setPositionPrecision(32); // High precision (32 bits)
+            moduleSettings0.setPositionPrecision(positionAccuracy);
             settings0.setModuleSettings(moduleSettings0.build());
 
             channel0.setSettings(settings0.build());
@@ -424,19 +457,19 @@ class Meshtastic {
             sendToRadio(packet);
             Thread.sleep(1000);
 
-            // Configure Channel 1 named "BlinkThing" with passkey and position enabled
+            // Configure Channel 1 with configurable name and key from meshparams
             admin = AdminProtos.AdminMessage.newBuilder();
             ChannelProtos.Channel.Builder channel1 = ChannelProtos.Channel.newBuilder();
             channel1.setIndex(1);
             channel1.setRole(ChannelProtos.Channel.Role.SECONDARY);
             ChannelProtos.ChannelSettings.Builder settings1 = ChannelProtos.ChannelSettings.newBuilder();
-            settings1.setName("Blinkything");
+            settings1.setName(channel1Name);
             settings1.setUplinkEnabled(true);
-            settings1.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode("MgkxoOxSr8pwXSkjvXrjt8pH8eStGHEIwKACN3TavNQ=")));
+            settings1.setPsk(ByteString.copyFrom(java.util.Base64.getDecoder().decode(channel1Key)));
 
-            // Enable position sharing with high precision for Channel 1
+            // Enable position sharing with configurable precision for Channel 1
             ChannelProtos.ModuleSettings.Builder moduleSettings1 = ChannelProtos.ModuleSettings.newBuilder();
-            moduleSettings1.setPositionPrecision(32); // High precision (32 bits)
+            moduleSettings1.setPositionPrecision(positionAccuracy);
             settings1.setModuleSettings(moduleSettings1.build());
 
             channel1.setSettings(settings1.build());
@@ -496,13 +529,19 @@ class Meshtastic {
     private void setPowerDefaults() {
         BLog.d(TAG, "setPowerDefaults");
         try {
+            // Get meshparams for power configuration
+            JSONObject meshParams = service.boardState.getMeshParams();
+            int superSleep = meshParams.optInt("supersleep", 43600); // Default 43600 seconds (~12 hours)
+            
+            BLog.d(TAG, "Using power config: superSleep=" + superSleep + " seconds");
+            
             // Configure power settings with super deep sleep time
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
             ConfigProtos.Config.PowerConfig.Builder power = ConfigProtos.Config.PowerConfig.newBuilder();
 
-            // Set super deep sleep time to 43600 seconds (approximately 12.1 hours)
-            power.setSdsSecs(43600);
+            // Set super deep sleep time from meshparams
+            power.setSdsSecs(superSleep);
 
             // Build the config and admin message
             ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
