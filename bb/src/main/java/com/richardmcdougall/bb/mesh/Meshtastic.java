@@ -424,11 +424,12 @@ class Meshtastic {
         try {
             // Get meshparams for channel configuration
             JSONObject meshParams = service.boardState.getMeshParams();
-            String channel1Name = meshParams.optString("channel1name", "BBPrivate"); // Default channel 1 name
+            String channel1Name = meshParams.optString("channel1name", "Blinkything"); // Default channel 1 name
             String channel1Key = meshParams.optString("channel1key", "AQ=="); // Default key
-            int positionAccuracy = meshParams.optInt("positionaccuracy", 32); // Default high precision
+            int positionAccuracy = meshParams.optInt("positionaccuracy", 52); // Default high precision
             
-            BLog.d(TAG, "Using channel config: channel1Name=" + channel1Name + ", positionAccuracy=" + positionAccuracy);
+            BLog.d(TAG, "Using channel config: channel1Name=" + channel1Name +
+                    ", positionAccuracy=" + positionAccuracy);
             
             // Configure Channel 0 (default channel) with passkey "AQ==" and position enabled
             MeshProtos.ToRadio.Builder packet;
