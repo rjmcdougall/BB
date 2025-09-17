@@ -314,7 +314,7 @@ public class AllBoards {
         JSONObject meshParams = null;
 
         try {
-            // Try to get meshparams from the specified board
+            // Try to get meshParams from the specified board
             board = getBoardByID(boardID);
             if (board != null && board.has("meshParams")) {
                 meshParams = getMeshParamsFromBoard(board);
@@ -324,7 +324,7 @@ public class AllBoards {
                 }
             }
             
-            // If not found, try to get meshparams from the special 'default' board
+            // If not found, try to get meshParams from the special 'default' board
             JSONObject defaultBoard = getBoardByID("default");
             if (defaultBoard != null && defaultBoard.has("meshParams")) {
                 meshParams = getMeshParamsFromBoard(defaultBoard);
@@ -335,12 +335,12 @@ public class AllBoards {
             }
             
             // If still not found, use hard-coded defaults
-            BLog.d(TAG, "No meshparams found for board: " + boardID + ", using hard-coded defaults");
+            BLog.d(TAG, "No meshParams found for board: " + boardID + ", using hard-coded defaults");
             meshParams = getDefaultMeshParams();
             
         } catch (Exception e) {
-            BLog.e(TAG, "Error getting meshparams: " + e.getMessage());
-            // Return default meshparams on error
+            BLog.e(TAG, "Error getting meshParams: " + e.getMessage());
+            // Return default meshParams on error
             meshParams = getDefaultMeshParams();
         }
         return meshParams;
@@ -362,16 +362,16 @@ public class AllBoards {
                 if (meshParamsStr.trim().startsWith("{") || meshParamsStr.trim().startsWith("[")) {
                     return new JSONObject(meshParamsStr);
                 } else {
-                    BLog.w(TAG, "meshparams is a string but doesn't appear to be JSON: " + meshParamsStr);
+                    BLog.w(TAG, "meshParams is a string but doesn't appear to be JSON: " + meshParamsStr);
                     return null;
                 }
             }
             
-            BLog.w(TAG, "meshparams is of unexpected type: " + meshParamsObj.getClass().getSimpleName());
+            BLog.w(TAG, "meshParams is of unexpected type: " + meshParamsObj.getClass().getSimpleName());
             return null;
             
         } catch (Exception e) {
-            BLog.e(TAG, "Error parsing meshparams from board: " + e.getMessage());
+            BLog.e(TAG, "Error parsing meshParams from board: " + e.getMessage());
             return null;
         }
     }
@@ -379,7 +379,7 @@ public class AllBoards {
     private JSONObject getDefaultMeshParams() {
         JSONObject defaultParams = new JSONObject();
         try {
-            defaultParams.put("meshupdateinterval", 900); // 30 seconds in milliseconds
+            defaultParams.put("meshupdateinterval", 900); // Mesh update interval in seconds
             defaultParams.put("channelnum", 1); // Primary channel
             defaultParams.put("modempreset", "MEDIUM_SLOW"); // Default modem preset
             defaultParams.put("hoplimit", 7); // Default hop limit
@@ -387,6 +387,12 @@ public class AllBoards {
             defaultParams.put("channel1key", "AQ=="); // Base64 encoded key (null key)
             defaultParams.put("positionaccuracy", 32); // Position accuracy in meters
             defaultParams.put("supersleep", 43200); // Super deep sleep in seconds (12 hours)
+            
+            // Position broadcast parameters
+            defaultParams.put("positionbroadcastsecs", 900); // Position broadcast interval in seconds (15 minutes)
+            defaultParams.put("broadcastsmartminimumintervalsecs", 30); // Smart minimum broadcast interval in seconds
+            defaultParams.put("broadcastsmartminimumdistance", 100); // Smart minimum broadcast distance in meters
+            
         } catch (Exception e) {
             BLog.e(TAG, "Error creating default mesh params: " + e.getMessage());
         }

@@ -491,6 +491,16 @@ class Meshtastic {
     private void setPositionDefaults() {
         BLog.d(TAG, "setPositionDefaults");
         try {
+            // Get meshparams for position configuration
+            JSONObject meshParams = service.boardState.getMeshParams();
+            int positionBroadcastSecs = meshParams.optInt("positionbroadcastsecs", 900); // Default 15 minutes
+            int smartMinimumIntervalSecs = meshParams.optInt("broadcastsmartminimumintervalsecs", 30); // Default 30 seconds
+            int smartMinimumDistance = meshParams.optInt("broadcastsmartminimumdistance", 100); // Default 100 meters
+            
+            BLog.d(TAG, "Using position config: positionBroadcastSecs=" + positionBroadcastSecs +
+                    ", smartMinimumIntervalSecs=" + smartMinimumIntervalSecs +
+                    ", smartMinimumDistance=" + smartMinimumDistance);
+            
             // Configure position settings for smart adaptive broadcasting
             MeshProtos.ToRadio.Builder packet;
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
@@ -499,14 +509,14 @@ class Meshtastic {
             // Enable smart adaptive position broadcasting
             position.setPositionBroadcastSmartEnabled(true);
 
-            // Set regular position broadcast interval to 300 seconds (5 minutes) when not moving
-            position.setPositionBroadcastSecs(300);
+            // Set regular position broadcast interval from mesh params
+            position.setPositionBroadcastSecs(positionBroadcastSecs);
 
-            // Set minimum interval to 30 seconds when moving
-            position.setBroadcastSmartMinimumIntervalSecs(30);
+            // Set minimum interval when moving from mesh params
+            position.setBroadcastSmartMinimumIntervalSecs(smartMinimumIntervalSecs);
 
-            // Set minimum distance to trigger a broadcast (10 meters)
-            position.setBroadcastSmartMinimumDistance(10);
+            // Set minimum distance to trigger a broadcast from mesh params
+            position.setBroadcastSmartMinimumDistance(smartMinimumDistance);
 
             // Build the config and admin message
             ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
