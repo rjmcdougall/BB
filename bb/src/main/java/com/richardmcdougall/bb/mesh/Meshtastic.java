@@ -353,9 +353,7 @@ class Meshtastic {
             MeshProtos.User.Builder user = MeshProtos.User.newBuilder();
             user.setLongName(boardName);
             user.setShortName(shortName);
-            // Set a default ID based on the board name if needed
-            user.setId("!" + boardName.toLowerCase().replaceAll("[^a-z0-9]", "").substring(0, Math.min(8, boardName.length())));
-
+            user.setId(String.format("!%08x", radioNodeNum));
             admin.setSetOwner(user.build());
             admin.setSessionPasskey(sessionPasskey);
             DataPacket data = new DataPacket(radioNodeNum, admin.build());
@@ -506,6 +504,7 @@ class Meshtastic {
             AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
             ConfigProtos.Config.PositionConfig.Builder position = ConfigProtos.Config.PositionConfig.newBuilder();
 
+            position.setGpsMode(ConfigProtos.Config.PositionConfig.GpsMode.ENABLED);
             // Enable smart adaptive position broadcasting
             position.setPositionBroadcastSmartEnabled(true);
 

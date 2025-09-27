@@ -22,10 +22,8 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 29
 
-        versionCode 5204
-        versionName "5204"
-
-        // 5048 fixes master audio and volume and disables video.
+        versionCode 5208
+        versionName "5208"
 
         signingConfig signingConfigs.burnerboard
         multiDexEnabled true
