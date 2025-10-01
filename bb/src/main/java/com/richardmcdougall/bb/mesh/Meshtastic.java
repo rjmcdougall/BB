@@ -233,7 +233,7 @@ class Meshtastic {
             packetProcessor.connect();
 
             requestConfig();
-            Thread.sleep(10000);
+            Thread.sleep(20000);
             requestKey();
             Thread.sleep(10000);
 
