@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 
 import com.geeksville.mesh.*;
@@ -68,10 +69,16 @@ class Meshtastic {
 
     // Messages buffer for text messages received from mesh
     private Messages messages;
+    
+    // Debug message handler for firmware log messages
+    private MeshDebug meshDebug;
 
     private MeshProtos.MyNodeInfo.Builder myNode = MeshProtos.MyNodeInfo.newBuilder();
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+    
+    // Mutex lock for sendToRadio thread safety
+    private final ReentrantLock sendToRadioLock = new ReentrantLock();
 
     UsbWrapper.UsbWrapperCallback mUsbCallback = new UsbWrapper.UsbWrapperCallback() {
         @Override
@@ -132,8 +139,9 @@ class Meshtastic {
     PacketProcessor packetProcessor = new PacketProcessor(packetCallback);
 
     MeshtasticThreadFactory meshtasticThreadFactory = new MeshtasticThreadFactory();
-    private ScheduledThreadPoolExecutor sch = (java.util.concurrent.ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1, meshtasticThreadFactory);
+    private ScheduledThreadPoolExecutor sch = (java.util.concurrent.ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(2, meshtasticThreadFactory);
     Runnable meshSendLoop = () -> meshSendLoop();
+    Runnable heartbeatLoop = () -> sendHeartbeat();
 
     static class MeshtasticThreadFactory implements ThreadFactory {
         public Thread newThread(Runnable r) {
@@ -153,23 +161,31 @@ class Meshtastic {
         } catch (Exception e) {
 
         }
+        int meshUpdateIntervalSeconds;
         try {
             this.service = service;
             
             // Get meshparams and use meshupdateinterval for scheduling
             JSONObject meshParams = service.boardState.getMeshParams();
-            int meshUpdateIntervalSeconds = meshParams.optInt("meshupdateinterval", 900); // Default 30 seconds
+            meshUpdateIntervalSeconds = meshParams.optInt("meshupdateinterval", 900);
 
+            // TODO: put back to meshUpdateIntervalSeconds !!!
+            // meshUpdateIntervalSeconds = 60;
             BLog.d(TAG, "Using mesh update interval: " + meshUpdateIntervalSeconds + " seconds");
-            sch.scheduleWithFixedDelay(meshSendLoop, 60, meshUpdateIntervalSeconds, TimeUnit.SECONDS);
 
         } catch (Exception e) {
             BLog.e(TAG, "Error setting up mesh scheduler: " + e.getMessage());
             // Fallback to default 900 seconds (15 minutes)
-            sch.scheduleWithFixedDelay(meshSendLoop, 60, 900, TimeUnit.SECONDS);
+            meshUpdateIntervalSeconds = 900;
         }
+        sch.scheduleWithFixedDelay(meshSendLoop, 60, meshUpdateIntervalSeconds, TimeUnit.SECONDS);
+        
+        // Schedule heartbeat separately with fixed 10-second interval
+        sch.scheduleWithFixedDelay(heartbeatLoop, 10, 10, TimeUnit.SECONDS);
+        
         nodeDB = new NodeDB(service);
         messages = new Messages();
+        meshDebug = new MeshDebug();
         initMyNode();
     }
 
@@ -286,6 +302,19 @@ class Meshtastic {
         sentReboot = true;
     }
 
+    private void sendHeartBeatRemoveThis() {
+        BLog.d(TAG, "sendHeartBeat");
+        MeshProtos.ToRadio.Builder packet;
+        AdminProtos.AdminMessage.Builder admin = AdminProtos.AdminMessage.newBuilder();
+        admin.setGetDeviceMetadataRequest(true);
+        DataPacket data = new DataPacket(radioNodeNum, admin.build());
+        packet = MeshProtos.ToRadio.newBuilder();
+        packet.setPacket(data.toProto(nodeDB));
+        packet.build();
+        BLog.d(TAG, "sending sendHeartBeat : \n" + packet.toString());
+        sendToRadio(packet);
+    }
+
     private void requestKey() {
         BLog.d(TAG, "requestKey");
         MeshProtos.ToRadio.Builder packet;
@@ -322,7 +351,7 @@ class Meshtastic {
         ConfigProtos.Config.Builder config = ConfigProtos.Config.newBuilder();
         config.setDevice(device);
         admin.setSetConfig(config.build());
-        //admin.setSessionPasskey(sessionPasskey);
+        admin.setSessionPasskey(sessionPasskey);
         DataPacket data = new DataPacket(radioNodeNum, admin.build());
         packet = MeshProtos.ToRadio.newBuilder();
         packet.setPacket(data.toProto(nodeDB));
@@ -578,7 +607,9 @@ class Meshtastic {
             //TimeUnit.SECONDS.sleep(1800);
             // Send on both default and private channel
             sendTelemetry(0);
+            Thread.sleep(2000);
             sendTelemetry(1);
+            // Heartbeat now runs on separate scheduler - removed from here
         } catch (Exception e) {
 
         }
@@ -653,9 +684,14 @@ class Meshtastic {
 
 
     public void sendToRadio(MeshProtos.ToRadio.Builder p) {
-        MeshProtos.ToRadio packet = p.build();
-        BLog.d(TAG, "Sending packet to radio:\n" + packet.toString());
-        packetProcessor.sendToRadio(packet.toByteArray());
+        sendToRadioLock.lock();
+        try {
+            MeshProtos.ToRadio packet = p.build();
+            BLog.d(TAG, "Sending packet to radio:\n" + packet.toString());
+            packetProcessor.sendToRadio(packet.toByteArray());
+        } finally {
+            sendToRadioLock.unlock();
+        }
     }
 
 
@@ -733,9 +769,17 @@ class Meshtastic {
                     BLog.d(TAG, "FileInfo FromRadio variant: " + fromRadio.toString());
                     //handleClientNotification(fromRadio.getFileInfo());
                     break;
+                case MeshProtos.FromRadio.LOG_RECORD_FIELD_NUMBER:
+                    BLog.d(TAG, "LogRecord FromRadio variant received");
+                    handleLogRecord(fromRadio.getLogRecord());
+                    break;
                 default:
                     BLog.d(TAG, "Unexpected FromRadio variant: " + fromRadio.toString());
             }
+            
+            // Note: For USB/Serial transport, packet consumption happens automatically
+            // by reading from the stream. No explicit ACK needed like in Bluetooth.
+            
         } catch (Exception ex) {
             BLog.d(TAG, "Invalid Protobuf from radio, len=" + bytes.length + " :" + ex.getMessage());
         }
@@ -744,6 +788,17 @@ class Meshtastic {
     void handleMyInfo(MeshProtos.MyNodeInfo info) {
         BLog.d(TAG, info.toString());
         radioNodeNum = info.getMyNodeNum();
+    }
+    
+    /**
+     * Handle debug log record messages from firmware
+     */
+    void handleLogRecord(MeshProtos.LogRecord logRecord) {
+        try {
+            meshDebug.handleLogRecord(logRecord);
+        } catch (Exception e) {
+            BLog.e(TAG, "Error handling log record: " + e.getMessage());
+        }
     }
 
     void handleNodeInfo(MeshProtos.NodeInfo node) {
@@ -1079,6 +1134,26 @@ class Meshtastic {
         }
     }
 
+    /**
+     * Send heartbeat
+     */
+    private void sendHeartbeat() {
+        try {
+            // Send a heartbeat message to acknowledge the FromRadio packet
+            MeshProtos.Heartbeat heartbeat = MeshProtos.Heartbeat.newBuilder().build();
+
+            MeshProtos.ToRadio.Builder packet = MeshProtos.ToRadio.newBuilder();
+            packet.setHeartbeat(heartbeat);
+            packet.build();
+            BLog.d(TAG, "Sending Heartbeat: ");
+            BLog.d(TAG, "Sending packet to radio:\n" + packet.toString());
+            sendToRadio(packet);
+            
+        } catch (Exception e) {
+            BLog.e(TAG, "Error sending Heartbeat: " + e.getMessage());
+        }
+    }
+    
     public void acknowledgePacket(MeshProtos.MeshPacket receivedPacket) {
         if (receivedPacket.getWantAck()) {  // Only ack if requested
 
@@ -1164,5 +1239,23 @@ class Meshtastic {
      */
     public Messages getMessages() {
         return messages;
+    }
+    
+    /**
+     * Get the MeshDebug instance for debug message handling
+     *
+     * @return MeshDebug instance
+     */
+    public MeshDebug getMeshDebug() {
+        return meshDebug;
+    }
+    
+    /**
+     * Log debug statistics for troubleshooting
+     */
+    public void logDebugStats() {
+        if (meshDebug != null) {
+            meshDebug.logDebugStats();
+        }
     }
 }

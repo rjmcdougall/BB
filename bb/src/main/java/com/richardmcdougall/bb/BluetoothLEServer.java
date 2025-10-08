@@ -672,12 +672,39 @@ public class BluetoothLEServer {
             return success;
         }
 
+        // Sanitizes a string to remove characters that could interfere with JSON parsing
+        // Keeps only printable ASCII characters, common JSON characters, and valid Unicode text
+        String sanitizeJsonString(String input) {
+            if (input == null) {
+                return "";
+            }
+            
+            StringBuilder sanitized = new StringBuilder();
+            for (int i = 0; i < input.length(); i++) {
+                char c = input.charAt(i);
+                
+                // Keep printable ASCII characters (32-126)
+                // Also keep common whitespace characters (space, tab, newline, carriage return)
+                // Keep common JSON structural characters
+                if ((c >= 32 && c <= 126) ||  // Printable ASCII
+                    c == '\t' || c == '\n' || c == '\r' ||  // Common whitespace
+                    c == ' ') {  // Space
+                    sanitized.append(c);
+                }
+                // Skip all other characters (including control characters and non-text bytes)
+            }
+            
+            return sanitized.toString();
+        }
+        
         // Checks and extracts the commmand in JSON format from the string
         JSONObject extractCommand(String cmd) {
             JSONObject command = null;
-            BLog.d(TAG, "Received JSON: <" + cmd + ">");
+            // Sanitize the command string to remove characters incompatible with JSON parsing
+            String sanitizedCmd = sanitizeJsonString(cmd);
+            BLog.d(TAG, "Received JSON: <" + sanitizedCmd + ">");
             try {
-                command = new JSONObject(cmd);
+                command = new JSONObject(sanitizedCmd);
             } catch (Exception e) {
                 BLog.e(TAG, "Could not parse message");
                 return null;

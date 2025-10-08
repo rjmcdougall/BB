@@ -1,5 +1,7 @@
 # longest current is 45 chars, plan with a bit of buffer
 *DeviceConfig.tzdef max_size:65
+*DeviceConfig.buzzer_mode int_size:8
+
 
 *NetworkConfig.wifi_ssid max_size:33
 *NetworkConfig.wifi_psk max_size:65
@@ -19,4 +21,4 @@
 *SecurityConfig.public_key max_size:32
 *SecurityConfig.private_key max_size:32
 *SecurityConfig.admin_key max_size:32
-*SecurityConfig.admin_key max_count:1
+*SecurityConfig.admin_key max_count:3
