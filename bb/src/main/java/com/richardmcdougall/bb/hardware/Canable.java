@@ -217,12 +217,28 @@ class Canable implements SerialInputOutputManager.Listener {
     private String frameToSlcan(CanFrame frame) {
         String result = "";
 
-        result += "t";
-        result += String.format("%03X", frame.getId());
-        result += Integer.toString(frame.getDlc());
+        int dlc = frame.getDlc();
+        if (dlc < 0) {
+            dlc = 0;
+        } else if (dlc > 8) {
+            dlc = 8;
+        }
 
-        for (int i : frame.getData()) {
-            result += String.format("%02X", i);
+        if (frame.isExtended()) {
+            // Extended (29-bit) ID: 'T' + 8 hex id digits
+            result += "T";
+            result += String.format("%08X", frame.getId());
+        } else {
+            // Standard (11-bit) ID: 't' + 3 hex id digits
+            result += "t";
+            result += String.format("%03X", frame.getId());
+        }
+        result += Integer.toString(dlc);
+
+        // Emit exactly dlc data bytes (getData() is always padded to 8).
+        int[] data = frame.getData();
+        for (int i = 0; i < dlc; i++) {
+            result += String.format("%02X", data[i]);
         }
 
         result += "\r";

@@ -35,8 +35,56 @@ public class VescController implements CanListener {
 
     private static final float kPresumedCurrentLoadLights = 3.0f;
 
+    // BBPower (LED/amp power PCB) CAN address, see BBPower firmware bms_can.cpp (CAN_ADDR).
+    private static final int kBBPowerCanAddr = 9;
+    // Our (brain) source id, reported to BBPower as rx_buffer_last_id. BBPower only uses
+    // this to address terminal reply output, so any id not colliding with the VESC (0) or
+    // BBPower (9) is fine.
+    private static final int kBrainCanAddr = 42;
+    // VESC comm packet id for a terminal command (COMM_TERMINAL_CMD, see BBPower bms_can.h).
+    private static final int COMM_TERMINAL_CMD = 20;
+    // commands_send selector = 0 -> commands_process_packet (see BBPower decode_msg).
+    private static final int kCommandsProcess = 0;
+
+    private Canable canbus;
+
     public VescController(BBService service, Canable canbus) {
+        this.canbus = canbus;
         canbus.addListener(this);
+    }
+
+    /**
+     * Send an ASCII terminal command (e.g. "lx", "ampx", "l1") to the BBPower PCB over CAN.
+     * Wraps the command as COMM_TERMINAL_CMD inside a CAN_PACKET_PROCESS_SHORT_BUFFER frame,
+     * matching the VESC protocol BBPower expects. Short commands fit a single CAN frame.
+     */
+    public void sendPowerCommand(String cmd) {
+        if (canbus == null || cmd == null) {
+            return;
+        }
+        byte[] ascii = cmd.getBytes();
+        // Payload: [brain id][commands_send=0][COMM_TERMINAL_CMD][ascii...], max 8 bytes.
+        int len = 3 + ascii.length;
+        if (len > 8) {
+            BLog.e(TAG, "power command too long for a single CAN frame: " + cmd);
+            return;
+        }
+        int[] data = new int[len];
+        data[0] = kBrainCanAddr;
+        data[1] = kCommandsProcess;
+        data[2] = COMM_TERMINAL_CMD;
+        for (int i = 0; i < ascii.length; i++) {
+            data[3 + i] = ascii[i] & 0xFF;
+        }
+
+        CanFrame frame = new CanFrame();
+        frame.setExtended(true);
+        frame.setId(kBBPowerCanAddr | (VESC_CAN_PACKET_ID.CAN_PACKET_PROCESS_SHORT_BUFFER << 8));
+        frame.setDlc(len);
+        frame.setData(data);
+
+        BLog.d(TAG, "Sending BBPower terminal command: " + cmd);
+        canbus.sendFrame(frame);
     }
 
     public boolean vescHeard() {

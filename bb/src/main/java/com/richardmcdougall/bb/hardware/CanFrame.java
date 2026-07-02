@@ -4,6 +4,7 @@ public class CanFrame {
     private int id;
     private int dlc;
     private int[] data;
+    private boolean extended = false;
 
     public int getId() {
         return this.id;
@@ -11,6 +12,14 @@ public class CanFrame {
 
     public void setId(int new_id) {
         this.id = new_id;
+    }
+
+    public boolean isExtended() {
+        return this.extended;
+    }
+
+    public void setExtended(boolean new_extended) {
+        this.extended = new_extended;
     }
 
     public int getDlc() {

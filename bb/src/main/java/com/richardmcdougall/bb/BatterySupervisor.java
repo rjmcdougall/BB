@@ -20,6 +20,11 @@ public class BatterySupervisor {
 
     private int returnFromIdle = 0;
 
+    // Persist the power state across invocations so we can detect the
+    // IDLE -> DISCHARGING transition (i.e. the board was just switched on)
+    // and pop the battery up only once on that transition, momentarily.
+    private powerStates powerState = powerStates.STATE_IDLE;
+
     Runnable batterySupervisor = () -> checkBattery();
 
     BatterySupervisor(BBService service) {
@@ -43,7 +48,6 @@ public class BatterySupervisor {
     public void checkBattery() {
 
         boolean announce;
-        powerStates powerState = powerStates.STATE_DISPLAYING;
 
 
         try {

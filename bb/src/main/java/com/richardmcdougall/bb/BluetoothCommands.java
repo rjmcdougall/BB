@@ -411,7 +411,7 @@ public class BluetoothCommands {
 
                         if (subcmd.equals("amp")) {
                             boolean state = payload.getBoolean("arg");
-                            service.powerController.leds(state);
+                            service.powerController.amp(state);
                         } else if (subcmd.equals("leds")) {
                             boolean state = payload.getBoolean("arg");
                             service.powerController.leds(state);
