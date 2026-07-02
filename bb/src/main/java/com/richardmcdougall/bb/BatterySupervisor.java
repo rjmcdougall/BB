@@ -20,6 +20,9 @@ public class BatterySupervisor {
 
     private int returnFromIdle = 0;
 
+    // Tracks VESC on/off so we can detect the off->on edge and release BLE force-on.
+    private boolean vescWasOn = false;
+
     // Persist the power state across invocations so we can detect the
     // IDLE -> DISCHARGING transition (i.e. the board was just switched on)
     // and pop the battery up only once on that transition, momentarily.
@@ -77,6 +80,15 @@ public class BatterySupervisor {
 
         BLog.d(TAG, "Battery is " + batteryLevelState);
         BLog.d(TAG, "Battery state is " + batteryState);
+
+        // When the VESC turns on, release any BLE force-on so the VESC/BBPower
+        // auto-mode becomes the sole controller again. Otherwise a BLE "on"
+        // keeps the outputs on indefinitely, overriding the VESC.
+        boolean vescOn = (service.vesc != null) && service.vesc.vescOn();
+        if (vescOn && !vescWasOn && service.powerController != null) {
+            service.powerController.clearForceOn();
+        }
+        vescWasOn = vescOn;
 
         if (batteryState == BMS.batteryStates.STATE_IDLE) {
             // Any state -> IDLE

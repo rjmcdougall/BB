@@ -46,6 +46,21 @@ public class PowerController {
         return ledsHold;
     }
 
+    /**
+     * Release any BLE force-on (LED/amp lease). Called when the VESC turns on so
+     * the VESC/BBPower auto-mode becomes the sole controller again -- otherwise a
+     * BLE "on" would keep the outputs on indefinitely, overriding the VESC. We
+     * just stop renewing the lease; it expires within kKeeponSeconds and, while
+     * the VESC is on, BBPower keeps the outputs on anyway.
+     */
+    public void clearForceOn() {
+        if (ledsHold || ampHold) {
+            BLog.d(TAG, "clearForceOn: releasing BLE led/amp hold (VESC took over)");
+        }
+        ledsHold = false;
+        ampHold = false;
+    }
+
     private void refreshLeases() {
         try {
             // Only renew the lease here -- do NOT re-assert lm1/l1/amp1. The lease
