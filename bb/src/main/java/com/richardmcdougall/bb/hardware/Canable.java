@@ -75,6 +75,13 @@ class Canable implements SerialInputOutputManager.Listener {
     private static final int kCanbusSpeed = 6; // canable 500k
     private final static ArrayList<CanListener> canListeners = new ArrayList<>();
 
+    // Data-flow watchdog: if the link is nominally connected (io manager RUNNING)
+    // but no CAN bytes arrive for this long, force a full reconnect. Catches the
+    // "zombie" state where the USB serial reports open but delivers nothing (seen
+    // after restarts / adapter glitches) that the plain RUNNING-state check misses.
+    private static final long kNoDataTimeoutMs = 8000;
+    private volatile long lastDataMs = 0;
+
     List<Byte> frameBytes = new ArrayList<>();
 
     public Canable(BBService service) {
@@ -98,15 +105,25 @@ class Canable implements SerialInputOutputManager.Listener {
     private void usbSupervisor() {
         //BLog.e(TAG, "supervisor");
 
-        // Check in case iomanager left serial port open but manager shutdown on error
+        // Check in case iomanager left serial port open but manager shutdown on error,
+        // or the link is a "zombie" (RUNNING but no data flowing).
         try {
-            if (mSerialIoManager.getState() != SerialInputOutputManager.State.RUNNING) {
+            boolean notRunning =
+                    mSerialIoManager.getState() != SerialInputOutputManager.State.RUNNING;
+            boolean stalled = (lastDataMs > 0)
+                    && (System.currentTimeMillis() - lastDataMs > kNoDataTimeoutMs);
+            if (notRunning || stalled) {
+                if (stalled) {
+                    BLog.d(TAG, "supervisor: no CAN data for >" + kNoDataTimeoutMs
+                            + "ms, forcing reconnect");
+                }
                 if (sPort != null) {
                     BLog.d(TAG, "supervisor closing serial port");
                     sPort.close();
                 }
                 mDeviceConnection.close();
                 mUsbDevice = null;
+                lastDataMs = 0;
             }
         } catch (Exception e) {}
 
@@ -149,6 +166,7 @@ class Canable implements SerialInputOutputManager.Listener {
     @Override
     public void onNewData(byte[] data) {
         if (data.length > 0) {
+            lastDataMs = System.currentTimeMillis();
             //BLog.d(TAG, "Received " + data.length + "bytes: " + new String(data));
             try {
 
@@ -414,6 +432,9 @@ class Canable implements SerialInputOutputManager.Listener {
 
                 //mSerialIoManager = new SerialInputOutputManager(sPort, mListener, this.service);
                 mExecutor.submit(mSerialIoManager);
+                // Give the freshly-opened link a grace period before the
+                // no-data watchdog can fire.
+                lastDataMs = System.currentTimeMillis();
                 BLog.d(TAG, "USB Connected to Canable CANBUS");
 
             }

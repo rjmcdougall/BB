@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by rmc on 3/5/17.
@@ -73,6 +75,11 @@ public abstract class BurnerBoard {
     public SerialInputOutputManager mSerialIoManager;
     public UsbDevice mUsbDevice = null;
     private BoardUSBReceiver boardUSBReceiver = null;
+    // Polls the display serial link and reconnects if it drops (e.g. the display
+    // USB is transiently unplugged). Mirrors Canable.usbSupervisor, since a
+    // background Service can't rely on USB attach/detach broadcast intents.
+    private final ScheduledThreadPoolExecutor usbSch =
+            (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 
     public abstract int getFrameRate();
 
@@ -99,6 +106,36 @@ public abstract class BurnerBoard {
         this.service.registerReceiver(this.boardUSBReceiver, filter);
 
         initUsb();
+
+        // Recover the display link if the USB is unplugged/replugged.
+        usbSch.scheduleWithFixedDelay(this::usbSupervisor, 1, 1, TimeUnit.SECONDS);
+    }
+
+    /**
+     * Watchdog for the display serial connection. If the IO manager has died
+     * (which happens when the display USB is unplugged, surfacing as onRunError),
+     * tear it down and clear mUsbDevice so initUsb() can reconnect on replug.
+     * Without this, a transient disconnect leaves mUsbDevice set and initUsb()
+     * bails with "already have a device", so the display never comes back.
+     */
+    private void usbSupervisor() {
+        try {
+            if (mSerialIoManager != null &&
+                    mSerialIoManager.getState() != SerialInputOutputManager.State.RUNNING) {
+                BLog.d(TAG, "usbSupervisor: display io manager not running, tearing down");
+                stopIoManager();
+                mUsbDevice = null;
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "usbSupervisor teardown error: " + e.getMessage());
+        }
+        try {
+            if (mUsbDevice == null) {
+                initUsb();
+            }
+        } catch (Exception e) {
+            BLog.e(TAG, "usbSupervisor initUsb error: " + e.getMessage());
+        }
     }
 
     void init (int width, int height) {
@@ -543,9 +580,9 @@ public abstract class BurnerBoard {
             return;
         }
 
-        // Register to receive detached messages
-        IntentFilter filter = new IntentFilter(UsbManager.ACTION_USB_ACCESSORY_DETACHED);
-        service.registerReceiver(this.boardUSBReceiver, filter);
+        // Note: boardUSBReceiver is registered once in the constructor. Do not
+        // re-register here -- initUsb() is now called repeatedly by usbSupervisor,
+        // and re-registering the same receiver every second leaks registrations.
 
         // Find the Radio device by pid/vid
         mUsbDevice = null;

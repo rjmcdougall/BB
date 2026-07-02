@@ -38,8 +38,20 @@ public class PowerController {
                 kLeaseRefreshSeconds, kLeaseRefreshSeconds, TimeUnit.SECONDS);
     }
 
+    /**
+     * True when the LEDs have been forced on via BLE (an active lease). Used by
+     * BatterySupervisor to keep rendering graphics even with the VESC off.
+     */
+    public boolean areLedsForced() {
+        return ledsHold;
+    }
+
     private void refreshLeases() {
         try {
+            // Only renew the lease here -- do NOT re-assert lm1/l1/amp1. The lease
+            // keeps the LEDs/amp on while the VESC is off (the feature); when the
+            // VESC is on, BBPower's auto mode owns the relays. Re-asserting the
+            // direct on-commands every cycle would override the VESC entirely.
             if (ledsHold) {
                 vesc.sendPowerCommand("lx");
             }
@@ -56,7 +68,11 @@ public class PowerController {
             BLog.d(TAG, "leds: " + state);
             ledsHold = state;
             if (state) {
-                // Start/renew the lease now; scheduler keeps it alive.
+                // Turn on immediately regardless of VESC state (lx alone only
+                // lights up when the VESC is off), then hold via the lease so
+                // they stay on if the VESC later powers off.
+                vesc.sendPowerCommand("lm1");
+                vesc.sendPowerCommand("l1");
                 vesc.sendPowerCommand("lx");
             } else {
                 // Stop renewing and turn the LEDs off promptly.
@@ -73,6 +89,9 @@ public class PowerController {
             BLog.d(TAG, "amp: " + state);
             ampHold = state;
             if (state) {
+                // Turn on immediately regardless of VESC state, then hold via
+                // the lease so it stays on if the VESC later powers off.
+                vesc.sendPowerCommand("amp1");
                 vesc.sendPowerCommand("ampx");
             } else {
                 vesc.sendPowerCommand("amp0");

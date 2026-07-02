@@ -81,7 +81,12 @@ public class BatterySupervisor {
         if (batteryState == BMS.batteryStates.STATE_IDLE) {
             // Any state -> IDLE
             powerState = powerStates.STATE_IDLE;
-            service.visualizationController.inhibitVisual = true;
+            // Normally blank the graphics when the board is parked/idle. But if the
+            // LEDs were forced on via the BLE power command (lease active), keep
+            // rendering so graphics show even with the VESC off.
+            boolean ledsForced = (service.powerController != null)
+                    && service.powerController.areLedsForced();
+            service.visualizationController.inhibitVisual = !ledsForced;
         } else if (batteryState == BMS.batteryStates.STATE_DISCHARGING) {
             // Idle -> Displaying
             if (powerState == powerStates.STATE_IDLE) {
