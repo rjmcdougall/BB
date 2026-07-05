@@ -166,17 +166,28 @@ class Canable implements SerialInputOutputManager.Listener {
     @Override
     public void onNewData(byte[] data) {
         if (data.length > 0) {
-            lastDataMs = System.currentTimeMillis();
             //BLog.d(TAG, "Received " + data.length + "bytes: " + new String(data));
             try {
 
                 for (byte b : data) {
                     if (b == '\r') {
-                        // end of frame data received
-                        CanFrame f = slcanToFrame(frameBytes.toArray(new Byte[frameBytes.size()]));
-                        //BLog.d(TAG, "CAN frame " + f.str());
-                        giveFrame(f);
+                        // End of frame. Parse it, but ALWAYS clear the buffer first
+                        // so a malformed frame (e.g. the adapter's 'z'/'Z' transmit
+                        // ACKs or error bytes, which aren't 't'/'T' frames) can't
+                        // desync the parser or grow frameBytes without bound.
+                        CanFrame f = null;
+                        try {
+                            f = slcanToFrame(frameBytes.toArray(new Byte[frameBytes.size()]));
+                        } catch (Exception e) {
+                            // malformed frame -- ignore
+                        }
                         frameBytes.clear();
+                        if (f != null) {
+                            // Only count valid frames as "data" for the watchdog, so a
+                            // flood of unparseable ACK bytes still trips the no-data timer.
+                            lastDataMs = System.currentTimeMillis();
+                            giveFrame(f);
+                        }
                     } else {
                         // byte received, add to buffer
                         frameBytes.add(b);
